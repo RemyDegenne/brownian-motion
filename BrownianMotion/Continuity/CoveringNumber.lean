@@ -127,10 +127,6 @@ end maximalSeparatedSet
 
 section comparisons
 
-theorem packingNumber_two_le_internalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
-    packingNumber (2 * r) A ≤ internalCoveringNumber r A := by
-  sorry
-
 theorem internalCoveringNumber_le_packingNumber [PseudoMetricSpace α] (r : ℝ) (A : Set α)
     (hr : 0 ≤ r) :
     internalCoveringNumber r A ≤ packingNumber r A := by
@@ -141,13 +137,22 @@ theorem internalCoveringNumber_le_packingNumber [PseudoMetricSpace α] (r : ℝ)
   · rw [not_lt_top_iff] at h_top
     simp [h_top]
 
+theorem packingNumber_two_le_externalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
+    packingNumber (2 * r) A ≤ externalCoveringNumber r A := by
+  simp only [packingNumber, externalCoveringNumber, le_iInf_iff, iSup_le_iff, Nat.cast_le]
+  intro C hC_cover D hD_subset hD_separated
+  sorry
+
 theorem externalCoveringNumber_le_internalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
     externalCoveringNumber r A ≤ internalCoveringNumber r A := by
   simp only [externalCoveringNumber, internalCoveringNumber, le_iInf_iff]
   exact fun C _ hC_cover ↦ iInf₂_le C hC_cover
 
-theorem internalCoveringNumber_two_le_externalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
+theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoMetricSpace α]
+    (r : ℝ) (A : Set α) (hr : 0 ≤ r) :
     internalCoveringNumber (2 * r) A ≤ externalCoveringNumber r A := by
-  sorry
+  refine (internalCoveringNumber_le_packingNumber _ A ?_).trans ?_
+  · positivity
+  exact packingNumber_two_le_externalCoveringNumber r A
 
 end comparisons
