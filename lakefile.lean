@@ -9,6 +9,11 @@ require kolmogorov_extension4 from git
   "https://github.com/RemyDegenne/kolmogorov_extension4"
 
 @[default_target]
+lean_lib «BrownianMotion» {
+  -- add any library configuration options here
+}
+
+@[default_target]
 lean_exe «brownian_motion» {
   root := `Main
 }
