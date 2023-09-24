@@ -97,12 +97,15 @@ lemma card_le_of_isSeparated [Dist α] {C : Finset α} (h_subset : ↑C ⊆ A)
     C.card ≤ (maximalSeparatedSet r A).card := by
   sorry
 
-lemma isCover_maximalSeparatedSet [Dist α] (h : packingNumber r A < ⊤) :
+lemma isCover_maximalSeparatedSet [PseudoMetricSpace α] (h : packingNumber r A < ⊤) (hr : 0 ≤ r) :
     IsCover (maximalSeparatedSet r A) r A := by
   intro x hxA
   by_contra h_dist
   push_neg at h_dist
-  have hx_not_mem : x ∉ maximalSeparatedSet r A := by sorry
+  have hx_not_mem : x ∉ maximalSeparatedSet r A := by 
+    intro hx_mem
+    specialize h_dist x hx_mem
+    simp only [dist_self, not_lt.mpr hr] at h_dist 
   classical
   let C := {x} ∪ maximalSeparatedSet r A
   have hC_subset : ↑C ⊆ A := by
@@ -121,17 +124,20 @@ theorem packingNumber_two_le_internalCoveringNumber [Dist α] (r : ℝ) (A : Set
     packingNumber (2 * r) A ≤ internalCoveringNumber r A := by
   sorry
 
-theorem internalCoveringNumber_le_packingNumber [Dist α] (r : ℝ) (A : Set α) :
+theorem internalCoveringNumber_le_packingNumber [PseudoMetricSpace α] (r : ℝ) (A : Set α)
+    (hr : 0 ≤ r) :
     internalCoveringNumber r A ≤ packingNumber r A := by
   by_cases h_top : packingNumber r A < ⊤
-  swap; · rw [not_lt_top_iff] at h_top; simp [h_top]
-  rw [← card_maximalSeparatedSet h_top]
-  refine (iInf_le _ (maximalSeparatedSet r A : Finset α)).trans ?_
-  simp [maximalSeparatedSet_subset, isCover_maximalSeparatedSet h_top]
+  · rw [← card_maximalSeparatedSet h_top]
+    refine (iInf_le _ (maximalSeparatedSet r A : Finset α)).trans (le_of_eq ?_)
+    simp only [maximalSeparatedSet_subset, iInf_pos, isCover_maximalSeparatedSet h_top hr]
+  · rw [not_lt_top_iff] at h_top
+    simp [h_top]
 
 theorem externalCoveringNumber_le_internalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
     externalCoveringNumber r A ≤ internalCoveringNumber r A := by
-  sorry
+  simp only [externalCoveringNumber, internalCoveringNumber, le_iInf_iff]
+  exact fun C _ hC_cover ↦ iInf₂_le C hC_cover
 
 theorem internalCoveringNumber_two_le_externalCoveringNumber [Dist α] (r : ℝ) (A : Set α) :
     internalCoveringNumber (2 * r) A ≤ externalCoveringNumber r A := by
