@@ -1,6 +1,13 @@
 import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Data.ENat.Lattice
 
+/-!
+# Covering and packing numbers 
+
+### References
+- Vershynin, High-Dimensional Probability (section 4.2)
+-/
+
 variable {α : Type*}
 
 /-- A set `C` is an `r`-cover of another set `A` if every point in `A` belongs to a ball with radius
