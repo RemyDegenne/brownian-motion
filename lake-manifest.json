@@ -1,10 +1,10 @@
-{"version": 5,
+{"version": 6,
  "packagesDir": "lake-packages",
  "packages":
  [{"git":
    {"url": "https://github.com/RemyDegenne/kolmogorov_extension4",
     "subDir?": null,
-    "rev": "82d2e8c06f8180ce8b75b6495354374e6fc07654",
+    "rev": "183d5b2dfa9ab01c5b22d7ebf69112aa73df2727",
     "opts": {},
     "name": "kolmogorov_extension4",
     "inputRev?": null,
@@ -12,15 +12,15 @@
   {"git":
    {"url": "https://github.com/EdAyers/ProofWidgets4",
     "subDir?": null,
-    "rev": "a0c2cd0ac3245a0dade4f925bcfa97e06dd84229",
+    "rev": "65bba7286e2395f3163fd0277110578f19b8170f",
     "opts": {},
     "name": "proofwidgets",
-    "inputRev?": "v0.0.13",
+    "inputRev?": "v0.0.16",
     "inherited": true}},
   {"git":
    {"url": "https://github.com/mhuisi/lean4-cli.git",
     "subDir?": null,
-    "rev": "5a858c32963b6b19be0d477a30a1f4b6c120be7e",
+    "rev": "21dac2e9cc7e3cf7da5800814787b833e680b2fd",
     "opts": {},
     "name": "Cli",
     "inputRev?": "nightly",
@@ -28,7 +28,7 @@
   {"git":
    {"url": "https://github.com/leanprover-community/mathlib4.git",
     "subDir?": null,
-    "rev": "537e7f030d6df737d728c7c002fb1928f4615afa",
+    "rev": "1bda3b46774ca7d204e632781b92c31e32828e89",
     "opts": {},
     "name": "mathlib",
     "inputRev?": null,
@@ -36,7 +36,7 @@
   {"git":
    {"url": "https://github.com/gebner/quote4",
     "subDir?": null,
-    "rev": "81cc13c524a68d0072561dbac276cd61b65872a6",
+    "rev": "e75daed95ad1c92af4e577fea95e234d7a8401c1",
     "opts": {},
     "name": "Qq",
     "inputRev?": "master",
@@ -44,7 +44,7 @@
   {"git":
    {"url": "https://github.com/JLimperg/aesop",
     "subDir?": null,
-    "rev": "086c98bb129ca856381d4414dc0afd6e3e4ae2ef",
+    "rev": "1a0cded2be292b5496e659b730d2accc742de098",
     "opts": {},
     "name": "aesop",
     "inputRev?": "master",
@@ -52,8 +52,9 @@
   {"git":
    {"url": "https://github.com/leanprover/std4",
     "subDir?": null,
-    "rev": "61a6507eff4dd71c01e0c7e194bc569d4719a6d3",
+    "rev": "67855403d60daf181775fa1ec63b04e70bcc3921",
     "opts": {},
     "name": "std",
     "inputRev?": "main",
-    "inherited": true}}]}
+    "inherited": true}}],
+ "name": "brownian_motion"}
