@@ -62,6 +62,7 @@ lemma expInnerMulIₐ_apply (x : AddMonoidAlgebra ℝ E) (v : E) :
   · simp [expInnerMulI_apply]
   · simp
 
+variable (E) in
 /-- The star-subalgebra of exponential polynomials. -/
 noncomputable
 def expPoly : StarSubalgebra ℝ (E →ᵇ ℂ) where
@@ -84,3 +85,18 @@ def expPoly : StarSubalgebra ℝ (E →ᵇ ℂ) where
     · change y.embDomain f (f v) = starRingEnd ℂ (y v)
       rw [Finsupp.embDomain_apply, conj_ofReal] -- why is `conj_ofReal` not simp?
     · rw [conj_exp_mul_I, neg_mul]
+
+lemma mem_expPoly (f : E →ᵇ ℂ) :
+    f ∈ expPoly E
+      ↔ ∃ y : AddMonoidAlgebra ℝ E, f = fun x ↦ ∑ a in y.support, y a * exp (⟪a, x⟫_ℝ * I) := by
+  change f ∈ AlgHom.range expInnerMulIₐ ↔ _
+  simp only [AlgHom.mem_range]
+  constructor
+  · rintro ⟨y, rfl⟩
+    refine ⟨y, ?_⟩
+    ext1 u
+    rw [expInnerMulIₐ_apply]
+  · rintro ⟨y, h⟩
+    refine ⟨y, ?_⟩
+    ext1 u
+    rw [h, expInnerMulIₐ_apply]
