@@ -1,0 +1,596 @@
+% please run using
+% lualatex --shell-escape ...tex
+
+\documentclass{article}
+\usepackage{latexsym, a4wide}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{color}
+\usepackage{amsfonts,amssymb,mathtools,amsthm,mathrsfs,bbm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{lemma}[proposition]{Lemma}
+\newtheorem{corollary}[proposition]{Corollary}
+\newtheorem{definition}[proposition]{Definition}
+\theoremstyle{definition}
+\newtheorem{remark}[proposition]{Remark}
+\newtheorem{example}[proposition]{Example}
+\newtheoremstyle{step}{3pt}{0pt}{}{}{\bf}{}{.5em}{}
+\theoremstyle{step} \newtheorem{step}{Step}
+
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+\newcommand{\smallu}{\mathpzc{u}}
+
+\usepackage{minted}
+\setminted{encoding=utf-8}
+\usepackage{fontspec}
+%\setmainfont{dejavu-serif}
+\setmonofont[Scale=0.85]{dejavu-sans}
+%\setmainfont{FreeSerif}
+%\setmonofont{FreeMono}
+\usepackage{xcolor, graphics}
+\definecolor{mygray}{rgb}{0.97,0.97,0.97}
+\definecolor{LightCyan}{rgb}{0.8784,1,1}
+\newcommand{\leanline}[1]{\mintinline[breaklines, breakafter=_., breaklines]{Lean}{#1}}%\textsuperscript{\textcolor{gray}{\tiny(m)}}}
+\newcommand{\leanlinecolor}{\mintinline[breaklines, breakafter=_., breaklines, bgcolor=LightCyan]{Lean}}
+%\usepackage{refcheck}
+
+\usepackage[notcite,notref]{showkeys}
+\usepackage{hyperref}
+
+\begin{document}
+\title{\LARGE Formalizing Brownian motion}
+
+\maketitle Our goal is to write down the steps necessary in order to
+formalize Brownian motions (or $\mathbb R^d$-valued Gaussian
+processes) in some generality using {\tt mathlib}.
+
+\begin{remark}[Notation]
+We will write $(E,r)$ for some extended pseudo-metric space, $\mathcal
+P(E)$ for the set of probability measures on the Borel
+$\sigma$-algebra on $E$, $\mathbbm k \in \{\mathbb R, \mathbb C\}$,
+and $\mathcal C_{b}(E, \mathbbm k)$ the set of $\mathbbm k$-valued
+bounded continuous functions on $E$. For some $\mathbf P \in \mathcal
+P(E)$ and $f \in \mathcal C_{b}(E\mathbbm k)$, we let $\mathbf P[f] :=
+\int f(x) \mathbf P(dx) \in \mathbbm k$.
+\end{remark}
+
+\setcounter{section}{-1}
+\section{A simple convergence result}
+The following is a simple consequence of dominated convergence, and
+often needed in probability theory.
+
+\begin{definition}
+  Let $f, f_1, f_2,...: E \to \mathbbm k$. We say that $f_1,f_2,..:$
+  converges to $f$ boundedly pointwise if $f_n
+  \xrightarrow{n\to\infty} f$ pointwise and $\sup_n ||f_n|| <
+  \infty$. We write $f_n \xrightarrow{n\to\infty}_{bp} f$
+\end{definition}
+
+\begin{lemma}\label{lemma:bp}
+  Let $\mathbf P$ be a probability (or finite) measure, and $f, f_1,
+  f_2,... : E \to \mathbbm k$ such that $f_n
+  \xrightarrow{n\to\infty}_{bp} f$. Then, $\mathbf P[f_n]
+  \xrightarrow{n\to\infty} \mathbf P[f]$.
+\end{lemma}
+
+\begin{proof}
+  Note that the constant function $x \mapsto \sup_n ||f_n||$ is
+  integrable (since $\mathbf P$ is finite), so the result follows from
+  dominated convergence.
+\end{proof}
+
+\section{Separating algebras and characteristic functions}
+ 
+\begin{definition}[Separating class of functions]
+  \mbox{} Let $\mathcal M \subseteq \mathcal C_{b}(E,\mathbbm k)$.
+  \begin{enumerate}
+    \item If, for all $x,y\in E$ with $x\neq y$, there is
+      $f\in\mathcal M$ with $f(x)\neq f(y)$, we say that $\mathcal M$
+      separates points.
+    \item 
+      If, for all $\mathbf P, \mathbf Q\in\mathcal P(E)$,
+      $$ \mathbf P = \mathbf Q \quad \text{iff}\quad \mathbf P[f] =
+      \mathbf Q[f] \text{ for all } f\in\mathcal M,$$ we say that
+      $\mathcal M$ is separating in $\mathcal P(E)$.
+    \item If (i) $1\in\mathcal M$ and (ii) if $\mathcal M$ is closed
+      under sums and products, then we call $\mathcal M$ a
+      (sub-)algebra.  If $\mathbbm k = \mathbb C$, and (iii) if
+      $\mathcal M$ is closed under complex conjugation, we call
+      $\mathcal M$ a star-(sub-)algebra.
+  \end{enumerate}
+\end{definition}
+
+In \leanline{mathlib}, 1.\ and 3.\ of the above definition are already
+implemented:
+
+\begin{minted}[highlightlines={}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+  structure Subalgebra (R : Type u) (A : Type v) [CommSemiring R] [Semiring A]
+    [Algebra R A] extends Subsemiring :
+  Type v
+
+  abbrev Subalgebra.SeparatesPoints {α : Type u_1} [TopologicalSpace α]
+    {R : Type u_2} [CommSemiring R] {A : Type u_3} [TopologicalSpace A]
+    [Semiring A] [Algebra R A] [TopologicalSemiring A] (s : Subalgebra R C(α, A))
+    : Prop
+\end{minted}
+
+The latter is an extension of \leanline{Set.SeparatesPoints}, which
+works on any set of functions.
+
+\noindent
+For the first result, we already need that $(E,r)$ has a metric
+structure. There is a formalization of this result in
+\url{https://github.com/pfaffelh/some_probability/tree/master}.
+
+\begin{lemma}\label{l:unique}
+  $\mathcal M := \mathcal C_b(E, \mathbbm k)$ is separating.
+\end{lemma}
+
+\begin{proof}
+  We restrict ourselves to $\mathbbm k = \mathbb R$, since the result
+  for $\mathbbm k = \mathbb C$ follows by only using functions with
+  vanishing imaginary part. Let $\mathbf P, \mathbf Q \in \mathcal
+  P(E)$. We will prove that $\mathbf P(A) = \mathbf Q(A)$ for all $A$
+  closed. Since the set of closed sets is a $\pi$-system generating
+  the Borel-$\sigma$-algebra, this suffices for $\mathbf P = \mathbf
+  Q$. So, let $A$ be closed and $g = 1_A$ be the indicator
+  function. Let $g_n(x) := (1 - n r(A,x))^+$ (where $r(A,y) := \inf_{y\in
+    A}r(y,x)$) and note that $g_n(x) \xrightarrow{n\to\infty}
+  1_A(x)$. Then, we have by dominated convergence
+  \begin{align*}
+    \mathbf P(A) & = \lim_{n\to\infty} \mathbf P[g_n] =
+    \lim_{n\to\infty} \mathbf Q[g_n] = \mathbf Q(A),
+  \end{align*}
+  and we are done.
+\end{proof}
+
+We will use the Stone-Weierstrass Theorem below. Here is its version
+in \leanline{mathlib}. Note that this requires $E$ to be compact. The
+proof of the next result follows \cite{EK86}
+
+\begin{minted}[highlightlines={0}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+  theorem ContinuousMap.starSubalgebra_topologicalClosure_eq_top_of_separatesPoints
+  {𝕜 : Type u_2} {X : Type u_1} [IsROrC 𝕜] [TopologicalSpace X] [CompactSpace X]
+  (A : StarSubalgebra 𝕜 C(X, 𝕜)) (hA : Subalgebra.SeparatesPoints A.toSubalgebra) :
+  StarSubalgebra.topologicalClosure A = ⊤
+\end{minted}
+
+We also need (as proved in the last project):
+
+\begin{minted}[highlightlines={0}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+  theorem innerRegular_isCompact_isClosed_measurableSet_of_complete_countable
+  [PseudoEMetricSpace α] [CompleteSpace α] [SecondCountableTopology α] [BorelSpace α]
+  (P : Measure α) [IsFiniteMeasure P] :
+  P.InnerRegular (fun s => IsCompact s ∧ IsClosed s) MeasurableSet
+\end{minted}
+
+
+\begin{theorem}[Algebras separating points and separating algebras]
+  \label{T:wc3}\mbox{}\\ \sloppy Let $(E,r)$ be a complete and separable extended pseudo-metric space, and
+  $\mathcal M \subseteq\mathcal C_b(E,\mathbbm k)$ be a
+  star-sub-algebra that separates points. Then, $\mathcal M$ is
+  separating.
+\end{theorem}
+
+\begin{proof}
+  Let $\mathbf P, \mathbf Q\in\mathcal P(E)$, $\varepsilon>0$ and $K$
+  compact, such that $\mathbf P(K)>1-\varepsilon$, $\mathbf
+  Q(K)>1-\varepsilon$, and $g \in \mathcal C_b(E,\mathbbm k)$. According to the
+  Stone-Weierstrass Theorem, there is $(g_n)_{n=1,2,\dots}$ in
+  $\mathcal M$ with
+  \begin{align}
+    \label{eq:wc9}
+    \sup_{x\in K} |g_n(x) - g(x)| \xrightarrow{n\to\infty} 0.
+  \end{align}
+  So, (note that $C := \sup_{x\geq 0} xe^{-x^2} < \infty$)
+  \begin{align*}
+    \big|\mathbf P[ge^{-\varepsilon g^2}] - \mathbf Q[ge^{-\varepsilon
+    g^2}] \big| & \leq \big|\mathbf P[ge^{-\varepsilon g^2}] -
+    \mathbf P[ge^{-\varepsilon g^2};K] \big|                   \\ & \quad {} + \big|\mathbf
+    P[ge^{-\varepsilon g^2};K] - \mathbf P[g_ne^{-\varepsilon
+    g_n^2};K] \big|                                            \\ & \quad {} + \big| \mathbf P[g_ne^{-\varepsilon
+    g_n^2};K] - \mathbf P[g_ne^{-\varepsilon g_n^2}] \big|     \\ &
+    \quad {} + |\mathbf P[g_ne^{-\varepsilon g_n^2}] - \mathbf
+    Q[g_ne^{-\varepsilon g_n^2}] \big|                         \\ & \quad {} + \big|\mathbf
+    Q[g_ne^{-\varepsilon g_n^2}] - \mathbf Q[g_ne^{-\varepsilon
+    g_n^2};K] \big|                                            \\ & \quad {}  + \big|\mathbf Q[g_ne^{-\varepsilon
+    g_n^2}] - \mathbf Q[ge^{-\varepsilon g^2};K] \big|         \\ & \quad{} {}  +
+    \big|\mathbf Q[ge^{-\varepsilon g^2};K] - \mathbf
+    Q[ge^{-\varepsilon g^2}] \big|
+  \end{align*}
+  We bound the first term by
+  $$\big|\mathbf P[ge^{-\varepsilon g^2}] - \mathbf P[ge^{-\varepsilon
+      g^2};K] \big| \leq \frac{C}{\sqrt{\varepsilon}} \mathbf P(K^c)
+  \leq C\sqrt{\varepsilon},$$ and analogously for the third, fifth and
+  last. The second and second to last vanish for $n\to\infty$ due to
+  \eqref{eq:wc9}. Since $\mathcal M$ is an algebra, we can
+  approximate, using dominated convergence,
+  \begin{align*}
+    \mathbf P[g_ne^{-\varepsilon g_n^2}] = \lim_{m \to \infty} \mathbf
+    P[\underbrace{g_n \Big(1 - \frac{\varepsilon
+          g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \lim_{m \to \infty}
+    \mathbf Q[\underbrace{g_n \Big(1 - \frac{\varepsilon
+          g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \mathbf
+    Q[g_ne^{-\varepsilon g_n^2}],
+  \end{align*}
+  so the fourth term vanishes for $n\to\infty$ as well. Concluding,
+  \begin{align*}
+    \big|\mathbf P[g] - \mathbf Q[g] \big| = \lim_{\varepsilon\to 0}
+    \big|\mathbf P[ge^{-\varepsilon g^2}] - \mathbf Q[ge^{-\varepsilon
+            g^2}] \big| \leq 4C \lim_{\varepsilon \to 0}\sqrt{\varepsilon} =
+    0.
+  \end{align*}
+  Since $g$ was arbitrary and $\mathcal C_b(E,\mathbbm k)$ is
+  separating by Lemma~\ref{l:unique}, we find $\mathbf P = \mathbf Q$.
+\end{proof}
+
+\noindent
+We now come to characteristic functions and Laplace transforms.
+
+\begin{proposition}[Charakteristic functions determine distributions uniquely]
+  \label{Pr:char1}\mbox{}\\
+  A probability measure $\mathbf P \in\mathcal P(\mathbb R^d)$ is
+  uniquely given by its characteristic functions.  \\ In other words,
+  if $\mathbf P, \mathbf Q \in\mathcal P(\mathbb R^d)$ are such that
+  $\int e^{itx} \mathbf P(dx) = \int e^{itx} \mathbf Q(dx)$ for all
+  $t\in\mathbb R^d$. Then, $\mathbf P = \mathbf Q$.
+\end{proposition}
+
+\begin{proof}
+  The set
+  $$\mathcal M:= \Big\{ x\mapsto \sum_{k=1}^n a_k e^{i t_k x}; n \in
+  \mathbb N, a_1,...,a_n \in \mathcal C, t_1,...,1_n\in\mathbb
+  R^d\Big\}$$ separates points in $\mathbb R^d$. Since $\mathcal M
+  \subseteq \mathcal C_b(\mathbb R^d,\mathbbm k)$ contains~1, is
+  closed under sums and products, and closed under complex
+  conjugation, it is a star-subalgebra of $\mathcal C_b(E,\mathbb
+  C)$. So, the assertion directly follows from Theorem~\ref{T:wc3}.
+\end{proof}
+
+\begin{remark}
+  We also need to show the following: For $J \subseteq I$, where $I$
+  is finite, let $\psi$ be the characteristic function for some
+  distribution on $\mathbb R^I$. Then, for the projection $\pi_J$, the
+  characteristic function of the image measure under $\pi_J$ is given
+  by $\psi \circ g_J$, where $(g_J(t)_j) = t_j$ for $j\in J$ and
+  $(g(t)_j) = 0$ otherwise. In other words, when computing the
+  characteristic function of a projection, just set the coordinates in
+  $t \mapsto \psi(t)$ which need to be projected out to $0$.
+\end{remark}
+
+\section{Gaussian random variables}
+Define an arbitrary family of Gaussian rvs with values in $\mathbb
+R^d$ by (i) defining a standard normal distribution on $\mathbb R$
+with the correct density, (ii) show that its characteristic function
+is given by $\psi(t) = e^{-t^2/2}$, (iii) define an independent finite
+family of standard normal Gaussians using finite product measures and
+(iv) define a general independent family by taking some positive
+definite $C \in \mathbb R^{d\times d}$, the unique $A \in \mathbb
+R^{d\times d}$ with $C = A^\top A$, and define the Gaussian measure as
+the image measure of the independent family $Y$ under the map $X = A Y
++ \mu$. Show that
+\begin{align*}
+  \mathbb E[e^{itX}] & = \mathbb E[e^{it(\mu + AY)}] = e^{it\mu}
+  \mathbb E[e^{itAY}] = e^{it\mu} \mathbb E\Big[\exp\Big(i \sum_{kl}
+    t_k A_{kl} Y_l\Big)\Big] \\ & = e^{it\mu} \prod_{l} \mathbb
+  E\Big[\exp\Big(i \big(\sum_{k} t_k A_{kl}\big) Y_l\Big)\Big] =
+  e^{it\mu} \prod_{l} \mathbb E[e^{i (tA_{.l}) Y_l}] \\ & =
+  e^{it\mu} \prod_{l} e^{-(tA_{.l})^2/2} = e^{it\mu} e^{-\sum_l
+    (tA_{.l})(A^\top_{l.}t^\top)/2} = e^{it\mu -tCt^\top/2}.
+\end{align*}
+Together with Proposition~\ref{Pr:char1}, this shows that there is a
+unique probability measure on $\mathbb R^d$ with characteristic
+function $t\mapsto e^{it\mu -tCt^\top/2}$ for any vector $\mu$ and
+positive definite matrix $C$.
+
+\section{Projectivity}
+For projectivity of finite-dimensional distributions of the BM,
+proceed as follows: (i) For $I = \{s_1,...,s_n\} \subseteq \mathbb
+R^d$ (with $s_1 < ... < s_d$), define $P_J$ as the unique probability
+measure with characteristic function $\psi_I(t) = e^{-tC_It^\top/2}$
+with $C_{ij} = s_i \wedge s_j$. For $J\subseteq I$, we then have that
+the characteristic function of the projection to coordinates in $J$ is
+(see 1.) $\psi_I \circ g_J = e^{- g_J(.)  C_I g_J(.)^\top} = e^{-
+  . C_J -/2} = \psi_J$. In other words, this is the required
+projectivity of $(P_I)_{I \subseteq_f [0,\infty)}$.
+
+\section{The Kolmogorov-Chentsov criterion}
+Formalize (i) the notion of versions of stochastic processes, (ii) the
+Kolmogorov-Chentsov criterion for the existence of a continuous
+version of some stochastic process, and (iii) apply this criterion to
+the process defined in 3.
+
+\begin{definition}
+  Let $X,X_1,X_2,...$, all $E$-valued random variables.
+  \begin{enumerate}
+  \item We say that $X_n \xrightarrow{n\to\infty} X$ almost everywhere
+    if $\mathbf P(\lim_{n\to\infty} X_n = X) = 1$. We also write
+    $X_n\xrightarrow{n\to\infty}_{ae} X$.
+  \item We say that $X_n \xrightarrow{n\to\infty} X$ in probability
+    (or in measure) if, for all $\varepsilon>0$,
+    $$ \lim_{n\to\infty} \mathbf P(r(X_n, X) > \varepsilon) = 0.$$
+  \end{enumerate}
+\end{definition}
+The two notions here are denoted \leanline{∀ᵐ (x : α) ∂P,
+  Filter.Tendsto (fun n => X n x) Filter.atTop (nhds (X x))} and
+\leanline{MeasureTheory.TendstoInMeasure}, respectively.
+
+
+
+\begin{lemma}\label{l:aep}
+  Let $X,X_1,X_2,...$ be $E$-valued random variables with $X_n
+  \xrightarrow{n\to\infty}_{ae} X$. Then, $X_n
+  \xrightarrow{n\to\infty}_{p} X$.
+\end{lemma}
+
+This result is called
+\leanline{MeasureTheory.tendstoInMeasure_of_tendsto_ae} in
+\leanline{mathlib}. We also need the (almost sure) uniquess of the
+limit in measure, which is not formalized in \leanline{mathlib} yet:
+
+\begin{lemma}[Uniqueness of a limit in probability]
+  Let $X,Y,X_1,X_2,...$ be $E$-valued random variables with $X_n
+  \xrightarrow{n\to\infty}_{p} X$ and $X_n
+  \xrightarrow{n\to\infty}_{p} Y$. Then, $X=Y$, almost surely.
+\end{lemma}
+
+\begin{proof}
+  We write, using monotone convergence and Lemma~\ref{l:aep}
+  \begin{align*}
+    \mathbf P(X\neq Y) & = \lim_{\varepsilon \downarrow 0} \mathbf
+    P(r(X,Y)>\varepsilon) \leq \lim_{\varepsilon \downarrow 0}
+    \lim_{n\to\infty}\mathbf P(r(X,X_n)>\varepsilon/2) + \mathbf
+    P(r(Y,X_n)>\varepsilon/2) = 0.
+  \end{align*}
+\end{proof}
+
+\begin{definition}
+  Let $D, E$ be extended pseudo-metric spaces, $f: D\to E$ and $s\in
+  D$. If there is $\tau>0$ and some $C < \infty$ with $r_E(f(s), f(t))
+  \leq C r(s,t)^\gamma$ for all $t$ with $r_D(s,t) < \tau$, we call
+  $f$ \emph{locally Hö\"lder of order $\gamma$} at $s$.
+\end{definition}
+
+Hölder is implemented as \leanline{HolderOnWith} (on a set) and
+\leanline{HolderWith}. Moreover, locally Hölder at a point is used for
+$\gamma=1$ (i.e.\ Lipschitz continuity) e.g.\ in
+\leanline{continuousAt_of_locally_lipschitz} (Every function, which is
+locally Lipschitz at a point, is continuous.)
+
+\leanline{continuousAt_of_locally_lipschitz} is missing for
+$\gamma<1$.
+
+\begin{lemma}\label{l:holderext}
+  Let $D, E$ be extended pseudo-metric spaces and $f: D\to E$ and
+  $s\in D$.
+  \begin{enumerate}
+    \item If $f$ is locally Hölder at $x$, it is continuous at $x$.
+    \item If $E$ is complete, $A \subseteq D$ is dense, and $g : A \to
+      E$ is Hölder, it can be extended to a Hölder-$\gamma$-function
+      on $D$.
+  \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+  1. Since $f$ is locally Hölder at $s$, choose $\tau>0$ and
+  $C<\infty$ such that $r_E(f(s), f(t)) \leq Cr(s,t)^\gamma$ for all
+  $t$ with $r_D(s,t) < \tau$. For $\varepsilon>0$, there is
+  $\delta'>0$ such $r_D(s,t)^\gamma < \varepsilon / C$ for all $t \in
+  B_{\delta'}(s)$. Choose $\delta := \tau \wedge \delta'$ in order to
+  see, for $t \in B_\delta(s)$
+  $$ r_E(f(s), f(t)) \leq C r(s,t)^\gamma < \varepsilon.$$ 2. For $s
+  \in D$, choose $s_1,s_2,...\in A$ with $s_n \xrightarrow{n\to\infty}
+  s$. Then, note that $r_E(f(s_n), f(s_M)) \leq C r_D(s_n, s_m)
+  \xrightarrow{m,n\to\infty} 0$, so $(f(s_n))_{n=1,2,...}$ is a
+  Cauchy-sequence in $E$. We define $f(s)$ to be its limit. Then, for
+  $s,t\in D$ and the sequences $s_1, s_2,...\in D, t_1, t_2,...\in D$
+  with $s_n \xrightarrow{n\to\infty}s, t_n \xrightarrow{n\to\infty}t$,
+  $$ r_E(f(s), f(t)) = \lim_{n\to\infty}r_E(f(s_n), f(t_n)) \leq
+  \lim_{n\to\infty} Cr_D(s_n, t_n) = Cr_D(s,t).$$
+\end{proof}
+
+For 1., \leanline{continuousAt_of_locally_lipschitz} must be adapted
+for Hölder instead of Lipschitz, i.e.\ for $\gamma<1$.
+
+For 2., there is \leanline{LipschitzOnWith.extend_real}, which does
+not require the set $A$ to be dense, but $\gamma=1$ and $E=\mathbb R$.
+Also, there is \leanline{DenseInducing.continuous_extend} which gives
+a condition when a function can continuously be extended. (It needs a
+\leanline{DenseInducing} function, which in our case is $i : A \to D,
+x\mapsto x$.)
+
+Next, we need, for $x\in\mathbb R$,
+$$ \lfloor x \rfloor := \max\{n \in \mathbb N: n\leq x\}.$$
+
+\begin{lemma}\label{l:gauss}
+  For $x\mapsto \lfloor x\rfloor$, the following holds:
+  \begin{enumerate}
+  \item   If $|x-y| \leq 1$, then $|\lfloor x\rfloor - \lfloor y \rfloor| \leq
+    1$. 
+  \item $|2 \lfloor x\rfloor - \lfloor 2x \rfloor| \leq 1$, since:
+  \end{enumerate}
+  
+\end{lemma}
+
+\begin{proof}
+  1. Without loss of generality, assume that $y\leq x$ (which implies
+  that $\lfloor y \rfloor \leq \lfloor x\rfloor$). The proof is by
+  contradition, so assume that $\lfloor x\rfloor - \lfloor y \rfloor >
+  1$. So, we find $n := \lfloor x\rfloor\in\mathbb N$ such that $y <
+  n-1 < n \leq x$. This means that $x-y > n - (n-1) = 1$, in
+  contradiction to $|x-y| \leq 1$.  \\ 2.  If $x - \lfloor x\rfloor <
+  1/2$, then $2x - 2 \lfloor x\rfloor < 1$, which implies that
+  $\lfloor 2x\rfloor = 2\lfloor x\rfloor$. Last, if $1/2 \leq x -
+  \lfloor x\rfloor < 1$, then $1 \leq 2x - 2\lfloor x\rfloor < 2$, so
+  $\lfloor 2x\rfloor = 2\lfloor x\rfloor +1$ and the result follows.
+\end{proof}
+
+
+\begin{lemma}
+  Let $I = [0,1]^d$ and $|s-t| := \max_{i=1,...,d} |s_i - t_i|$ for
+  $s,t\in I$. Let
+  \begin{itemize}
+  \item $D_n := \{0,1,...,2^n\}^n \cdot 2^{-n} \subseteq I$ for
+    $n=0,1,...$, and $D =\bigcup_{n=0}^\infty D_n$;
+  \item $m \in \mathbb N$ and $s,t \in D$ with $|t-s| \leq 2^{-m}$.
+  \end{itemize}
+  Then, there is $n \geq m$ and $s_m,...,s_n, t_m,...,t_n$ such that
+  \begin{enumerate}
+  \item $s_k, t_k \in D_k$ with $|s-s_k|, |t-t_k| \leq 2^{-k}$ for all
+    $k=m,...,n$
+  \item $|s_k - s_{k-1}|, |t_k - t_{k-1}| \leq 2^{-k}$,
+  \item $|t_m - s_m| \leq 2^{-m}$,
+  \item $s_n=s, t_n=t$.
+  \end{enumerate}
+  In particular, we can write
+  $$ t - s = \Big(\sum_{k=m+1}^n t_k - t_{k-1} -(s_k - s_{k-1})\Big) +
+  t_m - s_m$$ and for any $x : I \to E$, and by the triangle
+  inequality,
+  $$ r(x_t, x_s) \leq \Big(\sum_{k=m+1}^n r(x_{t_k}, x_{t_{k-1}}) +
+  r(x_{s_k}, x_{s_{k-1}}\Big) + r(x_{t_m}, x_{s_m}).$$
+\end{lemma}
+
+\begin{remark}\label{rem1}
+  \begin{enumerate}
+    \item
+      Let $s,t\in D_k$ with $|t-s| \leq a 2^{-k}$. Then, there exists a
+      path of length at most $da$ of neighboring points in $D_k$
+      connecting $s$ and $t$.
+    \item
+      Assume that $r(x_s, x_t) \leq 2^{-\gamma k}$ if $|t-s| =
+      2^{-k}$. Then, by the triangle inequality, for $t_k$ as above,
+      $$ r(x_{t_k}, x_{t_{k-1}}) \leq 3d \sup_{s,t \in D_{k-1}, |t-s|
+        = 2^{-(k-1)}} r(x_s, x_t) \leq 3d2^\gamma 2^{-\gamma k}.$$
+      In particular, there are constants $C, C'$ with
+      $$ r(x_s, x_t) \leq C \sum_{k=m+1}^\infty 2^{-\gamma k} \leq C'
+      2^{-\gamma m}.$$
+  \end{enumerate}
+\end{remark}
+
+\begin{remark}
+  \begin{enumerate}
+  \item 
+    For the last statement, note that it follows from: Let
+    $x=x_0,...,x_n = y$. Then, $r(x,y) \leq \sum_{k=1}^n r(x_k,
+    x_{k-1}),$ which can be shown by induction on $n$. From here,
+    apply this result to the sequence $x_s = x_{s_n}, ..., x_{s_m},
+    x_{t_m},...,x_{t_n} = x_t$.
+  \item We will also need the (rather trivial) statement: Let $I$ be
+    some (finite or infinite) set and $(X_t)_{t\in I}$ be random
+    variables with values in $[0,\infty)$. Then, $\sup_{t\in I} X_t
+      \leq \sum_{t\in I} X_t.$
+  \end{enumerate}
+\end{remark}
+
+\begin{proof}
+  Since $s,t \in D = \bigcup_n D_n$, and $D_n \subseteq D_m$ for
+  $n\geq m$, there is some $n \geq m$ with $s,t\in D_n$. For $k \in
+  m,...,n$, we set
+  $$s_k := \lfloor s2^k\rfloor 2^{-k}, \qquad t_k := \lfloor
+  t2^k\rfloor 2^{-k} \in D_k.$$ 1.  Since $|x - \lfloor x \rfloor |
+  \leq 1$ for all $x \in \mathbb R^d$, we have that
+  $$|s - s_k| = 2^{-k}|s2^k - \lfloor s2^k\rfloor| \leq 2^{-k}, \qquad
+  k=m,...,n.$$ In addition, $s2^n, t2^n \in \mathbb Z^d$ since $s,t
+  \in D_n$, so $s_n = 2^{-n} \lfloor s2^n\rfloor = 2^{-n} s 2^n = s$
+  and $t_n = t$.  \\ 2.
+  Write
+  $$ |s_k - s_{k-1}| = 2^{-k} | \lfloor s2^k\rfloor - 2\lfloor
+  s2^{k-1}\rfloor| \leq 2^{-k}$$
+
+
+
+
+
+  
+
+
+  
+  , $\lfloor 2x \rfloor \leq 2\lfloor x \rfloor \leq 2x$, so $|
+  \lfloor ax\rfloor - a \lfloor x\rfloor| \leq |\lfloor ax \rfloor -
+  ax| \leq 1$ \\ 2. Moreover, (recall $|t-s| \leq 2^{-m}$)
+  $$ |t_m - s_m| = 2^{-m} | \lfloor t2^m\rfloor - \lfloor s2^m
+  \rfloor| \leq 2^{-m} | t2^m - s2^m | = |t-s| \leq 2^{-m}.$$
+\end{proof}
+
+\begin{theorem}[Continuous version; Kolmogorov, Chentsov]
+  \label{T:kolchen}
+  For some $\tau>0$, let $I = [0,\tau]^d$, and $X = (X_t)_{t\in I}$ an
+  $E$-valued stochastic process. Assume that there are $\alpha, \beta,
+  C>0$ with
+  $$ \mathbf E[r(X_s, X_t)^\alpha] \leq C|t-s|^{d+\beta}, \qquad 0\leq
+  s,t\leq \tau.$$ There there exists a version $Y = (Y_t)_{t\in I}$ of
+  $X$ such that, for some random variables $H>0$ and $K<\infty$,
+  $$ \mathbf P\Big[\sup_{s\neq t, |t-s| \leq H} r(Y_s,
+    Y_t)/|t-s|^\gamma \leq K\Big] = 1,
+  $$ for every $\gamma\in(0,\beta/\alpha)$. In particular, $Y$ almost
+  surely has locally Hölder continuous of all orders
+  $\gamma\in(0,\beta/\alpha)$.
+\end{theorem}
+
+\begin{proof}
+  It suffices to show the assertion for $I=[0,1]^d$. The general case
+  then follows by viewing $I$ as an at most countable union of bounded
+  sets. We consider the set of times
+  $$ D_n := \{0,1,...,2^n\}^n \cdot 2^{-n}$$ for $n=0,1,...$, $D
+  =\bigcup_{n=0}^\infty D_n$. Using the Markov inequality, we write
+  (note that $|\{s,t\in D_n, |t-s| = 2^{-n}\}| \leq d2^{nd}$)
+  \begin{align*}
+    \mathbf P\Big[ & \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s,
+      X_t)/|t-s|^\gamma \geq 2^{-\gamma n} \Big] \leq 2^{\gamma \alpha
+      n}\mathbf E[\sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t)^\alpha
+      /|t-s|^{\gamma\alpha}] \\ & \leq \sum_{s,t\in D_n, |t-s| =
+      2^{-n}} 2^{\gamma\alpha n}\mathbf E[r(X_t,X_s)^\alpha] \leq
+    Cd2^{nd} 2^{\gamma\alpha n} 2^{-(d + \beta) n} = Cd
+    2^{(\gamma\alpha - \beta)n},
+  \end{align*}
+  and we see that the right hand side is summable. By the
+  Borel-Cantelli Lemma,
+  $$ N := \max \Big\{n: \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s,
+  X_t)/|t-s|^\gamma \geq 2^{-\gamma n}\Big\} + 1$$ is finite, almost
+  surely. From this and Remark~\ref{rem1}.2, we conclude
+  \begin{align*}
+    \sup_{s,t\in D, s\neq t, |t-s| \leq 2^{-N}} r(X_s,
+    X_t)/|t-s|^\gamma & \leq \sup_{m \geq N} \Big( \sup_{s,t\in D,
+      |t-s|\leq 2^{-m}} r(X_s, X_t)/|t-s|^\gamma\Big) \\ & \leq C'
+    \sup_{m \geq N} 2^{-\gamma m} = C' 2^{-\gamma N}.
+  \end{align*}
+  In other words, we see with $H = 2^{-N}$ and $K = C 2^{-\gamma N}$,
+  $$ \mathbf P\Big[\sup_{s,t\in D, s\neq t, |t-s| \leq H} r(X_s,
+    X_t)/|t-s|^\gamma \leq K\Big] = 1,
+  $$
+  i.e.\ $X$ is locally Hölder-$\gamma$ on $D$.
+
+  With this and Lemma~\ref{l:holderext}.2, we can extend $X$
+  Hölder-continuously on $I$, and call this extension $ Y = (Y_t)_{t\in
+    I}$.  \\ In order to show that $Y$ is a modification of $X$, fix
+  $t\in I$ and consider a sequence $t_1,t_2,...\in D$ with $t_n\to t$ as
+  $n\to \infty$. Then, for all $\varepsilon>0$,
+  $$\mathbf P(r(X_{t_n}, X_t) > \varepsilon) \leq \mathbf E[r(X_{t_n},
+    X_t)^\alpha]/\varepsilon^\alpha \xrightarrow{n\to\infty} 0,$$
+  i.e.\ $X_{t_n} \xrightarrow{n\to\infty}_p X_t$. Moreover, due to
+  continuity of $\mathcal Y$, we have $Y_{t_n}
+  \xrightarrow{n\to\infty}_{fs} Y_t$. In particular, we have $P(X_t=
+  Y_t)=1$, which concludes the proof.
+\end{proof}
+
+
+
+
+
+Questions to check:
+\begin{enumerate}
+  \item Is the integral as defined in {\tt mathlib} general enough in
+    order to allow for values in $\mathbb C$? (Needed in the
+    definition of the characteristic function.
+  \item Is the result that for every positive definite matrix $C \in
+    \mathbb R^d$ there is a matrix $A$ with $C = A A^\top$ in {\tt
+      mathlib}?
+\end{enumerate}
+
+\bibliographystyle{alpha}
+\bibliography{main}
+
+
+\end{document}

@@ -1,0 +1,173 @@
+@inproceedings{ying2023formalization,
+  title={A Formalization of {D}oob’s Martingale Convergence Theorems in mathlib},
+  author={K. Ying and R. Degenne},
+  booktitle={Proceedings of the 12th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+  pages={334--347},
+  year={2023}
+}
+
+@Book{EthierKurtz1986,
+  Author         = {S.N. Ethier and T.G. Kurtz},
+  Title          = {Markov {P}rocesses. {C}haracterization and
+                   {C}onvergence},
+  Publisher      = {John Wiley, New York},
+  year           = 1986,
+}
+
+@article{sheffield2007gaussian,
+  title={Gaussian free fields for mathematicians},
+  author={Sheffield, S.},
+  journal={Probability theory and related fields},
+  volume={139},
+  number={3-4},
+  pages={521--541},
+  year={2007},
+  publisher={Springer}
+}
+
+@article{chin2019new,
+  title={New simple proofs of the Kolmogorov extension theorem and {P}rokhorov's theorem},
+  author={Chin, W.},
+  journal={arXiv preprint arXiv:1911.12979},
+  year={2019}
+}
+
+@book{guide2006infinite,
+  title={Infinite dimensional analysis. A Hitchhiker’s Guide},
+  author={C. D. Aliprantis},
+  year={2006},
+  publisher={Springer}
+}
+
+@article{rao1971projective,
+  title={Projective limits of probability spaces},
+  author={Rao, M. M.},
+  journal={Journal of multivariate analysis},
+  volume={1},
+  number={1},
+  pages={28--57},
+  year={1971},
+  publisher={Elsevier}
+}
+
+@misc{border1998expository,
+  title={Expository Notes on the {K}olmogorov Extension Problem},
+  author={Border, K. C.},
+  year={1998},
+  publisher={Caltech Pasadena}
+}
+
+@book{bogachev2007measure,
+  title={Measure theory},
+  author={V. I. Bogachev and M. A. S. Ruas},
+  volume={1},
+  year={2007},
+  publisher={Springer}
+}
+@article{melikhov2011metrizable,
+  title={Metrizable uniform spaces},
+  author={Melikhov, S. A},
+  journal={arXiv preprint arXiv:1106.3249},
+  year={2011}
+}
+
+@book{james2013topologies,
+  title={Topologies and uniformities},
+  author={James, I. M},
+  year={2013},
+  publisher={Springer Science \& Business Media}
+}
+@book{Kallenberg2020, 
+author="Kallenberg, O.",
+title="{Foundations of Modern Probability. 3rd ed.}",
+publisher="{Probability and Its Applications. New York, NY: Springer.}",
+year=2020,
+keywords="{measure theory; probability theory; stochastic processes}",
+}
+
+@article{avigad2017formally,
+  title={A formally verified proof of the central limit theorem},
+  author={J. Avigad and J. H{\"o}lzl and L. Serafin},
+  journal={Journal of Automated Reasoning},
+  volume={59},
+  pages={389--423},
+  year={2017},
+  publisher={Springer}
+}
+
+@inproceedings{mathlib2020lean,
+  title={The Lean mathematical library},
+  author={mathlib Community.},
+  booktitle={Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020)},
+  pages={367--381},
+  year={2020}
+}
+
+@book{kolmogoroff1933grundbegriffe,
+  title={Grundbegriffe der wahrscheinlichkeitsrechnung},
+  author={A. Kolmogoroff},
+  year={1933},
+  publisher={Springer}
+}
+
+@article{holzl2017markov,
+  title={Markov chains and Markov decision processes in Isabelle/HOL},
+  author={H{\"o}lzl, J.},
+  journal={Journal of Automated Reasoning},
+  volume={59},
+  number={3},
+  pages={345--387},
+  year={2017},
+  publisher={Springer}
+}
+
+@inproceedings{holzl2017markov,
+  title={Markov processes in {Isabelle/HOL}},
+  author={H{\"o}lzl, J.},
+  booktitle={Proceedings of the 6th ACM SIGPLAN Conference on Certified Programs and Proofs},
+  pages={100--111},
+  year={2017}
+}
+
+@article{aldrich2007but,
+  title={But you have to remember {PJ D}aniell of {S}heffield},
+  author={Aldrich, John},
+  journal={Electronic Journal for History of Probability and Statistics (www. jehps. net)},
+  volume={3},
+  number={2},
+  year={2007}
+}
+
+@book{Billingsley1995, 
+author="Billingsley, P.",
+title="{Probability and Measure. 3rd ed.}",
+publisher="{Wiley Series in
+  Probability and Statistics}",
+year=1995,
+keywords="{measure theory; probability theory; stochastic processes}",
+}
+
+@misc{Immler2012,
+    author = "Immler, F.",
+    title = "Generic
+    Construction of Probability Spaces for Paths of Stochastic Processes in Isabelle/HOL",
+    journal = "Master’s Thesis in Informatik, TU Munich",
+    year = "2012",
+    URL ="https://saloranta.de/immler/fabian/mastersthesis/thesis.pdf"
+}
+
+@book{Klenke2013,
+    author = "Klenke, A.",
+    title = "Probability Theory. A Comprehensive Course. 2nd ed.",
+    publisher = {Springer},
+    year = "2013",
+}
+
+@inproceedings{moura2021lean,
+  title={The lean 4 theorem prover and programming language},
+  author={Moura, L. de and Ullrich, S.},
+  booktitle={Automated Deduction--CADE 28: 28th International Conference on Automated Deduction, Virtual Event, July 12--15, 2021, Proceedings 28},
+  pages={625--635},
+  year={2021},
+  organization={Springer}
+}

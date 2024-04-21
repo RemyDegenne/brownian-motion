@@ -47,13 +47,13 @@ formalize Brownian motions (or $\mathbb R^d$-valued Gaussian
 processes) in some generality using {\tt mathlib}.
 
 \begin{remark}[Notation]
-We will write $(E,r)$ for some extended pseudo-metric space, $\mathcal
-P(E)$ for the set of probability measures on the Borel
-$\sigma$-algebra on $E$, $\mathbbm k \in \{\mathbb R, \mathbb C\}$,
-and $\mathcal C_{b}(E, \mathbbm k)$ the set of $\mathbbm k$-valued
-bounded continuous functions on $E$. For some $\mathbf P \in \mathcal
-P(E)$ and $f \in \mathcal C_{b}(E, \mathbbm k)$, we let $\mathbf P[f]
-:= \int f(x) \mathbf P(dx) \in \mathbbm k$ be the expectation.
+  We will write $(E,r)$ for some extended pseudo-metric space, $\mathcal
+    P(E)$ for the set of probability measures on the Borel
+  $\sigma$-algebra on $E$, $\mathbbm k \in \{\mathbb R, \mathbb C\}$,
+  and $\mathcal C_{b}(E, \mathbbm k)$ the set of $\mathbbm k$-valued
+  bounded continuous functions on $E$. For some $\mathbf P \in \mathcal
+    P(E)$ and $f \in \mathcal C_{b}(E, \mathbbm k)$, we let $\mathbf P[f]
+    := \int f(x) \mathbf P(dx) \in \mathbbm k$ be the expectation.
 \end{remark}
 
 \setcounter{section}{-1}
@@ -64,15 +64,15 @@ often needed in probability theory.
 \begin{definition}
   Let $E$ be some set and $f, f_1, f_2,...: E \to \mathbbm k$. We say
   that $f_1,f_2,..:$ converges to $f$ boundedly pointwise if $f_n
-  \xrightarrow{n\to\infty} f$ pointwise and $\sup_n ||f_n|| <
-  \infty$. We write $f_n \xrightarrow{n\to\infty}_{bp} f$
+    \xrightarrow{n\to\infty} f$ pointwise and $\sup_n ||f_n|| <
+    \infty$. We write $f_n \xrightarrow{n\to\infty}_{bp} f$
 \end{definition}
 
 \begin{lemma}\label{lemma:bp}
   Let $(\Omega, \mathcal A, \mathbf P)$ be a probability (or finite)
   measure space, and $X, X_1, X_2,... : \Omega \to \mathbbm k$ such
   that $X_n \xrightarrow{n\to\infty}_{bp} X$. Then, $\mathbf E[X_n]
-  \xrightarrow{n\to\infty} \mathbf E[X]$.
+    \xrightarrow{n\to\infty} \mathbf E[X]$.
 \end{lemma}
 
 \begin{proof}
@@ -84,12 +84,12 @@ often needed in probability theory.
 \begin{definition}
   Let $X,X_1,X_2,...$, all $E$-valued random variables.
   \begin{enumerate}
-  \item We say that $X_n \xrightarrow{n\to\infty} X$ almost everywhere
-    if $\mathbf P(\lim_{n\to\infty} X_n = X) = 1$. We also write
-    $X_n\xrightarrow{n\to\infty}_{ae} X$.
-  \item We say that $X_n \xrightarrow{n\to\infty} X$ in probability
-    (or in measure) if, for all $\varepsilon>0$,
-    $$ \lim_{n\to\infty} \mathbf P(r(X_n, X) > \varepsilon) = 0.$$
+    \item We say that $X_n \xrightarrow{n\to\infty} X$ almost everywhere
+          if $\mathbf P(\lim_{n\to\infty} X_n = X) = 1$. We also write
+          $X_n\xrightarrow{n\to\infty}_{ae} X$.
+    \item We say that $X_n \xrightarrow{n\to\infty} X$ in probability
+          (or in measure) if, for all $\varepsilon>0$,
+          $$ \lim_{n\to\infty} \mathbf P(r(X_n, X) > \varepsilon) = 0.$$
   \end{enumerate}
 \end{definition}
 The two notions here are denoted \leanline{∀ᵐ (x : α) ∂P,
@@ -98,8 +98,8 @@ The two notions here are denoted \leanline{∀ᵐ (x : α) ∂P,
 
 \begin{lemma}\label{l:aep}
   Let $X,X_1,X_2,...$ be $E$-valued random variables with $X_n
-  \xrightarrow{n\to\infty}_{ae} X$. Then, $X_n
-  \xrightarrow{n\to\infty}_{p} X$.
+    \xrightarrow{n\to\infty}_{ae} X$. Then, $X_n
+    \xrightarrow{n\to\infty}_{p} X$.
 \end{lemma}
 
 This result is called
@@ -109,8 +109,8 @@ limit in measure, which is not formalized in \leanline{mathlib} yet:
 
 \begin{lemma}[Uniqueness of a limit in probability]\label{l:puni}
   Let $X,Y,X_1,X_2,...$ be $E$-valued random variables with $X_n
-  \xrightarrow{n\to\infty}_{p} X$ and $X_n
-  \xrightarrow{n\to\infty}_{p} Y$. Then, $X=Y$, almost surely.
+    \xrightarrow{n\to\infty}_{p} X$ and $X_n
+    \xrightarrow{n\to\infty}_{p} Y$. Then, $X=Y$, almost surely.
 \end{lemma}
 
 \begin{proof}
@@ -126,27 +126,27 @@ limit in measure, which is not formalized in \leanline{mathlib} yet:
 \begin{lemma}\label{l:supsum}
   Let $I$ be some (finite or infinite) set and $(X_t)_{t\in I}$ be a
   family of random variables with values in $[0,\infty)$. Then,
-    $\sup_{t\in I} X_t \leq \sum_{t\in I} X_t.$
+  $\sup_{t\in I} X_t \leq \sum_{t\in I} X_t.$
 \end{lemma}
 
 \section{Separating algebras and characteristic functions}
- 
+
 \begin{definition}[Separating class of functions]
   \mbox{} Let $\mathcal M \subseteq \mathcal C_{b}(E,\mathbbm k)$.
   \begin{enumerate}
     \item If, for all $x,y\in E$ with $x\neq y$, there is
-      $f\in\mathcal M$ with $f(x)\neq f(y)$, we say that $\mathcal M$
-      separates points.
-    \item 
-      If, for all $\mathbf P, \mathbf Q\in\mathcal P(E)$,
-      $$ \mathbf P = \mathbf Q \quad \text{iff}\quad \mathbf P[f] =
-      \mathbf Q[f] \text{ for all } f\in\mathcal M,$$ we say that
-      $\mathcal M$ is separating in $\mathcal P(E)$.
+          $f\in\mathcal M$ with $f(x)\neq f(y)$, we say that $\mathcal M$
+          separates points.
+    \item
+          If, for all $\mathbf P, \mathbf Q\in\mathcal P(E)$,
+          $$ \mathbf P = \mathbf Q \quad \text{iff}\quad \mathbf P[f] =
+            \mathbf Q[f] \text{ for all } f\in\mathcal M,$$ we say that
+          $\mathcal M$ is separating in $\mathcal P(E)$.
     \item If (i) $1\in\mathcal M$ and (ii) if $\mathcal M$ is closed
-      under sums and products, then we call $\mathcal M$ a
-      (sub-)algebra.  If $\mathbbm k = \mathbb C$, and (iii) if
-      $\mathcal M$ is closed under complex conjugation, we call
-      $\mathcal M$ a star-(sub-)algebra.
+          under sums and products, then we call $\mathcal M$ a
+          (sub-)algebra.  If $\mathbbm k = \mathbb C$, and (iii) if
+          $\mathcal M$ is closed under complex conjugation, we call
+          $\mathcal M$ a star-(sub-)algebra.
   \end{enumerate}
 \end{definition}
 
@@ -180,13 +180,13 @@ structure. There is a formalization of this result in
   We restrict ourselves to $\mathbbm k = \mathbb R$, since the result
   for $\mathbbm k = \mathbb C$ follows by only using functions with
   vanishing imaginary part. Let $\mathbf P, \mathbf Q \in \mathcal
-  P(E)$. We will prove that $\mathbf P(A) = \mathbf Q(A)$ for all $A$
+    P(E)$. We will prove that $\mathbf P(A) = \mathbf Q(A)$ for all $A$
   closed. Since the set of closed sets is a $\pi$-system generating
   the Borel-$\sigma$-algebra, this suffices for $\mathbf P = \mathbf
-  Q$. So, let $A$ be closed and $g = 1_A$ be the indicator
+    Q$. So, let $A$ be closed and $g = 1_A$ be the indicator
   function. Let $g_n(x) := (1 - n r(A,x))^+$ (where $r(A,y) := \inf_{y\in
-    A}r(y,x)$) and note that $g_n(x) \xrightarrow{n\to\infty}
-  1_A(x)$. Then, we have by dominated convergence
+      A}r(y,x)$) and note that $g_n(x) \xrightarrow{n\to\infty}
+    1_A(x)$. Then, we have by dominated convergence
   \begin{align*}
     \mathbf P(A) & = \lim_{n\to\infty} \mathbf P[g_n] =
     \lim_{n\to\infty} \mathbf Q[g_n] = \mathbf Q(A),
@@ -195,7 +195,7 @@ structure. There is a formalization of this result in
 \end{proof}
 
 We will use the Stone-Weierstrass Theorem below. Here is its version
-in \leanline{mathlib}. Note that this requires $E$ to be compact. 
+in \leanline{mathlib}. Note that this requires $E$ to be compact.
 
 \begin{minted}[highlightlines={0}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
   theorem ContinuousMap.starSubalgebra_topologicalClosure_eq_top_of_separatesPoints
@@ -226,7 +226,7 @@ The proof of the following result follows
 \begin{proof}
   Let $\mathbf P, \mathbf Q\in\mathcal P(E)$, $\varepsilon>0$ and $K$
   compact, such that $\mathbf P(K)>1-\varepsilon$, $\mathbf
-  Q(K)>1-\varepsilon$, and $g \in \mathcal C_b(E,\mathbbm k)$. According to the
+    Q(K)>1-\varepsilon$, and $g \in \mathcal C_b(E,\mathbbm k)$. According to the
   Stone-Weierstrass Theorem, there is $(g_n)_{n=1,2,\dots}$ in
   $\mathcal M$ with
   \begin{align}
@@ -251,17 +251,17 @@ The proof of the following result follows
   \end{align*}
   We bound the first term by
   $$\big|\mathbf P[ge^{-\varepsilon g^2}] - \mathbf P[ge^{-\varepsilon
-      g^2};K] \big| \leq \frac{C}{\sqrt{\varepsilon}} \mathbf P(K^c)
-  \leq C\sqrt{\varepsilon},$$ and analogously for the third, fifth and
+            g^2};K] \big| \leq \frac{C}{\sqrt{\varepsilon}} \mathbf P(K^c)
+    \leq C\sqrt{\varepsilon},$$ and analogously for the third, fifth and
   last. The second and second to last vanish for $n\to\infty$ due to
   \eqref{eq:wc9}. Since $\mathcal M$ is an algebra, we can
   approximate, using dominated convergence,
   \begin{align*}
     \mathbf P[g_ne^{-\varepsilon g_n^2}] = \lim_{m \to \infty} \mathbf
     P[\underbrace{g_n \Big(1 - \frac{\varepsilon
-          g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \lim_{m \to \infty}
+            g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \lim_{m \to \infty}
     \mathbf Q[\underbrace{g_n \Big(1 - \frac{\varepsilon
-          g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \mathbf
+            g_n^2}{m}\Big)^m}_{\in\mathcal M}\Big] = \mathbf
     Q[g_ne^{-\varepsilon g_n^2}],
   \end{align*}
   so the fourth term vanishes for $n\to\infty$ as well. Concluding,
@@ -290,12 +290,12 @@ We now come to characteristic functions and Laplace transforms.
 \begin{proof}
   The set
   $$\mathcal M:= \Big\{ x\mapsto \sum_{k=1}^n a_k e^{i t_k x}; n \in
-  \mathbb N, a_1,...,a_n \in \mathcal C, t_1,...,1_n\in\mathbb
-  R^d\Big\}$$ separates points in $\mathbb R^d$. Since $\mathcal M
-  \subseteq \mathcal C_b(\mathbb R^d,\mathbbm k)$ contains~1, is
+    \mathbb N, a_1,...,a_n \in \mathcal C, t_1,...,1_n\in\mathbb
+    R^d\Big\}$$ separates points in $\mathbb R^d$. Since $\mathcal M
+    \subseteq \mathcal C_b(\mathbb R^d,\mathbbm k)$ contains~1, is
   closed under sums and products, and closed under complex
   conjugation, it is a star-subalgebra of $\mathcal C_b(E,\mathbb
-  C)$. So, the assertion directly follows from Theorem~\ref{T:wc3}.
+    C)$. So, the assertion directly follows from Theorem~\ref{T:wc3}.
 \end{proof}
 
 \begin{remark}\label{rem:proj}
@@ -311,7 +311,7 @@ We now come to characteristic functions and Laplace transforms.
 
 \section{Gaussian random variables}
 Define an arbitrary family of Gaussian rvs with values in $\mathbb
-R^d$ by (i) defining a standard normal distribution on $\mathbb R$
+  R^d$ by (i) defining a standard normal distribution on $\mathbb R$
 with the correct density, (ii) show that its characteristic function
 is given by $\psi(t) = e^{-t^2/2}$, (iii) define an independent finite
 family of standard normal Gaussians using finite product measures and
@@ -319,20 +319,20 @@ family of standard normal Gaussians using finite product measures and
 positive definite $C \in \mathbb R^{d\times d}$, some\footnote{In
   order to see that such an $A$ exists, consider some orthogonal $O$
   and a diagonal matrix $D$ with $C = O^\top DO$ and set $A :=
-  \sqrt{D} O$, where $\sqrt{D}$ is the diagonal matrix with entries
+    \sqrt{D} O$, where $\sqrt{D}$ is the diagonal matrix with entries
   $\sqrt{\lambda_i}$ for all eigenvalues $\lambda_i$ of $C$. Then,
   $A\top A = O^\top \sqrt{D}\sqrt{D} O = O^\top D O = C$.} $A \in
-\mathbb R^{d\times d}$ with $C = A^\top A$, and define the Gaussian
+  \mathbb R^{d\times d}$ with $C = A^\top A$, and define the Gaussian
 measure as the image measure of the independent family $Y$ under the
 map $X = A Y + \mu$. Show that
 \begin{align*}
   \mathbb E[e^{itX}] & = \mathbb E[e^{it(\mu + AY)}] = e^{it\mu}
   \mathbb E[e^{itAY}] = e^{it\mu} \mathbb E\Big[\exp\Big(i \sum_{kl}
-    t_k A_{kl} Y_l\Big)\Big] \\ & = e^{it\mu} \prod_{l} \mathbb
+    t_k A_{kl} Y_l\Big)\Big]                                     \\ & = e^{it\mu} \prod_{l} \mathbb
   E\Big[\exp\Big(i \big(\sum_{k} t_k A_{kl}\big) Y_l\Big)\Big] =
-  e^{it\mu} \prod_{l} \mathbb E[e^{i (tA_{.l}) Y_l}] \\ & =
+  e^{it\mu} \prod_{l} \mathbb E[e^{i (tA_{.l}) Y_l}]             \\ & =
   e^{it\mu} \prod_{l} e^{-(tA_{.l})^2/2} = e^{it\mu} e^{-\sum_l
-    (tA_{.l})(A^\top_{l.}t^\top)/2} = e^{it\mu -tCt^\top/2}.
+      (tA_{.l})(A^\top_{l.}t^\top)/2} = e^{it\mu -tCt^\top/2}.
 \end{align*}
 In particular, this shows that the distribution does not depend on the
 choice of $A$ as long as $A^\top A = C$. Together with
@@ -344,12 +344,12 @@ and positive definite matrix $C$.
 \section{Projectivity}\label{S:proj}
 For projectivity of finite-dimensional distributions of the BM,
 proceed as follows: (i) For $I = \{s_1,...,s_n\} \subseteq \mathbb
-R^d$ (with $s_1 < ... < s_d$), define $P_J$ as the unique probability
+  R^d$ (with $s_1 < ... < s_d$), define $P_J$ as the unique probability
 measure with characteristic function $\psi_I(t) = e^{-tC_It^\top/2}$
 with $C_{ij} = s_i \wedge s_j$. For $J\subseteq I$, we then have that
 the characteristic function of the projection to coordinates in $J$ is
 (see Remark~\ref{rem:proj}) $\psi_I \circ g_J = e^{- g_J(.)  C_I
-  g_J(.)^\top} = e^{- . C_J -/2} = \psi_J$. In other words, this is
+      g_J(.)^\top} = e^{- . C_J -/2} = \psi_J$. In other words, this is
 the required projectivity of $(P_I)_{I \subseteq_f [0,\infty)}$.
 
 \section{The Kolmogorov-Chentsov criterion}
@@ -360,7 +360,7 @@ $\mathbf E[.]$ for its expectations.
 
 \begin{definition}[Local Hölder]
   Let $f: D\to E$ and $s\in D$. If there is $\tau>0$ and some $C <
-  \infty$ with $r_E(f(s), f(t)) \leq C r_D(s,t)^\gamma$ for all $t$
+    \infty$ with $r_E(f(s), f(t)) \leq C r_D(s,t)^\gamma$ for all $t$
   with $r_D(s,t) < \tau$, we call $f$ \emph{locally Hö\"lder of order
     $\gamma$} at $s$.
 \end{definition}
@@ -377,8 +377,8 @@ locally Lipschitz at a point, is continuous.)
   \begin{enumerate}
     \item If $f$ is locally Hölder at $x$, it is continuous at $x$.
     \item If $E$ is complete, $A \subseteq D$ is dense, and $g : A \to
-      E$ is Hölder, it can be extended to a Hölder-$\gamma$-function
-      on $D$.
+            E$ is Hölder, it can be extended to a Hölder-$\gamma$-function
+          on $D$.
   \end{enumerate}
 \end{lemma}
 
@@ -387,17 +387,17 @@ locally Lipschitz at a point, is continuous.)
   $C<\infty$ such that $r_E(f(s), f(t)) \leq Cr(s,t)^\gamma$ for all
   $t$ with $r_D(s,t) < \tau$. For $\varepsilon>0$, there is
   $\delta'>0$ such $r_D(s,t)^\gamma < \varepsilon / C$ for all $t \in
-  B_{\delta'}(s)$. Choose $\delta := \tau \wedge \delta'$ in order to
+    B_{\delta'}(s)$. Choose $\delta := \tau \wedge \delta'$ in order to
   see, for $t \in B_\delta(s)$
   $$ r_E(f(s), f(t)) \leq C r(s,t)^\gamma < \varepsilon.$$ 2. For $s
-  \in D$, choose $s_1,s_2,...\in A$ with $s_n \xrightarrow{n\to\infty}
-  s$. Then, note that $r_E(f(s_n), f(s_M)) \leq C r_D(s_n, s_m)
-  \xrightarrow{m,n\to\infty} 0$, so $(f(s_n))_{n=1,2,...}$ is a
+    \in D$, choose $s_1,s_2,...\in A$ with $s_n \xrightarrow{n\to\infty}
+    s$. Then, note that $r_E(f(s_n), f(s_M)) \leq C r_D(s_n, s_m)
+    \xrightarrow{m,n\to\infty} 0$, so $(f(s_n))_{n=1,2,...}$ is a
   Cauchy-sequence in $E$. We define $f(s)$ to be its limit. Then, for
   $s,t\in D$ and the sequences $s_1, s_2,...\in D, t_1, t_2,...\in D$
   with $s_n \xrightarrow{n\to\infty}s, t_n \xrightarrow{n\to\infty}t$,
   $$ r_E(f(s), f(t)) = \lim_{n\to\infty}r_E(f(s_n), f(t_n)) \leq
-  \lim_{n\to\infty} Cr_D(s_n, t_n) = Cr_D(s,t).$$
+    \lim_{n\to\infty} Cr_D(s_n, t_n) = Cr_D(s,t).$$
 \end{proof}
 
 For 1., \leanline{continuousAt_of_locally_lipschitz} must be adapted
@@ -408,7 +408,7 @@ not require the set $A$ to be dense, but $\gamma=1$ and $E=\mathbb R$.
 Also, there is \leanline{DenseInducing.continuous_extend} which gives
 a condition when a function can continuously be extended. (It needs a
 \leanline{DenseInducing} function, which in our case is $i : A \to D,
-x\mapsto x$.)
+  x\mapsto x$.)
 
 
 \begin{lemma}\label{l:gauss}
@@ -416,10 +416,10 @@ x\mapsto x$.)
   $$ \lfloor x \rfloor := \max\{n \in \mathbb N: n\leq x\}.$$ The
   following holds:
   \begin{enumerate}
-  \item $0\leq x - \lfloor x \rfloor < 1$;
-  \item   If $|x-y| \leq 1$, then $|\lfloor x\rfloor - \lfloor y \rfloor| \leq
-    1$. 
-  \item $|2 \lfloor x\rfloor - \lfloor 2x \rfloor| \leq 1$.
+    \item $0\leq x - \lfloor x \rfloor < 1$;
+    \item   If $|x-y| \leq 1$, then $|\lfloor x\rfloor - \lfloor y \rfloor| \leq
+            1$.
+    \item $|2 \lfloor x\rfloor - \lfloor 2x \rfloor| \leq 1$.
   \end{enumerate}
 \end{lemma}
 
@@ -427,16 +427,16 @@ x\mapsto x$.)
   1. The first inequality is clear that $\lfloor x\rfloor$ is defined
   as a maximum over a set of numbers bounded above by $x$. The second
   inequality holds since otherwise we would have $\lfloor x\rfloor + 1
-  \leq x$, in contradiction to the definition of $\lfloor
-  x\rfloor$. \\ 2. Without loss of generality, assume that $y\leq x$
+    \leq x$, in contradiction to the definition of $\lfloor
+    x\rfloor$. \\ 2. Without loss of generality, assume that $y\leq x$
   (which implies that $\lfloor y \rfloor \leq \lfloor x\rfloor$). The
   proof is by contradition, so assume that $\lfloor x\rfloor - \lfloor
-  y \rfloor > 1$. So, we find $n := \lfloor x\rfloor\in\mathbb N$ such
+    y \rfloor > 1$. So, we find $n := \lfloor x\rfloor\in\mathbb N$ such
   that $y < n-1 < n \leq x$. This means that $x-y > n - (n-1) = 1$, in
   contradiction to $|x-y| \leq 1$.  \\ 3.  If $x - \lfloor x\rfloor <
-  1/2$, then $2x - 2 \lfloor x\rfloor < 1$, which implies that
+    1/2$, then $2x - 2 \lfloor x\rfloor < 1$, which implies that
   $\lfloor 2x\rfloor = 2\lfloor x\rfloor$. Last, if $1/2 \leq x -
-  \lfloor x\rfloor < 1$, then $1 \leq 2x - 2\lfloor x\rfloor < 2$, so
+    \lfloor x\rfloor < 1$, then $1 \leq 2x - 2\lfloor x\rfloor < 2$, so
   $\lfloor 2x\rfloor = 2\lfloor x\rfloor +1$ and the result follows.
 \end{proof}
 
@@ -445,36 +445,36 @@ x\mapsto x$.)
   Let $I = [0,1]^d$ and $|s-t| := \max_{i=1,...,d} |s_i - t_i|$ for
   $s,t\in I$. Let
   \begin{itemize}
-  \item $D_n := \{0,1,...,2^n\}^n \cdot 2^{-n} \subseteq I$ for
-    $n=0,1,...$, and $D =\bigcup_{n=0}^\infty D_n$;
-  \item $m \in \mathbb N$ and $s,t \in D$ with $|t-s| \leq 2^{-m}$.
+    \item $D_n := \{0,1,...,2^n\}^n \cdot 2^{-n} \subseteq I$ for
+          $n=0,1,...$, and $D =\bigcup_{n=0}^\infty D_n$;
+    \item $m \in \mathbb N$ and $s,t \in D$ with $|t-s| \leq 2^{-m}$.
   \end{itemize}
   Then, there is $n \geq m$ and $s_m,...,s_n, t_m,...,t_n$ such that
   \begin{enumerate}
-  \item $s_k, t_k \in D_k$ with $|s-s_k|, |t-t_k| \leq 2^{-k}$ for all
-    $k=m,...,n$
-  \item $|s_k - s_{k-1}|, |t_k - t_{k-1}| \leq 2^{-k}$,
-  \item $|t_m - s_m| \leq 2^{-m}$,
-  \item $s_n=s, t_n=t$.
+    \item $s_k, t_k \in D_k$ with $|s-s_k|, |t-t_k| \leq 2^{-k}$ for all
+          $k=m,...,n$
+    \item $|s_k - s_{k-1}|, |t_k - t_{k-1}| \leq 2^{-k}$,
+    \item $|t_m - s_m| \leq 2^{-m}$,
+    \item $s_n=s, t_n=t$.
   \end{enumerate}
 \end{lemma}
 
 \begin{proof}
   Since $s,t \in D = \bigcup_n D_n$, and $D_n \subseteq D_m$ for
   $n\geq m$, there is some $n \geq m$ with $s,t\in D_n$. For $k \in
-  m,...,n$, we set
+    m,...,n$, we set
   $$s_k := \lfloor s2^k\rfloor 2^{-k}, \qquad t_k := \lfloor
-  t2^k\rfloor 2^{-k} \in D_k.$$ 1.  Since $|x - \lfloor x \rfloor |
-  \leq 1$ for all $x \in \mathbb R^d$ by Lemma~\ref{l:gauss}.1, we have that
+    t2^k\rfloor 2^{-k} \in D_k.$$ 1.  Since $|x - \lfloor x \rfloor |
+    \leq 1$ for all $x \in \mathbb R^d$ by Lemma~\ref{l:gauss}.1, we have that
   $$|s - s_k| = 2^{-k}|s2^k - \lfloor s2^k\rfloor| \leq 2^{-k}, \qquad
-  k=m,...,n.$$ \\ 2. Using Lemma~\ref{l:gauss}.3, write
+    k=m,...,n.$$ \\ 2. Using Lemma~\ref{l:gauss}.3, write
   $$ |s_k - s_{k-1}| = 2^{-k} | \lfloor 2s2^{k-1}\rfloor - 2\lfloor
-  s2^{k-1}\rfloor| \leq 2^{-k}.$$ \\ 3. Since  $|t-s| \leq
-  2^{-m}$, we have $|2^mt - s^ms| \leq 1$, so by Lemma~\ref{l:gauss}.2
+    s2^{k-1}\rfloor| \leq 2^{-k}.$$ \\ 3. Since  $|t-s| \leq
+    2^{-m}$, we have $|2^mt - s^ms| \leq 1$, so by Lemma~\ref{l:gauss}.2
   $$ |t_m - s_m| = 2^{-m} | \lfloor t2^m\rfloor - \lfloor s2^m
-  \rfloor| \leq 2^{-m}.$$ \\ 4. We have $s2^n, t2^n \in \mathbb Z^d$
+    \rfloor| \leq 2^{-m}.$$ \\ 4. We have $s2^n, t2^n \in \mathbb Z^d$
   since $s,t \in D_n$, so $s_n = 2^{-n} \lfloor s2^n\rfloor = 2^{-n} s
-  2^n = s$ and $t_n = t$.
+    2^n = s$ and $t_n = t$.
 \end{proof}
 
 \begin{remark}\label{rem1}
@@ -484,9 +484,9 @@ x\mapsto x$.)
   triangle inequality,
   \begin{align*}
     t & = t_n = s_n + \Big(\sum_{k=m+1}^n t_k - t_{k-1} -(s_k -
-    s_{k-1})\Big) + t_m - s_m,\\ r(x_t, x_s) & \leq
+    s_{k-1})\Big) + t_m - s_m,                                  \\ r(x_t, x_s) & \leq
     \Big(\sum_{k=m+1}^n r(x_{t_k}, x_{t_{k-1}}) + r(x_{s_k},
-    x_{s_{k-1}}\Big) + r(x_{t_m}, x_{s_m}) \\ & \leq 2 \sum_{k=m}^n
+    x_{s_{k-1}}\Big) + r(x_{t_m}, x_{s_m})                      \\ & \leq 2 \sum_{k=m}^n
     2^{-\gamma k} \leq \tfrac{1}{1-2^{-\gamma}} 2^{-\gamma m}.
   \end{align*}
 \end{remark}
@@ -499,13 +499,13 @@ The proof of the continuity theorem follows the version in
   \label{T:kolchen}
   For some $d\in\mathbb N$ and
   $\sigma_1,\tau_1,...,\sigma_d,\tau_d>0$, let $I = \prod_{i=1}^d
-  [\sigma_i,\tau_i]$, and $X = (X_t)_{t\in I}$ an $E$-valued
+    [\sigma_i,\tau_i]$, and $X = (X_t)_{t\in I}$ an $E$-valued
   stochastic process. Assume that there are $\alpha, \beta, C>0$ with
   $$ \mathbf E[r(X_s, X_t)^\alpha] \leq C|t-s|^{d+\beta}, \qquad 0\leq
-  s,t\leq \tau.$$ There there exists a version $Y = (Y_t)_{t\in I}$ of
+    s,t\leq \tau.$$ There there exists a version $Y = (Y_t)_{t\in I}$ of
   $X$ such that, for some random variables $H>0$ and $K<\infty$,
   $$ \mathbf P\Big(\sup_{s\neq t, |t-s| \leq H} r(Y_s,
-  Y_t)/|t-s|^\gamma \leq K\Big) = 1,
+    Y_t)/|t-s|^\gamma \leq K\Big) = 1,
   $$ for every $\gamma\in(0,\beta/\alpha)$. In particular, $Y$ almost
   surely is locally Hölder of all orders $\gamma\in(0,\beta/\alpha)$,
   and has continuous paths.
@@ -515,48 +515,143 @@ The proof of the continuity theorem follows the version in
   It suffices to show the assertion for $I=[0,1]^d$. The general case
   then follows by some scaling of $I$. We consider the set of times
   $$ D_n := \{0,1,...,2^n\}^n \cdot 2^{-n}$$ for $n=0,1,...$, $D
-  =\bigcup_{n=0}^\infty D_n$. Using the Markov inequality, we write
+    =\bigcup_{n=0}^\infty D_n$. Using the Markov inequality, we write
   for any $n\in\mathbb N$ (note that $|\{s,t\in D_n, |t-s| = 2^{-n}\}|
-  \leq d2^{nd}$), using Lemma~\ref{l:supsum},
+    \leq d2^{nd}$), using Lemma~\ref{l:supsum},
   \begin{align*}
     \mathbf P\Big( & \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t)
     \geq 2^{-\gamma n} \Big) \leq 2^{\gamma \alpha n}\mathbf
     E\Big[\sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t)^\alpha \Big]
     \\ & \leq \sum_{s,t\in D_n, |t-s| = 2^{-n}} 2^{\gamma\alpha
-      n}\mathbf E[r(X_t,X_s)^\alpha] \leq Cd2^{nd} 2^{\gamma\alpha n}
+        n}\mathbf E[r(X_t,X_s)^\alpha] \leq Cd2^{nd} 2^{\gamma\alpha n}
     2^{-(d + \beta) n} = Cd 2^{(\gamma\alpha - \beta)n},
   \end{align*}
   and we see that the right hand side is summable. By the
   Borel-Cantelli Lemma,
   $$ N := \max \Big\{n: \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t)
-  \geq 2^{-\gamma n}\Big\} + 1$$ is finite, almost surely. From this
+    \geq 2^{-\gamma n}\Big\} + 1$$ is finite, almost surely. From this
   and Remark~\ref{rem1}, we conclude with $C' =
-  \frac{1}{1-2^{-\gamma}}$,
+    \frac{1}{1-2^{-\gamma}}$,
   \begin{align*}
     \sup_{s,t\in D, s\neq t, |t-s| \leq 2^{-N}} r(X_s, X_t) & \leq
     \sup_{m \geq N} \Big( \sup_{s,t\in D, |t-s|\leq 2^{-m}} r(X_s,
     X_t)\Big) \leq C' \sup_{m \geq N} 2^{-\gamma m} = C' 2^{-\gamma
-      N}.
+        N}.
   \end{align*}
   In other words, we see with $H = 2^{-N}$ and $K = C 2^{-\gamma N}$,
   $$ \mathbf P\Big[\sup_{s,t\in D, s\neq t, |t-s| \leq H} r(X_s,
-    X_t)/|t-s|^\gamma \leq K\Big] = 1,
+      X_t)/|t-s|^\gamma \leq K\Big] = 1,
   $$
   i.e.\ $X$ is locally Hölder-$\gamma$ on $D$.
 
   With this and Lemma~\ref{l:holderext}.2, we can extend $X$
   Hölder-continuously on $I$, and call this extension $ Y =
-  (Y_t)_{t\in I}$. In order to show that $Y$ is a modification of $X$,
+    (Y_t)_{t\in I}$. In order to show that $Y$ is a modification of $X$,
   fix $t\in I$ and consider a sequence $t_1,t_2,...\in D$ with $t_n\to
-  t$ as $n\to \infty$. Then, for all $\varepsilon>0$,
+    t$ as $n\to \infty$. Then, for all $\varepsilon>0$,
   $$\mathbf P(r(X_{t_n}, X_t) > \varepsilon) \leq \mathbf E[r(X_{t_n},
-    X_t)^\alpha]/\varepsilon^\alpha \xrightarrow{n\to\infty} 0,$$
+        X_t)^\alpha]/\varepsilon^\alpha \xrightarrow{n\to\infty} 0,$$
   i.e.\ $X_{t_n} \xrightarrow{n\to\infty}_p X_t$. Moreover, due to
   continuity of $Y$, we have $Y_{t_n} \xrightarrow{n\to\infty}_{fs}
-  Y_t$. In particular, since $X_{t_n} = Y_{t_n}$ for all $n$, we have
+    Y_t$. In particular, since $X_{t_n} = Y_{t_n}$ for all $n$, we have
   $\mathbf P(X_t= Y_t)=1$ by Lemma~\ref{l:puni} , which concludes the
   proof.
 \end{proof}
+
+\begin{definition}[$\varepsilon$-separated set]
+  Let $\varepsilon>0$ and $(D,r)$ be some pseudometric space.\\ A set $D' \subseteq D$ is said to be $\varepsilon$-separating if $r(x, y) > \varepsilon$ for all $x\neq y$. It is called maximal, if $D' \cup \{x\}$ is not $\varepsilon$-separating for all $x \notin D'$.
+\end{definition}
+
+\begin{lemma}
+  Let $\varepsilon>0$, $(D,r)$ be some pseudometric space and $D_\varepsilon \subseteq D$ a maximal $\varepsilon$-separated set. In addition, for $n=1,2,...$, set $D_n := D_{2^{-n}}$.
+  \begin{enumerate}
+    \item For any $x\in D$ there is $x' \in D_\varepsilon$ such that $r(x,x') < \varepsilon$.
+    \item If $x \in D_\varepsilon$ is not isolated in $D$, there is $x' \neq x$ with $x'\in D_\varepsilon$ and $r(x,x') < 3 \varepsilon$.
+    \item Let $m\leq k$ and $x \in D_k$. Then, there is a sequence $x_k :=x \in D_k, x_{k-1} \in D_{k-1},...,x_{m+1} \in D_{m+1}$ with $r(x_\ell, x_{\ell+1}) < 2^{-\ell-1}$ for $\ell=k,...,m$.
+    \item  Let $m \leq k,\ell$, $x \in D_k, y\in D_\ell$ with $r(x,y) < 2^{-m}$. Then, there are sequences $x_k :=x, x_{k-1} \in D_{k-1},...,x_{m} \in D_{m}$ and $y_\ell :=y, y_{\ell-1} \in D_{\ell-1},...,y_{m} \in D_{m}$ as in 2.\ with $r(x_{m}, y_{m}) < 3\cdot 2^{-m}$.
+  \end{enumerate}
+
+\end{lemma}
+
+\begin{proof}
+  1. We proceed by contradiction. So, assume there is $x \in D$ such that for all $x' \in D'$ we have $r(x,x') \geq D'$. This implies that $D' \cup \{x\}$ is $\varepsilon$-separated, in contradiction to the maximaltiy of $D'$.
+  \\ 2. Since $x$ is not isolated, there is $y \in D$ with $r(x,y) \in (\varepsilon, 2\varepsilon)$. Let $x' \in D_\varepsilon$ with $r(x',y) < \varepsilon$, which exists by 1. Then, $r(x,x') \leq r(x,y) + r(y,x') < 3\varepsilon$.
+  \\ 3. As 1.\ shows, there is $x_{k+1} \in D_{k+1}$ with $r(x, x_{k+1}) < 2^{-k-1}$. The assertion follows inductively.
+  \\ 4. Using the triangle inequality,
+  \begin{align*}
+    r(x_{m}, y_{m}) & \leq r(x,y) + \sum_{i=m}^{k-1} r(x_i, x_{i+1}) + \sum_{i=m}^{\ell-1} r(y_i, y_{i+1}) \\ & < 2^{-m} + \sum_{i=m}^\infty 2^{-i-1} + \sum_{i=m}^\infty 2^{-i-1}  = 3\cdot 2^{-m}
+  \end{align*}
+\end{proof}
+
+\begin{remark}
+Ok, this is simple, but, for $d>0$
+$$ \sum_{j=0}^n 2^{dj} = \frac{2^{d(n+1)}-1}{2^d-1} \leq \frac{2^d}{2^d-1}2^{dn}. $$
+\end{remark}
+
+\begin{theorem}[Continuous version; Kolmogorov, Chentsov]
+  \label{T:kolchen_general}
+  Let $(I, r')$ be a compact metric space and for $\varepsilon>0$, let $J_\varepsilon$ be a maximal $\varepsilon$-separated set in $I$ and $J_\varepsilon' := \{s,t \in J_\varepsilon: r'(s,t) < 3\varepsilon\}$. Assume that, for some $d>0$, we have $c_1, c_2>0$ with
+  $$|J_\varepsilon| \leq c_1\varepsilon^{-d}, \qquad |J_\varepsilon'| \leq c_2 \varepsilon^{-d}$$
+  as $\varepsilon \downarrow 0$. Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_3>0$ with
+  $$ \mathbf E[r(X_s, X_t)^\alpha] \leq c_3 d(s,t)^{d+\beta}, \qquad 0\leq
+    s,t\in I.$$ Then, there exists a version $Y = (Y_t)_{t\in I}$ of
+  $X$ such that, for some random variables $H>0$ and $K<\infty$,
+  $$ \mathbf P\Big(\sup_{s\neq t, |t-s| \leq H} r(Y_s,
+    Y_t)/d(s,t)^\gamma \leq K\Big) = 1,
+  $$ for every $\gamma\in(0,\beta/\alpha)$. In particular, $Y$ almost
+  surely is locally Hölder of all orders $\gamma\in(0,\beta/\alpha)$,
+  and has continuous paths.
+\end{theorem}
+
+\begin{proof}
+  With a slight abuse of notataion, we set $J_n := J_{2^{-n}}$ and $J_n' := J_{2^{-n}}'$. (So, $|J_n| \leq c_1 2^{dn}$ and $|J_n'| \leq c_2 2^{dn}$.) In addition, $K_n := \bigcup_{j=0}^n J_n$ and $K'_n := \bigcup_{j=0}^n J'_n$ (hence $|K_n| \leq c_1' 2^{dn} $ and $|K_n'| \leq c_2' 2^n$ for $c_i' = \frac{c_i 2^d}{2^d-1}$, $i=1,2$).
+  Using the Markov inequality, we write
+  for any $n\in\mathbb N$, using Lemma~\ref{l:supsum},
+  \begin{align*}
+    \mathbf P\Big( & \sup_{s,t\in K_n'} r(X_s, X_t)
+    \geq 2^{-\gamma n} \Big) = \mathbf P\Big( \sup_{s,t\in K_n'} r(X_s, X_t)^\alpha
+    \geq 2^{-\gamma \alpha n} \Big) \leq 2^{\gamma \alpha n}\mathbf
+    E\Big[\sup_{s,t\in K_n'} r(X_s, X_t)^\alpha \Big]
+    \\ & \leq \sum_{s,t\in K_n'} 2^{\gamma\alpha
+        n}\mathbf E[r(X_s,X_t)^\alpha] \leq c_2' 2^{nd} 2^{\gamma\alpha n}
+    c_3 (3\cdot 2^{-n})^{d + \beta} = c_2' c_3 3^{d+\beta} 2^{(\gamma\alpha - \beta)n},
+  \end{align*}
+  and we see that the right hand side is summable. By the
+  Borel-Cantelli Lemma,
+  $$ N := \max \Big\{n: \sup_{s,t\in K_n'} r(X_s, X_t)
+    \geq 2^{-\gamma n}\Big\} + 1$$ is finite, almost surely. From this
+  and Remark~\ref{rem1}, we conclude with $C =
+    1 + \frac{2}{1-2^{-\gamma}}$, with $K = \bigcup_{n=1}^\infty K_n'$,
+  \begin{align*}
+    \sup_{s,t\in K, r'(s,t) \leq 2^{-N}} r(X_s, X_t) &
+    = \sup_{k, \ell \geq N} \sup_{s \in K_k, t\in K_\ell, r'(s,t) \leq 2^{-N}} r(X_s, X_t)
+    \\ & \leq
+    \sup_{k, \ell \geq N} \sup_{s \in K_k, t\in K_\ell, r'(s,t) \leq 2^{-N}} r(x_{s_N}, y_{t_N}) + \sum_{i=N}^{k-1} r(X_{s_i}, X_{s_{i+1}}) + 
+    \sum_{i=N}^{\ell-1} r(X_{t_i}, X_{t_{i+1}})\\ & 
+    < 2^{-\gamma N} + \sum_{i=N}^\infty 2^{-\gamma i} + \sum_{i=N}^\infty 2^{-\gamma i}
+     = C 2^{-\gamma
+        N}.
+  \end{align*}
+  In other words, we see with $H = 2^{-N}$ and $K = C 2^{-\gamma N}$,
+  $$ \mathbf P\Big[\sup_{s,t\in K, s\neq t, r'(s,t) \leq H} r(X_s,
+      X_t)/r'(s,t)^\gamma \leq K\Big] = 1,
+  $$
+  i.e.\ $X$ is locally Hölder-$\gamma$ on $K$.
+
+  With this and Lemma~\ref{l:holderext}.2, we can extend $X$
+  Hölder-continuously on $I$, and call this extension $ Y =
+    (Y_t)_{t\in I}$. In order to show that $Y$ is a modification of $X$,
+  fix $t\in I$ and consider a sequence $t_1,t_2,...\in D$ with $t_n\to
+    t$ as $n\to \infty$. Then, for all $\varepsilon>0$,
+  $$\mathbf P(r(X_{t_n}, X_t) > \varepsilon) \leq \mathbf E[r(X_{t_n},
+        X_t)^\alpha]/\varepsilon^\alpha \xrightarrow{n\to\infty} 0,$$
+  i.e.\ $X_{t_n} \xrightarrow{n\to\infty}_p X_t$. Moreover, due to
+  continuity of $Y$, we have $Y_{t_n} \xrightarrow{n\to\infty}_{fs}
+    Y_t$. In particular, since $X_{t_n} = Y_{t_n}$ for all $n$, we have
+  $\mathbf P(X_t= Y_t)=1$ by Lemma~\ref{l:puni} , which concludes the
+  proof.
+\end{proof}
+
 
 
 \bibliographystyle{alpha}

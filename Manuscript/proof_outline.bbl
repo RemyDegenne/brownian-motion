@@ -1,0 +1,13 @@
+\begin{thebibliography}{EK86}
+
+\bibitem[EK86]{EthierKurtz1986}
+S.N. Ethier and T.G. Kurtz.
+\newblock {\em Markov {P}rocesses. {C}haracterization and {C}onvergence}.
+\newblock John Wiley, New York, 1986.
+
+\bibitem[KS91]{karatzas1991brownian}
+Ioannis Karatzas and Steven Shreve.
+\newblock {\em Brownian motion and stochastic calculus}, volume 113.
+\newblock Springer Science \& Business Media, 1991.
+
+\end{thebibliography}

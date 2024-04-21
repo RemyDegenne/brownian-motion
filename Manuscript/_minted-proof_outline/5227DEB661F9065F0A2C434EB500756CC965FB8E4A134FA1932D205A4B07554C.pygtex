@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+  \PYG{k+kd}{theorem} \PYG{n}{ContinuousMap.starSubalgebra\PYGZus{}topologicalClosure\PYGZus{}eq\PYGZus{}top\PYGZus{}of\PYGZus{}separatesPoints}
+  \PYG{o}{\PYGZob{}}\PYG{n+nb+bp}{𝕜} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u\PYGZus{}2}\PYG{o}{\PYGZcb{}} \PYG{o}{\PYGZob{}}\PYG{n}{X} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u\PYGZus{}1}\PYG{o}{\PYGZcb{}} \PYG{o}{[}\PYG{n}{IsROrC} \PYG{n+nb+bp}{𝕜}\PYG{o}{]} \PYG{o}{[}\PYG{n}{TopologicalSpace} \PYG{n}{X}\PYG{o}{]} \PYG{o}{[}\PYG{n}{CompactSpace} \PYG{n}{X}\PYG{o}{]}
+  \PYG{o}{(}\PYG{n}{A} \PYG{o}{:} \PYG{n}{StarSubalgebra} \PYG{n+nb+bp}{𝕜} \PYG{n}{C}\PYG{o}{(}\PYG{n}{X}\PYG{o}{,} \PYG{n+nb+bp}{𝕜}\PYG{o}{))} \PYG{o}{(}\PYG{n}{hA} \PYG{o}{:} \PYG{n}{Subalgebra.SeparatesPoints} \PYG{n}{A.toSubalgebra}\PYG{o}{)} \PYG{o}{:}
+  \PYG{n}{StarSubalgebra.topologicalClosure} \PYG{n}{A} \PYG{n+nb+bp}{=} \PYG{n+nb+bp}{⊤}
+\end{Verbatim}
