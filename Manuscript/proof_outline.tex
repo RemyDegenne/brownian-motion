@@ -558,24 +558,57 @@ The proof of the continuity theorem follows the version in
   proof.
 \end{proof}
 
-\begin{definition}[$\varepsilon$-separated set]
-  Let $\varepsilon>0$ and $(D,r)$ be some pseudometric space.\\ A set $D' \subseteq D$ is said to be $\varepsilon$-separating if $r(x, y) > \varepsilon$ for all $x\neq y$. It is called maximal, if $D' \cup \{x\}$ is not $\varepsilon$-separating for all $x \notin D'$.
-\end{definition}
-
-\begin{lemma}
-  Let $\varepsilon>0$, $(D,r)$ be some pseudometric space and $D_\varepsilon \subseteq D$ a maximal $\varepsilon$-separated set. In addition, for $n=1,2,...$, set $D_n := D_{2^{-n}}$.
-  \begin{enumerate}
-    \item For any $x\in D$ there is $x' \in D_\varepsilon$ such that $r(x,x') < \varepsilon$.
-    \item If $x \in D_\varepsilon$ is not isolated in $D$, there is $x' \neq x$ with $x'\in D_\varepsilon$ and $r(x,x') < 3 \varepsilon$.
-    \item Let $m\leq k$ and $x \in D_k$. Then, there is a sequence $x_k :=x \in D_k, x_{k-1} \in D_{k-1},...,x_{m+1} \in D_{m+1}$ with $r(x_\ell, x_{\ell+1}) < 2^{-\ell-1}$ for $\ell=k,...,m$.
-    \item  Let $m \leq k,\ell$, $x \in D_k, y\in D_\ell$ with $r(x,y) < 2^{-m}$. Then, there are sequences $x_k :=x, x_{k-1} \in D_{k-1},...,x_{m} \in D_{m}$ and $y_\ell :=y, y_{\ell-1} \in D_{\ell-1},...,y_{m} \in D_{m}$ as in 2.\ with $r(x_{m}, y_{m}) < 3\cdot 2^{-m}$.
-  \end{enumerate}
-
+\begin{lemma}\label{l:chain}
+  Let $(I,q)$ and $(E,r)$ be metric spaces, and $f: I\to E$. Moreover, let $J \subseteq I$ be finite, $a,b,c\in\mathbb R_+$ with $a\geq 1$ and $n \in \{1,2,...\}$ such that $|J| \leq b a^n$. Then, there is $K \subseteq J^2$ such that
+  \begin{align}
+    |K|                                          & \leq a |J|, \label{eq:chain1}                 \\
+    (s,t) \in K                                  & \Rightarrow q(s,t) \leq cn, \label{eq:chain2} \\
+    \sup_{s,t\in J, q(s,t) \leq c} |f(t) - f(s)| & \leq 2 \sup_{(s,t) \in K} |f(s) - f(t)|.
+    \label{eq:chain3}
+  \end{align}
 \end{lemma}
 
 \begin{proof}
-  1. We proceed by contradiction. So, assume there is $x \in D$ such that for all $x' \in D'$ we have $r(x,x') \geq D'$. This implies that $D' \cup \{x\}$ is $\varepsilon$-separated, in contradiction to the maximaltiy of $D'$.
-  \\ 2. Since $x$ is not isolated, there is $y \in D$ with $r(x,y) \in (\varepsilon, 2\varepsilon)$. Let $x' \in D_\varepsilon$ with $r(x',y) < \varepsilon$, which exists by 1. Then, $r(x,x') \leq r(x,y) + r(y,x') < 3\varepsilon$.
+  Start with $V_1 = J$ and some $t_1 \in V_1$. We iteratively construct tuples $(V_\ell, t_\ell \in I, r_\ell \in \{1,...,d\}, B_\ell \subseteq V_\ell, C_\ell \subseteq V_\ell, K_\ell \subseteq V_\ell^2)$ such that $V_{\ell+1} = V_\ell \setminus B_\ell$ (hence, $\ell \mapsto V_\ell$ is decreasing), $t_\ell \in V_\ell$ is some arbitrary element, and $(r_\ell, B_\ell, C_\ell, K_\ell)$ are given by first finding $r_\ell \in \{1,2,...\}$ minimal with
+  $$ |C_\ell| \leq ba^{r_\ell} \text{ for } C_\ell := \{s \in V_\ell: q(s, t_\ell) \leq r_\ell c \}$$
+  (since $|V_\ell| \leq ba^d$, this $r_\ell$ exists uniquely) and
+  $$ B_\ell := \{s\in V_\ell: r(s,t_\ell) \leq (r_\ell-1)c\} \subseteq C_\ell, \qquad K_\ell := \{t_\ell\} \times C_\ell. $$
+  Note that this implies
+  $$ |B_\ell| \geq ba^{r_\ell-1}, \qquad |K_\ell| = |C_\ell| \leq ba^{r_\ell} $$
+  by definition of $r_\ell$, and since $t_\ell \in B_\ell$ in all cases. We continue this construction until $V_m = \emptyset$.
+  \\
+  We claim that
+  $$ K := \bigcup_{\ell=1}^m K_\ell = \{(t_\ell,s): s \in V_\ell, q(t_\ell,s) \leq cr_\ell \text{ for some } \ell=1,2,...\}$$
+  satisfies \eqref{eq:chain1}, \eqref{eq:chain2} and \eqref{eq:chain3}.
+  In order to show \eqref{eq:chain1}, we have, since $B_1, B_2,...$ are disjoint,
+  $$ \sum_\ell ba^{r_\ell-1} \leq \sum_\ell |B_\ell| \leq |J|.$$
+  Hence, \eqref{eq:chain1} follows from
+  $$ |K| \leq \sum_\ell |K_\ell| = \sum_\ell |C_\ell| \leq \sum_\ell ba^{r_\ell} \leq a|J|.$$
+  For \eqref{eq:chain2}, we have for $(t_\ell,s) \in K_\ell \subseteq K$,
+  $$ q(t_\ell, s) \leq cr_\ell \leq cd.$$
+  Last, for \eqref{eq:chain3}, consider $(s,t) \in J$ with $q(s,t) \leq c$. (Recall that $\ell \mapsto V_\ell$ is decreasing with $V_1=J$ and $V_m = \emptyset$.) Find $\ell$ maximal with $s,t \in V_\ell$. Assume wlog that $s \notin V_{\ell+1}$, which implies $s \in B_\ell$ (since $V_{\ell+1} = V_\ell \setminus B_\ell$), which further implies $q(s, t_\ell) \leq (r_\ell-1)c$. (This implies $(t_\ell,s) \in K_\ell$.) Since $q(s,t) \leq c$, this gives $q(t, t_\ell) \leq q(t,s) + q(s, t_\ell) \leq r_\ell c$, so $s,t \in C_\ell$. From here, $(t_\ell, s), (t_\ell, t) \in K_\ell \subseteq K$, hence
+  $$ q(f(s), f(t)) \leq q(f(s), f(t_\ell)) + q(f(t_\ell), f(t)) \leq 2\sup_{s', t' \in K} q(f(s'), f(t'))$$
+  and we are done by taking $\sup_{s,t \in J. q(s,t) \leq c}$ on the left hand side.
+\end{proof}
+
+
+\begin{definition}[$\varepsilon$-cover]
+  Let $\varepsilon>0$ and $(D,r)$ be some pseudometric space.\\ A set $D' \subseteq D$ is said to be an $\varepsilon$-cover of $D$ if $D = \bigcup_{x\in D'} B_\varepsilon(x)$. It is called minimal, if $D' \setminus \{x\}$ is no $\varepsilon$-cover for all $x \in D'$.
+\end{definition}
+
+\begin{lemma}
+  Let $\varepsilon>0$, $(D,r)$ be some pseudometric space and $D_\varepsilon \subseteq D$ a minimal $\varepsilon$-cover of $D$. In addition, for $n=1,2,...$, set $D_n := D_{2^{-n}}$.
+  \begin{enumerate}
+    \item For any $x\in D$ there is $x' \in D_\varepsilon$ such that $r(x,x') < \varepsilon$.
+    \item If $x \in D_\varepsilon$ is not isolated in $D$, there is $\varepsilon>0$ and $x' \neq x$ with $x'\in D_\varepsilon$ and $r(x,x') < 3 \varepsilon$.
+    \item Let $m\leq k$ and $x \in D_k$. Then, there is a sequence $x_k :=x \in D_k, x_{k-1} \in D_{k-1},...,x_{m+1} \in D_{m+1}$ with $r(x_\ell, x_{\ell+1}) < 2^{-\ell-1}$ for $\ell=k,...,m$.
+    \item  Let $m \leq k,\ell$, $x \in D_k, y\in D_\ell$ with $r(x,y) < 2^{-m}$. Then, there are sequences $x_k :=x, x_{k-1} \in D_{k-1},...,x_{m} \in D_{m}$ and $y_\ell :=y, y_{\ell-1} \in D_{\ell-1},...,y_{m} \in D_{m}$ as in 2.\ with $r(x_{m}, y_{m}) < 3\cdot 2^{-m}$.
+  \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+  1. This follows from the definition of a $\varepsilon$-cover.
+  \\ 2. Since $x$ is not isolated, there is $y \in D$ with $r(x,y) \in (\varepsilon, 2\varepsilon)$ for some $\varepsilon>0$. Let $x' \in D_\varepsilon$ with $r(x',y) < \varepsilon$, which exists by 1. Then, $r(x,x') \leq r(x,y) + r(y,x') < 3\varepsilon$.
   \\ 3. As 1.\ shows, there is $x_{k+1} \in D_{k+1}$ with $r(x, x_{k+1}) < 2^{-k-1}$. The assertion follows inductively.
   \\ 4. Using the triangle inequality,
   \begin{align*}
@@ -584,59 +617,64 @@ The proof of the continuity theorem follows the version in
 \end{proof}
 
 \begin{remark}
-Ok, this is simple, but, for $d>0$
-$$ \sum_{j=0}^n 2^{dj} = \frac{2^{d(n+1)}-1}{2^d-1} \leq \frac{2^d}{2^d-1}2^{dn}. $$
+  Ok, this is simple, but, for $d>0$
+  $$ \sum_{j=0}^n 2^{dj} = \frac{2^{d(n+1)}-1}{2^d-1} \leq \frac{2^d}{2^d-1}2^{dn}. $$
 \end{remark}
 
 \begin{theorem}[Continuous version; Kolmogorov, Chentsov]
   \label{T:kolchen_general}
-  Let $(I, r')$ be a compact metric space and for $\varepsilon>0$, let $J_\varepsilon$ be a maximal $\varepsilon$-separated set in $I$ and $J_\varepsilon' := \{s,t \in J_\varepsilon: r'(s,t) < 3\varepsilon\}$. Assume that, for some $d>0$, we have $c_1, c_2>0$ with
-  $$|J_\varepsilon| \leq c_1\varepsilon^{-d}, \qquad |J_\varepsilon'| \leq c_2 \varepsilon^{-d}$$
-  as $\varepsilon \downarrow 0$. Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_3>0$ with
-  $$ \mathbf E[r(X_s, X_t)^\alpha] \leq c_3 d(s,t)^{d+\beta}, \qquad 0\leq
+  Let $(I, q)$ be a compact metric space and for $\varepsilon>0$, let $I_\varepsilon$ be a finite $\varepsilon$-cover of $I$. Assume that, for some $d \in \{1,2,...\}$, we have $c_1>0$ with
+  $$|I_\varepsilon| \leq c_1\varepsilon^{-d}$$
+  for $\varepsilon$ small enough. Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ with
+  $$ \mathbf E[r(X_s, X_t)^\alpha] \leq c_2 q(s,t)^{d+\beta}, \qquad
     s,t\in I.$$ Then, there exists a version $Y = (Y_t)_{t\in I}$ of
   $X$ such that, for some random variables $H>0$ and $K<\infty$,
-  $$ \mathbf P\Big(\sup_{s\neq t, |t-s| \leq H} r(Y_s,
-    Y_t)/d(s,t)^\gamma \leq K\Big) = 1,
+  $$ \mathbf P\Big(\sup_{s\neq t, q(s,t) \leq H} r(Y_s,
+    Y_t)/q(s,t)^\gamma \leq K\Big) = 1,
   $$ for every $\gamma\in(0,\beta/\alpha)$. In particular, $Y$ almost
   surely is locally Hölder of all orders $\gamma\in(0,\beta/\alpha)$,
   and has continuous paths.
 \end{theorem}
 
 \begin{proof}
-  With a slight abuse of notataion, we set $J_n := J_{2^{-n}}$ and $J_n' := J_{2^{-n}}'$. (So, $|J_n| \leq c_1 2^{dn}$ and $|J_n'| \leq c_2 2^{dn}$.) In addition, $K_n := \bigcup_{j=0}^n J_n$ and $K'_n := \bigcup_{j=0}^n J'_n$ (hence $|K_n| \leq c_1' 2^{dn} $ and $|K_n'| \leq c_2' 2^n$ for $c_i' = \frac{c_i 2^d}{2^d-1}$, $i=1,2$).
-  Using the Markov inequality, we write
-  for any $n\in\mathbb N$, using Lemma~\ref{l:supsum},
+  With a slight abuse of notation, we set $I_n := I_{2^{-n}}$. (So, $|I_n| \leq c_1 2^{dn}$.) In addition, $J_n := \bigcup_{j=0}^n I_j$, hence $|J_n| \leq c_1 \sum_{i=0}^n 2^{di} \leq c_3 2^{dn}$ with $c_3 = \frac{2^d}{2^d-1}c_1$. We use Lemma~\ref{l:chain} with $J = J_n$, $a = 2^d$, $b = c_3$, $c = 2^{-n}$ and $n=n$. This gives some $K_n \subseteq J_n^2$ with $|K_n| \leq c_3 2^d 2^{dn}$ such that $(s,t) \in K_n \Rightarrow q(s,t) \leq n\cdot 2^{-n}$ and
+  $$\sup_{s,t \in J_n, q(s,t) \leq 2^{-n}} r(X_s, X_t) \leq 2 \sup_{(s,t) \in K_n}  r(X_s, X_t).$$
+  Using the Markov inequality, we write for any $n\in\mathbb N$, using Lemma~\ref{l:supsum},
   \begin{align*}
-    \mathbf P\Big( & \sup_{s,t\in K_n'} r(X_s, X_t)
-    \geq 2^{-\gamma n} \Big) = \mathbf P\Big( \sup_{s,t\in K_n'} r(X_s, X_t)^\alpha
-    \geq 2^{-\gamma \alpha n} \Big) \leq 2^{\gamma \alpha n}\mathbf
-    E\Big[\sup_{s,t\in K_n'} r(X_s, X_t)^\alpha \Big]
-    \\ & \leq \sum_{s,t\in K_n'} 2^{\gamma\alpha
-        n}\mathbf E[r(X_s,X_t)^\alpha] \leq c_2' 2^{nd} 2^{\gamma\alpha n}
-    c_3 (3\cdot 2^{-n})^{d + \beta} = c_2' c_3 3^{d+\beta} 2^{(\gamma\alpha - \beta)n},
+    \mathbf P\Big( & \sup_{s,t\in J_n, q(s,t) < 2^{-n}} r(X_s, X_t)
+    \geq 2^{-\gamma n} \Big) \leq
+    \mathbf P\Big( 2\sup_{(s,t)\in K_n} r(X_s, X_t)
+    \geq 2^{-\gamma n} \Big)                                               \\ & = \mathbf P\Big( \sup_{(s,t)\in K_n} r(X_s, X_t)^\alpha
+    \geq 2^{-\alpha} 2^{-\gamma \alpha n} \Big) \leq 2^\alpha 2^{\gamma \alpha n}\mathbf
+    E\Big[\sup_{(s,t) \in K_n} r(X_s, X_t)^\alpha \Big]
+    \\ & \leq \sum_{(s,t)\in K_n} 2^\alpha 2^{\gamma\alpha
+        n}\mathbf E[r(X_s,X_t)^\alpha] \leq c_3 2^d 2^{nd} 2^\alpha 2^{\gamma\alpha n}
+    c_2 (3n\cdot 2^{-n})^{d + \beta} = c n^{d + \beta} 2^{(\gamma\alpha - \beta)n}
   \end{align*}
-  and we see that the right hand side is summable. By the
+  with $c = c_3 2^d c_2$. So, we see that the right hand side is summable. By the
   Borel-Cantelli Lemma,
-  $$ N := \max \Big\{n: \sup_{s,t\in K_n'} r(X_s, X_t)
-    \geq 2^{-\gamma n}\Big\} + 1$$ is finite, almost surely. From this
-  and Remark~\ref{rem1}, we conclude with $C =
-    1 + \frac{2}{1-2^{-\gamma}}$, with $K = \bigcup_{n=1}^\infty K_n'$,
+  $$ N := \max \Big\{n: \sup_{s,t\in J_n, q(s,t) < 2^{-n}} r(X_s, X_t)
+    \geq 2^{-\gamma n}\Big\} + 1$$ 
+  is finite, almost surely. We set $J := \bigcup_n J_n$ and $H_m := 2^{-(N+m)}$ (with $H_m>0$, almost surely). For $s\in J_k$ and $k>N+m$, let $s_k := s, s_{k-1},...,s_{N+m}$ be as in Lemma xxx, and analogously for $t\in K_\ell$ with $\ell > N+m$. From this and Remark~\ref{rem1}, we conclude with $c' = 1 + \frac{2}{1-2^{-\gamma}}$ and
   \begin{align*}
-    \sup_{s,t\in K, r'(s,t) \leq 2^{-N}} r(X_s, X_t) &
-    = \sup_{k, \ell \geq N} \sup_{s \in K_k, t\in K_\ell, r'(s,t) \leq 2^{-N}} r(X_s, X_t)
+    & \sup_{s,t\in J, q(s,t) \leq H_m} r(X_s, X_t)
     \\ & \leq
-    \sup_{k, \ell \geq N} \sup_{s \in K_k, t\in K_\ell, r'(s,t) \leq 2^{-N}} r(x_{s_N}, y_{t_N}) + \sum_{i=N}^{k-1} r(X_{s_i}, X_{s_{i+1}}) + 
-    \sum_{i=N}^{\ell-1} r(X_{t_i}, X_{t_{i+1}})\\ & 
-    < 2^{-\gamma N} + \sum_{i=N}^\infty 2^{-\gamma i} + \sum_{i=N}^\infty 2^{-\gamma i}
-     = C 2^{-\gamma
-        N}.
+    \sup_{k, \ell \geq N+m} \sup_{s \in K_k, t\in K_\ell, q(s,t) \leq H_m} r(x_{s_{N+m}}, y_{t_{N+m}}) + \sum_{i=N+m}^{k-1} r(X_{s_i}, X_{s_{i+1}}) +
+    \sum_{i=N+m}^{\ell-1} r(X_{t_i}, X_{t_{i+1}})    \\ &
+    \leq \sup_{s,t \in J_{N+m}, q(s,t) \leq 3\cdot H_m} r(X_s, X_t) +  2^{-\gamma N} + \sum_{i=N}^\infty 2^{-\gamma i} + \sum_{i=N}^\infty 2^{-\gamma i}
+    = c' 2^{-\gamma N}.
   \end{align*}
-  In other words, we see with $H = 2^{-N}$ and $K = C 2^{-\gamma N}$,
-  $$ \mathbf P\Big[\sup_{s,t\in K, s\neq t, r'(s,t) \leq H} r(X_s,
-      X_t)/r'(s,t)^\gamma \leq K\Big] = 1,
+  In other words, we see with $H = 3\cdot 2^{-N}$ and $K = c' 2^{-\gamma N}$,
+  $$ \mathbf P\Big[\sup_{s,t\in J, s\neq t, q(s,t) \leq H} r(X_s,
+      X_t)/q(s,t)^\gamma \leq K\Big] = 1,
   $$
   i.e.\ $X$ is locally Hölder-$\gamma$ on $K$.
+
+  Then,
+  \begin{align*}
+    \sup & \Big\{\frac{r(X_s, X_t)}{q(s,t)^\gamma}: {s,t\in J, q(s,t) \leq 3\cdot 2^{-N}} \Big\} \\ & = \sup_{m=0,1,2,...} \sup \Big\{\frac{r(X_s, X_t)}{q(s,t)^\gamma}: s,t\in J, H_{m+1}  < q(s,t) \leq H_m\Big\} \\ & \leq \sup_{m=0, 1,...} 2^{(N+m+1)\gamma}\sup \big\{r(X_s, X_t): s,t\in J, q(s,t) \leq H_m\big\} \\ & \leq \sup_{m=0,1,...} 2^{(N+m+1)\gamma} c' 2^{-\gamma (N+m)} \\ & = 2^{\gamma}c'.
+  \end{align*}
+
 
   With this and Lemma~\ref{l:holderext}.2, we can extend $X$
   Hölder-continuously on $I$, and call this extension $ Y =

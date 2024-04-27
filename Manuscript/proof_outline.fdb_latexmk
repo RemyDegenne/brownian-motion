@@ -1,9 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1713734215 "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.tex" "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.pdf" "proof_outline" 1713734215
+["pdflatex"] 1714168971 "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.tex" "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.pdf" "proof_outline" 1714168971
   "/dev/null" 1712512992 0 d41d8cd98f00b204e9800998ecf8427e ""
   "/etc/texmf/web2c/texmf.cnf" 1668841948 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.aux" 1713734215 8 a94a2480d3289e625eea47cd1b285758 ""
-  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.tex" 1713734215 32030 748510dcb8b798e096c5f2453755a4ba ""
+  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.aux" 1714168971 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.tex" 1714168970 35870 948a5760e5a1a7acbfa516b88d6c650d ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1000.tfm" 1136768653 3584 adb004a0c8e7c46ee66cad73671f37b4 ""
   "/usr/share/texlive/texmf-dist/tex/generic/catchfile/catchfile.sty" 1576016007 8622 63834878edeb14dd71d58d8f22bc3e06 ""
@@ -60,8 +60,8 @@
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
   "/usr/share/texmf/web2c/texmf.cnf" 1581979058 38841 ce3692aa899bb693b90b87eaa5d4d84e ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1710920196 8256111 15d3b128f4787b00d430568115d7f599 ""
-  "proof_outline.tex" 1713734215 32030 748510dcb8b798e096c5f2453755a4ba ""
+  "proof_outline.tex" 1714168970 35870 948a5760e5a1a7acbfa516b88d6c650d ""
   (generated)
-  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.log"
   "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.pdf"
   "proof_outline.log"
+  "/home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.log"

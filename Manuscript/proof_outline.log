@@ -1,4 +1,4 @@
-This is LuaTeX, Version 1.10.0 (TeX Live 2019/Debian)  (format=lualatex 2024.3.20)  21 APR 2024 23:16
+This is LuaTeX, Version 1.10.0 (TeX Live 2019/Debian)  (format=lualatex 2024.3.20)  27 APR 2024 00:02
  system commands enabled.
 **proof_outline.tex
 (./proof_outline.tex
@@ -952,31 +952,51 @@ LaTeX Warning: Reference `l:holderext' on page 7 undefined on input line 547.
 
 LaTeX Warning: Reference `l:puni' on page 7 undefined on input line 557.
 
-[7]
 
-LaTeX Warning: Reference `l:supsum' on page 8 undefined on input line 609.
-
-
-LaTeX Warning: Reference `rem1' on page 8 undefined on input line 623.
+LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 582.
 
 
-Overfull \hbox (34.85587pt too wide) detected at line 634
-[]
- []
+LaTeX Warning: Reference `eq:chain2' on page 7 undefined on input line 582.
 
 
-LaTeX Warning: Reference `l:holderext' on page 8 undefined on input line 641.
+LaTeX Warning: Reference `eq:chain3' on page 7 undefined on input line 582.
 
 
-LaTeX Warning: Reference `l:puni' on page 8 undefined on input line 651.
+LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 583.
 
-[8] (./proof_outline.bbl)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 661.
- [9]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 661.
+
+LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 585.
+
+
+LaTeX Warning: Reference `eq:chain2' on page 7 undefined on input line 587.
+
+
+LaTeX Warning: Reference `eq:chain3' on page 7 undefined on input line 589.
+
+[7] [8]
+
+LaTeX Warning: Reference `l:chain' on page 9 undefined on input line 640.
+
+
+LaTeX Warning: Reference `l:supsum' on page 9 undefined on input line 642.
+
+
+LaTeX Warning: Reference `rem1' on page 9 undefined on input line 658.
+
+[9]
+
+LaTeX Warning: Reference `l:holderext' on page 10 undefined on input line 679.
+
+
+LaTeX Warning: Reference `l:puni' on page 10 undefined on input line 689.
+
+(./proof_outline.bbl)
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 699.
+ [10]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 699.
  (./proof_outline.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 661.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 661.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 699.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 699.
 
 
 Package rerunfilecheck Warning: File `proof_outline.out' has changed.
@@ -996,14 +1016,14 @@ runsystem(rm proof_outline.pyg)...executed
 )
 
 Here is how much of LuaTeX's memory you used:
- 17586 strings out of 481365
+ 17595 strings out of 481365
  100000,794899 words of node,token memory allocated
- 634 words of node memory still in use:
-   7 hlist, 2 vlist, 2 rule, 3 glue, 4 kern, 1 glyph, 32 attribute, 58 glue_spec
-, 32 attribute_list, 1 write nodes
-   avail lists: 1:2,2:1391,3:246,4:234,5:396,6:23,7:3926,8:82,9:741,10:8,11:209
- 33600 multiletter control sequences out of 65536+600000
- 111 fonts using 22173603 bytes
+ 670 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 3 glue, 4 kern, 1 glyph, 41 attribute, 58 glue_spec
+, 41 attribute_list, 1 write nodes
+   avail lists: 1:2,2:1373,3:246,4:234,5:396,6:23,7:3926,8:91,9:741,10:8,11:209
+ 33604 multiletter control sequences out of 65536+600000
+ 111 fonts using 22173827 bytes
  43i,19n,67p,853b,510s stack positions out of 5000i,500n,10000p,200000b,100000s
 </usr/share/texmf/fonts/opentype/public/lm/lmroman8-regular.otf></usr/share/texm
 f/fonts/opentype/public/lm/lmroman6-regular.otf></usr/share/texmf/fonts/opentype
@@ -1032,10 +1052,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-di
 st/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
 ublic/amsfonts/symbols/msbm10.pfb>
-Output written on proof_outline.pdf (9 pages, 291384 bytes).
+Output written on proof_outline.pdf (10 pages, 302875 bytes).
 
-PDF statistics: 258 PDF objects out of 1000 (max. 8388607)
- 191 compressed objects within 2 object streams
- 59 named destinations out of 1000 (max. 131072)
+PDF statistics: 266 PDF objects out of 1000 (max. 8388607)
+ 198 compressed objects within 2 object streams
+ 64 named destinations out of 1000 (max. 131072)
  1 words of extra memory for PDF output out of 10000 (max. 100000000)
 
