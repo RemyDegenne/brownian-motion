@@ -19,7 +19,7 @@ open BoundedContinuousFunction Complex
 @[simp]
 lemma conj_exp_mul_I (x : ℝ) : starRingEnd ℂ (exp (x * I)) = exp (- x * I) := by
   have h := coe_inv_circle_eq_conj ⟨exp (x * I), ?_⟩
-  · simp only [coe_inv_unitSphere] at h 
+  · simp only [coe_inv_unitSphere] at h
     rw [← h, neg_mul, exp_neg]
   · simp [exp_mul_I, abs_cos_add_sin_mul_I]
 
@@ -75,7 +75,7 @@ def expPoly : StarSubalgebra ℝ (E →ᵇ ℂ) where
     let f : E ↪ E := ⟨fun x ↦ -x, (fun _ _ ↦ neg_inj.mp)⟩
     refine ⟨y.embDomain f, ?_⟩
     ext1 u
-    simp only [star_apply, IsROrC.star_def, expInnerMulIₐ_apply, Finsupp.support_embDomain,
+    simp only [star_apply, RCLike.star_def, expInnerMulIₐ_apply, Finsupp.support_embDomain,
       Finset.sum_map, Function.Embedding.coeFn_mk, inner_neg_left, ofReal_neg, neg_mul]
     rw [map_sum]
     congr
@@ -85,6 +85,7 @@ def expPoly : StarSubalgebra ℝ (E →ᵇ ℂ) where
     · change y.embDomain f (f v) = starRingEnd ℂ (y v)
       rw [Finsupp.embDomain_apply, conj_ofReal] -- why is `conj_ofReal` not simp?
     · rw [conj_exp_mul_I, neg_mul]
+      simp [f]
 
 lemma mem_expPoly (f : E →ᵇ ℂ) :
     f ∈ expPoly E

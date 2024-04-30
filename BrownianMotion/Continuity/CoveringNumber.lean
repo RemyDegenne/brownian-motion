@@ -2,7 +2,7 @@ import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Data.ENat.Lattice
 
 /-!
-# Covering and packing numbers 
+# Covering and packing numbers
 
 ### References
 - Vershynin, High-Dimensional Probability (section 4.2)
@@ -109,19 +109,20 @@ lemma isCover_maximalSeparatedSet [PseudoMetricSpace α] (h : packingNumber r A 
   intro x hxA
   by_contra h_dist
   push_neg at h_dist
-  have hx_not_mem : x ∉ maximalSeparatedSet r A := by 
+  have hx_not_mem : x ∉ maximalSeparatedSet r A := by
     intro hx_mem
     specialize h_dist x hx_mem
-    simp only [dist_self, not_lt.mpr hr] at h_dist 
+    simp only [dist_self, not_lt.mpr hr] at h_dist
   classical
   let C := {x} ∪ maximalSeparatedSet r A
   have hC_subset : ↑C ⊆ A := by
-    simp [hxA, maximalSeparatedSet_subset, Set.insert_subset]
+    simp [C, hxA, maximalSeparatedSet_subset, Set.insert_subset]
   have hC_separated : IsSeparated (C : Set α) r := by
     sorry
   refine absurd (card_le_of_isSeparated hC_subset hC_separated) ?_
   simp only [Finset.disjoint_singleton_left, hx_not_mem, not_false_eq_true,
-    Finset.card_disjoint_union, Finset.card_singleton, add_le_iff_nonpos_left]
+    Finset.card_union_of_disjoint, Finset.card_singleton, add_le_iff_nonpos_left,
+    nonpos_iff_eq_zero, one_ne_zero, C]
 
 end maximalSeparatedSet
 
