@@ -1,4 +1,4 @@
-This is LuaTeX, Version 1.10.0 (TeX Live 2019/Debian)  (format=lualatex 2024.3.20)  27 APR 2024 00:02
+This is LuaTeX, Version 1.10.0 (TeX Live 2019/Debian)  (format=lualatex 2024.3.20)  4 FEB 2025 22:51
  system commands enabled.
 **proof_outline.tex
 (./proof_outline.tex
@@ -765,6 +765,8 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 42.
 LaTeX Info: Redefining \pageref on input line 42.
 LaTeX Info: Redefining \nameref on input line 42.
+
+(./proof_outline.out) (./proof_outline.out)
 \@outlinefile=\write5
 
 \openout5 = proof_outline.out
@@ -835,11 +837,7 @@ e $\OML/cmm/m/it/10 E$\TU/lmr/m/it/10 -valued ran-dom vari-ables with $\OML/cmm
 \openout4 = proof_outline.pyg
 
 (./_minted-proof_outline/8E09FD9BF8C1518B9C958D85647460E9E4E7D3512B9D2092004B68
-09BEC27372.pygtex)
-
-LaTeX Warning: Reference `l:aep' on page 1 undefined on input line 117.
-
-[1
+09BEC27372.pygtex) [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 warning  (pdf backend): ignoring duplicate destination with the name 'propositio
@@ -868,29 +866,11 @@ n.0.1'
 \openout3 = proof_outline.pyg
 
 (./_minted-proof_outline/DDEB42811F621758018798A6EA876771C965FB8E4A134FA1932D20
-5A4B07554C.pygtex)
+5A4B07554C.pygtex) [2] [3]
+\openout4 = proof_outline.pyg
 
-LaTeX Warning: Citation `EthierKurtz1986' on page 2 undefined on input line 217.
-
-
-[2]
-
-LaTeX Warning: Reference `eq:wc9' on page 3 undefined on input line 257.
-
-
-LaTeX Warning: Reference `l:unique' on page 3 undefined on input line 275.
-
-
-LaTeX Warning: Reference `T:wc3' on page 3 undefined on input line 298.
-
-[3]
-
-LaTeX Warning: Reference `Pr:char1' on page 4 undefined on input line 339.
-
-
-LaTeX Warning: Reference `rem:proj' on page 4 undefined on input line 351.
-
-
+(./_minted-proof_outline/8E09FD9BF8C1518B9C958D85647460E9E4E7D3512B9D2092004B68
+09BEC27372.pygtex) [4]
 \openout4 = proof_outline.pyg
 
 (./_minted-proof_outline/50B7A96FD2927B15E1A4BB519D9867B2E4E7D3512B9D2092004B68
@@ -902,7 +882,7 @@ LaTeX Warning: Reference `rem:proj' on page 4 undefined on input line 351.
 \openout4 = proof_outline.pyg
 
 (./_minted-proof_outline/6ACDE663D7845BA6D5512CB84829B6C4E4E7D3512B9D2092004B68
-09BEC27372.pygtex) [4]
+09BEC27372.pygtex)
 \openout4 = proof_outline.pyg
 
 (./_minted-proof_outline/6ACDE663D7845BA6D5512CB84829B6C4E4E7D3512B9D2092004B68
@@ -918,112 +898,33 @@ LaTeX Warning: Reference `rem:proj' on page 4 undefined on input line 351.
 \openout4 = proof_outline.pyg
 
 (./_minted-proof_outline/8AAC16B7E7807FFCD488803ABF255E72E4E7D3512B9D2092004B68
-09BEC27372.pygtex)
-
-LaTeX Warning: Reference `l:gauss' on page 5 undefined on input line 468.
-
-
-LaTeX Warning: Reference `l:gauss' on page 5 undefined on input line 470.
-
-[5]
-
-LaTeX Warning: Reference `l:gauss' on page 6 undefined on input line 473.
-
-
-LaTeX Warning: Citation `karatzas1991brownian' on page 6 undefined on input line
- 496.
-
-
-Overfull \hbox (0.5955pt too wide) in paragraph at lines 500--504
+09BEC27372.pygtex) [5] [6]
+Overfull \hbox (0.5955pt too wide) in paragraph at lines 544--548
 [][][]\TU/lmr/m/it/10 For some $\OML/cmm/m/it/10 d \OMS/cmsy/m/n/10 2 \U/msb/m/
 n/10 N$ \TU/lmr/m/it/10 and $\OML/cmm/m/it/10 []; []; :::; []; [] >
  []
 
-
-LaTeX Warning: Reference `l:supsum' on page 6 undefined on input line 520.
-
-
-LaTeX Warning: Reference `rem1' on page 6 undefined on input line 533.
-
-[6]
-
-LaTeX Warning: Reference `l:holderext' on page 7 undefined on input line 547.
-
-
-LaTeX Warning: Reference `l:puni' on page 7 undefined on input line 557.
-
-
-LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 582.
-
-
-LaTeX Warning: Reference `eq:chain2' on page 7 undefined on input line 582.
-
-
-LaTeX Warning: Reference `eq:chain3' on page 7 undefined on input line 582.
-
-
-LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 583.
-
-
-LaTeX Warning: Reference `eq:chain1' on page 7 undefined on input line 585.
-
-
-LaTeX Warning: Reference `eq:chain2' on page 7 undefined on input line 587.
-
-
-LaTeX Warning: Reference `eq:chain3' on page 7 undefined on input line 589.
-
-[7] [8]
-
-LaTeX Warning: Reference `l:chain' on page 9 undefined on input line 640.
-
-
-LaTeX Warning: Reference `l:supsum' on page 9 undefined on input line 642.
-
-
-LaTeX Warning: Reference `rem1' on page 9 undefined on input line 658.
-
-[9]
-
-LaTeX Warning: Reference `l:holderext' on page 10 undefined on input line 679.
-
-
-LaTeX Warning: Reference `l:puni' on page 10 undefined on input line 689.
-
-(./proof_outline.bbl)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 699.
- [10]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 699.
+[7] [8] [9] (./proof_outline.bbl [10])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 743.
+ [11]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 743.
  (./proof_outline.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 699.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 699.
-
-
-Package rerunfilecheck Warning: File `proof_outline.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `proof_outline.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  8883C9974BD9958B34D75A1E6FFEB3BE;993.
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 743.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 743.
+Package rerunfilecheck Info: File `proof_outline.out' has not changed.
+(rerunfilecheck)             Checksum: 8883C9974BD9958B34D75A1E6FFEB3BE;993.
 runsystem(rm proof_outline.pyg)...executed
 )
 
 Here is how much of LuaTeX's memory you used:
- 17595 strings out of 481365
+ 17631 strings out of 481365
  100000,794899 words of node,token memory allocated
- 670 words of node memory still in use:
-   7 hlist, 2 vlist, 2 rule, 3 glue, 4 kern, 1 glyph, 41 attribute, 58 glue_spec
-, 41 attribute_list, 1 write nodes
-   avail lists: 1:2,2:1373,3:246,4:234,5:396,6:23,7:3926,8:91,9:741,10:8,11:209
- 33604 multiletter control sequences out of 65536+600000
- 111 fonts using 22173827 bytes
+ 678 words of node memory still in use:
+   7 hlist, 2 vlist, 2 rule, 3 glue, 4 kern, 1 glyph, 43 attribute, 58 glue_spec
+, 43 attribute_list, 1 write nodes
+   avail lists: 1:2,2:1371,3:267,4:234,5:398,6:26,7:3954,8:92,9:746,10:8,11:209
+ 33610 multiletter control sequences out of 65536+600000
+ 111 fonts using 22173631 bytes
  43i,19n,67p,853b,510s stack positions out of 5000i,500n,10000p,200000b,100000s
 </usr/share/texmf/fonts/opentype/public/lm/lmroman8-regular.otf></usr/share/texm
 f/fonts/opentype/public/lm/lmroman6-regular.otf></usr/share/texmf/fonts/opentype
@@ -1052,10 +953,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-di
 st/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts
 /type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
 ublic/amsfonts/symbols/msbm10.pfb>
-Output written on proof_outline.pdf (10 pages, 302875 bytes).
+Output written on proof_outline.pdf (11 pages, 309377 bytes).
 
-PDF statistics: 266 PDF objects out of 1000 (max. 8388607)
- 198 compressed objects within 2 object streams
- 64 named destinations out of 1000 (max. 131072)
- 1 words of extra memory for PDF output out of 10000 (max. 100000000)
+PDF statistics: 327 PDF objects out of 1000 (max. 8388607)
+ 257 compressed objects within 3 object streams
+ 67 named destinations out of 1000 (max. 131072)
+ 41 words of extra memory for PDF output out of 10000 (max. 100000000)
 

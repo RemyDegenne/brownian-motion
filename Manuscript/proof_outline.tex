@@ -341,15 +341,59 @@ probability measure on $\mathbb R^d$ with characteristic function
 $t\mapsto e^{it\mu -tCt^\top/2}$ for any vector $\mu$ and symmetric
 and positive definite matrix $C$.
 
+In the concrete application of the finite dimensional distribution of
+Brownian Motion, consider $0\leq t_1 \leq \cdots \leq t_n$ and $C =
+(t_i \wedge t_j)_{1\leq i,j\leq n}$. In order to show that $C$ is
+positive semi-definite, there are two paths:
+
+\begin{enumerate}
+\item Find $A$ with $A^\top A = C$: In fact, this $A$ can be given
+  explicitely by
+  $$ A = \left( \begin{matrix}\sqrt{t_1} & \sqrt{t_1} & \sqrt{t_1} &
+    \cdots \\ 0 & \sqrt{t_2 - t_1} & \sqrt{t_2 - t_1} & \cdots \\ 0 &
+    0 & \sqrt{t_3-t_2}\\ \cdots & \cdots & \cdots &
+    \ddots \end{matrix}\right),$$ such that
+  $$ A^\top A = \left( \begin{matrix} t_1 & t_1 & t_1 & \cdots \\ t_1
+    & t_2 & t_2 & \cdots \\ t_1 & t_2 & t_3\\ \cdots & \cdots & \cdots
+    & \ddots\end{matrix}\right).$$
+\item Use induction: Apparently (and this is implemented in
+  \leanline{mathlib}), if $X$ and $Y$ are positively semidefinite,
+  then $X+Y$ is positively semidefinite. We write
+  \begin{align*}
+    C_3 := \left( \begin{matrix} t_1 & t_1 & t_1 \\ t_1 & t_2 & t_2 \\ t_1
+      & t_2 & t_3\end{matrix}\right) = \left( \begin{matrix} t_1 & t_1 &
+        t_1 \\ t_1 & t_2 & t_2 \\ t_1 & t_2 & t_2\end{matrix}\right) +
+        \left( \begin{matrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & t_3 -
+          t_2\end{matrix}\right) =: X_3 + Y_3,
+  \end{align*}
+  where $Y_3$ is obviously positively semidefinite. Now, for $x =
+  (x_1, x_2, x_3)$, we find with $y := (x_1, x_2 + x_3)$, summing over
+  all entries of the matrix
+  \begin{align*}
+    x X_3 x^\top & = \sum \begin{matrix} x_1 t_1 x_1 & x_1 t_1x_2 &
+      x_1 t_1 x_3 \\ x_2 t_1 x_1 & x_2 t_2 x_2 & x_2 t_2x_3 \\ x_3 t_1
+      x_1 & x_3 t_2 x_2& x_3 t_2x_3\end{matrix} \\ & =
+      \sum \begin{matrix} x_1 t_1 x_1 & x_1 t_1x_2 & x_1 t_1 x_3
+        \\ (x_2 + x_3) t_1 x_1 & (x_2 + x_3) t_2 x_2 & (x_2 +
+        x_3)t_2x_3 \end{matrix} \\ & = \sum \begin{matrix} x_1 t_1 x_1
+        & x_1 t_1(x_2 + x_3) \\ (x_2 + x_3) t_1 x_1 & (x_2 + x_3) t_2
+        (x_2 + x_3) \end{matrix} = y C_2 y^\top.
+  \end{align*}
+  Therefore, using $y C_2 y^\top \geq 0$ as the induction hypothesis,
+  this shows that $X_3$ is positively semidefinite, and the same
+  applies to $C_3$.
+\end{enumerate}
+
+
 \section{Projectivity}\label{S:proj}
 For projectivity of finite-dimensional distributions of the BM,
 proceed as follows: (i) For $I = \{s_1,...,s_n\} \subseteq \mathbb
-  R^d$ (with $s_1 < ... < s_d$), define $P_J$ as the unique probability
+R^d$ (with $s_1 < ... < s_d$), define $P_J$ as the unique probability
 measure with characteristic function $\psi_I(t) = e^{-tC_It^\top/2}$
 with $C_{ij} = s_i \wedge s_j$. For $J\subseteq I$, we then have that
 the characteristic function of the projection to coordinates in $J$ is
 (see Remark~\ref{rem:proj}) $\psi_I \circ g_J = e^{- g_J(.)  C_I
-      g_J(.)^\top} = e^{- . C_J -/2} = \psi_J$. In other words, this is
+  g_J(.)^\top} = e^{- . C_J -/2} = \psi_J$. In other words, this is
 the required projectivity of $(P_I)_{I \subseteq_f [0,\infty)}$.
 
 \section{The Kolmogorov-Chentsov criterion}
