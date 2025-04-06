@@ -1,10 +1,10 @@
-PWD /home/pfaffelh/Code/lean/brownian-motion/Manuscript
+PWD /home/pfaffelh/Code/lean/projects/brownian-motion/Manuscript
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.tex
-OUTPUT /home/pfaffelh/Code/lean/brownian-motion/Manuscript/proof_outline.log
+INPUT /home/pfaffelh/Code/lean/projects/brownian-motion/Manuscript/proof_outline.tex
+OUTPUT /home/pfaffelh/Code/lean/projects/brownian-motion/Manuscript/proof_outline.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
