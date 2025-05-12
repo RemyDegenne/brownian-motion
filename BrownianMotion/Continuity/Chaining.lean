@@ -22,6 +22,7 @@ lemma dist_π_le [Dist α] {s : ι → Finset α} {i : ι} (hy : y ∈ s i) :
   sorry
 
 /-- Closest point to `x` in a minimal `(ε i)`-cover of `A`. -/
+noncomputable
 def πCov [Dist α] (A : Set α) (ε : ι → ℝ) (x : α) (i : ι) : α :=
   π (fun j ↦ minimalCover (ε j) A) x i
 

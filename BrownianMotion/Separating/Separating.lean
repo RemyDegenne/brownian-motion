@@ -25,14 +25,16 @@ namespace Separating
 
 instance ProbabilityMeasureMap
 --{Ω E : Type*} {mea_Om : MeasurableSpace Ω} (ae_measX : AEMeasurable X P)[mea_E : MeasurableSpace E] {P : Measure Ω} {X : Ω → E}
-[IsProbabilityMeasure P] [ae_measX : Fact (AEMeasurable X P)] : IsProbabilityMeasure (Measure.map X P)  :=
+    [IsProbabilityMeasure P] [ae_measX : Fact (AEMeasurable X P)] :
+    IsProbabilityMeasure (Measure.map X P)  :=
   isProbabilityMeasure_map ae_measX.out
 
 
 lemma push_forward_iff
 --{Ω E : Type*} {mea_Om : MeasurableSpace Ω} [mea_E : MeasurableSpace E] {P : Measure Ω} {X : Ω → E}
-[IsProbabilityMeasure P] [ae_meas : Fact (AEMeasurable X P)]
-(A : Set E) (hA : MeasurableSet A) : (Measure.map X P) A = P (X⁻¹'A) :=
+    [IsProbabilityMeasure P] [ae_meas : Fact (AEMeasurable X P)]
+    (A : Set E) (hA : MeasurableSet A) :
+    (Measure.map X P) A = P (X⁻¹'A) :=
   Measure.map_apply_of_aemeasurable ae_meas.out hA
 
 
@@ -112,31 +114,31 @@ lemma lintegral_of_thickened_eq_thickened_aux
   exact thickenedIndicatorAux_lt_top.ne
 
 
-/- The lintegral of thickened indicators tends to the measure of a closed set.
--/
-theorem lintegral_of_thickened_indicator_tendsto_indicator_closure
---{E : Type*} {mea_E : MeasurableSpace E}
-[met_E : PseudoEMetricSpace E] [bor_E : BorelSpace E] {P : Measure E} [IsProbabilityMeasure P]
-{δseq : ℕ → ℝ} (δseq_pos : ∀ (n : ℕ), 0 < δseq n) (δseq_lim : Tendsto δseq Filter.atTop (nhds 0)) (A : Set E)
-: Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P) atTop (𝓝 (P (closure A))) := by
-  have h : MeasurableSet (closure A) := by
-  {
-    apply IsClosed.measurableSet
-    simp only [isClosed_closure]
-  }
-  rw [← lexpectation_indicator (closure A) h]
-  apply tendsto_lintegral_of_dominated_convergence
-  · intro n
-    apply Continuous.measurable
-    apply (continuous_thickenedIndicatorAux (δseq_pos n) A)
-  · intro n
-    apply eventually_of_forall
-    apply thickenedIndicatorAux_le_one (δseq n) A
-  · simp only [MeasureTheory.IsProbabilityMeasure.measure_univ, MeasureTheory.lintegral_one, ENNReal.one_ne_top, not_false_iff]
-    exact one_ne_top
-  · apply eventually_of_forall
-    intro x
-    exact tendsto_pi_nhds.mp (thickenedIndicatorAux_tendsto_indicator_closure δseq_lim A) x
+-- /- The lintegral of thickened indicators tends to the measure of a closed set.
+-- -/
+-- theorem lintegral_of_thickened_indicator_tendsto_indicator_closure
+-- --{E : Type*} {mea_E : MeasurableSpace E}
+-- [met_E : PseudoEMetricSpace E] [bor_E : BorelSpace E] {P : Measure E} [IsProbabilityMeasure P]
+-- {δseq : ℕ → ℝ} (δseq_pos : ∀ (n : ℕ), 0 < δseq n) (δseq_lim : Tendsto δseq Filter.atTop (nhds 0)) (A : Set E)
+-- : Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P) atTop (𝓝 (P (closure A))) := by
+--   have h : MeasurableSet (closure A) := by
+--   {
+--     apply IsClosed.measurableSet
+--     simp only [isClosed_closure]
+--   }
+--   rw [← lexpectation_indicator (closure A) h]
+--   apply tendsto_lintegral_of_dominated_convergence
+--   · intro n
+--     apply Continuous.measurable
+--     apply (continuous_thickenedIndicatorAux (δseq_pos n) A)
+--   · intro n
+--     apply eventually_of_forall
+--     apply thickenedIndicatorAux_le_one (δseq n) A
+--   · simp only [MeasureTheory.IsProbabilityMeasure.measure_univ, MeasureTheory.lintegral_one, ENNReal.one_ne_top, not_false_iff]
+--     exact one_ne_top
+--   · apply eventually_of_forall
+--     intro x
+--     exact tendsto_pi_nhds.mp (thickenedIndicatorAux_tendsto_indicator_closure δseq_lim A) x
 
 
 lemma lint
@@ -152,58 +154,58 @@ lemma lint
   · exact ae_meas.out
 
 
-/- Two measures are the same iff their integrals of all bounded continuous functions agree.
--/
-theorem measure_eq_iff_bounded_continuous
---{E : Type*} [mea_E : MeasurableSpace E]
-[met_E : PseudoEMetricSpace E] [bor_E : BorelSpace E] {P : Measure E} {P' : Measure E}
-[is_probP : IsProbabilityMeasure P] [is_probP' : IsProbabilityMeasure P']
-: (P = P' ↔ ∀ (f : BoundedContinuousFunction E ℝ≥0), ∫⁻ a, f a ∂P = ∫⁻ a, f a ∂P') := by
-  constructor
-  · intros hP f
-    congr
-  · intro hf
-    rw [measure_eq_iff_closed]
-    intros A hA
-    rw [← IsClosed.closure_eq hA]
-    let δseq : ℕ → ℝ := λ n => (1/((n : ℝ) +1))
-    have δseq_pos : ∀ (n : ℕ), 0 < (δseq n) := by
-      intro n
-      simp [δseq]
-      norm_cast
-      linarith
-    have δseq_lim : Tendsto δseq Filter.atTop (nhds 0) := by
-      simp only [δseq]
-      apply tendsto_one_div_add_atTop_nhds_zero_nat
-    have h_thick : ∀ (δ : ℝ) (δ_pos : 0 < δ) (A : Set E), ∫⁻ (a : E), thickenedIndicatorAux δ A a ∂P = ∫⁻ (a : E), thickenedIndicatorAux δ A a ∂P' := by
-      intros δ δ_pos A
-      rw [lintegral_of_thickened_eq_thickened_aux δ_pos, lintegral_of_thickened_eq_thickened_aux δ_pos]
-      exact hf (thickenedIndicator δ_pos A)
-    have hlim1 : Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P) atTop (𝓝 (P (closure A))) := by
-      apply lintegral_of_thickened_indicator_tendsto_indicator_closure δseq_pos δseq_lim A
-    have hlim2 : Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P') atTop (𝓝 (P' (closure A))) := by
-      apply lintegral_of_thickened_indicator_tendsto_indicator_closure δseq_pos δseq_lim A
-    let x1 := fun n => ∫⁻ (a : E), thickenedIndicatorAux (δseq n) A a ∂P
-    let x2 := fun n => ∫⁻ (a : E), thickenedIndicatorAux (δseq n) A a ∂P'
-    change Tendsto x1 atTop (𝓝 (P (closure A))) at hlim1
-    change Tendsto x2 atTop (𝓝 (P' (closure A))) at hlim2
-    have h_eq : x1 = x2 := by
-      simp [x1, x2]
-      ext n
-      rw [h_thick (δseq n) (δseq_pos n) A]
-    rw [h_eq] at hlim1
-    exact tendsto_nhds_unique hlim1 hlim2
+-- /- Two measures are the same iff their integrals of all bounded continuous functions agree.
+-- -/
+-- theorem measure_eq_iff_bounded_continuous
+-- --{E : Type*} [mea_E : MeasurableSpace E]
+-- [met_E : PseudoEMetricSpace E] [bor_E : BorelSpace E] {P : Measure E} {P' : Measure E}
+-- [is_probP : IsProbabilityMeasure P] [is_probP' : IsProbabilityMeasure P']
+-- : (P = P' ↔ ∀ (f : BoundedContinuousFunction E ℝ≥0), ∫⁻ a, f a ∂P = ∫⁻ a, f a ∂P') := by
+--   constructor
+--   · intros hP f
+--     congr
+--   · intro hf
+--     rw [measure_eq_iff_closed]
+--     intros A hA
+--     rw [← IsClosed.closure_eq hA]
+--     let δseq : ℕ → ℝ := λ n => (1/((n : ℝ) +1))
+--     have δseq_pos : ∀ (n : ℕ), 0 < (δseq n) := by
+--       intro n
+--       simp [δseq]
+--       norm_cast
+--       linarith
+--     have δseq_lim : Tendsto δseq Filter.atTop (nhds 0) := by
+--       simp only [δseq]
+--       apply tendsto_one_div_add_atTop_nhds_zero_nat
+--     have h_thick : ∀ (δ : ℝ) (δ_pos : 0 < δ) (A : Set E), ∫⁻ (a : E), thickenedIndicatorAux δ A a ∂P = ∫⁻ (a : E), thickenedIndicatorAux δ A a ∂P' := by
+--       intros δ δ_pos A
+--       rw [lintegral_of_thickened_eq_thickened_aux δ_pos, lintegral_of_thickened_eq_thickened_aux δ_pos]
+--       exact hf (thickenedIndicator δ_pos A)
+--     have hlim1 : Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P) atTop (𝓝 (P (closure A))) := by
+--       apply lintegral_of_thickened_indicator_tendsto_indicator_closure δseq_pos δseq_lim A
+--     have hlim2 : Tendsto (fun n => ∫⁻ a, (thickenedIndicatorAux (δseq n) A) a ∂P') atTop (𝓝 (P' (closure A))) := by
+--       apply lintegral_of_thickened_indicator_tendsto_indicator_closure δseq_pos δseq_lim A
+--     let x1 := fun n => ∫⁻ (a : E), thickenedIndicatorAux (δseq n) A a ∂P
+--     let x2 := fun n => ∫⁻ (a : E), thickenedIndicatorAux (δseq n) A a ∂P'
+--     change Tendsto x1 atTop (𝓝 (P (closure A))) at hlim1
+--     change Tendsto x2 atTop (𝓝 (P' (closure A))) at hlim2
+--     have h_eq : x1 = x2 := by
+--       simp [x1, x2]
+--       ext n
+--       rw [h_thick (δseq n) (δseq_pos n) A]
+--     rw [h_eq] at hlim1
+--     exact tendsto_nhds_unique hlim1 hlim2
 
 
-/- Two random variables have the same distribution iff their expectations of all bounded continuous functions agree. -/
-theorem ident_distrib_iff_bounded_continuous
---{E Ω Ω': Type*} {mea_Om : MeasurableSpace Ω} {mea_Om' : MeasurableSpace Ω'} {P : Measure Ω} {P' : Measure Ω'} {X : Ω → E} {Y : Ω' → E}
-[mea_E : MeasurableSpace E] [met_E : PseudoEMetricSpace E][bor_E : BorelSpace E]
-[IsProbabilityMeasure P] [IsProbabilityMeasure P'] [ae_measX : Fact (AEMeasurable X P)] [ae_measY : Fact (AEMeasurable Y P')]
-: ( (ProbabilityTheory.IdentDistrib X Y P P') ↔ (∀ (f : BoundedContinuousFunction E ℝ≥0), ∫⁻ ω, f (X ω) ∂P = ∫⁻ ω', f (Y ω') ∂P')) := by
-  rw [ident_distrib_iff]
-  simp_rw [← lint _]
-  rw [← measure_eq_iff_bounded_continuous]
+-- /- Two random variables have the same distribution iff their expectations of all bounded continuous functions agree. -/
+-- theorem ident_distrib_iff_bounded_continuous
+-- --{E Ω Ω': Type*} {mea_Om : MeasurableSpace Ω} {mea_Om' : MeasurableSpace Ω'} {P : Measure Ω} {P' : Measure Ω'} {X : Ω → E} {Y : Ω' → E}
+-- [mea_E : MeasurableSpace E] [met_E : PseudoEMetricSpace E][bor_E : BorelSpace E]
+-- [IsProbabilityMeasure P] [IsProbabilityMeasure P'] [ae_measX : Fact (AEMeasurable X P)] [ae_measY : Fact (AEMeasurable Y P')]
+-- : ( (ProbabilityTheory.IdentDistrib X Y P P') ↔ (∀ (f : BoundedContinuousFunction E ℝ≥0), ∫⁻ ω, f (X ω) ∂P = ∫⁻ ω', f (Y ω') ∂P')) := by
+--   rw [ident_distrib_iff]
+--   simp_rw [← lint _]
+--   rw [← measure_eq_iff_bounded_continuous]
 
 
 end Separating
