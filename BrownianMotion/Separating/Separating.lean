@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2025 Peter Pfaffelhuber. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Peter Pfaffelhuber
+-/
 import Mathlib.Probability.IdentDistrib
 
 noncomputable section
