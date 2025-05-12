@@ -35,7 +35,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "698265e83c112e2c98ca37701dc3740556ebe7c3",
+   "rev": "be7d03adc2e03b062b777254156c0816299d098a",
    "name": "mathlib",
    "manifestFile": "lake-manifest.json",
    "inputRev": null,
@@ -151,5 +151,5 @@
    "inputRev": "main",
    "inherited": true,
    "configFile": "lakefile.toml"}],
- "name": "brownian_motion",
+ "name": "BrownianMotion",
  "lakeDir": ".lake"}

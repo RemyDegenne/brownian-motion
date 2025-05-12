@@ -1,4 +1,4 @@
-name = "brownian_motion"
+name = "BrownianMotion"
 defaultTargets = ["BrownianMotion"]
 
 [leanOptions]
