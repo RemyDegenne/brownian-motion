@@ -3,7 +3,7 @@ name: Build Project
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - '**/*.lean'
       - 'lean-toolchain'
@@ -11,7 +11,7 @@ on:
       - 'lake-manifest.json'
   pull_request:
     branches:
-      - main
+      - master
     paths:
       - '**/*.lean'
       - 'lean-toolchain'
