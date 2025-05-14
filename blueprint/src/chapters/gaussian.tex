@@ -1,2 +1,98 @@
 \chapter{Gaussian distributions}
 \label{chap:gaussian}
+
+\section{Gaussian measures}
+\label{sec:gaussian_measures}
+
+\subsection{Real Gaussian measures}
+
+\begin{definition}[Real Gaussian measure]\label{def:gaussianReal}
+  \mathlibok
+  \lean{ProbabilityTheory.gaussianReal}
+\end{definition}
+
+\subsection{Gaussian measures on a Banach space}
+
+\begin{definition}[Gaussian measure]\label{def:IsGaussian}
+  \uses{def:gaussianReal}
+A measure $\mu$ on $E$ is Gaussian if for every continuous linear form $L \in E^*$, the pushforward measure $L_* \mu$ is a Gaussian measure on $\mathbb{R}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsGaussian.IsProbabilityMeasure}
+  \uses{def:IsGaussian}
+A Gaussian measure is a probability measure.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Characteristic function]\label{def:charFunCLM}
+Let $\mu$ be a measure on $E$ and let $L \in E^*$ be a continuous linear form.
+The characteristic function of $\mu$ at $L$ is the function
+\begin{align*}
+  \hat{\mu}(L) = \int_E e^{i L(x)} \: d\mu(x) \: .
+\end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:isGaussian_iff_charFunCLM_eq}
+  \uses{def:IsGaussian, def:charFunCLM}
+A finite measure $\mu$ on $E$ is Gaussian if and only if for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
+\begin{align*}
+  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\subsection{Gaussian measures on a finite dimensional Hilbert space}
+
+In this section, we assume that $E$ is a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
+
+\begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
+  \uses{def:gaussianReal}
+Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_n$ be independent standard Gaussian measures on $\mathbb{R}$.
+The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_n$ by the map $x \mapsto x_1 \cdot e_1 + \ldots + x_d \cdot e_d$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussian_stdGaussian}
+  \uses{def:stdGaussian, def:IsGaussian}
+The standard Gaussian measure on $E$ is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
+  \uses{def:stdGaussian}
+The multivariate Gaussian measure on $E$ with mean $\mu \in E$ and covariance operator $C : E \to E \to \mathbb{R}$ is the pushforward measure of the standard Gaussian measure on $E$ by the map $x \mapsto \mu + C^{1/2} x$, where $C^{1/2}$ is the unique positive operator such that $C^{1/2} C^{1/2} = C$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussian_multivariateGaussian}
+  \uses{def:multivariateGaussian, def:IsGaussian}
+A multivariate Gaussian measure is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussian_stdGaussian}
+
+\end{proof}
+
+
+\section{Gaussian processes}
+\label{sec:gaussian_processes}
+
+\begin{definition}[Gaussian process]\label{def:IsGaussianProcess}
+  \uses{def:IsGaussian}
+A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has a Gaussian distribution.
+\end{definition}

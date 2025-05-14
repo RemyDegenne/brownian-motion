@@ -1,2 +1,56 @@
-\chapter{Projective family}
+\chapter{Projective family of the Brownian motion}
 \label{chap:projective_family}
+
+
+\begin{definition}[Projective family]\label{def:IsProjectiveMeasureFamily}
+  \mathlibok
+  \lean{MeasureTheory.IsProjectiveMeasureFamily}
+A family of measures $P$ indexed by finite sets of $T$ is projective if, for finite sets $J \subseteq I$, the projection from $E^I$ to $E^J$ maps $P_I$ to $P_J$.
+\end{definition}
+
+
+\begin{definition}[Projective limit]\label{def:IsProjectiveLimit}
+  \uses{def:IsProjectiveMeasureFamily}
+  \mathlibok
+  \lean{MeasureTheory.IsProjectiveLimit}
+A measure $\mu$ on $E^T$ is the projective limit of a projective family of measures $P$ indexed by finite sets of $T$ if, for every finite set $I \subseteq T$, the projection from $E^T$ to $E^I$ maps $\mu$ to $P_I$.
+\end{definition}
+
+
+\begin{theorem}[Kolmogorov extension theorem]\label{thm:kolmogorovExtension}
+  \uses{def:IsProjectiveLimit, def:IsProjectiveMeasureFamily}
+  \leanok
+  \lean{MeasureTheory.projectiveLimit, MeasureTheory.IsProjectiveLimit.unique, MeasureTheory.isProjectiveLimit_projectiveLimit, MeasureTheory.isFiniteMeasure_projectiveLimit, MeasureTheory.isProbabilityMeasure_projectiveLimit}
+Let $\mathcal{X}$ be a Polish space, equipped with the Borel $\sigma$-algebra, and let $T$ be an index set.
+Let $P$ be a projective family of finite measures on $\mathcal{X}$.
+Then the projective limit $\mu$ of $P$ exists, is unique, and is a finite measure on $\mathcal{X}^T$.
+Moreover, if $P_I$ is a probability measure for every finite set $I \subseteq T$, then $\mu$ is a probability measure.
+\end{theorem}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{definition}[Projective family of the Brownian motion]\label{def:gaussianProjectiveFamily}
+  \uses{def:multivariateGaussian}
+For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $P^B_I$ be the multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+We call the family of measures $P^B_I$ the \emph{projective family of the Brownian motion}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
+  \uses{def:gaussianProjectiveFamily, def:IsProjectiveMeasureFamily}
+The projective family of the Brownian motion is a projective family of measures.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:gaussianLimit}
+  \uses{thm:kolmogorovExtension, lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
+We denote by TODO the projective limit of the projective family of the Brownian motion given by Theorem~\ref{thm:kolmogorovExtension}.
+This is a measure on $\mathbb{R}^{\mathbb{R}_+}$.
+\end{definition}

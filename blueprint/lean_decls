@@ -1,0 +1,8 @@
+ProbabilityTheory.gaussianReal
+MeasureTheory.IsProjectiveMeasureFamily
+MeasureTheory.IsProjectiveLimit
+MeasureTheory.projectiveLimit
+MeasureTheory.IsProjectiveLimit.unique
+MeasureTheory.isProjectiveLimit_projectiveLimit
+MeasureTheory.isFiniteMeasure_projectiveLimit
+MeasureTheory.isProbabilityMeasure_projectiveLimit
