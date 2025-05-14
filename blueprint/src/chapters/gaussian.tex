@@ -59,7 +59,47 @@ A finite measure $\mu$ on $F$ is Gaussian if and only if for every continuous li
 in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 \end{theorem}
 
-\begin{proof}\uses{thm:ext_of_charFunCLM}
+\begin{proof}\uses{thm:ext_of_charFunCLM, lem:charFun_gaussianReal}
+
+\end{proof}
+
+
+\begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
+  \uses{def:IsGaussian}
+For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
+\end{theorem}
+
+\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:IsGaussian.IsProbabilityMeasure}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsGaussian.memLp_id}
+  \uses{def:IsGaussian}
+A Gaussian measure $\mu$ has finite moments of all orders.
+In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
+\end{lemma}
+
+\begin{proof}\uses{thm:IsGaussian.exists_integrable_exp_sq}
+
+\end{proof}
+
+
+\begin{definition}[Covariance]\label{def:covarianceBilin}
+  \uses{def:IsGaussian, lem:IsGaussian.memLp_id}
+The covariance bilinear form of a Gaussian measure $\mu$ is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
+\begin{align*}
+  C_\mu(L_1, L_2) = \int_x (L_1(x) - L_1(m_\mu)) (L_2(x) - L_2(m_\mu)) \: d\mu(x) \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
+  \uses{def:covarianceBilin}
+For $\mu$ a Gaussian measure and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
+\end{lemma}
+
+\begin{proof}
 
 \end{proof}
 
@@ -68,15 +108,26 @@ in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 
 Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
 
-\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
-  \uses{def:IsGaussian, def:charFun}
-A finite measure $\mu$ on $E$ is Gaussian if and only if for all $t \in E$, the characteristic function of $\mu$ at $t$ is
+
+\begin{definition}[Covariance matrix]\label{def:covMatix}
+  \uses{def:IsGaussian}
+The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ with
 \begin{align*}
-  \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \frac{1}{2} \mathbb{V}_\mu[]\langle t, \cdot \rangle]\right) \: ,
+  \Sigma_\mu = \mu[(x - m_\mu) (x - m_\mu)^\top] \: .
 \end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
+  \uses{def:IsGaussian, def:charFun, def:covMatix}
+A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $\Sigma$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right) \: ,
+\end{align*}
+If that's the case, then $m = m_\mu$ and $\Sigma = \Sigma_\mu$.
 \end{lemma}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq}
+\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:covarianceBilin_same_eq_variance, lem:IsGaussian.memLp_id}
 
 \end{proof}
 
