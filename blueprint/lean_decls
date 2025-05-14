@@ -1,4 +1,7 @@
+MeasureTheory.charFun
+MeasureTheory.Measure.ext_of_charFun
 ProbabilityTheory.gaussianReal
+ProbabilityTheory.charFun_gaussianReal
 MeasureTheory.IsProjectiveMeasureFamily
 MeasureTheory.IsProjectiveLimit
 MeasureTheory.projectiveLimit

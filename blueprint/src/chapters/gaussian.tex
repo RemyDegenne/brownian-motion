@@ -11,11 +11,27 @@
   \lean{ProbabilityTheory.gaussianReal}
 \end{definition}
 
+
+\begin{lemma}\label{lem:charFun_gaussianReal}
+  \uses{def:gaussianReal, def:charFun}
+  \mathlibok
+  \lean{ProbabilityTheory.charFun_gaussianReal}
+The characteristic function of a real Gaussian measure with mean $\mu$ and variance $\sigma^2$ is given by
+$x \mapsto \exp\left(i \mu x - \frac{\sigma^2 x^2}{2}\right)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \subsection{Gaussian measures on a Banach space}
+
+Let $F$ be a separable Banach space.
 
 \begin{definition}[Gaussian measure]\label{def:IsGaussian}
   \uses{def:gaussianReal}
-A measure $\mu$ on $E$ is Gaussian if for every continuous linear form $L \in E^*$, the pushforward measure $L_* \mu$ is a Gaussian measure on $\mathbb{R}$.
+A measure $\mu$ on $F$ is Gaussian if for every continuous linear form $L \in F^*$, the pushforward measure $L_* \mu$ is a Gaussian measure on $\mathbb{R}$.
 \end{definition}
 
 
@@ -29,42 +45,52 @@ A Gaussian measure is a probability measure.
 \end{proof}
 
 
-\begin{definition}[Characteristic function]\label{def:charFunCLM}
-Let $\mu$ be a measure on $E$ and let $L \in E^*$ be a continuous linear form.
-The characteristic function of $\mu$ at $L$ is the function
-\begin{align*}
-  \hat{\mu}(L) = \int_E e^{i L(x)} \: d\mu(x) \: .
-\end{align*}
+\begin{definition}[Centered measure]\label{def:IsCentered}
+A measure $\mu$ on $F$ is centered if for every continuous linear form $L \in F^*$, $\mu[L] = 0$.
 \end{definition}
 
 
 \begin{theorem}\label{thm:isGaussian_iff_charFunCLM_eq}
   \uses{def:IsGaussian, def:charFunCLM}
-A finite measure $\mu$ on $E$ is Gaussian if and only if for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
+A finite measure $\mu$ on $F$ is Gaussian if and only if for every continuous linear form $L \in F^*$, the characteristic function of $\mu$ at $L$ is
 \begin{align*}
-  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: .
+  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: ,
 \end{align*}
+in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\uses{thm:ext_of_charFunCLM}
 
 \end{proof}
 
 
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
 
-In this section, we assume that $E$ is a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
+Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
+
+\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
+  \uses{def:IsGaussian, def:charFun}
+A finite measure $\mu$ on $E$ is Gaussian if and only if for all $t \in E$, the characteristic function of $\mu$ at $t$ is
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \frac{1}{2} \mathbb{V}_\mu[]\langle t, \cdot \rangle]\right) \: ,
+\end{align*}
+\end{lemma}
+
+\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq}
+
+\end{proof}
+
 
 \begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
   \uses{def:gaussianReal}
 Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_n$ be independent standard Gaussian measures on $\mathbb{R}$.
-The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_n$ by the map $x \mapsto x_1 \cdot e_1 + \ldots + x_d \cdot e_d$.
+The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_n$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
 \end{definition}
 
 
-\begin{lemma}\label{lem:isGaussian_stdGaussian}
-  \uses{def:stdGaussian, def:IsGaussian}
-The standard Gaussian measure on $E$ is a Gaussian measure.
+\begin{lemma}\label{lem:isCentered_stdGaussian}
+  \uses{def:stdGaussian, def:IsCentered}
+The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
 \end{lemma}
 
 \begin{proof}
@@ -72,9 +98,34 @@ The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{proof}
 
 
+\begin{lemma}\label{lem:charFun_stdGaussian}
+  \uses{def:stdGaussian, def:charFun}
+The characteristic function of the standard Gaussian measure on $E$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(-\frac{1}{2} \Vert t \Vert^2 \right) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:charFun_gaussianReal, lem:isCentered_stdGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_stdGaussian}
+  \uses{def:stdGaussian, def:IsGaussian}
+The standard Gaussian measure on $E$ is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}\uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian}
+
+\end{proof}
+
+
 \begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
   \uses{def:stdGaussian}
 The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $\mu \in \mathbb{R}^d$ and covariance matrix $C \in \mathbb{R}^{d \times d}$, with $C$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto \mu + C^{1/2} x$.
+We denote this measure by $\mathcal{N}(\mu, C)$.
 \end{definition}
 
 
@@ -85,6 +136,20 @@ A multivariate Gaussian measure is a Gaussian measure.
 
 \begin{proof}
   \uses{lem:isGaussian_stdGaussian}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:charFun_multivariateGaussian}
+  \uses{def:multivariateGaussian, def:charFun}
+The characteristic function of a multivariate Gaussian measure $\mathcal{N}(\mu, C)$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle \mu, t \rangle - \frac{1}{2} \langle t, C t \rangle\right)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
 
 \end{proof}
 
