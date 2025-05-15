@@ -1,22 +1,9 @@
 name: Build Project
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - '**/*.lean'
-      - 'lean-toolchain'
-      - 'lakefile.toml'
-      - 'lake-manifest.json'
   pull_request:
     branches:
       - master
-    paths:
-      - '**/*.lean'
-      - 'lean-toolchain'
-      - 'lakefile.toml'
-      - 'lake-manifest.json'
   workflow_dispatch: # Allow manual triggering of the workflow from the GitHub Actions interface
 
 # Cancel previous runs if a new commit is pushed to the same PR or branch
