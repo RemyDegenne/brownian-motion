@@ -32,8 +32,18 @@ Moreover, if $P_I$ is a probability measure for every finite set $I \subseteq T$
 \end{proof}
 
 
+\begin{lemma}\label{lem:posSemidef_brownianCov}
+For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $C \in \mathbb{R}^{n \times n}$ be the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+Then $C$ is positive semidefinite.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Projective family of the Brownian motion]\label{def:gaussianProjectiveFamily}
-  \uses{def:multivariateGaussian}
+  \uses{def:multivariateGaussian, lem:posSemidef_brownianCov}
 For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $P^B_I$ be the multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 We call the family of measures $P^B_I$ the \emph{projective family of the Brownian motion}.
 \end{definition}
@@ -52,5 +62,5 @@ The projective family of the Brownian motion is a projective family of measures.
 \begin{definition}\label{def:gaussianLimit}
   \uses{thm:kolmogorovExtension, lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
 We denote by TODO the projective limit of the projective family of the Brownian motion given by Theorem~\ref{thm:kolmogorovExtension}.
-This is a measure on $\mathbb{R}^{\mathbb{R}_+}$.
+This is a probability measure on $\mathbb{R}^{\mathbb{R}_+}$.
 \end{definition}

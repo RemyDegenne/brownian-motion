@@ -106,6 +106,25 @@ For $\mu$ a Gaussian measure and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
 
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
 
+\begin{lemma}\label{lem:isGaussian_iff_charFunCLM_inner_eq}
+  \uses{def:IsGaussian, def:charFunCLM, def:charFun}
+A finite measure $\mu$ on a separable Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
+\begin{align*}
+  \hat{\mu}(t) =  \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+By Theorem~\ref{thm:isGaussian_iff_charFunCLM_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
+\begin{align*}
+  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: .
+\end{align*}
+Every continuous linear form $L \in E^*$ can be written as $L(x) = \langle t, x \rangle$ for some $t \in E$, hence we have that $\mu$ is Gaussian iff for every $t \in E$,
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
+\end{align*}
+\end{proof}
+
 Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
 
 
@@ -127,15 +146,18 @@ A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ 
 If that's the case, then $m = m_\mu$ and $\Sigma = \Sigma_\mu$.
 \end{lemma}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:covarianceBilin_same_eq_variance, lem:IsGaussian.memLp_id}
+Note that this lemma does not say that there exists a Gaussian measure for any such $m$ and $\Sigma$.
+We will prove that later.
+
+\begin{proof}\uses{lem:isGaussian_iff_charFunCLM_inner_eq, lem:covarianceBilin_same_eq_variance, lem:IsGaussian.memLp_id}
 
 \end{proof}
 
 
 \begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
   \uses{def:gaussianReal}
-Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_n$ be independent standard Gaussian measures on $\mathbb{R}$.
-The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_n$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
+Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_d$ be independent standard Gaussian measures on $\mathbb{R}$.
+The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_d$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
 \end{definition}
 
 
@@ -169,15 +191,30 @@ The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{lemma}
 
 \begin{proof}\uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian}
-
+Apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
+That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 \end{proof}
 
 
 \begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
   \uses{def:stdGaussian}
-The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $\mu \in \mathbb{R}^d$ and covariance matrix $C \in \mathbb{R}^{d \times d}$, with $C$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto \mu + C^{1/2} x$.
-We denote this measure by $\mathcal{N}(\mu, C)$.
+The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $m \in \mathbb{R}^d$ and covariance matrix $\Sigma \in \mathbb{R}^{d \times d}$, with $\Sigma$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto m + \Sigma^{1/2} x$.
+We denote this measure by $\mathcal{N}(m, \Sigma)$.
 \end{definition}
+
+
+\begin{theorem}\label{thm:charFun_multivariateGaussian}
+  \uses{def:multivariateGaussian, def:charFun}
+The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle m, t \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\uses{lem:charFun_stdGaussian}
+
+\end{proof}
 
 
 \begin{lemma}\label{lem:isGaussian_multivariateGaussian}
@@ -186,22 +223,9 @@ A multivariate Gaussian measure is a Gaussian measure.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:isGaussian_stdGaussian}
-
-\end{proof}
-
-
-\begin{theorem}\label{thm:charFun_multivariateGaussian}
-  \uses{def:multivariateGaussian, def:charFun}
-The characteristic function of a multivariate Gaussian measure $\mathcal{N}(\mu, C)$ is given by
-\begin{align*}
-  \hat{\mu}(t) = \exp\left(i \langle \mu, t \rangle - \frac{1}{2} \langle t, C t \rangle\right)
-  \: .
-\end{align*}
-\end{theorem}
-
-\begin{proof}
-
+  \uses{thm:charFun_multivariateGaussian, lem:isGaussian_iff_charFun_eq}
+Apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
+That form is given by Theorem~\ref{thm:charFun_multivariateGaussian}.
 \end{proof}
 
 
