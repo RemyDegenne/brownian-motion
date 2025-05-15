@@ -5,3 +5,28 @@
 % If you want to split the blueprint content into several files then
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
+
+\paragraph{Abstract}
+
+Our goal is to formalize Brownian motions (or $\mathbb R^d$-valued Gaussian processes) in some generality using \texttt{Mathlib}.
+
+\paragraph{Outline}
+
+There are three main parts to this formalization:
+\begin{itemize}
+  \item develop the theory of Gaussian distributions,
+  \item build a projective family of Gaussian distributions and define its projective limit by the Kolmogorov extension theorem,
+  \item prove the Kolmogorov-Chentsov continuity theorem.
+\end{itemize}
+
+\paragraph{Notation}
+
+$T$ denotes an index set (for a stochastic process).
+
+$\Omega$ is a measurable space.
+
+\input{chapters/aux.tex}
+\input{chapters/characteristic_function.tex}
+\input{chapters/gaussian.tex}
+\input{chapters/projective_family.tex}
+\input{chapters/kolmogorov_chentsov.tex}

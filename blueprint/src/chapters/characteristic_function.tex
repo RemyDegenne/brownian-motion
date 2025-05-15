@@ -1,0 +1,43 @@
+\chapter{Characteristic functions}
+\label{chap:characteristic_function}
+
+
+\begin{definition}[Characteristic function]\label{def:charFunCLM}
+The characteristic function of a measure $\mu$ on a normed space $E$ is the function $E^* \to \mathbb{C}$ defined by
+\begin{align*}
+  \hat{\mu}(L) = \int_E e^{i L(x)} \: d\mu(x) \: .
+\end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:ext_of_charFunCLM}
+  \uses{def:charFunCLM}
+In a separable Banach space, if two finite measures have same characteristic function, they are equal.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Characteristic function]\label{def:charFun}
+  \mathlibok
+  \lean{MeasureTheory.charFun}
+The characteristic function of a measure $\mu$ on an inner product space $E$ is the function $E \to \mathbb{C}$ defined by
+\begin{align*}
+  \hat{\mu}(t) = \int_E e^{i \langle t, x \rangle} \: d\mu(x) \: .
+\end{align*}
+This is equal to the normed space version of the characteristic function applied to the linear map $x \mapsto \langle t, x \rangle$.
+\end{definition}
+
+
+\begin{theorem}\label{thm:ext_of_charFun}
+  \uses{def:charFun}
+  \mathlibok
+  \lean{MeasureTheory.Measure.ext_of_charFun}
+In a separable Hilbert space, if two finite measures have same characteristic function, they are equal.
+\end{theorem}
+
+\begin{proof}\leanok
+
+\end{proof}

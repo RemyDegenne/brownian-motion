@@ -1,2 +1,3 @@
+import BrownianMotion.Init
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
