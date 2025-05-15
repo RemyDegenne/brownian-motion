@@ -1,2 +1,27 @@
 \chapter{Kolmogorov-Chentsov Theorem}
 \label{chap:kolmogorov_chentsov}
+
+\section{Covers}
+
+\begin{definition}[$\varepsilon$-cover]\label{def:IsCover}
+  \leanok
+  \lean{IsCover}
+  Let $E$ be a set with a distance function $d_E$. Let $\varepsilon \ge 0$.
+  A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) < \varepsilon$.
+\end{definition}
+
+\begin{definition}[External covering number]\label{def:externalCoveringNumber}
+  \uses{def:IsCover}
+  \leanok
+  \lean{externalCoveringNumber}
+  Let $E$ be a set with a distance function $d_E$.
+  The external covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$.
+\end{definition}
+
+\begin{definition}[Internal covering number]\label{def:internalCoveringNumber}
+  \uses{def:IsCover}
+  \leanok
+  \lean{internalCoveringNumber}
+  Let $E$ be a set with a distance function $d_E$.
+  The internal covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$ which is a subset of $A$.
+\end{definition}
