@@ -1,2 +1,42 @@
 \chapter{Kolmogorov-Chentsov Theorem}
 \label{chap:kolmogorov_chentsov}
+
+\section{Covers}
+
+Let $(E, d_E)$ be a pseudometric space.
+
+\begin{definition}[$\varepsilon$-cover]\label{def:IsCover}
+  \leanok
+  \lean{IsCover}
+  A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) < \varepsilon$.
+\end{definition}
+
+
+\begin{definition}[External covering number]\label{def:externalCoveringNumber}
+  \uses{def:IsCover}
+  \leanok
+  \lean{externalCoveringNumber}
+  The external covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$.
+  Denote it by $N^{ext}_\varepsilon(A)$.
+\end{definition}
+
+
+\begin{definition}[Internal covering number]\label{def:internalCoveringNumber}
+  \uses{def:IsCover}
+  \leanok
+  \lean{internalCoveringNumber}
+  The internal covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$ which is a subset of $A$.
+  Denote it by $N^{int}_\varepsilon(A)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:externalCoveringNumber_le_internalCoveringNumber}
+  \uses{def:externalCoveringNumber, def:internalCoveringNumber}
+  \leanok
+  \lean{externalCoveringNumber_le_internalCoveringNumber}
+$N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
