@@ -9,3 +9,7 @@ MeasureTheory.IsProjectiveLimit.unique
 MeasureTheory.isProjectiveLimit_projectiveLimit
 MeasureTheory.isFiniteMeasure_projectiveLimit
 MeasureTheory.isProbabilityMeasure_projectiveLimit
+IsCover
+externalCoveringNumber
+internalCoveringNumber
+externalCoveringNumber_le_internalCoveringNumber
