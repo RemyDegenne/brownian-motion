@@ -37,10 +37,11 @@ A measure $\mu$ on $F$ is Gaussian if for every continuous linear form $L \in F^
 
 \begin{lemma}\label{lem:IsGaussian.IsProbabilityMeasure}
   \uses{def:IsGaussian}
+  \mathlibok
 A Gaussian measure is a probability measure.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -50,8 +51,10 @@ A measure $\mu$ on $F$ is centered if for every continuous linear form $L \in F^
 \end{definition}
 
 
-\begin{theorem}\label{thm:isGaussian_iff_charFunCLM_eq}
-  \uses{def:IsGaussian, def:charFunCLM}
+\begin{theorem}\label{thm:isGaussian_iff_charFunDual_eq}
+  \uses{def:IsGaussian, def:charFunDual}
+  \mathlibok
+  \lean{ProbabilityTheory.isGaussian_iff_charFunDual_eq}
 A finite measure $\mu$ on $F$ is Gaussian if and only if for every continuous linear form $L \in F^*$, the characteristic function of $\mu$ at $L$ is
 \begin{align*}
   \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: ,
@@ -59,7 +62,7 @@ A finite measure $\mu$ on $F$ is Gaussian if and only if for every continuous li
 in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 \end{theorem}
 
-\begin{proof}\uses{thm:ext_of_charFunCLM, lem:charFun_gaussianReal}
+\begin{proof}\uses{thm:ext_of_charFunDual, lem:charFun_gaussianReal}\leanok
 
 \end{proof}
 
@@ -78,7 +81,7 @@ Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Ver
 For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
 \end{theorem}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
 
 \end{proof}
 
@@ -115,8 +118,8 @@ For $\mu$ a Gaussian measure and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
 
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
 
-\begin{lemma}\label{lem:isGaussian_iff_charFunCLM_inner_eq}
-  \uses{def:IsGaussian, def:charFunCLM, def:charFun}
+\begin{lemma}\label{lem:isGaussian_iff_charFunDual_inner_eq}
+  \uses{def:IsGaussian, def:charFunDual, def:charFun}
 A finite measure $\mu$ on a separable Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
   \hat{\mu}(t) =  \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
@@ -124,7 +127,7 @@ A finite measure $\mu$ on a separable Hilbert space $E$ is Gaussian if and only 
 \end{lemma}
 
 \begin{proof}
-By Theorem~\ref{thm:isGaussian_iff_charFunCLM_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
+By Theorem~\ref{thm:isGaussian_iff_charFunDual_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
 \begin{align*}
   \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: .
 \end{align*}
@@ -158,7 +161,7 @@ If that's the case, then $m = m_\mu$ and $\Sigma = \Sigma_\mu$.
 Note that this lemma does not say that there exists a Gaussian measure for any such $m$ and $\Sigma$.
 We will prove that later.
 
-\begin{proof}\uses{lem:isGaussian_iff_charFunCLM_inner_eq, lem:covarianceBilin_same_eq_variance, lem:IsGaussian.memLp_id}
+\begin{proof}\uses{lem:isGaussian_iff_charFunDual_inner_eq, lem:covarianceBilin_same_eq_variance, lem:IsGaussian.memLp_id}
 
 \end{proof}
 

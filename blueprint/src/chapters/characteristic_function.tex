@@ -2,7 +2,9 @@
 \label{chap:characteristic_function}
 
 
-\begin{definition}[Characteristic function]\label{def:charFunCLM}
+\begin{definition}[Characteristic function]\label{def:charFunDual}
+  \mathlibok
+  \lean{MeasureTheory.charFunDual}
 The characteristic function of a measure $\mu$ on a normed space $E$ is the function $E^* \to \mathbb{C}$ defined by
 \begin{align*}
   \hat{\mu}(L) = \int_E e^{i L(x)} \: d\mu(x) \: .
@@ -10,12 +12,14 @@ The characteristic function of a measure $\mu$ on a normed space $E$ is the func
 \end{definition}
 
 
-\begin{theorem}\label{thm:ext_of_charFunCLM}
-  \uses{def:charFunCLM}
+\begin{theorem}\label{thm:ext_of_charFunDual}
+  \uses{def:charFunDual}
+  \mathlibok
+  \lean{MeasureTheory.Measure.ext_of_charFunDual}
 In a separable Banach space, if two finite measures have same characteristic function, they are equal.
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
