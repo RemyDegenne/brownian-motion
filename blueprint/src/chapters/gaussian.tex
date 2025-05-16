@@ -63,13 +63,22 @@ in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 
 \end{proof}
 
+\begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
+Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
 
 \begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
   \uses{def:IsGaussian}
 For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
 \end{theorem}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:IsGaussian.IsProbabilityMeasure}
+\begin{proof}\uses{thm:isGaussian_iff_charFunCLM_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
 
 \end{proof}
 

@@ -40,3 +40,69 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \begin{proof}\leanok
 
 \end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_unitInterval}
+  \uses{def:internalCoveringNumber}
+For $I = [0, 1] \subseteq \mathbb{R}$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\section{Chaining}
+
+
+\begin{lemma}\label{lem:chain}
+  \notready
+  Let $(I,d_I)$ and $(E,d_E)$ be metric spaces, and $f : I \to E$.
+  Moreover, let $J \subseteq I$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+  Then, there is $K \subseteq J^2$ such that
+  \begin{align}
+    |K|
+    & \le a |J|, \label{eq:chain1}
+    \\
+    (s,t) \in K
+    & \implies d_I(s,t) \le cn, \label{eq:chain2}
+    \\
+    \sup_{s,t\in J, d_I(s,t) \le c} |f(t) - f(s)|
+    & \le 2 \sup_{(s,t) \in K} |f(s) - f(t)|.
+    \label{eq:chain3}
+  \end{align}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\section{Kolmogorov-Chentsov Theorem}
+
+
+\begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
+  \notready
+Let $(I, d_I)$ be a compact metric space.
+Suppose that there is $c_1>0$ and $d \in \mathbb{N}$ such that for all $\varepsilon > 0$ small enough, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
+Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ with
+\begin{align*}
+  \mathbb{E}[d_E(X_s, X_t)^\alpha]
+  \le c_2 d_I(s,t)^{d+\beta}, \qquad s,t\in I
+  \: .
+\end{align*}
+Then, there exists a version $Y = (Y_t)_{t\in I}$ of $X$ such that, for some random variables $H>0$ and $K<\infty$,
+\begin{align*}
+  \mathbb{P}\Big(\sup_{s\neq t, d_I(s,t) \leq H} d_E(Y_s, Y_t)/d_I(s,t)^\gamma
+  \le K\Big) = 1
+  \: ,
+\end{align*}
+for every $\gamma\in(0,\beta/\alpha)$.
+In particular, $Y$ almost surely is locally Hölder of all orders $\gamma \in (0,\beta/\alpha)$, and has continuous paths.
+\end{theorem}
+
+\begin{proof}\uses{lem:chain}
+
+\end{proof}
+
+\section{Brownian motion}
