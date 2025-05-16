@@ -1,7 +1,10 @@
+MeasureTheory.charFunDual
+MeasureTheory.Measure.ext_of_charFunDual
 MeasureTheory.charFun
 MeasureTheory.Measure.ext_of_charFun
 ProbabilityTheory.gaussianReal
 ProbabilityTheory.charFun_gaussianReal
+ProbabilityTheory.isGaussian_iff_charFunDual_eq
 MeasureTheory.IsProjectiveMeasureFamily
 MeasureTheory.IsProjectiveLimit
 MeasureTheory.projectiveLimit
