@@ -33,6 +33,8 @@ Let $F$ be a separable Banach space.
 
 \begin{definition}[Gaussian measure]\label{def:IsGaussian}
   \uses{def:gaussianReal}
+  \mathlibok
+  \lean{ProbabilityTheory.IsGaussian}
 A measure $\mu$ on $F$ is Gaussian if for every continuous linear form $L \in F^*$, the pushforward measure $L_* \mu$ is a Gaussian measure on $\mathbb{R}$.
 \end{definition}
 
@@ -118,6 +120,42 @@ For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, 
 \end{lemma}
 
 \begin{proof}\leanok
+
+\end{proof}
+
+
+\paragraph{Transformations of Gaussian measures}
+
+\begin{lemma}\label{lem:isGaussian_map}
+  \uses{def:IsGaussian}
+  \mathlibok
+  \lean{ProbabilityTheory.isGaussian_map}
+Let $F, G$ be two Banach spaces, let $\mu$ be a Gaussian measure on $F$ and let $T : F \to G$ be a continuous linear map.
+Then $T_*\mu$ is a Gaussian measure on $G$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{corollary}\label{cor:isGaussian_add_const}
+  \uses{def:IsGaussian}
+Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
+Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
+\end{corollary}
+
+\begin{proof}\uses{lem:isGaussian_map}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_conv}
+  \uses{def:IsGaussian}
+The convolution of two Gaussian measures is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}
 
 \end{proof}
 
@@ -210,6 +248,8 @@ By Theorem~\ref{thm:ext_of_charFun}, $\langle u, \cdot\rangle_*\mu$ is Gaussian,
 
 \begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
   \uses{def:gaussianReal}
+  \leanok
+  \lean{ProbabilityTheory.stdGaussian}
 Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_d$ be independent standard Gaussian measures on $\mathbb{R}$.
 The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_d$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
 \end{definition}
@@ -221,6 +261,18 @@ The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $
 \end{lemma}
 
 \begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isProbabilityMeasure_stdGaussian}
+  \uses{def:stdGaussian}
+  \leanok
+  \lean{ProbabilityTheory.isProbabilityMeasure_stdGaussian}
+THe standard Gaussian measure is a probability measure.
+\end{lemma}
+
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -244,14 +296,16 @@ The characteristic function of the standard Gaussian measure on $E$ is given by
 The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}\uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian}
-Apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
+\begin{proof}\uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
+Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
 That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 \end{proof}
 
 
 \begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
   \uses{def:stdGaussian}
+  \leanok
+  \lean{ProbabilityTheory.multivariateGaussian}
 The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $m \in \mathbb{R}^d$ and covariance matrix $\Sigma \in \mathbb{R}^{d \times d}$, with $\Sigma$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto m + \Sigma^{1/2} x$.
 We denote this measure by $\mathcal{N}(m, \Sigma)$.
 \end{definition}
