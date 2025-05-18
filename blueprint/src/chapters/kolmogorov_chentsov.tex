@@ -55,6 +55,103 @@ For $I = [0, 1] \subseteq \mathbb{R}$, $N^{int}_\varepsilon(I) \le 1/\varepsilon
 \section{Chaining}
 
 
+\begin{definition}\label{def:nearestPt}
+Let $S$ be a finite set of $E$ and $x \in E$.
+We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point such that $d_E(x, S) = \min_{y \in S} d_E(x, y)$ (chosen arbitrarily among the minima if there are several).
+\end{definition}
+
+
+\begin{lemma}\label{lem:dist_nearestPt_le}
+  \uses{def:nearestPt}
+Let $S$ be a finite set of $E$ and $x \in E$.
+Then for all $y \in S$, $d_E(x, \pi(x, S)) \le d_E(x, y)$.
+\end{lemma}
+
+\begin{proof}
+By definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_nearestPt_of_isCover}
+  \uses{def:nearestPt, def:IsCover}
+Let $C_\varepsilon$ be a finite $\varepsilon$-cover of $A \subseteq E$ (assuming such a finite cover exists).
+Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:chainingSequence}
+  \uses{def:nearestPt, def:IsCover}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_add_one}
+  \uses{def:chainingSequence}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_nearestPt_of_isCover}
+Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_{i+1}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_le_sum}
+  \uses{def:chainingSequence}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_chainingSequence_add_one}
+By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
+\begin{align*}
+  d_E(\bar{x}_m, x)
+  \le \sum_{i=m}^{k-1} d_E(\bar{x}_i, \bar{x}_{i+1})
+  \le \sum_{i=m}^{k-1} \varepsilon_i
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_le}
+  \uses{def:chainingSequence}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$.
+Let $m, k, \ell \in \mathbb{N}$ with $m \le k$ and $m \le \ell$ and let $x \in C_k$ and $y \in C_\ell$.
+Then
+\begin{align*}
+  d_E(\bar{x}_m, \bar{y}_m)
+  &\le d_E(x, y) + \sum_{i=m}^{k-1} \varepsilon_i + \sum_{j=m}^{\ell-j} \varepsilon_j
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_chainingSequence_le_sum}
+Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:dist_chainingSequence_pow_two_le}
+  \uses{def:chainingSequence}
+For $\varepsilon_n = 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
+\begin{align*}
+  d_E(\bar{x}_m, \bar{y}_m)
+  &\le d_E(x, y) + 2^{-m+2}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:chain}
   \notready
   Let $(I,d_I)$ and $(E,d_E)$ be metric spaces, and $f : I \to E$.
