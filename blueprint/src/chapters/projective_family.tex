@@ -77,13 +77,60 @@ $P_{t_1, \ldots, t_n}$ is a Gaussian measure on $\mathbb{R}^n$ with mean $0$ and
 
 In this method, we prove that the matrix $C_{ij} = \min(t_i, t_j)$ is positive semidefinite, which means that there exists a Gaussian distribution with mean 0 and covariance matrix $C$.
 
+\begin{definition}[Gram matrix]\label{def:gramMatrix}
+Let $v_1, \ldots, v_n$ be vectors in an inner product space $E$.
+The Gram matrix of $v_1, \ldots, v_n$ is the matrix in $\mathbb{R}^{n \times n}$ with entries $G_{ij} = \langle v_i, v_j \rangle$ for $1 \leq i,j \leq n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:posSemidef_gramMatrix}
+  \uses{def:gramMatrix}
+A gram matrix is positive semidefinite.
+\end{lemma}
+
+\begin{proof}
+Symmetry is obvious from the definition.
+Let $x \in E$. Then
+\begin{align*}
+  \langle x, G x \rangle
+  &= \sum_{i,j} x_i x_j \langle v_i, v_j \rangle
+  \\
+  &= \langle \sum_i x_i v_i, \sum_j x_j v_j \rangle
+  \\
+  &= \left\Vert \sum_i x_i v_i \right\Vert^2
+  \\
+  &\ge 0
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:C_eq_gramMatrix}
+  \uses{def:gramMatrix}
+Let $I = \{t_1, \ldots, t_n\}$ be a finite subset of $\mathbb{R}_+$.
+For $i \le n$, let $v_i = \mathbb{I}_{[0, t_i]}$ be the indicator function of the interval $[0, t_i]$, as an element of $L^2(\mathbb{R})$.
+Then the Gram matrix of $v_1, \ldots, v_n$ is equal to the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+\end{lemma}
+
+\begin{proof}
+By definition of the inner product in $L^2(\mathbb{R})$,
+\begin{align*}
+  \langle v_i, v_j \rangle
+  &= \int_{\mathbb{R}} \mathbb{I}_{[0, t_i]}(x) \mathbb{I}_{[0, t_j]}(x) \: dx
+  = \min(t_i, t_j)
+  \: .
+\end{align*}
+\end{proof}
+
+
 \begin{lemma}\label{lem:posSemidef_brownianCov}
 For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $C \in \mathbb{R}^{n \times n}$ be the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 Then $C$ is positive semidefinite.
 \end{lemma}
 
-\begin{proof}
-
+\begin{proof}\uses{lem:C_eq_gramMatrix, lem:posSemidef_gramMatrix}
+$C$ is a Gram matrix by Lemma~\ref{lem:C_eq_gramMatrix}.
+By Lemma~\ref{lem:posSemidef_gramMatrix}, it is positive semidefinite.
 \end{proof}
 
 
@@ -102,7 +149,10 @@ The projective family of the Brownian motion is a projective family of measures.
 \end{lemma}
 
 \begin{proof}
+Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
+We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ maps $P^B_I$ to $P^B_J$.
 
+TODO
 \end{proof}
 
 

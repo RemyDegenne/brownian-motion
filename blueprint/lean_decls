@@ -9,6 +9,7 @@ ProbabilityTheory.IsGaussian
 ProbabilityTheory.isGaussian_iff_charFunDual_eq
 ProbabilityTheory.covarianceBilin
 ProbabilityTheory.covarianceBilin_same_eq_variance
+ProbabilityTheory.isGaussian_map
 ProbabilityTheory.stdGaussian
 ProbabilityTheory.isProbabilityMeasure_stdGaussian
 ProbabilityTheory.multivariateGaussian

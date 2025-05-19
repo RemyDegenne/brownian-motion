@@ -9,6 +9,9 @@
 \begin{definition}[Real Gaussian measure]\label{def:gaussianReal}
   \mathlibok
   \lean{ProbabilityTheory.gaussianReal}
+  The real Gaussian measure with mean $\mu \in \mathbb{R}$ and variance $\sigma^2 > 0$ is the measure on $\mathbb{R}$ with density $\frac{1}{\sqrt{2 \pi \sigma^2}} \exp\left(-\frac{(x - \mu)^2}{2 \sigma^2}\right)$ with respect to the Lebesgue measure.
+  The real Gaussian measure with mean $\mu \in \mathbb{R}$ and variance $0$ is the Dirac measure $\delta_\mu$.
+  We denote this measure by $\mathcal{N}(\mu, \sigma^2)$.
 \end{definition}
 
 
@@ -145,7 +148,7 @@ Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
 Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
 \end{corollary}
 
-\begin{proof}\uses{lem:isGaussian_map}
+\begin{proof}
 
 \end{proof}
 
