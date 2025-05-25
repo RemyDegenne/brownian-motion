@@ -60,3 +60,19 @@ Let $\mu$ be a measure on $F$ and let $L \in F^*$. Then
 \begin{proof}\leanok
 
 \end{proof}
+
+
+\begin{lemma}\label{lem:charFunDual_map}
+  \uses{def:charFunDual}
+  \mathlibok
+  \lean{MeasureTheory.charFunDual_map}
+Let $\mu$ be a measure on a normed space $E$ and let $L$ be a continuous linear map from $E$ to $F$.
+Then for all $L' \in F^*$,
+\begin{align*}
+  \widehat{L_*\mu}(L') = \hat{\mu}(L' \circ L) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}

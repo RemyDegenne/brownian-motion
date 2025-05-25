@@ -3,6 +3,7 @@ MeasureTheory.Measure.ext_of_charFunDual
 MeasureTheory.charFun
 MeasureTheory.Measure.ext_of_charFun
 MeasureTheory.charFun_map_eq_charFunDual_smul
+MeasureTheory.charFunDual_map
 ProbabilityTheory.gaussianReal
 ProbabilityTheory.charFun_gaussianReal
 ProbabilityTheory.IsGaussian
