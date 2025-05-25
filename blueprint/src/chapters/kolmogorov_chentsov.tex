@@ -42,9 +42,16 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:internalCoveringNumber_unitInterval}
+\begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
   \uses{def:internalCoveringNumber}
-For $I = [0, 1] \subseteq \mathbb{R}$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
+  Let $\mathrm{diam}(A)$ be the diameter of $A \subseteq E$, i.e. $\mathrm{diam}(A) = \sup_{x,y \in A} d_E(x, y)$.
+  A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A))$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_unitInterval}
+  \uses{def:HasBoundedInternalCoveringNumber}
+The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal covering number with constant $1$ and exponent $1$: for $\varepsilon \le 1$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
 \end{lemma}
 
 \begin{proof}
@@ -85,14 +92,14 @@ Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
 
 \begin{definition}\label{def:chainingSequence}
   \uses{def:nearestPt, def:IsCover}
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:dist_chainingSequence_add_one}
   \uses{def:chainingSequence}
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
 \end{lemma}
 
@@ -104,7 +111,7 @@ Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_
 
 \begin{lemma}\label{lem:dist_chainingSequence_le_sum}
   \uses{def:chainingSequence}
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
 \end{lemma}
 
@@ -122,7 +129,7 @@ By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
 
 \begin{lemma}\label{lem:dist_chainingSequence_le}
   \uses{def:chainingSequence}
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C \subseteq A$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$.
 Let $m, k, \ell \in \mathbb{N}$ with $m \le k$ and $m \le \ell$ and let $x \in C_k$ and $y \in C_\ell$.
 Then
 \begin{align*}
@@ -175,19 +182,154 @@ For $\varepsilon_n = 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainin
 \end{proof}
 
 
+
 \section{Kolmogorov-Chentsov Theorem}
 
 
-\begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
-  \notready
-Let $(I, d_I)$ be a compact metric space.
-Suppose that there is $c_1>0$ and $d \in \mathbb{N}$ such that for all $\varepsilon > 0$ small enough, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
-Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ with
+\begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
+  \uses{def:IsCover}
+Let $X : T \to \Omega \to E$ be a stochastic process.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $m \le k$,
 \begin{align*}
-  \mathbb{E}[d_E(X_s, X_t)^\alpha]
-  \le c_2 d_I(s,t)^{d+\beta}, \qquad s,t\in I
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \left(\sum_{i=m}^{k-1} \left( \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
   \: .
 \end{align*}
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+  \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
+  &\le \sup_{t \in C_k} \left( \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
+  \\
+  &\le \left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
+  \: .
+\end{align*}
+And then, by Minkowski's inequality,
+\begin{align*}
+  \left(\mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
+  &\le \sum_{i=m}^{k-1} \mu \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
+  \\
+  &\le \sum_{i=m}^{k-1} \left( \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}[Todo process]\label{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mu)$ is a measure space.
+Let $p, q > 0$.
+We say that $X$ is a $(p,q)$-\emph{todo process} with constant $M$ if for all $s, t \in T$,
+\begin{align*}
+  \mu[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
+  \uses{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+Then for $j < k$,
+\begin{align*}
+  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \vert C_{j+1} \vert M \varepsilon_j^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_chainingSequence_add_one, def:IsTodoProcess}
+\begin{align*}
+  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \mu\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
+  \\
+  &\le M \sum_{u \in C_{j+1}} d_T(\bar{u}_j, u)^q
+  \\
+  &\le \vert C_{j+1} \vert M \varepsilon_j^q
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
+  \uses{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+Then for $m \le k$,
+\begin{align*}
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_succ, lem:integral_sup_dist_le_sum_rpow}
+Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:integral_sup_dist_le_sum_rpow}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
+  \uses{def:IsTodoProcess, def:HasBoundedInternalCoveringNumber}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $m \le k$,
+\begin{align*}
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \left( \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_le_sum, def:HasBoundedInternalCoveringNumber}
+By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum}, we have
+\begin{align*}
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+Then by the minimality of the cardinality of $C_n$ and the bounded internal covering number hypothesis, we have
+\begin{align*}
+  \vert C_{j+1} \vert
+  &\le N^{int}_{\varepsilon_{j+1}}(T)
+  \le c_1 \varepsilon_{j+1}^{-d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
+  \uses{def:IsTodoProcess, def:HasBoundedInternalCoveringNumber}
+Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
+\begin{align*}
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover}
+
+\end{proof}
+
+
+\begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
+  \uses{def:HasBoundedInternalCoveringNumber, def:IsTodoProcess}
+  \notready
+Let $(I, d_I)$ be a compact metric space.
+Suppose that $I$ has bounded internal covering number with constant $c_1>0$ and exponent $d \in \mathbb{N}$, i.e. for all $\varepsilon > 0$ smaller than $\mathrm{diam}(I)$, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
+Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ such that $X$ is a $(\alpha, d+\beta)$-todo process with constant $c_2$.
+% \begin{align*}
+%   \mathbb{E}[d_E(X_s, X_t)^\alpha]
+%   \le c_2 d_I(s,t)^{d+\beta}, \qquad s,t\in I
+%   \: .
+% \end{align*}
 Then, there exists a version $Y = (Y_t)_{t\in I}$ of $X$ such that, for some random variables $H>0$ and $K<\infty$,
 \begin{align*}
   \mathbb{P}\Big(\sup_{s\neq t, d_I(s,t) \leq H} d_E(Y_s, Y_t)/d_I(s,t)^\gamma
