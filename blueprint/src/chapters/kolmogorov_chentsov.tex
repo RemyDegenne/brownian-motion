@@ -61,6 +61,8 @@ The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal coverin
 
 \section{Chaining}
 
+\subsection{Chaining sequence}
+
 
 \begin{definition}\label{def:nearestPt}
 Let $S$ be a finite set of $E$ and $x \in E$.
@@ -90,7 +92,7 @@ Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
 \end{proof}
 
 
-\begin{definition}\label{def:chainingSequence}
+\begin{definition}[Chaining sequence]\label{def:chainingSequence}
   \uses{def:nearestPt, def:IsCover}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
@@ -159,26 +161,145 @@ For $\varepsilon_n = 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainin
 \end{proof}
 
 
-\begin{lemma}\label{lem:chain}
-  \notready
-  Let $(I,d_I)$ and $(E,d_E)$ be metric spaces, and $f : I \to E$.
-  Moreover, let $J \subseteq I$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
-  Then, there is $K \subseteq J^2$ such that
-  \begin{align}
-    |K|
-    & \le a |J|, \label{eq:chain1}
-    \\
-    (s,t) \in K
-    & \implies d_I(s,t) \le cn, \label{eq:chain2}
-    \\
-    \sup_{s,t\in J, d_I(s,t) \le c} |f(t) - f(s)|
-    & \le 2 \sup_{(s,t) \in K} |f(s) - f(t)|.
-    \label{eq:chain3}
-  \end{align}
+\subsection{An interesting subset}
+
+TODO: what exactly is that subset interesting for?
+
+\begin{definition}\label{def:rtCBKV}
+Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+An rtCBKV structure for $(J, a, b, c, n)$ is a tuple $(r, t, C, B, K, V)$ where $r \in \mathbb{N}$, $t \in T$, $C, B, V$ are subsets of $J$, $K$ is a subset of $J^2$ with the properties that
+\begin{itemize}
+  \item $t \in V$
+  \item $r$ is the smallest natural number such that $\vert\{s \in V \mid d_T(s, t) \le r c\}\vert \le b a^r$
+  \item $C = \{s \in V \mid d_T(s, t) \le r c\}$
+  \item $B = \{s \in V \mid d_T(s, t) \le (r-1) c\} \subseteq C$
+  \item $K = \{t\} \times C$
+\end{itemize}
+Note that given $(V, t)$, the other elements of the rtCBKV structure are uniquely determined.
+\end{definition}
+
+
+\begin{lemma}\label{lem:card_B_ge}
+  \uses{def:rtCBKV}
+In an rtCBKV structure for $(J, a, b, c, n)$,
+\begin{align*}
+  b a^{r-1}
+  &\le \vert B \vert
+  \: .
+\end{align*}
 \end{lemma}
 
 \begin{proof}
 
+\end{proof}
+
+
+\begin{lemma}\label{lem:card_K_le}
+  \uses{def:rtCBKV}
+In an rtCBKV structure for $(J, a, b, c, n)$,
+\begin{align*}
+  \vert K \vert
+  &\le b a^r
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:rtCBKVSequence}
+  \uses{def:rtCBKV}
+Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+An rtCBKV sequence for $(J, a, b, c, n)$ is a sequence of rtCBKV structures $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ such that
+\begin{itemize}
+  \item $V_0 = J$, $t_0$ is an arbitrary point in $J$ (and the remainder of the rtCBKV structure is determined by those),
+  \item $V_{i+1} = V_i \setminus B_i$, $t_{i+1}$ is arbitrarily chosen in $V_{i+1}$.
+\end{itemize}
+\end{definition}
+
+
+\begin{lemma}\label{lem:rtCBKVSequence_eq_zero}
+  \uses{def:rtCBKVSequence}
+There exists $m \in \mathbb{N}$ such that the rtCBKV sequence $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$ satisfies $V_k = \emptyset$ for all $k \ge m$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:rtCBKVSequence_disjoint_B}
+  \uses{def:rtCBKVSequence}
+For $i \ne j$, the sets $B_i$ and $B_j$ of an rtCBKV sequence $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ are disjoint.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:chain}
+Let $(T,d_T)$ and $(E,d_E)$ be metric spaces, and $f : T \to E$.
+Moreover, let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+Then, there is $K \subseteq J^2$ such that
+\begin{align}
+  |K|
+  & \le a |J|
+  \:, \label{eq:chain1} \\
+  (s,t) \in K
+  & \implies d_T(s,t) \le c n
+  \:, \label{eq:chain2} \\
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: . \label{eq:chain3}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:rtCBKVSequence_eq_zero, lem:card_B_ge, lem:card_K_le}
+Let $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ be an rtCBKV sequence for $(J, a, b, c, n)$.
+Let $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:rtCBKVSequence_eq_zero}.
+
+Using Lemma~\ref{lem:card_K_le}, the cardinal of $K$ is bounded by
+\begin{align*}
+  \vert K \vert
+  &\le \sum_{i=0}^{m-1} \vert K_i \vert
+  \le \sum_{i=0}^{m-1} b a^{r_i}
+  \: .
+\end{align*}
+Since the sets $B_i$ are disjoint by Lemma~\ref{lem:rtCBKVSequence_disjoint_B}, we can use Lemma~\ref{lem:card_B_ge} to get
+\begin{align*}
+  \sum_{i=0}^{m-1} b a^{r_i - 1}
+  \le \sum_{i=0}^{m-1} \vert B_i \vert
+  = \left\vert \bigcup_{i=0}^{m-1} B_i \right\vert
+  \le \vert J \vert
+  \: .
+\end{align*}
+We obtained the inequality $\vert K \vert \le a \vert J \vert$~\eqref{eq:chain1}.
+
+A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in C_i$ and satisfies
+\begin{align*}
+  d_T(t_i, s) \le c r_i \le c n \: .
+\end{align*}
+This proves the second property~\eqref{eq:chain2}.
+
+It remains to prove~\eqref{eq:chain3}.
+Let $(s, t) \in J^2$ such that $d_T(s, t) \le c$.
+Then there exists a largest $\ell \in \mathbb{N}$ such that $s, t \in V_\ell$.
+Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_\ell$ (since $V_{\ell + 1} = V_\ell \setminus B_\ell$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
+
+Since $d_T(s, t) \le c$, $d_T(t, t_\ell) \le d_T(t, s) + d_T(s, t_\ell) \le r_\ell c$, hence $t \in C_\ell$ and we have that both $s$ and $t$ are in $C_\ell$.
+Thus both $(t_\ell, s)$ and $(t_\ell, t)$ are in $K_\ell \subseteq K$.
+Finally
+\begin{align*}
+  d_E(f(s), f(t))
+  &\le d_E(f(s), f(t_\ell)) + d_E(f(t_\ell), f(t))
+  \\
+  &\le 2\sup_{(s',t') \in K} d_E(f(s'), f(t'))
+  \: .
+\end{align*}
 \end{proof}
 
 
