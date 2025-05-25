@@ -73,58 +73,6 @@ in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 
 \end{proof}
 
-\begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
-Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
-Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
-\end{theorem}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
-  \uses{def:IsGaussian}
-For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
-\end{theorem}
-
-\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:IsGaussian.memLp_id}
-  \uses{def:IsGaussian}
-A Gaussian measure $\mu$ has finite moments of all orders.
-In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
-\end{lemma}
-
-\begin{proof}\uses{thm:IsGaussian.exists_integrable_exp_sq}
-
-\end{proof}
-
-
-\begin{definition}[Covariance]\label{def:covarianceBilin}
-  \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin}
-The covariance bilinear form of a measure $\mu$ with finite second moment is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
-\begin{align*}
-  C_\mu(L_1, L_2) = \int_x (L_1(x) - L_1(m_\mu)) (L_2(x) - L_2(m_\mu)) \: d\mu(x) \: .
-\end{align*}
-\end{definition}
-
-A Gaussian measure has finite second moment by Lemma~\ref{lem:IsGaussian.memLp_id}, hence its covariance bilinear form is well defined.
-
-\begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
-  \uses{def:covarianceBilin}
-  \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin_same_eq_variance}
-For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
 
 
 \paragraph{Transformations of Gaussian measures}
@@ -159,6 +107,75 @@ The convolution of two Gaussian measures is a Gaussian measure.
 \end{lemma}
 
 \begin{proof}
+
+\end{proof}
+
+
+
+\paragraph{Fernique's theorem}
+
+
+\begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
+Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsGaussian.map_rotation_eq_self}
+  \uses{def:IsGaussian}
+For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussian_conv}
+
+\end{proof}
+
+
+\begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
+  \uses{def:IsGaussian}
+For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
+\end{theorem}
+
+\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self, lem:IsGaussian.map_rotation_eq_self}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsGaussian.memLp_id}
+  \uses{def:IsGaussian}
+A Gaussian measure $\mu$ has finite moments of all orders.
+In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
+\end{lemma}
+
+\begin{proof}\uses{thm:IsGaussian.exists_integrable_exp_sq}
+
+\end{proof}
+
+
+\begin{definition}[Covariance]\label{def:covarianceBilin}
+  \mathlibok
+  \lean{ProbabilityTheory.covarianceBilin}
+The covariance bilinear form of a measure $\mu$ with finite second moment is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
+\begin{align*}
+  C_\mu(L_1, L_2) = \int_x (L_1(x) - L_1(m_\mu)) (L_2(x) - L_2(m_\mu)) \: d\mu(x) \: .
+\end{align*}
+\end{definition}
+
+A Gaussian measure has finite second moment by Lemma~\ref{lem:IsGaussian.memLp_id}, hence its covariance bilinear form is well defined.
+
+\begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
+  \uses{def:covarianceBilin}
+  \mathlibok
+  \lean{ProbabilityTheory.covarianceBilin_same_eq_variance}
+For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
+\end{lemma}
+
+\begin{proof}\leanok
 
 \end{proof}
 
