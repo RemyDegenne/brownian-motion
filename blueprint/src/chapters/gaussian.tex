@@ -73,6 +73,48 @@ in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
 
 \end{proof}
 
+
+
+\paragraph{Transformations of Gaussian measures}
+
+\begin{lemma}\label{lem:isGaussian_map}
+  \uses{def:IsGaussian}
+  \mathlibok
+  \lean{ProbabilityTheory.isGaussian_map}
+Let $F, G$ be two Banach spaces, let $\mu$ be a Gaussian measure on $F$ and let $T : F \to G$ be a continuous linear map.
+Then $T_*\mu$ is a Gaussian measure on $G$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_add_const}
+  \uses{def:IsGaussian}
+Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
+Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_conv}
+  \uses{def:IsGaussian}
+The convolution of two Gaussian measures is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+\paragraph{Fernique's theorem}
+
+
 \begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
 Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
 Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
@@ -83,12 +125,23 @@ Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Ver
 \end{proof}
 
 
+\begin{lemma}\label{lem:IsGaussian.map_rotation_eq_self}
+  \uses{def:IsGaussian}
+For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussian_conv}
+
+\end{proof}
+
+
 \begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
   \uses{def:IsGaussian}
 For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
 \end{theorem}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self, lem:IsGaussian.map_rotation_eq_self}
 
 \end{proof}
 
@@ -127,42 +180,6 @@ For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, 
 \end{proof}
 
 
-\paragraph{Transformations of Gaussian measures}
-
-\begin{lemma}\label{lem:isGaussian_map}
-  \uses{def:IsGaussian}
-  \mathlibok
-  \lean{ProbabilityTheory.isGaussian_map}
-Let $F, G$ be two Banach spaces, let $\mu$ be a Gaussian measure on $F$ and let $T : F \to G$ be a continuous linear map.
-Then $T_*\mu$ is a Gaussian measure on $G$.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
-
-
-\begin{corollary}\label{cor:isGaussian_add_const}
-  \uses{def:IsGaussian}
-Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
-Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
-\end{corollary}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:isGaussian_conv}
-  \uses{def:IsGaussian}
-The convolution of two Gaussian measures is a Gaussian measure.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
 
 \begin{lemma}\label{lem:isGaussian_iff_charFunDual_inner_eq}
@@ -188,17 +205,62 @@ Every continuous linear form $L \in E^*$ can be written as $L(x) = \langle t, x 
 Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
 
 
-\begin{definition}[Covariance matrix]\label{def:covMatix}
+\begin{definition}[Covariance matrix]\label{def:covMatrix}
   \uses{def:IsGaussian}
-The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ with
+The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ such that for $u, v \in E$,
 \begin{align*}
-  \Sigma_\mu = \mu[(x - m_\mu) (x - m_\mu)^\top] \: .
+  \langle u, \Sigma_\mu v\rangle = \mu[\langle u, x - m_\mu \rangle \langle x - m_\mu, v \rangle] \: .
 \end{align*}
 \end{definition}
 
 
+\begin{lemma}\label{lem:covarianceBilin_map}
+  \uses{def:covarianceBilin}
+Let $E$ and $F$ be two Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Then the covariance bilinear form of the measure $L_*\mu$ is given by
+\begin{align*}
+  C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
+  &= C_\mu(\langle L^\dagger(u), \cdot\rangle, \langle L^\dagger(v), \cdot\rangle)
+  \: ,
+\end{align*}
+in which $L^\dagger : F \to E$ is the adjoint of $L$.
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+  C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
+  &= (\pi_{IJ*}\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
+  \\
+  &= \mu\left[\langle u, L(x) - L(m_\mu)\rangle \langle L(x) - L(m_\mu), v \rangle \right]
+  \\
+  &= \mu\left[\langle L^\dagger(u), x - m_\mu\rangle \langle x - m_\mu, L^\dagger(v) \rangle \right]
+  \\
+  &= C_\mu(\langle L^\dagger(u), \cdot\rangle, \langle L^\dagger(v), \cdot\rangle)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:covMatrix_map}
+  \uses{def:covMatrix}
+Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Then the covariance matrix of the measure $L_*\mu$ has entries
+\begin{align*}
+  \langle e_i, \Sigma_{L_*\mu} e_j\rangle
+  &= \langle L^\dagger(e_i), \Sigma_\mu L^\dagger(e_j)\rangle
+  \: ,
+\end{align*}
+in which $L^\dagger : F \to E$ is the adjoint of $L$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:covarianceBilin_map}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsGaussian.charFun_eq}
-  \uses{def:IsGaussian, def:charFun, def:covMatix}
+  \uses{def:IsGaussian, def:charFun, def:covMatrix}
 The characteristic function of a Gaussian measure $\mu$ on $E$ is given by
 \begin{align*}
   \hat{\mu}(t) = \exp\left(i \langle t, m_\mu \rangle - \frac{1}{2} \langle t, \Sigma_\mu t \rangle\right) \: .
@@ -218,7 +280,7 @@ TODO: the second moment is also finite and we can get to the covariance matrix.
 
 
 \begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
-  \uses{def:IsGaussian, def:charFun, def:covMatix}
+  \uses{def:IsGaussian, def:charFun, def:covMatrix}
 A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $\Sigma$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
   \hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right) \: ,
@@ -272,7 +334,7 @@ The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $
   \uses{def:stdGaussian}
   \leanok
   \lean{ProbabilityTheory.isProbabilityMeasure_stdGaussian}
-THe standard Gaussian measure is a probability measure.
+The standard Gaussian measure is a probability measure.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -299,7 +361,8 @@ The characteristic function of the standard Gaussian measure on $E$ is given by
 The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}\uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
+\begin{proof}
+  \uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
 Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
 That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 \end{proof}
@@ -314,6 +377,17 @@ We denote this measure by $\mathcal{N}(m, \Sigma)$.
 \end{definition}
 
 
+\begin{lemma}\label{lem:isGaussian_multivariateGaussian}
+  \uses{def:multivariateGaussian, def:IsGaussian}
+A multivariate Gaussian measure is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussian_stdGaussian, lem:isGaussian_add_const, lem:isGaussian_map}
+The multivariate Gaussian measure is the pushforward of the standard Gaussian measure by an affine map, and is thus Gaussian by Lemma~\ref{lem:isGaussian_add_const} and Lemma~\ref{lem:isGaussian_map}.
+\end{proof}
+
+
 \begin{theorem}\label{thm:charFun_multivariateGaussian}
   \uses{def:multivariateGaussian, def:charFun}
 The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is given by
@@ -323,20 +397,12 @@ The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \
 \end{align*}
 \end{theorem}
 
-\begin{proof}\uses{lem:charFun_stdGaussian}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:isGaussian_multivariateGaussian}
-  \uses{def:multivariateGaussian, def:IsGaussian}
-A multivariate Gaussian measure is a Gaussian measure.
-\end{lemma}
-
 \begin{proof}
-  \uses{thm:charFun_multivariateGaussian, lem:isGaussian_iff_charFun_eq}
-Apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
-That form is given by Theorem~\ref{thm:charFun_multivariateGaussian}.
+  \uses{lem:charFun_stdGaussian, lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq}
+Since the multivariate Gaussian measure is a Gaussian measure, we can apply Lemma~\ref{lem:IsGaussian.charFun_eq} to it.
+It suffices then to show that the mean and the covariance matrix of the multivariate Gaussian measure are equal to $m$ and $\Sigma$, respectively.
+
+TODO
 \end{proof}
 
 

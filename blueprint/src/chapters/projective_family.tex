@@ -42,40 +42,40 @@ We build a projective family of Gaussian measures indexed by $\mathbb{R}_+$.
 In order to do so, we need to define specific Gaussian measures on finite index sets $\{t_1, \ldots, t_n\}$.
 We want to build a multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 
-\paragraph{First method: Gaussian increments}
+% \paragraph{First method: Gaussian increments}
 
-In this method, we build the Gaussian measure by adding independent Gaussian increments.
+% In this method, we build the Gaussian measure by adding independent Gaussian increments.
 
-\begin{definition}(Gaussian increment)\label{def:gaussianIncrement}
-For $v \ge 0$, the map from $\mathbb{R}$ to the probability measures on $\mathbb{R}$ defined by $x \mapsto \mathcal{N}(x, v)$ is a Markov kernel.
-We call that kernel the \emph{Gaussian increment} with variance $v$ and denote it by $\kappa^G_v$.
-\end{definition}
+% \begin{definition}(Gaussian increment)\label{def:gaussianIncrement}
+% For $v \ge 0$, the map from $\mathbb{R}$ to the probability measures on $\mathbb{R}$ defined by $x \mapsto \mathcal{N}(x, v)$ is a Markov kernel.
+% We call that kernel the \emph{Gaussian increment} with variance $v$ and denote it by $\kappa^G_v$.
+% \end{definition}
 
-TODO: perhaps the equality $\mathcal{N}(x, v) = \delta_x \ast \mathcal{N}(0, v)$ is useful to show that it is a kernel?
+% TODO: perhaps the equality $\mathcal{N}(x, v) = \delta_x \ast \mathcal{N}(0, v)$ is useful to show that it is a kernel?
 
-\begin{definition}\label{def:gaussianFromIncrements}
-  \uses{def:gaussianIncrement}
-Let $0 \le t_1 \le \ldots \le t_n$ be non-negative reals.
-Let $\mu_0$ be the real Gaussian distribution $\mathcal{N}(0, t_1)$.
-For $i \in \{1, \ldots, n-1\}$, let $\kappa_i$ be the Markov kernel from $\mathbb{R}$ to $\mathbb{R}$ defined by $\kappa_i(x) = \mathcal{N}(x, t_{i+1} - t_i)$ (the Gaussian increment $\kappa^G_{t_{i+1} - t_i}$).
-Let $P_{t_1, \ldots, t_n}$ be the measure on $\mathbb{R}^n$ defined by $\mu_0 \otimes \kappa_1 \otimes \ldots \otimes \kappa_{n-1}$.
-\end{definition}
+% \begin{definition}\label{def:gaussianFromIncrements}
+%   \uses{def:gaussianIncrement}
+% Let $0 \le t_1 \le \ldots \le t_n$ be non-negative reals.
+% Let $\mu_0$ be the real Gaussian distribution $\mathcal{N}(0, t_1)$.
+% For $i \in \{1, \ldots, n-1\}$, let $\kappa_i$ be the Markov kernel from $\mathbb{R}$ to $\mathbb{R}$ defined by $\kappa_i(x) = \mathcal{N}(x, t_{i+1} - t_i)$ (the Gaussian increment $\kappa^G_{t_{i+1} - t_i}$).
+% Let $P_{t_1, \ldots, t_n}$ be the measure on $\mathbb{R}^n$ defined by $\mu_0 \otimes \kappa_1 \otimes \ldots \otimes \kappa_{n-1}$.
+% \end{definition}
 
-TODO: explain the notation $\otimes$ in the lemma above: $\kappa_{n-1}$ takes the value at $n-1$ only to produce the distribution at $n$.
+% TODO: explain the notation $\otimes$ in the lemma above: $\kappa_{n-1}$ takes the value at $n-1$ only to produce the distribution at $n$.
 
-\begin{lemma}\label{lem:isGaussian_gaussianFromIncrements}
-  \uses{def:gaussianFromIncrements, def:IsGaussian}
-$P_{t_1, \ldots, t_n}$ is a Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
-\end{lemma}
+% \begin{lemma}\label{lem:isGaussian_gaussianFromIncrements}
+%   \uses{def:gaussianFromIncrements, def:IsGaussian}
+% $P_{t_1, \ldots, t_n}$ is a Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+% \end{lemma}
 
-\begin{proof}
+% \begin{proof}
 
-\end{proof}
+% \end{proof}
 
 
-\paragraph{Second method: covariance matrix}
+% \paragraph{Second method: covariance matrix}
 
-In this method, we prove that the matrix $C_{ij} = \min(t_i, t_j)$ is positive semidefinite, which means that there exists a Gaussian distribution with mean 0 and covariance matrix $C$.
+We prove that the matrix $C_{ij} = \min(t_i, t_j)$ is positive semidefinite, which means that there exists a Gaussian distribution with mean 0 and covariance matrix $C$.
 
 \begin{definition}[Gram matrix]\label{def:gramMatrix}
 Let $v_1, \ldots, v_n$ be vectors in an inner product space $E$.
@@ -149,10 +149,24 @@ The projective family of the Brownian motion is a projective family of measures.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:isGaussian_map, lem:isGaussian_multivariateGaussian, lem:covMatrix_map}
 Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
-We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ maps $P^B_I$ to $P^B_J$.
+We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ (denote it by $\pi_{IJ}$) maps $P^B_I$ to $P^B_J$.
 
-TODO
+The restriction is a continuous linear map from $\mathbb{R}^I$ to $\mathbb{R}^J$.
+The map of a Gaussian measure by a continuous linear map is Gaussian (Lemma~\ref{lem:isGaussian_map}).
+It thus suffices to show that the mean and covariance matrix of the map are equal to the ones of $P^B_J$.
+
+The mean of the map is $0$, since the mean of $P^B_I$ is $0$ and the map is linear.
+
+For the covariance matrix and $i, j \in J$, by Lemma~\ref{lem:covMatrix_map} we have
+\begin{align*}
+  \langle e_i, \Sigma_{\pi_{IJ*}\mu} e_j\rangle
+  &= \langle \pi_{IJ}^\dagger(e_i), \Sigma_\mu \pi_{IJ}^\dagger(e_j)\rangle
+  \: .
+\end{align*}
+$\pi_{IJ}^\dagger(u)$ is the vector of $\mathbb{R}^I$ with coordinates $(\pi_{IJ}^\dagger(u))_i = u_i$ if $i \in J$ and $(\pi_{IJ}^\dagger(u))_i = 0$ otherwise.
+This gives the same covariance matrix as the one of $P^B_J$.
 \end{proof}
 
 
