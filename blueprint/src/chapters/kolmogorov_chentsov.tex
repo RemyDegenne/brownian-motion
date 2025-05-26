@@ -148,10 +148,10 @@ Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
 
 \begin{corollary}\label{cor:dist_chainingSequence_pow_two_le}
   \uses{def:chainingSequence}
-For $\varepsilon_n = 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
+For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
 \begin{align*}
   d_E(\bar{x}_m, \bar{y}_m)
-  &\le d_E(x, y) + 2^{-m+2}
+  &\le d_E(x, y) + \varepsilon_0 2^{-m+2}
   \: .
 \end{align*}
 \end{corollary}
@@ -161,18 +161,28 @@ For $\varepsilon_n = 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainin
 \end{proof}
 
 
-\subsection{An interesting subset}
+\subsection{A subset of pairs}
 
-TODO: what exactly is that subset interesting for?
+We will be interested in bounding expressions of the form $\sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))$ for a finite set $J$ and some function $f : T \to E$.
+This is a supremum over pairs in $J$ and there could be $\vert J \vert^2$ such pairs.
+We will build a subset $K$ of $J^2$ which is much smaller, of size linear in $\vert J \vert$, such that its points are not too far apart and
+\begin{align*}
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: .
+\end{align*}
+
+For $t \in V \subseteq T$ and $u\ge 0$, we denote by $B_V(t, u)$ the closed ball with center $t$ and radius $u$ in $V$.
+That is, $B_V(t, u) = V \cap B(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
 
 \begin{definition}\label{def:rtCBKV}
 Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 An rtCBKV structure for $(J, a, b, c, n)$ is a tuple $(r, t, C, B, K, V)$ where $r \in \mathbb{N}$, $t \in T$, $C, B, V$ are subsets of $J$, $K$ is a subset of $J^2$ with the properties that
 \begin{itemize}
   \item $t \in V$
-  \item $r$ is the smallest natural number such that $\vert\{s \in V \mid d_T(s, t) \le r c\}\vert \le b a^r$
-  \item $C = \{s \in V \mid d_T(s, t) \le r c\}$
-  \item $B = \{s \in V \mid d_T(s, t) \le (r-1) c\} \subseteq C$
+  \item $r \in \{1, 2, ...\}$ is the smallest number such that $\vert B_V(t, rc)\vert \le b a^r$
+  \item $C = B_V(t, rc)$
+  \item $B = B_V(t, (r-1)c) \subseteq C$
   \item $K = \{t\} \times C$
 \end{itemize}
 Note that given $(V, t)$, the other elements of the rtCBKV structure are uniquely determined.
@@ -181,12 +191,7 @@ Note that given $(V, t)$, the other elements of the rtCBKV structure are uniquel
 
 \begin{lemma}\label{lem:card_B_ge}
   \uses{def:rtCBKV}
-In an rtCBKV structure for $(J, a, b, c, n)$,
-\begin{align*}
-  b a^{r-1}
-  &\le \vert B \vert
-  \: .
-\end{align*}
+In an rtCBKV structure for $(J, a, b, c, n)$, $b a^{r-1} \le \vert B \vert$~.
 \end{lemma}
 
 \begin{proof}
@@ -196,12 +201,7 @@ In an rtCBKV structure for $(J, a, b, c, n)$,
 
 \begin{lemma}\label{lem:card_K_le}
   \uses{def:rtCBKV}
-In an rtCBKV structure for $(J, a, b, c, n)$,
-\begin{align*}
-  \vert K \vert
-  &\le b a^r
-  \: .
-\end{align*}
+In an rtCBKV structure for $(J, a, b, c, n)$, $\vert K \vert \le b a^r$~.
 \end{lemma}
 
 \begin{proof}
@@ -219,6 +219,7 @@ An rtCBKV sequence for $(J, a, b, c, n)$ is a sequence of rtCBKV structures $(r_
 \end{itemize}
 \end{definition}
 
+An rtCBKV sequence gives a partition of $J$ into sets $B_i$, which are contained in balls of radius $(r_i - 1)c$ around $t_i$, and satisfy cardinality constraints.
 
 \begin{lemma}\label{lem:rtCBKVSequence_eq_zero}
   \uses{def:rtCBKVSequence}
@@ -303,8 +304,245 @@ Finally
 \end{proof}
 
 
+\subsection{Todo processes}
 
-\section{Kolmogorov-Chentsov Theorem}
+\begin{definition}[Todo process]\label{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mu)$ is a measure space.
+Let $p, q > 0$.
+We say that $X$ is a $(p,q)$-\emph{todo process} with constant $M$ if for all $s, t \in T$,
+\begin{align*}
+  \mu[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_succ'}
+  \uses{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
+Then
+\begin{align*}
+  \mu\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  &\le \vert C \vert M \varepsilon^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{def:IsTodoProcess}
+\begin{align*}
+  \mu\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  &\le \mu\left[\sum_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  \\
+  &\le M \sum_{(s,t) \in C} d_T(s, t)^q
+  \\
+  &\le \vert C \vert M \varepsilon^q
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+Then
+\begin{align*}
+  \mu \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^p a |J| M (cn)^q
+  \: .
+\end{align*}
+
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:chain, lem:integral_sup_rpow_dist_succ'}
+By Lemma~\ref{lem:chain}, there exists $K \subseteq J^2$ such that
+\begin{align*}
+  |K|
+  & \le a |J|
+  \:, \\
+  \forall (s,t) \in K,
+  & \ d_T(s,t) \le c n
+  \:, \\
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(X_s, X_t)
+  & \le 2 \sup_{(s,t) \in K} d_E(X_s, X_t)
+  \: .
+\end{align*}
+Hence for such a set $K$,
+\begin{align*}
+  \mu \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^p \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ'},
+\begin{align*}
+  \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  &\le |K| M (cn)^q
+  \le a |J| M (cn)^q
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Split}
+
+TODO: we change scale.
+From a set of points in $C_k$ which are not far apart, we build a set of points in $C_m$ for $m \le k$ which are not far apart.
+Then for the set in $C_m$, we can use the reduction in the number of pairs.
+
+\begin{lemma}\label{lem:scale_change}
+  \uses{def:chainingSequence}
+Let $X : T \to E$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
+For $m \le k$,
+\begin{align*}
+  \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)
+  &\le \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})
+    + 2 \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_chainingSequence_le}
+By the triangle inequality,
+\begin{align*}
+  d_E(X_s, X_t)
+  &\le d_E(s, X_{\bar{s}_m}) + d(X_{\bar{s}_m}, X_{\bar{t}_m}) + d_E(X_{\bar{t}_m}, t)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:scale_change_rpow}
+  \uses{def:chainingSequence}
+Let $X : T \to E$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
+For $m \le k$,
+\begin{align*}
+  \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p
+  &\le 2^p \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p
+    + 4^p \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:scale_change}
+This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 0$,
+\begin{align*}
+  (a + b)^p \le (2\max(a,b))^p = 2^p \max(a^p,b^p) \le 2^p (a^p + b^p)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{First term}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
+  \uses{def:IsTodoProcess, def:chainingSequence}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
+Then for $c \ge 0$,
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+2} M \left(\frac{2}{\log 2} c \log N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_of_dist_le}
+Let $\bar{r} = \min\{r \in \mathbb{N} \mid N^{int}_{\varepsilon}(J) \le 2^r\}$.
+\begin{align*}
+  \vert C \vert
+  = N^{int}_{\varepsilon}(J)
+  \le 2^{\bar{r}}
+  \: .
+\end{align*}
+By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $b = 1$, $c = c$, $n = \bar{r}$,
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+1} |C_m| M (c \bar{r})^q
+  \le 2^{p+1} M (c \bar{r})^q  2^{\bar{r}}
+  \: .
+\end{align*}
+
+By definition, $2^{\bar{r}} \le 2 N^{int}_{\varepsilon}(J)$ and $\bar{r} \le 1 + \frac{\log N^{int}_{\varepsilon}(J)}{\log 2}$.
+Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (TODO: other case).
+Then $\bar{r} \le \frac{2 \log N^{int}_{\varepsilon}(J)}{\log 2}$.
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+2} M \left(\frac{2}{\log 2} c \log N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
+  \uses{def:IsTodoProcess, def:chainingSequence}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
+Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
+For $m = \min(n_2, k)$,
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  \: .
+\end{align*}
+TODO: $C_k = J$
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
+If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, s) \mid s \in C_k\}$ and the inequality holds trivially.
+We can thus assume $\delta > \varepsilon_0 2^{-k}$.
+
+For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
+It thus suffices to get a bound on $\mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
+
+We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\varepsilon = \varepsilon_m$, $c = \varepsilon_0 2^{-m+3}$. We obtain
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+2} M \left(\frac{16}{\log 2} \varepsilon_0 2^{-m} \log N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
+  \: .
+\end{align*}
+By definition of $m$ and $n_2$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \varepsilon_0 2^{-n_2} \ge \delta/4$,
+hence $N^{int}_{\varepsilon_m}(J) \le N^{int}_{\delta / 4}(J)$.
+
+If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
+Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
+We thus get $\varepsilon_0 2^{-m} \le \delta$.
+\end{proof}
+
+
+\subsection{Second term}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
+  \uses{def:IsTodoProcess}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+Then for $j < k$,
+\begin{align*}
+  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \vert C_{j+1} \vert M \varepsilon_j^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_succ'}
+\begin{align*}
+  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \mu\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
+  \: .
+\end{align*}
+We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ'} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
+\end{proof}
 
 
 \begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
@@ -333,43 +571,6 @@ And then, by Minkowski's inequality,
   &\le \sum_{i=m}^{k-1} \mu \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
   \\
   &\le \sum_{i=m}^{k-1} \left( \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
-  \: .
-\end{align*}
-\end{proof}
-
-
-\begin{definition}[Todo process]\label{def:IsTodoProcess}
-Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mu)$ is a measure space.
-Let $p, q > 0$.
-We say that $X$ is a $(p,q)$-\emph{todo process} with constant $M$ if for all $s, t \in T$,
-\begin{align*}
-  \mu[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
-  \: .
-\end{align*}
-\end{definition}
-
-
-\begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
-  \uses{def:IsTodoProcess}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
-Then for $j < k$,
-\begin{align*}
-  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
-  &\le \vert C_{j+1} \vert M \varepsilon_j^q
-  \: .
-\end{align*}
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:dist_chainingSequence_add_one, def:IsTodoProcess}
-\begin{align*}
-  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
-  &\le \mu\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
-  \\
-  &\le M \sum_{u \in C_{j+1}} d_T(\bar{u}_j, u)^q
-  \\
-  &\le \vert C_{j+1} \vert M \varepsilon_j^q
   \: .
 \end{align*}
 \end{proof}
@@ -440,6 +641,62 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 \end{proof}
 
 
+\subsection{Bound on finite sets}
+
+\begin{theorem}\label{thm:finite_set_bound}
+  \uses{def:IsTodoProcess, def:chainingSequence}
+Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
+Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
+For $m = \min(n_2, k)$,
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+    + c_1 2^d \delta^{q - d} \left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p\right)
+  \: .
+\end{align*}
+
+TODO: $C_k = J$.
+Note the $\log_2$ (and not $\log$) in the expression above.
+\end{theorem}
+
+\begin{proof}
+  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two, lem:integral_sup_rpow_dist_cover_rescale, lem:scale_change}
+By Corollary~\ref{cor:scale_change_rpow},
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^p \mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+    + 4^p \mu\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
+  \: .
+\end{align*}
+By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:integral_sup_rpow_dist_le_of_minimal_cover_two},
+\begin{align*}
+  \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  \: . \\
+  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
+  \: .
+\end{align*}
+Putting these two inequalities together, we obtain
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^p M \left(4\left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+    + c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p\right)
+  \: .
+\end{align*}
+TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
+\end{proof}
+
+
+\section{Kolmogorov-Chentsov Theorem}
+
+
+
 \begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
   \uses{def:HasBoundedInternalCoveringNumber, def:IsTodoProcess}
   \notready
@@ -461,7 +718,7 @@ for every $\gamma\in(0,\beta/\alpha)$.
 In particular, $Y$ almost surely is locally Hölder of all orders $\gamma \in (0,\beta/\alpha)$, and has continuous paths.
 \end{theorem}
 
-\begin{proof}\uses{lem:chain}
+\begin{proof}\uses{thm:finite_set_bound}
 
 \end{proof}
 
