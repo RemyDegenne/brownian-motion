@@ -304,12 +304,12 @@ Finally
 \end{proof}
 
 
-\subsection{Todo processes}
+\subsection{Kolmogorov condition}
 
-\begin{definition}[Todo process]\label{def:IsTodoProcess}
+\begin{definition}[Kolmogorov condition]\label{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mu)$ is a measure space.
 Let $p, q > 0$.
-We say that $X$ is a $(p,q)$-\emph{todo process} with constant $M$ if for all $s, t \in T$,
+We say that $X$ satisfies the Kolmogorov condition for $(p,q)$ with constant $M$ if for all $s, t \in T$,
 \begin{align*}
   \mu[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
   \: .
@@ -318,8 +318,8 @@ We say that $X$ is a $(p,q)$-\emph{todo process} with constant $M$ if for all $s
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ'}
-  \uses{def:IsTodoProcess}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
 Then
 \begin{align*}
@@ -330,7 +330,7 @@ Then
 \end{lemma}
 
 \begin{proof}
-  \uses{def:IsTodoProcess}
+  \uses{def:IsKolmogorovProcess}
 \begin{align*}
   \mu\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
   &\le \mu\left[\sum_{(s,t) \in C} d_E(X_s, X_t)^p \right]
@@ -344,7 +344,7 @@ Then
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then
 \begin{align*}
@@ -385,10 +385,16 @@ Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ'},
 \end{proof}
 
 
-\subsection{Split}
+\subsection{Bound for a set of points that are close together}
+
+For a finite index set $T$, we want to obtain a bound on
+\begin{align*}
+  \mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right] \: .
+\end{align*}
+Note the condition that the supremum is taken over pairs $(s, t)$ such that $d_T(s, t) \le \delta$.
 
 TODO: we change scale.
-From a set of points in $C_k$ which are not far apart, we build a set of points in $C_m$ for $m \le k$ which are not far apart.
+From a set of points in a cover $C_k$ which are not far apart, we build a set of points in $C_m$ for $m \le k$ which are not far apart.
 Then for the set in $C_m$, we can use the reduction in the number of pairs.
 
 \begin{lemma}\label{lem:scale_change}
@@ -438,12 +444,12 @@ This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 
 \end{proof}
 
 
-\subsection{First term}
+\subsubsection{First term}
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
-  \uses{def:IsTodoProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess, def:chainingSequence}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
 Then for $c \ge 0$,
 \begin{align*}
@@ -482,8 +488,8 @@ Then $\bar{r} \le \frac{2 \log N^{int}_{\varepsilon}(J)}{\log 2}$.
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
-  \uses{def:IsTodoProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess, def:chainingSequence}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
 Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
@@ -519,12 +525,12 @@ We thus get $\varepsilon_0 2^{-m} \le \delta$.
 \end{proof}
 
 
-\subsection{Second term}
+\subsubsection{Second term}
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
-  \uses{def:IsTodoProcess}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $j < k$,
 \begin{align*}
@@ -577,8 +583,8 @@ And then, by Minkowski's inequality,
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
-  \uses{def:IsTodoProcess}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $m \le k$,
 \begin{align*}
@@ -595,8 +601,8 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
-  \uses{def:IsTodoProcess, def:HasBoundedInternalCoveringNumber}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Then for $m \le k$,
@@ -626,11 +632,13 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
 
 
 \begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
-  \uses{def:IsTodoProcess, def:HasBoundedInternalCoveringNumber}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
 \begin{align*}
   \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
   \: .
 \end{align*}
 \end{corollary}
@@ -641,29 +649,29 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 \end{proof}
 
 
-\subsection{Bound on finite sets}
+\subsubsection{Putting it all together}
 
-\begin{theorem}\label{thm:finite_set_bound}
-  \uses{def:IsTodoProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be a $(p, q)$-todo process with constant $M$.
-For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
-Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
-For $m = \min(n_2, k)$,
+\begin{theorem}\label{thm:finite_set_bound_of_dist_le}
+  \uses{def:IsKolmogorovProcess, def:chainingSequence, def:HasBoundedInternalCoveringNumber}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta > 0$,
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
-    + c_1 2^d \delta^{q - d} \left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p\right)
+  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + c_1 2^d \delta^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
   \: .
 \end{align*}
-
-TODO: $C_k = J$.
 Note the $\log_2$ (and not $\log$) in the expression above.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two, lem:integral_sup_rpow_dist_cover_rescale, lem:scale_change}
+  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow}
+Let $\varepsilon_0 \in (0, \mathrm{diam}(T))$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
+Note that $C_k = T$.
 By Corollary~\ref{cor:scale_change_rpow},
 \begin{align*}
   &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -675,34 +683,84 @@ By Corollary~\ref{cor:scale_change_rpow},
 By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:integral_sup_rpow_dist_le_of_minimal_cover_two},
 \begin{align*}
   \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
   \: . \\
   \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
+  &\le2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
   \: .
 \end{align*}
 Putting these two inequalities together, we obtain
 \begin{align*}
   &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^p M \left(4\left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
-    + c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p\right)
+  &\le 4^p M \left(4\left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + 2^d c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
   \: .
 \end{align*}
 TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
 \end{proof}
 
 
+
 \section{Kolmogorov-Chentsov Theorem}
 
 
 
+\begin{lemma}\label{lem:finite_set_bound}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $\beta \in(0, (q - d)/p)$.
+Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that
+\begin{align*}
+  \mu\left[ \sup_{s, t \in T;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \le M L(T, c_1, d, p, q, \beta)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:finite_set_bound_of_dist_le}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:countable_set_bound}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $\beta \in(0, (q - d)/p)$.
+Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that for every countable subset $T' \subseteq T$ with positive diameter,
+\begin{align*}
+  \mu\left[ \sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \le M L(T, c_1, d, p, q, \beta)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:finite_set_bound}
+Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:finite_set_bound} to obtain a bound for each $T_n$, and then use monotone convergence.
+\end{proof}
+
+
+\begin{corollary}\label{cor:holder_version}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mu(Y_t \ne X_t) = 0$ for all $t$) such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+\end{corollary}
+
+\begin{proof}
+  \uses{thm:countable_set_bound}
+
+\end{proof}
+
+
 \begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
-  \uses{def:HasBoundedInternalCoveringNumber, def:IsTodoProcess}
+  \uses{def:HasBoundedInternalCoveringNumber, def:IsKolmogorovProcess}
   \notready
 Let $(I, d_I)$ be a compact metric space.
 Suppose that $I$ has bounded internal covering number with constant $c_1>0$ and exponent $d \in \mathbb{N}$, i.e. for all $\varepsilon > 0$ smaller than $\mathrm{diam}(I)$, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
-Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ such that $X$ is a $(\alpha, d+\beta)$-todo process with constant $c_2$.
+Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ such that $X$ satisfies the Kolmogorov condition for $(\alpha, d+\beta)$ with constant $c_2$.
 % \begin{align*}
 %   \mathbb{E}[d_E(X_s, X_t)^\alpha]
 %   \le c_2 d_I(s,t)^{d+\beta}, \qquad s,t\in I
@@ -718,7 +776,7 @@ for every $\gamma\in(0,\beta/\alpha)$.
 In particular, $Y$ almost surely is locally Hölder of all orders $\gamma \in (0,\beta/\alpha)$, and has continuous paths.
 \end{theorem}
 
-\begin{proof}\uses{thm:finite_set_bound}
+\begin{proof}\uses{thm:countable_set_bound}
 
 \end{proof}
 
