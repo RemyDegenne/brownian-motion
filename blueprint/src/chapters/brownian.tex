@@ -1,0 +1,56 @@
+\chapter{Brownian motion}
+\label{chap:brownian}
+
+
+\begin{definition}\label{def:preBrownian}
+  \uses{def:gaussianLimit}
+Let $\Omega = \mathbb{R}^{\mathbb{R}_+}$ and consider the probability space $(\Omega, P_B)$ (where $P_B$ is the measure defined in Definition~\ref{def:gaussianLimit}).
+The identity on that space is a function $\Omega \to \mathbb{R}_+ \to \mathbb{R}$.
+We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \Omega \to \mathbb{R}$, which we call the pre-Brownian process.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussianProcess_preBrownian}
+  \uses{def:preBrownian, def:IsGaussianProcess}
+  The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} is a Gaussian process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussian_multivariateGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isKolmogorovProcess_preBrownian}
+  \uses{def:preBrownian, def:IsKolmogorovProcess}
+  The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} satisfies the Kolmogorov condition for exponents $(2n,n)$ with some constant $M_n$ for all $n \in \mathbb{N}$.
+  That is, for all $s, t \in \mathbb{R}_+$, we have
+  \begin{align*}
+    \mathbb{E} \left[ |X_t - X_s|^{2n} \right] \le M_n |t - s|^n
+    \: .
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:brownianMotion}
+  \uses{thm:holder_version, def:preBrownian, lem:isKolmogorovProcess_preBrownian}
+By Theorem~\ref{thm:holder_version}, there exists a version $Y$ of the pre-Brownian process $X$ such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, 1/2)$ (TODO: that thm is for a bounded index set, we need an extension of it).
+We call $Y$ the \emph{Brownian motion} on $\mathbb{R}_+$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussianProcess_brownianMotion}
+  \uses{def:brownianMotion, def:IsGaussianProcess}
+  The Brownian motion is a Gaussian process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isGaussianProcess_of_version, lem:isGaussianProcess_preBrownian}
+The pre-Brownian process is a Gaussian process by Lemma~\ref{lem:isGaussianProcess_preBrownian}.
+The Brownian motion is a version of the pre-Brownian process by Definition~\ref{def:brownianMotion}.
+Thus, the Brownian motion is a Gaussian process as well by Lemma~\ref{lem:isGaussianProcess_of_version}.
+\end{proof}

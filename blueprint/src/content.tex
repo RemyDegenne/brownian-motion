@@ -8,14 +8,10 @@
 
 \paragraph{Abstract}
 
-Our goal is to formalize Brownian motions (or $\mathbb R^d$-valued Gaussian processes) in some generality using \texttt{Mathlib}.
-
-\paragraph{Outline}
-
-There are three main parts to this formalization:
+Our goal is to formalize Brownian motions in some generality using \texttt{Mathlib}.
+There are two main parts to this formalization:
 \begin{itemize}
-  \item develop the theory of Gaussian distributions,
-  \item build a projective family of Gaussian distributions and define its projective limit by the Kolmogorov extension theorem,
+  \item develop the theory of Gaussian distributions and build a projective family of Gaussian distributions and define its projective limit by the Kolmogorov extension theorem,
   \item prove the Kolmogorov-Chentsov continuity theorem.
 \end{itemize}
 
@@ -23,10 +19,13 @@ There are three main parts to this formalization:
 
 $T$ denotes an index set (for a stochastic process).
 
-$\Omega$ is a measurable space.
+$\Omega$ is a measurable space. $\mathbb{P}$ is the probability measure on $\Omega$ and $\mathbb{E}$ is the expectation operator with respect to $\mathbb{P}$.
+
+$E, F$ are normed vector spaces. Most often $F$ is a Banach space and $E$ is a Hilbert space.
 
 \input{chapters/aux.tex}
 \input{chapters/characteristic_function.tex}
 \input{chapters/gaussian.tex}
 \input{chapters/projective_family.tex}
 \input{chapters/kolmogorov_chentsov.tex}
+\input{chapters/brownian.tex}
