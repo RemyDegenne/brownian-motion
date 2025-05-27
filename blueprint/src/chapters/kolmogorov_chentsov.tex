@@ -319,7 +319,7 @@ We say that $X$ satisfies the Kolmogorov condition for $(p,q)$ with constant $M$
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ'}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
 Then
 \begin{align*}
@@ -344,7 +344,7 @@ Then
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then
 \begin{align*}
@@ -449,14 +449,15 @@ This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
 Then for $c \ge 0$,
 \begin{align*}
   \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(\frac{2}{\log 2} c \log N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
+Note the logarithm has base $2$.
 \end{lemma}
 
 \begin{proof}
@@ -476,12 +477,12 @@ By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $b =
   \: .
 \end{align*}
 
-By definition, $2^{\bar{r}} \le 2 N^{int}_{\varepsilon}(J)$ and $\bar{r} \le 1 + \frac{\log N^{int}_{\varepsilon}(J)}{\log 2}$.
+By definition, $2^{\bar{r}} \le 2 N^{int}_{\varepsilon}(J)$ and $\bar{r} \le 1 + \log_2 N^{int}_{\varepsilon}(J)$.
 Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (TODO: other case).
-Then $\bar{r} \le \frac{2 \log N^{int}_{\varepsilon}(J)}{\log 2}$.
+Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 \begin{align*}
   \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(\frac{2}{\log 2} c \log N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
 \end{proof}
@@ -489,14 +490,14 @@ Then $\bar{r} \le \frac{2 \log N^{int}_{\varepsilon}(J)}{\log 2}$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
 Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
 For $m = \min(n_2, k)$,
 \begin{align*}
   \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
   \: .
 \end{align*}
 TODO: $C_k = J$
@@ -513,7 +514,7 @@ It thus suffices to get a bound on $\mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le
 We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\varepsilon = \varepsilon_m$, $c = \varepsilon_0 2^{-m+3}$. We obtain
 \begin{align*}
   \mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(\frac{16}{\log 2} \varepsilon_0 2^{-m} \log N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
+  &\le 2^{p+2} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
 By definition of $m$ and $n_2$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \varepsilon_0 2^{-n_2} \ge \delta/4$,
@@ -530,7 +531,7 @@ We thus get $\varepsilon_0 2^{-m} \le \delta$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $j < k$,
 \begin{align*}
@@ -584,7 +585,7 @@ And then, by Minkowski's inequality,
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $m \le k$,
 \begin{align*}
@@ -602,7 +603,7 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Then for $m \le k$,
@@ -652,18 +653,17 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 \subsubsection{Putting it all together}
 
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le}
-  \uses{def:IsKolmogorovProcess, def:chainingSequence, def:HasBoundedInternalCoveringNumber}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 For all $\delta > 0$,
 \begin{align*}
   &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + c_1 2^d \delta^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
+  &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \: .
 \end{align*}
-Note the $\log_2$ (and not $\log$) in the expression above.
 \end{theorem}
 
 \begin{proof}
@@ -683,7 +683,7 @@ By Corollary~\ref{cor:scale_change_rpow},
 By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:integral_sup_rpow_dist_le_of_minimal_cover_two},
 \begin{align*}
   \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-  &\le 2^{p+2} M \left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
+  &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
   \: . \\
   \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
@@ -693,13 +693,46 @@ Putting these two inequalities together, we obtain
 \begin{align*}
   &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^p M \left(4\left(\frac{16}{\log 2} \delta \log N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+  &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + 2^d c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
   \: .
 \end{align*}
 TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
+We obtain
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + c_1 2^d \delta^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
+  \\
+  &=   4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + c_1 2^q \delta^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \\
+  &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \: .
+\end{align*}
 \end{proof}
 
+
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_le_diam}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \in (0, 4\mathrm{diam}(T))$,
+\begin{align*}
+  \mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\log_2 \left(c_1 \delta^{-d} 4^d \right) \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{thm:finite_set_bound_of_dist_le}
+We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for $\delta \le 4\mathrm{diam}(T)$, we can use the bounded internal covering number hypothesis to bound $N^{int}_{\delta/4}(T)$~:
+\begin{align*}
+  N^{int}_{\delta/4}(T) \le c_1 \left(\frac{\delta}{4}\right)^{-d} \: .
+\end{align*}
+\end{proof}
 
 
 \section{Kolmogorov-Chentsov Theorem}
@@ -708,27 +741,91 @@ TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in 
 
 \begin{lemma}\label{lem:finite_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Suppose that $J \subseteq T$ is a finite set and that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
-Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that
+Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends on $T$ bot not $J$) such that
 \begin{align*}
-  \mu\left[ \sup_{s, t \in T;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mu\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c_1, d, p, q, \beta)
   \: .
 \end{align*}
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le}
+  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam}
+Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
+We will often use the simple fact that $\eta_k \ge 2^{-k}$.
+We will bound separately for each $k \in \mathbb{N}$ the expectation of the supremum over the sets of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+\begin{align*}
+  \mu\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty \mu\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \\
+  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+We want to show that the sum is finite.
 
+Let $k_0 = \min \{k \in \mathbb{N} \mid \eta_{k+1} \le \mathrm{diam}(T)\}$.
+We deal separately with the parts of the sum for $k < k_0$ and $k \ge k_0$.
+
+\emph{Large $k$}.
+
+For $k \ge k_0$, $2\eta_k / 4 = \eta_{k+1} \le \mathrm{diam}(T)$, which means that we can apply Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam} to bound each expectation in the sum.
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \left(4^d \left(\log_2 \left(c_1 (2 \eta_k)^{-d} 4^d \right) \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \\
+  &\le 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2 \left(c_1 2^{(k + 1)d} \right) \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \\
+  &= 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \: .
+\end{align*}
+Let $a_k = 2^{k \beta p} 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)$.
+To show that the sum $\sum_{k=k_0}^\infty a_k$ is finite, we can use the ratio test.
+\begin{align*}
+  \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
+  &= 2^{\beta p - (q - d)}
+    \frac{\left(4^d \left(\log_2(c_1) + (k + 2)d \right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+    {\left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+\end{align*}
+The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=k_0}^\infty a_k$ converges.
+
+\emph{Small $k$}.
+
+For $k < k_0$, $N^{int}_{\eta_{k+1}}(T) = 1$. Applying Theorem~\ref{thm:finite_set_bound_of_dist_le} with $\delta = 2 \eta_k$, we obtain
+\begin{align*}
+  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^{p+2q+1} M (2 \eta_k)^{q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  \\
+  &\le 4^{p+2q+1} M (\mathrm{diam}(T) + 1)^{q-d} 2^{(-k+1)q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  \: .
+\end{align*}
+This is an expression of the form $K 2^{-k(q-d)}$ for some constant $K < \infty$.
+Coming back to the sum, we have
+\begin{align*}
+  \sum_{k=1}^{k_0 - 1} 2^{k \beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  &\le K \sum_{k=1}^{k_0 - 1} 2^{k (\beta p - (q-d))}
+  \\
+  &\le K \frac{1}{1 - 2^{(\beta p - (q-d))}}
+  \: .
+\end{align*}
+The sum is finite since $\beta p < (q - d)$ by assumption.
 \end{proof}
 
 
 \begin{theorem}\label{thm:countable_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
 Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that for every countable subset $T' \subseteq T$ with positive diameter,
 \begin{align*}
@@ -740,14 +837,14 @@ Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that for 
 
 \begin{proof}
   \uses{lem:finite_set_bound}
-Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:finite_set_bound} to obtain a bound for each $T_n$, and then use monotone convergence.
+Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:finite_set_bound} to obtain a bound for each $T_n$ that does not depend on $T_n$, and then use monotone convergence.
 \end{proof}
 
 
-\begin{corollary}\label{cor:holder_version}
+\begin{theorem}\label{thm:holder_version}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mu(Y_t \ne X_t) = 0$ for all $t$) such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
-\end{corollary}
+\end{theorem}
 
 \begin{proof}
   \uses{thm:countable_set_bound}
@@ -755,29 +852,22 @@ Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a comple
 \end{proof}
 
 
-\begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
-  \uses{def:HasBoundedInternalCoveringNumber, def:IsKolmogorovProcess}
-  \notready
-Let $(I, d_I)$ be a compact metric space.
-Suppose that $I$ has bounded internal covering number with constant $c_1>0$ and exponent $d \in \mathbb{N}$, i.e. for all $\varepsilon > 0$ smaller than $\mathrm{diam}(I)$, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
-Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ such that $X$ satisfies the Kolmogorov condition for $(\alpha, d+\beta)$ with constant $c_2$.
+% \begin{theorem}[Continuous version; Kolmogorov, Chentsov] \label{thm:kolchen_general}
+%   \uses{def:HasBoundedInternalCoveringNumber, def:IsKolmogorovProcess}
+%   \notready
+% Let $(I, d_I)$ be a compact metric space.
+% Suppose that $I$ has bounded internal covering number with constant $c_1>0$ and exponent $d \in \mathbb{N}$, i.e. for all $\varepsilon > 0$ smaller than $\mathrm{diam}(I)$, $N^{int}_\varepsilon(I) \le c_1 \varepsilon^{-d}$.
+% Assume that $X = (X_t)_{t\in I}$ is an $E$-valued stochastic process and there are $\alpha, \beta, c_2>0$ such that $X$ satisfies the Kolmogorov condition for $(\alpha, d+\beta)$ with constant $c_2$.
+% Then, there exists a version $Y = (Y_t)_{t\in I}$ of $X$ such that, for some random variables $H>0$ and $K<\infty$,
 % \begin{align*}
-%   \mathbb{E}[d_E(X_s, X_t)^\alpha]
-%   \le c_2 d_I(s,t)^{d+\beta}, \qquad s,t\in I
-%   \: .
+%   \mathbb{P}\Big(\sup_{s\neq t, d_I(s,t) \leq H} d_E(Y_s, Y_t)/d_I(s,t)^\gamma
+%   \le K\Big) = 1
+%   \: ,
 % \end{align*}
-Then, there exists a version $Y = (Y_t)_{t\in I}$ of $X$ such that, for some random variables $H>0$ and $K<\infty$,
-\begin{align*}
-  \mathbb{P}\Big(\sup_{s\neq t, d_I(s,t) \leq H} d_E(Y_s, Y_t)/d_I(s,t)^\gamma
-  \le K\Big) = 1
-  \: ,
-\end{align*}
-for every $\gamma\in(0,\beta/\alpha)$.
-In particular, $Y$ almost surely is locally Hölder of all orders $\gamma \in (0,\beta/\alpha)$, and has continuous paths.
-\end{theorem}
+% for every $\gamma\in(0,\beta/\alpha)$.
+% In particular, $Y$ almost surely is locally Hölder of all orders $\gamma \in (0,\beta/\alpha)$, and has continuous paths.
+% \end{theorem}
 
-\begin{proof}\uses{thm:countable_set_bound}
+% \begin{proof}\uses{thm:countable_set_bound}
 
-\end{proof}
-
-\section{Brownian motion}
+% \end{proof}

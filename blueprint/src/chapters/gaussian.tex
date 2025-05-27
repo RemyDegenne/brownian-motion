@@ -413,3 +413,35 @@ TODO
   \uses{def:IsGaussian}
 A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has a Gaussian distribution.
 \end{definition}
+
+
+\begin{lemma}\label{lem:map_eq_of_version}
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are versions of each other (that is, for all $t \in T$, $X_t =_{a.e.} Y_t$).
+Then for all $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has the same distribution as the random vector $(Y_{t_1}, \ldots, Y_{t_n})$.
+\end{lemma}
+
+\begin{proof}
+For all measurable sets $A \subseteq E^n$, we have
+\begin{align*}
+  \vert \mathbb{P}((X_{t_1}, \ldots, X_{t_n}) \in A) - \mathbb{P}((Y_{t_1}, \ldots, Y_{t_n}) \in A) \vert
+  &\le \mathbb{P}(\exists i \in [n], X_{t_i} \ne Y_{t_i})
+  \\
+  &\le \sum_{i=1}^n \mathbb{P}(X_{t_i} \ne Y_{t_i})
+  \\
+  &= 0
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussianProcess_of_version}
+  \uses{def:IsGaussianProcess}
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are versions of each other (that is, for all $t \in T$, $X_t =_{a.e.} Y_t$).
+If $X$ is a Gaussian process, then $Y$ is a Gaussian process as well.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:map_eq_of_version}
+Being a Gaussian process is defined in terms of the distribution of finite-dimensional random vectors.
+By Lemma~\ref{lem:map_eq_of_version}, the random vector $(Y_{t_1}, \ldots, Y_{t_n})$ has the same distribution as the random vector $(X_{t_1}, \ldots, X_{t_n})$ for all $t_1, \ldots, t_n \in T$.
+\end{proof}
