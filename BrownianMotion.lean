@@ -1,4 +1,5 @@
 import BrownianMotion.Init
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
+import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.MultivariateGaussian
