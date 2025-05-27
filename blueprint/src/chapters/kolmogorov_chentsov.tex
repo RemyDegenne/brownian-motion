@@ -1,6 +1,8 @@
 \chapter{Kolmogorov-Chentsov Theorem}
 \label{chap:kolmogorov_chentsov}
 
+We follow the presentation of the Kolmogorov-Chentsov theorem in \cite{kratschmer2023kolmogorov}, which builds upon the chaining technique developed by Talagrand \cite{talagrand2022upper}.
+
 \section{Covers}
 
 Let $(E, d_E)$ be a pseudo-metric space.
@@ -345,6 +347,7 @@ Then
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
+  \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then
