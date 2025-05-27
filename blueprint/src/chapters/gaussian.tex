@@ -92,21 +92,25 @@ Then $T_*\mu$ is a Gaussian measure on $G$.
 
 \begin{lemma}\label{lem:isGaussian_add_const}
   \uses{def:IsGaussian}
+  \leanok
+  % This is an instance without name in the code, hence we don't give a \lean{...}.
 Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
 Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:isGaussian_conv}
   \uses{def:IsGaussian}
+  \mathlibok
+  %\lean{ProbabilityTheory.isGaussian_conv} -- need a Mathlib update
 The convolution of two Gaussian measures is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -116,21 +120,25 @@ The convolution of two Gaussian measures is a Gaussian measure.
 
 
 \begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+  \leanok
+  % In a Mathlib PR
 Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
 Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:IsGaussian.map_rotation_eq_self}
   \uses{def:IsGaussian}
+  \leanok
+  % In a Mathlib PR
 For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isGaussian_conv}
 
 \end{proof}
@@ -138,21 +146,27 @@ For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
 
 \begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
   \uses{def:IsGaussian}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}
 For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
 \end{theorem}
 
-\begin{proof}\uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self, lem:IsGaussian.map_rotation_eq_self}
+\begin{proof}\leanok
+  \uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self, lem:IsGaussian.map_rotation_eq_self}
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:IsGaussian.memLp_id}
   \uses{def:IsGaussian}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussian.memLp_id}
 A Gaussian measure $\mu$ has finite moments of all orders.
 In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
 \end{lemma}
 
-\begin{proof}\uses{thm:IsGaussian.exists_integrable_exp_sq}
+\begin{proof}\leanok
+  \uses{thm:IsGaussian.exists_integrable_exp_sq}
 
 \end{proof}
 

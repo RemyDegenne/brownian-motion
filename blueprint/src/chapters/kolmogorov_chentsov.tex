@@ -157,6 +157,7 @@ For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{le
 \end{corollary}
 
 \begin{proof}
+  \uses{lem:dist_chainingSequence_le}
 
 \end{proof}
 
@@ -317,7 +318,7 @@ We say that $X$ satisfies the Kolmogorov condition for $(p,q)$ with constant $M$
 \end{definition}
 
 
-\begin{lemma}\label{lem:integral_sup_rpow_dist_succ'}
+\begin{lemma}\label{lem:integral_sup_rpow_dist_succ_pairs}
   \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
@@ -356,7 +357,7 @@ Then
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:chain, lem:integral_sup_rpow_dist_succ'}
+  \uses{lem:chain, lem:integral_sup_rpow_dist_succ_pairs}
 By Lemma~\ref{lem:chain}, there exists $K \subseteq J^2$ such that
 \begin{align*}
   |K|
@@ -375,7 +376,7 @@ Hence for such a set $K$,
   &\le 2^p \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
-Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ'},
+Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs},
 \begin{align*}
   \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   &\le |K| M (cn)^q
@@ -411,7 +412,6 @@ For $m \le k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:dist_chainingSequence_le}
 By the triangle inequality,
 \begin{align*}
   d_E(X_s, X_t)
@@ -542,13 +542,13 @@ Then for $j < k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_succ'}
+  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_succ_pairs}
 \begin{align*}
   \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
   &\le \mu\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
   \: .
 \end{align*}
-We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ'} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
+We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
 \end{proof}
 
 
