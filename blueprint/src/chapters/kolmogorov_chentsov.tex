@@ -1,6 +1,8 @@
 \chapter{Kolmogorov-Chentsov Theorem}
 \label{chap:kolmogorov_chentsov}
 
+We follow the presentation of the Kolmogorov-Chentsov theorem in \cite{kratschmer2023kolmogorov}, which builds upon the chaining technique developed by Talagrand \cite{talagrand2022upper}.
+
 \section{Covers}
 
 Let $(E, d_E)$ be a pseudo-metric space.
@@ -174,25 +176,19 @@ We will build a subset $K$ of $J^2$ which is much smaller, of size linear in $\v
 \end{align*}
 
 For $t \in V \subseteq T$ and $u\ge 0$, we denote by $B_V(t, u)$ the closed ball with center $t$ and radius $u$ in $V$.
-That is, $B_V(t, u) = V \cap B(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
+That is, $B_V(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
 
-\begin{definition}\label{def:rtCBKV}
-Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
-An rtCBKV structure for $(J, a, b, c, n)$ is a tuple $(r, t, C, B, K, V)$ where $r \in \mathbb{N}$, $t \in T$, $C, B, V$ are subsets of $J$, $K$ is a subset of $J^2$ with the properties that
-\begin{itemize}
-  \item $t \in V$
-  \item $r \in \{1, 2, ...\}$ is the smallest number such that $\vert B_V(t, rc)\vert \le b a^r$
-  \item $C = B_V(t, rc)$
-  \item $B = B_V(t, (r-1)c) \subseteq C$
-  \item $K = \{t\} \times C$
-\end{itemize}
-Note that given $(V, t)$, the other elements of the rtCBKV structure are uniquely determined.
+We want to cover $J$ with balls that have radius logarithmic in the number of points of the ball.
+
+\begin{definition}\label{def:logSizeRadius}
+Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $b, c > 0$.
+Let the \emph{log-size radius} of $(V,t)$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le b a^{r}$.
 \end{definition}
 
 
-\begin{lemma}\label{lem:card_B_ge}
-  \uses{def:rtCBKV}
-In an rtCBKV structure for $(J, a, b, c, n)$, $b a^{r-1} \le \vert B \vert$~.
+\begin{lemma}\label{lem:card_logSizeRadius_ge}
+  \uses{def:logSizeRadius}
+For $r$ the log-size radius of $(V,t)$, we have $b a^{r-1} \le \vert B_V(t, (r-1)c) \vert$~.
 \end{lemma}
 
 \begin{proof}
@@ -200,9 +196,9 @@ In an rtCBKV structure for $(J, a, b, c, n)$, $b a^{r-1} \le \vert B \vert$~.
 \end{proof}
 
 
-\begin{lemma}\label{lem:card_K_le}
-  \uses{def:rtCBKV}
-In an rtCBKV structure for $(J, a, b, c, n)$, $\vert K \vert \le b a^r$~.
+\begin{lemma}\label{lem:card_logSizeRadius_le}
+  \uses{def:logSizeRadius}
+For $r$ the log-size radius of $(V,t)$, we have $\vert B_V(t, rc) \vert \le b a^r$~.
 \end{lemma}
 
 \begin{proof}
@@ -210,89 +206,132 @@ In an rtCBKV structure for $(J, a, b, c, n)$, $\vert K \vert \le b a^r$~.
 \end{proof}
 
 
-\begin{definition}\label{def:rtCBKVSequence}
-  \uses{def:rtCBKV}
+\begin{definition}\label{def:logSizeBallSequence}
+  \uses{def:logSizeRadius}
 Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
-An rtCBKV sequence for $(J, a, b, c, n)$ is a sequence of rtCBKV structures $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ such that
+An log-size ball sequence for $(J, a, b, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
 \begin{itemize}
-  \item $V_0 = J$, $t_0$ is an arbitrary point in $J$ (and the remainder of the rtCBKV structure is determined by those),
-  \item $V_{i+1} = V_i \setminus B_i$, $t_{i+1}$ is arbitrarily chosen in $V_{i+1}$.
+  \item $V_0 = J$, $t_0$ is an arbitrary point in $J$,
+  \item for all $i$, $r_i$ is the log-size radius of $(V_i, t_i)$,
+  \item $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$, $t_{i+1}$ is arbitrarily chosen in $V_{i+1}$.
 \end{itemize}
 \end{definition}
 
-An rtCBKV sequence gives a partition of $J$ into sets $B_i$, which are contained in balls of radius $(r_i - 1)c$ around $t_i$, and satisfy cardinality constraints.
+A log-size ball sequence gives a partition of $J$ into sets which are contained in balls of radius $(r_i - 1)c$ around $t_i$, and satisfy cardinality constraints.
 
-\begin{lemma}\label{lem:rtCBKVSequence_eq_zero}
-  \uses{def:rtCBKVSequence}
-There exists $m \in \mathbb{N}$ such that the rtCBKV sequence $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$ satisfies $V_k = \emptyset$ for all $k \ge m$.
+
+\begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
+  \uses{def:logSizeBallSequence}
+The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}
-
+Since $|J| \le b a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le b a^{n}$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:rtCBKVSequence_disjoint_B}
-  \uses{def:rtCBKVSequence}
-For $i \ne j$, the sets $B_i$ and $B_j$ of an rtCBKV sequence $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ are disjoint.
+\begin{lemma}\label{lem:logSizeBallSequence_V_anti}
+  \uses{def:logSizeBallSequence}
+The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are a decreasing sequence of sets. That is, $V_{i+1} \subseteq V_i$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}
-
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:chain}
-Let $(T,d_T)$ be a metric space.
-Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
-Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $(E,d_E)$ a metric space,
-\begin{align}
-  |K|
-  & \le a |J|
-  \:, \label{eq:chain1} \\
-  (s,t) \in K
-  & \implies d_T(s,t) \le c n
-  \:, \label{eq:chain2} \\
-  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
-  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
-  \: . \label{eq:chain3}
-\end{align}
+\begin{lemma}\label{lem:logSizeBallSequence_eq_zero}
+  \uses{def:logSizeBallSequence}
+For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$, there exists $m \in \mathbb{N}$ such that $V_k = \emptyset$ for all $k \ge m$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:rtCBKVSequence_eq_zero, lem:card_B_ge, lem:card_K_le}
-Let $(r_i, t_i, C_i, B_i, K_i, V_i)_{i \in \mathbb{N}}$ be an rtCBKV sequence for $(J, a, b, c, n)$.
-Let $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:rtCBKVSequence_eq_zero}.
+  \uses{lem:logSizeBallSequence_V_anti}
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$.
+\end{proof}
 
-Using Lemma~\ref{lem:card_K_le}, the cardinal of $K$ is bounded by
+
+\begin{lemma}\label{lem:logSizeBallSequence_disjoint_B}
+  \uses{def:logSizeBallSequence}
+For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are disjoint.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:logSizeBallSequence_V_anti}
+Assume w.l.o.g. that $i < j$.
+Then $B_{V_j}(t_j, (r_j-1)c) \subseteq V_j \subseteq V_{i+1}$.
+It suffices to show that $B_{V_i}(t_i, (r_i-1)c)$ and $V_{i+1}$ are disjoint.
+This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1)c)$.
+\end{proof}
+
+
+\begin{definition}\label{def:pairSet}
+  \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$.
+For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
+We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of pairs from the log-size ball sequence.
+\end{definition}
+
+
+\begin{lemma}\label{lem:card_pairSet_le}
+  \uses{def:pairSet}
+The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, b, c, n)$ satisfies $|K| \le a |J|$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:card_logSizeRadius_ge, lem:card_logSizeRadius_le, lem:logSizeBallSequence_disjoint_B}
+Using Lemma~\ref{lem:card_logSizeRadius_le}, the cardinal of $K$ is bounded by
 \begin{align*}
   \vert K \vert
   &\le \sum_{i=0}^{m-1} \vert K_i \vert
   \le \sum_{i=0}^{m-1} b a^{r_i}
   \: .
 \end{align*}
-Since the sets $B_i$ are disjoint by Lemma~\ref{lem:rtCBKVSequence_disjoint_B}, we can use Lemma~\ref{lem:card_B_ge} to get
+Since the sets $B_{V_i}(t_i, (r_i-1)c)$ are disjoint by Lemma~\ref{lem:logSizeBallSequence_disjoint_B}, we can use Lemma~\ref{lem:card_logSizeRadius_ge} to get
 \begin{align*}
   \sum_{i=0}^{m-1} b a^{r_i - 1}
-  \le \sum_{i=0}^{m-1} \vert B_i \vert
-  = \left\vert \bigcup_{i=0}^{m-1} B_i \right\vert
+  \le \sum_{i=0}^{m-1} \vert B_{V_i}(t_i, (r_i-1)c) \vert
+  = \left\vert \bigcup_{i=0}^{m-1} B_{V_i}(t_i, (r_i-1)c) \right\vert
   \le \vert J \vert
   \: .
 \end{align*}
-We obtained the inequality $\vert K \vert \le a \vert J \vert$~\eqref{eq:chain1}.
+We obtained the inequality $\vert K \vert \le a \vert J \vert$
+\end{proof}
 
-A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in C_i$ and satisfies
+
+\begin{lemma}\label{lem:dist_le_of_mem_pairSet}
+  \uses{def:pairSet}
+Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, b, c, n)$.
+Then $d_T(s, t) \le c n$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:logSizeRadius_logSizeBallSequence_le}
+A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in B_V(t_i, r_i c)$ and satisfies
 \begin{align*}
   d_T(t_i, s) \le c r_i \le c n \: .
 \end{align*}
-This proves the second property~\eqref{eq:chain2}.
+The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}.
+\end{proof}
 
-It remains to prove~\eqref{eq:chain3}.
+
+\begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
+  \uses{def:pairSet}
+Let $K$ be the pair set of a log-size ball sequence for $(J, a, b, c, n)$.
+Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
+\begin{align*}
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
 Let $(s, t) \in J^2$ such that $d_T(s, t) \le c$.
 Then there exists a largest $\ell \in \mathbb{N}$ such that $s, t \in V_\ell$.
-Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_\ell$ (since $V_{\ell + 1} = V_\ell \setminus B_\ell$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
+Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_{V_\ell}(t_\ell, (r_\ell-1)c)$ (since $V_{\ell + 1} = V_\ell \setminus B_{V_\ell}(t_\ell, (r_\ell-1)c)$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
 
-Since $d_T(s, t) \le c$, $d_T(t, t_\ell) \le d_T(t, s) + d_T(s, t_\ell) \le r_\ell c$, hence $t \in C_\ell$ and we have that both $s$ and $t$ are in $C_\ell$.
+Since $d_T(s, t) \le c$, $d_T(t, t_\ell) \le d_T(t, s) + d_T(s, t_\ell) \le r_\ell c$, hence $t \in B_{V_\ell}(t_\ell, r_\ell c)$ and we have that both $s$ and $t$ are in $B_{V_\ell}(t_\ell, r_\ell c)$.
 Thus both $(t_\ell, s)$ and $(t_\ell, t)$ are in $K_\ell \subseteq K$.
 Finally
 \begin{align*}
@@ -305,14 +344,42 @@ Finally
 \end{proof}
 
 
+\begin{lemma}\label{lem:pair_reduction}
+  \uses{def:pairSet}
+Let $(T,d_T)$ be a metric space.
+Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $(E,d_E)$ a metric space,
+\begin{align}
+  |K|
+  & \le a |J|
+  \:, \label{eq:chain1} \\
+  \forall (s,t) \in K,
+  &\:  d_T(s,t) \le c n
+  \:, \label{eq:chain2} \\
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: . \label{eq:chain3}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:card_pairSet_le, lem:dist_le_of_mem_pairSet, lem:sup_dist_le_two_mul_sup_dist_pairSet}
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$. We show that its pair set satisfies the conditions of the lemma.
+
+Equation~\eqref{eq:chain1} is given by Lemma~\ref{lem:card_pairSet_le}.
+The second property~\eqref{eq:chain2} is Lemma~\ref{lem:dist_le_of_mem_pairSet}.
+Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_dist_pairSet}.
+\end{proof}
+
+
 \subsection{Kolmogorov condition}
 
 \begin{definition}[Kolmogorov condition]\label{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mu)$ is a measure space.
+Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mathbb{P})$ is a measure space.
 Let $p, q > 0$.
 We say that $X$ satisfies the Kolmogorov condition for $(p,q)$ with constant $M$ if for all $s, t \in T$,
 \begin{align*}
-  \mu[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
+  \mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
   \: .
 \end{align*}
 \end{definition}
@@ -324,7 +391,7 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
 Then
 \begin{align*}
-  \mu\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  \mathbb{E}\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
   &\le \vert C \vert M \varepsilon^q
   \: .
 \end{align*}
@@ -333,8 +400,8 @@ Then
 \begin{proof}
   \uses{def:IsKolmogorovProcess}
 \begin{align*}
-  \mu\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
-  &\le \mu\left[\sum_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  \mathbb{E}\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  &\le \mathbb{E}\left[\sum_{(s,t) \in C} d_E(X_s, X_t)^p \right]
   \\
   &\le M \sum_{(s,t) \in C} d_T(s, t)^q
   \\
@@ -345,11 +412,12 @@ Then
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
+  \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then
 \begin{align*}
-  \mu \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
   &\le 2^p a |J| M (cn)^q
   \: .
 \end{align*}
@@ -357,8 +425,8 @@ Then
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:chain, lem:integral_sup_rpow_dist_succ_pairs}
-By Lemma~\ref{lem:chain}, there exists $K \subseteq J^2$ such that
+  \uses{lem:pair_reduction, lem:integral_sup_rpow_dist_succ_pairs}
+By Lemma~\ref{lem:pair_reduction}, there exists $K \subseteq J^2$ such that
 \begin{align*}
   |K|
   & \le a |J|
@@ -372,13 +440,13 @@ By Lemma~\ref{lem:chain}, there exists $K \subseteq J^2$ such that
 \end{align*}
 Hence for such a set $K$,
 \begin{align*}
-  \mu \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
-  &\le 2^p \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^p \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
 Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs},
 \begin{align*}
-  \mu \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   &\le |K| M (cn)^q
   \le a |J| M (cn)^q
   \: .
@@ -390,13 +458,14 @@ Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs},
 
 For a finite index set $T$, we want to obtain a bound on
 \begin{align*}
-  \mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right] \: .
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right] \: .
 \end{align*}
 Note the condition that the supremum is taken over pairs $(s, t)$ such that $d_T(s, t) \le \delta$.
 
-TODO: we change scale.
-From a set of points in a cover $C_k$ which are not far apart, we build a set of points in $C_m$ for $m \le k$ which are not far apart.
-Then for the set in $C_m$, we can use the reduction in the number of pairs.
+We consider covers of $T$ at different scales. $C_n$ is a finite $\varepsilon_n$-cover of $T$ with $\varepsilon_n = \varepsilon_0 2^{-n}$.
+$T$ is equal to $C_k$ for some $k$ large enough, so the supremum over $T$ is a supremum at that scale $k$.
+We will change scale to some $m \le k$ that depends on the distance bound $\delta$ ($m$ is of order $\log_2 \delta$) and consider the supremum over $C_m$ (plus a term due to the scale change).
+Then for the supremum over a set in $C_m$, we use the reduction in the number of pairs of Lemma~\ref{lem:pair_reduction}.
 
 \begin{lemma}\label{lem:scale_change}
   \uses{def:chainingSequence}
@@ -448,12 +517,12 @@ This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
-  \uses{def:IsKolmogorovProcess, def:chainingSequence}
+  \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
 Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
 Then for $c \ge 0$,
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
   &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
@@ -471,17 +540,17 @@ Let $\bar{r} = \min\{r \in \mathbb{N} \mid N^{int}_{\varepsilon}(J) \le 2^r\}$.
 \end{align*}
 By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $b = 1$, $c = c$, $n = \bar{r}$,
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
   &\le 2^{p+1} |C_m| M (c \bar{r})^q
   \le 2^{p+1} M (c \bar{r})^q  2^{\bar{r}}
   \: .
 \end{align*}
 
 By definition, $2^{\bar{r}} \le 2 N^{int}_{\varepsilon}(J)$ and $\bar{r} \le 1 + \log_2 N^{int}_{\varepsilon}(J)$.
-Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (TODO: other case).
+Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (if it equals one the result is trivial).
 Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
   &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
@@ -496,7 +565,7 @@ Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \
 Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
 For $m = \min(n_2, k)$,
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
   &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
   \: .
 \end{align*}
@@ -509,11 +578,11 @@ If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \del
 We can thus assume $\delta > \varepsilon_0 2^{-k}$.
 
 For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
-It thus suffices to get a bound on $\mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
+It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
 
 We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\varepsilon = \varepsilon_m$, $c = \varepsilon_0 2^{-m+3}$. We obtain
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
   &\le 2^{p+2} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
@@ -535,7 +604,7 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $j < k$,
 \begin{align*}
-  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
   &\le \vert C_{j+1} \vert M \varepsilon_j^q
   \: .
 \end{align*}
@@ -544,8 +613,8 @@ Then for $j < k$,
 \begin{proof}
   \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_succ_pairs}
 \begin{align*}
-  \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
-  &\le \mu\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \mathbb{E}\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
   \: .
 \end{align*}
 We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
@@ -553,13 +622,13 @@ We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs} to the set $C = 
 
 
 \begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
-  \uses{def:IsCover}
+  \uses{def:chainingSequence}
 Let $X : T \to \Omega \to E$ be a stochastic process.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 For $m \le k$,
 \begin{align*}
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le \left(\sum_{i=m}^{k-1} \left( \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
   \: .
 \end{align*}
 \end{lemma}
@@ -574,10 +643,10 @@ For $m \le k$,
 \end{align*}
 And then, by Minkowski's inequality,
 \begin{align*}
-  \left(\mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
-  &\le \sum_{i=m}^{k-1} \mu \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
+  \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
+  &\le \sum_{i=m}^{k-1} \mathbb{E} \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
   \\
-  &\le \sum_{i=m}^{k-1} \left( \mu\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  &\le \sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
   \: .
 \end{align*}
 \end{proof}
@@ -589,7 +658,7 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $m \le k$,
 \begin{align*}
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
   \: .
 \end{align*}
@@ -608,7 +677,7 @@ Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Then for $m \le k$,
 \begin{align*}
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \left( \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d/p} \varepsilon_j^{q/p} \right)^p
   \: .
 \end{align*}
@@ -618,7 +687,7 @@ Then for $m \le k$,
   \uses{lem:integral_sup_rpow_dist_le_sum, def:HasBoundedInternalCoveringNumber}
 By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum}, we have
 \begin{align*}
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
   \: .
 \end{align*}
@@ -636,7 +705,7 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
 \begin{align*}
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
   \\
   &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
@@ -658,7 +727,7 @@ Suppose that $T$ is a finite set with bounded internal covering number with cons
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 For all $\delta > 0$,
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
@@ -674,24 +743,24 @@ Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s
 Note that $C_k = T$.
 By Corollary~\ref{cor:scale_change_rpow},
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
-  &\le 2^p \mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-    + 4^p \mu\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
+  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+    + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
   \: .
 \end{align*}
 By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:integral_sup_rpow_dist_le_of_minimal_cover_two},
 \begin{align*}
-  \mu \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
   &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
   \: . \\
-  \mu \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
   \: .
 \end{align*}
 Putting these two inequalities together, we obtain
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + 2^d c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
@@ -700,7 +769,7 @@ Putting these two inequalities together, we obtain
 TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
 We obtain
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + c_1 2^d \delta^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
@@ -719,7 +788,7 @@ We obtain
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \in (0, 4\mathrm{diam}(T))$,
 \begin{align*}
-  \mu\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\log_2 \left(c_1 \delta^{-d} 4^d \right) \right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \: .
@@ -746,7 +815,7 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 Let $\beta \in(0, (q - d)/p)$.
 Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends on $T$ bot not $J$) such that
 \begin{align*}
-  \mu\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c_1, d, p, q, \beta)
   \: .
 \end{align*}
@@ -758,12 +827,12 @@ Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 We will often use the simple fact that $\eta_k \ge 2^{-k}$.
 We will bound separately for each $k \in \mathbb{N}$ the expectation of the supremum over the sets of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
 \begin{align*}
-  \mu\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  &\le \sum_{k=0}^\infty \mu\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \\
-  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
-  &\le \sum_{k=0}^\infty 2^{k \beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
 We want to show that the sum is finite.
@@ -775,7 +844,7 @@ We deal separately with the parts of the sum for $k < k_0$ and $k \ge k_0$.
 
 For $k \ge k_0$, $2\eta_k / 4 = \eta_{k+1} \le \mathrm{diam}(T)$, which means that we can apply Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam} to bound each expectation in the sum.
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \left(4^d \left(\log_2 \left(c_1 (2 \eta_k)^{-d} 4^d \right) \right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
@@ -802,7 +871,7 @@ The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the se
 
 For $k < k_0$, $N^{int}_{\eta_{k+1}}(T) = 1$. Applying Theorem~\ref{thm:finite_set_bound_of_dist_le} with $\delta = 2 \eta_k$, we obtain
 \begin{align*}
-  &\mu\left[ \sup_{s, t \in T; d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^{p+2q+1} M (2 \eta_k)^{q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \\
@@ -812,7 +881,7 @@ For $k < k_0$, $N^{int}_{\eta_{k+1}}(T) = 1$. Applying Theorem~\ref{thm:finite_s
 This is an expression of the form $K 2^{-k(q-d)}$ for some constant $K < \infty$.
 Coming back to the sum, we have
 \begin{align*}
-  \sum_{k=1}^{k_0 - 1} 2^{k \beta p} \mu\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \sum_{k=1}^{k_0 - 1} 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   &\le K \sum_{k=1}^{k_0 - 1} 2^{k (\beta p - (q-d))}
   \\
   &\le K \frac{1}{1 - 2^{(\beta p - (q-d))}}
@@ -829,7 +898,7 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 Let $\beta \in(0, (q - d)/p)$.
 Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that for every countable subset $T' \subseteq T$ with positive diameter,
 \begin{align*}
-  \mu\left[ \sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mathbb{E}\left[ \sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c_1, d, p, q, \beta)
   \: .
 \end{align*}
@@ -843,7 +912,7 @@ Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:
 
 \begin{theorem}\label{thm:holder_version}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mu(Y_t \ne X_t) = 0$ for all $t$) such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
 \begin{proof}

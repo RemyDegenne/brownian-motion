@@ -28,9 +28,24 @@ $x \mapsto \exp\left(i \mu x - \frac{\sigma^2 x^2}{2}\right)$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:centralMoment_two_mul_gaussianReal}
+  \uses{def:gaussianReal}
+The central moment of order $2n$ of a real Gaussian measure $\mathcal{N}(\mu, \sigma^2)$ is given by
+\begin{align*}
+  \mathbb{E}[(X - \mu)^{2n}] = \sigma^{2n} (2n - 1)!! \: ,
+\end{align*}
+in which $(2n - 1)!! = (2n - 1)(2n - 3) \cdots 3 \cdot 1$ is the double factorial of $2n - 1$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \subsection{Gaussian measures on a Banach space}
 
 That kind of generality is not needed for this project, but we happen to have results about Gaussian measures on a Banach space in Mathlib, so we will use them.
+The main reference for this section is \cite{hairer2009introduction}.
 
 Let $F$ be a separable Banach space.
 
@@ -195,6 +210,8 @@ For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, 
 
 
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
+
+We specialize directly from Banach space to finite dimensional Hilbert space since that's what we need in this project, although there are results for Gaussian measures on infinite dimensional Hilbert spaces that would worth stating.
 
 \begin{lemma}\label{lem:isGaussian_iff_charFunDual_inner_eq}
   \uses{def:IsGaussian, def:charFunDual, def:charFun}
@@ -382,6 +399,27 @@ That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 \end{proof}
 
 
+\begin{lemma}\label{lem:integral_id_stdGaussian}
+  \uses{def:stdGaussian}
+The mean of the standard Gaussian measure is $0$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isCentered_stdGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covMatrix_stdGaussian}
+  \uses{def:stdGaussian}
+The covariance matrix of the standard Gaussian measure is the identity matrix.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
   \uses{def:stdGaussian}
   \leanok
@@ -389,6 +427,28 @@ That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $m \in \mathbb{R}^d$ and covariance matrix $\Sigma \in \mathbb{R}^{d \times d}$, with $\Sigma$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto m + \Sigma^{1/2} x$.
 We denote this measure by $\mathcal{N}(m, \Sigma)$.
 \end{definition}
+
+
+\begin{lemma}\label{lem:integral_id_multivariateGaussian}
+  \uses{def:multivariateGaussian}
+The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_id_stdGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covMatrix_multivariateGaussian}
+  \uses{def:multivariateGaussian}
+The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $\Sigma$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:covMatrix_stdGaussian}
+
+\end{proof}
 
 
 \begin{lemma}\label{lem:isGaussian_multivariateGaussian}
@@ -412,11 +472,10 @@ The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:charFun_stdGaussian, lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq}
+  \uses{lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq, lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
 Since the multivariate Gaussian measure is a Gaussian measure, we can apply Lemma~\ref{lem:IsGaussian.charFun_eq} to it.
 It suffices then to show that the mean and the covariance matrix of the multivariate Gaussian measure are equal to $m$ and $\Sigma$, respectively.
-
-TODO
+This is given by Lemma~\ref{lem:integral_id_multivariateGaussian} and Lemma~\ref{lem:covMatrix_multivariateGaussian}.
 \end{proof}
 
 
