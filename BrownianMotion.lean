@@ -1,5 +1,9 @@
-import BrownianMotion.Init
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
+import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
+import BrownianMotion.Continuity.IsKolmogorovProcess
+import BrownianMotion.Continuity.KolmogorovChentsov
+import BrownianMotion.Continuity.LogSizeBallSequence
 import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.MultivariateGaussian
+import BrownianMotion.Init

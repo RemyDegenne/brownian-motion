@@ -3,14 +3,14 @@
 
 We follow the presentation of the Kolmogorov-Chentsov theorem in \cite{kratschmer2023kolmogorov}, which builds upon the chaining technique developed by Talagrand \cite{talagrand2022upper}.
 
-\section{Covers}
+\section{Covers and covering numbers}
 
 Let $(E, d_E)$ be a pseudo-metric space.
 
 \begin{definition}[$\varepsilon$-cover]\label{def:IsCover}
   \leanok
   \lean{IsCover}
-  A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) < \varepsilon$.
+  A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) \le \varepsilon$.
 \end{definition}
 
 
@@ -46,6 +46,8 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 
 \begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
   \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{HasBoundedInternalCoveringNumber}
   Let $\mathrm{diam}(A)$ be the diameter of $A \subseteq E$, i.e. $\mathrm{diam}(A) = \sup_{x,y \in A} d_E(x, y)$.
   A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A))$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
 \end{definition}
@@ -85,30 +87,49 @@ By definition.
 
 \begin{lemma}\label{lem:dist_nearestPt_of_isCover}
   \uses{def:nearestPt, def:IsCover}
+  \leanok
+  \lean{edist_nearestPt_of_isCover}
 Let $C_\varepsilon$ be a finite $\varepsilon$-cover of $A \subseteq E$ (assuming such a finite cover exists).
 Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
 
 \begin{definition}[Chaining sequence]\label{def:chainingSequence}
   \uses{def:nearestPt, def:IsCover}
+  \leanok
+  \lean{chainingSequence}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
 \end{definition}
 
 
+\begin{lemma}\label{lem:chainingSequence_mem}
+  \uses{def:chainingSequence}
+  \leanok
+  \lean{chainingSequence_mem}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for all $i \le k$, $\bar{x}_i\in C_i$.
+\end{lemma}
+
+\begin{proof}
+By definition.
+\end{proof}
+
+
 \begin{lemma}\label{lem:dist_chainingSequence_add_one}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{edist_chainingSequence_add_one}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:dist_nearestPt_of_isCover}
+  \uses{lem:dist_nearestPt_of_isCover, lem:chainingSequence_mem}
 Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_{i+1}$.
 \end{proof}
 
@@ -174,6 +195,7 @@ We will build a subset $K$ of $J^2$ which is much smaller, of size linear in $\v
   & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
   \: .
 \end{align*}
+The pairs $(s, t) \in K$ will still be close together, in the sense that $d_T(s, t) \le c n$ for some $n$ that is logarithmic in the size of $J$.
 
 For $t \in V \subseteq T$ and $u\ge 0$, we denote by $B_V(t, u)$ the closed ball with center $t$ and radius $u$ in $V$.
 That is, $B_V(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
@@ -182,13 +204,13 @@ We want to cover $J$ with balls that have radius logarithmic in the number of po
 
 \begin{definition}\label{def:logSizeRadius}
 Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $b, c > 0$.
-Let the \emph{log-size radius} of $(V,t)$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le b a^{r}$.
+Let the \emph{log-size radius} of $t$ in $V$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le b a^{r}$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:card_logSizeRadius_ge}
   \uses{def:logSizeRadius}
-For $r$ the log-size radius of $(V,t)$, we have $b a^{r-1} \le \vert B_V(t, (r-1)c) \vert$~.
+$b a^{r_{V,t}-1} \le \vert B_V(t, (r_{V,t}-1)c) \vert$~.
 \end{lemma}
 
 \begin{proof}
@@ -198,7 +220,7 @@ For $r$ the log-size radius of $(V,t)$, we have $b a^{r-1} \le \vert B_V(t, (r-1
 
 \begin{lemma}\label{lem:card_logSizeRadius_le}
   \uses{def:logSizeRadius}
-For $r$ the log-size radius of $(V,t)$, we have $\vert B_V(t, rc) \vert \le b a^r$~.
+$\vert B_V(t, r_{V,t}c) \vert \le b a^{r_{V,t}}$~.
 \end{lemma}
 
 \begin{proof}
@@ -212,7 +234,7 @@ Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \m
 An log-size ball sequence for $(J, a, b, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
 \begin{itemize}
   \item $V_0 = J$, $t_0$ is an arbitrary point in $J$,
-  \item for all $i$, $r_i$ is the log-size radius of $(V_i, t_i)$,
+  \item for all $i$, $r_i$ is the log-size radius of $t_i$ in $V_i$,
   \item $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$, $t_{i+1}$ is arbitrarily chosen in $V_{i+1}$.
 \end{itemize}
 \end{definition}
@@ -269,7 +291,7 @@ This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1
   \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$.
 For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
-We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of pairs from the log-size ball sequence.
+We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of all pairs from the log-size ball sequence.
 \end{definition}
 
 
@@ -317,7 +339,7 @@ The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}
 
 \begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
   \uses{def:pairSet}
-Let $K$ be the pair set of a log-size ball sequence for $(J, a, b, c, n)$.
+Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$.
 Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \begin{align*}
   \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
@@ -346,6 +368,8 @@ Finally
 
 \begin{lemma}\label{lem:pair_reduction}
   \uses{def:pairSet}
+  \leanok
+  \lean{pair_reduction}
 Let $(T,d_T)$ be a metric space.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $(E,d_E)$ a metric space,
@@ -372,22 +396,28 @@ Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_
 \end{proof}
 
 
+
+\section{Chaining for stochastic processes satisfying the Kolmogorov condition}
+
 \subsection{Kolmogorov condition}
 
 \begin{definition}[Kolmogorov condition]\label{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mathbb{P})$ is a measure space.
 Let $p, q > 0$.
-We say that $X$ satisfies the Kolmogorov condition for $(p,q)$ with constant $M$ if for all $s, t \in T$,
+We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ if for all $s, t \in T$,
 \begin{align*}
   \mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
-  \: .
+  \: ,
 \end{align*}
+and if furthermore $(X_s, X_t)$ is measurable for all $s, t \in T$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ_pairs}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
 Then
 \begin{align*}
@@ -413,7 +443,7 @@ Then
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 Then
 \begin{align*}
@@ -518,7 +548,7 @@ This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
 Then for $c \ge 0$,
 \begin{align*}
@@ -559,7 +589,7 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
 Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
@@ -600,7 +630,7 @@ We thus get $\varepsilon_0 2^{-m} \le \delta$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $j < k$,
 \begin{align*}
@@ -654,7 +684,7 @@ And then, by Minkowski's inequality,
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
   \uses{def:IsKolmogorovProcess}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $m \le k$,
 \begin{align*}
@@ -672,7 +702,7 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Then for $m \le k$,
@@ -724,7 +754,7 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 For all $\delta > 0$,
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -807,11 +837,13 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 \section{Kolmogorov-Chentsov Theorem}
 
 
+\subsection{Sets with bounded internal covering number}
+
 
 \begin{lemma}\label{lem:finite_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
 Suppose that $J \subseteq T$ is a finite set and that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
 Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends on $T$ bot not $J$) such that
 \begin{align*}
@@ -893,8 +925,10 @@ The sum is finite since $\beta p < (q - d)$ by assumption.
 
 \begin{theorem}\label{thm:countable_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.countable_kolmogorov_chentsov}
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
 Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ such that for every countable subset $T' \subseteq T$ with positive diameter,
 \begin{align*}
@@ -917,7 +951,15 @@ Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a comple
 
 \begin{proof}
   \uses{thm:countable_set_bound}
+Let $T'$ be a countable dense subset of $T$.
+Let $A$ be the event
+\begin{align*}
+  \left\{\sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} < \infty \right\}
+  \: .
+\end{align*}
+As a consequence of Theorem~\ref{thm:countable_set_bound}, we have $\mathbb{P}(A) = 1$.
 
+TODO
 \end{proof}
 
 
@@ -940,3 +982,24 @@ Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a comple
 % \begin{proof}\uses{thm:countable_set_bound}
 
 % \end{proof}
+
+
+\subsection{Localized version of the Kolmogorov-Chentsov theorem}
+
+
+\begin{definition}\label{def:HasSigmaBoundedCoveringNumber}
+  \uses{def:HasBoundedInternalCoveringNumber}
+A set $T$ has sigma-bounded covering number if there exists a monotone sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ of $T$ such that for all $n$, $T_n$ has bounded internal covering number with constant $c_n>0$ and exponent $d_n > 0$, and such that $\bigcup_{n \in \mathbb{N}} T_n = T$.
+\end{definition}
+
+
+\begin{definition}\label{def:IsLocalizedKolmogorovProcess}
+  \uses{def:IsKolmogorovProcess, def:HasSigmaBoundedCoveringNumber}
+Let $T$ be a metric space with sigma-bounded covering number.
+A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
+\begin{align*}
+  \mathbb{E}\left[ d_E(X_s, X_t)^{p_n} \right]
+  &\le M_n d_T(s, t)^{q_n}
+  \: .
+\end{align*}
+\end{definition}
