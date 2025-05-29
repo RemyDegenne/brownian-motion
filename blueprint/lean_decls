@@ -27,3 +27,11 @@ IsCover
 externalCoveringNumber
 internalCoveringNumber
 externalCoveringNumber_le_internalCoveringNumber
+HasBoundedInternalCoveringNumber
+edist_nearestPt_of_isCover
+chainingSequence
+chainingSequence_mem
+edist_chainingSequence_add_one
+pair_reduction
+ProbabilityTheory.IsKolmogorovProcess
+ProbabilityTheory.countable_kolmogorov_chentsov

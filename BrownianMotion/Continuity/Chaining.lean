@@ -15,49 +15,77 @@ import BrownianMotion.Continuity.CoveringNumber
 
 -/
 
-variable {E : Type*} {x y : E} {A : Set E}
+open scoped ENNReal
 
--- TODO: find a name
+variable {E : Type*} {x y : E} {A : Set E} {C C₁ C₂ : Finset E} {ε ε₁ ε₂ : ℝ≥0∞}
+
 /-- Closest point to `x` in the finite set `s`. -/
-def π [Dist E] (s : Finset E) (x : E) : E :=
+def nearestPt [EDist E] (s : Finset E) (x : E) : E :=
   sorry
 
-lemma π_mem [Dist E] {s : Finset E} : π s x ∈ s := by
+lemma nearestPt_mem [EDist E] {s : Finset E} : nearestPt s x ∈ s := by
   sorry
 
-lemma dist_π_le [Dist E] {s : Finset E} (hy : y ∈ s) :
-    dist x (π s x) ≤ dist x y := by
+lemma edist_nearestPt_le [EDist E] {s : Finset E} (hy : y ∈ s) :
+    edist x (nearestPt s x) ≤ edist x y := by
   sorry
 
-/-- Closest point to `x` in a minimal `ε`-cover of `A`. -/
-noncomputable
-def πCov [Dist E] (A : Set E) (ε : ℝ) (x : E) : E := π (minimalCover ε A) x
+variable [PseudoEMetricSpace E]
 
-lemma dist_πCov [Dist E] {ε : ℝ} (hxA : x ∈ A) :
-    dist x (πCov A ε x) ≤ ε := by
-  obtain ⟨y, hy⟩ := isCover_minimalCover sorry x hxA
-  exact (dist_π_le hy.1).trans hy.2
+lemma edist_nearestPt_of_isCover (hC : IsCover C ε A) (hxA : x ∈ A) :
+    edist x (nearestPt C x) ≤ ε := by
+  obtain ⟨y, hy⟩ := hC x hxA
+  exact (edist_nearestPt_le hy.1).trans hy.2
 
-lemma dist_πCov_πCov_le_add [PseudoMetricSpace E] {ε₁ ε₂ : ℝ} (hxA : x ∈ A) :
-    dist (πCov A ε₁ x) (πCov A ε₂ x) ≤ ε₁ + ε₂ := by
-  calc dist (πCov A ε₁ x) (πCov A ε₂ x)
-    ≤ dist (πCov A ε₁ x) x + dist x (πCov A ε₂ x) := dist_triangle _ _ _
-  _ ≤ ε₁ + ε₂ := add_le_add ((dist_comm _ _).trans_le (dist_πCov hxA)) (dist_πCov hxA)
-
-lemma dist_πCov_succ_le_two_mul [PseudoMetricSpace E] {ε : ℕ → ℝ} (hε : Antitone ε) {i : ℕ}
+lemma edist_nearestPt_nearestPt_le_add (hC₁ : IsCover C₁ ε₁ A) (hC₂ : IsCover C₂ ε₂ A)
     (hxA : x ∈ A) :
-    dist (πCov A (ε i) x) (πCov A (ε (i + 1)) x) ≤ 2 * ε i := by
-  calc dist (πCov A (ε i) x) (πCov A (ε (i + 1)) x) ≤ ε i + ε (i + 1) := dist_πCov_πCov_le_add hxA
+    edist (nearestPt C₁ x) (nearestPt C₂ x) ≤ ε₁ + ε₂ := by
+  calc edist (nearestPt C₁ x) (nearestPt C₂ x)
+    ≤ edist (nearestPt C₁ x) x + edist x (nearestPt C₂ x) := edist_triangle _ _ _
+  _ ≤ ε₁ + ε₂ := add_le_add ((edist_comm _ _).trans_le (edist_nearestPt_of_isCover hC₁ hxA))
+      (edist_nearestPt_of_isCover hC₂ hxA)
+
+lemma edist_nearestPt_succ_le_two_mul
+    {ε : ℕ → ℝ≥0∞} {C : ℕ → Finset E} (hC : ∀ i, IsCover (C i) (ε i) A)
+    (hε : Antitone ε) {i : ℕ} (hxA : x ∈ A) :
+    edist (nearestPt (C i) x) (nearestPt (C (i + 1)) x) ≤ 2 * ε i := by
+  calc edist (nearestPt (C i) x) (nearestPt (C (i + 1)) x) ≤ ε i + ε (i + 1) :=
+    edist_nearestPt_nearestPt_le_add (hC i) (hC (i + 1)) hxA
   _ ≤ 2 * ε i := by rw [two_mul]; exact add_le_add le_rfl (hε (Nat.le_succ _))
 
-lemma dist_πCov_le_add_dist [PseudoMetricSpace E] {ε : ℝ} (hxA : x ∈ A) (hyA : y ∈ A) :
-    dist (πCov A ε x) (πCov A ε y) ≤ 2 * ε + dist x y := by
-  calc dist (πCov A ε x) (πCov A ε y)
-    ≤ dist (πCov A ε x) y + dist y (πCov A ε y) := dist_triangle _ _ _
-  _ ≤ dist (πCov A ε x) x + dist x y + dist y (πCov A ε y) :=
-        add_le_add (dist_triangle _ _ _) le_rfl
-  _ = dist (πCov A ε x) x + dist y (πCov A ε y) + dist x y := by abel
-  _ ≤ 2 * ε + dist x y := by
+lemma edist_nearestPt_le_add_dist (hC : IsCover C ε A) (hxA : x ∈ A) (hyA : y ∈ A) :
+    edist (nearestPt C x) (nearestPt C y) ≤ 2 * ε + edist x y := by
+  calc edist (nearestPt C x) (nearestPt C y)
+    ≤ edist (nearestPt C x) y + edist y (nearestPt C y) := edist_triangle _ _ _
+  _ ≤ edist (nearestPt C x) x + edist x y + edist y (nearestPt C y) :=
+        add_le_add (edist_triangle _ _ _) le_rfl
+  _ = edist (nearestPt C x) x + edist y (nearestPt C y) + edist x y := by abel
+  _ ≤ 2 * ε + edist x y := by
         rw [two_mul]
-        refine add_le_add (add_le_add ?_ (dist_πCov hyA)) le_rfl
-        exact (dist_comm _ _).trans_le (dist_πCov hxA)
+        refine add_le_add (add_le_add ?_ (edist_nearestPt_of_isCover hC hyA)) le_rfl
+        exact (edist_comm _ _).trans_le (edist_nearestPt_of_isCover hC hxA)
+
+section Sequence
+
+variable {ε : ℕ → ℝ≥0∞} {C : ℕ → Finset E}
+
+def chainingSequenceReverse (hC : ∀ i, IsCover (C i) (ε i) A)
+    {k : ℕ} (hxA : x ∈ C k) : ℕ → E
+  | 0 => x
+  | n + 1 => nearestPt (C (k - (n + 1))) (chainingSequenceReverse hC hxA n)
+
+def chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k) (n : ℕ) : E :=
+  if n ≤ k then chainingSequenceReverse hC hxA (k - n) else x
+
+lemma chainingSequence_mem (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k)
+    (n : ℕ) (hn : n ≤ k) :
+    chainingSequence hC hxA n ∈ C n := by
+  simp only [chainingSequence, hn, ↓reduceIte]
+  sorry
+
+lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k)
+  (n : ℕ) (hn : n < k) :
+    edist (chainingSequence hC hxA (n + 1)) (chainingSequence hC hxA n) ≤ ε n := by
+  sorry
+
+end Sequence
