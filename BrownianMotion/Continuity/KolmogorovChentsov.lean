@@ -27,6 +27,16 @@ def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ�
 lemma constL_lt_top : constL T c d p q β < ∞ := by
   sorry
 
+theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
+    (T' : Set T) (hT' : T'.Finite) :
+    ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ T') (ht : t ∈ T'),
+        edist (X s ω) (X t ω) ^ (p : ℝ) / edist s t ^ (β * p : ℝ) ∂P
+      ≤ M * constL T c d p q β := by
+  sorry
+
 theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)

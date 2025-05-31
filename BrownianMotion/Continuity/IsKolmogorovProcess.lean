@@ -26,12 +26,29 @@ structure IsKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q M : ℝ
   kolmogorovCondition : ∀ s t : T,
     ∫⁻ ω, (edist (X s ω) (X t ω)) ^ (p : ℝ) ∂P ≤ M * edist s t ^ (q : ℝ)
 
+section Measurability
+
 lemma IsKolmogorovProcess.aemeasurable (hX : IsKolmogorovProcess X P p q M) (s : T) :
     AEMeasurable (X s) P := by
   have : Measurable[borel (E × E), _] (Prod.fst : E × E → E) :=
     measurable_fst.mono prod_le_borel_prod le_rfl
   exact @Measurable.comp_aemeasurable Ω E (E × E) _ _ _ (borel (E × E)) _ _ this
     (hX.aemeasurablePair s s)
+
+omit [PseudoEMetricSpace T] in
+lemma aemeasurable_pair_of_aemeasurable [SecondCountableTopology E] (hX : ∀ s, AEMeasurable (X s) P)
+    (s t : T) :
+    @AEMeasurable _ _ (borel (E × E)) _ (fun ω ↦ (X s ω, X t ω)) P := by
+  suffices AEMeasurable (fun ω ↦ (X s ω, X t ω)) P by
+    rwa [(Prod.borelSpace (α := E) (β := E)).measurable_eq] at this
+  fun_prop
+
+lemma IsKolmogorovProcess.mk_of_secondCountableTopology [SecondCountableTopology E]
+    (h_meas : ∀ s, AEMeasurable (X s) P)
+    (h_kol : ∀ s t : T, ∫⁻ ω, (edist (X s ω) (X t ω)) ^ (p : ℝ) ∂P ≤ M * edist s t ^ (q : ℝ)) :
+    IsKolmogorovProcess X P p q M where
+  aemeasurablePair := aemeasurable_pair_of_aemeasurable h_meas
+  kolmogorovCondition := h_kol
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.aestronglyMeasurable_edist
@@ -46,5 +63,7 @@ lemma IsKolmogorovProcess.aestronglyMeasurable_edist
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M) {s t : T} :
     AEMeasurable (fun ω ↦ edist (X s ω) (X t ω)) P := hX.aestronglyMeasurable_edist.aemeasurable
+
+end Measurability
 
 end ProbabilityTheory
