@@ -34,4 +34,7 @@ chainingSequence_mem
 edist_chainingSequence_add_one
 pair_reduction
 ProbabilityTheory.IsKolmogorovProcess
+ProbabilityTheory.IsKolmogorovProcess.aemeasurable
+ProbabilityTheory.aemeasurable_pair_of_aemeasurable
+ProbabilityTheory.IsKolmogorovProcess.aemeasurable_edist
 ProbabilityTheory.countable_kolmogorov_chentsov
