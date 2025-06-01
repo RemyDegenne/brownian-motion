@@ -388,7 +388,7 @@ positive semi-definite, there are two paths:
   x_i \langle v_i, v_j\rangle x_j = \langle \sum_{i=1}^n x_i v_i,
   \sum_{j=1}^n x_j v_j\rangle \geq 0,$$ so $C$ is positive semi-definite.
 
-  As $E$, consider the space $L^2(\lambda)$, which is equipped with $\langle f, g\rangle = \int f(x)g(x) dx$. We write $v_i := 1_[0,t_i]$, so 
+  As $E$, consider the space $L^2(\lambda)$, which is equipped with $\langle f, g\rangle = \int f(x)g(x) dx$. We write $v_i := 1_[0,t_i]$, so
   $$ \langle v_i, v_j \rangle = \int 1_{[0,t_i]}1_{[0,t_j]} d\lambda = \int 1_{[0,t_i \wedge t_j]} d\lambda = t_i \wedge t_j = c_{ij}.$$
 \end{enumerate}
 
@@ -706,7 +706,7 @@ The proof of the continuity theorem follows the version in
   with $c = c_3 2^d c_2$. So, we see that the right hand side is summable. By the
   Borel-Cantelli Lemma,
   $$ N := \max \Big\{n: \sup_{s,t\in J_n, q(s,t) < 2^{-n}} r(X_s, X_t)
-    \geq 2^{-\gamma n}\Big\} + 1$$ 
+    \geq 2^{-\gamma n}\Big\} + 1$$
   is finite, almost surely. We set $J := \bigcup_n J_n$ and $H_m := 2^{-(N+m)}$ (with $H_m>0$, almost surely). For $s\in J_k$ and $k>N+m$, let $s_k := s, s_{k-1},...,s_{N+m}$ be as in Lemma xxx, and analogously for $t\in K_\ell$ with $\ell > N+m$. From this and Remark~\ref{rem1}, we conclude with $c' = 1 + \frac{2}{1-2^{-\gamma}}$ and
   \begin{align*}
     & \sup_{s,t\in J, q(s,t) \leq H_m} r(X_s, X_t)
