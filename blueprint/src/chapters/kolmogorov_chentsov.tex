@@ -205,27 +205,31 @@ We want to cover $J$ with balls that have radius logarithmic in the number of po
 \begin{definition}\label{def:logSizeRadius}
   \leanok
   \lean{logSizeRadius}
-Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $b, c > 0$.
-Let the \emph{log-size radius} of $t$ in $V$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le b a^{r}$.
+Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $c > 0$.
+Let the \emph{log-size radius} of $t$ in $V$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le a^{r}$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:card_logSizeRadius_ge}
   \uses{def:logSizeRadius}
-$b a^{r_{V,t}-1} \le \vert B_V(t, (r_{V,t}-1)c) \vert$~.
+  \leanok
+  \lean{card_le_logSizeRadius_ge}
+$a^{r_{V,t}-1} \le \vert B_V(t, (r_{V,t}-1)c) \vert$~.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:card_logSizeRadius_le}
   \uses{def:logSizeRadius}
-$\vert B_V(t, r_{V,t}c) \vert \le b a^{r_{V,t}}$~.
+  \leanok
+  \lean{card_le_logSizeRadius_le}
+$\vert B_V(t, r_{V,t}c) \vert \le a^{r_{V,t}}$~.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -234,8 +238,8 @@ $\vert B_V(t, r_{V,t}c) \vert \le b a^{r_{V,t}}$~.
   \uses{def:logSizeRadius}
   \leanok
   \lean{logSizeBallSeq}
-Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
-An log-size ball sequence for $(J, a, b, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
+Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
+An log-size ball sequence for $(J, a, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
 \begin{itemize}
   \item $V_0 = J$, $t_0$ is an arbitrary point in $J$,
   \item for all $i$, $r_i$ is the log-size radius of $t_i$ in $V_i$,
@@ -248,11 +252,11 @@ A log-size ball sequence gives a partition of $J$ into sets which are contained 
 
 \begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
   \uses{def:logSizeBallSequence}
-The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
+The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}
-Since $|J| \le b a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le b a^{n}$.
+Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le a^{n}$.
 \end{proof}
 
 
@@ -268,7 +272,7 @@ $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$
 
 \begin{lemma}\label{lem:logSizeBallSequence_eq_zero}
   \uses{def:logSizeBallSequence}
-For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$, there exists $m \in \mathbb{N}$ such that $V_k = \emptyset$ for all $k \ge m$.
+For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, there exists $m \in \mathbb{N}$ such that $V_k = \emptyset$ for all $k \ge m$.
 \end{lemma}
 
 \begin{proof}
@@ -295,7 +299,7 @@ This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1
   \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
   \leanok
   \lean{pairSet}
-Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$.
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$.
 For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
 We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of all pairs from the log-size ball sequence.
 \end{definition}
@@ -303,7 +307,7 @@ We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBall
 
 \begin{lemma}\label{lem:card_pairSet_le}
   \uses{def:pairSet}
-The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, b, c, n)$ satisfies $|K| \le a |J|$.
+The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ satisfies $|K| \le a |J|$.
 \end{lemma}
 
 \begin{proof}
@@ -312,12 +316,12 @@ Using Lemma~\ref{lem:card_logSizeRadius_le}, the cardinal of $K$ is bounded by
 \begin{align*}
   \vert K \vert
   &\le \sum_{i=0}^{m-1} \vert K_i \vert
-  \le \sum_{i=0}^{m-1} b a^{r_i}
+  \le \sum_{i=0}^{m-1} a^{r_i}
   \: .
 \end{align*}
 Since the sets $B_{V_i}(t_i, (r_i-1)c)$ are disjoint by Lemma~\ref{lem:logSizeBallSequence_disjoint_B}, we can use Lemma~\ref{lem:card_logSizeRadius_ge} to get
 \begin{align*}
-  \sum_{i=0}^{m-1} b a^{r_i - 1}
+  \sum_{i=0}^{m-1} a^{r_i - 1}
   \le \sum_{i=0}^{m-1} \vert B_{V_i}(t_i, (r_i-1)c) \vert
   = \left\vert \bigcup_{i=0}^{m-1} B_{V_i}(t_i, (r_i-1)c) \right\vert
   \le \vert J \vert
@@ -329,7 +333,7 @@ We obtained the inequality $\vert K \vert \le a \vert J \vert$
 
 \begin{lemma}\label{lem:dist_le_of_mem_pairSet}
   \uses{def:pairSet}
-Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, b, c, n)$.
+Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$.
 Then $d_T(s, t) \le c n$.
 \end{lemma}
 
@@ -345,7 +349,7 @@ The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}
 
 \begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
   \uses{def:pairSet}
-Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, b, c, n)$.
+Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$.
 Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \begin{align*}
   \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
@@ -377,7 +381,7 @@ Finally
   \leanok
   \lean{pair_reduction}
 Let $(T,d_T)$ be a metric space.
-Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+Let $J \subseteq T$ be finite, $a > 1$, $c>0$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
 Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \begin{align}
   |K|
@@ -394,7 +398,7 @@ Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $
 
 \begin{proof}
   \uses{lem:card_pairSet_le, lem:dist_le_of_mem_pairSet, lem:sup_dist_le_two_mul_sup_dist_pairSet}
-Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$. We show that its pair set satisfies the conditions of the lemma.
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$. We show that its pair set satisfies the conditions of the lemma.
 
 Equation~\eqref{eq:chain1} is given by Lemma~\ref{lem:card_pairSet_le}.
 The second property~\eqref{eq:chain2} is Lemma~\ref{lem:dist_le_of_mem_pairSet}.
@@ -412,7 +416,7 @@ Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_
   \lean{ProbabilityTheory.IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mathbb{P})$ is a measure space.
 Let $p, q > 0$.
-We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ if for all $s, t \in T$, $(X_s, X_t)$ is $mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$ and
+We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ if for all $s, t \in T$, $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$ and
 \begin{align*}
   \mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
   \: .
@@ -439,7 +443,7 @@ If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition
 \begin{lemma}\label{lem:aemeasurable_pair_of_aemeasurable}
   \leanok
   \lean{ProbabilityTheory.aemeasurable_pair_of_aemeasurable}
-If $E$ is separable and $X : T \to \Omega \to E$ is a process such that $X_t$ is $mathbb{P}$-a.e. measurable for all $t \in T$, then for all $s, t \in T$, the pair $(X_s, X_t)$ is $mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$.
+If $E$ is separable and $X : T \to \Omega \to E$ is a process such that $X_t$ is $\mathbb{P}$-a.e. measurable for all $t \in T$, then for all $s, t \in T$, the pair $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -489,7 +493,7 @@ Then
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
   \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
-Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
+Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
 Then
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
