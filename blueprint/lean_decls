@@ -32,6 +32,11 @@ edist_nearestPt_of_isCover
 chainingSequence
 chainingSequence_mem
 edist_chainingSequence_add_one
+logSizeRadius
+card_le_logSizeRadius_ge
+card_le_logSizeRadius_le
+logSizeBallSeq
+pairSet
 pair_reduction
 ProbabilityTheory.IsKolmogorovProcess
 ProbabilityTheory.IsKolmogorovProcess.aemeasurable
