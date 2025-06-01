@@ -203,6 +203,8 @@ That is, $B_V(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
 We want to cover $J$ with balls that have radius logarithmic in the number of points of the ball.
 
 \begin{definition}\label{def:logSizeRadius}
+  \leanok
+  \lean{logSizeRadius}
 Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $b, c > 0$.
 Let the \emph{log-size radius} of $t$ in $V$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le b a^{r}$.
 \end{definition}
@@ -228,8 +230,10 @@ $\vert B_V(t, r_{V,t}c) \vert \le b a^{r_{V,t}}$~.
 \end{proof}
 
 
-\begin{definition}\label{def:logSizeBallSequence}
+\begin{definition}[Log-size ball sequence]\label{def:logSizeBallSequence}
   \uses{def:logSizeRadius}
+  \leanok
+  \lean{logSizeBallSeq}
 Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le b a^n$.
 An log-size ball sequence for $(J, a, b, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
 \begin{itemize}
@@ -289,6 +293,8 @@ This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1
 
 \begin{definition}\label{def:pairSet}
   \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
+  \leanok
+  \lean{pairSet}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, b, c, n)$.
 For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
 We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of all pairs from the log-size ball sequence.
@@ -1000,7 +1006,7 @@ Immediately follows from Theorem~\ref{thm:countable_set_bound}.
 
 \begin{lemma}\label{lem:holder_version_single}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that almost surely the paths of $Y$ are Hölder continuous of order $\beta$.
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of order $\beta$.
 \end{lemma}
 
 \begin{proof}
@@ -1046,12 +1052,18 @@ TODO
 
 \begin{theorem}\label{thm:holder_version}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:holder_version_single}
+  \uses{lem:holder_version_single, lem:indistinguishable_of_version_of_continuous}
+Let $(\beta_n)$ be an increasing sequence of numbers in $(0, (q - d)/p)$ such that $\beta_n \to (q - d)/p$.
+For each $n$, let $Y^n$ be the version of $X$ given by Lemma~\ref{lem:holder_version_single} for $\beta = \beta_n$.
+Then by Lemma~\ref{lem:indistinguishable_of_version_of_continuous}, the processes $Y^0$ and $Y^n$ are indistinguishable for all $n$.
+That is, there exists an event $A_n$ such that $\mathbb{P}(A_n) = 1$ and such that for all $\omega \in A_n$, $Y^0_t(\omega) = Y^n_t(\omega)$ for all $t \in T$.
 
+Let $A = \bigcap_{n \in \mathbb{N}} A_n$ and let $x_0 \in E$ be arbitrary.
+Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \in A$ and $Y(\omega) = x_0$ for $\omega \notin A$ has paths that are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{proof}
 
 
