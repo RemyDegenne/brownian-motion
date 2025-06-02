@@ -1,7 +1,23 @@
 \chapter{Kolmogorov-Chentsov Theorem}
 \label{chap:kolmogorov_chentsov}
 
-We follow the presentation of the Kolmogorov-Chentsov theorem in \cite{kratschmer2023kolmogorov}, which builds upon the chaining technique developed by Talagrand \cite{talagrand2022upper}.
+We follow the proof of the Kolmogorov-Chentsov theorem from \cite{kratschmer2023kolmogorov}.
+That proof notably uses the chaining technique developed by Talagrand \cite{talagrand2022upper}.
+
+That theorem is about stochastic processes $X : T \to \Omega \to E$, where $\Omega$ is a measurable space with a probability measure $\mathbb{P}$, the index set $T$ is a metric space with distance $d_T$, and $E$ is also a metric space with distance $d_E$, on which we put the Borel $\sigma$-algebra.
+
+The main result is Theorem~\ref{thm:countable_set_bound}.
+Under an assumption on the covering number of $T$, for a process $X$ that satisfies the Kolmogorov condition $\mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q$ (see Definition~\ref{def:IsKolmogorovProcess}),the theorem gives a finite bound on the expectation of the supremum of the ratio
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \: ,
+\end{align*}
+for $T'$ a countable subset of $T$.
+As a corollary, we obtain that there exists a version of $X$ with Hölder continuous paths.
+
+In Lean, we will use the typeclass \texttt{PseudoEMetricSpace} for both $T$ and $E$ as long as possible, and then specialize to \texttt{EMetricSpace} (or perhaps even \texttt{MetricSpace}) when we need the stronger properties of a metric space.
+For example, to prove the existence of a version of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
+All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesque integrals.
 
 \section{Covers and covering numbers}
 
@@ -423,7 +439,7 @@ We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with co
 \end{align*}
 \end{definition}
 
-Remark: the measurability condition on the pair could be replaced by the simpler condition of measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras).
+Remark: the measurability condition on the pair could be replaced by the simpler condition of measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (\texttt{SecondCountableTopology} in Lean), which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras.
 We follow \cite{kratschmer2023kolmogorov} and do not require separability.
 
 \paragraph{Measurability}

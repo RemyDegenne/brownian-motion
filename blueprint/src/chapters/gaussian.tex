@@ -238,15 +238,20 @@ Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdo
 
 \begin{definition}[Covariance matrix]\label{def:covMatrix}
   \uses{def:IsGaussian}
+  \leanok
+  \lean{ProbabilityTheory.covMatrix, ProbabilityTheory.posSemidef_covMatrix}
 The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ such that for $u, v \in E$,
 \begin{align*}
   \langle u, \Sigma_\mu v\rangle = \mu[\langle u, x - m_\mu \rangle \langle x - m_\mu, v \rangle] \: .
 \end{align*}
+This is the covariance bilinear form of $\mu$ applied to the inner products $\langle u, \cdot \rangle$ and $\langle v, \cdot \rangle$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:covarianceBilin_map}
   \uses{def:covarianceBilin}
+  \leanok
+  \lean{ProbabilityTheory.covarianceBilin_map_toDualMap}
 Let $E$ and $F$ be two Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
 Then the covariance bilinear form of the measure $L_*\mu$ is given by
 \begin{align*}
@@ -260,7 +265,7 @@ in which $L^\dagger : F \to E$ is the adjoint of $L$.
 \begin{proof}
 \begin{align*}
   C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
-  &= (\pi_{IJ*}\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
+  &= (L_*\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
   \\
   &= \mu\left[\langle u, L(x) - L(m_\mu)\rangle \langle L(x) - L(m_\mu), v \rangle \right]
   \\
