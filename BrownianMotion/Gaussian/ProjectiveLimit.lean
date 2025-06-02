@@ -16,14 +16,13 @@ open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-variable {d : ℕ}
+variable {ι : Type*} [Fintype ι] {d : ℕ}
 
-def brownianCovMatrix (I : Fin d → ℝ≥0) : Matrix (Fin d) (Fin d) ℝ :=
-  Matrix.of fun i j ↦ min (I i) (I j)
+def brownianCovMatrix (I : ι → ℝ≥0) : Matrix ι ι ℝ := Matrix.of fun i j ↦ min (I i) (I j)
 
-lemma posSemidef_brownianCovMatrix (I : Fin d → ℝ≥0) :
+lemma posSemidef_brownianCovMatrix (I : ι → ℝ≥0) :
     (brownianCovMatrix I).PosSemidef := by
-  sorry
+  sorry -- done in Mathlib PR #24575
 
 noncomputable
 def gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
