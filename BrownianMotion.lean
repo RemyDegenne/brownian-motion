@@ -7,6 +7,7 @@ import BrownianMotion.Continuity.LogSizeBallSequence
 import BrownianMotion.Gaussian.BrownianMotion
 import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.GaussianProcess
+import BrownianMotion.Gaussian.GramMatrix
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Init

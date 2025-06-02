@@ -78,6 +78,8 @@ We want to build a multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$
 We prove that the matrix $C_{ij} = \min(t_i, t_j)$ is positive semidefinite, which means that there exists a Gaussian distribution with mean 0 and covariance matrix $C$.
 
 \begin{definition}[Gram matrix]\label{def:gramMatrix}
+  \leanok
+  \lean{Matrix.gram}
 Let $v_1, \ldots, v_n$ be vectors in an inner product space $E$.
 The Gram matrix of $v_1, \ldots, v_n$ is the matrix in $\mathbb{R}^{n \times n}$ with entries $G_{ij} = \langle v_i, v_j \rangle$ for $1 \leq i,j \leq n$.
 \end{definition}
@@ -85,10 +87,12 @@ The Gram matrix of $v_1, \ldots, v_n$ is the matrix in $\mathbb{R}^{n \times n}$
 
 \begin{lemma}\label{lem:posSemidef_gramMatrix}
   \uses{def:gramMatrix}
+  \leanok
+  \lean{Matrix.gram_posSemidef}
 A gram matrix is positive semidefinite.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Symmetry is obvious from the definition.
 Let $x \in E$. Then
 \begin{align*}
@@ -107,12 +111,13 @@ Let $x \in E$. Then
 
 \begin{lemma}\label{lem:C_eq_gramMatrix}
   \uses{def:gramMatrix}
+  \leanok
 Let $I = \{t_1, \ldots, t_n\}$ be a finite subset of $\mathbb{R}_+$.
 For $i \le n$, let $v_i = \mathbb{I}_{[0, t_i]}$ be the indicator function of the interval $[0, t_i]$, as an element of $L^2(\mathbb{R})$.
 Then the Gram matrix of $v_1, \ldots, v_n$ is equal to the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 By definition of the inner product in $L^2(\mathbb{R})$,
 \begin{align*}
   \langle v_i, v_j \rangle
@@ -130,7 +135,8 @@ For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $C \in \ma
 Then $C$ is positive semidefinite.
 \end{lemma}
 
-\begin{proof}\uses{lem:C_eq_gramMatrix, lem:posSemidef_gramMatrix}
+\begin{proof}\leanok
+  \uses{lem:C_eq_gramMatrix, lem:posSemidef_gramMatrix}
 $C$ is a Gram matrix by Lemma~\ref{lem:C_eq_gramMatrix}.
 By Lemma~\ref{lem:posSemidef_gramMatrix}, it is positive semidefinite.
 \end{proof}
