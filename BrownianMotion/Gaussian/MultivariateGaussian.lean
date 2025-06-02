@@ -86,5 +86,9 @@ def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (
     Measure (EuclideanSpace ℝ (Fin d)) :=
   (stdGaussian (EuclideanSpace ℝ (Fin d))).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) hS.sqrt x)
 
+variable {μ : EuclideanSpace ℝ (Fin d)} {S : Matrix (Fin d) (Fin d) ℝ} {hS : S.PosSemidef}
+
+instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S hS) := by
+  sorry
 
 end ProbabilityTheory

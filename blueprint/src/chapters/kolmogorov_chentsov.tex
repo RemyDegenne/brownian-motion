@@ -493,7 +493,7 @@ Then
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
   \uses{def:IsKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
-Let $J \subseteq T$ be finite, $a,b,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
+Let $J \subseteq T$ be finite, $a, c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
 Then
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
@@ -1075,14 +1075,14 @@ Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \
 \subsection{Localized version of the Kolmogorov-Chentsov theorem}
 
 
-\begin{definition}[Cover with bounded covering numbers]\label{def:HasSigmaBoundedCoveringNumber}
+\begin{definition}[Cover with bounded covering numbers]\label{def:HasBoundedCoveringNumberCover}
   \uses{def:HasBoundedInternalCoveringNumber}
 A set $T$ is said to have a cover with bounded covering numbers if there exists a monotone sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ of $T$ such that for all $n$, $T_n$ has bounded internal covering number with constant $c_n>0$ and exponent $d_n > 0$, and such that $\bigcup_{n \in \mathbb{N}} T_n = T$.
 \end{definition}
 
 
-\begin{lemma}\label{lem:hasSigmaBoundedCoveringNumber_nnreal}
-  \uses{def:HasSigmaBoundedCoveringNumber}
+\begin{lemma}\label{lem:hasBoundedCoveringNumberCover_nnreal}
+  \uses{def:HasBoundedCoveringNumberCover}
 $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,n)$, constants $c_n = n$ and exponents $d_n = 1$.
 \end{lemma}
 
@@ -1092,7 +1092,7 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 
 
 \begin{definition}[Localized Kolmogorov conditions]\label{def:IsLocalizedKolmogorovProcess}
-  \uses{def:IsKolmogorovProcess, def:HasSigmaBoundedCoveringNumber}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
 \begin{align*}
@@ -1103,8 +1103,20 @@ A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov
 \end{definition}
 
 
+\begin{lemma}\label{lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover, def:IsLocalizedKolmogorovProcess}
+Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > \sup_n d_n$.
+Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n) = (p, q)$, constants $M_n = M$ and any $\rho_n > 0$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{theorem}\label{thm:localized_holder_version}
-  \uses{def:IsLocalizedKolmogorovProcess, def:HasSigmaBoundedCoveringNumber}
+  \uses{def:IsLocalizedKolmogorovProcess, def:HasBoundedCoveringNumberCover}
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n)$ with $q_n > d_n$.
 Then $X$ has a version $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in \bigcap_n [0, (q_n - d_n)/p_n)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.

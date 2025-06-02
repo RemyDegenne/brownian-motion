@@ -346,10 +346,11 @@ By Theorem~\ref{thm:ext_of_charFun}, $\langle u, \cdot\rangle_*\mu$ is Gaussian,
   \uses{def:gaussianReal}
   \leanok
   \lean{ProbabilityTheory.stdGaussian}
-Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu_1, \ldots, \mu_d$ be independent standard Gaussian measures on $\mathbb{R}$.
-The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu_1 \times \ldots \times \mu_d$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
+Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu$ be the standard Gaussian measures on $\mathbb{R}$.
+The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu \times \ldots \times \mu$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
 \end{definition}
 
+The fact that this definition does not depend on the choice of basis will be a consequence of the fact that its characteristic function does not depend on the basis.
 
 \begin{lemma}\label{lem:isCentered_stdGaussian}
   \uses{def:stdGaussian, def:IsCentered}
@@ -453,6 +454,8 @@ The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigm
 
 \begin{lemma}\label{lem:isGaussian_multivariateGaussian}
   \uses{def:multivariateGaussian, def:IsGaussian}
+  \leanok
+  \lean{ProbabilityTheory.isGaussian_multivariateGaussian}
 A multivariate Gaussian measure is a Gaussian measure.
 \end{lemma}
 
@@ -484,6 +487,8 @@ This is given by Lemma~\ref{lem:integral_id_multivariateGaussian} and Lemma~\ref
 
 \begin{definition}[Gaussian process]\label{def:IsGaussianProcess}
   \uses{def:IsGaussian}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussianProcess}
 A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has a Gaussian distribution.
 \end{definition}
 

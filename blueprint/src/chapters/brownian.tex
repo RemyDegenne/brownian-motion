@@ -4,6 +4,8 @@
 
 \begin{definition}[pre-Brownian process]\label{def:preBrownian}
   \uses{def:gaussianLimit}
+  \leanok
+  \lean{ProbabilityTheory.preBrownian}
 Let $\Omega = \mathbb{R}^{\mathbb{R}_+}$ and consider the probability space $(\Omega, P_B)$ (where $P_B$ is the measure defined in Definition~\ref{def:gaussianLimit}).
 The identity on that space is a function $\Omega \to \mathbb{R}_+ \to \mathbb{R}$.
 We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \Omega \to \mathbb{R}$, which we call the pre-Brownian process.
@@ -12,6 +14,8 @@ We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \O
 
 \begin{lemma}\label{lem:isGaussianProcess_preBrownian}
   \uses{def:preBrownian, def:IsGaussianProcess}
+  \leanok
+  \lean{ProbabilityTheory.isGaussianProcess_preBrownian}
   The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} is a Gaussian process.
 \end{lemma}
 
@@ -38,7 +42,7 @@ We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \O
 
 
 \begin{definition}[Brownian motion]\label{def:brownianMotion}
-  \uses{thm:localized_holder_version, def:preBrownian, lem:isKolmogorovProcess_preBrownian, lem:hasSigmaBoundedCoveringNumber_nnreal}
+  \uses{thm:localized_holder_version, def:preBrownian, lem:isKolmogorovProcess_preBrownian, lem:hasBoundedCoveringNumberCover_nnreal, lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
   \notready
 By Theorem~\ref{thm:localized_holder_version}, there exists a version $Y$ of the pre-Brownian process such that all the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
 We call $Y$ the \emph{Brownian motion} on $\mathbb{R}_+$.
