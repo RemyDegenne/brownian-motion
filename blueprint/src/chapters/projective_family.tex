@@ -124,6 +124,8 @@ By definition of the inner product in $L^2(\mathbb{R})$,
 
 
 \begin{lemma}\label{lem:posSemidef_brownianCov}
+  \leanok
+  \lean{ProbabilityTheory.posSemidef_brownianCovMatrix}
 For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $C \in \mathbb{R}^{n \times n}$ be the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 Then $C$ is positive semidefinite.
 \end{lemma}
@@ -138,6 +140,8 @@ By Lemma~\ref{lem:posSemidef_gramMatrix}, it is positive semidefinite.
 
 \begin{definition}[Projective family of the Brownian motion]\label{def:gaussianProjectiveFamily}
   \uses{def:multivariateGaussian, lem:posSemidef_brownianCov}
+  \leanok
+  \lean{ProbabilityTheory.gaussianProjectiveFamily}
 For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $P^B_I$ be the multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
 We call the family of measures $P^B_I$ the \emph{projective family of the Brownian motion}.
 \end{definition}
@@ -145,11 +149,14 @@ We call the family of measures $P^B_I$ the \emph{projective family of the Browni
 
 \begin{lemma}\label{lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
   \uses{def:gaussianProjectiveFamily, def:IsProjectiveMeasureFamily}
+  \leanok
+  \lean{ProbabilityTheory.isProjectiveMeasureFamily_gaussianProjectiveFamily}
 The projective family of the Brownian motion is a projective family of measures.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:isGaussian_map, lem:isGaussian_multivariateGaussian, lem:covMatrix_map}
+  \uses{lem:isGaussian_map, lem:isGaussian_multivariateGaussian, lem:covMatrix_map,
+  lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
 Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
 We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ (denote it by $\pi_{IJ}$) maps $P^B_I$ to $P^B_J$.
 
@@ -172,6 +179,8 @@ This gives the same covariance matrix as the one of $P^B_J$.
 
 \begin{definition}\label{def:gaussianLimit}
   \uses{thm:kolmogorovExtension, lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
+  \leanok
+  \lean{ProbabilityTheory.gaussianLimit}
 We denote by $P_B$ the projective limit of the projective family of the Brownian motion given by Theorem~\ref{thm:kolmogorovExtension}.
 This is a probability measure on $\mathbb{R}^{\mathbb{R}_+}$.
 \end{definition}
