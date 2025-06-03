@@ -17,7 +17,7 @@ As a corollary, we obtain that there exists a version of $X$ with Hölder contin
 
 In Lean, we will use the typeclass \texttt{PseudoEMetricSpace} for both $T$ and $E$ as long as possible, and then specialize to \texttt{EMetricSpace} (or perhaps even \texttt{MetricSpace}) when we need the stronger properties of a metric space.
 For example, to prove the existence of a version of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
-All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesque integrals.
+All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesgue integrals.
 
 \section{Covers and covering numbers}
 
