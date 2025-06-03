@@ -60,6 +60,38 @@ def logSizeBallSeq (J : Finset T) (hJ : J.Nonempty) (a c : ℝ≥0∞) : ℕ →
       let t' := if hV' : V'.Nonempty then hV'.choose else hJ.choose
       (V', t', logSizeRadius t' V' a c))
 
+variable {J : Finset T}
+
+lemma logSizeRadius_logSizeBallSeq_le (hJ : J.Nonempty) (hJ_card : #J ≤ a ^ n) (i : ℕ) :
+    (logSizeBallSeq J hJ a c i).2.2 ≤ n := by
+  sorry
+
+lemma logSizeBallSeq_subset (hJ : J.Nonempty) (i : ℕ) :
+    (logSizeBallSeq J hJ a c (i + 1)).1 ⊆ (logSizeBallSeq J hJ a c i).1 := by
+  sorry
+
+lemma mem_logSizeBallSeq (hJ : J.Nonempty) (i : ℕ) (h : (logSizeBallSeq J hJ a c i).1.Nonempty) :
+    (logSizeBallSeq J hJ a c i).2.1 ∈ (logSizeBallSeq J hJ a c i).1 := by
+  sorry
+
+lemma notMem_logSizeBallSeq_add_one (hJ : J.Nonempty) (i : ℕ)
+    (h : (logSizeBallSeq J hJ a c i).1.Nonempty) :
+    (logSizeBallSeq J hJ a c i).2.1 ∉ (logSizeBallSeq J hJ a c (i + 1)).1 := by
+  sorry
+
+lemma card_logSizeBallSeq_add_one_lt (hJ : J.Nonempty) (i : ℕ)
+    (h : (logSizeBallSeq J hJ a c i).1.Nonempty) :
+    #(logSizeBallSeq J hJ a c (i + 1)).1 < #(logSizeBallSeq J hJ a c 1).1 := by
+  sorry
+
+lemma card_logSizeBallSeq_le (hJ : J.Nonempty) (i : ℕ) :
+    #(logSizeBallSeq J hJ a c i).1 ≤ #J - i := by
+  sorry
+
+lemma card_logSizeBall_card_eq_zero (hJ : J.Nonempty) :
+    #(logSizeBallSeq J hJ a c #J).1 = 0 := by
+  sorry
+
 open Classical in
 noncomputable
 def pairSetSeq (J : Finset T) (a c : ℝ≥0∞) (n : ℕ) : Finset (T × T) :=
@@ -73,6 +105,15 @@ noncomputable
 def pairSet (J : Finset T) (a c : ℝ≥0∞) : Finset (T × T) :=
   Finset.biUnion (Finset.range #J) (pairSetSeq J a c)
 
+lemma card_pairSet_le (hJ_card : #J ≤ a ^ n) (ha : 1 < a) :
+    #(pairSet J a c) ≤ a * #J := by
+  sorry
+
+lemma edist_le_of_mem_pairSet (hJ_card : #J ≤ a ^ n) (ha : 1 < a) (hc : c ≠ 0)
+    {s t : T} (h : (s, t) ∈ pairSet J a c) :
+    edist s t ≤ n * c := by
+  sorry
+
 theorem pair_reduction (J : Finset T) (hJ : #J ≤ a ^ n) (ha : 1 < a) (hc : c ≠ 0)
     (E : Type*) [EDist E] :
     ∃ K : Finset (T × T), K ⊆ J.product J
@@ -81,7 +122,8 @@ theorem pair_reduction (J : Finset T) (hJ : #J ≤ a ^ n) (ha : 1 < a) (hc : c �
       ∧ (∀ f : T → E,
         ⨆ (s) (t) (hs : s ∈ J) (ht : t ∈ J) (h : edist s t ≤ c), edist (f s) (f t)
         ≤ 2 * ⨆ p ∈ K, edist (f p.1) (f p.2)) := by
-  refine ⟨pairSet J a c, ?_, ?_, ?_⟩
+  refine ⟨pairSet J a c, ?_, ?_, ?_, ?_⟩
   · sorry
-  · sorry
+  · exact card_pairSet_le hJ ha
+  · exact fun _ _ ↦ edist_le_of_mem_pairSet hJ ha hc
   · sorry

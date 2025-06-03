@@ -85,6 +85,8 @@ The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal coverin
 
 
 \begin{definition}\label{def:nearestPt}
+  \leanok
+  \lean{nearestPt}
 Let $S$ be a finite set of $E$ and $x \in E$.
 We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point such that $d_E(x, S) = \min_{y \in S} d_E(x, y)$ (chosen arbitrarily among the minima if there are several).
 \end{definition}
@@ -92,11 +94,13 @@ We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point 
 
 \begin{lemma}\label{lem:dist_nearestPt_le}
   \uses{def:nearestPt}
+  \leanok
+  \lean{edist_nearestPt_le}
 Let $S$ be a finite set of $E$ and $x \in E$.
 Then for all $y \in S$, $d_E(x, \pi(x, S)) \le d_E(x, y)$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 By definition.
 \end{proof}
 
@@ -268,6 +272,8 @@ A log-size ball sequence gives a partition of $J$ into sets which are contained 
 
 \begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{logSizeRadius_logSizeBallSeq_le}
 The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -278,6 +284,8 @@ Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \l
 
 \begin{lemma}\label{lem:logSizeBallSequence_V_anti}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{logSizeBallSeq_subset}
 The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are a decreasing sequence of sets. That is, $V_{i+1} \subseteq V_i$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -323,6 +331,8 @@ We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBall
 
 \begin{lemma}\label{lem:card_pairSet_le}
   \uses{def:pairSet}
+  \leanok
+  \lean{card_pairSet_le}
 The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ satisfies $|K| \le a |J|$.
 \end{lemma}
 
@@ -349,6 +359,8 @@ We obtained the inequality $\vert K \vert \le a \vert J \vert$
 
 \begin{lemma}\label{lem:dist_le_of_mem_pairSet}
   \uses{def:pairSet}
+  \leanok
+  \lean{edist_le_of_mem_pairSet}
 Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$.
 Then $d_T(s, t) \le c n$.
 \end{lemma}
