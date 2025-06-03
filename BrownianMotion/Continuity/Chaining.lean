@@ -19,18 +19,24 @@ open scoped ENNReal
 
 variable {E : Type*} {x y : E} {A : Set E} {C C₁ C₂ : Finset E} {ε ε₁ ε₂ : ℝ≥0∞}
 
+open Classical in
 /-- Closest point to `x` in the finite set `s`. -/
+noncomputable
 def nearestPt [EDist E] (s : Finset E) (x : E) : E :=
-  sorry
+  if hs : s.Nonempty then (Finset.exists_min_image s (fun y ↦ edist x y) hs).choose else x
 
-lemma nearestPt_mem [EDist E] {s : Finset E} : nearestPt s x ∈ s := by
-  sorry
-
-lemma edist_nearestPt_le [EDist E] {s : Finset E} (hy : y ∈ s) :
-    edist x (nearestPt s x) ≤ edist x y := by
-  sorry
+lemma nearestPt_mem [EDist E] {s : Finset E} (hs : s.Nonempty) : nearestPt s x ∈ s := by
+  rw [nearestPt, dif_pos hs]
+  exact (Finset.exists_min_image s (fun y ↦ edist x y) hs).choose_spec.1
 
 variable [PseudoEMetricSpace E]
+
+lemma edist_nearestPt_le {s : Finset E} (hy : y ∈ s) :
+    edist x (nearestPt s x) ≤ edist x y := by
+  by_cases hs : s.Nonempty
+  · rw [nearestPt, dif_pos hs]
+    exact (Finset.exists_min_image s (fun y' ↦ edist x y') hs).choose_spec.2 y hy
+  · simp [nearestPt, dif_neg hs]
 
 lemma edist_nearestPt_of_isCover (hC : IsCover C ε A) (hxA : x ∈ A) :
     edist x (nearestPt C x) ≤ ε := by
@@ -69,11 +75,13 @@ section Sequence
 
 variable {ε : ℕ → ℝ≥0∞} {C : ℕ → Finset E}
 
+noncomputable
 def chainingSequenceReverse (hC : ∀ i, IsCover (C i) (ε i) A)
     {k : ℕ} (hxA : x ∈ C k) : ℕ → E
   | 0 => x
   | n + 1 => nearestPt (C (k - (n + 1))) (chainingSequenceReverse hC hxA n)
 
+noncomputable
 def chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k) (n : ℕ) : E :=
   if n ≤ k then chainingSequenceReverse hC hxA (k - n) else x
 

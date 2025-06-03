@@ -17,7 +17,7 @@ As a corollary, we obtain that there exists a version of $X$ with Hölder contin
 
 In Lean, we will use the typeclass \texttt{PseudoEMetricSpace} for both $T$ and $E$ as long as possible, and then specialize to \texttt{EMetricSpace} (or perhaps even \texttt{MetricSpace}) when we need the stronger properties of a metric space.
 For example, to prove the existence of a version of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
-All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesque integrals.
+All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesgue integrals.
 
 \section{Covers and covering numbers}
 
@@ -85,6 +85,8 @@ The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal coverin
 
 
 \begin{definition}\label{def:nearestPt}
+  \leanok
+  \lean{nearestPt}
 Let $S$ be a finite set of $E$ and $x \in E$.
 We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point such that $d_E(x, S) = \min_{y \in S} d_E(x, y)$ (chosen arbitrarily among the minima if there are several).
 \end{definition}
@@ -92,11 +94,13 @@ We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point 
 
 \begin{lemma}\label{lem:dist_nearestPt_le}
   \uses{def:nearestPt}
+  \leanok
+  \lean{edist_nearestPt_le}
 Let $S$ be a finite set of $E$ and $x \in E$.
 Then for all $y \in S$, $d_E(x, \pi(x, S)) \le d_E(x, y)$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 By definition.
 \end{proof}
 
@@ -268,6 +272,8 @@ A log-size ball sequence gives a partition of $J$ into sets which are contained 
 
 \begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{radius_logSizeBallSeq_le}
 The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -278,6 +284,8 @@ Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \l
 
 \begin{lemma}\label{lem:logSizeBallSequence_V_anti}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{finset_logSizeBallSeq_add_one_subset}
 The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are a decreasing sequence of sets. That is, $V_{i+1} \subseteq V_i$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -288,17 +296,21 @@ $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$
 
 \begin{lemma}\label{lem:logSizeBallSequence_eq_zero}
   \uses{def:logSizeBallSequence}
-For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, there exists $m \in \mathbb{N}$ such that $V_k = \emptyset$ for all $k \ge m$.
+  \leanok
+  \lean{card_finset_logSizeBallSeq_card_eq_zero}
+For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, for all $k \ge \vert J \vert$, $V_k = \emptyset$.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:logSizeBallSequence_V_anti}
-$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$.
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
 \end{proof}
 
 
 \begin{lemma}\label{lem:logSizeBallSequence_disjoint_B}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{disjoint_smallBall_logSizeBallSeq}
 For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are disjoint.
 \end{lemma}
 
@@ -312,17 +324,19 @@ This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1
 
 
 \begin{definition}\label{def:pairSet}
-  \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
+  \uses{def:logSizeBallSequence}
   \leanok
   \lean{pairSet}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$.
 For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
-We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of all pairs from the log-size ball sequence.
+We define $K = \bigcup_{i=0}^{\vert J \vert-1} K_i$, set of all pairs from the log-size ball sequence.
 \end{definition}
 
 
 \begin{lemma}\label{lem:card_pairSet_le}
   \uses{def:pairSet}
+  \leanok
+  \lean{card_pairSet_le}
 The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ satisfies $|K| \le a |J|$.
 \end{lemma}
 
@@ -349,6 +363,8 @@ We obtained the inequality $\vert K \vert \le a \vert J \vert$
 
 \begin{lemma}\label{lem:dist_le_of_mem_pairSet}
   \uses{def:pairSet}
+  \leanok
+  \lean{edist_le_of_mem_pairSet}
 Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$.
 Then $d_T(s, t) \le c n$.
 \end{lemma}
@@ -365,6 +381,8 @@ The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}
 
 \begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
   \uses{def:pairSet}
+  \leanok
+  \lean{iSup_edist_pairSet}
 Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$.
 Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \begin{align*}
@@ -412,7 +430,7 @@ Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $
 \end{align}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:card_pairSet_le, lem:dist_le_of_mem_pairSet, lem:sup_dist_le_two_mul_sup_dist_pairSet}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$. We show that its pair set satisfies the conditions of the lemma.
 
@@ -904,6 +922,31 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 
 \subsection{Sets with bounded internal covering number}
 
+\begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
+Let $J \subseteq T$ be a finite set and suppose that $T$ has finite diameter.
+For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$.
+For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+We introduce for each $k \in \mathbb{N}$ the set of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+Note that $\eta_k \ge 2^{-k}$.
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \\
+  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{proof}
+
 
 \begin{lemma}\label{lem:finite_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
@@ -919,16 +962,11 @@ Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends 
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam}
+  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam, lem:integral_div_dist_le_sum_integral_dist_le}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
-We will often use the simple fact that $\eta_k \ge 2^{-k}$.
-We will bound separately for each $k \in \mathbb{N}$ the expectation of the supremum over the sets of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \\
-  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
-  \\
   &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}

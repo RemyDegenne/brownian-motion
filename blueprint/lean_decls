@@ -41,6 +41,8 @@ externalCoveringNumber
 internalCoveringNumber
 externalCoveringNumber_le_internalCoveringNumber
 HasBoundedInternalCoveringNumber
+nearestPt
+edist_nearestPt_le
 edist_nearestPt_of_isCover
 chainingSequence
 chainingSequence_mem
@@ -49,7 +51,14 @@ logSizeRadius
 card_le_logSizeRadius_ge
 card_le_logSizeRadius_le
 logSizeBallSeq
+radius_logSizeBallSeq_le
+finset_logSizeBallSeq_add_one_subset
+card_finset_logSizeBallSeq_card_eq_zero
+disjoint_smallBall_logSizeBallSeq
 pairSet
+card_pairSet_le
+edist_le_of_mem_pairSet
+iSup_edist_pairSet
 pair_reduction
 ProbabilityTheory.IsKolmogorovProcess
 ProbabilityTheory.IsKolmogorovProcess.aemeasurable

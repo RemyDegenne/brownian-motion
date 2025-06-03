@@ -29,6 +29,13 @@ lemma covarianceBilin_comm [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L₁ L₂ :
     (measurableEmbedding_subRight _).memLp_map_measure_iff.mpr <| h.sub (memLp_const _)
   simp_rw [covarianceBilin, uncenteredCovarianceBilin_apply h', mul_comm (L₁ _)]
 
+lemma covarianceBilin_apply' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ)
+    (L₁ L₂ : Dual ℝ E) :
+    covarianceBilin μ L₁ L₂ = ∫ x, L₁ (x - μ[id]) * L₂ (x - μ[id]) ∂μ := by
+  rw [covarianceBilin_apply h]
+  have hL (L : Dual ℝ E) : μ[L] = L (∫ x, x ∂μ) := L.integral_comp_comm (h.integrable (by simp))
+  simp [← hL]
+
 end NormedSpace
 
 section InnerProductSpace

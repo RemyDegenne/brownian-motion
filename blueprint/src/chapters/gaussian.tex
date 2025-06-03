@@ -237,7 +237,7 @@ Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdo
 
 
 \begin{definition}[Covariance matrix]\label{def:covMatrix}
-  \uses{def:IsGaussian}
+  \uses{def:IsGaussian, lem:covarianceBilin_same_eq_variance}
   \leanok
   \lean{ProbabilityTheory.covMatrix, ProbabilityTheory.posSemidef_covMatrix}
 The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ such that for $u, v \in E$,
@@ -252,7 +252,7 @@ This is the covariance bilinear form of $\mu$ applied to the inner products $\la
   \uses{def:covarianceBilin}
   \leanok
   \lean{ProbabilityTheory.covarianceBilin_map_toDualMap}
-Let $E$ and $F$ be two Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
 Then the covariance bilinear form of the measure $L_*\mu$ is given by
 \begin{align*}
   C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
