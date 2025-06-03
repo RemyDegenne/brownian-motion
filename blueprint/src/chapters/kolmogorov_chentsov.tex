@@ -922,6 +922,31 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 
 \subsection{Sets with bounded internal covering number}
 
+\begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
+Let $J \subseteq T$ be a finite set and suppose that $T$ has finite diameter.
+For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$.
+For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+We introduce for each $k \in \mathbb{N}$ the set of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+Note that $\eta_k \ge 2^{-k}$.
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \\
+  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{proof}
+
 
 \begin{lemma}\label{lem:finite_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
@@ -937,16 +962,11 @@ Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends 
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam}
+  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam, lem:integral_div_dist_le_sum_integral_dist_le}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
-We will often use the simple fact that $\eta_k \ge 2^{-k}$.
-We will bound separately for each $k \in \mathbb{N}$ the expectation of the supremum over the sets of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \\
-  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
-  \\
   &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
