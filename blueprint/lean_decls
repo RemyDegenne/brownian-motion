@@ -51,11 +51,14 @@ logSizeRadius
 card_le_logSizeRadius_ge
 card_le_logSizeRadius_le
 logSizeBallSeq
-logSizeRadius_logSizeBallSeq_le
-logSizeBallSeq_subset
+radius_logSizeBallSeq_le
+finset_logSizeBallSeq_add_one_subset
+card_finset_logSizeBallSeq_card_eq_zero
+disjoint_smallBall_logSizeBallSeq
 pairSet
 card_pairSet_le
 edist_le_of_mem_pairSet
+iSup_edist_pairSet
 pair_reduction
 ProbabilityTheory.IsKolmogorovProcess
 ProbabilityTheory.IsKolmogorovProcess.aemeasurable

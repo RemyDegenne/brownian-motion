@@ -273,7 +273,7 @@ A log-size ball sequence gives a partition of $J$ into sets which are contained 
 \begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
   \uses{def:logSizeBallSequence}
   \leanok
-  \lean{logSizeRadius_logSizeBallSeq_le}
+  \lean{radius_logSizeBallSeq_le}
 The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -285,7 +285,7 @@ Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \l
 \begin{lemma}\label{lem:logSizeBallSequence_V_anti}
   \uses{def:logSizeBallSequence}
   \leanok
-  \lean{logSizeBallSeq_subset}
+  \lean{finset_logSizeBallSeq_add_one_subset}
 The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are a decreasing sequence of sets. That is, $V_{i+1} \subseteq V_i$ for all $i \in \mathbb{N}$.
 \end{lemma}
 
@@ -296,17 +296,21 @@ $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$
 
 \begin{lemma}\label{lem:logSizeBallSequence_eq_zero}
   \uses{def:logSizeBallSequence}
-For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, there exists $m \in \mathbb{N}$ such that $V_k = \emptyset$ for all $k \ge m$.
+  \leanok
+  \lean{card_finset_logSizeBallSeq_card_eq_zero}
+For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, for all $k \ge \vert J \vert$, $V_k = \emptyset$.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:logSizeBallSequence_V_anti}
-$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$.
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
 \end{proof}
 
 
 \begin{lemma}\label{lem:logSizeBallSequence_disjoint_B}
   \uses{def:logSizeBallSequence}
+  \leanok
+  \lean{disjoint_smallBall_logSizeBallSeq}
 For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are disjoint.
 \end{lemma}
 
@@ -320,12 +324,12 @@ This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1
 
 
 \begin{definition}\label{def:pairSet}
-  \uses{def:logSizeBallSequence, lem:logSizeBallSequence_eq_zero}
+  \uses{def:logSizeBallSequence}
   \leanok
   \lean{pairSet}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$.
 For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
-We define $K = \bigcup_{i=0}^{m-1} K_i$ for $m$ as in Lemma~\ref{lem:logSizeBallSequence_eq_zero}, set of all pairs from the log-size ball sequence.
+We define $K = \bigcup_{i=0}^{\vert J \vert-1} K_i$, set of all pairs from the log-size ball sequence.
 \end{definition}
 
 
@@ -377,6 +381,8 @@ The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}
 
 \begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
   \uses{def:pairSet}
+  \leanok
+  \lean{iSup_edist_pairSet}
 Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$.
 Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \begin{align*}
@@ -424,7 +430,7 @@ Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $
 \end{align}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:card_pairSet_le, lem:dist_le_of_mem_pairSet, lem:sup_dist_le_two_mul_sup_dist_pairSet}
 Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$. We show that its pair set satisfies the conditions of the lemma.
 
