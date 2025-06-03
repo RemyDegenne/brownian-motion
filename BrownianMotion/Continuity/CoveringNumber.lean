@@ -72,6 +72,12 @@ lemma TotallyBounded.exists_isCover [PseudoEMetricSpace E] {A : Set E}
     obtain ⟨y, hyC, hy⟩ := hx
     exact ⟨y, hyC, hy.le⟩
 
+lemma IsCover.Nonempty [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E}
+    (hC : IsCover C ε A) (hA : A.Nonempty) : C.Nonempty := by
+  obtain ⟨a, haA⟩ := hA
+  obtain ⟨c, hcC, hc⟩ := hC a haA
+  exact ⟨c, hcC⟩
+
 section minimalCover
 
 variable [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}

@@ -15,7 +15,7 @@ import BrownianMotion.Continuity.CoveringNumber
 
 -/
 
-open scoped ENNReal
+open scoped ENNReal NNReal
 
 variable {E : Type*} {x y : E} {A : Set E} {C C₁ C₂ : Finset E} {ε ε₁ ε₂ : ℝ≥0∞}
 
@@ -73,27 +73,87 @@ lemma edist_nearestPt_le_add_dist (hC : IsCover C ε A) (hxA : x ∈ A) (hyA : y
 
 section Sequence
 
-variable {ε : ℕ → ℝ≥0∞} {C : ℕ → Finset E}
+variable {ε : ℕ → ℝ≥0∞} {C : ℕ → Finset E} {k n : ℕ}
 
 noncomputable
-def chainingSequenceReverse (hC : ∀ i, IsCover (C i) (ε i) A)
-    {k : ℕ} (hxA : x ∈ C k) : ℕ → E
+def chainingSequenceReverse (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) : ℕ → E
   | 0 => x
   | n + 1 => nearestPt (C (k - (n + 1))) (chainingSequenceReverse hC hxA n)
 
+@[simp]
+lemma chainingSequenceReverse_zero (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) :
+    chainingSequenceReverse hC hxA 0 = x := rfl
+
+lemma chainingSequenceReverse_add_one (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) (n : ℕ) :
+    chainingSequenceReverse hC hxA (n + 1) = nearestPt (C (k - (n + 1)))
+      (chainingSequenceReverse hC hxA n) := rfl
+
+lemma chainingSequenceReverse_mem (hC : ∀ i, IsCover (C i) (ε i) A) (hA : A.Nonempty)
+    (hxA : x ∈ C k) :
+    chainingSequenceReverse hC hxA n ∈ C (k - n) := by
+  induction n with
+  | zero => simp [chainingSequenceReverse_zero, hxA]
+  | succ n ih =>
+    simp only [chainingSequenceReverse_add_one]
+    refine nearestPt_mem ?_
+    exact (hC _).Nonempty hA
+
 noncomputable
-def chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k) (n : ℕ) : E :=
+def chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) (n : ℕ) : E :=
   if n ≤ k then chainingSequenceReverse hC hxA (k - n) else x
 
-lemma chainingSequence_mem (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k)
+lemma chainingSequence_of_eq (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) :
+    chainingSequence hC hxA k = x := by
+  simp [chainingSequence]
+
+lemma chainingSequence_mem (hC : ∀ i, IsCover (C i) (ε i) A) (hA : A.Nonempty) (hxA : x ∈ C k)
     (n : ℕ) (hn : n ≤ k) :
     chainingSequence hC hxA n ∈ C n := by
   simp only [chainingSequence, hn, ↓reduceIte]
+  convert chainingSequenceReverse_mem hC hA hxA
+  omega
+
+lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k)
+    (n : ℕ) (hn : n < k) :
+    edist (chainingSequence hC hxA (n + 1)) (chainingSequence hC hxA n) ≤ ε n := by
   sorry
 
-lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A) {k : ℕ} (hxA : x ∈ C k)
-  (n : ℕ) (hn : n < k) :
-    edist (chainingSequence hC hxA (n + 1)) (chainingSequence hC hxA n) ≤ ε n := by
+lemma edist_chainingSequence_le_sum (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k)
+    (m : ℕ) (hm : m ≤ k) :
+    edist (chainingSequence hC hxA m) x ≤ ∑ i ∈ Finset.range (k - m), ε (m + i) := by
+  sorry
+
+lemma edist_chainingSequence_le (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) (hyA : y ∈ C n)
+    (m : ℕ) (hm : m ≤ k) (hn : m ≤ n) :
+    edist (chainingSequence hC hxA m) (chainingSequence hC hyA m)
+      ≤ edist x y + ∑ i ∈ Finset.range (k - m), ε (m + i)
+        + ∑ j ∈ Finset.range (n - m), ε (m + j) := by
+  sorry
+
+lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) A)
+    (hxA : x ∈ C k) (hyA : y ∈ C n) (m : ℕ) (hm : m ≤ k) (hn : m ≤ n) :
+    edist (chainingSequence hC hxA m) (chainingSequence hC hyA m)
+      ≤ edist x y + ε₀ * 4 * 2⁻¹ ^ m := by
+  refine le_trans (edist_chainingSequence_le hC hxA hyA m hm hn) ?_
+  rw [add_assoc]
+  gcongr
+  sorry
+
+lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
+    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) :
+    ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t)
+    ≤ ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m))
+      + 2 * ⨆ (s) (hs : s ∈ C k), edist (X s) (X (chainingSequence hC hs m)) := by
+  sorry
+
+lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
+    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) (p : ℝ≥0) :
+    ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t) ^ (p : ℝ)
+    ≤ 2 ^ (p : ℝ) * ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)) ^ (p : ℝ)
+      + 4 ^ (p : ℝ) * ⨆ (s) (hs : s ∈ C k),
+        edist (X s) (X (chainingSequence hC hs m)) ^ (p : ℝ) := by
   sorry
 
 end Sequence

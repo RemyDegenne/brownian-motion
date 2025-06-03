@@ -3,7 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Init
+import BrownianMotion.Continuity.LogSizeBallSequence
 
 /-!
 # Stochastic processes satisfying the Kolmogorov condition
@@ -11,7 +11,7 @@ import BrownianMotion.Init
 -/
 
 open MeasureTheory
-open scoped ENNReal NNReal
+open scoped ENNReal NNReal Finset
 
 namespace ProbabilityTheory
 
@@ -65,5 +65,19 @@ lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M
     AEMeasurable (fun ω ↦ edist (X s ω) (X t ω)) P := hX.aestronglyMeasurable_edist.aemeasurable
 
 end Measurability
+
+lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hX : IsKolmogorovProcess X P p q M)
+    {ε : ℝ≥0∞} (C : Finset (T × T)) (hC : ∀ u ∈ C, edist u.1 u.2 ≤ ε) :
+    ∫⁻ ω, ⨆ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ (p : ℝ) ∂P
+      ≤ #C * M * ε ^ (q : ℝ) := by
+  sorry
+
+lemma lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le
+    (hX : IsKolmogorovProcess X P p q M) {J : Finset T} {a c : ℝ≥0∞} {n : ℕ}
+    (hJ_card : #J ≤ a ^ n) (ha : 1 < a) (hc : c ≠ 0) :
+    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ c),
+        edist (X s ω) (X t ω) ^ (p : ℝ) ∂P
+      ≤ 2 ^ (p : ℝ) * a * #J * M * (c * n) ^ (q : ℝ) := by
+  sorry
 
 end ProbabilityTheory
