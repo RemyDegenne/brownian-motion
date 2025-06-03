@@ -135,7 +135,7 @@ Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n
 Then for all $i \le k$, $\bar{x}_i\in C_i$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 By definition.
 \end{proof}
 
@@ -156,6 +156,8 @@ Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_
 
 \begin{lemma}\label{lem:dist_chainingSequence_le_sum}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{edist_chainingSequence_le_sum}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
 \end{lemma}
@@ -174,6 +176,8 @@ By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
 
 \begin{lemma}\label{lem:dist_chainingSequence_le}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{edist_chainingSequence_le}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$.
 Let $m, k, \ell \in \mathbb{N}$ with $m \le k$ and $m \le \ell$ and let $x \in C_k$ and $y \in C_\ell$.
 Then
@@ -191,6 +195,8 @@ Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
 
 \begin{corollary}\label{cor:dist_chainingSequence_pow_two_le}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{edist_chainingSequence_pow_two_le}
 For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
 \begin{align*}
   d_E(\bar{x}_m, \bar{y}_m)
@@ -441,6 +447,8 @@ Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_
 
 
 
+
+
 \section{Chaining for stochastic processes under Kolmogorov conditions}
 
 \subsection{Kolmogorov condition}
@@ -498,8 +506,10 @@ If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition
 
 \paragraph{Distance bounds}
 
-\begin{lemma}\label{lem:integral_sup_rpow_dist_succ_pairs}
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_card_mul_rpow}
   \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_card_mul_rpow}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
 Then
@@ -526,6 +536,8 @@ Then
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
   \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $J \subseteq T$ be finite, $a, c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
 Then
@@ -534,11 +546,10 @@ Then
   &\le 2^p a |J| M (cn)^q
   \: .
 \end{align*}
-
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:pair_reduction, lem:integral_sup_rpow_dist_succ_pairs}
+  \uses{lem:pair_reduction, lem:integral_sup_rpow_dist_le_card_mul_rpow}
 By Lemma~\ref{lem:pair_reduction}, there exists $K \subseteq J^2$ such that
 \begin{align*}
   |K|
@@ -557,7 +568,7 @@ Hence for such a set $K$,
   &\le 2^p \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
-Then by Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs},
+Then by Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow},
 \begin{align*}
   \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
   &\le |K| M (cn)^q
@@ -582,6 +593,8 @@ Then for the supremum over a set in $C_m$, we use the reduction in the number of
 
 \begin{lemma}\label{lem:scale_change}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{scale_change}
 Let $X : T \to E$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
 For $m \le k$,
@@ -605,6 +618,8 @@ By the triangle inequality,
 
 \begin{corollary}\label{cor:scale_change_rpow}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{scale_change_rpow}
 Let $X : T \to E$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
 For $m \le k$,
@@ -724,13 +739,13 @@ Then for $j < k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_succ_pairs}
+  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_le_card_mul_rpow}
 \begin{align*}
   \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
   &\le \mathbb{E}\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
   \: .
 \end{align*}
-We then apply Lemma~\ref{lem:integral_sup_rpow_dist_succ_pairs} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
+We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
 \end{proof}
 
 
