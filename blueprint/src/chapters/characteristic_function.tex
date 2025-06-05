@@ -1,5 +1,7 @@
-\chapter{Characteristic functions}
-\label{chap:characteristic_function}
+\chapter{Characteristic function and covariance}
+
+\section{Characteristic functions}
+\label{sec:characteristic_function}
 
 
 \begin{definition}[Characteristic function]\label{def:charFunDual}
@@ -74,5 +76,106 @@ Then for all $L' \in F^*$,
 \end{lemma}
 
 \begin{proof}\leanok
+
+\end{proof}
+
+
+
+\section{Covariance}
+\label{sec:covariance}
+
+Let $F$ be a Banach space and $E$ be a Hilbert space.
+
+\begin{definition}[Covariance]\label{def:covarianceBilin}
+  \mathlibok
+  \lean{ProbabilityTheory.covarianceBilin, ProbabilityTheory.covarianceBilin_apply, ProbabilityTheory.covarianceBilin_apply'}
+The covariance bilinear form of a measure $\mu$ on $F$ with finite second moment is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
+\begin{align*}
+  C_\mu(L_1, L_2)
+  &= \int_x (L_1(x) - L_1(m_\mu)) (L_2(x) - L_2(m_\mu)) \: d\mu(x)
+  \\
+  &= \int_x L_1(x - m_\mu) L_2(x- m_\mu) \: d\mu(x)
+  \: .
+\end{align*}
+\end{definition}
+
+\begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
+  \uses{def:covarianceBilin}
+  \mathlibok
+  \lean{ProbabilityTheory.covarianceBilin_same_eq_variance}
+For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{definition}[Covariance in a Hilbert space]\label{def:covInnerBilin}
+  \leanok
+  \lean{ProbabilityTheory.covInnerBilin}
+The covariance bilinear form of a finite measure $\mu$ with finite second moment on a Hilbert space $E$ is the continuous bilinear form $C_\mu : E \times E \to \mathbb{R}$ with
+\begin{align*}
+  C'_\mu(x, y) = \int_z \langle x, z - m_\mu \rangle \langle y, z - m_\mu \rangle \: d\mu(z) \: .
+\end{align*}
+This is $C_\mu$ applied to the linear maps $L_x, L_y \in E^*$ defined by $L_x(z) = \langle x, z \rangle$ and $L_y(z) = \langle y, z \rangle$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:covInnerBilin_map}
+  \uses{def:covInnerBilin}
+  \leanok
+  \lean{ProbabilityTheory.covInnerBilin_map}
+Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a finite measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Then the covariance bilinear form of the measure $L_*\mu$ is given by
+\begin{align*}
+  C'_{L_*\mu}(u, v)
+  &= C'_\mu(L^\dagger(u), L^\dagger(v))
+  \: ,
+\end{align*}
+in which $L^\dagger : F \to E$ is the adjoint of $L$.
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+  C'_{L_*\mu}(u, v)
+  &= (L_*\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
+  \\
+  &= \mu\left[\langle u, L(x) - L(m_\mu)\rangle \langle L(x) - L(m_\mu), v \rangle \right]
+  \\
+  &= \mu\left[\langle L^\dagger(u), x - m_\mu\rangle \langle x - m_\mu, L^\dagger(v) \rangle \right]
+  \\
+  &= C'_\mu(L^\dagger(u), L^\dagger(v))
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}[Covariance matrix]\label{def:covMatrix}
+  \uses{def:IsGaussian, lem:covarianceBilin_same_eq_variance}
+  \leanok
+  \lean{ProbabilityTheory.covMatrix, ProbabilityTheory.posSemidef_covMatrix}
+The covariance matrix of a finite measure $\mu$ with finite second moment on a finite dimensional inner product space $E$ is the positive semidefinite matrix $\Sigma_\mu$ such that for $u, v \in E$,
+\begin{align*}
+  \langle u, \Sigma_\mu v\rangle = \mu[\langle u, x - m_\mu \rangle \langle x - m_\mu, v \rangle] \: .
+\end{align*}
+This is the covariance bilinear form $C'_\mu(u, v)$, as a matrix.
+\end{definition}
+
+
+\begin{lemma}\label{lem:covMatrix_map}
+  \uses{def:covMatrix}
+Let $E$ and $F$ be two finite dimensional inner product spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Then the covariance matrix of the measure $L_*\mu$ has entries
+\begin{align*}
+  \langle e_i, \Sigma_{L_*\mu} e_j\rangle
+  &= \langle L^\dagger(e_i), \Sigma_\mu L^\dagger(e_j)\rangle
+  \: ,
+\end{align*}
+in which $L^\dagger : F \to E$ is the adjoint of $L$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:covInnerBilin_map}
 
 \end{proof}

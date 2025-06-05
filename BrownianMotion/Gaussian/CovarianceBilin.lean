@@ -38,16 +38,4 @@ lemma covarianceBilin_apply' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp i
 
 end NormedSpace
 
-section InnerProductSpace
-variable [InnerProductSpace ℝ E]
-  {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F] [BorelSpace F]
-
-lemma covarianceBilin_map_toDualMap [CompleteSpace E] [CompleteSpace F] [IsFiniteMeasure μ]
-    (h : MemLp id 2 μ) (L : E →L[ℝ] F) (u v : F) :
-    covarianceBilin (μ.map L) (toDualMap ℝ F u) (toDualMap ℝ F v) =
-      covarianceBilin μ (toDualMap ℝ E (L.adjoint u)) (toDualMap ℝ E (L.adjoint v)) := by
-  sorry
-
-end InnerProductSpace
-
 end ProbabilityTheory
