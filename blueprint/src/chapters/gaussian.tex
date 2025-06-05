@@ -185,28 +185,7 @@ In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for
 
 \end{proof}
 
-
-\begin{definition}[Covariance]\label{def:covarianceBilin}
-  \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin}
-The covariance bilinear form of a measure $\mu$ with finite second moment is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
-\begin{align*}
-  C_\mu(L_1, L_2) = \int_x (L_1(x) - L_1(m_\mu)) (L_2(x) - L_2(m_\mu)) \: d\mu(x) \: .
-\end{align*}
-\end{definition}
-
 A Gaussian measure has finite second moment by Lemma~\ref{lem:IsGaussian.memLp_id}, hence its covariance bilinear form is well defined.
-
-\begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
-  \uses{def:covarianceBilin}
-  \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin_same_eq_variance}
-For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
 
 
 \subsection{Gaussian measures on a finite dimensional Hilbert space}
@@ -234,65 +213,6 @@ Every continuous linear form $L \in E^*$ can be written as $L(x) = \langle t, x 
 \end{proof}
 
 Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
-
-
-\begin{definition}[Covariance matrix]\label{def:covMatrix}
-  \uses{def:IsGaussian, lem:covarianceBilin_same_eq_variance}
-  \leanok
-  \lean{ProbabilityTheory.covMatrix, ProbabilityTheory.posSemidef_covMatrix}
-The covariance matrix of a Gaussian measure $\mu$ on $E$ is the positive semidefinite matrix $\Sigma_\mu$ such that for $u, v \in E$,
-\begin{align*}
-  \langle u, \Sigma_\mu v\rangle = \mu[\langle u, x - m_\mu \rangle \langle x - m_\mu, v \rangle] \: .
-\end{align*}
-This is the covariance bilinear form of $\mu$ applied to the inner products $\langle u, \cdot \rangle$ and $\langle v, \cdot \rangle$.
-\end{definition}
-
-
-\begin{lemma}\label{lem:covarianceBilin_map}
-  \uses{def:covarianceBilin}
-  \leanok
-  \lean{ProbabilityTheory.covarianceBilin_map_toDualMap}
-Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
-Then the covariance bilinear form of the measure $L_*\mu$ is given by
-\begin{align*}
-  C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
-  &= C_\mu(\langle L^\dagger(u), \cdot\rangle, \langle L^\dagger(v), \cdot\rangle)
-  \: ,
-\end{align*}
-in which $L^\dagger : F \to E$ is the adjoint of $L$.
-\end{lemma}
-
-\begin{proof}
-\begin{align*}
-  C_{L_*\mu}(\langle u, \cdot\rangle, \langle v, \cdot\rangle)
-  &= (L_*\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
-  \\
-  &= \mu\left[\langle u, L(x) - L(m_\mu)\rangle \langle L(x) - L(m_\mu), v \rangle \right]
-  \\
-  &= \mu\left[\langle L^\dagger(u), x - m_\mu\rangle \langle x - m_\mu, L^\dagger(v) \rangle \right]
-  \\
-  &= C_\mu(\langle L^\dagger(u), \cdot\rangle, \langle L^\dagger(v), \cdot\rangle)
-  \: .
-\end{align*}
-\end{proof}
-
-
-\begin{lemma}\label{lem:covMatrix_map}
-  \uses{def:covMatrix}
-Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
-Then the covariance matrix of the measure $L_*\mu$ has entries
-\begin{align*}
-  \langle e_i, \Sigma_{L_*\mu} e_j\rangle
-  &= \langle L^\dagger(e_i), \Sigma_\mu L^\dagger(e_j)\rangle
-  \: ,
-\end{align*}
-in which $L^\dagger : F \to E$ is the adjoint of $L$.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:covarianceBilin_map}
-
-\end{proof}
 
 
 \begin{lemma}\label{lem:IsGaussian.charFun_eq}
