@@ -25,7 +25,7 @@ def IsGaussianProcess [MeasurableSpace E] [TopologicalSpace E] [AddCommMonoid E]
     (X : T → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
   ∀ I : Finset T, IsGaussian ((P.map (fun ω t ↦ X t ω)).map I.restrict)
 
-lemma IsGaussianProcess.version
+lemma IsGaussianProcess.modification
     [MeasurableSpace E] [TopologicalSpace E] [AddCommMonoid E] [Module ℝ E]
     (hX : IsGaussianProcess X P) (hXY : ∀ t, X t =ᵐ[P] Y t) :
     IsGaussianProcess Y P := by

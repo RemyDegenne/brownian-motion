@@ -25,7 +25,7 @@ ProbabilityTheory.isGaussian_stdGaussian
 ProbabilityTheory.multivariateGaussian
 ProbabilityTheory.isGaussian_multivariateGaussian
 ProbabilityTheory.IsGaussianProcess
-ProbabilityTheory.IsGaussianProcess.version
+ProbabilityTheory.IsGaussianProcess.modification
 MeasureTheory.IsProjectiveMeasureFamily
 MeasureTheory.IsProjectiveLimit
 MeasureTheory.projectiveLimit

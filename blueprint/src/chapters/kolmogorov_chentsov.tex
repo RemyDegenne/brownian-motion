@@ -13,10 +13,10 @@ Under an assumption on the covering number of $T$, for a process $X$ that satisf
   \: ,
 \end{align*}
 for $T'$ a countable subset of $T$.
-As a corollary, we obtain that there exists a version of $X$ with Hölder continuous paths.
+As a corollary, we obtain that there exists a modification of $X$ with Hölder continuous paths.
 
 In Lean, we will use the typeclass \texttt{PseudoEMetricSpace} for both $T$ and $E$ as long as possible, and then specialize to \texttt{EMetricSpace} (or perhaps even \texttt{MetricSpace}) when we need the stronger properties of a metric space.
-For example, to prove the existence of a version of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
+For example, to prove the existence of a modification of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
 All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesgue integrals.
 
 \section{Covers and covering numbers}
@@ -465,7 +465,7 @@ We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with co
 \end{align*}
 \end{definition}
 
-Remark: the measurability condition on the pair could be replaced by the simpler condition of measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (\texttt{SecondCountableTopology} in Lean), which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras.
+Remark: the measurability condition on the pair would be implied by the measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (\texttt{SecondCountableTopology} in Lean), which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras.
 We follow \cite{kratschmer2023kolmogorov} and do not require separability.
 
 \paragraph{Measurability}
@@ -474,7 +474,7 @@ We follow \cite{kratschmer2023kolmogorov} and do not require separability.
   \uses{def:IsKolmogorovProcess}
   \leanok
   \lean{ProbabilityTheory.IsKolmogorovProcess.aemeasurable}
-If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition, then for all $t \in T$, $X_t$ is $\mathbb{P}$-a.e. measurable.
+If $X : T \to \Omega \to E$ is a function that satisfies the Kolmogorov condition, then for all $t \in T$, $X_t$ is $\mathbb{P}$-a.e. measurable.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -1083,9 +1083,9 @@ Immediately follows from Theorem~\ref{thm:countable_set_bound}.
 \end{proof}
 
 
-\begin{lemma}\label{lem:holder_version_single}
+\begin{lemma}\label{lem:holder_modification_single}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of order $\beta$.
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of order $\beta$.
 \end{lemma}
 
 \begin{proof}
@@ -1112,7 +1112,7 @@ Then $Y$ has Hölder continuous paths of order $\beta$ almost surely.
 
 We can show that $(Y_s, Y_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$.
 
-It remains to show that $Y$ is a version of $X$.
+It remains to show that $Y$ is a modification of $X$.
 Let then $t \in T$ and let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T'$ that converges to $t$.
 We want to show that $\mathbb{P}(Y_t \ne X_t) = 0$.
 It suffices to show that $\mathbb{P}(d_E(Y_t, X_t) > 0) = 0$, which itself would follow from $\mathbb{P}(d_E(Y_t, X_t) > \varepsilon) = 0$ for all $\varepsilon > 0$.
@@ -1129,16 +1129,16 @@ TODO
 \end{proof}
 
 
-\begin{theorem}\label{thm:holder_version}
+\begin{theorem}\label{thm:holder_modification}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a version $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:holder_version_single, lem:indistinguishable_of_version_of_continuous}
+  \uses{lem:holder_modification_single, lem:indistinguishable_of_modification_of_continuous}
 Let $(\beta_n)$ be an increasing sequence of numbers in $(0, (q - d)/p)$ such that $\beta_n \to (q - d)/p$.
-For each $n$, let $Y^n$ be the version of $X$ given by Lemma~\ref{lem:holder_version_single} for $\beta = \beta_n$.
-Then by Lemma~\ref{lem:indistinguishable_of_version_of_continuous}, the processes $Y^0$ and $Y^n$ are indistinguishable for all $n$.
+For each $n$, let $Y^n$ be the modification of $X$ given by Lemma~\ref{lem:holder_modification_single} for $\beta = \beta_n$.
+Then by Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, the processes $Y^0$ and $Y^n$ are indistinguishable for all $n$.
 That is, there exists an event $A_n$ such that $\mathbb{P}(A_n) = 1$ and such that for all $\omega \in A_n$, $Y^0_t(\omega) = Y^n_t(\omega)$ for all $t \in T$.
 
 Let $A = \bigcap_{n \in \mathbb{N}} A_n$ and let $x_0 \in E$ be arbitrary.
@@ -1147,7 +1147,7 @@ Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \
 
 
 
-\subsection{Localized version of the Kolmogorov-Chentsov theorem}
+\subsection{Localized Kolmogorov-Chentsov theorem}
 
 
 \begin{definition}[Cover with bounded covering numbers]\label{def:HasBoundedCoveringNumberCover}
@@ -1190,11 +1190,11 @@ Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n
 \end{proof}
 
 
-\begin{theorem}\label{thm:localized_holder_version}
+\begin{theorem}\label{thm:localized_holder_modification}
   \uses{def:IsLocalizedKolmogorovProcess, def:HasBoundedCoveringNumberCover}
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n)$ with $q_n > d_n$.
-Then $X$ has a version $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in \bigcap_n [0, (q_n - d_n)/p_n)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in \bigcap_n [0, (q_n - d_n)/p_n)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
 Moreover, for $n \in \mathbb{N}$, $t \in T_n$, there is an open neighborhood $V_t$ of $t$ in $T$ such that for all $\beta \in [0, (q_n - d_n)/p_n)$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in V_t} \frac{d_E(Y_s, Y_t)^{p_n}}{d_T(s, t)^{\beta p_n}} \right]
@@ -1204,6 +1204,6 @@ Moreover, for $n \in \mathbb{N}$, $t \in T_n$, there is an open neighborhood $V_
 \end{theorem}
 
 \begin{proof}
-  \uses{thm:holder_version}
+  \uses{thm:holder_modification}
 
 \end{proof}

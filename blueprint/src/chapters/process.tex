@@ -1,0 +1,91 @@
+\chapter{Stochastic processes}
+\label{chap:process}
+
+Let $T$ be an index set and $\Omega$ a measurable space, with measure $\mathbb{P}$.
+A stochastic process is a function $X : T \to \Omega \to E$, where $E$ is another measurable space, such that for all $t \in T$, $X_t : \Omega \to E$ is $\mathbb{P}$-a.e. measurable.
+
+
+\begin{definition}[Law of a stochastic process]\label{def:processLaw}
+  \leanok
+The law of a stochastic process $X$ is the measure on the measurable space $E^T$ obtained by pushing forward the measure $\mathbb{P}$ by the map $\omega \mapsto X(\cdot, \omega)$.
+\end{definition}
+
+\textbf{Lean remark}: we don't use a Lean definition for the law, but write the map in full.
+
+\begin{definition}[Modification]\label{def:modification}
+  \leanok
+We say that a stochastic process $Y$ is a \emph{modification} of another stochastic process $X$ if for all $t \in T$, $Y_t =_{\mathbb{P}\text{-a.e.}} X_t$.
+\end{definition}
+
+\textbf{Lean remark}: we don't use a Lean definition for being a modification, but write explicitly the condition $\forall t \in T,\ Y_t =_{\mathbb{P}\text{-a.e.}} X_t$~.
+
+\begin{definition}[Indistinguishable]\label{def:indistinguishable}
+We say that a stochastic processes $Y$ is a \emph{indistinguishable} from $X$ if $\mathbb{P}$-a.e., for all $t \in T$, $X_t = Y_t$.
+\end{definition}
+
+A summary of the next few lemmas is this:
+\begin{itemize}
+  \item indistinguishable $\implies$ modification $\implies$ same law,
+  \item modification and continuous with $T$ separable $\implies$ indistinguishable.
+\end{itemize}
+
+
+\begin{lemma}\label{lem:Indistinguishable.Modification}
+  \uses{def:indistinguishable, def:modification}
+If $Y$ is indistinguishable from $X$, then $Y$ is a modification of $X$.
+\end{lemma}
+
+\begin{proof}
+Obvious.
+\end{proof}
+
+
+\begin{lemma}\label{lem:map_eq_of_modification}
+  \uses{def:modification}
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other.
+Then for all $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has the same distribution as the random vector $(Y_{t_1}, \ldots, Y_{t_n})$.
+That is, $X$ and $Y$ have same finite-dimensional distributions.
+\end{lemma}
+
+\begin{proof}
+For all measurable sets $A \subseteq E^n$, we have
+\begin{align*}
+  \vert \mathbb{P}((X_{t_1}, \ldots, X_{t_n}) \in A) - \mathbb{P}((Y_{t_1}, \ldots, Y_{t_n}) \in A) \vert
+  &\le \mathbb{P}(\exists i \in [n], X_{t_i} \ne Y_{t_i})
+  \\
+  &\le \sum_{i=1}^n \mathbb{P}(X_{t_i} \ne Y_{t_i})
+  \\
+  &= 0
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:map_eq_iff}
+  \uses{def:processLaw}
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes.
+Then $X$ and $Y$ have same finite-dimensional distributions if and only if they have the same law.
+\end{lemma}
+
+\begin{proof}
+TODO: consider the $\pi$-system of cylinder sets.
+\end{proof}
+
+
+\begin{lemma}\label{lem:indistinguishable_of_modification_of_continuous}
+  \uses{def:modification, def:indistinguishable}
+Let $T$ and $E$ be topological spaces and suppose that $T$ is separable Hausdorff.
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other and are almost surely continuous.
+Then $X$ and $Y$ are indistinguishable.
+\end{lemma}
+
+\begin{proof}
+Since $T$ is separable, it has a countable dense subset $D$.
+Since $D$ is countable,
+\begin{align*}
+  (\forall t \in D, \mathbb{P}\text{-a.e.}, X_t = Y_t)
+  \iff (\mathbb{P}\text{-a.e.}, \forall t \in D, X_t = Y_t)
+\end{align*}
+Hence by the modification property we have that almost surely, for all $t \in D$, $X_t = Y_t$.
+Then almost surely $X$ and $Y$ are continuous functions which are equal on a dense subset of $T$: those two functions are equal everywhere.
+\end{proof}
