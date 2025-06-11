@@ -73,14 +73,19 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
     fun_prop
   sorry
 
+lemma ContinuousMap.measurableSpace_eq_iSup_comap_eval
+    [SecondCountableTopology X] [SecondCountableTopology Y]
+    [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
+    (inferInstance : MeasurableSpace C(X, Y))
+      = ⨆ a : X, (inferInstance : MeasurableSpace Y).comap fun b ↦ b a := by
+  simp_rw [BorelSpace.measurable_eq, borel_eq_iSup_comap_eval]
+
 lemma ContinuousMap.measurable_iff_eval {α : Type*} [MeasurableSpace α]
     [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y]
     (g : α → C(X, Y)) :
     Measurable g ↔ ∀ (x : X), Measurable fun (a : α) ↦ g a x := by
-  rw [BorelSpace.measurable_eq (α := C(X, Y))]
-  simp_rw [BorelSpace.measurable_eq (α := Y), ContinuousMap.borel_eq_iSup_comap_eval,
-    measurable_iff_comap_le,
+  simp_rw [ContinuousMap.measurableSpace_eq_iSup_comap_eval, measurable_iff_comap_le,
     MeasurableSpace.comap_iSup, iSup_le_iff, MeasurableSpace.comap_comp, Function.comp_def]
 
 end ContinuousMap.MeasurableSpace
