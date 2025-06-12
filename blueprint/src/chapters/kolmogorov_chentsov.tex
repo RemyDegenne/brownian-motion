@@ -1168,6 +1168,7 @@ Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \
 
 \subsection{Localized Kolmogorov-Chentsov theorem}
 
+TODO: this section will be reworked. Don't formalize it yet.
 
 \begin{definition}[Cover with bounded covering numbers]\label{def:HasBoundedCoveringNumberCover}
   \uses{def:HasBoundedInternalCoveringNumber}
@@ -1187,6 +1188,7 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 
 \begin{definition}[Localized Kolmogorov conditions]\label{def:IsLocalizedKolmogorovProcess}
   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \notready
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
 \begin{align*}
@@ -1199,6 +1201,7 @@ A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov
 
 \begin{lemma}\label{lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover, def:IsLocalizedKolmogorovProcess}
+  \notready
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > \sup_n d_n$.
 Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n) = (p, q)$, constants $M_n = M$ and any $\rho_n > 0$.
@@ -1211,6 +1214,7 @@ Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n
 
 \begin{theorem}\label{thm:localized_holder_modification}
   \uses{def:IsLocalizedKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \notready
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n)$ with $q_n > d_n$.
 Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in \bigcap_n [0, (q_n - d_n)/p_n)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
