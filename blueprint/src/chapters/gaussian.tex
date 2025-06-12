@@ -68,11 +68,6 @@ A Gaussian measure is a probability measure.
 \end{proof}
 
 
-\begin{definition}[Centered measure]\label{def:IsCentered}
-A measure $\mu$ on $F$ is centered if for every continuous linear form $L \in F^*$, $\mu[L] = 0$.
-\end{definition}
-
-
 \begin{theorem}\label{thm:isGaussian_iff_charFunDual_eq}
   \uses{def:IsGaussian, def:charFunDual}
   \mathlibok
@@ -278,7 +273,7 @@ The standard Gaussian measure on $E$ is the pushforward measure of the product m
 The fact that this definition does not depend on the choice of basis will be a consequence of the fact that its characteristic function does not depend on the basis.
 
 \begin{lemma}\label{lem:isCentered_stdGaussian}
-  \uses{def:stdGaussian, def:IsCentered}
+  \uses{def:stdGaussian}
 The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
 \end{lemma}
 
