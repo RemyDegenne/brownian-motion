@@ -647,6 +647,8 @@ This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
   \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_of_dist_le}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
 Then for $c \ge 0$,
@@ -688,6 +690,8 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
@@ -730,6 +734,8 @@ We thus get $\varepsilon_0 2^{-m} \le \delta$.
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
   \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_succ}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $j < k$,
@@ -753,6 +759,8 @@ We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set
 
 \begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
 Let $X : T \to \Omega \to E$ be a stochastic process.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 For $m \le k$,
@@ -784,6 +792,8 @@ And then, by Minkowski's inequality,
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
   \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 Then for $m \le k$,
@@ -802,6 +812,8 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
@@ -833,12 +845,14 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
 
 \begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_two}
 Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
   \\
-  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \: .
 \end{align*}
 \end{corollary}
@@ -854,6 +868,8 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le}
 Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 For all $\delta > 0$,
@@ -886,7 +902,7 @@ By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:i
   &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
   \: . \\
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}
+  &\le2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \: .
 \end{align*}
 Putting these two inequalities together, we obtain
@@ -894,7 +910,7 @@ Putting these two inequalities together, we obtain
   &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + 2^d c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
+    + 2^d c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{\left(2^{(q -d)/p} - 1\right)^p}\right)
   \: .
 \end{align*}
 TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
@@ -903,9 +919,6 @@ We obtain
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + c_1 2^d \delta^{q - d} \frac{1}{\left( 1 - 2^{- (q -d)/p}\right)^p}\right)
-  \\
-  &=   4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + c_1 2^q \delta^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \\
   &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
@@ -917,6 +930,8 @@ We obtain
 
 \begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_le_diam}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam}
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \in (0, 4\mathrm{diam}(T))$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -944,6 +959,8 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 \subsection{Sets with bounded internal covering number}
 
 \begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_div_edist_le_sum_integral_edist_le}
 Let $J \subseteq T$ be a finite set and suppose that $T$ has finite diameter.
 For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$.
 For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
@@ -971,6 +988,8 @@ Note that $\eta_k \ge 2^{-k}$.
 
 \begin{lemma}\label{lem:finite_set_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.finite_kolmogorov_chentsov, ProbabilityTheory.constL_lt_top}
 Suppose that $J \subseteq T$ is a finite set and that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
