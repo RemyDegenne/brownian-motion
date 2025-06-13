@@ -272,12 +272,32 @@ The standard Gaussian measure on $E$ is the pushforward measure of the product m
 
 The fact that this definition does not depend on the choice of basis will be a consequence of the fact that its characteristic function does not depend on the basis.
 
-\begin{lemma}\label{lem:isCentered_stdGaussian}
-  \uses{def:stdGaussian}
-The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
+
+\begin{lemma}\label{lem:integral_eval_pi}
+  \leanok
+  \lean{ProbabilityTheory.integral_eval_pi}
+For $\mu_1, \ldots, \mu_d$ probability measures on $\mathbb{R}$ and $f : \mathbb{R} \to \mathbb{R}$ integrable with respect to $\mu_i$, we have
+\begin{align*}
+  \int_x f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x)
+  = \int_x f(x_i) \, d\mu_i
+  \: .
+\end{align*}
 \end{lemma}
 
 \begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isCentered_stdGaussian}
+  \uses{def:stdGaussian}
+  \leanok
+  \lean{ProbabilityTheory.isCentered_stdGaussian}
+The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:integral_eval_pi}
 
 \end{proof}
 
@@ -324,11 +344,13 @@ That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
 
 \begin{lemma}\label{lem:integral_id_stdGaussian}
   \uses{def:stdGaussian}
+  \leanok
+  \lean{ProbabilityTheory.integral_id_stdGaussian}
 The mean of the standard Gaussian measure is $0$.
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:isCentered_stdGaussian}
+\begin{proof}\leanok
+  \uses{lem:integral_eval_pi}
 
 \end{proof}
 

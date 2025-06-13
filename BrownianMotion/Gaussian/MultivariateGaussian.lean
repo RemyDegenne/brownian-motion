@@ -45,6 +45,26 @@ lemma integral_eval_pi {i : Fin d} {μ : Fin d → Measure ℝ} [∀ i, IsProbab
     ∫ (a : Fin d → ℝ), f (a i) ∂Measure.pi μ = ∫ x, f x ∂μ i := by
   sorry
 
+lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
+  rw [stdGaussian, integral_map _ (by fun_prop)]
+  swap; · exact (Finset.measurable_sum _ (by fun_prop)).aemeasurable -- todo: add fun_prop tag
+  rw [integral_finset_sum]
+  swap
+  · refine fun i _ ↦ Integrable.smul_const ?_ _
+    convert integrable_eval_pi (i := i) (f := id) ?_
+    · infer_instance
+    · rw [← memLp_one_iff_integrable]
+      exact memLp_id_gaussianReal 1
+  refine Finset.sum_eq_zero fun i _ ↦ ?_
+  have : (∫ (a : Fin (Module.finrank ℝ E) → ℝ), a i ∂Measure.pi fun x ↦ gaussianReal 0 1)
+      = ∫ x, x ∂gaussianReal 0 1 := by
+    convert integral_eval_pi (i := i) ?_
+    · rfl
+    · infer_instance
+    · rw [← memLp_one_iff_integrable]
+      exact memLp_id_gaussianReal 1
+  simp [integral_smul_const, this]
+
 lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   intro L
   rw [stdGaussian, integral_map _ (by fun_prop)]
