@@ -14,3 +14,5 @@ For more information, see [the project home page](https://remydegenne.github.io/
 Zulip channel for discussion: [zulip link](https://leanprover.zulipchat.com/#narrow/channel/509433-Brownian-motion)
 
 The project is ongoing and contributions are welcome.
+
+Our github project uses the [Leanblueprint](https://github.com/PatrickMassot/leanblueprint) tool by Patrick Massot and a lot of code from the [LeanProject](https://github.com/pitmonticone/LeanProject) template by Pietro Monticone.
