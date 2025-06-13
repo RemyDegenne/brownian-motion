@@ -84,6 +84,27 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
   simp_rw [← mul_assoc]
   rw [mul_comm (x j)]
 
+lemma covMatrix_toBilin (x y : E) :
+    (covMatrix μ).toBilin (stdOrthonormalBasis ℝ E).toBasis x y =
+    covInnerBilin μ x y := by
+  simp only [Matrix.toBilin_apply, OrthonormalBasis.coe_toBasis_repr_apply]
+  nth_rw 2 [← (stdOrthonormalBasis ℝ E).sum_repr x, ← (stdOrthonormalBasis ℝ E).sum_repr y]
+  simp_rw [covMatrix]
+  simp only [Matrix.of_apply, map_sum, map_smul, ContinuousLinearMap.coe_sum',
+    ContinuousLinearMap.coe_smul', Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+  simp_rw [Finset.mul_sum]
+  conv_lhs => enter [2]; intro i; enter [2]; intro j; rw [mul_comm]
+  rw [Finset.sum_comm]
+
+lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
+    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [CompleteSpace F] [FiniteDimensional ℝ F]
+    [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (i j : Fin (Module.finrank ℝ F)) :
+    covMatrix (μ.map L) i j =
+    (covMatrix μ).toBilin (stdOrthonormalBasis ℝ E).toBasis
+      (L.adjoint (stdOrthonormalBasis ℝ F i))
+      (L.adjoint (stdOrthonormalBasis ℝ F j)) := by
+  rw [covMatrix_toBilin, covMatrix, Matrix.of_apply, covInnerBilin_map h]
+
 lemma posSemidef_covMatrix [IsGaussian μ] : (covMatrix μ).PosSemidef := by
   constructor
   · simp only [Matrix.IsHermitian, covMatrix, Matrix.conjTranspose_eq_transpose_of_trivial]
