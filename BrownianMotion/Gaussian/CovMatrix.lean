@@ -53,7 +53,7 @@ lemma covInnerBilin_self_nonneg [CompleteSpace E] [IsFiniteMeasure μ] (h : MemL
   exact variance_nonneg _ μ
 
 lemma covInnerBilin_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
-    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [CompleteSpace F] [FiniteDimensional ℝ F]
+    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [FiniteDimensional ℝ F]
     [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (u v : F) :
     covInnerBilin (μ.map L) u v = covInnerBilin μ (L.adjoint u) (L.adjoint v) := by
   rw [covInnerBilin_apply, covInnerBilin_apply h]
@@ -142,7 +142,7 @@ lemma _root_.OrthonormalBasis.toBilin_apply_eq_dotProduct {n E : Type*} [NormedA
     OrthonormalBasis.inner_eq_ite]
 
 lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
-    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [CompleteSpace F] [FiniteDimensional ℝ F]
+    [MeasurableSpace F] [BorelSpace F] [FiniteDimensional ℝ F]
     [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (i j : Fin (Module.finrank ℝ F)) :
     covMatrix (μ.map L) i j =
     ⟪(L.adjoint (stdOrthonormalBasis ℝ F i)),
