@@ -175,12 +175,59 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
   gcongr <;> simpa only [inv_eq_one_div] using ENNReal.sum_geometric_two_le _
 
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
-    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) :
+    (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
     ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t)
-    ≤ ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
-        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m))
+    ≤ (⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)))
       + 2 * ⨆ (s) (hs : s ∈ C k), edist (X s) (X (chainingSequence hC hs m)) := by
-  sorry
+  -- We will be using `iSup_add` later, so we need to bundle the suprema so that we only take
+  -- suprema over nonempty index types.
+  conv_lhs => congr; ext; rw [iSup_comm]
+  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+  conv_rhs => congr; congr; ext; rw [iSup_comm]
+  conv_rhs => congr; rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+  conv_rhs => right; right; rw [iSup_subtype']
+
+  -- Introduce some notation to make the goals easier to read
+  let Ck := { s : E // s ∈ C k }
+  let Ck' (s : Ck) := { t : Ck // edist s.1 t.1 ≤ δ }
+  have (s : Ck) : Nonempty (Ck' s) := ⟨⟨s, by simp⟩⟩
+  let c (s : Ck) := chainingSequence hC s.2 m
+
+  -- Trivial case: `C k` is empty
+  refine (isEmpty_or_nonempty Ck).elim (fun _ => by simp) (fun _ => ?_)
+
+  calc ⨆ (s : Ck) (t : Ck' s), edist (X s) (X t)
+      ≤ ⨆ (s : C k) (t : Ck' s),
+          edist (X s) (X (c s)) + edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ = ⨆ (s : C k), edist (X s) (X (c s))
+          + ⨆ (t : Ck' s), edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ ≤ (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck) (t : Ck' s), edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ = (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck) (t : Ck' s), edist (X (c t)) (X (c s)) + edist (X (c s)) (X s) := ?_
+    _ = (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck), (⨆ (t : Ck' s), edist (X (c t)) (X (c s))) + edist (X (c s)) (X s) := ?_
+    _ ≤ (⨆ (s : C k), edist (X s) (X (c s)))
+          + (⨆ (s : Ck) (t : Ck' s),
+              edist (X (c t)) (X (c s))) + ⨆ (s : Ck), edist (X (c s)) (X s) := ?_
+    _ = (⨆ (s : Ck) (t : Ck' s), edist (X (c s)) (X (c t)))
+          + 2 * (⨆ (s : Ck), edist (X s) (X (c s))) := ?_
+  · gcongr with s t
+    exact le_trans (edist_triangle _ (X (c t)) _) (by gcongr; apply edist_triangle)
+  · simp only [ENNReal.add_iSup, add_assoc]
+  · exact iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)
+  · congr 1
+    conv_lhs => congr; ext s; rw [iSup_subtype]
+    rw [iSup_comm]
+    conv_lhs => congr; ext s; congr; ext t; simp only [edist_comm t.1 s.1]
+    conv_lhs => congr; ext s; rw [iSup_subtype']
+  · simp only [ENNReal.iSup_add]
+  · rw [add_assoc]
+    exact add_le_add_left (iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)) _
+  · conv_lhs => right; congr; ext s; rw [edist_comm]
+    conv_rhs => left; congr; ext s; congr; ext t; rw [edist_comm]
+    ring
 
 lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :
