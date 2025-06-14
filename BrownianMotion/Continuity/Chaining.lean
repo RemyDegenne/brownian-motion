@@ -183,12 +183,12 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
   sorry
 
 lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
-    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) (p : ℝ≥0) :
-    ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t) ^ (p : ℝ)
-    ≤ 2 ^ (p : ℝ) * ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
-        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)) ^ (p : ℝ)
-      + 4 ^ (p : ℝ) * ⨆ (s) (hs : s ∈ C k),
-        edist (X s) (X (chainingSequence hC hs m)) ^ (p : ℝ) := by
+    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :
+    ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t) ^ p
+    ≤ 2 ^ p * ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)) ^ p
+      + 4 ^ p * ⨆ (s) (hs : s ∈ C k),
+        edist (X s) (X (chainingSequence hC hs m)) ^ p := by
   sorry
 
 end Sequence
