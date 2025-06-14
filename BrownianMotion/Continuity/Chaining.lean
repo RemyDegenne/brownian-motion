@@ -126,14 +126,14 @@ lemma chainingSequence_mem (hC : ∀ i, IsCover (C i) (ε i) A) (hA : A.Nonempty
   omega
 
 lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A)
-    (hCA : ∀ i, (C i : Set E) ⊆ A)(hxA : x ∈ C k) (n : ℕ) (hn : n < k) :
+    (hCA : ∀ i, (C i : Set E) ⊆ A) (hxA : x ∈ C k) (n : ℕ) (hn : n < k) :
     edist (chainingSequence hC hxA (n + 1)) (chainingSequence hC hxA n) ≤ ε n := by
   rw [chainingSequence_of_lt _ _ hn]
   apply edist_nearestPt_of_isCover (hC n)
   exact hCA (n + 1) (chainingSequence_mem _ ⟨x, hCA k hxA⟩ _ _ (by omega))
 
 lemma edist_chainingSequence_le_sum (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ i, (C i : Set E) ⊆ A)
-    (hxA : x ∈ C k) (m : ℕ)  (hm : m ≤ k) :
+    (hxA : x ∈ C k) (m : ℕ) (hm : m ≤ k) :
     edist (chainingSequence hC hxA m) x ≤ ∑ i ∈ Finset.range (k - m), ε (m + i) := by
   refine le_trans ?_ (Finset.sum_le_sum
     (fun i hi => edist_comm (α := E) _ _ ▸ edist_chainingSequence_add_one hC hCA hxA (m + i) ?_))
