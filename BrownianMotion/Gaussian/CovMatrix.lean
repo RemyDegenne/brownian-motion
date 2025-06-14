@@ -92,64 +92,15 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
   simp_rw [← mul_assoc]
   rw [mul_comm (x j)]
 
-section toBilin
-
-variable {𝕜 E : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-  (f : E →L[𝕜] E →L[𝕜] 𝕜)
-
-def _root_.ContinuousLinearMap.toBilin : LinearMap.BilinForm 𝕜 E where
-  toFun x := (f x).toLinearMap
-  map_add' x y := by simp
-  map_smul' m x := by simp
-
-@[simp]
-lemma _root_.ContinuousLinearMap.toBilin_apply (x y : E) : f.toBilin x y = f x y := rfl
-
-lemma _root_.ContinuousLinearMap.toBilin_apply' (x : E) : f.toBilin x = (f x).toLinearMap := rfl
-
-end toBilin
-
-lemma covMatrix_toBilin :
-    (covMatrix μ).toBilin (stdOrthonormalBasis ℝ E).toBasis = (covInnerBilin μ).toBilin := by
-  apply LinearMap.BilinForm.ext_basis (stdOrthonormalBasis ℝ E).toBasis
-  simp [covMatrix]
-
-lemma _root_.OrthonormalBasis.inner_eq_ite {ι 𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
-    [InnerProductSpace 𝕜 E] [Fintype ι] [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) {i j : ι} :
-    ⟪b i, b j⟫_𝕜 = if i = j then 1 else 0 := by
-  split_ifs with h
-  · simp [h, inner_self_eq_norm_sq_to_K]
-  · simp [h]
-
-lemma _root_.OrthonormalBasis.toBilin_apply_eq_dotProduct {n E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] [Fintype n] [DecidableEq n] (b : OrthonormalBasis n ℝ E) (x y : E)
-    (A : Matrix n n ℝ) : A.toBilin b.toBasis x y = ⟪x, A.toLin b.toBasis b.toBasis y⟫_ℝ := by
-  let f : LinearMap.BilinForm ℝ E :=
-    { toFun x :=
-        { toFun y := ⟪x, A.toLin b.toBasis b.toBasis y⟫_ℝ
-          map_add' y z := by simp [inner_add_right]
-          map_smul' m y := by simp [inner_smul_right] }
-      map_add' x y := by
-        ext z
-        simp [inner_add_left]
-      map_smul' m x := by
-        ext z
-        simp [inner_smul_left] }
-  change _ = f x y
-  revert x y
-  refine LinearMap.BilinForm.ext_iff.1 <| LinearMap.BilinForm.ext_basis b.toBasis ?_
-  simp [f, Matrix.toLin_apply, Matrix.mulVec, dotProduct, inner_sum, inner_smul_right,
-    OrthonormalBasis.inner_eq_ite]
-
 lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
     [MeasurableSpace F] [BorelSpace F] [FiniteDimensional ℝ F]
     [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (i j : Fin (Module.finrank ℝ F)) :
     covMatrix (μ.map L) i j =
-    ⟪(L.adjoint (stdOrthonormalBasis ℝ F i)),
-    (covMatrix μ).toLin (stdOrthonormalBasis ℝ E).toBasis (stdOrthonormalBasis ℝ E).toBasis
-    (L.adjoint (stdOrthonormalBasis ℝ F j))⟫_ℝ := by
-  rw [← OrthonormalBasis.toBilin_apply_eq_dotProduct, covMatrix_toBilin,
-    ContinuousLinearMap.toBilin_apply, covMatrix, Matrix.of_apply, covInnerBilin_map h]
+    (stdOrthonormalBasis ℝ E).repr (L.adjoint (stdOrthonormalBasis ℝ F i)) ⬝ᵥ
+    ((covMatrix μ).mulVec
+    ((stdOrthonormalBasis ℝ E).repr (L.adjoint (stdOrthonormalBasis ℝ F j)))) := by
+  rw [dotProduct_covMatrix_mulVec, (stdOrthonormalBasis ℝ E).sum_repr,
+    (stdOrthonormalBasis ℝ E).sum_repr, covMatrix, Matrix.of_apply, covInnerBilin_map h]
 
 lemma posSemidef_covMatrix [IsGaussian μ] : (covMatrix μ).PosSemidef := by
   constructor
