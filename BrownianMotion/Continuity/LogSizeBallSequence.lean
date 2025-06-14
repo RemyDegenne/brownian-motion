@@ -19,20 +19,18 @@ lemma exists_radius_le (t : T) (V : Finset T) (ha : 1 < a) (c : ℝ≥0∞) :
     ∃ r : ℕ, 1 ≤ r ∧ #(V.filter fun x ↦ edist t x ≤ r * c) ≤ a ^ r := by
   obtain ⟨r, hr1, hr⟩ : ∃ r : ℕ, 1 ≤ r ∧ #V ≤ a ^ r := by
     use ⌈Real.logb (a.toReal) #V⌉₊ + 1, by simp
-    by_cases h1 : a = ∞; simp [h1]
-    by_cases h2 : #V = 0; simp [h2]
-    have h : #V ≤ a.toReal ^ (⌈Real.logb (a.toReal) #V⌉₊ + 1 : ℝ) := by
-      rw [← Real.logb_le_iff_le_rpow]
-      · apply le_trans (Nat.le_ceil _)
-        simp
-      · rw [← ENNReal.toReal_one]; gcongr; simp [h1]
-      · rw [← Nat.cast_zero]; gcongr; exact Nat.zero_lt_of_ne_zero h2
-    rw [ENNReal.toReal_rpow] at h
-    sorry
-    -- apply ENNReal.ofReal_le_of_le_toReal at h
-    -- rw [← ENNReal.rpow_natCast]
-    -- refine le_trans ?_ h
-
+    by_cases h1 : a = ∞
+    · simp [h1]
+    by_cases h2 : #V = 0
+    · simp [h2]
+    rw [← ENNReal.toReal_le_toReal, ← ENNReal.rpow_natCast, ← ENNReal.toReal_rpow,
+      ← Real.logb_le_iff_le_rpow]
+    · apply le_trans (Nat.le_ceil _); simp
+    · rw [← ENNReal.toReal_one]; gcongr; simp [h1]
+    · simp [← Finset.card_ne_zero, h2]
+    · apply (ENNReal.top_ne_natCast _).symm
+    · apply ENNReal.pow_ne_top h1
+  exact ⟨r, hr1, le_trans (mod_cast Finset.card_filter_le V _) hr⟩
 
 open Classical in
 noncomputable
@@ -117,15 +115,6 @@ lemma radius_logSizeBallSeq_add_one (hJ : J.Nonempty) (i : ℕ) :
       = logSizeRadius (logSizeBallSeq J hJ a c (i + 1)).point
           (logSizeBallSeq J hJ a c (i + 1)).finset a c := rfl
 
-lemma radius_logSizeBallSeq_le (hJ : J.Nonempty) (hA : 1 < a) (hn : 1 ≤ n) (hJ_card : #J ≤ a ^ n)
-    (i : ℕ) : (logSizeBallSeq J hJ a c i).radius ≤ n := by
-  match i with
-  | 0 =>
-      simp only [radius_logSizeBallSeq_zero, logSizeRadius, hA, ↓reduceDIte]
-      exact Nat.find_min' _ ⟨hn, le_trans (by gcongr; apply Finset.filter_subset) hJ_card⟩
-  | i + 1 =>
-      sorry
-
 lemma finset_logSizeBallSeq_add_one_subset (hJ : J.Nonempty) (i : ℕ) :
     (logSizeBallSeq J hJ a c (i + 1)).finset ⊆ (logSizeBallSeq J hJ a c i).finset := by
   simp [finset_logSizeBallSeq_add_one]
@@ -133,6 +122,20 @@ lemma finset_logSizeBallSeq_add_one_subset (hJ : J.Nonempty) (i : ℕ) :
 lemma antitone_logSizeBallSeq_add_one_subset (hJ : J.Nonempty) :
     Antitone (fun i ↦ (logSizeBallSeq J hJ a c i).finset) :=
   antitone_nat_of_succ_le (finset_logSizeBallSeq_add_one_subset hJ)
+
+lemma radius_logSizeBallSeq_le (hJ : J.Nonempty) (ha : 1 < a) (hn : 1 ≤ n) (hJ_card : #J ≤ a ^ n)
+    (i : ℕ) : (logSizeBallSeq J hJ a c i).radius ≤ n := by
+  induction i with
+  | zero =>
+      simp only [radius_logSizeBallSeq_zero, logSizeRadius, ha, ↓reduceDIte]
+      exact Nat.find_min' _ ⟨hn, le_trans (by gcongr; apply Finset.filter_subset) hJ_card⟩
+  | succ i ih =>
+      simp only [radius_logSizeBallSeq_add_one, logSizeRadius, ha, ↓reduceDIte]
+      refine Nat.find_min' _ ⟨hn, le_trans ?_ hJ_card⟩
+      gcongr
+      apply subset_trans (Finset.filter_subset _ _)
+      apply subset_trans <| (antitone_logSizeBallSeq_add_one_subset hJ) (zero_le (i + 1))
+      simp [finset_logSizeBallSeq_zero]
 
 lemma point_mem_finset_logSizeBallSeq (hJ : J.Nonempty) (i : ℕ)
     (h : (logSizeBallSeq J hJ a c i).finset.Nonempty) :
@@ -150,8 +153,7 @@ lemma point_mem_logSizeBallSeq_zero (hJ : J.Nonempty) (i : ℕ) :
   | succ i ih =>
       by_cases h : (logSizeBallSeq J hJ a c (i + 1)).finset.Nonempty
       · refine Finset.mem_of_subset ?_ (point_mem_finset_logSizeBallSeq hJ (i + 1) h)
-        apply subset_trans
-        · exact (antitone_logSizeBallSeq_add_one_subset (a := a) (c := c) hJ) (zero_le (i + 1))
+        apply subset_trans <| (antitone_logSizeBallSeq_add_one_subset hJ) (zero_le (i + 1))
         simp [finset_logSizeBallSeq_zero]
       simp [point_logSizeBallSeq_add_one, ih, h]
 
@@ -233,7 +235,7 @@ lemma card_pairSet_le (ha : 1 < a) (hJ_card : #J ≤ a ^ n) :
     #(pairSet J a c) ≤ a * #J := by
     have : #(pairSet J a c) ≤ ∑ i ∈ Finset.range #J, #(pairSetSeq J a c i) := by
       exact Finset.card_biUnion_le
-    sorry
+
 
 -- rᵢ = (logSizeBallSeq J hJ a c i).radius
 -- logSizeBallStruct
