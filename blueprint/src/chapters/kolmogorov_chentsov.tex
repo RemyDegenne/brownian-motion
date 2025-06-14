@@ -296,6 +296,7 @@ The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ 
 \end{lemma}
 
 \begin{proof}
+\leanok
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$.
 \end{proof}
 
@@ -308,6 +309,7 @@ For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
 \end{proof}
@@ -321,6 +323,7 @@ For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 Assume w.l.o.g. that $i < j$.
 Then $B_{V_j}(t_j, (r_j-1)c) \subseteq V_j \subseteq V_{i+1}$.
