@@ -148,7 +148,7 @@ Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n
 Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:dist_nearestPt_of_isCover, lem:chainingSequence_mem}
 Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_{i+1}$.
 \end{proof}
@@ -162,7 +162,7 @@ Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n
 Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:dist_chainingSequence_add_one}
 By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
 \begin{align*}
@@ -187,7 +187,7 @@ Then
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:dist_chainingSequence_le_sum}
 Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
 \end{proof}
@@ -205,7 +205,7 @@ For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{le
 \end{align*}
 \end{corollary}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:dist_chainingSequence_le}
 
 \end{proof}
