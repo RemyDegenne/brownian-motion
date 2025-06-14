@@ -52,13 +52,21 @@ lemma covInnerBilin_self_nonneg [CompleteSpace E] [IsFiniteMeasure μ] (h : MemL
   rw [covInnerBilin_self h]
   exact variance_nonneg _ μ
 
-variable [FiniteDimensional ℝ E]
-
 lemma covInnerBilin_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
-    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [CompleteSpace F] [IsFiniteMeasure μ]
-    (h : MemLp id 2 μ) (L : E →L[ℝ] F) (u v : F) :
+    [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [CompleteSpace F] [FiniteDimensional ℝ F]
+    [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (u v : F) :
     covInnerBilin (μ.map L) u v = covInnerBilin μ (L.adjoint u) (L.adjoint v) := by
-  sorry
+  rw [covInnerBilin_apply, covInnerBilin_apply h]
+  · have : ∫ x, id x ∂μ.map L = L (∫ x, x ∂μ) := by
+      rw [integral_map (by fun_prop) (by fun_prop)]
+      change ∫ x, L (id x) ∂μ = _
+      simp_rw [L.integral_comp_comm (h.integrable (by norm_num)), id]
+    rw [this, integral_map]
+    · simp_rw [← map_sub, ← L.adjoint_inner_left, id]
+    all_goals fun_prop
+  · exact memLp_map_measure_iff (by fun_prop) (by fun_prop) |>.2 (L.comp_memLp' h)
+
+variable [FiniteDimensional ℝ E]
 
 /-- Covariance matrix of a measure on a finite dimensional inner product space. -/
 noncomputable
