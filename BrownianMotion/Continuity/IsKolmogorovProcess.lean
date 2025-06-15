@@ -88,7 +88,6 @@ variable {J : Set T}
 
 lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
-    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
     (hC_card : #C = internalCoveringNumber ε J)
     {c : ℝ≥0∞} (hc : c ≠ 0) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ C) (_ht : t ∈ C) (_hd : edist s t ≤ c),
