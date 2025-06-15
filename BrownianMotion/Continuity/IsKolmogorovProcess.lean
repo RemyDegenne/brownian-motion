@@ -106,9 +106,7 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
   let rbar := 1 + Nat.log2 (#C)
   have h₀ : #C ≤ 2 ^ rbar := by simpa [rbar, add_comm 1] using le_of_lt Nat.lt_log2_self
   have h₀' : (#C : ℝ≥0∞) ≤ 2 ^ rbar := by norm_cast
-  have h₁ : 2 ^ rbar ≤ 2 * #C := by simpa [rbar, Nat.pow_add] using Nat.log2_self_le hC₀
-  have h₂ : rbar ≤ 1 + Nat.log2 #C := by simp [rbar, Nat.log2_eq_log_two]
-  have h₃ : rbar ≤ 2 * Nat.log2 #C := by
+  have h₁ : rbar ≤ 2 * Nat.log2 #C := by
     suffices 1 ≤ Nat.log2 #C by omega
     rw [Nat.le_log2] <;> omega
 
