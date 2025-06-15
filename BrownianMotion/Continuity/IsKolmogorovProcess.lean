@@ -176,12 +176,38 @@ section SecondTerm
 
 variable {J : Set T} {C : ℕ → Finset T} {ε : ℕ → ℝ≥0∞} {j k m : ℕ}
 
-lemma lintegral_sup_rpow_edist_succ (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hjk : j < k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
         edist (X (chainingSequence hC ht j) ω) (X (chainingSequence hC ht (j + 1)) ω) ^ p ∂P
       ≤ #(C (j + 1)) * M * ε j ^ q := by
-  sorry
+  refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all) (fun hJ => ?_)
+
+  -- Define the set `C'`, which is called `C` in the blueprint
+  let f₀ : { x : T // x ∈ C (j + 1) } → T × T := fun x => (chainingSequence hC x.2 j, x.1)
+  have hf₀ : Function.Injective f₀ := fun x y h => Subtype.ext (congrArg Prod.snd h)
+  let C' : Finset (T × T) := (C (j + 1)).attach.map ⟨f₀, hf₀⟩
+  have hC' : #C' = #(C (j + 1)) := by simp [C']
+
+  -- First step: reindex from a `C k`-indexed supremum to a `C'`-indexed supremum
+  let f (ω : Ω) : { x : T × T // x ∈ C' } → ℝ≥0∞ :=
+    fun x => (edist (X x.1.1 ω) (X x.1.2 ω)) ^ p
+  let g (ω : Ω) : { x : T // x ∈ C k } → { x : T × T // x ∈ C' } :=
+    fun x => ⟨f₀ ⟨chainingSequence hC x.2 (j + 1),
+      chainingSequence_mem hC hJ x.2 (j + 1) (by omega)⟩, by simp [C']⟩
+  have hle := lintegral_mono_fn (μ := P) (fun ω => iSup_comp_le (f ω) (g ω))
+  simp only [f, g, f₀] at hle
+  conv_lhs at hle =>
+    right; ext ω; congr; ext x;
+      rw [chainingSequence_chainingSequence _ hJ _ _ (by omega) _ (by omega)]
+  simp only [iSup_subtype] at hle
+
+  -- Second step: apply previous results
+  refine hle.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hq hX (ε := ε j) C' ?_)
+  rintro u hu
+  obtain ⟨u, hu, rfl⟩ := Finset.mem_map.1 hu
+  simp only [Function.Embedding.coeFn_mk, f₀]
+  apply edist_chainingSequence_add_one_self _ hC_subset
 
 lemma lintegral_sup_rpow_edist_le_sum_rpow (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :

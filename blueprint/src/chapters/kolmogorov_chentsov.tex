@@ -746,11 +746,11 @@ Then for $j < k$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_le_card_mul_rpow}
 \begin{align*}
   \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
-  &\le \mathbb{E}\left[\sum_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
+  &\le \mathbb{E}\left[\sup_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
   \: .
 \end{align*}
 We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
