@@ -121,6 +121,7 @@ section FirstTerm
 
 variable {J : Set T}
 
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
     (hC_card : #C = internalCoveringNumber ε J)
@@ -144,7 +145,8 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     suffices 1 ≤ Nat.log2 #C by omega
     rw [Nat.le_log2] <;> omega
 
-  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀' (by norm_num) hc).trans ?_
+  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hp hq hX h₀' (by norm_num) hc).trans
+    ?_
   simp only [← hC_card, ENat.toNat_coe, ENat.toENNReal_coe]
   calc 2 ^ p * 2 * #C * M * (c * rbar) ^ q = 2 ^ (p + 1) * M * (c * rbar) ^ q * #C := ?_
     _ ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 #C) ^ q * #C := ?_
@@ -176,6 +178,7 @@ section SecondTerm
 
 variable {J : Set T} {C : ℕ → Finset T} {ε : ℕ → ℝ≥0∞} {j k m : ℕ}
 
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hjk : j < k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
