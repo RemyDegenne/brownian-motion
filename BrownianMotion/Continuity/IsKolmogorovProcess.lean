@@ -121,6 +121,7 @@ section FirstTerm
 
 variable {J : Set T}
 
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
     (hC_card : #C = internalCoveringNumber ε J)
@@ -177,6 +178,7 @@ section SecondTerm
 
 variable {J : Set T} {C : ℕ → Finset T} {ε : ℕ → ℝ≥0∞} {j k m : ℕ}
 
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hjk : j < k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
