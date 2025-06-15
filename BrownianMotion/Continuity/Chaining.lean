@@ -107,6 +107,7 @@ noncomputable
 def chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) (n : ℕ) : E :=
   if n ≤ k then chainingSequenceReverse hC hxA (k - n) else x
 
+@[simp]
 lemma chainingSequence_of_eq (hC : ∀ i, IsCover (C i) (ε i) A) (hxA : x ∈ C k) :
     chainingSequence hC hxA k = x := by
   simp [chainingSequence]
@@ -125,12 +126,34 @@ lemma chainingSequence_mem (hC : ∀ i, IsCover (C i) (ε i) A) (hA : A.Nonempty
   convert chainingSequenceReverse_mem hC hA hxA
   omega
 
+lemma chainingSequence_chainingSequence (hC : ∀ i, IsCover (C i) (ε i) A) (hA : A.Nonempty)
+    (hxA : x ∈ C k) (n : ℕ) (hn : n ≤ k) (m : ℕ) (hm : m ≤ n) :
+    chainingSequence hC (chainingSequence_mem hC hA hxA n hn) m = chainingSequence hC hxA m := by
+  obtain ⟨l, rfl⟩ := Nat.exists_eq_add_of_le hm
+  clear hm
+  induction l generalizing m with
+  | zero => simp
+  | succ l ih =>
+    rw [chainingSequence_of_lt _ _ (by omega), chainingSequence_of_lt (n := m) _ _ (by omega)]
+    congr 1
+    simp only [← ih (m + 1) (by omega)]
+    congr 1
+    · congr 1
+      ring
+    ring
+
 lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A)
     (hCA : ∀ i, (C i : Set E) ⊆ A) (hxA : x ∈ C k) (n : ℕ) (hn : n < k) :
     edist (chainingSequence hC hxA (n + 1)) (chainingSequence hC hxA n) ≤ ε n := by
   rw [chainingSequence_of_lt _ _ hn]
   apply edist_nearestPt_of_isCover (hC n)
   exact hCA (n + 1) (chainingSequence_mem _ ⟨x, hCA k hxA⟩ _ _ (by omega))
+
+lemma edist_chainingSequence_add_one' (hC : ∀ i, IsCover (C i) (ε i) A)
+    (hCA : ∀ i, (C i : Set E) ⊆ A) (hxA : x ∈ C (k + 1)) :
+    edist (chainingSequence hC hxA k) x ≤ ε k := by
+  rw [edist_comm]
+  simpa using edist_chainingSequence_add_one hC hCA hxA k (by omega)
 
 lemma edist_chainingSequence_le_sum (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ i, (C i : Set E) ⊆ A)
     (hxA : x ∈ C k) (m : ℕ) (hm : m ≤ k) :
