@@ -174,6 +174,14 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
     ← mul_assoc ε₀, (by norm_num : (4 : ENNReal) = 2 + 2)]
   gcongr <;> simpa only [inv_eq_one_div] using ENNReal.sum_geometric_two_le _
 
+lemma iSup₅_eq_iSup₂ {α β γ : Type*} [CompleteLattice γ] (P₁ : α → Prop) (P₂ : β → Prop)
+  (P₃ : α → β → Prop) (f : (a : α) → (b : β) → P₁ a → P₂ b → P₃ a b → γ) :
+  ⨆ (a : α) (b : β) (ha : P₁ a) (hb : P₂ b) (hab : P₃ a b), f a b ha hb hab =
+    ⨆ (a : { a : α // P₁ a }) (b : { b : { b : β // P₂ b } // P₃ a b }),
+       f a.1 b.1.1 a.2 b.1.2 b.2 := by
+  conv_lhs => congr; ext; rw [iSup_comm]
+  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
     ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t)
@@ -182,10 +190,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
       + 2 * ⨆ (s) (hs : s ∈ C k), edist (X s) (X (chainingSequence hC hs m)) := by
   -- We will be using `iSup_add` later, so we need to bundle the suprema so that we only take
   -- suprema over nonempty index types.
-  conv_lhs => congr; ext; rw [iSup_comm]
-  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
-  conv_rhs => congr; congr; ext; rw [iSup_comm]
-  conv_rhs => congr; rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+  rw [iSup₅_eq_iSup₂, iSup₅_eq_iSup₂]
   conv_rhs => right; right; rw [iSup_subtype']
 
   -- Introduce some notation to make the goals easier to read
