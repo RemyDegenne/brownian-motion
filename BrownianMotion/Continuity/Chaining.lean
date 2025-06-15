@@ -174,21 +174,91 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
     ← mul_assoc ε₀, (by norm_num : (4 : ENNReal) = 2 + 2)]
   gcongr <;> simpa only [inv_eq_one_div] using ENNReal.sum_geometric_two_le _
 
+lemma iSup₅_eq_iSup₂ {α β γ : Type*} [CompleteLattice γ] (P₁ : α → Prop) (P₂ : β → Prop)
+  (P₃ : α → β → Prop) (f : (a : α) → (b : β) → P₁ a → P₂ b → P₃ a b → γ) :
+  ⨆ (a : α) (b : β) (ha : P₁ a) (hb : P₂ b) (hab : P₃ a b), f a b ha hb hab =
+    ⨆ (a : { a : α // P₁ a }) (b : { b : { b : β // P₂ b } // P₃ a b }),
+       f a.1 b.1.1 a.2 b.1.2 b.2 := by
+  conv_lhs => congr; ext; rw [iSup_comm]
+  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
-    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) :
+    (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
     ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t)
-    ≤ ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
-        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m))
+    ≤ (⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)))
       + 2 * ⨆ (s) (hs : s ∈ C k), edist (X s) (X (chainingSequence hC hs m)) := by
-  sorry
+  -- We will be using `iSup_add` later, so we need to bundle the suprema so that we only take
+  -- suprema over nonempty index types.
+  rw [iSup₅_eq_iSup₂, iSup₅_eq_iSup₂]
+  conv_rhs => right; right; rw [iSup_subtype']
+
+  -- Introduce some notation to make the goals easier to read
+  let Ck := { s : E // s ∈ C k }
+  let Ck' (s : Ck) := { t : Ck // edist s.1 t.1 ≤ δ }
+  have (s : Ck) : Nonempty (Ck' s) := ⟨⟨s, by simp⟩⟩
+  let c (s : Ck) := chainingSequence hC s.2 m
+
+  -- Trivial case: `C k` is empty
+  refine (isEmpty_or_nonempty Ck).elim (fun _ => by simp) (fun _ => ?_)
+
+  calc ⨆ (s : Ck) (t : Ck' s), edist (X s) (X t)
+      ≤ ⨆ (s : C k) (t : Ck' s),
+          edist (X s) (X (c s)) + edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ = ⨆ (s : C k), edist (X s) (X (c s))
+          + ⨆ (t : Ck' s), edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ ≤ (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck) (t : Ck' s), edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
+    _ = (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck) (t : Ck' s), edist (X (c t)) (X (c s)) + edist (X (c s)) (X s) := ?_
+    _ = (⨆ (s : C k), edist (X s) (X (c s)))
+          + ⨆ (s : Ck), (⨆ (t : Ck' s), edist (X (c t)) (X (c s))) + edist (X (c s)) (X s) := ?_
+    _ ≤ (⨆ (s : C k), edist (X s) (X (c s)))
+          + (⨆ (s : Ck) (t : Ck' s),
+              edist (X (c t)) (X (c s))) + ⨆ (s : Ck), edist (X (c s)) (X s) := ?_
+    _ = (⨆ (s : Ck) (t : Ck' s), edist (X (c s)) (X (c t)))
+          + 2 * (⨆ (s : Ck), edist (X s) (X (c s))) := ?_
+  · gcongr with s t
+    exact le_trans (edist_triangle _ (X (c t)) _) (by gcongr; apply edist_triangle)
+  · simp only [ENNReal.add_iSup, add_assoc]
+  · exact iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)
+  · congr 1
+    conv_lhs => congr; ext s; rw [iSup_subtype]
+    rw [iSup_comm]
+    conv_lhs => congr; ext s; congr; ext t; simp only [edist_comm t.1 s.1]
+    conv_lhs => congr; ext s; rw [iSup_subtype']
+  · simp only [ENNReal.iSup_add]
+  · rw [add_assoc]
+    exact add_le_add_left (iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)) _
+  · conv_lhs => right; congr; ext s; rw [edist_comm]
+    conv_rhs => left; congr; ext s; congr; ext t; rw [edist_comm]
+    ring
+
+lemma ENNReal.rpow_max {x y : ℝ≥0∞} {p : ℝ} (hp : 0 ≤ p) : max x y ^ p = max (x ^ p) (y ^ p) := by
+  rcases le_total x y with hxy | hxy
+  · rw [max_eq_right hxy, max_eq_right (rpow_le_rpow hxy hp)]
+  · rw [max_eq_left hxy, max_eq_left (rpow_le_rpow hxy hp)]
+
+lemma ENNReal.rpow_add_le_two_rpow_mul_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) :
+    (a + b) ^ p ≤ 2 ^ p * (a ^ p + b ^ p) := calc
+  (a + b) ^ p ≤ (2 * max a b) ^ p := by rw [two_mul]; gcongr <;> simp
+  _ = 2 ^ p * (max a b) ^ p := mul_rpow_of_nonneg _ _ hp
+  _ = 2 ^ p * max (a ^ p) (b ^ p) := by rw [rpow_max hp]
+  _ ≤ 2 ^ p * (a ^ p + b ^ p) := by gcongr; apply max_le_add_of_nonneg <;> simp
 
 lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
-    (m : ℕ) (hm : m ≤ k) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :
+    (m : ℕ) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :
     ⨆ (s) (t) (_hs : s ∈ C k) (_ht : t ∈ C k) (_h : edist s t ≤ δ), edist (X s) (X t) ^ p
-    ≤ 2 ^ p * ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
-        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)) ^ p
-      + 4 ^ p * ⨆ (s) (hs : s ∈ C k),
-        edist (X s) (X (chainingSequence hC hs m)) ^ p := by
-  sorry
+    ≤ 2 ^ p * (⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_h : edist s t ≤ δ),
+        edist (X (chainingSequence hC hs m)) (X (chainingSequence hC ht m)) ^ p)
+      + 4 ^ p * (⨆ (s) (hs : s ∈ C k),
+        edist (X s) (X (chainingSequence hC hs m)) ^ p) := by
+  refine hp.gt_or_eq.elim (fun hp' => ?_) (by rintro rfl; simp)
+  simp only [← (ENNReal.monotone_rpow_of_nonneg hp).map_iSup_of_continuousAt
+    ENNReal.continuous_rpow_const.continuousAt (by simp [hp'])]
+  refine ((ENNReal.monotone_rpow_of_nonneg hp (scale_change hC m X δ))).trans ?_
+  refine (ENNReal.rpow_add_le_two_rpow_mul_add_rpow _ _ hp).trans ?_
+  rw [ENNReal.mul_rpow_of_nonneg _ _ hp, mul_add, ← mul_assoc, ← ENNReal.mul_rpow_of_nonneg _ 2 hp,
+    (by norm_num : (2 : ℝ≥0∞) * 2 = 4)]
 
 end Sequence
