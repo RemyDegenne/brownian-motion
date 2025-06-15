@@ -144,7 +144,8 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     suffices 1 ≤ Nat.log2 #C by omega
     rw [Nat.le_log2] <;> omega
 
-  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀' (by norm_num) hc).trans ?_
+  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hp hq hX h₀' (by norm_num) hc).trans
+    ?_
   simp only [← hC_card, ENat.toNat_coe, ENat.toENNReal_coe]
   calc 2 ^ p * 2 * #C * M * (c * rbar) ^ q = 2 ^ (p + 1) * M * (c * rbar) ^ q * #C := ?_
     _ ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 #C) ^ q * #C := ?_
