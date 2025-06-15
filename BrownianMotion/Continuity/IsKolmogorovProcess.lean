@@ -68,19 +68,54 @@ lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M
 
 end Measurability
 
-lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hX : IsKolmogorovProcess X P p q M)
+lemma Finset.sup_le_sum {α β : Type*} [AddCommMonoid β] [LinearOrder β] [OrderBot β]
+    [IsOrderedAddMonoid β] (s : Finset α) (f : α → β) (hfs : ∀ i ∈ s, 0 ≤ f i) :
+    s.sup f ≤ ∑ a ∈ s, f a :=
+  Finset.sup_le_iff.2 (fun _ hb => Finset.single_le_sum hfs hb)
+
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     {ε : ℝ≥0∞} (C : Finset (T × T)) (hC : ∀ u ∈ C, edist u.1 u.2 ≤ ε) :
     ∫⁻ ω, ⨆ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ p ∂P
-      ≤ #C * M * ε ^ q := by
-  sorry
+      ≤ #C * M * ε ^ q := calc
+  _ = ∫⁻ ω, C.sup (fun u => edist (X u.1 ω) (X u.2 ω) ^ p) ∂P := by simp only [Finset.sup_eq_iSup]
+  _ ≤ ∫⁻ ω, ∑ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ p ∂P := by gcongr; apply Finset.sup_le_sum; simp
+  _ = ∑ u ∈ C, ∫⁻ ω, edist (X u.1 ω) (X u.2 ω) ^ p ∂P :=
+        lintegral_finset_sum' _ (fun _ _ => AEMeasurable.pow_const hX.aemeasurable_edist _)
+  _ ≤ ∑ u ∈ C, M * edist u.1 u.2 ^ q := by gcongr; apply hX.kolmogorovCondition
+  _ ≤ ∑ u ∈ C, M * ε ^ q := by gcongr; apply hC; assumption
+  _ = #C * M * ε ^ q := by simp [mul_assoc]
 
-lemma lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {J : Finset T} {a c : ℝ≥0∞} {n : ℕ}
     (hJ_card : #J ≤ a ^ n) (ha : 1 < a) (hc : c ≠ 0) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ c),
         edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ p * a * #J * M * (c * n) ^ q := by
-  sorry
+  obtain ⟨K, ⟨-, _, hKeps, hKle⟩⟩ := pair_reduction J hJ_card ha hc E
+  calc
+    _ = ∫⁻ ω, (⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ c),
+          edist (X s ω) (X t ω)) ^ p ∂P := ?_
+    _ ≤ ∫⁻ ω, (2 * ⨆ p ∈ K, edist (X p.1 ω) (X p.2 ω)) ^ p ∂P := ?_
+    _ = 2 ^ p * ∫⁻ ω, (⨆ p ∈ K, edist (X p.1 ω) (X p.2 ω)) ^ p ∂P := ?_
+    _ ≤ 2 ^ p * (#K * M * (n * c) ^ q) := ?_
+    _ ≤ 2 ^ p * a * #J * M * (c * n) ^ q := ?_
+  · simp only [← (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp)).map_iSup_of_continuousAt
+      ENNReal.continuous_rpow_const.continuousAt (by simp [hp])]
+  · gcongr
+    apply hKle
+  · simp only [ENNReal.mul_rpow_of_nonneg _ _ (le_of_lt hp)]
+    rw [lintegral_const_mul'']
+    apply AEMeasurable.pow_const
+    exact AEMeasurable.biSup _ K.countable_toSet (fun _ _ => hX.aemeasurable_edist)
+  · gcongr
+    simp only [(ENNReal.monotone_rpow_of_nonneg (le_of_lt hp)).map_iSup_of_continuousAt
+      ENNReal.continuous_rpow_const.continuousAt (by simp [hp])]
+    exact lintegral_sup_rpow_edist_le_card_mul_rpow hq hX K (fun u hu => hKeps u.1 u.2 hu)
+  · simp only [← mul_assoc]
+    rw [mul_assoc _ a, mul_comm _ c]
+    gcongr
 
 section FirstTerm
 
