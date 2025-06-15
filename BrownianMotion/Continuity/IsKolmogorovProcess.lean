@@ -174,16 +174,15 @@ lemma lintegral_sup_rpow_edist_succ (hX : IsKolmogorovProcess X P p q M)
   let g (ω : Ω) : { x : T // x ∈ C k } → { x : T × T // x ∈ C' } :=
     fun x => ⟨f₀ ⟨chainingSequence hC x.2 (j + 1),
       chainingSequence_mem hC hJ x.2 (j + 1) (by omega)⟩, by simp [C']⟩
-  have (ω : Ω) := iSup_comp_le (f ω) (g ω)
-  have := lintegral_mono_fn (μ := P) this
-  simp only [f, g, f₀] at this
-  conv_lhs at this =>
+  have hle := lintegral_mono_fn (μ := P) (fun ω => iSup_comp_le (f ω) (g ω))
+  simp only [f, g, f₀] at hle
+  conv_lhs at hle =>
     right; ext ω; congr; ext x;
       rw [chainingSequence_chainingSequence _ hJ _ _ (by omega) _ (by omega)]
-  simp only [iSup_subtype] at this
+  simp only [iSup_subtype] at hle
 
   -- Second step: apply previous results
-  refine this.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hX (ε := ε j) C' ?_)
+  refine hle.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hX (ε := ε j) C' ?_)
   rintro u hu
   obtain ⟨u, hu, rfl⟩ := Finset.mem_map.1 hu
   simp only [Function.Embedding.coeFn_mk, f₀]
