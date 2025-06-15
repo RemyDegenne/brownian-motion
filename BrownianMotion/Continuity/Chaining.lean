@@ -149,7 +149,7 @@ lemma edist_chainingSequence_add_one (hC : ∀ i, IsCover (C i) (ε i) A)
   apply edist_nearestPt_of_isCover (hC n)
   exact hCA (n + 1) (chainingSequence_mem _ ⟨x, hCA k hxA⟩ _ _ (by omega))
 
-lemma edist_chainingSequence_add_one' (hC : ∀ i, IsCover (C i) (ε i) A)
+lemma edist_chainingSequence_add_one_self (hC : ∀ i, IsCover (C i) (ε i) A)
     (hCA : ∀ i, (C i : Set E) ⊆ A) (hxA : x ∈ C (k + 1)) :
     edist (chainingSequence hC hxA k) x ≤ ε k := by
   rw [edist_comm]
