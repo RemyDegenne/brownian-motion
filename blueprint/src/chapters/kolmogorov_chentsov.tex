@@ -660,29 +660,28 @@ Then for $c \ge 0$,
 Note the logarithm has base $2$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:integral_sup_rpow_dist_of_dist_le}
-Let $\bar{r} = \min\{r \in \mathbb{N} \mid N^{int}_{\varepsilon}(J) \le 2^r\}$.
+Let $\bar{r} = 1 + \log_2 N^{int}_{\varepsilon}(J)$. Then
 \begin{align*}
   \vert C \vert
   = N^{int}_{\varepsilon}(J)
   \le 2^{\bar{r}}
   \: .
 \end{align*}
-By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $b = 1$, $c = c$, $n = \bar{r}$,
+By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $c = c$, $n = \bar{r}$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
   &\le 2^{p+1} |C| M (c \bar{r})^q
-  \le 2^{p+1} M (c \bar{r})^q  2^{\bar{r}}
+  = 2^{p+1} M (c \bar{r})^q N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
 
-By definition, $2^{\bar{r}} \le 2 N^{int}_{\varepsilon}(J)$ and $\bar{r} \le 1 + \log_2 N^{int}_{\varepsilon}(J)$.
 Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (if it equals one the result is trivial).
 Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  &\le 2^{p+1} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
 \end{proof}
@@ -699,7 +698,7 @@ Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s
 For $m = \min(n_2, k)$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-  &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
   \: .
 \end{align*}
 TODO: $C_k = J$
@@ -716,7 +715,7 @@ It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s,
 We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\varepsilon = \varepsilon_m$, $c = \varepsilon_0 2^{-m+3}$. We obtain
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
+  &\le 2^{p+1} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
 By definition of $m$ and $n_2$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \varepsilon_0 2^{-n_2} \ge \delta/4$,

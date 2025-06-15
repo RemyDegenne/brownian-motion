@@ -12,6 +12,7 @@ ProbabilityTheory.covInnerBilin
 ProbabilityTheory.covInnerBilin_map
 ProbabilityTheory.covMatrix
 ProbabilityTheory.posSemidef_covMatrix
+ProbabilityTheory.covMatrix_map
 ProbabilityTheory.gaussianReal
 ProbabilityTheory.charFun_gaussianReal
 ProbabilityTheory.IsGaussian
