@@ -155,7 +155,7 @@ section SecondTerm
 
 variable {J : Set T} {C : ℕ → Finset T} {ε : ℕ → ℝ≥0∞} {j k m : ℕ}
 
-lemma lintegral_sup_rpow_edist_succ (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hjk : j < k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
         edist (X (chainingSequence hC ht j) ω) (X (chainingSequence hC ht (j + 1)) ω) ^ p ∂P
@@ -182,7 +182,7 @@ lemma lintegral_sup_rpow_edist_succ (hX : IsKolmogorovProcess X P p q M)
   simp only [iSup_subtype] at hle
 
   -- Second step: apply previous results
-  refine hle.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hX (ε := ε j) C' ?_)
+  refine hle.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hq hX (ε := ε j) C' ?_)
   rintro u hu
   obtain ⟨u, hu, rfl⟩ := Finset.mem_map.1 hu
   simp only [Function.Embedding.coeFn_mk, f₀]
