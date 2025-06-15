@@ -121,17 +121,38 @@ section FirstTerm
 
 variable {J : Set T}
 
-lemma lintegral_sup_rpow_edist_cover_of_dist_le
-    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite) {C : Finset T} {ε : ℝ≥0∞}
-    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
+lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
+    (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
     (hC_card : #C = internalCoveringNumber ε J)
     {c : ℝ≥0∞} (hc : c ≠ 0) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ C) (_ht : t ∈ C) (_hd : edist s t ≤ c),
         edist (X s ω) (X t ω) ^ p ∂P
-      ≤ 2 ^ (p + 2) * M * (2 * c * Nat.log2 (internalCoveringNumber ε J).toNat) ^ q
+      ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 (internalCoveringNumber ε J).toNat) ^ q
         * internalCoveringNumber ε J := by
-  sorry
+  -- Trivial cases
+  refine (eq_or_ne #C 0).elim (fun h => by simp_all) (fun hC₀ => ?_)
+  by_cases hC₁ : #C = 1
+  · obtain ⟨a, rfl⟩ := Finset.card_eq_one.1 hC₁
+    conv_lhs => right; ext ω; congr; ext s; rw [iSup_comm]
+    simp [ENNReal.zero_rpow_of_pos hp]
 
+  -- Definition and properties of rbar
+  let rbar := 1 + Nat.log2 #C
+  have h₀ : #C ≤ 2 ^ rbar := by simpa [rbar, add_comm 1] using le_of_lt Nat.lt_log2_self
+  have h₀' : (#C : ℝ≥0∞) ≤ 2 ^ rbar := by norm_cast
+  have h₁ : rbar ≤ 2 * Nat.log2 #C := by
+    suffices 1 ≤ Nat.log2 #C by omega
+    rw [Nat.le_log2] <;> omega
+
+  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀' (by norm_num) hc).trans ?_
+  simp only [← hC_card, ENat.toNat_coe, ENat.toENNReal_coe]
+  calc 2 ^ p * 2 * #C * M * (c * rbar) ^ q = 2 ^ (p + 1) * M * (c * rbar) ^ q * #C := ?_
+    _ ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 #C) ^ q * #C := ?_
+  · rw [ENNReal.rpow_add _ _ (by norm_num) (by norm_num), ENNReal.rpow_one]
+    ring
+  · rw [mul_comm 2 c, mul_assoc c 2]
+    gcongr
+    norm_cast
 
 lemma lintegral_sup_rpow_edist_cover_rescale
     (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite)
