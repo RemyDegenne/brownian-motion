@@ -73,6 +73,9 @@ noncomputable
 def covMatrix (μ : Measure E) : Matrix (Fin (Module.finrank ℝ E)) (Fin (Module.finrank ℝ E)) ℝ :=
   Matrix.of fun i j ↦ covInnerBilin μ (stdOrthonormalBasis ℝ E i) (stdOrthonormalBasis ℝ E j)
 
+lemma covMatrix_apply (μ : Measure E) (i j : Fin (Module.finrank ℝ E)) :
+    covMatrix μ i j = covInnerBilin μ (stdOrthonormalBasis ℝ E i) (stdOrthonormalBasis ℝ E j) := rfl
+
 lemma covMatrix_mulVec (x : Fin (Module.finrank ℝ E) → ℝ) :
     (covMatrix μ).mulVec x = fun i ↦
       covInnerBilin μ (stdOrthonormalBasis ℝ E i) (∑ j, x j • stdOrthonormalBasis ℝ E j) := by
@@ -92,6 +95,12 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
   simp_rw [← mul_assoc]
   rw [mul_comm (x j)]
 
+lemma covInnerBilin_eq_dotProduct_covMatrix_mulVec (x y : E) : covInnerBilin μ x y =
+    ((stdOrthonormalBasis ℝ E).repr x) ⬝ᵥ
+    ((covMatrix μ).mulVec ((stdOrthonormalBasis ℝ E).repr y)) := by
+  rw [dotProduct_covMatrix_mulVec, (stdOrthonormalBasis ℝ E).sum_repr,
+    (stdOrthonormalBasis ℝ E).sum_repr]
+
 lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
     [MeasurableSpace F] [BorelSpace F] [FiniteDimensional ℝ F]
     [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (i j : Fin (Module.finrank ℝ F)) :
@@ -99,8 +108,7 @@ lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
     (stdOrthonormalBasis ℝ E).repr (L.adjoint (stdOrthonormalBasis ℝ F i)) ⬝ᵥ
     ((covMatrix μ).mulVec
     ((stdOrthonormalBasis ℝ E).repr (L.adjoint (stdOrthonormalBasis ℝ F j)))) := by
-  rw [dotProduct_covMatrix_mulVec, (stdOrthonormalBasis ℝ E).sum_repr,
-    (stdOrthonormalBasis ℝ E).sum_repr, covMatrix, Matrix.of_apply, covInnerBilin_map h]
+  rw [covMatrix_apply, covInnerBilin_map h, covInnerBilin_eq_dotProduct_covMatrix_mulVec]
 
 lemma posSemidef_covMatrix [IsGaussian μ] : (covMatrix μ).PosSemidef := by
   constructor
