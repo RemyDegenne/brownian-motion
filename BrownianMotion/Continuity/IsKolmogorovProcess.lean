@@ -103,7 +103,7 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     simp [ENNReal.zero_rpow_of_pos hp]
 
   -- Definition and properties of rbar
-  let rbar := 1 + Nat.log2 (#C)
+  let rbar := 1 + Nat.log2 #C
   have h₀ : #C ≤ 2 ^ rbar := by simpa [rbar, add_comm 1] using le_of_lt Nat.lt_log2_self
   have h₀' : (#C : ℝ≥0∞) ≤ 2 ^ rbar := by norm_cast
   have h₁ : rbar ≤ 2 * Nat.log2 #C := by
