@@ -109,12 +109,10 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
               apply HasDerivAt.hasDerivWithinAt
               apply DifferentiableAt.hasDerivAt
               subst φ
+              simp_all only [Set.mem_Ioi]
               fun_prop (disch:=
-                simp_all only [Set.mem_Ioi, ne_eq, mul_eq_zero, OfNat.ofNat_ne_zero, false_or]
-                apply Aesop.BuiltinRules.not_intro
-                intro a
-                subst a
-                simp_all only [lt_self_iff_false]
+                  apply ne_of_gt
+                  positivity
               )
             · subst φ
               rw [Set.InjOn.eq_1]
@@ -154,7 +152,8 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
                 ring_nf
                 field_simp
                 group
-                simp only [Int.reduceNeg, zpow_neg, zpow_one, one_div, abs_mul, NNReal.abs_eq, zpow_natCast]
+                simp only [Int.reduceNeg, zpow_neg, zpow_one, one_div, abs_mul,
+                            NNReal.abs_eq, zpow_natCast]
                 ring_nf
                 field_simp
                 group
@@ -189,10 +188,10 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
                 repeat rw [Real.log_sqrt (by positivity)]
                 repeat rw [Real.log_rpow (by positivity)]
                 ring_nf
+          -- 8. ... = σ^(2n) (2n - 1)!!
           _ = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) := by
             clear hn
             rw [Real.Gamma_nat_add_half]
             rw [<-sub_eq_zero]
-            norm_num
             ring_nf
             field_simp
