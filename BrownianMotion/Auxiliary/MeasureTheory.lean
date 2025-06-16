@@ -12,7 +12,7 @@ open scoped NNReal ProbabilityTheory
 namespace ProbabilityTheory
 
 @[simp]
-lemma charFunDual_eq_charFun_toDual_symm {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
+lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
     [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : NormedSpace.Dual ℝ E) :
     charFun μ ((InnerProductSpace.toDual ℝ E).symm L) = charFunDual μ L := by
   rw [charFun_eq_charFunDual_toDualMap]

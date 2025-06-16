@@ -13,7 +13,8 @@ namespace ProbabilityTheory
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
-lemma isGaussian_iff_charFun_eq [IsFiniteMeasure μ] : IsGaussian μ ↔
+lemma isGaussian_iff_charFun_eq [IsFiniteMeasure μ] :
+    IsGaussian μ ↔
     ∀ t, charFun μ t = exp (μ[fun x ↦ ⟪t, x⟫_ℝ] * I - Var[fun x ↦ ⟪t, x⟫_ℝ; μ] / 2) := by
   rw [isGaussian_iff_charFunDual_eq]
   constructor
@@ -32,7 +33,8 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
   · simp_rw [integral_complex_ofReal, ← integral_inner (IsGaussian.integrable_id μ), id]
   · rw [covInnerBilin_self (IsGaussian.memLp_id μ 2 (by norm_num))]
 
-lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] : IsGaussian μ ↔
+lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
+    IsGaussian μ ↔
     ∃ (m : E) (f : ContinuousBilinForm ℝ E),
       f.IsPosSemidef ∧ ∀ t, charFun μ t = exp (⟪t, m⟫_ℝ * I - f t t / 2) := by
   refine ⟨fun h ↦ ⟨μ[id], covInnerBilin μ, h.isPosSemidef_covInnerBilin, IsGaussian.charFun_eq⟩,
@@ -42,7 +44,7 @@ lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] : IsGaussian μ ↔
         ((InnerProductSpace.toDual ℝ E).symm L)).toNNReal := by
     apply Measure.ext_of_charFun
     ext t
-    rw [charFun_map_eq_charFunDual_smul, ← charFunDual_eq_charFun_toDual_symm,
+    rw [charFun_map_eq_charFunDual_smul, ← charFun_toDual_symm_eq_charFunDual,
       charFun_gaussianReal, h, InnerProductSpace.toDual_symm_apply]
     simp only [ContinuousLinearMap.coe_smul', Pi.smul_apply, smul_eq_mul, ofReal_mul, map_smul]
     rw [← mul_assoc, pow_two, mul_comm (t * t : ℂ), Real.coe_toNNReal]
