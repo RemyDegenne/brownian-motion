@@ -2,7 +2,7 @@ import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 import Mathlib.Probability.Distributions.Gaussian.Real
 
 /-!
-# General lemmas to be upstreamed to Mathlib
+# Measure theory lemmas to be upstreamed to Mathlib
 -/
 
 open MeasureTheory

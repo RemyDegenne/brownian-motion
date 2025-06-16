@@ -19,12 +19,16 @@ def HasBoundedInternalCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Pr
   ∀ ε, ε ≤ EMetric.diam A → internalCoveringNumber ε A ≤ c * ε⁻¹ ^ d
 
 lemma HasBoundedInternalCoveringNumber.internalCoveringNumber_lt_top
-    (h : HasBoundedInternalCoveringNumber A c d) (hε_le : ε ≤ EMetric.diam A) (hε_ne : ε ≠ 0)
+    (h : HasBoundedInternalCoveringNumber A c d) (hε_ne : ε ≠ 0)
     (hc : c ≠ ∞) (hd : 0 ≤ d) :
     internalCoveringNumber ε A < ⊤ := by
-  suffices (internalCoveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
-  calc (internalCoveringNumber ε A : ℝ≥0∞)
-  _ ≤ c * ε⁻¹ ^ d := h _ hε_le
-  _ < ∞ := by
-    refine ENNReal.mul_lt_top hc.lt_top ?_
-    exact ENNReal.rpow_lt_top_of_nonneg hd (by simp [hε_ne])
+  by_cases hε_le : ε ≤ EMetric.diam A
+  · suffices (internalCoveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
+    calc (internalCoveringNumber ε A : ℝ≥0∞)
+    _ ≤ c * ε⁻¹ ^ d := h _ hε_le
+    _ < ∞ := by
+      refine ENNReal.mul_lt_top hc.lt_top ?_
+      exact ENNReal.rpow_lt_top_of_nonneg hd (by simp [hε_ne])
+  · calc internalCoveringNumber ε A
+    _ ≤ 1 := internalCoveringNumber_le_one_of_diam_le (not_le.mp hε_le).le
+    _ < ⊤ := by simp
