@@ -21,7 +21,7 @@ We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \O
   The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} is a Gaussian process.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isGaussian_multivariateGaussian}
 
 \end{proof}
@@ -53,10 +53,12 @@ We call $Y$ the \emph{Brownian motion} on $\mathbb{R}_+$ and denote it by $B$.
 
 \begin{lemma}\label{lem:isGaussianProcess_brownianMotion}
   \uses{def:brownianMotion, def:IsGaussianProcess}
-  The Brownian motion is a Gaussian process.
+  \leanok
+  \lean{ProbabilityTheory.isGaussianProcess_brownian}
+The Brownian motion is a Gaussian process.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isGaussianProcess_of_modification, lem:isGaussianProcess_preBrownian}
 The pre-Brownian process is a Gaussian process by Lemma~\ref{lem:isGaussianProcess_preBrownian}.
 The Brownian motion is a modification of the pre-Brownian process by Definition~\ref{def:brownianMotion}.

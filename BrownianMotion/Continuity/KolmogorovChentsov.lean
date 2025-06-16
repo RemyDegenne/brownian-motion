@@ -67,4 +67,19 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Se
       ≤ M * constL T c d p q β := by
   sorry
 
+lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t) ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+  sorry
+
+lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
+        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+  sorry
+
 end ProbabilityTheory
