@@ -47,6 +47,7 @@ IsCover
 externalCoveringNumber
 internalCoveringNumber
 externalCoveringNumber_le_internalCoveringNumber
+internalCoveringNumber_eq_one_of_diam_le
 HasBoundedInternalCoveringNumber
 nearestPt
 edist_nearestPt_le

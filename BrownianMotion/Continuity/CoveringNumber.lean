@@ -47,6 +47,24 @@ lemma EMetric.isCover_iff [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {
     IsCover C ε A ↔ A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
   simp [IsCover, Set.subset_def]
 
+lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A : Set E} {a : E}
+    (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
+    IsCover ({a} : Set E) ε A := by
+  intro x hxA
+  simp only [Set.mem_singleton_iff, exists_eq_left]
+  refine le_trans ?_ hA
+  exact EMetric.edist_le_diam_of_mem hxA ha
+
+lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
+    (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ r) :
+    internalCoveringNumber r A = 1 := by
+  sorry
+
+lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
+    (hA : EMetric.diam A ≤ r) :
+    internalCoveringNumber r A ≤ 1 := by
+  sorry
+
 @[simp]
 lemma isSeparated_empty [EDist E] (r : ℝ≥0∞) : IsSeparated (∅ : Set E) r := by
   intros a b ha _
