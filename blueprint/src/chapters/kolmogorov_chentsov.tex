@@ -774,10 +774,10 @@ We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
 Let $X : T \to \Omega \to E$ be a stochastic process.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
-For $m \le k$,
+For $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le 2 \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
+  &\le \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
   \: .
 \end{align*}
 \end{lemma}
@@ -799,21 +799,32 @@ We thus have
   &\le \left(\mathbb{E} \left[\left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p\right]\right)^{1/p}
   \: .
 \end{align*}
-And then, by Minkowski's inequality,
+And then, by Minkowski's inequality, since $p \ge 1$,
 \begin{align*}
   \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
-  &\le \max\{1, 2^{1/p - 1}\}\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  &\le \sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
   \: .
 \end{align*}
-The $\max\{1, 2^{1/p - 1}\}$ factor comes from the two versions of Minkowski's inequality depending on whether $p \ge 1$ or $0 < p \le 1$.
-Finally, we raise to the $p$-th power to obtain
+Finally, we raise to the $p$-th power to obtain the result.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow_of_le_one}
+  \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
+Let $X : T \to \Omega \to E$ be a stochastic process.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
 \begin{align*}
-  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le \max\{1, 2^{1 - p}\}\left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p} \right)^p
-  \\
-  &\le 2 \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p} \right)^p
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \sum_{i=m}^{k-1} \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right]
   \: .
 \end{align*}
+\end{lemma}
+
+\begin{proof}
+
 \end{proof}
 
 
@@ -823,7 +834,7 @@ Finally, we raise to the $p$-th power to obtain
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
-Then for $m \le k$,
+Then for $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
@@ -837,6 +848,25 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 \end{proof}
 
 
+\begin{lemma}\label{lem:todo}
+  \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \sum_{i=m}^{k-1} \vert C_{j+1} \vert \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
   \leanok
@@ -844,7 +874,7 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Then for $m \le k$,
+Then for $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \left( \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d/p} \varepsilon_j^{q/p} \right)^p
@@ -867,6 +897,26 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
   \le c_1 \varepsilon_{j+1}^{-d}
   \: .
 \end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d} \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
 \end{proof}
 
 
