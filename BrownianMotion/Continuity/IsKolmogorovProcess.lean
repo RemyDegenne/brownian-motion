@@ -212,13 +212,65 @@ lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P
   simp only [Function.Embedding.coeFn_mk, f₀]
   apply edist_chainingSequence_add_one_self _ hC_subset
 
-lemma lintegral_sup_rpow_edist_le_sum_rpow (hX : IsKolmogorovProcess X P p q M)
-    (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
+theorem ENNReal.lintegral_Lp_finsum_le {α : Type*} [MeasurableSpace α] {μ : Measure α} {p : ℝ}
+    {ι : Type*} {f : ι → α → ENNReal} {I : Finset ι}
+    (hf : ∀ i ∈ I, AEMeasurable (f i) μ) (hp : 1 ≤ p) :
+    (∫⁻ (a : α), (∑ i ∈ I, f i) a ^ p ∂μ) ^ (1 / p) ≤
+      ∑ i ∈ I, (∫⁻ (a : α), f i a ^ p ∂μ) ^ (1 / p) := by
+  classical
+  induction I using Finset.induction with
+  | empty => simpa using Or.inl (by bound)
+  | insert i I hi ih =>
+    simp only [Finset.sum_insert hi]
+    refine (ENNReal.lintegral_Lp_add_le (hf i (by simp))
+      (I.aemeasurable_sum' (fun j hj => hf j (by simp [hj]))) hp).trans ?_
+    gcongr
+    exact ih (fun j hj => hf j (by simp [hj]))
+
+theorem ENNReal.lintegral_Lp_finsum_le' {α : Type*} [MeasurableSpace α] {μ : Measure α} {p : ℝ}
+    {ι : Type*} {f : ι → α → ENNReal} {I : Finset ι}
+    (hf : ∀ i ∈ I, AEMeasurable (f i) μ) (hp : 1 ≤ p) :
+    (∫⁻ (a : α), (∑ i ∈ I, f i a) ^ p ∂μ) ^ (1 / p) ≤
+      ∑ i ∈ I, (∫⁻ (a : α), f i a ^ p ∂μ) ^ (1 / p) := by
+  simpa using ENNReal.lintegral_Lp_finsum_le hf hp
+
+-- This is in mathlib, but our mathlib is too old.
+@[to_additive]
+lemma iSup_mul_le {α : Type*} {ι : Sort*}
+  [CompleteLattice α] [Mul α] [MulLeftMono α] [MulRightMono α]
+ (u v : ι → α) : ⨆ i, u i * v i ≤ (⨆ i, u i) * ⨆ i, v i :=
+    iSup_le fun _ ↦ mul_le_mul' (le_iSup ..) (le_iSup ..)
+
+theorem Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
+    [IsOrderedAddMonoid α] {I : Finset ι} (f : ι → β → α) :
+    ⨆ (b), ∑ i ∈ I, f i b ≤ ∑ i ∈ I, ⨆ (b), f i b := by
+  classical
+  induction I using Finset.induction with
+  | empty => simp
+  | insert i I hi ih => simpa only [Finset.sum_insert hi] using (iSup_add_le _ _).trans (by gcongr)
+
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
+    (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ (∑ i ∈ Finset.range (k - m), (∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
         edist (X (chainingSequence hC ht (m + i)) ω)
           (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p := by
-  sorry
+  have hp' : 0 < p := by bound
+  simp only [← (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp')).map_iSup_of_continuousAt
+    ENNReal.continuous_rpow_const.continuousAt (by simp [hp']), iSup_subtype']
+  refine le_trans ?_ (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp')
+    (ENNReal.lintegral_Lp_finsum_le
+      (fun _ _ => AEMeasurable.iSup (fun _ => hX.aemeasurable_edist)) hp))
+  dsimp only
+  rw [one_div, ENNReal.rpow_inv_rpow (by bound)]
+  gcongr with ω
+  simp only [Finset.sum_apply, iSup_subtype']
+  refine le_trans ?_ (Finset.iSup_sum_le _)
+  gcongr with t
+  simp only [Nat.add_assoc, edist_comm (X t.1 _)]
+  convert edist_le_range_sum_edist (fun i => X (chainingSequence hC t.2 (m + i)) ω) (k - m)
+  simp [(show m + (k - m) = k by omega)]
 
 lemma lintegral_sup_rpow_edist_le_sum (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :

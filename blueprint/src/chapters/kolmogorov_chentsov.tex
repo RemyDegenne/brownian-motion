@@ -783,9 +783,8 @@ For $m \le k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:dist_chainingSequence_le_sum}
 
-By Lemma~\ref{lem:dist_chainingSequence_le_sum},
+By the triangle inequality,
 \begin{align*}
   \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
   &\le \sup_{t \in C_k} \left( \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
