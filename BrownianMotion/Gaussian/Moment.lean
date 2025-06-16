@@ -10,22 +10,30 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
     by_cases hn : n = 0
     · subst n
       unfold ProbabilityTheory.centralMoment
-      simp_all
+      simp only [id_eq, ProbabilityTheory.integral_id_gaussianReal,
+                    mul_zero, Pi.pow_apply, Pi.sub_apply, pow_zero,
+                    MeasureTheory.integral_const,
+                    MeasureTheory.measureReal_univ_eq_one, smul_eq_mul,
+                    mul_one, Nat.doubleFactorial, Nat.cast_one]
     · -- 2. Prove the case σ = 0 and proceed with σ ≠ 0
       by_cases hσ : σ = 0
       · subst σ
         unfold ProbabilityTheory.centralMoment
-        simp_all
+        simp_all only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, zero_pow,
+                        ProbabilityTheory.gaussianReal_zero_var, id_eq,
+                        MeasureTheory.integral_dirac, Pi.pow_apply, Pi.sub_apply, sub_self,
+                        mul_eq_zero, or_self, NNReal.coe_zero, zero_mul]
       · let φ x := σ * Real.sqrt (2 * x) -- used for u sub later
         calc ProbabilityTheory.centralMoment id (2 * n) (ProbabilityTheory.gaussianReal μ (σ^2))
           -- 3. E_{X ∼ N(μ, σ²)}[(X - E[X])^(2n)] = ∫ x^(2n) dP(x) with P = N(0, σ^2)
           _ = ∫ x, x^(2 * n) ∂ProbabilityTheory.gaussianReal 0 (σ^2) := by
             unfold ProbabilityTheory.centralMoment
-            simp_all
+            simp_all only [id_eq, ProbabilityTheory.integral_id_gaussianReal,
+                            Pi.pow_apply, Pi.sub_apply]
             rw [show μ = 0 + μ by ring_nf,
                 <-ProbabilityTheory.gaussianReal_map_add_const,
                 MeasurableEmbedding.integral_map]
-            · simp_all
+            · simp_all only [zero_add, add_sub_cancel_right]
             · apply MeasurableEmbedding.of_measurable_inverse
               rotate_left 4
               · exact fun x => x - μ
@@ -34,7 +42,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
                 · measurability
                 · apply add_right_surjective
               · measurability
-              simp_all [Function.LeftInverse]
+              simp_all only [Function.LeftInverse, add_sub_cancel_right, implies_true]
           -- 4. ... = ∫ x^(2n) / √(2πσ²) e^(- x² / 2σ^2) dx
           _ = ∫ x, x^(2 * n) / (Real.sqrt (2 * Real.pi * σ ^ 2))
                     * Real.exp (-x ^ 2 / (2 * σ ^ 2)) := by
@@ -119,5 +127,72 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : NNReal) (n : ℕ) :
               · positivity
               · simp_all only [mul_eq_mul_left_iff, OfNat.ofNat_ne_zero, or_false]
           -- 7. ... = σ^(2n) 2^n / √π Γ(n + 1/2)
-          _ = σ^(2 * n) * 2^n / √ Real.pi * Real.Gamma (n + 1/2) := sorry
-          _ = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) := sorry
+          _ = σ^(2 * n) * 2^n / √ Real.pi * Real.Gamma (n + 1/2) := by
+            rw [Real.Gamma_eq_integral]
+            rotate_left
+            · positivity
+            · simp only [<-MeasureTheory.integral_mul_const, <-MeasureTheory.integral_const_mul]
+              apply MeasureTheory.setIntegral_congr_fun
+              · measurability
+              · intros x hx
+                subst φ
+                simp_all only [Set.mem_Ioi, Nat.ofNat_nonneg, Real.sqrt_mul,
+                                NNReal.zero_le_coe, pow_nonneg, Real.sqrt_mul', Real.sqrt_sq,
+                                differentiableAt_const, deriv_const_mul_field', one_div]
+                rw [show deriv Real.sqrt x = 1 / (2 * Real.sqrt x) by
+                  have hd := deriv_sqrt (f := id) (x := x) (by fun_prop) (by positivity)
+                  simp at hd
+                  rw [hd]
+                  simp
+                ]
+                simp_all
+                rw [show -(↑σ * (√2 * √x)) ^ 2 / (2 * ↑σ ^ 2) = - x by
+                  ring_nf
+                  field_simp
+                  group
+                ]
+                ring_nf
+                field_simp
+                group
+                simp only [Int.reduceNeg, zpow_neg, zpow_one, one_div, abs_mul, NNReal.abs_eq, zpow_natCast]
+                ring_nf
+                field_simp
+                group
+                rw [<-Set.InjOn.eq_iff]
+                rotate_right 3
+                · exact ℝ
+                · exact Set.Ioi 0
+                · exact Real.log
+                rotate_left
+                · exact Real.log_injOn_pos
+                · rw [Set.mem_Ioi]
+                  positivity
+                · rw [Set.mem_Ioi]
+                  positivity
+                repeat rw [Real.log_mul (by
+                  apply ne_of_gt
+                  positivity
+                  ) (by
+                  apply ne_of_gt
+                  positivity
+                )]
+                simp_all [Real.log_mul (by
+                  apply ne_of_gt
+                  positivity
+                  ) (by
+                  apply ne_of_gt
+                  positivity
+                )]
+                ring_nf
+                rw [<-sub_eq_zero]
+                ring_nf
+                repeat rw [Real.log_sqrt (by positivity)]
+                repeat rw [Real.log_rpow (by positivity)]
+                ring_nf
+          _ = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) := by
+            clear hn
+            rw [Real.Gamma_nat_add_half]
+            rw [<-sub_eq_zero]
+            norm_num
+            ring_nf
+            field_simp
