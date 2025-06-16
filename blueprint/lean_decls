@@ -24,6 +24,8 @@ ProbabilityTheory.isGaussian_iff_charFun_eq
 ProbabilityTheory.IsGaussian.charFun_eq
 ProbabilityTheory.isGaussian_iff_gaussian_charFun
 ProbabilityTheory.gaussian_charFun_congr
+ProbabilityTheory.IsGaussian.ext
+ProbabilityTheory.IsGaussian.ext_iff
 ProbabilityTheory.stdGaussian
 ProbabilityTheory.integral_eval_pi
 ProbabilityTheory.isCentered_stdGaussian

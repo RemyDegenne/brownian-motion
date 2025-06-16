@@ -777,7 +777,7 @@ Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $
 For $m \le k$,
 \begin{align*}
   \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
+  &\le 2 \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
   \: .
 \end{align*}
 \end{lemma}
@@ -793,12 +793,25 @@ By Lemma~\ref{lem:dist_chainingSequence_le_sum},
   &\le \left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
   \: .
 \end{align*}
+We thus have
+\begin{align*}
+  \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
+  &\le \left(\mathbb{E} \left[\left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p\right]\right)^{1/p}
+  \: .
+\end{align*}
 And then, by Minkowski's inequality,
 \begin{align*}
   \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
-  &\le \sum_{i=m}^{k-1} \mathbb{E} \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
+  &\le \max\{1, 2^{1/p - 1}\}\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  \: .
+\end{align*}
+The $\max\{1, 2^{1/p - 1}\}$ factor comes from the two versions of Minkowski's inequality depending on whether $p \ge 1$ or $0 < p \le 1$.
+Finally, we raise to the $p$-th power to obtain
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \max\{1, 2^{1 - p}\}\left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p} \right)^p
   \\
-  &\le \sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  &\le 2 \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p} \right)^p
   \: .
 \end{align*}
 \end{proof}
