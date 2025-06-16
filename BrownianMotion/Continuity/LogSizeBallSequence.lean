@@ -276,6 +276,10 @@ lemma card_pairSet_le (ha : 1 < a) (hJ_card : #J ≤ a ^ n) :
   intro i _
   apply logSizeRadius_le_card_smallBall hJ i ha
 
+#check Finsupp.filter
+example {T E : Type*} (S : Finset T) (f : ℕ → ℝ≥0∞) :
+    ∑ i ∈ Finset.range #S, f i = ∑ i ∈ (Finset.range #S).filter (fun i ↦ 0 < f i), f i := by
+  sorry
 
 lemma edist_le_of_mem_pairSet (ha : 1 < a) (hn : 1 ≤ n) (hJ_card : #J ≤ a ^ n) {s t : T}
     (h : (s, t) ∈ pairSet J a c) : edist s t ≤ n * c := by
