@@ -30,7 +30,7 @@ lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥
 
 end ProbabilityTheory
 
-nonrec lemma _root_.ContinuousLinearMap.integral_map {𝕜 E F : Type*} [RCLike 𝕜]
+nonrec lemma _root_.ContinuousLinearMap.integral_id_map {𝕜 E F : Type*} [RCLike 𝕜]
     [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
     [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
     [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
