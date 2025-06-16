@@ -654,7 +654,7 @@ Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$,
 Then for $c \ge 0$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
-  &\le 2^{p+2} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  &\le 2^{p+1} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
   \: .
 \end{align*}
 Note the logarithm has base $2$.
@@ -771,6 +771,9 @@ For $m \le k$,
 \end{lemma}
 
 \begin{proof}
+  \uses{len:dist_chainingSequence_le_sum}
+
+By Lemma~\ref{lem:dist_chainingSequence_le_sum},
 \begin{align*}
   \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
   &\le \sup_{t \in C_k} \left( \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
