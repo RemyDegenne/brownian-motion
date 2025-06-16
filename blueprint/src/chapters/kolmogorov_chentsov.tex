@@ -1033,23 +1033,60 @@ Note that $\eta_k \ge 2^{-k}$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:finite_set_bound}
-  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+\begin{definition}\label{def:L}
   \leanok
-  \lean{ProbabilityTheory.finite_kolmogorov_chentsov, ProbabilityTheory.constL_lt_top}
+  \lean{ProbabilityTheory.constL}
+We introduce the constant
+\begin{align*}
+  L(T, c_1, d, p, q, \beta)
+  &= 4^{p+2q+1} c_1 (\mathrm{diam}(T)+1)^{q-d}
+  \\&\quad \times \sum_{k=0}^\infty 2^{k \beta p + (-k + 1)(q-d)}\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:L_lt_top}
+  \uses{def:L}
+  \leanok
+  \lean{ProbabilityTheory.constL_lt_top}
+For $\mathrm{diam}(T) < \infty$, $p> 0$, $q > d > 0$ and $\beta \in (0, (q-d)/p)$, the constant $L(T, c_1, d, p, q, \beta)$ is finite.
+\end{lemma}
+
+\begin{proof}
+Let $a_k = 2^{k \beta p} 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)$.
+Then $L(T, c_1, d, p, q, \beta) = \sum_{k=0}^\infty a_k$.
+To show that the sum is finite, we can use the ratio test.
+\begin{align*}
+  \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
+  &= 2^{\beta p - (q - d)}
+    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+\end{align*}
+The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=0}^\infty a_k$ converges.
+\end{proof}
+
+
+\begin{lemma}\label{lem:finite_set_bound}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:L}
+  \leanok
+  \lean{ProbabilityTheory.finite_kolmogorov_chentsov}
 Suppose that $J \subseteq T$ is a finite set and that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Let $\beta \in(0, (q - d)/p)$.
-Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends on $T$ bot not $J$) such that
+Then
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c_1, d, p, q, \beta)
+  < \infty
   \: .
 \end{align*}
 \end{lemma}
 
 \begin{proof}
-  \uses{cor:finite_set_bound_of_dist_le_bis, lem:integral_div_dist_le_sum_integral_dist_le}
+  \uses{cor:finite_set_bound_of_dist_le_bis, lem:integral_div_dist_le_sum_integral_dist_le, lem:L_lt_top}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
@@ -1073,17 +1110,7 @@ We apply Corollary~\ref{cor:finite_set_bound_of_dist_le_bis} to bound each expec
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \: .
 \end{align*}
-Let $a_k = 2^{k \beta p} 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)$.
-To show that the sum $\sum_{k=k_0}^\infty a_k$ is finite, we can use the ratio test.
-\begin{align*}
-  \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
-  &= 2^{\beta p - (q - d)}
-    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
-    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
-\end{align*}
-The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=0}^\infty a_k$ converges.
-
+The sum is then less than $M$ times $L(T, c_1, d, p, q, \beta)$.
 \end{proof}
 
 
