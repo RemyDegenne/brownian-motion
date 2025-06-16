@@ -966,6 +966,8 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 
 \begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_diam_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \ge 4\mathrm{diam}(T)$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -982,6 +984,8 @@ Apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then use the fact that f
 
 \begin{corollary}\label{cor:finite_set_bound_of_dist_le_bis}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_bis}
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta > 0$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -1230,6 +1234,7 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:hasBoundedInternalCoveringNumber_unitInterval}
 
 \end{proof}
 
