@@ -85,4 +85,17 @@ lemma gaussian_charFun_congr [IsFiniteMeasure μ] (m : E) (f : ContinuousBilinFo
     intro x
     linear_combination 2 * (hn x).1.symm
 
+/-- Two Gaussian measures are equal if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
+    (hm : μ[id] = ν[id]) (hv : covInnerBilin μ = covInnerBilin ν) : μ = ν := by
+  apply Measure.ext_of_charFun
+  ext t
+  simp_rw [IsGaussian.charFun_eq, hm, hv]
+
+/-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext_iff {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
+    μ = ν ↔ μ[id] = ν[id] ∧ covInnerBilin μ = covInnerBilin ν where
+  mp h := by simp [h]
+  mpr h := IsGaussian.ext h.1 h.2
+
 end ProbabilityTheory
