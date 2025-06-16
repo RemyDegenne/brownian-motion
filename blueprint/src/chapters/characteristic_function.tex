@@ -126,7 +126,7 @@ This is $C_\mu$ applied to the linear maps $L_x, L_y \in E^*$ defined by $L_x(z)
   \uses{def:covInnerBilin}
   \leanok
   \lean{ProbabilityTheory.covInnerBilin_map}
-Let $E$ and $F$ be two finite dimensional Hilbert spaces, $\mu$ a finite measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
+Let $E$ and $F$ be two Hilbert spaces with $F$ finite dimensional, $\mu$ a finite measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
 Then the covariance bilinear form of the measure $L_*\mu$ is given by
 \begin{align*}
   C'_{L_*\mu}(u, v)
@@ -136,7 +136,7 @@ Then the covariance bilinear form of the measure $L_*\mu$ is given by
 in which $L^\dagger : F \to E$ is the adjoint of $L$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 \begin{align*}
   C'_{L_*\mu}(u, v)
   &= (L_*\mu)\left[\langle u, x - m_{L_*\mu}\rangle \langle x - m_{L_*\mu}, v \rangle\right]
@@ -165,6 +165,8 @@ This is the covariance bilinear form $C'_\mu(u, v)$, as a matrix.
 
 \begin{lemma}\label{lem:covMatrix_map}
   \uses{def:covMatrix}
+  \leanok
+  \lean{ProbabilityTheory.covMatrix_map}
 Let $E$ and $F$ be two finite dimensional inner product spaces, $\mu$ a measure on $E$ with finite second moment, and $L : E \to F$ a continuous linear map.
 Then the covariance matrix of the measure $L_*\mu$ has entries
 \begin{align*}
@@ -175,7 +177,11 @@ Then the covariance matrix of the measure $L_*\mu$ has entries
 in which $L^\dagger : F \to E$ is the adjoint of $L$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:covInnerBilin_map}
-
+  On the left-hand side we have
+  $$\langle e_i, \Sigma_{L_*\mu} e_j\rangle = C'_{L_*\mu}(e_i, e_j) = C'_\mu(L^\dagger(e_i), L^\dagger(e_j)),$$
+  where the last equality comes from Lemma~\ref{lem:covInnerBilin_map}. On the right-hand side we have
+  $$\langle L^\dagger(e_i), \Sigma_{L_*\mu} L^\dagger(e_j)\rangle = C'_\mu(L^\dagger(e_i), L^\dagger(e_j)),$$
+  which concludes the proof.
 \end{proof}

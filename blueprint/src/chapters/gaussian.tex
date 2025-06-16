@@ -187,15 +187,17 @@ A Gaussian measure has finite second moment by Lemma~\ref{lem:IsGaussian.memLp_i
 
 We specialize directly from Banach space to finite dimensional Hilbert space since that's what we need in this project, although there are results for Gaussian measures on infinite dimensional Hilbert spaces that would worth stating.
 
-\begin{lemma}\label{lem:isGaussian_iff_charFunDual_inner_eq}
+\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
   \uses{def:IsGaussian, def:charFunDual, def:charFun}
-A finite measure $\mu$ on a separable Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
+  \leanok
+  \lean{ProbabilityTheory.isGaussian_iff_charFun_eq}
+A finite measure $\mu$ on a Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
   \hat{\mu}(t) =  \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:isGaussian_iff_charFunDual_eq}
 By Theorem~\ref{thm:isGaussian_iff_charFunDual_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
 \begin{align*}
@@ -207,45 +209,46 @@ Every continuous linear form $L \in E^*$ can be written as $L(x) = \langle t, x 
 \end{align*}
 \end{proof}
 
-Let $E$ be a finite dimensional Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
-
+Let $E$ be a separable Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
 
 \begin{lemma}\label{lem:IsGaussian.charFun_eq}
-  \uses{def:IsGaussian, def:charFun, def:covMatrix}
+  \uses{def:IsGaussian, def:charFun, def:covInnerBilin}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussian.charFun_eq}
 The characteristic function of a Gaussian measure $\mu$ on $E$ is given by
 \begin{align*}
-  \hat{\mu}(t) = \exp\left(i \langle t, m_\mu \rangle - \frac{1}{2} \langle t, \Sigma_\mu t \rangle\right) \: .
+  \hat{\mu}(t) = \exp\left(i \langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t)\right) \: .
 \end{align*}
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:isGaussian_iff_charFunDual_inner_eq, lem:IsGaussian.memLp_id, lem:covarianceBilin_same_eq_variance}
-By Lemma~\ref{lem:isGaussian_iff_charFunDual_inner_eq}, for every $t \in E$,
+\begin{proof}\leanok
+  \uses{lem:isGaussian_iff_charFun_eq, lem:IsGaussian.memLp_id, lem:covarianceBilin_same_eq_variance}
+By Lemma~\ref{lem:isGaussian_iff_charFun_eq}, for every $t \in E$,
 \begin{align*}
   \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
 \end{align*}
-By Lemma~\ref{lem:IsGaussian.memLp_id}, $\mu$ has finite first moment and $\mu[\langle t, \cdot \rangle] = \langle t, m_\mu \rangle$.
-
-TODO: the second moment is also finite and we can get to the covariance matrix.
+By Lemma~\ref{lem:IsGaussian.memLp_id}, $\mu$ has finite first moment and $\mu[\langle t, \cdot \rangle] = \langle t, m_\mu \rangle$. By the same lemma, $\mu$ has finite second moment and for any $t$ we have $\mathbb{V}_\mu[\langle t, \cdot\rangle] = C'_\mu(t, t)$.
 \end{proof}
 
-
-\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
+\begin{lemma}\label{lem:isGaussian_iff_gaussian_charFun}
   \uses{def:IsGaussian, def:charFun, def:covMatrix}
-A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $\Sigma$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
+  \leanok
+  \lean{ProbabilityTheory.isGaussian_iff_gaussian_charFun, ProbabilityTheory.gaussian_charFun_congr}
+A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $C$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
-  \hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right) \: ,
+  \hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} C(t, t)\right) \: ,
 \end{align*}
-If that's the case, then $m = m_\mu$ and $\Sigma = \Sigma_\mu$.
+If that's the case, then $m = m_\mu$ and $C = C'_\mu$.
 \end{lemma}
 
-Note that this lemma does not say that there exists a Gaussian measure for any such $m$ and $\Sigma$.
+Note that this lemma does not say that there exists a Gaussian measure for any such $m$ and $C$.
 We will prove that later.
 
-\begin{proof}\uses{lem:IsGaussian.charFun_eq, lem:charFun_map_eq_charFunDual_smul, thm:ext_of_charFun}
+\begin{proof}\leanok
+  \uses{lem:IsGaussian.charFun_eq, lem:charFun_map_eq_charFunDual_smul, thm:ext_of_charFun}
 Lemma~\ref{lem:IsGaussian.charFun_eq} states that the characteristic function of a Gaussian measure has the wanted form.
 
-Suppose now that there exists $m \in E$ and $\Sigma$ positive semidefinite such that for all $t \in E$, $\hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right)$.
+Suppose now that there exists $m \in E$ and $C$ positive semidefinite such that for all $t \in E$, $\hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} C(t, t)\right)$.
 
 We need to show that for all $L \in E^*$, $L_*\mu$ is a Gaussian measure on $\mathbb{R}$.
 Such an $L$ can be written as $\langle u, \cdot \rangle$ for some $u \in E$.
@@ -254,11 +257,35 @@ Let then $u \in E$. We compute the characteristic function of $\langle u, \cdot\
   \widehat{\langle u, \cdot\rangle_*\mu}(x)
   &= \hat{\mu}(x \cdot u)
   \\
-  &= \exp\left(i x \langle u, m \rangle - \frac{1}{2} x^2 \langle u, \Sigma u \rangle\right)
+  &= \exp\left(i x \langle u, m \rangle - \frac{1}{2} x^2 C(u, u)\right)
   \: .
 \end{align*}
-This is the characteristic function of a Gaussian measure on $\mathbb{R}$ with mean $\langle u, m \rangle$ and variance $\langle u, \Sigma u \rangle$.
+This is the characteristic function of a Gaussian measure on $\mathbb{R}$ with mean $\langle u, m \rangle$ and variance $C(u, u)$.
 By Theorem~\ref{thm:ext_of_charFun}, $\langle u, \cdot\rangle_*\mu$ is Gaussian, hence $\mu$ is Gaussian.
+
+By Lemma~\ref{lem:IsGaussian.charFun_eq}, we deduce that for any $t \in E$ we have
+$$\exp\left(i\langle t, m \rangle - \frac{1}{2} C(t, t)\right) = \exp\left(i\langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t)\right).$$
+In particular, for any $t$ there exists $n_t \in \mathbb{Z}$ such that
+$$i\langle t, m \rangle - \frac{1}{2} C(t, t) = i\langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t) + 2i\pi n_t.$$
+We deduce that $n$ is a continuous map from $E$ to $\mathbb{Z}$, and thus must be constant because $E$ is connected. By looking at the value at $t = 0$, we deduce that for any $t$, $n_t = 0$. Looking at real and imaginary parts we obtain that for any $t$,
+$$\langle t, m \rangle = \langle t, m_\mu \rangle \quad \text{and} \quad C(t, t) = C'_\mu(t, t).$$
+We immediately deduce that $m = m_\mu$. Moreover, because $C$ and $C'_\mu$ are symmetric, they are characterized by their values on the diagonal. Indeed, for any $x, y$,
+$$C(x, y) = \frac{1}{2} (C(x + y, x + y) - C(x, x) - C(y, y)).$$
+We deduce that $C = C'_\mu$.
+\end{proof}
+
+\begin{lemma}\label{lem:IsGaussian.ext_iff}
+  \uses{def:IsGaussian, def:covInnerBilin}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussian.ext, ProbabilityTheory.IsGaussian.ext_iff}
+Two Gaussian measures $\mu$ and $\nu$ on a separable Hilbert space are equal if and only if they have same mean and same covariance.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:ext_of_charFun, lem:IsGaussian.charFun_eq}
+The forward direction is immediate.
+
+For the converse direction, it is enough to show that $\mu$ and $\nu$ have the same characteristic function by Theorem~\ref{thm:ext_of_charFun}. As they are both Gaussian, their characteristic functions only depend on their mean and covariance by Lemma~\ref{lem:IsGaussian.charFun_eq}. Thus they are equal.
 \end{proof}
 
 

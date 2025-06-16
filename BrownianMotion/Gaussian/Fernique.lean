@@ -43,6 +43,12 @@ lemma IsGaussian.memLp_id (μ : Measure E) [IsGaussian μ] (p : ℝ≥0∞) (hp 
     MemLp id p μ := by
   sorry -- Mathlib PR #24430
 
+lemma IsGaussian.memLp_two_id (μ : Measure E) [IsGaussian μ] :
+    MemLp id 2 μ := IsGaussian.memLp_id μ 2 (by norm_num)
+
+lemma IsGaussian.integrable_id (μ : Measure E) [IsGaussian μ] :
+    Integrable id μ := memLp_one_iff_integrable.1 <| IsGaussian.memLp_id μ 1 (by norm_num)
+
 -- Mathlib PR #24430
 lemma IsGaussian.integral_dual (L : Dual ℝ E) : μ[L] = L (∫ x, x ∂μ) :=
   L.integral_comp_comm ((IsGaussian.memLp_id μ 1 (by simp)).integrable le_rfl)

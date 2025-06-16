@@ -30,8 +30,12 @@ lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimi
 
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := sorry
 
-lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit := by
+lemma brownian_eq_preBrownian (t : ℝ≥0) :
+    brownian t =ᵐ[gaussianLimit] preBrownian t := by
   sorry
+
+lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit :=
+  ⟨preBrownian t, measurable_preBrownian t, brownian_eq_preBrownian t⟩
 
 lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussianLimit := by
   sorry
@@ -39,6 +43,9 @@ lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussian
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) :
     Continuous (brownian · ω) := by
   sorry
+
+lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
+  isGaussianProcess_preBrownian.modification (fun t ↦ (brownian_eq_preBrownian t).symm)
 
 section Measure
 
