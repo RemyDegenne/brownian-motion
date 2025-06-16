@@ -196,11 +196,11 @@ lemma card_finset_logSizeBallSeq_card_eq_zero (hJ : J.Nonempty) :
   rw [← Nat.le_zero,← tsub_self #J]
   exact card_finset_logSizeBallSeq_le hJ #J
 
-lemma disjoint_smallBall_logSizeBallSeq (hJ : J.Nonempty) (i j : ℕ) (hij : i ≠ j) :
+lemma disjoint_smallBall_logSizeBallSeq (hJ : J.Nonempty) {i j : ℕ} (hij : i ≠ j) :
     Disjoint
       ((logSizeBallSeq J hJ a c i).smallBall c) ((logSizeBallSeq J hJ a c j).smallBall c) := by
   wlog h : i < j generalizing i j
-  · exact Disjoint.symm <| this j i hij.symm <| (ne_iff_lt_iff_le.mpr (not_lt.mp h)).mp hij.symm
+  · exact Disjoint.symm <| this hij.symm <| (ne_iff_lt_iff_le.mpr (not_lt.mp h)).mp hij.symm
   apply Finset.disjoint_of_subset_right
   · exact subset_trans (Finset.filter_subset _ _) (antitone_logSizeBallSeq_add_one_subset hJ h)
   simp [finset_logSizeBallSeq_add_one, Finset.disjoint_sdiff]
@@ -233,53 +233,64 @@ lemma pairSet_subset : pairSet J a c ⊆ J.product J := by
   simp [pairSetSeq, hJ]
 
 lemma card_pairSetSeq_le_logSizeRadius (hJ : J.Nonempty) (i : ℕ) (ha : 1 < a) :
-    ↑(#(pairSetSeq J a c i)) ≤ a ^ (logSizeBallSeq J hJ a c i).radius := by
-  match i with
-  | 0 =>
-      simp [pairSetSeq, hJ, logSizeBallStruct.ball, radius_logSizeBallSeq_zero]
-      exact card_le_logSizeRadius_le ha
-  | i + 1 =>
-      simp [pairSetSeq, hJ, logSizeBallStruct.ball, radius_logSizeBallSeq_add_one]
-      exact card_le_logSizeRadius_le ha
-
-open Classical in
-lemma logSizeRadius_le_card_smallBall (hJ : J.Nonempty) (i : ℕ) (ha : 1 < a)
-    (h : (logSizeBallSeq J hJ a c i).finset.Nonempty) :
-    a ^ ((logSizeBallSeq J hJ a c i).radius - 1) ≤ #((logSizeBallSeq J hJ a c i).smallBall c) := by
+    ↑(#(pairSetSeq J a c i)) ≤ (if (logSizeBallSeq J hJ a c i).finset.Nonempty then 1 else 0)
+    * a ^ (logSizeBallSeq J hJ a c i).radius := by
   induction i with
   | zero =>
-      simp [hJ, logSizeBallStruct.smallBall, radius_logSizeBallSeq_zero]
-      exact card_le_logSizeRadius_ge ha (Exists.choose_spec hJ)
+      simp [pairSetSeq, hJ, finset_logSizeBallSeq_zero, logSizeBallStruct.ball,
+        radius_logSizeBallSeq_zero]
+      exact card_le_logSizeRadius_le ha
   | succ i ih =>
-      simp [hJ, logSizeBallStruct.smallBall, radius_logSizeBallSeq_add_one]
-      exact card_le_logSizeRadius_ge ha (point_mem_finset_logSizeBallSeq hJ _ h)
+      by_cases h : (logSizeBallSeq J hJ a c (i + 1)).finset.Nonempty
+      · simp [pairSetSeq, logSizeBallStruct.ball, h, hJ]
+        exact card_le_logSizeRadius_le ha
+      simp [pairSetSeq, logSizeBallStruct.ball, Finset.not_nonempty_iff_eq_empty.mp h, hJ]
+
+open Classical in
+lemma logSizeRadius_le_card_smallBall (hJ : J.Nonempty) (i : ℕ) (ha : 1 < a) :
+    (if (logSizeBallSeq J hJ a c i).finset.Nonempty then 1 else 0) *
+    a ^ ((logSizeBallSeq J hJ a c i).radius - 1) ≤ #((logSizeBallSeq J hJ a c i).smallBall c) := by
+  match i with
+  | 0 =>
+      simp [finset_logSizeBallSeq_zero, hJ, logSizeBallStruct.smallBall, radius_logSizeBallSeq_zero]
+      exact card_le_logSizeRadius_ge ha (Exists.choose_spec hJ)
+  | i + 1 =>
+      by_cases h : (logSizeBallSeq J hJ a c (i + 1)).finset.Nonempty
+      · simp [h, logSizeBallStruct.smallBall, radius_logSizeBallSeq_add_one]
+        exact card_le_logSizeRadius_ge ha (point_mem_finset_logSizeBallSeq hJ _ h)
+      simp [Finset.not_nonempty_iff_eq_empty.mp h]
 
 open Classical in
 lemma card_pairSet_le (ha : 1 < a) (hJ_card : #J ≤ a ^ n) :
     #(pairSet J a c) ≤ a * #J := by
   wlog hJ : J.Nonempty
-  · sorry
-  -- by_cases h1 : a = ∞
-  -- · sorry
-  let S := (Finset.range #J).filter (fun i ↦ (logSizeBallSeq J hJ a c i).finset.Nonempty)
+  · convert zero_le (a * ↑(#J))
+    rw [← Nat.cast_zero]
+    congr
+    rw [Finset.card_eq_zero]
+    refine subset_antisymm ?_ (Finset.empty_subset _)
+    convert pairSet_subset
+    simp [Finset.not_nonempty_iff_eq_empty.mp hJ]
   apply le_trans (Nat.mono_cast Finset.card_biUnion_le)
   rw [Nat.cast_sum]
+  apply le_trans (Finset.sum_le_sum (fun i _ ↦ card_pairSetSeq_le_logSizeRadius hJ i ha))
   apply le_trans
-  apply Finset.sum_le_sum (fun i _ ↦ card_pairSetSeq_le_logSizeRadius hJ i ha)
-  apply le_trans
-  apply Finset.sum_le_sum (fun i _ ↦ pow_le_pow_right₀ (le_of_lt ha) (le_tsub_add (a := 1)))
-  conv_lhs => enter [2]; ext _; rw [pow_add, pow_one, mul_comm]
+  · apply Finset.sum_le_sum
+    exact fun i _ ↦ mul_le_mul_left' (pow_le_pow_right₀ (le_of_lt ha) (le_tsub_add (a := 1))) _
+  conv_lhs => enter [2]; ext _; rw [pow_add, pow_one, ← mul_assoc, mul_comm]
   rw [← Finset.mul_sum]
   apply mul_le_mul_left'
-  apply le_trans
-  apply Finset.sum_le_sum
+  apply le_trans (Finset.sum_le_sum (fun i _ ↦ logSizeRadius_le_card_smallBall hJ i ha))
+  rw [← Nat.cast_sum]
+  gcongr
+  rw [← Finset.card_biUnion (fun _ _ _ _ hij ↦ disjoint_smallBall_logSizeBallSeq hJ hij)]
+  apply Finset.card_le_card
+  rw [Finset.biUnion_subset_iff_forall_subset]
   intro i _
-  apply logSizeRadius_le_card_smallBall hJ i ha
-
-#check Finsupp.filter
-example {T E : Type*} (S : Finset T) (f : ℕ → ℝ≥0∞) :
-    ∑ i ∈ Finset.range #S, f i = ∑ i ∈ (Finset.range #S).filter (fun i ↦ 0 < f i), f i := by
-  sorry
+  unfold logSizeBallStruct.smallBall
+  apply subset_trans (Finset.filter_subset _ _)
+  apply subset_trans <| (antitone_logSizeBallSeq_add_one_subset hJ) (zero_le i)
+  simp [finset_logSizeBallSeq_zero]
 
 lemma edist_le_of_mem_pairSet (ha : 1 < a) (hn : 1 ≤ n) (hJ_card : #J ≤ a ^ n) {s t : T}
     (h : (s, t) ∈ pairSet J a c) : edist s t ≤ n * c := by
