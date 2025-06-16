@@ -1156,6 +1156,8 @@ Immediately follows from Theorem~\ref{thm:countable_set_bound}.
 
 \begin{lemma}\label{lem:holder_modification_single}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_holder_aux}
 Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of order $\beta$.
 \end{lemma}
 
@@ -1202,6 +1204,8 @@ TODO
 
 \begin{theorem}\label{thm:holder_modification}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_holder}
 Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
