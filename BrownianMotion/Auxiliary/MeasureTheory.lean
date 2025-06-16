@@ -30,11 +30,18 @@ lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥
 
 end ProbabilityTheory
 
-nonrec lemma _root_.ContinuousLinearMap.integral_id_map {𝕜 E F : Type*} [RCLike 𝕜]
+lemma _root_.ContinuousLinearMap.integral_comp_id_comm {𝕜 E F : Type*} [RCLike 𝕜]
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
+    [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
+    [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
+    {μ : Measure E} (h : Integrable id μ) (L : E →L[𝕜] F) : μ[L] = L μ[id] := by
+  change ∫ x, L (id x) ∂μ = _
+  rw [L.integral_comp_comm h]
+
+lemma _root_.ContinuousLinearMap.integral_id_map {𝕜 E F : Type*} [RCLike 𝕜]
     [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
     [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
     [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
     {μ : Measure E} (h : Integrable id μ) (L : E →L[𝕜] F) : (μ.map L)[id] = L μ[id] := by
   rw [integral_map (by fun_prop) (by fun_prop)]
-  change ∫ x, L (id x) ∂μ = _
-  rw [L.integral_comp_comm h]
+  simp [L.integral_comp_id_comm h]

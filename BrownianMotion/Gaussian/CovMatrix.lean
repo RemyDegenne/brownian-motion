@@ -38,7 +38,7 @@ nonrec
 lemma IsGaussian.covInnerBilin_apply [IsGaussian μ] [SecondCountableTopology E] [CompleteSpace E]
     (x y : E) :
     covInnerBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ :=
-  covInnerBilin_apply (IsGaussian.memLp_id μ 2 (by simp)) x y
+  covInnerBilin_apply (IsGaussian.memLp_two_id μ) x y
 
 lemma covInnerBilin_comm [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
     covInnerBilin μ x y = covInnerBilin μ y x := by
@@ -61,7 +61,7 @@ lemma isPosSemidef_covInnerBilin [CompleteSpace E] [IsFiniteMeasure μ] (h : Mem
 
 nonrec lemma IsGaussian.isPosSemidef_covInnerBilin [SecondCountableTopology E] [CompleteSpace E]
     [IsGaussian μ] : (covInnerBilin μ).IsPosSemidef :=
-  isPosSemidef_covInnerBilin (IsGaussian.memLp_id μ 2 (by norm_num))
+  isPosSemidef_covInnerBilin (IsGaussian.memLp_two_id μ)
 
 lemma covInnerBilin_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
     [MeasurableSpace F] [BorelSpace F] [CompleteSpace E] [FiniteDimensional ℝ F]

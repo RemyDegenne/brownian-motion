@@ -274,6 +274,20 @@ $$C(x, y) = \frac{1}{2} (C(x + y, x + y) - C(x, x) - C(y, y)).$$
 We deduce that $C = C'_\mu$.
 \end{proof}
 
+\begin{lemma}\label{lem:IsGaussian.ext_iff}
+  \uses{def:IsGaussian, def:covInnerBilin}
+  \leanok
+  \lean{ProbabilityTheory.IsGaussian.ext, ProbabilityTheory.IsGaussian.ext_iff}
+Two Gaussian measures $\mu$ and $\nu$ on a separable Hilbert space are equal if and only if they have same mean and same covariance.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:ext_of_charFun, lem:IsGaussian.charFun_eq}
+The forward direction is immediate.
+
+For the converse direction, it is enough to show that $\mu$ and $\nu$ have the same characteristic function by Theorem~\ref{thm:ext_of_charFun}. As they are both Gaussian, their characteristic functions only depend on their mean and covariance by Lemma~\ref{lem:IsGaussian.charFun_eq}. Thus they are equal.
+\end{proof}
+
 
 \begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
   \uses{def:gaussianReal}
