@@ -292,11 +292,16 @@ lemma card_pairSet_le (ha : 1 < a) (hJ_card : #J ≤ a ^ n) :
   apply subset_trans <| (antitone_logSizeBallSeq_add_one_subset hJ) (zero_le i)
   simp [finset_logSizeBallSeq_zero]
 
-lemma edist_le_of_mem_pairSet (ha : 1 < a) (hn : 1 ≤ n) (hJ_card : #J ≤ a ^ n) {s t : T}
+lemma edist_le_of_mem_pairSet (ha : 1 < a) (hJ_card : #J ≤ a ^ n) {s t : T}
     (h : (s, t) ∈ pairSet J a c) : edist s t ≤ n * c := by
-  simp only [pairSet, Finset.mem_biUnion, Finset.mem_range] at h
-  obtain ⟨i, hiJ, h'⟩ := h
+  obtain ⟨i, hiJ, h'⟩ :  ∃ i < #J, (s, t) ∈ pairSetSeq J a c i := by simp [pairSet] at h; exact h
   have hJ : J.Nonempty := Finset.card_pos.mp (Nat.zero_lt_of_lt hiJ)
+  wlog hn : 1 ≤ n
+  · convert zero_le (n * c)
+    convert edist_self _
+    simp [Nat.lt_one_iff.mp (Nat.lt_of_not_ge hn)] at hJ_card
+    have ⟨hs, ht⟩ := Finset.mem_product.mp (pairSet_subset h)
+    apply Finset.card_le_one_iff.mp hJ_card ht hs
   simp only [pairSetSeq, hJ, ↓reduceDIte, logSizeBallStruct.ball, Finset.product_eq_sprod,
     Finset.singleton_product, Finset.mem_map, Finset.mem_filter, Function.Embedding.coeFn_mk,
     Prod.mk.injEq, exists_eq_right_right] at h'
@@ -378,7 +383,7 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
   rw [edist_comm]
   apply add_le_add (sup_bound hsP) (sup_bound htP)
 
-theorem pair_reduction (J : Finset T) (hJ_card : #J ≤ a ^ n) (ha : 1 < a) (hn : 1 ≤ n)
+theorem pair_reduction (J : Finset T) (hJ_card : #J ≤ a ^ n) (ha : 1 < a)
     (E : Type*) [PseudoEMetricSpace E] :
     ∃ K : Finset (T × T), K ⊆ J.product J
       ∧ #K ≤ a * #J
@@ -389,5 +394,5 @@ theorem pair_reduction (J : Finset T) (hJ_card : #J ≤ a ^ n) (ha : 1 < a) (hn 
   refine ⟨pairSet J a c, ?_, ?_, ?_, ?_⟩
   · exact pairSet_subset
   · exact card_pairSet_le ha hJ_card
-  · exact fun _ _ ↦ edist_le_of_mem_pairSet ha hn hJ_card
+  · exact fun _ _ ↦ edist_le_of_mem_pairSet ha hJ_card
   · exact iSup_edist_pairSet ha
