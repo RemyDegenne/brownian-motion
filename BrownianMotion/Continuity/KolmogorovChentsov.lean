@@ -39,9 +39,9 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
-  ∑' k, 2 ^ (k * β * p) * 4 ^ (p + 2 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
-    * 2 ^ ((-k + 1) * (q - d))
-    * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
+  4 ^ (p + 2 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
+  * ∑' k, 2 ^ (k * β * p + (-k + 1) * (q - d))
+      * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
         + 1 / (2 ^ ((q - d) / p) - 1) ^ p)
 
 lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
