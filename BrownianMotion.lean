@@ -1,3 +1,4 @@
+import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
