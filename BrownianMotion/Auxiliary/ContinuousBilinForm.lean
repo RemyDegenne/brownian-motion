@@ -41,14 +41,14 @@ lemma IsSymm.polarization (x y : E) (hf : f.IsSymm) :
   rw [hf.map_symm y x]
   ring
 
-/-- A symmetric continuous bilinear form is characterized by the values it takes on the diagonla. -/
+/-- A symmetric continuous bilinear form is characterized by the values it takes on the diagonal. -/
 lemma ext_of_isSymm {g : ContinuousBilinForm 𝕜 E} (hf : IsSymm f) (hg : IsSymm g)
     (h : ∀ x, f x x = g x x) : f = g := by
   ext x y
   rw [hf.polarization, hg.polarization]
   simp_rw [h]
 
-/-- A symmetric continuous bilinear form is characterized by the values it takes on the diagonla. -/
+/-- A symmetric continuous bilinear form is characterized by the values it takes on the diagonal. -/
 lemma ext_iff_of_isSymm {g : ContinuousBilinForm 𝕜 E} (hf : IsSymm f) (hg : IsSymm g) :
     f = g ↔ ∀ x, f x x = g x x where
   mp h := by simp [h]
