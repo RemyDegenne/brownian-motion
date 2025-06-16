@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import Mathlib
+import BrownianMotion.Gaussian.Fernique
 
 
 /-!
@@ -190,8 +191,10 @@ lemma variance_dual_stdGaussian (L : Dual ℝ E) :
       simp
     · intro i
       apply MemLp.const_mul
-      exact (isGaussian_gaussianReal 0 1).memLp_ _
-
+      exact (isGaussian_gaussianReal 0 1).memLp_two_id _
+  · exact L.continuous.aemeasurable
+  · apply Measurable.aemeasurable
+    fun_prop
 
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   refine isGaussian_of_charFunDual_eq fun L ↦ ?_
