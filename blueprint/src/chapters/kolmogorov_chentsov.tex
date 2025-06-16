@@ -60,6 +60,18 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:internalCoveringNumber_eq_one_of_diam_le}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_eq_one_of_diam_le}
+If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\varepsilon(A) = 1$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
   \uses{def:internalCoveringNumber}
   \leanok
@@ -771,7 +783,7 @@ For $m \le k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{len:dist_chainingSequence_le_sum}
+  \uses{lem:dist_chainingSequence_le_sum}
 
 By Lemma~\ref{lem:dist_chainingSequence_le_sum},
 \begin{align*}
@@ -952,6 +964,39 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 \end{proof}
 
 
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_diam_le}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \ge 4\mathrm{diam}(T)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le 4^{p+2q+1} M c_1 \delta^{q-d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{thm:finite_set_bound_of_dist_le, lem:internalCoveringNumber_eq_one_of_diam_le}
+Apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then use the fact that for $\delta \ge 4\mathrm{diam}(T)$, $N^{int}_{\delta/4}(T) = 1$ (Lemma~\ref{lem:internalCoveringNumber_eq_one_of_diam_le}).
+\end{proof}
+
+
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le_bis}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta > 0$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 \delta^{-d} 4^d\right) \right\} \right)^q
+    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+  \: .
+\end{align*}
+\end{corollary}
+
+
+\begin{proof}
+  \uses{cor:finite_set_bound_of_dist_le_of_le_diam, cor:finite_set_bound_of_dist_le_of_diam_le}
+We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam} and Corollary~\ref{cor:finite_set_bound_of_dist_le_of_diam_le}.
+\end{proof}
+
 
 
 
@@ -1004,7 +1049,7 @@ Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends 
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam, lem:integral_div_dist_le_sum_integral_dist_le}
+  \uses{cor:finite_set_bound_of_dist_le_bis, lem:integral_div_dist_le_sum_integral_dist_le}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
@@ -1014,57 +1059,31 @@ By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \end{align*}
 We want to show that the sum is finite.
 
-Let $k_0 = \min \{k \in \mathbb{N} \mid \eta_{k+1} \le \mathrm{diam}(T)\}$.
-We deal separately with the parts of the sum for $k < k_0$ and $k \ge k_0$.
-
-\emph{Large $k$}.
-
-For $k \ge k_0$, $2\eta_k / 4 = \eta_{k+1} \le \mathrm{diam}(T)$, which means that we can apply Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam} to bound each expectation in the sum.
+We apply Corollary~\ref{cor:finite_set_bound_of_dist_le_bis} to bound each expectation in the sum.
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \left(4^d \left(\log_2 \left(c_1 (2 \eta_k)^{-d} 4^d \right) \right)^q
+  &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 (2 \eta_k)^{-d} 4^d \right) \right\} \right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \\
-  &\le 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2 \left(c_1 2^{(k + 1)d} \right) \right)^q
+  &\le 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 2^{(k + 1)d} \right) \right\} \right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \\
-  &= 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q
+  &= 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\} \right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
   \: .
 \end{align*}
-Let $a_k = 2^{k \beta p} 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q
+Let $a_k = 2^{k \beta p} 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
     + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)$.
 To show that the sum $\sum_{k=k_0}^\infty a_k$ is finite, we can use the ratio test.
 \begin{align*}
   \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
   &= 2^{\beta p - (q - d)}
-    \frac{\left(4^d \left(\log_2(c_1) + (k + 2)d \right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
-    {\left(4^d \left(\log_2(c_1) + (k + 1)d \right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
 \end{align*}
-The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=k_0}^\infty a_k$ converges.
+The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=0}^\infty a_k$ converges.
 
-\emph{Small $k$}.
-
-For $k < k_0$, $N^{int}_{\eta_{k+1}}(T) = 1$. Applying Theorem~\ref{thm:finite_set_bound_of_dist_le} with $\delta = 2 \eta_k$, we obtain
-\begin{align*}
-  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
-  \\
-  &\le 4^{p+2q+1} M (2 \eta_k)^{q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
-  \\
-  &\le 4^{p+2q+1} M (\mathrm{diam}(T) + 1)^{q-d} 2^{(-k+1)q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
-  \: .
-\end{align*}
-This is an expression of the form $K 2^{-k(q-d)}$ for some constant $K < \infty$.
-Coming back to the sum, we have
-\begin{align*}
-  \sum_{k=1}^{k_0 - 1} 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
-  &\le K \sum_{k=1}^{k_0 - 1} 2^{k (\beta p - (q-d))}
-  \\
-  &\le K \frac{1}{1 - 2^{(\beta p - (q-d))}}
-  \: .
-\end{align*}
-The sum is finite since $\beta p < (q - d)$ by assumption.
 \end{proof}
 
 
@@ -1188,41 +1207,41 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 \end{proof}
 
 
-\begin{definition}[Localized Kolmogorov conditions]\label{def:IsLocalizedKolmogorovProcess}
-  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
-  \notready
-Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
-\begin{align*}
-  \mathbb{E}\left[ d_E(X_s, X_t)^{p_n} \right]
-  &\le M_n d_T(s, t)^{q_n}
-  \: .
-\end{align*}
-\end{definition}
+% \begin{definition}[Localized Kolmogorov conditions]\label{def:IsLocalizedKolmogorovProcess}
+%   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+%   \notready
+% Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
+% A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
+% \begin{align*}
+%   \mathbb{E}\left[ d_E(X_s, X_t)^{p_n} \right]
+%   &\le M_n d_T(s, t)^{q_n}
+%   \: .
+% \end{align*}
+% \end{definition}
 
 
-\begin{lemma}\label{lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
-  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover, def:IsLocalizedKolmogorovProcess}
-  \notready
-Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > \sup_n d_n$.
-Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n) = (p, q)$, constants $M_n = M$ and any $\rho_n > 0$.
-\end{lemma}
+% \begin{lemma}\label{lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
+%   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover, def:IsLocalizedKolmogorovProcess}
+%   \notready
+% Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
+% Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > \sup_n d_n$.
+% Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n) = (p, q)$, constants $M_n = M$ and any $\rho_n > 0$.
+% \end{lemma}
 
-\begin{proof}
+% \begin{proof}
 
-\end{proof}
+% \end{proof}
 
 
 \begin{theorem}\label{thm:localized_holder_modification}
-  \uses{def:IsLocalizedKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
   \notready
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n)$ with $q_n > d_n$.
-Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in \bigcap_n [0, (q_n - d_n)/p_n)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
-Moreover, for $n \in \mathbb{N}$, $t \in T_n$, there is an open neighborhood $V_t$ of $t$ in $T$ such that for all $\beta \in [0, (q_n - d_n)/p_n)$,
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p, q)$ with $q > \sup_n d_n$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in [0, (q - \sup_n d_n)/p)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
+Moreover, for $n \in \mathbb{N}$, $t \in T_n$, there is an open neighborhood $V_t$ of $t$ in $T$ such that for all $\beta \in [0, (q - d_n)/p)$,
 \begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in V_t} \frac{d_E(Y_s, Y_t)^{p_n}}{d_T(s, t)^{\beta p_n}} \right]
+  \mathbb{E}\left[ \sup_{s, t \in V_t} \frac{d_E(Y_s, Y_t)^{p}}{d_T(s, t)^{\beta p}} \right]
   &< \infty
   \: .
 \end{align*}
