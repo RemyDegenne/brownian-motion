@@ -10,6 +10,8 @@ open scoped Matrix NNReal Real InnerProductSpace ProbabilityTheory
 
 namespace ProbabilityTheory
 
+section InnerProductSpace
+
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
@@ -31,7 +33,7 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
   rw [isGaussian_iff_charFun_eq.1 inferInstance]
   congr
   · simp_rw [integral_complex_ofReal, ← integral_inner (IsGaussian.integrable_id μ), id]
-  · rw [covInnerBilin_self (IsGaussian.memLp_id μ 2 (by norm_num))]
+  · rw [covInnerBilin_self (IsGaussian.memLp_two_id μ)]
 
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔
@@ -85,17 +87,39 @@ lemma gaussian_charFun_congr [IsFiniteMeasure μ] (m : E) (f : ContinuousBilinFo
     intro x
     linear_combination 2 * (hn x).1.symm
 
-/-- Two Gaussian measures are equal if they have same mean and same covariance. -/
+/-- Two Gaussian measures are equal if they have same mean and same covariance. This is
+`IsGaussian.ext_covarianceBilin` specialized to Hilbert spaces. -/
 protected lemma IsGaussian.ext {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
     (hm : μ[id] = ν[id]) (hv : covInnerBilin μ = covInnerBilin ν) : μ = ν := by
   apply Measure.ext_of_charFun
   ext t
   simp_rw [IsGaussian.charFun_eq, hm, hv]
 
-/-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
+/-- Two Gaussian measures are equal if and only if they have same mean and same covariance. This is
+`IsGaussian.ext_iff_covarianceBilin` specialized to Hilbert spaces. -/
 protected lemma IsGaussian.ext_iff {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
     μ = ν ↔ μ[id] = ν[id] ∧ covInnerBilin μ = covInnerBilin ν where
   mp h := by simp [h]
   mpr h := IsGaussian.ext h.1 h.2
+
+end InnerProductSpace
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
+  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
+
+/-- Two Gaussian measures are equal if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
+    (hm : μ[id] = ν[id]) (hv : covarianceBilin μ = covarianceBilin ν) : μ = ν := by
+  apply Measure.ext_of_charFunDual
+  ext L
+  simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
+    L.integral_comp_id_comm (IsGaussian.integrable_id _), hm,
+    ← covarianceBilin_same_eq_variance (IsGaussian.memLp_two_id _), hv]
+
+/-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
+    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilin μ = covarianceBilin ν where
+  mp h := by simp [h]
+  mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
 
 end ProbabilityTheory
