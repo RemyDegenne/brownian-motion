@@ -162,13 +162,13 @@ The projective family of the Brownian motion is a projective family of measures.
 
 \begin{proof}
   \uses{lem:isGaussian_map, lem:isGaussian_multivariateGaussian, lem:covMatrix_map,
-  lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
+  lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian, lem:IsGaussian.ext_iff}
 Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
 We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ (denote it by $\pi_{IJ}$) maps $P^B_I$ to $P^B_J$.
 
 The restriction is a continuous linear map from $\mathbb{R}^I$ to $\mathbb{R}^J$.
 The map of a Gaussian measure by a continuous linear map is Gaussian (Lemma~\ref{lem:isGaussian_map}).
-It thus suffices to show that the mean and covariance matrix of the map are equal to the ones of $P^B_J$.
+It thus suffices to show that the mean and covariance matrix of the map are equal to the ones of $P^B_J$ by Lemma~\ref{lem:IsGaussian.ext_iff}.
 
 The mean of the map is $0$, since the mean of $P^B_I$ is $0$ and the map is linear.
 
