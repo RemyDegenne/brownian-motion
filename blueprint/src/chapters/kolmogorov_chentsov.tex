@@ -783,7 +783,7 @@ For $m \le k$,
 \end{lemma}
 
 \begin{proof}
-  \uses{len:dist_chainingSequence_le_sum}
+  \uses{lem:dist_chainingSequence_le_sum}
 
 By Lemma~\ref{lem:dist_chainingSequence_le_sum},
 \begin{align*}
@@ -969,7 +969,7 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \ge 4\mathrm{diam}(T)$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &\le 4^{p+2q+1} M \delta^{q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  &\le 4^{p+2q+1} M c_1 \delta^{q-d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \: .
 \end{align*}
 \end{corollary}
@@ -1029,7 +1029,7 @@ Then there exists a constant $L(T, c_1, d, p, q, \beta) < \infty$ (that depends 
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le, cor:finite_set_bound_of_dist_le_of_le_diam, lem:integral_div_dist_le_sum_integral_dist_le, lem:internalCoveringNumber_eq_one_of_diam_le}
+  \uses{cor:finite_set_bound_of_dist_le_of_diam_le, cor:finite_set_bound_of_dist_le_of_le_diam, lem:integral_div_dist_le_sum_integral_dist_le}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
@@ -1071,11 +1071,11 @@ The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the se
 
 \emph{Small $k$}.
 
-For $k < k_0$, $N^{int}_{\eta_{k+1}}(T) = 1$ (Lemma~\ref{lem:internalCoveringNumber_eq_one_of_diam_le}). Applying Theorem~\ref{thm:finite_set_bound_of_dist_le} with $\delta = 2 \eta_k$, we obtain
+For $k < k_0$, we apply Corollary~\ref{cor:finite_set_bound_of_dist_le_of_diam_le} with $\delta = 2 \eta_k$, we obtain
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
-  &\le 4^{p+2q+1} M (2 \eta_k)^{q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \\
   &\le 4^{p+2q+1} M (\mathrm{diam}(T) + 1)^{q-d} 2^{(-k+1)q-d} \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \: .
