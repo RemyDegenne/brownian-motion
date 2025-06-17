@@ -301,6 +301,46 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
   sorry
 
+lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
+    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+      ≤ ∑ i ∈ Finset.range (k - m), ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
+        edist (X (chainingSequence hC ht (m + i)) ω)
+          (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P := by
+  sorry
+
+lemma lintegral_sup_rpow_edist_le_sum_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
+    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+      ≤ M * ∑ i ∈ Finset.range (k - m), #(C (m + i + 1)) * ε (m + i) ^ q := by
+  sorry
+
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hε : ∀ n, ε n ≤ EMetric.diam J)
+    (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
+    (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε n) J)
+    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d)
+    (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
+    (hm : m ≤ k) :
+    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+      ≤ M * c₁
+        * ∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d) * ε (m + j) ^ q := by
+  sorry
+
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
+    (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
+    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d)
+    (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
+    (hm : m ≤ k) :
+    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+      ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
+  sorry
+
 end SecondTerm
 
 section Together
@@ -310,6 +350,17 @@ variable {c M : ℝ≥0} {d p q : ℝ} {J : Set T} {δ : ℝ≥0∞}
 noncomputable
 def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
+
+lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
+    (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
+    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d)
+    (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
+    (hm : m ≤ k) :
+    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+      ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
+  sorry
 
 theorem finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
