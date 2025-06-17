@@ -58,7 +58,22 @@ lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A :
 lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A = 1 := by
-  sorry
+  simp [internalCoveringNumber]
+  refine le_antisymm ?_ ?_
+  · have ⟨a, ha⟩ := h_nonempty
+    let C := ({a} : Finset E)
+    have hC : ↑C ⊆ A := by simp [C, ha]
+    calc
+      _ ≤ _ := iInf₂_le (α := ℕ∞) C hC
+      _ ≤ C.card := by
+        refine iInf_le (α := ℕ∞) _ fun b hb ↦ ⟨a, by simp [C], hA.trans' ?_⟩
+        simp only [EMetric.diam, C]
+        trans ⨆ y ∈ A, edist b y
+        · exact le_iSup₂ (α := ENNReal) a ha
+        · exact le_iSup₂ (α := ENNReal) b hb
+      _ ≤ _ := by simp [C]
+  ·
+    sorry
 
 lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (hA : EMetric.diam A ≤ r) :
