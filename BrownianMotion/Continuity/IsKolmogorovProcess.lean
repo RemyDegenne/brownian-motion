@@ -271,14 +271,14 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProc
   convert edist_le_range_sum_edist (fun i => X (chainingSequence hC t.2 (m + i)) ω) (k - m)
   simp [(show m + (k - m) = k by omega)]
 
-lemma lintegral_sup_rpow_edist_le_sum (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ M * (∑ i ∈ Finset.range (k - m), #(C (m + i + 1)) ^ (1 / p)
               * ε (m + i) ^ (q / p)) ^ p := by
   sorry
 
-lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hε : ∀ n, ε n ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε n) J)
@@ -290,7 +290,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hX : IsKolmogorovProcess X P
         * (∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d / p) * ε (m + j) ^ (q / p)) ^ p := by
   sorry
 
-lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
