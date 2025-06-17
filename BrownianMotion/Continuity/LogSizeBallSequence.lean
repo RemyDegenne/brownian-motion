@@ -50,9 +50,13 @@ lemma card_le_logSizeRadius_ge (ha : 1 < a) (ht : t ∈ V) :
     a ^ (logSizeRadius t V a c - 1)
       ≤ #(V.filter fun x ↦ edist t x ≤ (logSizeRadius t V a c - 1) * c) := by
   by_cases h_one : logSizeRadius t V a c = 1
-  · simp [h_one]; exact ⟨t, (by simp [ht])⟩
+  · simp only [h_one, tsub_self, pow_zero, Nat.cast_one, zero_mul, nonpos_iff_eq_zero,
+    Nat.one_le_cast, Finset.one_le_card];
+    refine ⟨t, ?_⟩
+    simp [ht]
   rw [logSizeRadius, dif_pos ha] at h_one ⊢
-  have : Nat.find (exists_radius_le t V ha c) - 1 < Nat.find (exists_radius_le t V ha c) := by simp
+  have : Nat.find (exists_radius_le t V ha c) - 1 < Nat.find (exists_radius_le t V ha c) := by
+    simp
   have h := Nat.find_min (exists_radius_le t V ha c) this
   simp only [ENNReal.natCast_sub, Nat.cast_one, not_and, not_le] at h
   refine (h ?_).le
