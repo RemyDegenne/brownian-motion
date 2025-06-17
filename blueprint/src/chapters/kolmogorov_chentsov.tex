@@ -296,6 +296,7 @@ The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for 
 \end{lemma}
 
 \begin{proof}
+\leanok
 Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le a^{n}$.
 \end{proof}
 
@@ -308,6 +309,7 @@ The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ 
 \end{lemma}
 
 \begin{proof}
+\leanok
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$.
 \end{proof}
 
@@ -320,6 +322,7 @@ For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
 \end{proof}
@@ -333,6 +336,7 @@ For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 Assume w.l.o.g. that $i < j$.
 Then $B_{V_j}(t_j, (r_j-1)c) \subseteq V_j \subseteq V_{i+1}$.
@@ -359,6 +363,7 @@ The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:card_logSizeRadius_ge, lem:card_logSizeRadius_le, lem:logSizeBallSequence_disjoint_B}
 Using Lemma~\ref{lem:card_logSizeRadius_le}, the cardinal of $K$ is bounded by
 \begin{align*}
@@ -388,6 +393,7 @@ Then $d_T(s, t) \le c n$.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeRadius_logSizeBallSequence_le}
 A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in B_V(t_i, r_i c)$ and satisfies
 \begin{align*}
@@ -411,6 +417,7 @@ Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \end{lemma}
 
 \begin{proof}
+\leanok
 Let $(s, t) \in J^2$ such that $d_T(s, t) \le c$.
 Then there exists a largest $\ell \in \mathbb{N}$ such that $s, t \in V_\ell$.
 Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_{V_\ell}(t_\ell, (r_\ell-1)c)$ (since $V_{\ell + 1} = V_\ell \setminus B_{V_\ell}(t_\ell, (r_\ell-1)c)$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
