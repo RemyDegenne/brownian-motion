@@ -271,14 +271,14 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProc
   convert edist_le_range_sum_edist (fun i => X (chainingSequence hC t.2 (m + i)) ω) (k - m)
   simp [(show m + (k - m) = k by omega)]
 
-lemma lintegral_sup_rpow_edist_le_sum (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ M * (∑ i ∈ Finset.range (k - m), #(C (m + i + 1)) ^ (1 / p)
               * ε (m + i) ^ (q / p)) ^ p := by
   sorry
 
-lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hX : IsKolmogorovProcess X P p q M)
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hε : ∀ n, ε n ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε n) J)
@@ -290,7 +290,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hX : IsKolmogorovProcess X P
         * (∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d / p) * ε (m + j) ^ (q / p)) ^ p := by
   sorry
 
-lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two
+lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
@@ -307,6 +307,10 @@ section Together
 
 variable {c M : ℝ≥0} {d p q : ℝ} {J : Set T} {δ : ℝ≥0∞}
 
+noncomputable
+def Cp (d p q : ℝ) : ℝ≥0∞ :=
+  max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
+
 theorem finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
@@ -314,7 +318,7 @@ theorem finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c 
       ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
         * ((δ ^ d * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
             * internalCoveringNumber (δ / 4) J
-          + c / ((2 ^ ((q - d) / p)) - 1) ^ p) := by
+          + c * Cp d p q) := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
@@ -324,7 +328,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
-            + 1 / ((2 ^ ((q - d) / p)) - 1) ^ p) := by
+            + Cp d p q) := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
@@ -332,7 +336,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
-      ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d) / ((2 ^ ((q - d) / p)) - 1) ^ p := by
+      ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d) * Cp d p q := by
   sorry
 
 lemma finite_set_bound_of_edist_le_bis (hJ : HasBoundedInternalCoveringNumber J c d)
@@ -341,7 +345,7 @@ lemma finite_set_bound_of_edist_le_bis (hJ : HasBoundedInternalCoveringNumber J 
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
-            + 1 / ((2 ^ ((q - d) / p)) - 1) ^ p) := by
+            + Cp d p q) := by
   sorry
 
 end Together
