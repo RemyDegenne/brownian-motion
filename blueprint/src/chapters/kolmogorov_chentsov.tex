@@ -895,6 +895,8 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 
 \begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow_of_le_one}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow_of_le_one}
 Let $X : T \to \Omega \to E$ be a stochastic process.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 For $0 < p \le 1$ and $m \le k$,
@@ -926,6 +928,8 @@ We can thus apply the triangle inequality to obtain
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum_of_le_one}
   \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_of_le_one}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
 For $0 < p \le 1$ and $m \le k$,
@@ -944,6 +948,8 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 
 \begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
@@ -975,6 +981,8 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
 
 \begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two_of_le_one}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one}
 Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
@@ -1015,6 +1023,8 @@ Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_o
 
 \begin{lemma}\label{lem:second_term_bound}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  \lean{ProbabilityTheory.second_term_bound}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $C_n$ a finite $(\varepsilon_0 2^{-n})$-cover of $T$ for $\varepsilon_0 \le \mathrm{diam}(T)$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
