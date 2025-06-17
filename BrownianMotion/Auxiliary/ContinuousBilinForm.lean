@@ -16,6 +16,25 @@ variable {𝕜 E} (f : ContinuousBilinForm 𝕜 E)
 
 namespace ContinuousBilinForm
 
+-- protected def mk (toFun : E → E → 𝕜)
+--     (map_add_left : ∀ x y z, toFun (x + y) z = toFun x z + toFun y z)
+--     (map_add_right : ∀ x y z, toFun x (y + z) = toFun x y + toFun x z)
+--     (map_smul_left : ∀ m x y, toFun (m • x) y = m * toFun x y)
+--     (map_smul_right : ∀ m x y, toFun x (m • y) = m * toFun x y)
+--     (C : ℝ)
+--     (cont : ∀ x y, ‖toFun x y‖ ≤ C * ‖x‖ * ‖y‖) : ContinuousBilinForm 𝕜 E :=
+--   letI f x : E →ₗ[𝕜] 𝕜 :=
+--     { toFun := toFun x
+--       map_add' := map_add_right x
+--       map_smul' m y := map_smul_right m x y }
+--   letI g x : E →L[𝕜] 𝕜 := (f x).mkContinuous (C * ‖x‖) (cont x)
+--   letI h : E →ₗ[𝕜] E →L[𝕜] 𝕜 :=
+--     { toFun := g
+--       map_add' x y := by ext z; exact map_add_left x y z
+--       map_smul' m x := by ext y; exact map_smul_left m x y }
+--   h.mkContinuous C <| by
+--     intro x
+
 /-- The underlying bilinear form of a continuous bilinear form -/
 def toBilinForm : LinearMap.BilinForm 𝕜 E where
   toFun x := f x
@@ -148,5 +167,42 @@ lemma isPosSemidef_iff_posSemidef_toMatrix {f : ContinuousBilinForm ℝ E} (b : 
     exact h _
   · rw [apply_eq_dotProduct_toMatrix_mulVec f b]
     exact h _
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+open scoped InnerProductSpace
+
+variable (E) in
+protected noncomputable def inner : ContinuousBilinForm ℝ E :=
+  letI f : LinearMap.BilinForm ℝ E := LinearMap.mk₂ ℝ
+    (fun x y ↦ ⟪x, y⟫_ℝ)
+    inner_add_left
+    (fun c m n ↦ real_inner_smul_left m n c)
+    inner_add_right
+    (fun c m n ↦ real_inner_smul_right m n c)
+  f.mkContinuous₂ 1 <| by
+    intro x y
+    simp only [LinearMap.mk₂_apply, Real.norm_eq_abs, one_mul, f]
+    exact abs_real_inner_le_norm x y
+
+@[simp]
+lemma inner_apply (x y : E) : ContinuousBilinForm.inner E x y = ⟪x, y⟫_ℝ := rfl
+
+lemma isPosSemidef_inner : IsPosSemidef (ContinuousBilinForm.inner E) where
+  map_symm := by simp [real_inner_comm]
+  nonneg_re_apply_self x := real_inner_self_nonneg
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+
+lemma _root_.OrthonormalBasis.inner_eq {i j : ι} (b : OrthonormalBasis ι ℝ E) :
+    ⟪b i, b j⟫_ℝ = if i = j then 1 else 0 := by
+  by_cases h : i = j
+  · simp [h, real_inner_self_eq_norm_sq]
+  · simp [h]
+
+lemma inner_toMatrix_eq_one (b : OrthonormalBasis ι ℝ E) :
+    (ContinuousBilinForm.inner E).toMatrix b.toBasis = 1 := by
+  ext i j
+  simp [Matrix.one_apply, b.inner_eq]
 
 end ContinuousBilinForm

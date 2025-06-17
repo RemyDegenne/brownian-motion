@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import Mathlib
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Gaussian.Fernique
+import BrownianMotion.Gaussian.Gaussian
 
 
 /-!
@@ -121,12 +122,43 @@ lemma variance_dual_stdGaussian (L : Dual ℝ E) :
   · exact L.continuous.aemeasurable
   · exact Measurable.aemeasurable (by fun_prop)
 
+theorem _root_.OrthonormalBasis.sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
+    ∑ i : ι, ⟪b i, x⟫ ^ 2 = ‖x‖ ^ 2 := by
+  rw [← b.sum_sq_norm_inner]
+  simp
+
+theorem _root_.OrthonormalBasis.sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
+    ∑ i : ι, ⟪x, b i⟫ ^ 2 = ‖x‖ ^ 2 := by
+  simp_rw [← b.sum_sq_inner_right, real_inner_comm]
+
+lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- ‖t‖ ^ 2 / 2) := by
+  rw [charFun_apply, stdGaussian, integral_map]
+  · simp_rw [sum_inner, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,
+      integral_fintype_prod_eq_prod
+        (f := fun i x ↦ Complex.exp (⟪x • stdOrthonormalBasis ℝ E i, t⟫ * Complex.I)),
+      inner_smul_left, mul_comm _ (⟪_, _⟫), Complex.ofReal_mul, conj_trivial,
+      ← charFun_apply_real, charFun_gaussianReal]
+    simp only [Complex.ofReal_zero, mul_zero, zero_mul, NNReal.coe_one, Complex.ofReal_one, one_mul,
+      zero_sub]
+    simp_rw [← Complex.exp_sum, Finset.sum_neg_distrib, ← Finset.sum_div, ← Complex.ofReal_pow,
+      ← Complex.ofReal_sum, ← (stdOrthonormalBasis ℝ E).sum_sq_inner_right, neg_div]
+  · exact Measurable.aemeasurable (by fun_prop)
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
-  refine isGaussian_of_charFunDual_eq fun L ↦ ?_
-  rw [integral_complex_ofReal, isCentered_stdGaussian L]
-  simp only [Complex.ofReal_zero, zero_mul, zero_sub]
-  -- todo: need a lemma `charFunDual_map_sum_pi`
-  sorry
+  refine isGaussian_iff_gaussian_charFun.2 ?_
+  use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
+  simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
+
+lemma covInnerBilin_stdGaussian_eq :
+    covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
+  refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
+  simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
+
+lemma covMatrix_stdGaussian_eq : covMatrix (stdGaussian E) = 1 := by
+  rw [covMatrix, covInnerBilin_stdGaussian_eq, ContinuousBilinForm.inner_toMatrix_eq_one]
 
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)
