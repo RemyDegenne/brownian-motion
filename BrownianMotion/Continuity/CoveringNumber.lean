@@ -72,13 +72,42 @@ lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ�
         · exact le_iSup₂ (α := ENNReal) a ha
         · exact le_iSup₂ (α := ENNReal) b hb
       _ ≤ _ := by simp [C]
-  ·
-    sorry
+  · apply le_iInf₂ (α := ℕ∞)
+    intro C hC
+    apply le_iInf (α := ℕ∞)
+    intro hCoverC
+    by_contra hcontra
+    push_neg at hcontra
+    apply (ENat.lt_one_iff_eq_zero).mp at hcontra
+    simp at hcontra
+    have ⟨a, ha⟩ := h_nonempty
+    rcases hCoverC a ha with ⟨c,hc⟩
+    subst hcontra
+    simp_all only [Finset.coe_empty, Set.empty_subset, Set.mem_empty_iff_false, false_and]
 
 lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A ≤ 1 := by
-  sorry
+  by_cases h_emptyA : A.Nonempty
+  · refine le_of_eq ?_
+    refine internalCoveringNumber_eq_one_of_diam_le h_emptyA hA
+  · push_neg at h_emptyA
+    let C := (∅ : Finset E)
+    have hC : ↑C ⊆ A := by simp [C]
+    have hCover : IsCover (↑C) r A := by
+      simp only [IsCover]
+      intro a ha
+      subst h_emptyA
+      simp_all only [EMetric.diam_empty, zero_le, Finset.coe_empty,
+                    subset_refl, Set.mem_empty_iff_false, C]
+    calc
+      _ ≤ _ := iInf₂_le (α := ℕ∞) C hC
+      _ ≤ C.card := by
+        refine iInf_le (α := ℕ∞) _ hCover
+    subst h_emptyA
+    simp_all only [EMetric.diam_empty, zero_le, Finset.coe_empty,
+                   subset_refl, Finset.card_empty, CharP.cast_eq_zero, C]
+
 
 @[simp]
 lemma isSeparated_empty [EDist E] (r : ℝ≥0∞) : IsSeparated (∅ : Set E) r := by
