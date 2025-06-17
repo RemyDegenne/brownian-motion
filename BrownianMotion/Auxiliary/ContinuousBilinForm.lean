@@ -123,6 +123,39 @@ lemma apply_eq_dotProduct_toMatrix_mulVec (x y : E) :
   refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
   ring
 
+variable (M : Matrix n n 𝕜)
+
+noncomputable
+def ofMatrix : ContinuousBilinForm 𝕜 E :=
+  haveI : FiniteDimensional 𝕜 E := FiniteDimensional.of_fintype_basis b
+  letI f x : E →L[𝕜] 𝕜 :=
+    { toLinearMap := M.toBilin b x
+      cont := LinearMap.continuous_of_finiteDimensional _ }
+  letI g : E →ₗ[𝕜] E →L[𝕜] 𝕜 :=
+    { toFun := f
+      map_add' x y := by ext z; simp [f]
+      map_smul' m x := by ext y; simp [f] }
+  { toLinearMap := g
+    cont := LinearMap.continuous_of_finiteDimensional _ }
+
+lemma ofMatrix_apply' (x y : E) : ofMatrix b M x y = M.toBilin b x y := rfl
+
+open scoped Matrix in
+lemma ofMatrix_apply (x y : E) :
+    ofMatrix b M x y = b.repr x ⬝ᵥ M *ᵥ b.repr y := by
+  simp [ofMatrix_apply', Matrix.toBilin_apply, dotProduct, Matrix.mulVec, Finset.mul_sum, mul_assoc]
+
+lemma ofMatrix_basis (i j : n) : ofMatrix b M (b i) (b j) = M i j := by
+  simp [ofMatrix_apply, Finsupp.single_eq_pi_single, Matrix.mulVec_single_one]
+
+lemma toMatrix_ofMatrix : ofMatrix b (f.toMatrix b) = f := by
+  ext x y
+  rw [ofMatrix_apply, f.apply_eq_dotProduct_toMatrix_mulVec b]
+
+lemma ofMatrix_toMatrix : (ofMatrix b M).toMatrix b = M := by
+  ext i j
+  rw [toMatrix_apply, ofMatrix_basis]
+
 /-- A continuous bilinear map `f` is positive if for any `0 ≤ x`, `0 ≤ re (f x x)` -/
 structure IsPos : Prop where
   nonneg_re_apply_self : ∀ x, 0 ≤ RCLike.re (f x x)
