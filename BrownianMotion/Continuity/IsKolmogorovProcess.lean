@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 import BrownianMotion.Continuity.LogSizeBallSequence
@@ -14,6 +15,24 @@ import BrownianMotion.Continuity.LogSizeBallSequence
 
 open MeasureTheory
 open scoped ENNReal NNReal Finset
+
+section Aux
+
+-- This is in mathlib, but our mathlib is too old.
+@[to_additive]
+lemma iSup_mul_le {α : Type*} {ι : Sort*} [CompleteLattice α] [Mul α] [MulLeftMono α]
+    [MulRightMono α] (u v : ι → α) : ⨆ i, u i * v i ≤ (⨆ i, u i) * ⨆ i, v i :=
+  iSup_le fun _ ↦ mul_le_mul' (le_iSup ..) (le_iSup ..)
+
+theorem Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
+    [IsOrderedAddMonoid α] {I : Finset ι} (f : ι → β → α) :
+    ⨆ (b), ∑ i ∈ I, f i b ≤ ∑ i ∈ I, ⨆ (b), f i b := by
+  classical
+  induction I using Finset.induction with
+  | empty => simp
+  | insert i I hi ih => simpa only [Finset.sum_insert hi] using (iSup_add_le _ _).trans (by gcongr)
+
+end Aux
 
 namespace ProbabilityTheory
 
@@ -210,42 +229,6 @@ lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P
   simp only [Function.Embedding.coeFn_mk, f₀]
   apply edist_chainingSequence_add_one_self _ hC_subset
 
-theorem ENNReal.lintegral_Lp_finsum_le {α : Type*} [MeasurableSpace α] {μ : Measure α} {p : ℝ}
-    {ι : Type*} {f : ι → α → ENNReal} {I : Finset ι}
-    (hf : ∀ i ∈ I, AEMeasurable (f i) μ) (hp : 1 ≤ p) :
-    (∫⁻ (a : α), (∑ i ∈ I, f i) a ^ p ∂μ) ^ (1 / p) ≤
-      ∑ i ∈ I, (∫⁻ (a : α), f i a ^ p ∂μ) ^ (1 / p) := by
-  classical
-  induction I using Finset.induction with
-  | empty => simpa using Or.inl (by bound)
-  | insert i I hi ih =>
-    simp only [Finset.sum_insert hi]
-    refine (ENNReal.lintegral_Lp_add_le (hf i (by simp))
-      (I.aemeasurable_sum' (fun j hj => hf j (by simp [hj]))) hp).trans ?_
-    gcongr
-    exact ih (fun j hj => hf j (by simp [hj]))
-
-theorem ENNReal.lintegral_Lp_finsum_le' {α : Type*} [MeasurableSpace α] {μ : Measure α} {p : ℝ}
-    {ι : Type*} {f : ι → α → ENNReal} {I : Finset ι}
-    (hf : ∀ i ∈ I, AEMeasurable (f i) μ) (hp : 1 ≤ p) :
-    (∫⁻ (a : α), (∑ i ∈ I, f i a) ^ p ∂μ) ^ (1 / p) ≤
-      ∑ i ∈ I, (∫⁻ (a : α), f i a ^ p ∂μ) ^ (1 / p) := by
-  simpa using ENNReal.lintegral_Lp_finsum_le hf hp
-
--- This is in mathlib, but our mathlib is too old.
-@[to_additive]
-lemma iSup_mul_le {α : Type*} {ι : Sort*} [CompleteLattice α] [Mul α] [MulLeftMono α]
-    [MulRightMono α] (u v : ι → α) : ⨆ i, u i * v i ≤ (⨆ i, u i) * ⨆ i, v i :=
-  iSup_le fun _ ↦ mul_le_mul' (le_iSup ..) (le_iSup ..)
-
-theorem Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
-    [IsOrderedAddMonoid α] {I : Finset ι} (f : ι → β → α) :
-    ⨆ (b), ∑ i ∈ I, f i b ≤ ∑ i ∈ I, ⨆ (b), f i b := by
-  classical
-  induction I using Finset.induction with
-  | empty => simp
-  | insert i I hi ih => simpa only [Finset.sum_insert hi] using (iSup_add_le _ _).trans (by gcongr)
-
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
@@ -296,14 +279,6 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
   sorry
-
-lemma ENNReal.rpow_finsetSum_le_finsetSum_rpow {p : ℝ} {ι : Type*} {I : Finset ι} {f : ι → ℝ≥0∞}
-    (hp : 0 < p) (hp1 : p ≤ 1) : (∑ i ∈ I, f i) ^ p ≤ ∑ i ∈ I, f i ^ p := by
-  classical
-  induction I using Finset.induction with
-  | empty => simpa using by bound
-  | insert i I hi ih => simpa [Finset.sum_insert hi] using
-      (ENNReal.rpow_add_le_add_rpow _ _ (le_of_lt hp) hp1).trans (by gcongr)
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)

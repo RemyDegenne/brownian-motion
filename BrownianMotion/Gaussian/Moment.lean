@@ -1,6 +1,7 @@
 import Mathlib.Probability.Distributions.Gaussian.Basic
 import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
 
+open MeasureTheory
 open scoped NNReal
 
 namespace ProbabilityTheory
@@ -36,8 +37,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     -- 4. ... = ∫ x^(2n) / √(2πσ²) e^(- x² / 2σ^2) dx
     _ = ∫ x, x^(2 * n) / (Real.sqrt (2 * Real.pi * σ ^ 2))
               * Real.exp (-x ^ 2 / (2 * σ ^ 2)) := by
-      simp_all [integral_gaussianReal_eq_integral_smul,
-                gaussianPDFReal_def]
+      simp_all [integral_gaussianReal_eq_integral_smul, gaussianPDFReal_def]
       ring_nf
     -- 5. ... = 2 ∫_(0, ∞) x^(2n) / √(2πσ²) e^(- x² / 2σ^2) dx
     _ = 2 * ∫ x in Set.Ioi 0, x^(2 * n) / (Real.sqrt (2 * Real.pi * σ ^ 2))
@@ -85,10 +85,8 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
             subst x
             rw [Set.mem_Ioi] at hy
             positivity]
-      rw [MeasureTheory.integral_image_eq_integral_abs_deriv_smul (f' := deriv φ)
-                                                                  (by measurability)]
-      · congr
-        funext x
+      rw [integral_image_eq_integral_abs_deriv_smul (f' := deriv φ) (by measurability)]
+      · congr with x
         simp only [NNReal.zero_le_coe, pow_nonneg, Real.sqrt_mul',
                     Nat.ofNat_nonneg, Real.sqrt_mul, Real.sqrt_sq, smul_eq_mul]
         group
@@ -108,8 +106,8 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     -- 7. ... = σ^(2n) 2^n / √π Γ(n + 1/2)
     _ = σ^(2 * n) * 2^n / √ Real.pi * Real.Gamma (n + 1/2) := by
       rw [Real.Gamma_eq_integral (by positivity)]
-      simp only [←MeasureTheory.integral_mul_const, ←MeasureTheory.integral_const_mul]
-      apply MeasureTheory.setIntegral_congr_fun (by measurability)
+      simp only [integral_mul_const, ← integral_const_mul]
+      apply setIntegral_congr_fun (by measurability)
       intros x hx
       subst φ
       simp_all only [Set.mem_Ioi, Nat.ofNat_nonneg, Real.sqrt_mul,
@@ -125,17 +123,14 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
       ring_nf
       field_simp
       group
-      simp only [Int.reduceNeg, zpow_neg, zpow_one, one_div, abs_mul,
-                  NNReal.abs_eq, zpow_natCast]
+      simp only [Int.reduceNeg, zpow_neg, zpow_one, one_div, abs_mul, NNReal.abs_eq, zpow_natCast]
       ring_nf
       field_simp
       group
       rw [←Set.InjOn.eq_iff (f := Real.log) (s := Set.Ioi 0) Real.log_injOn_pos]
         <;> try { rw [Set.mem_Ioi]; positivity }
-      repeat rw [Real.log_mul (by apply ne_of_gt; positivity)
-                  (by apply ne_of_gt; positivity)]
-      simp [Real.log_mul (by apply ne_of_gt; positivity)
-              (by apply ne_of_gt; positivity)]
+      repeat rw [Real.log_mul (by positivity) (by positivity)]
+      simp [Real.log_mul (by positivity) (by positivity)]
       ring_nf
       rw [←sub_eq_zero]
       ring_nf
