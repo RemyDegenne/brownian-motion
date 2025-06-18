@@ -122,17 +122,6 @@ lemma variance_dual_stdGaussian (L : Dual ℝ E) :
   · exact L.continuous.aemeasurable
   · exact Measurable.aemeasurable (by fun_prop)
 
-theorem _root_.OrthonormalBasis.sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
-    ∑ i : ι, ⟪b i, x⟫ ^ 2 = ‖x‖ ^ 2 := by
-  rw [← b.sum_sq_norm_inner]
-  simp
-
-theorem _root_.OrthonormalBasis.sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
-    [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
-    ∑ i : ι, ⟪x, b i⟫ ^ 2 = ‖x‖ ^ 2 := by
-  simp_rw [← b.sum_sq_inner_right, real_inner_comm]
-
 lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- ‖t‖ ^ 2 / 2) := by
   rw [charFun_apply, stdGaussian, integral_map]
   · simp_rw [sum_inner, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,

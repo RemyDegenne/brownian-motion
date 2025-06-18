@@ -1,3 +1,4 @@
+import BrownianMotion.Auxiliary.LinearAlgebra
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.SchurComplement
 
@@ -7,33 +8,19 @@ import Mathlib.LinearAlgebra.Matrix.SchurComplement
 
 open scoped Matrix
 
-variable (𝕜 E : Type*) [RCLike 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-
-/- The type of continuous bilinear forms. -/
-abbrev ContinuousBilinForm := E →L[𝕜] E →L[𝕜] 𝕜
-
-variable {𝕜 E} (f : ContinuousBilinForm 𝕜 E)
-
 namespace ContinuousBilinForm
 
--- protected def mk (toFun : E → E → 𝕜)
---     (map_add_left : ∀ x y z, toFun (x + y) z = toFun x z + toFun y z)
---     (map_add_right : ∀ x y z, toFun x (y + z) = toFun x y + toFun x z)
---     (map_smul_left : ∀ m x y, toFun (m • x) y = m * toFun x y)
---     (map_smul_right : ∀ m x y, toFun x (m • y) = m * toFun x y)
---     (C : ℝ)
---     (cont : ∀ x y, ‖toFun x y‖ ≤ C * ‖x‖ * ‖y‖) : ContinuousBilinForm 𝕜 E :=
---   letI f x : E →ₗ[𝕜] 𝕜 :=
---     { toFun := toFun x
---       map_add' := map_add_right x
---       map_smul' m y := map_smul_right m x y }
---   letI g x : E →L[𝕜] 𝕜 := (f x).mkContinuous (C * ‖x‖) (cont x)
---   letI h : E →ₗ[𝕜] E →L[𝕜] 𝕜 :=
---     { toFun := g
---       map_add' x y := by ext z; exact map_add_left x y z
---       map_smul' m x := by ext y; exact map_smul_left m x y }
---   h.mkContinuous C <| by
---     intro x
+variable {𝕜 E n : Type*} [NormedAddCommGroup E]
+
+section RCLike
+
+variable [RCLike 𝕜] [NormedSpace 𝕜 E]
+
+variable (𝕜 E) in
+/- The type of continuous bilinear forms. -/
+abbrev _root_.ContinuousBilinForm := E →L[𝕜] E →L[𝕜] 𝕜
+
+variable (f : ContinuousBilinForm 𝕜 E) (b : Basis n 𝕜 E)
 
 /-- The underlying bilinear form of a continuous bilinear form -/
 def toBilinForm : LinearMap.BilinForm 𝕜 E where
@@ -44,11 +31,15 @@ def toBilinForm : LinearMap.BilinForm 𝕜 E where
 @[simp]
 lemma toBilinForm_apply (x y : E) : f.toBilinForm x y = f x y := rfl
 
-variable {n : Type*} (b : Basis n 𝕜 E)
+section IsSymm
 
 /-- A continuous bilinear form `f` is symmetric if for any `x, y` we have `f x y = f y x`. -/
 structure IsSymm : Prop where
   map_symm : ∀ x y, f x y = f y x
+
+lemma isSymm_def : f.IsSymm ↔ ∀ x y, f x y = f y x where
+  mp := fun ⟨h⟩ ↦ h
+  mpr h := ⟨h⟩
 
 variable {f}
 
@@ -75,10 +66,6 @@ lemma ext_iff_of_isSymm {g : ContinuousBilinForm 𝕜 E} (hf : IsSymm f) (hg : I
 
 variable (f)
 
-lemma isSymm_def : f.IsSymm ↔ ∀ x y, f x y = f y x where
-  mp := fun ⟨h⟩ ↦ h
-  mpr h := ⟨h⟩
-
 lemma isSymm_iff_basis : f.IsSymm ↔ ∀ i j, f (b i) (b j) = f (b j) (b i) where
   mp := fun ⟨h⟩ i j ↦ h _ _
   mpr := by
@@ -96,7 +83,13 @@ lemma isSymm_iff_basis : f.IsSymm ↔ ∀ i j, f (b i) (b j) = f (b j) (b i) whe
     obtain ⟨j, rfl⟩ := iy h₂
     rw [h]
 
+end IsSymm
+
+section Matrix
+
 variable [Fintype n] [DecidableEq n]
+
+section toMatrix
 
 /-- A continuous bilinear map on a finite dimensional space can be represented by a matrix. -/
 noncomputable def toMatrix : Matrix n n 𝕜 :=
@@ -123,38 +116,40 @@ lemma apply_eq_dotProduct_toMatrix_mulVec (x y : E) :
   refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
   ring
 
-variable (M : Matrix n n 𝕜)
+end toMatrix
+
+section ofMatrix
+
+variable (M : Matrix n n 𝕜) (b : Basis n 𝕜 E)
 
 noncomputable
 def ofMatrix : ContinuousBilinForm 𝕜 E :=
   haveI : FiniteDimensional 𝕜 E := FiniteDimensional.of_fintype_basis b
-  letI f x : E →L[𝕜] 𝕜 :=
-    { toLinearMap := M.toBilin b x
-      cont := LinearMap.continuous_of_finiteDimensional _ }
-  letI g : E →ₗ[𝕜] E →L[𝕜] 𝕜 :=
-    { toFun := f
-      map_add' x y := by ext z; simp [f]
-      map_smul' m x := by ext y; simp [f] }
-  { toLinearMap := g
-    cont := LinearMap.continuous_of_finiteDimensional _ }
+  LinearMap.mkContinuous₂_of_finiteDimensional (M.toBilin b)
 
-lemma ofMatrix_apply' (x y : E) : ofMatrix b M x y = M.toBilin b x y := rfl
+lemma ofMatrix_apply' (x y : E) : ofMatrix M b x y = M.toBilin b x y := rfl
 
 open scoped Matrix in
 lemma ofMatrix_apply (x y : E) :
-    ofMatrix b M x y = b.repr x ⬝ᵥ M *ᵥ b.repr y := by
+    ofMatrix M b x y = b.repr x ⬝ᵥ M *ᵥ b.repr y := by
   simp [ofMatrix_apply', Matrix.toBilin_apply, dotProduct, Matrix.mulVec, Finset.mul_sum, mul_assoc]
 
-lemma ofMatrix_basis (i j : n) : ofMatrix b M (b i) (b j) = M i j := by
+lemma ofMatrix_basis (i j : n) : ofMatrix M b (b i) (b j) = M i j := by
   simp [ofMatrix_apply, Finsupp.single_eq_pi_single, Matrix.mulVec_single_one]
 
-lemma toMatrix_ofMatrix : ofMatrix b (f.toMatrix b) = f := by
+lemma toMatrix_ofMatrix : ofMatrix (f.toMatrix b) b = f := by
   ext x y
   rw [ofMatrix_apply, f.apply_eq_dotProduct_toMatrix_mulVec b]
 
-lemma ofMatrix_toMatrix : (ofMatrix b M).toMatrix b = M := by
+lemma ofMatrix_toMatrix : (ofMatrix M b).toMatrix b = M := by
   ext i j
   rw [toMatrix_apply, ofMatrix_basis]
+
+end ofMatrix
+
+end Matrix
+
+section IsPos
 
 /-- A continuous bilinear map `f` is positive if for any `0 ≤ x`, `0 ≤ re (f x x)` -/
 structure IsPos : Prop where
@@ -164,14 +159,35 @@ lemma isPos_def : f.IsPos ↔ ∀ x, 0 ≤ RCLike.re (f x x) where
   mp := fun ⟨h⟩ ↦ h
   mpr h := ⟨h⟩
 
+section Real
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : ContinuousBilinForm ℝ E)
     (b : Basis n ℝ E)
 
 lemma isPos_def_real : f.IsPos ↔ ∀ x, 0 ≤ f x x := by simp [isPos_def]
 
+variable {f} in
+lemma IsPos.nonneg_apply_self (hf : IsPos f) (x : E) : 0 ≤ f x x := f.isPos_def_real.1 hf x
+
+variable [Fintype n] [DecidableEq n]
+
 lemma isSymm_iff_isHermitian_toMatrix : f.IsSymm ↔ (f.toMatrix b).IsHermitian := by
   rw [isSymm_iff_basis f b, Matrix.IsHermitian.ext_iff]
   simp [Eq.comm]
+
+end Real
+
+end IsPos
+
+end RCLike
+
+section Real
+
+section NormedSpace
+
+variable [NormedSpace ℝ E] (f : ContinuousBilinForm ℝ E) (b : Basis n ℝ E)
+
+section IsPosSemidef
 
 /-- A continuous bilinear map is positive semidefinite if it is symmetric and positive. We only
 define it for the real field, because for the complex case we may want to consider sesquilinear
@@ -190,8 +206,9 @@ lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
   mp h := ⟨h.isSymm, h.isPos⟩
   mpr := fun ⟨h₁, h₂⟩ ↦ ⟨h₁, h₂⟩
 
-lemma isPosSemidef_iff_posSemidef_toMatrix {f : ContinuousBilinForm ℝ E} (b : Basis n ℝ E) :
-    f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
+variable {f} [Fintype n] [DecidableEq n]
+
+lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
   rw [isPosSemidef_iff, Matrix.PosSemidef]
   apply and_congr (f.isSymm_iff_isHermitian_toMatrix b)
   rw [isPos_def]
@@ -201,11 +218,18 @@ lemma isPosSemidef_iff_posSemidef_toMatrix {f : ContinuousBilinForm ℝ E} (b : 
   · rw [apply_eq_dotProduct_toMatrix_mulVec f b]
     exact h _
 
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+end IsPosSemidef
+
+end NormedSpace
+
+section InnerProductSpace
+
+variable [InnerProductSpace ℝ E]
 
 open scoped InnerProductSpace
 
 variable (E) in
+/-- The inner product as continuous bilinear form. -/
 protected noncomputable def inner : ContinuousBilinForm ℝ E :=
   letI f : LinearMap.BilinForm ℝ E := LinearMap.mk₂ ℝ
     (fun x y ↦ ⟪x, y⟫_ℝ)
@@ -225,17 +249,14 @@ lemma isPosSemidef_inner : IsPosSemidef (ContinuousBilinForm.inner E) where
   map_symm := by simp [real_inner_comm]
   nonneg_re_apply_self x := real_inner_self_nonneg
 
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+variable [Fintype n] [DecidableEq n] (b : OrthonormalBasis n ℝ E)
 
-lemma _root_.OrthonormalBasis.inner_eq {i j : ι} (b : OrthonormalBasis ι ℝ E) :
-    ⟪b i, b j⟫_ℝ = if i = j then 1 else 0 := by
-  by_cases h : i = j
-  · simp [h, real_inner_self_eq_norm_sq]
-  · simp [h]
-
-lemma inner_toMatrix_eq_one (b : OrthonormalBasis ι ℝ E) :
-    (ContinuousBilinForm.inner E).toMatrix b.toBasis = 1 := by
+lemma inner_toMatrix_eq_one : (ContinuousBilinForm.inner E).toMatrix b.toBasis = 1 := by
   ext i j
   simp [Matrix.one_apply, b.inner_eq]
+
+end InnerProductSpace
+
+end Real
 
 end ContinuousBilinForm
