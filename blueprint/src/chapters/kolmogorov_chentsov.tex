@@ -705,16 +705,14 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 \end{align*}
 \end{proof}
 
-
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
   \leanok
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Let $\delta \in (0, 4 \varepsilon_0]$ and let $n_2 = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
-Then for $m = \min(n_2, k)$,
+Let $\delta \in (0, 4 \varepsilon_0]$ and let $m = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
+Then for $k \ge m$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
   &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
@@ -724,11 +722,7 @@ Then for $m = \min(n_2, k)$,
 
 \begin{proof}
   \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
-By definition of $n_2$, $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
-The natural number $k$ is defined such that $\varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
-
-If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially.
-We can thus assume $\delta > \varepsilon_0 2^{-k}$.
+By definition of $m$, $\varepsilon_0 2^{-m} < \delta/2 \le \varepsilon_0 2^{-m+1}$.
 
 For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
 It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
@@ -739,13 +733,10 @@ We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\vare
   &\le 2^{p+1} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
-By definition of $m$ and $n_2$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \varepsilon_0 2^{-n_2} \ge \delta/4$,
+By definition of $m$, $\varepsilon_m \ge \varepsilon_0 2^{-m} \ge \delta/4$,
 hence $N^{int}_{\varepsilon_m}(J) \le N^{int}_{\delta / 4}(J)$.
 
-If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
-Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
-We thus get $\varepsilon_0 2^{-m} \le \delta$.
-
+Finally, by definition of $m$ we have $\varepsilon_0 2^{-m} \le \delta$.
 \end{proof}
 
 
@@ -1058,25 +1049,20 @@ This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:lintegral_sup_eq_lintegral_sup_cover}
+\begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
   \leanok
-  \lean{ProbabilityTheory.lintegral_sup_eq_lintegral_sup_cover}
+  \lean{ProbabilityTheory.cover_eq_of_lt_iInf_edist}
+Suppose that $T$ is a metric space (not just a pseudo-metric space).
 Let $X : T \to \Omega \to E$ be a stochastic process and let $J$ be a finite subset of $T$.
-Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$ with minimal cardinal.
-If $\varepsilon < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$ then for all $\delta \ge 0$,
-\begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &= \mathbb{E}\left[ \sup_{s, t \in C; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \: .
-\end{align*}
+Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$.
+If $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$ then $C = J$.
 \end{lemma}
 
 \begin{proof}
-TODO.
 
-Note: in a metric space we would have $C = J$. We need to prove it for a pseudo-metric space.
 \end{proof}
 
+From this point on, $T$ is a metric space (not just a pseudo-metric space).
 
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_diam_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
@@ -1093,17 +1079,12 @@ For all $\delta \ge 4\mathrm{diam}(T)$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_eq_lintegral_sup_cover}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
-By Lemma~\ref{lem:lintegral_sup_eq_lintegral_sup_cover},
-\begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &= \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \: .
-\end{align*}
+Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; s \ne t}d_T(s, t)}\right) \right\rceil \right\}$.
+By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, $T = C_k$.
 
 By Corollary~\ref{cor:scale_change_rpow},
 \begin{align*}
@@ -1149,7 +1130,7 @@ For all $\delta \in (0, 4\mathrm{diam}(T)]$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_eq_lintegral_sup_cover}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
@@ -1158,12 +1139,7 @@ It satisfies $\varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
 If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially.
 We can thus assume $\delta > \varepsilon_0 2^{-k}$.
 
-By Lemma~\ref{lem:lintegral_sup_eq_lintegral_sup_cover},
-\begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &= \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \: .
-\end{align*}
+By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, we have $C_k = T$.
 
 By Corollary~\ref{cor:scale_change_rpow}, for any $m \le k$,
 \begin{align*}

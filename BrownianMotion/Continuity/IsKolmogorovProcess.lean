@@ -172,18 +172,16 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     gcongr
     norm_cast
 
-lemma lintegral_sup_rpow_edist_cover_rescale
-    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite)
+lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite)
     {C : ℕ → Finset T} {ε₀ : ℝ≥0∞}
     (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) J) (hC_subset : ∀ i, (C i : Set T) ⊆ J)
     (hC_card : ∀ i, #(C i) = internalCoveringNumber (ε₀ * 2⁻¹ ^ i) J)
     {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 4 * ε₀)
-    (n₂ : ℕ) (hn₂ : ε₀ * 2⁻¹ ^ n₂ < δ / 2) (hn₂' : δ / 2 ≤ ε₀ * 2⁻¹ ^ (n₂ - 1)) -- todo change this
-    {k m : ℕ} -- todo: def of `k` missing
-    (hm : m = min n₂ k) :
+    {k m : ℕ} (hm : m = ⌊Real.logb 2 (4 * ε₀ / δ).toReal⌋₊)
+    (hmk : m ≤ k) :
     ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_hd : edist s t ≤ δ),
         edist (X (chainingSequence hC hs m) ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
-      ≤ 2 ^ (p + 2) * M
+      ≤ 2 ^ (p + 1) * M
         * (16 * δ * Nat.log2 (internalCoveringNumber (δ/4) J).toNat) ^ q
         * internalCoveringNumber (δ/4) J := by
   sorry
@@ -400,14 +398,15 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
-lemma lintegral_sup_eq_lintegral_sup_cover {C : Finset T} {ε : ℝ≥0∞}
-    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J) (hC_card : #C = internalCoveringNumber ε J) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
-      = ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ C) (_ht : t ∈ C) (_hd : edist s t ≤ δ),
-        edist (X s ω) (X t ω) ^ p ∂P := by
+lemma cover_eq_of_lt_iInf_edist {T : Type*} [EMetricSpace T] {J : Set T} {C : Finset T} {ε : ℝ≥0∞}
+    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
+    (hε : ε < ⨅ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hst : s ≠ t), edist s t) :
+    C = J := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_diam_le {T : Type*} [EMetricSpace T] {J : Set T}
+    {X : T → Ω → E}
+    (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
@@ -415,7 +414,8 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
       ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam {T : Type*} [EMetricSpace T] {J : Set T}
+    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
@@ -426,7 +426,8 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
             + c * Cp d p q) := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam' {T : Type*} [EMetricSpace T] {J : Set T}
+    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
@@ -436,7 +437,8 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
             + Cp d p q) := by
   sorry
 
-lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le {T : Type*} [EMetricSpace T] {J : Set T}
+    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
