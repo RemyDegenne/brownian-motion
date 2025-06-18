@@ -177,8 +177,8 @@ lemma lintegral_sup_rpow_edist_cover_rescale
     {C : ℕ → Finset T} {ε₀ : ℝ≥0∞}
     (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) J) (hC_subset : ∀ i, (C i : Set T) ⊆ J)
     (hC_card : ∀ i, #(C i) = internalCoveringNumber (ε₀ * 2⁻¹ ^ i) J)
-    {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (n₂ : ℕ) (hn₂ : ε₀ * 2⁻¹ ^ n₂ < δ / 2)
-    (hn₂' : δ / 2 ≤ ε₀ * 2⁻¹ ^ (n₂ - 1))
+    {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 4 * ε₀)
+    (n₂ : ℕ) (hn₂ : ε₀ * 2⁻¹ ^ n₂ < δ / 2) (hn₂' : δ / 2 ≤ ε₀ * 2⁻¹ ^ (n₂ - 1)) -- todo change this
     {k m : ℕ} -- todo: def of `k` missing
     (hm : m = min n₂ k) :
     ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_hd : edist s t ≤ δ),
@@ -400,17 +400,26 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
-theorem finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
-      ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
-        * ((δ ^ d * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
-            * internalCoveringNumber (δ / 4) J
-          + c * Cp d p q) := by
+      ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
+    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+      ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
+        * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
+              * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
+            + c * Cp d p q) := by
+  sorry
+
+lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
@@ -420,15 +429,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
             + Cp d p q) := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
-      ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d) * Cp d p q := by
-  sorry
-
-lemma finite_set_bound_of_edist_le_bis (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
