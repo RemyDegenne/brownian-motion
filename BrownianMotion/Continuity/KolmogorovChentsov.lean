@@ -40,19 +40,19 @@ noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
   4 ^ (p + 2 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
-  * ∑' k, 2 ^ (k * β * p + (-k + 1) * (q - d))
+  * ∑' (k: ℕ), 2 ^ (k * β * p + (-k + 1) * (q - d))
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
         + Cp d p q)
 
-lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p)
-    (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : c ≠ ∞) (hd_pos : 0 < d)
+    (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β ≠ ∞ := by
   -- 1. L is finite as long as the sum in it is finite.
   unfold constL
   repeat (any_goals first | apply ENNReal.mul_ne_top | apply ENNReal.rpow_ne_top_of_ne_zero)
   all_goals norm_num
   any_goals assumption
-  -- 2. The sum is finite.
+  -- 2. The sum is a sum of finite terms.
   sorry
 
 theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
