@@ -155,14 +155,30 @@ lemma edist_chainingSequence_add_one_self (hC : ∀ i, IsCover (C i) (ε i) A)
   rw [edist_comm]
   simpa using edist_chainingSequence_add_one hC hCA hxA k (by omega)
 
+lemma edist_chainingSequence_le_sum_edist {T : Type*} [PseudoEMetricSpace T] (f : E → T)
+    {hC : ∀ i, IsCover (C i) (ε i) A} {hxA : x ∈ C k} {m : ℕ} (hm : m ≤ k) :
+    edist (f x) (f (chainingSequence hC hxA m)) ≤
+      ∑ i ∈ Finset.range (k - m),
+        edist (f (chainingSequence hC hxA (m + i))) (f (chainingSequence hC hxA (m + i + 1))) := by
+  simp only [Nat.add_assoc, edist_comm (f x)]
+  convert edist_le_range_sum_edist (fun i => f (chainingSequence hC hxA (m + i))) (k - m)
+  simp [(show m + (k - m) = k by omega)]
+
+lemma edist_chainingSequence_le_sum_edist' {T : Type*} [PseudoEMetricSpace T] (f : E → T)
+    {hC : ∀ i, IsCover (C i) (ε i) A} {hxA : x ∈ C k} {m : ℕ} (hm : m ≤ k) :
+    edist (f (chainingSequence hC hxA m)) (f x) ≤
+      ∑ i ∈ Finset.range (k - m),
+        edist (f (chainingSequence hC hxA (m + i + 1))) (f (chainingSequence hC hxA (m + i))) := by
+  rw [edist_comm _ (f x)]
+  convert edist_chainingSequence_le_sum_edist f hm using 2
+  rw [edist_comm]
+
 lemma edist_chainingSequence_le_sum (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ i, (C i : Set E) ⊆ A)
     (hxA : x ∈ C k) (m : ℕ) (hm : m ≤ k) :
     edist (chainingSequence hC hxA m) x ≤ ∑ i ∈ Finset.range (k - m), ε (m + i) := by
   refine le_trans ?_ (Finset.sum_le_sum
-    (fun i hi => edist_comm (α := E) _ _ ▸ edist_chainingSequence_add_one hC hCA hxA (m + i) ?_))
-  · simp only [Nat.add_assoc]
-    convert edist_le_range_sum_edist (fun i => chainingSequence hC hxA (m + i)) (k - m)
-    rw [Nat.add_sub_cancel' hm, chainingSequence_of_eq]
+    (fun i hi => edist_chainingSequence_add_one hC hCA hxA (m + i) ?_))
+  · simpa using edist_chainingSequence_le_sum_edist' id hm
   · simp only [Finset.mem_range] at hi
     omega
 

@@ -264,10 +264,8 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProc
   gcongr with ω
   simp only [Finset.sum_apply, iSup_subtype']
   refine le_trans ?_ (Finset.iSup_sum_le _)
-  gcongr with t
-  simp only [Nat.add_assoc, edist_comm (X t.1 _)]
-  convert edist_le_range_sum_edist (fun i => X (chainingSequence hC t.2 (m + i)) ω) (k - m)
-  simp [(show m + (k - m) = k by omega)]
+  gcongr
+  exact edist_chainingSequence_le_sum_edist (X · ω) hm
 
 lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
@@ -299,6 +297,15 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
   sorry
 
+lemma ENNReal.rpow_finsetSum_le_finsetSum_rpow {p : ℝ} {ι : Type*} {I : Finset ι} {f : ι → ℝ≥0∞}
+    (hp : 0 < p) (hp1 : p ≤ 1) : (∑ i ∈ I, f i) ^ p ≤ ∑ i ∈ I, f i ^ p := by
+  classical
+  induction I using Finset.induction with
+  | empty => simpa using by bound
+  | insert i I hi ih => simpa [Finset.sum_insert hi] using
+      (ENNReal.rpow_add_le_add_rpow _ _ (le_of_lt hp) hp1).trans (by gcongr)
+
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
     (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
@@ -306,7 +313,14 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p �
       ≤ ∑ i ∈ Finset.range (k - m), ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
         edist (X (chainingSequence hC ht (m + i)) ω)
           (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P := by
-  sorry
+  simp only [iSup_subtype']
+  rw [← lintegral_finset_sum' _ (fun _ _ => .iSup (fun _ => hX.aemeasurable_edist.pow_const _))]
+  gcongr with ω
+  refine le_trans ?_ (Finset.iSup_sum_le _)
+  gcongr with t
+  refine le_trans ?_ (ENNReal.rpow_finsetSum_le_finsetSum_rpow hp_pos hp)
+  gcongr
+  exact edist_chainingSequence_le_sum_edist (X · ω) hm
 
 lemma lintegral_sup_rpow_edist_le_sum_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
     (hX : IsKolmogorovProcess X P p q M)
