@@ -398,7 +398,7 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
-lemma cover_eq_of_lt_iInf_edist {T : Type*} [EMetricSpace T] {J : Set T} {C : Finset T} {ε : ℝ≥0∞}
+lemma cover_eq_of_lt_iInf_edist {C : Finset T} {ε : ℝ≥0∞}
     (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
     (hε : ε < ⨅ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hst : s ≠ t), edist s t) :
     C = J := by

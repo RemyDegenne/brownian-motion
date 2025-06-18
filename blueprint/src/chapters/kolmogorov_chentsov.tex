@@ -1052,14 +1052,17 @@ This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
 \begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
   \leanok
   \lean{ProbabilityTheory.cover_eq_of_lt_iInf_edist}
-Suppose that $T$ is a metric space (not just a pseudo-metric space).
 Let $X : T \to \Omega \to E$ be a stochastic process and let $J$ be a finite subset of $T$.
 Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$.
 If $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$ then $C = J$.
 \end{lemma}
 
 \begin{proof}
-
+Let $s \in J$. Since $C$ is an $\varepsilon$-cover of $J$, there exists $t \in C$ such that $d_T(s, t) \le \varepsilon$.
+Since $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$, we have $s = t$.
+Thus, $s \in C$.
+Since $s$ was arbitrary, we have $J \subseteq C$.
+And by assumption $C \subseteq J$.
 \end{proof}
 
 From this point on, $T$ is a metric space (not just a pseudo-metric space).
