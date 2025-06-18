@@ -885,7 +885,20 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 
 \begin{proof}
   \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover}
-
+Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, we get
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 \varepsilon_0^{q - d} \left( \sum_{j=m}^{k-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{k-m-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{\infty} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{(1 - 2^{-(q-d)/p})^p}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{(2^{(q-d)/p} - 1)^p}
+  \: .
+\end{align*}
 \end{proof}
 
 
