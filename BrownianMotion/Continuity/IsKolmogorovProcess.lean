@@ -400,6 +400,13 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
+lemma lintegral_sup_eq_lintegral_sup_cover {C : Finset T} {ε : ℝ≥0∞}
+    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J) (hC_card : #C = internalCoveringNumber ε J) :
+    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+      = ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ C) (_ht : t ∈ C) (_hd : edist s t ≤ δ),
+        edist (X s ω) (X t ω) ^ p ∂P := by
+  sorry
+
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)

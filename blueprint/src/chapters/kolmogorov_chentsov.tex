@@ -1059,10 +1059,11 @@ This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
 
 
 \begin{lemma}\label{lem:lintegral_sup_eq_lintegral_sup_cover}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_eq_lintegral_sup_cover}
 Let $X : T \to \Omega \to E$ be a stochastic process and let $J$ be a finite subset of $T$.
-For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$.
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
-Then for all $\delta \ge 0$,
+Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$ with minimal cardinal.
+If $\varepsilon < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$ then for all $\delta \ge 0$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &= \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
@@ -1071,8 +1072,6 @@ Then for all $\delta \ge 0$,
 \end{lemma}
 
 \begin{proof}
-The natural number $k$ satisfies $\varepsilon_k = \varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
-
 TODO.
 
 Note: in a metric space we would have $C_k = J$. We need to prove it for a pseudo-metric space.
