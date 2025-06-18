@@ -325,8 +325,8 @@ For $\mu_1, \ldots, \mu_d$ probability measures on $\mathbb{R}$ and $f : \mathbb
 
 \begin{proof}\leanok
 As $f$ is integrable, we can use Fubini theorem to obtain that
-$$\int_x f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x) = \int_x f(x) \, d\mu_i(x) \times \prod_{j \ne i} \int_x 1 \, d\mu_j(x) = \int_x f(x) \, d\mu_i(x)$$
-because the $\mu_j$ are probability measures.
+$$\int f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x) = \int f(x) \, d\mu_i(x) \times \prod_{j \ne i} \int 1 \, d\mu_j(x) = \int f(x) \, d\mu_i(x)$$
+because the $\mu_j$s are probability measures.
 \end{proof}
 
 
@@ -357,15 +357,24 @@ The standard Gaussian measure is a probability measure.
 
 \begin{lemma}\label{lem:charFun_stdGaussian}
   \uses{def:stdGaussian, def:charFun}
+  \leanok
+  \lean{ProbabilityTheory.charFun_stdGaussian}
 The characteristic function of the standard Gaussian measure on $E$ is given by
 \begin{align*}
   \hat{\mu}(t) = \exp\left(-\frac{1}{2} \Vert t \Vert^2 \right) \: .
 \end{align*}
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:charFun_gaussianReal, lem:isCentered_stdGaussian}
-
+\begin{proof}\leanok
+  \uses{lem:charFun_gaussianReal}
+Denote by $\nu$ the standard Gaussian measure on $\mathbb{R}$. This is a straightforward computation:
+\begin{align*}
+  \hat{\mu}(t) = \int \exp\left(i\langle t, \sum_{j=1}^d x_j \smul e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) &= \int \exp\left(\sum_{j=1}^d ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
+  &= \int \prod_{j=1}^d \exp\left(ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
+  &= \prod_{j=1}^d \int \exp\left(ix\langle t, e_j \rangle\right) d\nu(x) \\
+  &= \prod_{j=1}^d \exp\left(-\frac{\langle t, e_j \rangle^2}{2}\right) \\
+  &= \exp\left(-\frac{1}{2} \Vert t \Vert^2 \right).
+\end{align*}
 \end{proof}
 
 
@@ -376,10 +385,10 @@ The characteristic function of the standard Gaussian measure on $E$ is given by
 The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:isGaussian_iff_charFun_eq, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
-Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_charFun_eq} that states that it suffices to show that the characteristic function has a particular form.
-That form is given by Lemma~\ref{lem:charFun_stdGaussian}.
+\begin{proof}\leanok
+  \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
+Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that states that it suffices to show that the characteristic function has a particular form.
+That form is given by Lemma~\ref{lem:charFun_stdGaussian}, taking $m=0$ and $C = \langle\cdot, \cdot\rangle$.
 \end{proof}
 
 
@@ -397,12 +406,17 @@ The mean of the standard Gaussian measure is $0$.
 
 
 \begin{lemma}\label{lem:covMatrix_stdGaussian}
-  \uses{def:stdGaussian}
+  \uses{def:stdGaussian, def:covMatrix}
+  \leanok
+  \lean{ProbabilityTheory.covMatrix_stdGaussian}
 The covariance matrix of the standard Gaussian measure is the identity matrix.
 \end{lemma}
 
-\begin{proof}
-
+\begin{proof}\leanok
+  \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian}
+From Lemma~\ref{lem:charFun_stdGaussian}, we know that for all $t \in \R$,
+$$\hat{\mu}(t) = \exp\left(-\frac{\|t\|^2}{2}\right) = \exp\left(-\frac{\langle t, \mathrm{I}t\rangle}{2}\right).$$
+As the identity is positive semidefinite, we deduce from Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that $\Sigma_\mu$ is the identity matrix.
 \end{proof}
 
 

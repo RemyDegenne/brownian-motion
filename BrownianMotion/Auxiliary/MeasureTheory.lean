@@ -73,6 +73,19 @@ lemma iIndepFun_pi₀ (mX : ∀ i, AEMeasurable (X i) (μ i)) :
   · rw [(measurePreserving_eval i).map_eq]
     exact (AEMeasurable.ae_eq_mk (mX i)).symm
 
+lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
+    Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
+  rw [IndepFun.variance_sum]
+  · congr with i
+    change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
+    rw [← variance_map, (measurePreserving_eval i).map_eq]
+    · rw [(measurePreserving_eval i).map_eq]
+      exact (h i).aestronglyMeasurable.aemeasurable
+    · exact Measurable.aemeasurable (by fun_prop)
+  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval i)
+  · exact fun i _ j _ hij ↦
+      (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
+
 end iIndepFun
 
 end ProbabilityTheory

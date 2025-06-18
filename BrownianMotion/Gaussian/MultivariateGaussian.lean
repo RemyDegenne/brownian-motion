@@ -93,21 +93,6 @@ lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
-lemma variance_pi {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
-    {μ : (i : ι) → Measure (Ω i)} [∀ i, IsProbabilityMeasure (μ i)] {X : Π i, Ω i → ℝ}
-    (h : ∀ i, MemLp (X i) 2 (μ i)) :
-    Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
-  rw [IndepFun.variance_sum]
-  · congr with i
-    change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
-    rw [← variance_map, (measurePreserving_eval i).map_eq]
-    · rw [(measurePreserving_eval i).map_eq]
-      exact (h i).aestronglyMeasurable.aemeasurable
-    · exact Measurable.aemeasurable (by fun_prop)
-  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval i)
-  · exact fun i _ j _ hij ↦
-      (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
-
 lemma variance_dual_stdGaussian (L : Dual ℝ E) :
     Var[L; stdGaussian E] = ∑ i, L (stdOrthonormalBasis ℝ E i) ^ 2 := by
   rw [stdGaussian, variance_map]
@@ -127,8 +112,8 @@ lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- �
   · simp_rw [sum_inner, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,
       integral_fintype_prod_eq_prod
         (f := fun i x ↦ Complex.exp (⟪x • stdOrthonormalBasis ℝ E i, t⟫ * Complex.I)),
-      inner_smul_left, mul_comm _ (⟪_, _⟫), Complex.ofReal_mul, conj_trivial,
-      ← charFun_apply_real, charFun_gaussianReal]
+      real_inner_smul_left, mul_comm _ (⟪_, _⟫), Complex.ofReal_mul, ← charFun_apply_real,
+      charFun_gaussianReal]
     simp only [Complex.ofReal_zero, mul_zero, zero_mul, NNReal.coe_one, Complex.ofReal_one, one_mul,
       zero_sub]
     simp_rw [← Complex.exp_sum, Finset.sum_neg_distrib, ← Finset.sum_div, ← Complex.ofReal_pow,
@@ -141,13 +126,13 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
-lemma covInnerBilin_stdGaussian_eq :
+lemma covInnerBilin_stdGaussian :
     covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
   refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
-lemma covMatrix_stdGaussian_eq : covMatrix (stdGaussian E) = 1 := by
-  rw [covMatrix, covInnerBilin_stdGaussian_eq, ContinuousBilinForm.inner_toMatrix_eq_one]
+lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
+  rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
 
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)
