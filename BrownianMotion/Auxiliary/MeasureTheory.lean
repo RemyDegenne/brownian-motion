@@ -90,25 +90,26 @@ end iIndepFun
 
 end ProbabilityTheory
 
-lemma _root_.ContinuousLinearMap.integral_comp_id_comm' {𝕜 E F : Type*} [RCLike 𝕜]
-    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
-    [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
-    [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
-    {μ : Measure E} (h : Integrable id μ) (L : E →L[𝕜] F) : μ[L] = L μ[id] := by
-  change ∫ x, L (id x) ∂μ = _
+namespace ContinuousLinearMap
+
+variable {𝕜 E F : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [NormedAddCommGroup F]
+    [NormedSpace 𝕜 E] [NormedSpace ℝ E] [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E]
+    [CompleteSpace F] [MeasurableSpace E] {μ : Measure E}
+
+lemma integral_comp_id_comm' (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
+    μ[L] = L μ[_root_.id] := by
+  change ∫ x, L (_root_.id x) ∂μ = _
   rw [L.integral_comp_comm h]
 
-lemma _root_.ContinuousLinearMap.integral_comp_id_comm {𝕜 E F : Type*} [RCLike 𝕜]
-    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
-    [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
-    [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
-    {μ : Measure E} (h : Integrable id μ) (L : E →L[𝕜] F) : μ[L] = L (∫ x, x ∂μ) :=
+lemma integral_comp_id_comm (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
+    μ[L] = L (∫ x, x ∂μ) :=
   L.integral_comp_id_comm' h
 
-lemma _root_.ContinuousLinearMap.integral_id_map {𝕜 E F : Type*} [RCLike 𝕜]
-    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace ℝ E]
-    [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E] [CompleteSpace F] [MeasurableSpace E]
-    [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
-    {μ : Measure E} (h : Integrable id μ) (L : E →L[𝕜] F) : (μ.map L)[id] = L μ[id] := by
+variable [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
+
+lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
+    (μ.map L)[_root_.id] = L μ[_root_.id] := by
   rw [integral_map (by fun_prop) (by fun_prop)]
   simp [L.integral_comp_id_comm h]
+
+end ContinuousLinearMap
