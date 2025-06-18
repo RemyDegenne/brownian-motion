@@ -30,6 +30,7 @@ $x \mapsto \exp\left(i \mu x - \frac{\sigma^2 x^2}{2}\right)$.
 
 \begin{lemma}\label{lem:centralMoment_two_mul_gaussianReal}
   \uses{def:gaussianReal}
+  \leanok
   \lean{ProbabilityTheory.centralMoment_two_mul_gaussianReal}
 The central moment of order $2n$ of a real Gaussian measure $\mathcal{N}(\mu, \sigma^2)$ is given by
 \begin{align*}
@@ -39,7 +40,7 @@ in which $(2n - 1)!! = (2n - 1)(2n - 3) \cdots 3 \cdot 1$ is the double factoria
 \end{lemma}
 
 \begin{proof}\leanok
-\begin{align}
+\begin{align*}
 	\mathbb{E}[(X - \mu)^{2n}] &= \int_{-\infty}^\infty (x - \mu)^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{(x - \mu)^2}{2 \sigma^2}} \mathrm dx \\
 	&= \int_{-\infty}^\infty x^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{x^2}{2 \sigma^2}} \mathrm dx \\
 	&= 2 \int_{0}^\infty x^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{x^2}{2 \sigma^2}} \mathrm dx \\
@@ -49,7 +50,7 @@ in which $(2n - 1)!! = (2n - 1)(2n - 3) \cdots 3 \cdot 1$ is the double factoria
 	&= \frac{\sigma^{2n} 2^n}{\Gamma(1/2)} \left( \prod_{k=0}^{n-1} (k + 1/2) \right) \Gamma(1/2) \\
 	&= \sigma^{2n} \prod_{k=0}^{n-1} (2k + 1) \\
 	&= \sigma^{2n} (2n - 1)!!
-\end{align}
+\end{align*}
 \end{proof}
 
 
