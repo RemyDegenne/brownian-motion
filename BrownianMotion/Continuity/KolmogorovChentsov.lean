@@ -44,9 +44,15 @@ def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) 
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
         + Cp d p q)
 
-lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
-    constL T c d p q β < ∞ := by
+lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p)
+    (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+    constL T c d p q β ≠ ∞ := by
+  -- 1. L is finite as long as the sum in it is finite.
+  unfold constL
+  repeat (any_goals first | apply ENNReal.mul_ne_top | apply ENNReal.rpow_ne_top_of_ne_zero)
+  all_goals norm_num
+  any_goals assumption
+  -- 2. The sum is finite.
   sorry
 
 theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
