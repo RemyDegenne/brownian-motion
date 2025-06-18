@@ -52,8 +52,25 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : c ≠ �
   repeat (any_goals first | apply ENNReal.mul_ne_top | apply ENNReal.rpow_ne_top_of_ne_zero)
   all_goals norm_num
   any_goals assumption
-  -- 2. The sum is a sum of finite terms.
-  sorry
+  -- 2. The sum is finite as long as its summand is a O(1 / k^2).
+  unfold Cp
+  -- Let f k be the k-th summand.
+  let' f : ℕ → ℝ≥0∞ := _
+  change ∑' (k : ℕ), f k ≠ ∞
+  rw [tsum_congr (g := fun k => ↑ (ENNReal.toNNReal (f k)))]
+  rotate_left
+  · intro k
+    subst f
+    rw [←ENNReal.coe_toNNReal hc]
+    simp_all
+    sorry
+  rw [ENNReal.tsum_coe_ne_top_iff_summable, ←NNReal.summable_coe]
+  apply summable_of_isBigO_nat (g := fun k => (k ^ 2)⁻¹)
+  · rw [Real.summable_nat_pow_inv]
+    norm_num
+  -- 3. The summand is a O(1 / k^2).
+  calc (fun a ↦ (f a).toNNReal.toReal)
+      =O[Filter.atTop] fun (k: ℕ) ↦ ((k: ℝ) ^ 2)⁻¹ := by sorry
 
 theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
