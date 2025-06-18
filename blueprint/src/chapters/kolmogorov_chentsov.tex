@@ -705,28 +705,24 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
 \end{align*}
 \end{proof}
 
-
 \begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
   \uses{def:IsKolmogorovProcess, def:chainingSequence}
   \leanok
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Let $\delta > 0$ and let $n_2$ be such that $\varepsilon_0 2^{-n_2} < \delta/2 \le \varepsilon_0 2^{-n_2+1}$.
-Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
-For $m = \min(n_2, k)$,
+Let $\delta \in (0, 4 \varepsilon_0]$ and let $m = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
+Then for $k \ge m$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
   &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
   \: .
 \end{align*}
-TODO: $C_k = J$
 \end{lemma}
 
 \begin{proof}
   \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
-If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, s) \mid s \in C_k\}$ and the inequality holds trivially.
-We can thus assume $\delta > \varepsilon_0 2^{-k}$.
+By definition of $m$, $\varepsilon_0 2^{-m} < \delta/2 \le \varepsilon_0 2^{-m+1}$.
 
 For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
 It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
@@ -737,12 +733,10 @@ We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\vare
   &\le 2^{p+1} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
-By definition of $m$ and $n_2$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \varepsilon_0 2^{-n_2} \ge \delta/4$,
+By definition of $m$, $\varepsilon_m \ge \varepsilon_0 2^{-m} \ge \delta/4$,
 hence $N^{int}_{\varepsilon_m}(J) \le N^{int}_{\delta / 4}(J)$.
 
-If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
-Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
-We thus get $\varepsilon_0 2^{-m} \le \delta$.
+Finally, by definition of $m$ we have $\varepsilon_0 2^{-m} \le \delta$.
 \end{proof}
 
 
@@ -1055,13 +1049,80 @@ This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
 \end{proof}
 
 
-\begin{theorem}\label{thm:finite_set_bound_of_dist_le}
+\begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
+  \leanok
+  \lean{ProbabilityTheory.cover_eq_of_lt_iInf_edist}
+Let $X : T \to \Omega \to E$ be a stochastic process and let $J$ be a finite subset of $T$.
+Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$.
+If $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$ then $C = J$.
+\end{lemma}
+
+\begin{proof}
+Let $s \in J$. Since $C$ is an $\varepsilon$-cover of $J$, there exists $t \in C$ such that $d_T(s, t) \le \varepsilon$.
+Since $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$, we have $s = t$.
+Thus, $s \in C$.
+Since $s$ was arbitrary, we have $J \subseteq C$.
+And by assumption $C \subseteq J$.
+\end{proof}
+
+From this point on, $T$ is a metric space (not just a pseudo-metric space).
+
+\begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_diam_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
   \leanok
-  \lean{ProbabilityTheory.finite_set_bound_of_edist_le}
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}
 Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
-For all $\delta > 0$,
+For all $\delta \ge 4\mathrm{diam}(T)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \le 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
+Let $\varepsilon_0 = \mathrm{diam}(T)$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+
+Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; s \ne t}d_T(s, t)}\right) \right\rceil \right\}$.
+By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, $T = C_k$.
+
+By Corollary~\ref{cor:scale_change_rpow},
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_0}, X_{\bar{t}_0})^p \right]
+    + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_0})^p \right]
+  \: .
+\end{align*}
+
+Since $\varepsilon_0 = \mathrm{diam}(T)$, $C_0$ is a singleton and $d_E(X_{\bar{s}_0}, X_{\bar{t}_0}) = 0$ for all $s, t$.
+We thus have
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_0}, X_{\bar{t}_0})^p \right]
+  &= 0
+  \: .
+\end{align*}
+
+By Lemma~\ref{lem:second_term_bound},
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_0})^p \right]
+  &\le 2^q M c_1 \varepsilon_0^{q - d} C_p
+  \le 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_le_diam}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta \in (0, 4\mathrm{diam}(T)]$,
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
@@ -1072,12 +1133,18 @@ For all $\delta > 0$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow}
-Let $\varepsilon_0 \in (0, \mathrm{diam}(T))$.
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
+Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
-Note that $C_k = T$.
-By Corollary~\ref{cor:scale_change_rpow},
+
+Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
+It satisfies $\varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
+If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially.
+We can thus assume $\delta > \varepsilon_0 2^{-k}$.
+
+By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, we have $C_k = T$.
+
+By Corollary~\ref{cor:scale_change_rpow}, for any $m \le k$,
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
@@ -1085,31 +1152,38 @@ By Corollary~\ref{cor:scale_change_rpow},
     + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
   \: .
 \end{align*}
-By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Lemma~\ref{lem:second_term_bound},
+
+\emph{First term}
+
+We have $\delta \le 4\varepsilon_0$ by assumption.
+Let $n_2 = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$ and $m = \min\{n_2, k\}$.
+If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
+Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
+We thus get $\varepsilon_0 2^{-m} \le \delta$.
+By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale},
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
-  &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
-  \: . \\
-  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p
+  &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
   \: .
 \end{align*}
 
-Putting these two inequalities together, we obtain
+\emph{Second term}
+
+By Lemma~\ref{lem:second_term_bound} and then the inequality $\varepsilon_0 2^{-m} \le \delta$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p
+  \\
+  &\le 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+
+Putting the two terms together, we obtain
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + 2^d c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p\right)
-  \: .
-\end{align*}
-TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
-We obtain
-\begin{align*}
-  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \\
-  &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + c_1 2^q \delta^{q - d} C_p\right)
+    + 2^q c_1 \delta^{q - d} C_p\right)
   \\
   &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
     + c_1 C_p\right)
@@ -1118,11 +1192,11 @@ We obtain
 \end{proof}
 
 
-\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_le_diam}
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_le_diam_bis}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
   \leanok
-  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam}
-With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \in (0, 4\mathrm{diam}(T))$,
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam'}
+With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le_of_le_diam}, for all $\delta \in (0, 4\mathrm{diam}(T)]$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\log_2 \left(c_1 \delta^{-d} 4^d \right) \right)^q
@@ -1132,37 +1206,21 @@ With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_
 \end{corollary}
 
 \begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le}
-We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for $\delta \le 4\mathrm{diam}(T)$, we can use the bounded internal covering number hypothesis to bound $N^{int}_{\delta/4}(T)$~:
+  \uses{thm:finite_set_bound_of_dist_le_of_le_diam}
+We apply Theorem~\ref{thm:finite_set_bound_of_dist_le_of_le_diam} and then remark that for $\delta \le 4\mathrm{diam}(T)$, we can use the bounded internal covering number hypothesis to bound $N^{int}_{\delta/4}(T)$~:
 \begin{align*}
   N^{int}_{\delta/4}(T) \le c_1 \left(\frac{\delta}{4}\right)^{-d} \: .
 \end{align*}
 \end{proof}
 
 
-\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_diam_le}
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
   \leanok
-  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}
-With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \ge 4\mathrm{diam}(T)$,
-\begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &\le 4^{p+2q+1} M c_1 \delta^{q-d} C_p
-  \: .
-\end{align*}
-\end{corollary}
-
-\begin{proof}
-  \uses{thm:finite_set_bound_of_dist_le, lem:internalCoveringNumber_eq_one_of_diam_le}
-Apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then use the fact that for $\delta \ge 4\mathrm{diam}(T)$, $N^{int}_{\delta/4}(T) = 1$ (Lemma~\ref{lem:internalCoveringNumber_eq_one_of_diam_le}).
-\end{proof}
-
-
-\begin{corollary}\label{cor:finite_set_bound_of_dist_le_bis}
-  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
-  \leanok
-  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_bis}
-With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta > 0$,
+  \lean{ProbabilityTheory.finite_set_bound_of_edist_le}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta > 0$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 \delta^{-d} 4^d\right) \right\} \right)^q
@@ -1173,8 +1231,8 @@ With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_
 
 
 \begin{proof}
-  \uses{cor:finite_set_bound_of_dist_le_of_le_diam, cor:finite_set_bound_of_dist_le_of_diam_le}
-We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam} and Corollary~\ref{cor:finite_set_bound_of_dist_le_of_diam_le}.
+  \uses{cor:finite_set_bound_of_dist_le_of_le_diam_bis, thm:finite_set_bound_of_dist_le_of_diam_le}
+We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam_bis} and Theorem~\ref{thm:finite_set_bound_of_dist_le_of_diam_le}.
 \end{proof}
 
 
@@ -1267,7 +1325,7 @@ Then
 \end{lemma}
 
 \begin{proof}
-  \uses{cor:finite_set_bound_of_dist_le_bis, lem:integral_div_dist_le_sum_integral_dist_le, lem:L_lt_top}
+  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:L_lt_top}
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
@@ -1277,7 +1335,7 @@ By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \end{align*}
 We want to show that the sum is finite.
 
-We apply Corollary~\ref{cor:finite_set_bound_of_dist_le_bis} to bound each expectation in the sum.
+We apply Corollary~\ref{cor:finite_set_bound_of_dist_le} to bound each expectation in the sum.
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
