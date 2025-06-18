@@ -215,4 +215,102 @@ theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoEMetricSpace
   refine (internalCoveringNumber_le_packingNumber _ A).trans ?_
   exact packingNumber_two_le_externalCoveringNumber r A
 
+theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
+  by_cases hε' : 0 < ε
+  · have ε_pos : 0 < ε.toReal := by
+      apply toReal_pos
+      · exact hε'.ne'
+      · exact hε.trans_lt (by norm_num) |>.ne
+    let C : Finset ℝ :=
+      Finset.image (fun k : ℕ ↦ (k : ℝ) * (1 / (Nat.floor (1 / ε.toReal) + 1)))
+        (Finset.Icc 1 (Nat.floor (1 / ε.toReal)))
+    have : IsCover C ε (Set.Icc (0 : ℝ) 1) := by
+      intro x hx
+      by_cases h : x < 1 / (Nat.floor (1 / ε.toReal) + 1)
+      · use 1 / (Nat.floor (1 / ε.toReal) + 1)
+        constructor
+        · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
+          use 1
+          constructor
+          · constructor
+            · exact le_rfl
+            rw [Nat.one_le_floor_iff]
+            refine one_le_one_div ε_pos ?_
+            apply toReal_le_of_le_ofReal
+            · norm_num
+            simpa
+          simp
+        rw [edist_dist, Real.dist_eq, abs_sub_comm]
+        apply ofReal_le_of_le_toReal
+        rw [abs_of_nonneg, tsub_le_iff_right]
+        · calc
+          (1 : ℝ) / (Nat.floor (1 / ε.toReal) + 1) ≤ 1 / (1 / ε.toReal) := by
+            rw [one_div_le_one_div]
+            refine (Nat.floor_eq_iff ?_).1 rfl |>.2.le
+            all_goals positivity
+          _ = ε.toReal := by field_simp
+          _ ≤ ε.toReal + x := by linarith [hx.1]
+        linarith
+      use Nat.floor (x * (Nat.floor (1 / ε.toReal) + 1)) * (1 / (Nat.floor (1 / ε.toReal) + 1))
+      constructor
+      · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
+        mul_eq_mul_right_iff, Nat.cast_inj, inv_eq_zero, C]
+        use Nat.floor (x * (Nat.floor (1 / ε.toReal) + 1))
+        constructor
+        · constructor
+          · rw [Nat.one_le_floor_iff]
+            calc
+            (1 : ℝ) = 1 / (⌊1 / ε.toReal⌋₊ + 1) * (⌊1 / ε.toReal⌋₊ + 1) := by
+              rw [one_div_mul_cancel]
+              norm_cast
+            _ ≤ x * (⌊1 / ε.toReal⌋₊ + 1) := by
+              rw [_root_.mul_le_mul_right]
+              · exact not_lt.1 h
+              norm_cast
+              simp
+          apply Nat.floor_mono
+
+    --   use Nat.floor (x / ε.toReal) * ε.toReal
+    --   constructor
+    --   · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
+    --     mul_eq_mul_right_iff, Nat.cast_inj, C]
+    --     use Nat.floor (x / ε.toReal)
+    --     constructor
+    --     · constructor
+    --       · simp
+    --       · apply Nat.floor_mono
+    --         rw [div_le_div_iff_of_pos_right]
+    --         · exact hx.2
+    --         · exact ε_pos
+    --     exact Or.inl rfl
+    --   · rw [edist_dist, Real.dist_eq]
+    --     apply ofReal_le_of_le_toReal
+    --     rw [abs_of_nonneg]
+    --     · rw [tsub_le_iff_tsub_le]
+    --       calc
+    --       x - ε.toReal = (x / ε.toReal - 1) * ε.toReal := by field_simp
+    --       _ ≤ Nat.floor (x / ε.toReal) * ε.toReal := by
+    --         rw [_root_.mul_le_mul_right ε_pos, tsub_le_iff_right]
+    --         refine (Nat.floor_eq_iff ?_).1 rfl |>.2.le
+    --         exact div_nonneg hx.1 ε_pos.le
+    --     · rw [sub_nonneg]
+    --       calc
+    --       Nat.floor (x / ε.toReal) * ε.toReal ≤ x / ε.toReal * ε.toReal := by
+    --         rw [_root_.mul_le_mul_right ε_pos]
+    --         exact Nat.floor_le (div_nonneg hx.1 ε_pos.le)
+    --       _ = x := by field_simp
+    -- have : C.card = Nat.floor (1 / ε.toReal) + 1 := by
+    --   rw [← Nat.sub_zero (_ + _), ← Nat.card_Icc]
+    --   apply Finset.card_image_iff.2
+    --   apply Function.Injective.injOn
+    --   change Function.Injective ((fun x ↦ x * ε.toReal) ∘ ((↑) : ℕ → ℝ))
+    --   apply Function.Injective.comp
+    --   · refine mul_left_injective₀ ?_
+    --     exact ε_pos.ne'
+    --   · exact CharZero.cast_injective
+    -- calc
+    -- (internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤ C.card := sorry
+    -- _ = Nat.floor (1 / ε.toReal) + 1 := sorry
+    -- _ = 1 / ε := sorry
+
 end comparisons
