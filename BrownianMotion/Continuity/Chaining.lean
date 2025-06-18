@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Continuity.CoveringNumber
 
 /-!
@@ -155,14 +156,30 @@ lemma edist_chainingSequence_add_one_self (hC : ∀ i, IsCover (C i) (ε i) A)
   rw [edist_comm]
   simpa using edist_chainingSequence_add_one hC hCA hxA k (by omega)
 
+lemma edist_chainingSequence_le_sum_edist {T : Type*} [PseudoEMetricSpace T] (f : E → T)
+    {hC : ∀ i, IsCover (C i) (ε i) A} {hxA : x ∈ C k} {m : ℕ} (hm : m ≤ k) :
+    edist (f x) (f (chainingSequence hC hxA m)) ≤
+      ∑ i ∈ Finset.range (k - m),
+        edist (f (chainingSequence hC hxA (m + i))) (f (chainingSequence hC hxA (m + i + 1))) := by
+  simp only [Nat.add_assoc, edist_comm (f x)]
+  convert edist_le_range_sum_edist (fun i => f (chainingSequence hC hxA (m + i))) (k - m)
+  simp [(show m + (k - m) = k by omega)]
+
+lemma edist_chainingSequence_le_sum_edist' {T : Type*} [PseudoEMetricSpace T] (f : E → T)
+    {hC : ∀ i, IsCover (C i) (ε i) A} {hxA : x ∈ C k} {m : ℕ} (hm : m ≤ k) :
+    edist (f (chainingSequence hC hxA m)) (f x) ≤
+      ∑ i ∈ Finset.range (k - m),
+        edist (f (chainingSequence hC hxA (m + i + 1))) (f (chainingSequence hC hxA (m + i))) := by
+  rw [edist_comm _ (f x)]
+  convert edist_chainingSequence_le_sum_edist f hm using 2
+  rw [edist_comm]
+
 lemma edist_chainingSequence_le_sum (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ i, (C i : Set E) ⊆ A)
     (hxA : x ∈ C k) (m : ℕ) (hm : m ≤ k) :
     edist (chainingSequence hC hxA m) x ≤ ∑ i ∈ Finset.range (k - m), ε (m + i) := by
   refine le_trans ?_ (Finset.sum_le_sum
-    (fun i hi => edist_comm (α := E) _ _ ▸ edist_chainingSequence_add_one hC hCA hxA (m + i) ?_))
-  · simp only [Nat.add_assoc]
-    convert edist_le_range_sum_edist (fun i => chainingSequence hC hxA (m + i)) (k - m)
-    rw [Nat.add_sub_cancel' hm, chainingSequence_of_eq]
+    (fun i hi => edist_chainingSequence_add_one hC hCA hxA (m + i) ?_))
+  · simpa using edist_chainingSequence_le_sum_edist' id hm
   · simp only [Finset.mem_range] at hi
     omega
 
@@ -182,10 +199,6 @@ lemma edist_chainingSequence_le (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ 
   _ ≤ edist x y + ∑ i ∈ Finset.range (k - m), ε (m + i)
           + ∑ j ∈ Finset.range (n - m), ε (m + j) := by
         gcongr <;> (try rw [edist_comm y]) <;> apply edist_chainingSequence_le_sum <;> assumption
-
-lemma ENNReal.sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, ((1 : ENNReal) / 2) ^ i ≤ 2 := by
-  rw [← ENNReal.toReal_le_toReal (by simp) (by simp), toReal_ofNat, toReal_sum (by simp)]
-  simpa [-one_div] using _root_.sum_geometric_two_le _
 
 lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) A)
     (hCA : ∀ i, (C i : Set E) ⊆ A) (hxA : x ∈ C k) (hyA : y ∈ C n) (m : ℕ) (hm : m ≤ k)
@@ -256,18 +269,6 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
   · conv_lhs => right; congr; ext s; rw [edist_comm]
     conv_rhs => left; congr; ext s; congr; ext t; rw [edist_comm]
     ring
-
-lemma ENNReal.rpow_max {x y : ℝ≥0∞} {p : ℝ} (hp : 0 ≤ p) : max x y ^ p = max (x ^ p) (y ^ p) := by
-  rcases le_total x y with hxy | hxy
-  · rw [max_eq_right hxy, max_eq_right (rpow_le_rpow hxy hp)]
-  · rw [max_eq_left hxy, max_eq_left (rpow_le_rpow hxy hp)]
-
-lemma ENNReal.rpow_add_le_two_rpow_mul_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) :
-    (a + b) ^ p ≤ 2 ^ p * (a ^ p + b ^ p) := calc
-  (a + b) ^ p ≤ (2 * max a b) ^ p := by rw [two_mul]; gcongr <;> simp
-  _ = 2 ^ p * (max a b) ^ p := mul_rpow_of_nonneg _ _ hp
-  _ = 2 ^ p * max (a ^ p) (b ^ p) := by rw [rpow_max hp]
-  _ ≤ 2 ^ p * (a ^ p + b ^ p) := by gcongr; apply max_le_add_of_nonneg <;> simp
 
 lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :

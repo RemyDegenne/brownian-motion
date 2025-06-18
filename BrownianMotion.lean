@@ -1,5 +1,7 @@
 import BrownianMotion.Auxiliary.ContinuousBilinForm
+import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.LinearAlgebra
+import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
@@ -14,6 +16,7 @@ import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.Gaussian
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.GramMatrix
+import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Init

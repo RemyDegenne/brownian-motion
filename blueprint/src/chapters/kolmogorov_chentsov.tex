@@ -296,6 +296,7 @@ The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for 
 \end{lemma}
 
 \begin{proof}
+\leanok
 Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le a^{n}$.
 \end{proof}
 
@@ -308,6 +309,7 @@ The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ 
 \end{lemma}
 
 \begin{proof}
+\leanok
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$.
 \end{proof}
 
@@ -320,6 +322,7 @@ For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
 \end{proof}
@@ -333,6 +336,7 @@ For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeBallSequence_V_anti}
 Assume w.l.o.g. that $i < j$.
 Then $B_{V_j}(t_j, (r_j-1)c) \subseteq V_j \subseteq V_{i+1}$.
@@ -359,6 +363,7 @@ The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:card_logSizeRadius_ge, lem:card_logSizeRadius_le, lem:logSizeBallSequence_disjoint_B}
 Using Lemma~\ref{lem:card_logSizeRadius_le}, the cardinal of $K$ is bounded by
 \begin{align*}
@@ -388,6 +393,7 @@ Then $d_T(s, t) \le c n$.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:logSizeRadius_logSizeBallSequence_le}
 A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in B_V(t_i, r_i c)$ and satisfies
 \begin{align*}
@@ -411,6 +417,7 @@ Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
 \end{lemma}
 
 \begin{proof}
+\leanok
 Let $(s, t) \in J^2$ such that $d_T(s, t) \le c$.
 Then there exists a largest $\ell \in \mathbb{N}$ such that $s, t \in V_\ell$.
 Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_{V_\ell}(t_\ell, (r_\ell-1)c)$ (since $V_{\ell + 1} = V_\ell \setminus B_{V_\ell}(t_\ell, (r_\ell-1)c)$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
@@ -768,13 +775,17 @@ We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set
 \end{proof}
 
 
+
+\paragraph{Case $p \ge 1$}
+
+
 \begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
   \uses{def:chainingSequence}
   \leanok
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
 Let $X : T \to \Omega \to E$ be a stochastic process.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
-For $m \le k$,
+For $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
@@ -782,10 +793,8 @@ For $m \le k$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:dist_chainingSequence_le_sum}
-
-By Lemma~\ref{lem:dist_chainingSequence_le_sum},
+\begin{proof}\leanok
+By the triangle inequality,
 \begin{align*}
   \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
   &\le \sup_{t \in C_k} \left( \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
@@ -793,14 +802,19 @@ By Lemma~\ref{lem:dist_chainingSequence_le_sum},
   &\le \left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
   \: .
 \end{align*}
-And then, by Minkowski's inequality,
+We thus have
 \begin{align*}
   \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
-  &\le \sum_{i=m}^{k-1} \mathbb{E} \left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right]
-  \\
+  &\le \left(\mathbb{E} \left[\left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p\right]\right)^{1/p}
+  \: .
+\end{align*}
+And then, by Minkowski's inequality, since $p \ge 1$,
+\begin{align*}
+  \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
   &\le \sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
   \: .
 \end{align*}
+Finally, we raise to the $p$-th power to obtain the result.
 \end{proof}
 
 
@@ -810,7 +824,7 @@ And then, by Minkowski's inequality,
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
-Then for $m \le k$,
+Then for $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
@@ -818,7 +832,7 @@ Then for $m \le k$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:integral_sup_rpow_dist_succ, lem:integral_sup_dist_le_sum_rpow}
 Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:integral_sup_dist_le_sum_rpow}.
 \end{proof}
@@ -831,7 +845,7 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
-Then for $m \le k$,
+Then for $p \ge 1$ and $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
   &\le M c_1 \left( \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d/p} \varepsilon_j^{q/p} \right)^p
@@ -839,7 +853,7 @@ Then for $m \le k$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:integral_sup_rpow_dist_le_sum, def:HasBoundedInternalCoveringNumber}
 By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum}, we have
 \begin{align*}
@@ -864,8 +878,6 @@ Then by the minimality of the cardinality of $C_n$ and the bounded internal cove
 Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
 \begin{align*}
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le M c_1 \varepsilon_0^{q - d} 2^{d - m(q-d)}\left( \frac{1 - 2^{- (k - m) (q -d)/p}}{1 - 2^{- (q -d)/p}}\right)^p
-  \\
   &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
   \: .
 \end{align*}
@@ -873,15 +885,178 @@ Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cov
 
 \begin{proof}
   \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover}
+Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, we get
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 \varepsilon_0^{q - d} \left( \sum_{j=m}^{k-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{k-m-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{\infty} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{(1 - 2^{-(q-d)/p})^p}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{(2^{(q-d)/p} - 1)^p}
+  \: .
+\end{align*}
+\end{proof}
 
+
+
+\paragraph{Case $p \le 1$}
+
+
+\begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow_of_le_one}
+  \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow_of_le_one}
+Let $X : T \to \Omega \to E$ be a stochastic process.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \sum_{i=m}^{k-1} \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+For $0 < p \le 1$, the power function is sub-additive, i.e. for $a, b \ge 0$,
+\begin{align*}
+  (a + b)^p \le a^p + b^p
+  \: .
+\end{align*}
+We can thus apply the triangle inequality to obtain
+\begin{align*}
+  \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
+  &\le \sup_{t \in C_k} \left(\sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})\right)^p
+  \\
+  &\le \sup_{t \in C_k} \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p
+  \\
+  &\le \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum_of_le_one}
+  \uses{def:chainingSequence}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_of_le_one}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \sum_{i=m}^{k-1} \vert C_{j+1} \vert \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:integral_sup_rpow_dist_succ, lem:integral_sup_dist_le_sum_rpow_of_le_one}
+Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:integral_sup_dist_le_sum_rpow_of_le_one}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d} \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:integral_sup_rpow_dist_le_sum_of_le_one, def:HasBoundedInternalCoveringNumber}
+By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum_of_le_one}, we have
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \sum_{i=m}^{k-1} \vert C_{j+1} \vert \varepsilon_j^{q}
+  \: .
+\end{align*}
+Then by the minimality of the cardinality of $C_n$ and the bounded internal covering number hypothesis, we have
+\begin{align*}
+  \vert C_{j+1} \vert
+  &= N^{int}_{\varepsilon_{j+1}}(T)
+  \le c_1 \varepsilon_{j+1}^{-d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two_of_le_one}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one}
+Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} \frac{1}{\left( 2^{(q -d)} - 1\right)}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
+Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}, we get
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d}\sum_{j=0}^{k-m-1} 2^{- j (q - d)}
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d}\sum_{j=0}^{+\infty} 2^{- j (q - d)}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d} \frac{1}{1 - 2^{-(q - d)}}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q-d} \frac{1}{2^{(q - d)} - 1}
+  \: .
+\end{align*}
 \end{proof}
 
 
 
 \subsubsection{Putting it all together}
 
+\begin{definition}\label{def:Cp}
+  \leanok
+  \lean{ProbabilityTheory.Cp}
+\begin{align*}
+  C_p = \max\left\{\frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}, \frac{1}{\left( 2^{(q -d)} - 1\right)} \right\}
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:second_term_bound}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  \lean{ProbabilityTheory.second_term_bound}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $C_n$ a finite $(\varepsilon_0 2^{-n})$-cover of $T$ for $\varepsilon_0 \le \mathrm{diam}(T)$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} C_p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two_of_le_one,cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
+This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
+\end{proof}
+
+
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le}
-  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
   \leanok
   \lean{ProbabilityTheory.finite_set_bound_of_edist_le}
 Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
@@ -891,13 +1066,13 @@ For all $\delta > 0$,
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + c_1 C_p\right)
   \: .
 \end{align*}
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow}
 Let $\varepsilon_0 \in (0, \mathrm{diam}(T))$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 Let $k = \min \{j \in \mathbb{Z} \mid \varepsilon_0 2^{-j} < \inf_{s, t \in J; s \ne t}d_T(s, t)\}$.
@@ -910,21 +1085,22 @@ By Corollary~\ref{cor:scale_change_rpow},
     + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
   \: .
 \end{align*}
-By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Corollary~\ref{cor:integral_sup_rpow_dist_le_of_minimal_cover_two},
+By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale} and Lemma~\ref{lem:second_term_bound},
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
   &\le 2^{p+2} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(J)
   \: . \\
   \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
-  &\le2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p
   \: .
 \end{align*}
+
 Putting these two inequalities together, we obtain
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + 2^d c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{\left(2^{(q -d)/p} - 1\right)^p}\right)
+    + 2^d c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p\right)
   \: .
 \end{align*}
 TODO: it remains to argue that w.l.o.g. $\varepsilon_0 2^{-m} \le \delta$ as in another lemma above (todo: refactor that).
@@ -933,10 +1109,10 @@ We obtain
   &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^p M \left(4^{2q+1}\delta^q \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + c_1 2^q \delta^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + c_1 2^q \delta^{q - d} C_p\right)
   \\
   &\le 4^{p+2q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
-    + \frac{c_1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + c_1 C_p\right)
   \: .
 \end{align*}
 \end{proof}
@@ -950,7 +1126,7 @@ With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\log_2 \left(c_1 \delta^{-d} 4^d \right) \right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \: .
 \end{align*}
 \end{corollary}
@@ -971,7 +1147,7 @@ We apply Theorem~\ref{thm:finite_set_bound_of_dist_le} and then remark that for 
 With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le}, for all $\delta \ge 4\mathrm{diam}(T)$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  &\le 4^{p+2q+1} M c_1 \delta^{q-d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  &\le 4^{p+2q+1} M c_1 \delta^{q-d} C_p
   \: .
 \end{align*}
 \end{corollary}
@@ -990,7 +1166,7 @@ With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   &\le 4^{p+2q+1} M c_1 \delta^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 \delta^{-d} 4^d\right) \right\} \right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \: .
 \end{align*}
 \end{corollary}
@@ -1038,6 +1214,7 @@ Note that $\eta_k \ge 2^{-k}$.
 
 
 \begin{definition}\label{def:L}
+  \uses{def:Cp}
   \leanok
   \lean{ProbabilityTheory.constL}
 We introduce the constant
@@ -1045,7 +1222,7 @@ We introduce the constant
   L(T, c_1, d, p, q, \beta)
   &= 4^{p+2q+1} c_1 (\mathrm{diam}(T)+1)^{q-d}
   \\&\quad \times \sum_{k=0}^\infty 2^{k \beta p + (-k + 1)(q-d)}\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \: .
 \end{align*}
 \end{definition}
@@ -1060,14 +1237,14 @@ For $\mathrm{diam}(T) < \infty$, $p> 0$, $q > d > 0$ and $\beta \in (0, (q-d)/p)
 
 \begin{proof}
 Let $a_k = 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{k \beta p + (-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)$.
+    + C_p\right)$.
 Then $L(T, c_1, d, p, q, \beta) = \sum_{k=0}^\infty a_k$.
 To show that the sum is finite, we can use the ratio test.
 \begin{align*}
   \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
   &= 2^{\beta p - (q - d)}
-    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
-    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)}
+    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + C_p\right)}
+    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\}\right)^q + C_p\right)}
 \end{align*}
 The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=0}^\infty a_k$ converges.
 \end{proof}
@@ -1105,13 +1282,13 @@ We apply Corollary~\ref{cor:finite_set_bound_of_dist_le_bis} to bound each expec
   &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \\
   &\le 4^{p+2q+1} M c_1 (2 \eta_k)^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 (2 \eta_k)^{-d} 4^d \right) \right\} \right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \\
   &\le 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 2^{(k + 1)d} \right) \right\} \right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \\
   &= 4^{p+2q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{(-k + 1)(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 1)d \right\} \right)^q
-    + \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}\right)
+    + C_p\right)
   \: .
 \end{align*}
 The sum is then less than $M$ times $L(T, c_1, d, p, q, \beta)$.
