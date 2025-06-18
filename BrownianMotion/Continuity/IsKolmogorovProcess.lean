@@ -277,19 +277,41 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     (hε : ∀ n, ε n ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε n) J)
-    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d ≤ q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ M * c₁
         * (∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d / p) * ε (m + j) ^ (q / p)) ^ p := by
-  sorry
+  refine (lintegral_sup_rpow_edist_le_sum hp hX ?_ hC hC_subset hm).trans ?_
+  · exact (hd_pos.trans_le hdq).le -- `positivity` fails?
+  rw [mul_assoc]
+  gcongr _ * ?_
+  have hC_card' n : (#(C n) : ℝ≥0∞) = internalCoveringNumber (ε n) J := mod_cast hC_card n
+  simp_rw [hC_card']
+  calc (∑ x ∈ Finset.range (k - m), (internalCoveringNumber (ε (m + x + 1)) J) ^ (1 / p)
+      * ε (m + x) ^ (q / p)) ^ p
+  _ ≤ (∑ x ∈ Finset.range (k - m), (c₁ * (ε (m + x + 1))⁻¹ ^ d) ^ (1 / p)
+      * ε (m + x) ^ (q / p)) ^ p := by
+    gcongr with x hx
+    exact h_cov (ε (m + x + 1)) (hε _)
+  _ = c₁ * (∑ x ∈ Finset.range (k - m), ((ε (m + x + 1))⁻¹ ^ (d / p))
+      * ε (m + x) ^ (q / p)) ^ p := by
+    have : c₁= (c₁ ^ (1 / p)) ^ p := by rw [← ENNReal.rpow_mul]; field_simp
+    conv_rhs => rw [this]
+    rw [← ENNReal.mul_rpow_of_nonneg _ _ (by positivity), Finset.mul_sum]
+    congr with i
+    rw [ENNReal.mul_rpow_of_nonneg _ _ (by positivity), ← ENNReal.rpow_mul, mul_assoc]
+    field_simp
+  _ = c₁ * (∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (-d / p) * ε (m + j) ^ (q / p)) ^ p := by
+    congr with i
+    rw [ENNReal.inv_rpow, neg_div, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
-    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
@@ -329,19 +351,28 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp_pos : 0 < p) (h
     (hε : ∀ n, ε n ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε n) J)
-    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d ≤ q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
       ≤ M * c₁
         * ∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d) * ε (m + j) ^ q := by
-  sorry
+  refine (lintegral_sup_rpow_edist_le_sum_of_le_one hp_pos hp ?_ hX hC hC_subset hm).trans ?_
+  · exact (hd_pos.trans_le hdq).le -- `positivity` fails?
+  simp_rw [Finset.mul_sum, mul_assoc]
+  gcongr ∑ i ∈ _, _ * ?_ with i hi
+  rw [← mul_assoc]
+  gcongr
+  refine le_trans (le_of_eq ?_) ((h_cov (ε (m + i + 1)) (hε _)).trans_eq ?_)
+  · norm_cast
+    exact hC_card _
+  · rw [ENNReal.inv_rpow, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
     (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
-    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
