@@ -141,7 +141,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
       ring_nf
       repeat rw [Real.log_sqrt (by positivity)]
       repeat rw [Real.log_rpow (by positivity)]
-      ring_n
+      ring_nf
     -- 8. ... = σ^(2n) (2n - 1)!!
     _ = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) := by
       clear hn
