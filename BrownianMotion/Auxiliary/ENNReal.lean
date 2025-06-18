@@ -1,0 +1,21 @@
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+
+namespace ENNReal
+
+lemma rpow_max {x y : ℝ≥0∞} {p : ℝ} (hp : 0 ≤ p) : max x y ^ p = max (x ^ p) (y ^ p) := by
+  rcases le_total x y with hxy | hxy
+  · rw [max_eq_right hxy, max_eq_right (rpow_le_rpow hxy hp)]
+  · rw [max_eq_left hxy, max_eq_left (rpow_le_rpow hxy hp)]
+
+lemma rpow_add_le_two_rpow_mul_add_rpow {p : ℝ} (a b : ℝ≥0∞) (hp : 0 ≤ p) :
+    (a + b) ^ p ≤ 2 ^ p * (a ^ p + b ^ p) := calc
+  (a + b) ^ p ≤ (2 * max a b) ^ p := by rw [two_mul]; gcongr <;> simp
+  _ = 2 ^ p * (max a b) ^ p := mul_rpow_of_nonneg _ _ hp
+  _ = 2 ^ p * max (a ^ p) (b ^ p) := by rw [rpow_max hp]
+  _ ≤ 2 ^ p * (a ^ p + b ^ p) := by gcongr; apply max_le_add_of_nonneg <;> simp
+
+lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, ((1 : ENNReal) / 2) ^ i ≤ 2 := by
+  rw [← ENNReal.toReal_le_toReal (by simp) (by simp), toReal_ofNat, toReal_sum (by simp)]
+  simpa [-one_div] using _root_.sum_geometric_two_le _
+
+end ENNReal

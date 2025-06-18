@@ -15,6 +15,7 @@ ProbabilityTheory.posSemidef_covMatrix
 ProbabilityTheory.covMatrix_map
 ProbabilityTheory.gaussianReal
 ProbabilityTheory.charFun_gaussianReal
+ProbabilityTheory.centralMoment_two_mul_gaussianReal
 ProbabilityTheory.IsGaussian
 ProbabilityTheory.isGaussian_iff_charFunDual_eq
 ProbabilityTheory.isGaussian_map
