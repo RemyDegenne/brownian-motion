@@ -226,7 +226,7 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
         (Finset.Icc 1 (Nat.floor (1 / ε.toReal)))
     have : IsCover C ε (Set.Icc (0 : ℝ) 1) := by
       intro x hx
-      by_cases h : x < 1 / (Nat.floor (1 / ε.toReal) + 1)
+      by_cases h : x ≤ 1 / (Nat.floor (1 / ε.toReal) + 1)
       · use 1 / (Nat.floor (1 / ε.toReal) + 1)
         constructor
         · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
@@ -242,7 +242,7 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
           simp
         rw [edist_dist, Real.dist_eq, abs_sub_comm]
         apply ofReal_le_of_le_toReal
-        rw [abs_of_nonneg, tsub_le_iff_right]
+        rw [abs_of_nonneg, sub_le_iff_le_add]
         · calc
           (1 : ℝ) / (Nat.floor (1 / ε.toReal) + 1) ≤ 1 / (1 / ε.toReal) := by
             rw [one_div_le_one_div]
@@ -251,24 +251,28 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
           _ = ε.toReal := by field_simp
           _ ≤ ε.toReal + x := by linarith [hx.1]
         linarith
-      use Nat.floor (x * (Nat.floor (1 / ε.toReal) + 1)) * (1 / (Nat.floor (1 / ε.toReal) + 1))
+      use (Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1) * (1 / (Nat.floor (1 / ε.toReal) + 1))
       constructor
       · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
-        mul_eq_mul_right_iff, Nat.cast_inj, inv_eq_zero, C]
-        use Nat.floor (x * (Nat.floor (1 / ε.toReal) + 1))
+        mul_eq_mul_right_iff, inv_eq_zero, C]
+        use Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1
         constructor
         · constructor
-          · rw [Nat.one_le_floor_iff]
+          · apply Nat.le_sub_of_add_le
+            rw [Nat.add_one_le_ceil_iff, Nat.cast_one]
             calc
             (1 : ℝ) = 1 / (⌊1 / ε.toReal⌋₊ + 1) * (⌊1 / ε.toReal⌋₊ + 1) := by
               rw [one_div_mul_cancel]
               norm_cast
-            _ ≤ x * (⌊1 / ε.toReal⌋₊ + 1) := by
-              rw [_root_.mul_le_mul_right]
-              · exact not_lt.1 h
+            _ < x * (⌊1 / ε.toReal⌋₊ + 1) := by
+              rw [_root_.mul_lt_mul_right]
+              · exact not_le.1 h
               norm_cast
               simp
-          apply Nat.floor_mono
+          apply Nat.le_floor
+          rw [Nat.cast_sub, Nat.cast_one, sub_le_iff_le_add]
+          · calc
+            Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1
 
     --   use Nat.floor (x / ε.toReal) * ε.toReal
     --   constructor
