@@ -213,7 +213,7 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
     ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }), edist (X s) (X t)
-    ≤ (⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }),
+    ≤ (⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
         edist (X (chainingSequence hC s.2 m)) (X (chainingSequence hC t.1.2 m)))
       + 2 * ⨆ (s : C k), edist (X s) (X (chainingSequence hC s.2 m))
       := by
@@ -248,7 +248,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
   · congr 1
     conv_lhs => congr; ext s; rw [iSup_subtype]
     rw [iSup_comm]
-    conv_lhs => congr; ext s; congr; ext t; simp only [edist_comm t.1 s.1]
+    conv_lhs => congr; ext s; congr; ext t; simp only [edist_comm t s]
     conv_lhs => congr; ext s; rw [iSup_subtype']
   · simp only [ENNReal.iSup_add]
   · rw [add_assoc]
