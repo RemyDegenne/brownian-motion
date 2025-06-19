@@ -216,6 +216,22 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsKolmogorovProcess X P p q M
       ≤ 2 ^ (p + 1) * M
         * (16 * δ * Nat.log2 (internalCoveringNumber (δ/4) J).toNat) ^ q
         * internalCoveringNumber (δ/4) J := by
+  refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all [iSup_subtype]) (fun hJ => ?_)
+
+  have hm₁ : ε₀ * 2 ^ (-m : ℤ) < δ / 2 := sorry
+  have hm₂ : δ / 2 ≤ ε₀ * 2 ^ (-m + 1 : ℤ) := sorry
+  simp only [iSup_sigma']
+
+  let f : (s : { s // s ∈ C k }) × { t : { t // t ∈ C k } // edist s t ≤ δ } →
+      (s : { s // s ∈ C m }) × { t : { t // t ∈ C m } // edist s t ≤ ε₀ * 2 ^ (-m + 3 : ℤ) } :=
+    fun p => ⟨⟨chainingSequence hC p.1.2 m, chainingSequence_mem _ hJ _ _ hmk⟩,
+      ⟨⟨chainingSequence hC p.2.1.2 m, chainingSequence_mem _ hJ _ _ hmk⟩, _⟩⟩
+  simp at f
+
+
+
+
+
   sorry
 
 end FirstTerm

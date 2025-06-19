@@ -89,6 +89,18 @@ lemma cover_eq_of_lt_iInf_edist [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0
     (hε : ε < ⨅ (s : A) (t : { t : A // s ≠ t }), edist s t) : C = A := by
   sorry
 
+lemma IsCover.mono [EDist E] {C : Set E} {ε ε' : ℝ≥0∞} {A : Set E} (h : ε ≤ ε')
+    (hC : IsCover C ε A) : IsCover C ε' A := by
+  intro a ha
+  obtain ⟨c, ⟨hc₁, hc₂⟩⟩ := hC a ha
+  exact ⟨c, hc₁, hc₂.trans h⟩
+
+lemma internalCoveringNumber_anti [EDist E] {r r' : ℝ≥0∞} {A : Set E} (h : r ≤ r') :
+    internalCoveringNumber r' A ≤ internalCoveringNumber r A := by
+  rw [internalCoveringNumber, internalCoveringNumber]
+  gcongr
+  exact iInf_const_mono (IsCover.mono h)
+
 lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A = 1 := by
