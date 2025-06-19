@@ -98,9 +98,11 @@ lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
     (hp : 0 < p) (hq : 0 < q) {s t : T} (h : edist s t = 0) :
     ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
   suffices ∀ᵐ ω ∂P, edist (X s ω) (X t ω) ^ p = 0 by
-    sorry
+    filter_upwards [this] with ω hω
+    simpa [hp, not_lt_of_gt hp] using hω
   refine (lintegral_eq_zero_iff' ?_).mp ?_
-  · sorry
+  · change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
   refine le_antisymm ?_ zero_le'
   calc ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
   _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
@@ -110,12 +112,14 @@ lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsKolmogorovPro
     (hp : 0 < p) (hq : 0 < q) {T' : Set T} (hT' : T'.Countable)
     (h : ∀ s ∈ T', ∀ t ∈ T', edist s t = 0) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p ∂P = 0 := by
+  have : Countable T' := by simp [hT']
   refine (lintegral_eq_zero_iff' ?_).mpr ?_
-  · sorry
+  · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
+    change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
   suffices ∀ᵐ ω ∂P, ∀ s : T', ∀ t : T', edist (X s ω) (X t ω) = 0 by
     filter_upwards [this] with ω hω
     simp [hω, hp]
-  have : Countable T' := by simp [hT']
   simp_rw [ae_all_iff]
   exact fun s t ↦ hX.edist_eq_zero hp hq (h s.1 s.2 t.1 t.2)
 

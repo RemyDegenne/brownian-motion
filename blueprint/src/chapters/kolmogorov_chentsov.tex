@@ -512,7 +512,7 @@ We follow \cite{kratschmer2023kolmogorov} and do not require separability.
 If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and $s, t \in T$ are such that $d_T(s, t) = 0$, then $\mathbb{P}$-a.e. $d_E(X_s, X_t) = 0$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 It suffices to show that $d_E(X_s, X_t)^p = 0$ almost everywhere, which is in turn implied by $\mathbb{E}[d_E(X_s, X_t)^p] \le M d_t(s, t)^q = 0$.
 \end{proof}
 
@@ -531,7 +531,7 @@ Then
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:IsKolmogorovProcess.edist_eq_zero}
 Since $T'$ is countable, we get from Lemma~\ref{lem:IsKolmogorovProcess.edist_eq_zero} that almost surely, for all $s, t \in T'$, $d_E(X_s, X_t)^p = 0$.
 In particular the expectation of the supremum is $0$.
