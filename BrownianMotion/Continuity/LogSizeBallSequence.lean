@@ -316,13 +316,10 @@ lemma edist_le_of_mem_pairSet (ha : 1 < a) (hJ_card : #J ≤ a ^ n) {s t : T}
 
 open Classical in
 lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T → E) :
-    ⨆ (s) (t) (_ : s ∈ J) (_ : t ∈ J) (_ : edist s t ≤ c), edist (f s) (f t)
+    ⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (f s) (f t)
         ≤ 2 * ⨆ p ∈ pairSet J a c, edist (f p.1) (f p.2) := by
-  rw [iSup_le_iff]; intro s
-  rw [iSup_le_iff]; intro t
-  rw [iSup_le_iff]; intro hs
-  rw [iSup_le_iff]; intro ht
-  rw [iSup_le_iff]; intro hst
+  rw [iSup_le_iff]; rintro ⟨s, hs⟩
+  rw [iSup_le_iff]; rintro ⟨⟨t, ht⟩, hst⟩
   have hJ : J.Nonempty := ⟨s, hs⟩
   let P (l : ℕ) := s ∈ (logSizeBallSeq J hJ a c l).finset ∧ t ∈ (logSizeBallSeq J hJ a c l).finset
   let l := Nat.findGreatest P (#J - 1)
@@ -352,7 +349,7 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
       t ∈ (logSizeBallSeq J hJ a c l).finset ∧ s ∈ (logSizeBallSeq J hJ a c l).finset) := by
         ext; simp [P, and_comm]
     simp [l, hP] at htV hsV h'
-    exact this t s ht hs hts htV hsV h'
+    exact this t ht s hs hts htV hsV h'
   simp only [finset_logSizeBallSeq_add_one, logSizeBallStruct.smallBall, Finset.mem_sdiff, hsV,
     Finset.mem_filter, true_and, not_le, not_lt] at h
   have hsB : s ∈ (logSizeBallSeq J hJ a c l).ball c := by
@@ -388,13 +385,21 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
   rw [edist_comm]
   apply add_le_add (sup_bound hsP) (sup_bound htP)
 
+private lemma iSup₅_eq_iSup₂ {α β γ : Type*} [CompleteLattice γ] (P₁ : α → Prop) (P₂ : β → Prop)
+  (P₃ : α → β → Prop) (f : (a : α) → (b : β) → P₁ a → P₂ b → P₃ a b → γ) :
+  ⨆ (a : α) (b : β) (ha : P₁ a) (hb : P₂ b) (hab : P₃ a b), f a b ha hb hab =
+    ⨆ (a : { a : α // P₁ a }) (b : { b : { b : β // P₂ b } // P₃ a b }),
+       f a.1 b.1.1 a.2 b.1.2 b.2 := by
+  conv_lhs => congr; ext; rw [iSup_comm]
+  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
+
 theorem pair_reduction (J : Finset T) (hJ_card : #J ≤ a ^ n) (ha : 1 < a)
     (E : Type*) [PseudoEMetricSpace E] :
     ∃ K : Finset (T × T), K ⊆ J.product J
       ∧ #K ≤ a * #J
       ∧ (∀ s t, (s, t) ∈ K → edist s t ≤ n * c)
       ∧ (∀ f : T → E,
-        ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_h : edist s t ≤ c), edist (f s) (f t)
+        ⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (f s) (f t)
         ≤ 2 * ⨆ p ∈ K, edist (f p.1) (f p.2)) := by
   refine ⟨pairSet J a c, ?_, ?_, ?_, ?_⟩
   · exact pairSet_subset
