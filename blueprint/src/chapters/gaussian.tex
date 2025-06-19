@@ -369,7 +369,7 @@ The characteristic function of the standard Gaussian measure on $E$ is given by
   \uses{lem:charFun_gaussianReal}
 Denote by $\nu$ the standard Gaussian measure on $\mathbb{R}$. This is a straightforward computation:
 \begin{align*}
-  \hat{\mu}(t) = \int \exp\left(i\langle t, \sum_{j=1}^d x_j \smul e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) &= \int \exp\left(\sum_{j=1}^d ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
+  \hat{\mu}(t) = \int \exp\left(i\langle t, \sum_{j=1}^d x_j \cdot e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) &= \int \exp\left(\sum_{j=1}^d ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
   &= \int \prod_{j=1}^d \exp\left(ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
   &= \prod_{j=1}^d \int \exp\left(ix\langle t, e_j \rangle\right) d\nu(x) \\
   &= \prod_{j=1}^d \exp\left(-\frac{\langle t, e_j \rangle^2}{2}\right) \\
@@ -414,7 +414,7 @@ The covariance matrix of the standard Gaussian measure is the identity matrix.
 
 \begin{proof}\leanok
   \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian}
-From Lemma~\ref{lem:charFun_stdGaussian}, we know that for all $t \in \R$,
+From Lemma~\ref{lem:charFun_stdGaussian}, we know that for all $t \in \mathbb{R}$,
 $$\hat{\mu}(t) = \exp\left(-\frac{\|t\|^2}{2}\right) = \exp\left(-\frac{\langle t, \mathrm{I}t\rangle}{2}\right).$$
 As the identity is positive semidefinite, we deduce from Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that $\Sigma_\mu$ is the identity matrix.
 \end{proof}

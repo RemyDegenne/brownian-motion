@@ -59,6 +59,11 @@ lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A :
   refine le_trans ?_ hA
   exact EMetric.edist_le_diam_of_mem hxA ha
 
+lemma cover_eq_of_lt_iInf_edist [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E}
+    (hC : IsCover C ε A) (hC_subset : C ⊆ A)
+    (hε : ε < ⨅ (s : A) (t : { t : A // s ≠ t }), edist s t) : C = A := by
+  sorry
+
 lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A = 1 := by
