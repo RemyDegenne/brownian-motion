@@ -35,7 +35,7 @@ instance isGaussian_gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
   infer_instance
 
 noncomputable
-def finToSubtype (I : Finset ℝ≥0) : (Fin I.card → ℝ) ≃L[ℝ] ({ x // x ∈ I } → ℝ) :=
+def finToSubtype (I : Finset ℝ≥0) : (Fin I.card → ℝ) ≃L[ℝ] (I → ℝ) :=
   { toEquiv := Equiv.arrowCongr' I.equivFin.symm (Equiv.refl ℝ)
     map_add' x y := by
       have : (x + y) ∘ I.equivFin = x ∘ I.equivFin + y ∘ I.equivFin := by ext; simp
