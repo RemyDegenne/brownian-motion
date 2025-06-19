@@ -143,8 +143,7 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
     (hC_card : #C = internalCoveringNumber ε J)
     {c : ℝ≥0∞} :
-    ∫⁻ ω,
-      ⨆ (s : C) (t : { t : C // edist s t ≤ c}), edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : C) (t : { t : C // edist s t ≤ c}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 (internalCoveringNumber ε J).toNat) ^ q
         * internalCoveringNumber ε J := by
   -- Trivial cases
