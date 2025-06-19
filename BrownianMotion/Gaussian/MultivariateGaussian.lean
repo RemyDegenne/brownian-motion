@@ -131,6 +131,29 @@ lemma covInnerBilin_stdGaussian :
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
 
+lemma test {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
+    [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :
+    haveI := f.finiteDimensional; (stdGaussian E).map f = stdGaussian F := by
+  haveI := f.finiteDimensional
+  apply Measure.ext_of_charFun
+  ext t
+  rw [← f.coe_coe'', charFun_map_eq_charFunDual_smul (f : E →L[ℝ] F) t]
+
+lemma stdGaussian_iff (d : ℕ) : stdGaussian (EuclideanSpace ℝ (Fin d)) =
+    (Measure.pi (fun _ : Fin d ↦ gaussianReal 0 1)) := by
+  have : IsFiniteMeasure (Measure.pi fun _ : Fin d ↦ gaussianReal 0 1) := inferInstance
+  have : ∀ (t : EuclideanSpace ℝ (Fin d)), ‖t‖ ^ 2 = ∑ i, (t i) ^ 2 := by -- missing lemma
+    intro t
+    rw [EuclideanSpace.norm_eq, Real.sq_sqrt]
+    · congr with i
+      simp
+    positivity
+  apply Measure.ext_of_charFun
+  ext t
+  simp_rw [charFun_stdGaussian, charFun_pi, charFun_gaussianReal, ← Complex.exp_sum,
+    ← Complex.ofReal_pow, this t]
+  simp [Finset.sum_div, neg_div]
+
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)
     (hS : S.PosSemidef) :
