@@ -32,7 +32,7 @@ section InnerProductSpace
 open scoped InnerProductSpace
 
 lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLike 𝕜]
-    [InnerProductSpace 𝕜 E] [Fintype ι] [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E)  {i j : ι} :
+    [InnerProductSpace 𝕜 E] [Fintype ι] [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) {i j : ι} :
     ⟪b i, b j⟫_𝕜 = if i = j then 1 else 0 := by
   by_cases h : i = j
   · simp only [h, ↓reduceIte]
