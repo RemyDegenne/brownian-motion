@@ -210,14 +210,6 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
     ← mul_assoc ε₀, (by norm_num : (4 : ENNReal) = 2 + 2)]
   gcongr <;> simpa only [inv_eq_one_div] using ENNReal.sum_geometric_two_le _
 
-lemma iSup₅_eq_iSup₂ {α β γ : Type*} [CompleteLattice γ] (P₁ : α → Prop) (P₂ : β → Prop)
-  (P₃ : α → β → Prop) (f : (a : α) → (b : β) → P₁ a → P₂ b → P₃ a b → γ) :
-  ⨆ (a : α) (b : β) (ha : P₁ a) (hb : P₂ b) (hab : P₃ a b), f a b ha hb hab =
-    ⨆ (a : { a : α // P₁ a }) (b : { b : { b : β // P₂ b } // P₃ a b }),
-       f a.1 b.1.1 a.2 b.1.2 b.2 := by
-  conv_lhs => congr; ext; rw [iSup_comm]
-  conv_lhs => rw [iSup_subtype']; congr; ext; rw [iSup_subtype', iSup_subtype']
-
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
     ⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }), edist (X s) (X t)
