@@ -316,13 +316,10 @@ lemma edist_le_of_mem_pairSet (ha : 1 < a) (hJ_card : #J ≤ a ^ n) {s t : T}
 
 open Classical in
 lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T → E) :
-    ⨆ (s) (t) (_ : s ∈ J) (_ : t ∈ J) (_ : edist s t ≤ c), edist (f s) (f t)
-        ≤ 2 * ⨆ p ∈ pairSet J a c, edist (f p.1) (f p.2) := by
-  rw [iSup_le_iff]; intro s
-  rw [iSup_le_iff]; intro t
-  rw [iSup_le_iff]; intro hs
-  rw [iSup_le_iff]; intro ht
-  rw [iSup_le_iff]; intro hst
+    ⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (f s) (f t)
+        ≤ 2 * ⨆ p : pairSet J a c, edist (f p.1.1) (f p.1.2) := by
+  rw [iSup_le_iff]; rintro ⟨s, hs⟩
+  rw [iSup_le_iff]; rintro ⟨⟨t, ht⟩, hst⟩
   have hJ : J.Nonempty := ⟨s, hs⟩
   let P (l : ℕ) := s ∈ (logSizeBallSeq J hJ a c l).finset ∧ t ∈ (logSizeBallSeq J hJ a c l).finset
   let l := Nat.findGreatest P (#J - 1)
@@ -352,7 +349,7 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
       t ∈ (logSizeBallSeq J hJ a c l).finset ∧ s ∈ (logSizeBallSeq J hJ a c l).finset) := by
         ext; simp [P, and_comm]
     simp [l, hP] at htV hsV h'
-    exact this t s ht hs hts htV hsV h'
+    exact this t ht s hs hts htV hsV h'
   simp only [finset_logSizeBallSeq_add_one, logSizeBallStruct.smallBall, Finset.mem_sdiff, hsV,
     Finset.mem_filter, true_and, not_le, not_lt] at h
   have hsB : s ∈ (logSizeBallSeq J hJ a c l).ball c := by
@@ -376,7 +373,8 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
   have htP : ((logSizeBallSeq J hJ a c l).point, t) ∈ pairSetSeq J a c l := by
     simp [pairSetSeq, hJ, htB]
   have sup_bound {x y : T} (hxy : (x,y) ∈ pairSetSeq J a c l) :
-    edist (f x) (f y) ≤  ⨆ p ∈ pairSet J a c, edist (f p.1) (f p.2) := by
+    edist (f x) (f y) ≤  ⨆ p : pairSet J a c, edist (f p.1.1) (f p.1.2) := by
+    simp only [iSup_subtype]
     apply le_iSup_of_le (i := (x,y))
     apply le_iSup_of_le
     apply le_refl
@@ -394,8 +392,8 @@ theorem pair_reduction (J : Finset T) (hJ_card : #J ≤ a ^ n) (ha : 1 < a)
       ∧ #K ≤ a * #J
       ∧ (∀ s t, (s, t) ∈ K → edist s t ≤ n * c)
       ∧ (∀ f : T → E,
-        ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_h : edist s t ≤ c), edist (f s) (f t)
-        ≤ 2 * ⨆ p ∈ K, edist (f p.1) (f p.2)) := by
+        ⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (f s) (f t)
+        ≤ 2 * ⨆ p : K, edist (f p.1.1) (f p.1.2)) := by
   refine ⟨pairSet J a c, ?_, ?_, ?_, ?_⟩
   · exact pairSet_subset
   · exact card_pairSet_le ha hJ_card
