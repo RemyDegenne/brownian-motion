@@ -216,6 +216,77 @@ theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoEMetricSpace
   exact packingNumber_two_le_externalCoveringNumber r A
 
 theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
+  obtain rfl | h := eq_zero_or_pos ε
+  · simp
+  let k := ⌊1 / ε.toReal⌋₊
+  have one_le_k : 1 ≤ k := sorry
+  have hk1 : ε ≤ 1 / k := sorry
+  have hk2 : 1 / (k + 1) < ε.toReal := sorry
+  let C : Finset ℝ := Finset.image (fun i : ℕ ↦ (i : ℝ) / (k + 1)) (Finset.Icc 1 k)
+  have : IsCover C ε (Set.Icc (0 : ℝ) 1) := by
+    intro x ⟨hx1, hx2⟩
+    obtain rfl | h1 := eq_or_lt_of_le hx2
+    · refine ⟨k / (k + 1), ?_, ?_⟩
+      · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
+        mul_eq_mul_right_iff, Nat.cast_inj, inv_eq_zero, C]
+        exact ⟨k, ⟨one_le_k, le_rfl⟩, rfl⟩
+      rw [edist_dist, Real.dist_eq]
+      apply ofReal_le_of_le_toReal
+      field_simp
+      rw [abs_of_nonneg (by positivity)]
+      exact hk2.le
+    obtain h2 | h2 := le_or_gt (1 / (k + 1) : ℝ) x
+    · refine ⟨⌊x * (k + 1)⌋₊ / (k + 1), ?_, ?_⟩
+      · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
+        refine ⟨⌊x * (k + 1)⌋₊, ⟨?_, ?_⟩, rfl⟩
+        · rwa [Nat.one_le_floor_iff, ← div_le_iff₀]
+          norm_cast
+          simp
+        rw [← Nat.lt_succ, Nat.floor_lt (by positivity)]
+        calc
+        x * (k + 1) < 1 * (k + 1) := (_root_.mul_lt_mul_right (by positivity)).2 h1
+        _ = k.succ := by simp
+      rw [edist_dist, Real.dist_eq, abs_of_nonneg]
+      · apply ofReal_le_of_le_toReal
+        calc
+        x - ⌊x * (k + 1)⌋₊ / (k + 1) = (x * (k + 1) - ⌊x * (k + 1)⌋₊) / (k + 1) := by field_simp
+        _ ≤ 1 / (k + 1) := by
+          rw [div_le_div_iff_of_pos_right (by positivity)]
+          sorry
+        _ ≤ ε.toReal := hk2.le
+      calc
+      0 ≤ (x * (k + 1) - ⌊x * (k + 1)⌋₊) / (k + 1) := sorry
+      _ = x - ⌊x * (k + 1)⌋₊ / (k + 1) := sorry
+    · refine ⟨1 / (k + 1), ?_, ?_⟩
+      · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
+        exact ⟨1, ⟨le_rfl, one_le_k⟩, by simp⟩
+      rw [edist_dist, Real.dist_eq]
+      apply ofReal_le_of_le_toReal
+      rw [abs_sub_comm, abs_of_nonneg (by linarith)]
+      linarith
+  have card_C : C.card = k := by
+    rw [← Nat.add_sub_cancel_right k 1, ← Nat.card_Icc]
+    apply Finset.card_image_iff.2
+    apply Function.Injective.injOn
+    change Function.Injective ((fun x : ℝ ↦ x / (k + 1)) ∘ ((↑) : ℕ → ℝ))
+    apply Function.Injective.comp
+    · intro x y hxy
+      field_simp at hxy
+      exact hxy
+    · exact CharZero.cast_injective
+  have C_sub : (C : Set ℝ) ⊆ Set.Icc 0 1 := sorry
+  calc
+  (internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤
+      ⨅ (_ : (C : Set ℝ) ⊆ Set.Icc 0 1) (_ : IsCover (C : Set ℝ) ε (Set.Icc 0 1)), C.card := by
+    norm_cast
+    apply iInf_le _ C
+    -- rw [internalCoveringNumber]
+    -- norm_cast
+    -- apply iInf_le _ ⟨C, C_sub, this⟩
+  _ = k := sorry
+  _ ≤ 1 / ε := sorry
+
+theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
   by_cases hε' : 0 < ε
   · have ε_pos : 0 < ε.toReal := by
       apply toReal_pos
