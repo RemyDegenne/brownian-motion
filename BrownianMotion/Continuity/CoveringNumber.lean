@@ -219,9 +219,30 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
   obtain rfl | h := eq_zero_or_pos ε
   · simp
   let k := ⌊1 / ε.toReal⌋₊
-  have one_le_k : 1 ≤ k := sorry
-  have hk1 : ε ≤ 1 / k := sorry
-  have hk2 : 1 / (k + 1) < ε.toReal := sorry
+  have one_le_k : 1 ≤ k := by
+    rw [Nat.one_le_floor_iff]
+    apply one_le_one_div
+    · exact toReal_pos h.ne' (hε.trans_lt (by norm_num) |>.ne)
+    · refine toReal_le_of_le_ofReal (by norm_num) (by simpa)
+  have k_le : ↑k ≤ 1 / ε := calc
+    (k : ℝ≥0∞) ≤ ENNReal.ofReal (1 / ε.toReal) := by
+      rw [ENNReal.natCast_le_ofReal (by linarith)]
+      exact Nat.floor_le (by positivity)
+    _ = 1 / ε := by
+      rw [ENNReal.ofReal_div_of_pos]
+      · simp only [ofReal_one, one_div, inv_inj, ofReal_toReal_eq_iff]
+        exact hε.trans_lt (by norm_num) |>.ne
+      refine toReal_pos h.ne' (hε.trans_lt (by norm_num) |>.ne)
+  have hk1 : ε ≤ 1 / k := by
+    refine (ENNReal.le_div_iff_mul_le (by simp) (by simp)).mpr ?_
+    rw [mul_comm]
+    refine (ENNReal.le_div_iff_mul_le (by simp) (by simp)).mp k_le
+  have hk2 : 1 / (k + 1) ≤ ε.toReal := by
+    rw [one_div_le]
+    simp_rw [k]
+    exact Nat.lt_floor_add_one (1 / ε.toReal) |>.le
+    positivity
+    exact toReal_pos h.ne' (hε.trans_lt (by norm_num) |>.ne)
   let C : Finset ℝ := Finset.image (fun i : ℕ ↦ (i : ℝ) / (k + 1)) (Finset.Icc 1 k)
   have : IsCover C ε (Set.Icc (0 : ℝ) 1) := by
     intro x ⟨hx1, hx2⟩
@@ -234,7 +255,7 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
       apply ofReal_le_of_le_toReal
       field_simp
       rw [abs_of_nonneg (by positivity)]
-      exact hk2.le
+      exact hk2
     obtain h2 | h2 := le_or_gt (1 / (k + 1) : ℝ) x
     · refine ⟨⌊x * (k + 1)⌋₊ / (k + 1), ?_, ?_⟩
       · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
@@ -251,12 +272,18 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
         calc
         x - ⌊x * (k + 1)⌋₊ / (k + 1) = (x * (k + 1) - ⌊x * (k + 1)⌋₊) / (k + 1) := by field_simp
         _ ≤ 1 / (k + 1) := by
-          rw [div_le_div_iff_of_pos_right (by positivity)]
-          sorry
-        _ ≤ ε.toReal := hk2.le
+          rw [div_le_div_iff_of_pos_right (by positivity), sub_le_iff_le_add, add_comm 1]
+          exact Nat.lt_floor_add_one _ |>.le
+        _ ≤ ε.toReal := hk2
       calc
-      0 ≤ (x * (k + 1) - ⌊x * (k + 1)⌋₊) / (k + 1) := sorry
-      _ = x - ⌊x * (k + 1)⌋₊ / (k + 1) := sorry
+      0 ≤ (x * (k + 1) - ⌊x * (k + 1)⌋₊) / (k + 1) := by
+        apply div_nonneg
+        · simp only [sub_nonneg]
+          exact Nat.floor_le (by positivity)
+        positivity
+      _ = x - ⌊x * (k + 1)⌋₊ / (k + 1) := by
+        rw [sub_div, mul_div_cancel_right₀]
+        positivity
     · refine ⟨1 / (k + 1), ?_, ?_⟩
       · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
         exact ⟨1, ⟨le_rfl, one_le_k⟩, by simp⟩
@@ -274,118 +301,25 @@ theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set
       field_simp at hxy
       exact hxy
     · exact CharZero.cast_injective
-  have C_sub : (C : Set ℝ) ⊆ Set.Icc 0 1 := sorry
+  have C_sub : (C : Set ℝ) ⊆ Set.Icc 0 1 := by
+    intro x hx
+    simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C] at hx
+    obtain ⟨i, ⟨hi1, hi2⟩, rfl⟩ := hx
+    rw [Set.mem_Icc]
+    constructor
+    · positivity
+    · rw [div_le_one]
+      norm_cast
+      omega
+      positivity
   calc
-  (internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤
-      ⨅ (_ : (C : Set ℝ) ⊆ Set.Icc 0 1) (_ : IsCover (C : Set ℝ) ε (Set.Icc 0 1)), C.card := by
+  (internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤ C.card := by
     norm_cast
-    apply iInf_le _ C
-    -- rw [internalCoveringNumber]
-    -- norm_cast
-    -- apply iInf_le _ ⟨C, C_sub, this⟩
-  _ = k := sorry
-  _ ≤ 1 / ε := sorry
-
-theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
-  by_cases hε' : 0 < ε
-  · have ε_pos : 0 < ε.toReal := by
-      apply toReal_pos
-      · exact hε'.ne'
-      · exact hε.trans_lt (by norm_num) |>.ne
-    let C : Finset ℝ :=
-      Finset.image (fun k : ℕ ↦ (k : ℝ) * (1 / (Nat.floor (1 / ε.toReal) + 1)))
-        (Finset.Icc 1 (Nat.floor (1 / ε.toReal)))
-    have : IsCover C ε (Set.Icc (0 : ℝ) 1) := by
-      intro x hx
-      by_cases h : x ≤ 1 / (Nat.floor (1 / ε.toReal) + 1)
-      · use 1 / (Nat.floor (1 / ε.toReal) + 1)
-        constructor
-        · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc, C]
-          use 1
-          constructor
-          · constructor
-            · exact le_rfl
-            rw [Nat.one_le_floor_iff]
-            refine one_le_one_div ε_pos ?_
-            apply toReal_le_of_le_ofReal
-            · norm_num
-            simpa
-          simp
-        rw [edist_dist, Real.dist_eq, abs_sub_comm]
-        apply ofReal_le_of_le_toReal
-        rw [abs_of_nonneg, sub_le_iff_le_add]
-        · calc
-          (1 : ℝ) / (Nat.floor (1 / ε.toReal) + 1) ≤ 1 / (1 / ε.toReal) := by
-            rw [one_div_le_one_div]
-            refine (Nat.floor_eq_iff ?_).1 rfl |>.2.le
-            all_goals positivity
-          _ = ε.toReal := by field_simp
-          _ ≤ ε.toReal + x := by linarith [hx.1]
-        linarith
-      use (Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1) * (1 / (Nat.floor (1 / ε.toReal) + 1))
-      constructor
-      · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
-        mul_eq_mul_right_iff, inv_eq_zero, C]
-        use Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1
-        constructor
-        · constructor
-          · apply Nat.le_sub_of_add_le
-            rw [Nat.add_one_le_ceil_iff, Nat.cast_one]
-            calc
-            (1 : ℝ) = 1 / (⌊1 / ε.toReal⌋₊ + 1) * (⌊1 / ε.toReal⌋₊ + 1) := by
-              rw [one_div_mul_cancel]
-              norm_cast
-            _ < x * (⌊1 / ε.toReal⌋₊ + 1) := by
-              rw [_root_.mul_lt_mul_right]
-              · exact not_le.1 h
-              norm_cast
-              simp
-          apply Nat.le_floor
-          rw [Nat.cast_sub, Nat.cast_one, sub_le_iff_le_add]
-          · calc
-            Nat.ceil (x * (Nat.floor (1 / ε.toReal) + 1)) - 1
-
-    --   use Nat.floor (x / ε.toReal) * ε.toReal
-    --   constructor
-    --   · simp only [Finset.coe_image, Finset.coe_Icc, Set.mem_image, Set.mem_Icc,
-    --     mul_eq_mul_right_iff, Nat.cast_inj, C]
-    --     use Nat.floor (x / ε.toReal)
-    --     constructor
-    --     · constructor
-    --       · simp
-    --       · apply Nat.floor_mono
-    --         rw [div_le_div_iff_of_pos_right]
-    --         · exact hx.2
-    --         · exact ε_pos
-    --     exact Or.inl rfl
-    --   · rw [edist_dist, Real.dist_eq]
-    --     apply ofReal_le_of_le_toReal
-    --     rw [abs_of_nonneg]
-    --     · rw [tsub_le_iff_tsub_le]
-    --       calc
-    --       x - ε.toReal = (x / ε.toReal - 1) * ε.toReal := by field_simp
-    --       _ ≤ Nat.floor (x / ε.toReal) * ε.toReal := by
-    --         rw [_root_.mul_le_mul_right ε_pos, tsub_le_iff_right]
-    --         refine (Nat.floor_eq_iff ?_).1 rfl |>.2.le
-    --         exact div_nonneg hx.1 ε_pos.le
-    --     · rw [sub_nonneg]
-    --       calc
-    --       Nat.floor (x / ε.toReal) * ε.toReal ≤ x / ε.toReal * ε.toReal := by
-    --         rw [_root_.mul_le_mul_right ε_pos]
-    --         exact Nat.floor_le (div_nonneg hx.1 ε_pos.le)
-    --       _ = x := by field_simp
-    -- have : C.card = Nat.floor (1 / ε.toReal) + 1 := by
-    --   rw [← Nat.sub_zero (_ + _), ← Nat.card_Icc]
-    --   apply Finset.card_image_iff.2
-    --   apply Function.Injective.injOn
-    --   change Function.Injective ((fun x ↦ x * ε.toReal) ∘ ((↑) : ℕ → ℝ))
-    --   apply Function.Injective.comp
-    --   · refine mul_left_injective₀ ?_
-    --     exact ε_pos.ne'
-    --   · exact CharZero.cast_injective
-    -- calc
-    -- (internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤ C.card := sorry
-    -- _ = Nat.floor (1 / ε.toReal) + 1 := sorry
-    -- _ = 1 / ε := sorry
+    rw [internalCoveringNumber]
+    refine iInf₂_le_of_le C C_sub fun a ha ↦ ⟨C.card, ?_, ?_⟩
+    · exact iInf_pos this
+    simp_all
+  _ = k := by simp_all
+  _ ≤ 1 / ε := k_le
 
 end comparisons
