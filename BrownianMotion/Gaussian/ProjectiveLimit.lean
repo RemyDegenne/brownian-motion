@@ -44,6 +44,13 @@ def finToSubtype (I : Finset ℝ≥0) : (Fin I.card → ℝ) ≃L[ℝ] ({ x // x
       have : (c • x) ∘ I.equivFin = c • (x ∘ I.equivFin) := by ext; simp
       simp [Equiv.arrowCongr', Equiv.arrowCongr, this] }
 
+lemma finToSubtype_apply (I : Finset ℝ≥0) (x : Fin I.card → ℝ) :
+    finToSubtype I x = fun i ↦ x (I.equivFin i) := rfl
+
+@[simp]
+lemma finToSubtype_apply' (I : Finset ℝ≥0) (x : Fin I.card → ℝ) (i : I) :
+    finToSubtype I x i = x (I.equivFin i) := rfl
+
 noncomputable
 def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure ((i : I) → ℝ) :=
   (gaussianProjectiveFamilyAux (fun i ↦ (I.equivFin).symm i)).map (finToSubtype I)
