@@ -212,13 +212,13 @@ lemma edist_chainingSequence_pow_two_le {ε₀ : ℝ≥0∞} (hC : ∀ i, IsCove
 
 lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) :
-    ⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }), edist (X s) (X t)
+    ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }), edist (X s) (X t)
     ≤ (⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }),
         edist (X (chainingSequence hC s.2 m)) (X (chainingSequence hC t.1.2 m)))
       + 2 * ⨆ (s : C k), edist (X s) (X (chainingSequence hC s.2 m))
       := by
   -- Introduce some notation to make the goals easier to read
-  let Ck' (s : C k) := { t : C k // edist s.1 t.1 ≤ δ }
+  let Ck' (s : C k) := { t : C k // edist s t ≤ δ }
   have (s : C k) : Nonempty (Ck' s) := ⟨⟨s, by simp⟩⟩
   let c (s : C k) := chainingSequence hC s.2 m
 
@@ -259,9 +259,9 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
 
 lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i) (ε i) A)
     (m : ℕ) (X : E → F) (δ : ℝ≥0∞) (p : ℝ) (hp : 0 ≤ p) :
-    ⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }),
+    ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
     edist (X s) (X t) ^ p
-    ≤ 2 ^ p * (⨆ (s : C k) (t : { t : C k // edist s.1 t.1 ≤ δ }),
+    ≤ 2 ^ p * (⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
         edist (X (chainingSequence hC s.2 m)) (X (chainingSequence hC t.1.2 m)) ^ p)
       + 4 ^ p * (⨆ (s : C k), edist (X s) (X (chainingSequence hC s.2 m)) ^ p) := by
   refine hp.gt_or_eq.elim (fun hp' => ?_) (by rintro rfl; simp)
