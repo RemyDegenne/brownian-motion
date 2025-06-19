@@ -23,18 +23,42 @@ variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
   {P : Measure Ω}
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
-    (hX : ∀ t, AEMeasurable (X t) P)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
-    {J : Set T} (hJ : J.Finite) :
+    (hX : ∀ t, AEMeasurable (X t) P) (hβ_pos : 0 < β) (hp_pos : 0 < p) {J : Set T} :
     ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ J) (ht : t ∈ J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
-      ≤ ∑' k, 2 ^ (k * β * p)
+      ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ J) (ht : t ∈ J)
             (_he : edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1)),
             edist (X s ω) (X t ω) ^p ∂P := by
   let η k := 2⁻¹ ^ k * (EMetric.diam (Set.univ : Set T) + 1)
-  have hη_ge k : 2⁻¹ ^ k ≤ η k := by
+  have hη_ge (k : ℕ) : 2⁻¹ ^ (k : ℝ) ≤ η k := by simp [η, mul_add]
+  have h : ⋃ k, Set.Icc (η k) (2 * η k) = Set.Icc 0 (EMetric.diam (Set.univ : Set T) + 1) := by
     sorry
-  sorry
+  conv in 2 ^ _ * _ => rw [← lintegral_const_mul _ (by sorry)]
+  rw [← lintegral_tsum (by sorry)]
+  refine lintegral_mono (fun ω ↦ ?_)
+  rw [iSup_le_iff]; intro s
+  rw [iSup_le_iff]; intro t
+  rw [iSup_le_iff]; intro hs
+  rw [iSup_le_iff]; intro ht
+  obtain ⟨k, lb, ub⟩ : ∃ k, (η k ≤ edist s t) ∧ (edist s t ≤ 2 * η k) := by
+    simp_rw [← Set.mem_Icc, ← Set.mem_iUnion, h, Set.mem_Icc]
+    refine ⟨zero_le _, ?_⟩
+    exact le_add_right <| EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _)
+  refine le_trans ?_ (Summable.le_tsum (ENNReal.summable) k (fun _ _ ↦ zero_le _))
+  rw [ENNReal.div_eq_inv_mul]
+  refine mul_le_mul ?_ ?_ (zero_le _) (zero_le _)
+  · rw [ENNReal.inv_le_iff_inv_le, ← ENNReal.inv_rpow, mul_assoc, ENNReal.rpow_mul,
+      ENNReal.rpow_le_rpow_iff (by positivity)]
+    exact le_trans (hη_ge k) lb
+
+
+
+
+
+
+
+
+
 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
