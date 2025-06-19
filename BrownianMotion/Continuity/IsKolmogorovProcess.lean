@@ -94,6 +94,35 @@ lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M
 
 end Measurability
 
+lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
+    (hp : 0 < p) (hq : 0 < q) {s t : T} (h : edist s t = 0) :
+    ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
+  suffices ∀ᵐ ω ∂P, edist (X s ω) (X t ω) ^ p = 0 by
+    filter_upwards [this] with ω hω
+    simpa [hp, not_lt_of_gt hp] using hω
+  refine (lintegral_eq_zero_iff' ?_).mp ?_
+  · change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
+  refine le_antisymm ?_ zero_le'
+  calc ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
+  _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
+  _ = 0 := by simp [h, hq]
+
+lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
+    (hp : 0 < p) (hq : 0 < q) {T' : Set T} (hT' : T'.Countable)
+    (h : ∀ s ∈ T', ∀ t ∈ T', edist s t = 0) :
+    ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p ∂P = 0 := by
+  have : Countable T' := by simp [hT']
+  refine (lintegral_eq_zero_iff' ?_).mpr ?_
+  · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
+    change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
+  suffices ∀ᵐ ω ∂P, ∀ s : T', ∀ t : T', edist (X s ω) (X t ω) = 0 by
+    filter_upwards [this] with ω hω
+    simp [hω, hp]
+  simp_rw [ae_all_iff]
+  exact fun s t ↦ hX.edist_eq_zero hp hq (h s.1 s.2 t.1 t.2)
+
 lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     {ε : ℝ≥0∞} (C : Finset (T × T)) (hC : ∀ u ∈ C, edist u.1 u.2 ≤ ε) :
     ∫⁻ ω, ⨆ u : C, edist (X u.1.1 ω) (X u.1.2 ω) ^ p ∂P
@@ -372,12 +401,6 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
   sorry
 
-end SecondTerm
-
-section Together
-
-variable {c M : ℝ≥0} {d p q : ℝ} {J : Set T} {δ : ℝ≥0∞}
-
 noncomputable
 def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
@@ -386,21 +409,27 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
     (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
-    {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
-lemma cover_eq_of_lt_iInf_edist {C : Finset T} {ε : ℝ≥0∞}
-    (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
-    (hε : ε < ⨅ (s : J) (t : { t : J // s ≠ t }), edist s t) : C = J := by
+end SecondTerm
+
+section Together
+
+variable {M : ℝ≥0} {d p q : ℝ} {J : Set T} {c δ : ℝ≥0∞}
+
+lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T}
+    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite) (hC : IsCover C δ J)
+    (hC_subset : (C : Set T) ⊆ J) (hδ_lt : δ < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t) :
+    ∫⁻ ω, ⨆ (s : C) (t : { t : C // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
+      = ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_diam_le {T : Type*} [EMetricSpace T] {J : Set T}
-    {X : T → Ω → E}
-    (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
@@ -408,8 +437,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le {T : Type*} [EMetricSpace T] {J : 
       ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_le_diam {T : Type*} [EMetricSpace T] {J : Set T}
-    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
@@ -420,24 +448,22 @@ lemma finite_set_bound_of_edist_le_of_le_diam {T : Type*} [EMetricSpace T] {J : 
             + c * Cp d p q) := by
   sorry
 
-lemma finite_set_bound_of_edist_le_of_le_diam' {T : Type*} [EMetricSpace T] {J : Set T}
-    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   sorry
 
-lemma finite_set_bound_of_edist_le {T : Type*} [EMetricSpace T] {J : Set T}
-    {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   sorry
 
