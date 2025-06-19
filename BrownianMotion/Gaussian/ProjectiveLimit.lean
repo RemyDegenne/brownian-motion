@@ -76,13 +76,11 @@ instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
 
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
-  calc ∫ x : I → ℝ, x ∂(gaussianProjectiveFamily I)
-  _ = ∫ x : EuclideanSpace ℝ (Fin I.card), finToSubtype I x
-      ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) := by
+  calc ∫ x, x ∂(gaussianProjectiveFamily I)
+  _ = ∫ x, finToSubtype I x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) := by
     unfold gaussianProjectiveFamily
     rw [integral_map (by fun_prop) (by fun_prop)]
-  _ = finToSubtype I (∫ x : EuclideanSpace ℝ (Fin I.card), x
-      ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) :=
+  _ = finToSubtype I (∫ x, x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) :=
     (finToSubtype I).toContinuousLinearMap.integral_comp_id_comm (IsGaussian.integrable_id _)
   _ = 0 := by simp [integral_id_gaussianProjectiveFamilyAux]; rfl
 
