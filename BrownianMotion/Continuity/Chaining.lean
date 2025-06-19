@@ -239,7 +239,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover (C i)
     _ ≤ (⨆ (s : C k), edist (X s) (X (c s)))
           + (⨆ (s : C k) (t : Ck' s),
               edist (X (c t)) (X (c s))) + ⨆ (s : C k), edist (X (c s)) (X s) := ?_
-    _ = (⨆ (s : C  k) (t : Ck' s), edist (X (c s)) (X (c t)))
+    _ = (⨆ (s : C k) (t : Ck' s), edist (X (c s)) (X (c t)))
           + 2 * (⨆ (s : C k), edist (X s) (X (c s))) := ?_
   · gcongr with s t
     exact le_trans (edist_triangle _ (X (c t)) _) (by gcongr; apply edist_triangle)
