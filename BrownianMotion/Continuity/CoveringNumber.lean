@@ -47,6 +47,10 @@ lemma EMetric.isCover_iff [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {
     IsCover C ε A ↔ A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
   simp [IsCover, Set.subset_def]
 
+lemma not_isCover_empty [EDist E] (ε : ℝ≥0∞) (A : Set E) (h_nonempty : A.Nonempty) :
+    ¬ IsCover (∅ : Set E) ε A := by
+  simpa [IsCover]
+
 lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A : Set E} {a : E}
     (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
     IsCover ({a} : Set E) ε A := by
@@ -63,12 +67,42 @@ lemma cover_eq_of_lt_iInf_edist [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0
 lemma internalCoveringNumber_eq_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A = 1 := by
-  sorry
+  refine le_antisymm ?_ ?_
+  · have ⟨a, ha⟩ := h_nonempty
+    let C := ({a} : Finset E)
+    have hC : ↑C ⊆ A := by simp [C, ha]
+    calc
+      _ ≤ _ := iInf₂_le (α := ℕ∞) C hC
+      _ ≤ C.card := by
+        refine iInf_le (α := ℕ∞) _ fun b hb ↦ ⟨a, by simp [C], hA.trans' ?_⟩
+        simp only [EMetric.diam, C]
+        trans ⨆ y ∈ A, edist b y
+        · exact le_iSup₂ (α := ENNReal) a ha
+        · exact le_iSup₂ (α := ENNReal) b hb
+      _ ≤ _ := by simp [C]
+  · refine le_iInf₂ (α := ℕ∞) fun C hC ↦ ?_
+    refine le_iInf (α := ℕ∞) fun hCoverC ↦ ?_
+    by_contra! hcontra
+    apply (ENat.lt_one_iff_eq_zero).mp at hcontra
+    simp only [Nat.cast_eq_zero, Finset.card_eq_zero] at hcontra
+    rw [hcontra, Finset.coe_empty] at hCoverC
+    exact not_isCover_empty r _ h_nonempty hCoverC
 
 lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
     (hA : EMetric.diam A ≤ r) :
     internalCoveringNumber r A ≤ 1 := by
-  sorry
+  by_cases h_emptyA : A.Nonempty
+  · exact le_of_eq (internalCoveringNumber_eq_one_of_diam_le h_emptyA hA)
+  · push_neg at h_emptyA
+    let C := (∅ : Finset E)
+    have hCover : IsCover (↑C) r A := by
+      intro a ha
+      simp [h_emptyA] at ha
+    calc
+      _ ≤ _ := iInf₂_le (α := ℕ∞) C (by simp [C])
+      _ ≤ C.card := iInf_le (α := ℕ∞) _ hCover
+    simp [C]
+
 
 @[simp]
 lemma isSeparated_empty [EDist E] (r : ℝ≥0∞) : IsSeparated (∅ : Set E) r := by

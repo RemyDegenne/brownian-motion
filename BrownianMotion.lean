@@ -1,5 +1,6 @@
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
+import BrownianMotion.Auxiliary.LinearAlgebra
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Continuity.Chaining
