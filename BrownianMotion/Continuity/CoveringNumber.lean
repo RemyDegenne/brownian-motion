@@ -216,14 +216,12 @@ theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoEMetricSpace
   exact packingNumber_two_le_externalCoveringNumber r A
 
 theorem test (ε : ℝ≥0∞) (hε : ε ≤ 1) : internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
-  obtain rfl | h := eq_zero_or_pos ε
+  obtain rfl | ε_pos := eq_zero_or_pos ε
   · simp
+  have ε_toReal_pos : 0 < ε.toReal := toReal_pos ε_pos.ne' (hε.trans_lt (by norm_num) |>.ne)
+  have ε_toReal_le_one : ε.toReal ≤ 1 := toReal_le_of_le_ofReal (by norm_num) (by simpa)
   let k := ⌊1 / ε.toReal⌋₊
-  have one_le_k : 1 ≤ k := by
-    rw [Nat.one_le_floor_iff]
-    apply one_le_one_div
-    · exact toReal_pos h.ne' (hε.trans_lt (by norm_num) |>.ne)
-    · refine toReal_le_of_le_ofReal (by norm_num) (by simpa)
+  have one_le_k : 1 ≤ k := (Nat.one_le_floor_iff _).2 (one_le_one_div ε_toReal_pos ε_toReal_le_one)
   have k_le : ↑k ≤ 1 / ε := calc
     (k : ℝ≥0∞) ≤ ENNReal.ofReal (1 / ε.toReal) := by
       rw [ENNReal.natCast_le_ofReal (by linarith)]
