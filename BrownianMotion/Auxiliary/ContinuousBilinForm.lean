@@ -125,7 +125,7 @@ variable (M : Matrix n n 𝕜) (b : Basis n 𝕜 E)
 noncomputable
 def ofMatrix : ContinuousBilinForm 𝕜 E :=
   haveI : FiniteDimensional 𝕜 E := FiniteDimensional.of_fintype_basis b
-  LinearMap.mkContinuous₂_of_finiteDimensional (M.toBilin b)
+  LinearMap.mkContinuous₂OfFiniteDimensional (M.toBilin b)
 
 lemma ofMatrix_apply' (x y : E) : ofMatrix M b x y = M.toBilin b x y := rfl
 
