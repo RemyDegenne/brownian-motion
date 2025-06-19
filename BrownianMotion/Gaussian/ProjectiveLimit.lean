@@ -35,35 +35,29 @@ instance isGaussian_gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
   infer_instance
 
 noncomputable
-def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure ((i : I) → ℝ) :=
-  (gaussianProjectiveFamilyAux (fun i ↦ (I.equivFin).symm i)).map
-    ((MeasurableEquiv.refl ℝ).arrowCongr' I.equivFin.symm)
+def finToSubtype (I : Finset ℝ≥0) : (Fin I.card → ℝ) ≃L[ℝ] ({ x // x ∈ I } → ℝ) :=
+  { toEquiv := Equiv.arrowCongr' I.equivFin.symm (Equiv.refl ℝ)
+    map_add' x y := by
+      have : (x + y) ∘ I.equivFin = x ∘ I.equivFin + y ∘ I.equivFin := by ext; simp
+      simp [Equiv.arrowCongr', Equiv.arrowCongr, this]
+    map_smul' c x := by
+      have : (c • x) ∘ I.equivFin = c • (x ∘ I.equivFin) := by ext; simp
+      simp [Equiv.arrowCongr', Equiv.arrowCongr, this] }
 
 noncomputable
-def dualEuclideanSpaceFromDualSubtype (I : Finset ℝ≥0) (L : ({ x // x ∈ I } → ℝ) →L[ℝ] ℝ) :
-    Dual ℝ (EuclideanSpace ℝ (Fin I.card)) :=
-  LinearMap.toContinuousLinearMap
-    { toFun := L ∘ ((MeasurableEquiv.refl ℝ).arrowCongr' I.equivFin.symm)
-      map_add' x y := by
-        have : (x + y) ∘ I.equivFin = x ∘ I.equivFin + y ∘ I.equivFin := by ext; simp
-        simp [MeasurableEquiv.arrowCongr', Equiv.arrowCongr', Equiv.arrowCongr,
-          MeasurableEquiv.refl, this]
-      map_smul' c x := by
-        have : (c • x) ∘ I.equivFin = c • (x ∘ I.equivFin) := by ext; simp
-        simp [MeasurableEquiv.arrowCongr', Equiv.arrowCongr', Equiv.arrowCongr,
-          MeasurableEquiv.refl, this] }
-
-lemma coe_dualEuclideanSpaceFromDualSubtype (I : Finset ℝ≥0) (L : ({ x // x ∈ I } → ℝ) →L[ℝ] ℝ) :
-    (dualEuclideanSpaceFromDualSubtype I L : EuclideanSpace ℝ (Fin I.card) → ℝ)
-     = L ∘ ((MeasurableEquiv.refl ℝ).arrowCongr' I.equivFin.symm) := rfl
+def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure ((i : I) → ℝ) :=
+  (gaussianProjectiveFamilyAux (fun i ↦ (I.equivFin).symm i)).map (finToSubtype I)
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) where
   map_eq_gaussianReal L := by
     unfold gaussianProjectiveFamily
+    have : IsGaussian (gaussianProjectiveFamilyAux (fun i ↦ (I.equivFin).symm i)) := inferInstance
+    have : (L.comp (finToSubtype I).toContinuousLinearMap : (Fin I.card → ℝ) → ℝ)
+      = L ∘ (finToSubtype I) := by ext; simp
     rw [Measure.map_map (by fun_prop) (by fun_prop), variance_map (by fun_prop) (by fun_prop),
-      integral_map (by fun_prop) (by fun_prop), ← coe_dualEuclideanSpaceFromDualSubtype,
-      IsGaussian.map_eq_gaussianReal (dualEuclideanSpaceFromDualSubtype I L)]
+      integral_map (by fun_prop) (by fun_prop), ← this,
+      IsGaussian.map_eq_gaussianReal (L.comp (finToSubtype I).toContinuousLinearMap)]
     congr
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
