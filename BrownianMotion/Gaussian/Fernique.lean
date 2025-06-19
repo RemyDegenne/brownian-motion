@@ -51,6 +51,6 @@ lemma IsGaussian.integrable_id (μ : Measure E) [IsGaussian μ] :
 
 -- Mathlib PR #24430
 lemma IsGaussian.integral_dual (L : Dual ℝ E) : μ[L] = L (∫ x, x ∂μ) :=
-  L.integral_comp_comm ((IsGaussian.memLp_id μ 1 (by simp)).integrable le_rfl)
+  L.integral_comp_comm (IsGaussian.integrable_id μ)
 
 end ProbabilityTheory

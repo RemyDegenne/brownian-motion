@@ -67,8 +67,25 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\varepsilon(A) = 1$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
+\end{proof}
+
+
+\begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
+  \uses{def:IsCover}
+  \leanok
+  \lean{cover_eq_of_lt_iInf_edist}
+Let $C$ be a $\varepsilon$-cover of a $J$ with $C \subseteq J$.
+If $\varepsilon < \inf_{s, t \in J; s \ne t} d_T(s, t)$ then $C = J$.
+\end{lemma}
+
+\begin{proof}
+Let $s \in J$. Since $C$ is an $\varepsilon$-cover of $J$, there exists $t \in C$ such that $d_T(s, t) \le \varepsilon$.
+Since $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$, we have $s = t$.
+Thus, $s \in C$.
+Since $s$ was arbitrary, we have $J \subseteq C$.
+And by assumption $C \subseteq J$.
 \end{proof}
 
 
@@ -486,6 +503,40 @@ We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with co
 
 Remark: the measurability condition on the pair would be implied by the measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (\texttt{SecondCountableTopology} in Lean), which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras.
 We follow \cite{kratschmer2023kolmogorov} and do not require separability.
+
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.edist_eq_zero}
+  \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsKolmogorovProcess.edist_eq_zero}
+If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and $s, t \in T$ are such that $d_T(s, t) = 0$, then $\mathbb{P}$-a.e. $d_E(X_s, X_t) = 0$.
+\end{lemma}
+
+\begin{proof}\leanok
+It suffices to show that $d_E(X_s, X_t)^p = 0$ almost everywhere, which is in turn implied by $\mathbb{E}[d_E(X_s, X_t)^p] \le M d_t(s, t)^q = 0$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+  \uses{def:IsKolmogorovProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $T'$ be a countable subset of $T$ such that for all $s, t \in T'$, $d_T(s, t) = 0$.
+Then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T'} d_E(X_s, X_t)^p \right]
+  &= 0
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsKolmogorovProcess.edist_eq_zero}
+Since $T'$ is countable, we get from Lemma~\ref{lem:IsKolmogorovProcess.edist_eq_zero} that almost surely, for all $s, t \in T'$, $d_E(X_s, X_t)^p = 0$.
+In particular the expectation of the supremum is $0$.
+\end{proof}
+
 
 \paragraph{Measurability}
 
@@ -958,7 +1009,7 @@ Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:inte
   \leanok
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T)]$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
 Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
 Then for $p \le 1$ and $m \le k$,
 \begin{align*}
@@ -1015,8 +1066,8 @@ Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_o
 \end{proof}
 
 
+\paragraph{Any $p>0$}
 
-\subsubsection{Putting it all together}
 
 \begin{definition}\label{def:Cp}
   \leanok
@@ -1049,23 +1100,48 @@ This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
+
+\subsubsection{Putting it all together}
+
+
+\begin{lemma}\label{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
+  \uses{def:IsKolmogorovProcess, def:IsCover}
   \leanok
-  \lean{ProbabilityTheory.cover_eq_of_lt_iInf_edist}
-Let $X : T \to \Omega \to E$ be a stochastic process and let $J$ be a finite subset of $T$.
-Let $C$ be a finite $\varepsilon$-cover of $J$ with $C \subseteq J$.
-If $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$ then $C = J$.
+  \lean{ProbabilityTheory.lintegral_sup_cover_eq_of_lt_iInf_dist}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and let $J$ be a finite subset of $T$.
+Let $C$ be an $\varepsilon$-cover of $J$ with $C \subseteq J$.
+If $\varepsilon < \inf_{s, t \in J; d_T(s, t)>0} d_T(s, t)$ then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in C; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &= \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+\end{align*}
 \end{lemma}
 
 \begin{proof}
-Let $s \in J$. Since $C$ is an $\varepsilon$-cover of $J$, there exists $t \in C$ such that $d_T(s, t) \le \varepsilon$.
-Since $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$, we have $s = t$.
-Thus, $s \in C$.
-Since $s$ was arbitrary, we have $J \subseteq C$.
-And by assumption $C \subseteq J$.
+  \uses{lem:IsKolmogorovProcess.edist_eq_zero}
+First, remark that $C$ is actually a $0$-cover of $J$.
+For $s, t \in J$, let $s', t' \in C$ be such that $d_T(s, s') = 0$ and $d_T(t, t') = 0$.
+Then by the triangle inequality,
+\begin{align*}
+  d_E(X_s, X_t)
+  &\le d_E(X_s, X_{s'}) + d_E(X_{s'}, X_{t'}) + d_E(X_t, X_{t'})
+\end{align*}
+and by Lemma~\ref{lem:IsKolmogorovProcess.edist_eq_zero}, we have $d_E(X_s, X_{s'}) = 0$ and $d_E(X_t, X_{t'}) = 0$ almost surely, hence $d_E(X_s, X_t) \le d_E(X_{s'}, X_{t'})$.
+Since $J$ is finite, almost surely we have that inequality for all pairs $(s, t) \in J$ and their corresponding $(s', t') \in C$.
+Note that $d_T(s', t') = d_T(s, t)$, hence $d_T(s, t) \le \delta$ is equivalent to $d_T(s', t') \le \delta$.
+We obtain
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_{s'}, X_{t'})^p \right]
+  \\
+  &= \mathbb{E}\left[ \sup_{s, t \in J; d_T(s', t') \le \delta} d_E(X_{s'}, X_{t'})^p \right]
+  \\
+  &\le \mathbb{E}\left[ \sup_{s, t \in C; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+The reverse inequality holds because $C$ is a subset of $J$.
 \end{proof}
 
-From this point on, $T$ is a metric space (not just a pseudo-metric space).
 
 \begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_diam_le}
   \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
@@ -1082,12 +1158,12 @@ For all $\delta \ge 4\mathrm{diam}(T)$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; s \ne t}d_T(s, t)}\right) \right\rceil \right\}$.
-By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, $T = C_k$.
+Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
+By Lemma~\ref{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}, the supremum over $T$ can be replaced by a supremum over $C_k$.
 
 By Corollary~\ref{cor:scale_change_rpow},
 \begin{align*}
@@ -1133,16 +1209,16 @@ For all $\delta \in (0, 4\mathrm{diam}(T)]$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:cover_eq_of_lt_iInf_dist}
+  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist, lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
 Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
 It satisfies $\varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
-If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially.
+If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially (by Lemma~\ref{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}).
 We can thus assume $\delta > \varepsilon_0 2^{-k}$.
 
-By Lemma~\ref{lem:cover_eq_of_lt_iInf_dist}, we have $C_k = T$.
+By Lemma~\ref{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}, the supremum over $T$ can be replaced by a supremum over $C_k$.
 
 By Corollary~\ref{cor:scale_change_rpow}, for any $m \le k$,
 \begin{align*}
@@ -1333,8 +1409,6 @@ By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
   &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
-We want to show that the sum is finite.
-
 We apply Corollary~\ref{cor:finite_set_bound_of_dist_le} to bound each expectation in the sum.
 \begin{align*}
   &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
