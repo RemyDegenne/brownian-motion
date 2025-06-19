@@ -52,7 +52,7 @@ lemma finToSubtype_apply' (I : Finset ℝ≥0) (x : Fin I.card → ℝ) (i : I) 
     finToSubtype I x i = x (I.equivFin i) := rfl
 
 noncomputable
-def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure ((i : I) → ℝ) :=
+def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
   (gaussianProjectiveFamilyAux (fun i ↦ (I.equivFin).symm i)).map (finToSubtype I)
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
