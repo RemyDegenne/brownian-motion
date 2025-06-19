@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Init
 
@@ -74,15 +75,15 @@ instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     congr
 
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    ∫ x : I → ℝ, x ∂(gaussianProjectiveFamily I) = 0 := by
+    ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
   calc ∫ x : I → ℝ, x ∂(gaussianProjectiveFamily I)
   _ = ∫ x : EuclideanSpace ℝ (Fin I.card), finToSubtype I x
       ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) := by
     unfold gaussianProjectiveFamily
     rw [integral_map (by fun_prop) (by fun_prop)]
   _ = finToSubtype I (∫ x : EuclideanSpace ℝ (Fin I.card), x
-      ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) := by
-    sorry
+      ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) :=
+    (finToSubtype I).toContinuousLinearMap.integral_comp_id_comm (IsGaussian.integrable_id _)
   _ = 0 := by simp [integral_id_gaussianProjectiveFamilyAux]; rfl
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
