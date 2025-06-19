@@ -11,7 +11,7 @@ variable {E F G 𝕜 : Type*} [NormedAddCommGroup E]
 
 /-- Given a biliniear map whose codomains are finite dimensional, outputs the continuous
 version. -/
-def mkContinuous₂_of_finiteDimensional : E →L[𝕜] F →L[𝕜] G :=
+def mkContinuous₂OfFiniteDimensional : E →L[𝕜] F →L[𝕜] G :=
   letI g x : F →L[𝕜] G := (f x).toContinuousLinearMap
   letI h : E →ₗ[𝕜] F →L[𝕜] G :=
     { toFun := g
@@ -20,8 +20,8 @@ def mkContinuous₂_of_finiteDimensional : E →L[𝕜] F →L[𝕜] G :=
   h.toContinuousLinearMap
 
 @[simp]
-lemma mkContinuous₂_of_finiteDimensional_apply (x : E) (y : F) :
-    f.mkContinuous₂_of_finiteDimensional x y = f x y := rfl
+lemma mkContinuous₂OfFiniteDimensional_apply (x : E) (y : F) :
+    f.mkContinuous₂OfFiniteDimensional x y = f x y := rfl
 
 end LinearMap
 
@@ -32,7 +32,7 @@ section InnerProductSpace
 open scoped InnerProductSpace
 
 lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLike 𝕜]
-    [InnerProductSpace 𝕜 E] [Fintype ι] [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E)  {i j : ι} :
+    [InnerProductSpace 𝕜 E] [Fintype ι] [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) {i j : ι} :
     ⟪b i, b j⟫_𝕜 = if i = j then 1 else 0 := by
   by_cases h : i = j
   · simp only [h, ↓reduceIte]

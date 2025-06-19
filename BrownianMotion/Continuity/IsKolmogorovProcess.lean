@@ -96,9 +96,10 @@ end Measurability
 
 lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     {ε : ℝ≥0∞} (C : Finset (T × T)) (hC : ∀ u ∈ C, edist u.1 u.2 ≤ ε) :
-    ∫⁻ ω, ⨆ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ p ∂P
+    ∫⁻ ω, ⨆ u : C, edist (X u.1.1 ω) (X u.1.2 ω) ^ p ∂P
       ≤ #C * M * ε ^ q := calc
-  _ = ∫⁻ ω, C.sup (fun u => edist (X u.1 ω) (X u.2 ω) ^ p) ∂P := by simp only [Finset.sup_eq_iSup]
+  _ = ∫⁻ ω, C.sup (fun u => edist (X u.1 ω) (X u.2 ω) ^ p) ∂P := by
+        simp only [iSup_subtype, Finset.sup_eq_iSup]
   _ ≤ ∫⁻ ω, ∑ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ p ∂P := by gcongr; apply Finset.sup_le_sum; simp
   _ = ∑ u ∈ C, ∫⁻ ω, edist (X u.1 ω) (X u.2 ω) ^ p ∂P :=
         lintegral_finset_sum' _ (fun _ _ => AEMeasurable.pow_const hX.aemeasurable_edist _)
@@ -109,25 +110,23 @@ lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hq : 0 ≤ q) (hX : IsKolmogoro
 lemma lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {J : Finset T} {a c : ℝ≥0∞} {n : ℕ}
     (hJ_card : #J ≤ a ^ n) (ha : 1 < a) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ c),
-        edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ c }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ p * a * #J * M * (c * n) ^ q := by
   obtain ⟨K, ⟨-, _, hKeps, hKle⟩⟩ := pair_reduction J hJ_card ha E
   calc
-    _ = ∫⁻ ω, (⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ c),
-          edist (X s ω) (X t ω)) ^ p ∂P := ?_
-    _ ≤ ∫⁻ ω, (2 * ⨆ p ∈ K, edist (X p.1 ω) (X p.2 ω)) ^ p ∂P := ?_
-    _ = 2 ^ p * ∫⁻ ω, (⨆ p ∈ K, edist (X p.1 ω) (X p.2 ω)) ^ p ∂P := ?_
+    _ = ∫⁻ ω, (⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (X s ω) (X t ω)) ^ p ∂P := ?_
+    _ ≤ ∫⁻ ω, (2 * ⨆ p : K, edist (X p.1.1 ω) (X p.1.2 ω)) ^ p ∂P := ?_
+    _ = 2 ^ p * ∫⁻ ω, (⨆ p : K, edist (X p.1.1 ω) (X p.1.2 ω)) ^ p ∂P := ?_
     _ ≤ 2 ^ p * (#K * M * (n * c) ^ q) := ?_
     _ ≤ 2 ^ p * a * #J * M * (c * n) ^ q := ?_
   · simp only [← (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp)).map_iSup_of_continuousAt
       ENNReal.continuous_rpow_const.continuousAt (by simp [hp])]
-  · gcongr
-    apply hKle
+  · gcongr with omega
+    apply hKle (X · omega)
   · simp only [ENNReal.mul_rpow_of_nonneg _ _ (le_of_lt hp)]
     rw [lintegral_const_mul'']
     apply AEMeasurable.pow_const
-    exact AEMeasurable.biSup _ K.countable_toSet (fun _ _ => hX.aemeasurable_edist)
+    apply AEMeasurable.iSup (fun _ => hX.aemeasurable_edist)
   · gcongr
     simp only [(ENNReal.monotone_rpow_of_nonneg (le_of_lt hp)).map_iSup_of_continuousAt
       ENNReal.continuous_rpow_const.continuousAt (by simp [hp])]
@@ -144,16 +143,14 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M) {C : Finset T} {ε : ℝ≥0∞}
     (hC_card : #C = internalCoveringNumber ε J)
     {c : ℝ≥0∞} :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ C) (_ht : t ∈ C) (_hd : edist s t ≤ c),
-        edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : C) (t : { t : C // edist s t ≤ c}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 (internalCoveringNumber ε J).toNat) ^ q
         * internalCoveringNumber ε J := by
   -- Trivial cases
-  refine (eq_or_ne #C 0).elim (fun h => by simp_all) (fun hC₀ => ?_)
+  refine (eq_or_ne #C 0).elim (fun h => by simp_all [iSup_subtype]) (fun hC₀ => ?_)
   by_cases hC₁ : #C = 1
   · obtain ⟨a, rfl⟩ := Finset.card_eq_one.1 hC₁
-    conv_lhs => right; ext ω; congr; ext s; rw [iSup_comm]
-    simp [ENNReal.zero_rpow_of_pos hp]
+    simp [iSup_subtype, ENNReal.zero_rpow_of_pos hp]
 
   -- Definition and properties of rbar
   let rbar := 1 + Nat.log2 #C
@@ -179,8 +176,8 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsKolmogorovProcess X P p q M
     {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 4 * ε₀)
     {k m : ℕ} (hm : m = ⌊Real.logb 2 (4 * ε₀ / δ).toReal⌋₊)
     (hmk : m ≤ k) :
-    ∫⁻ ω, ⨆ (s) (t) (hs : s ∈ C k) (ht : t ∈ C k) (_hd : edist s t ≤ δ),
-        edist (X (chainingSequence hC hs m) ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
+        edist (X (chainingSequence hC s.2 m) ω) (X (chainingSequence hC t.1.2 m) ω) ^ p ∂P
       ≤ 2 ^ (p + 1) * M
         * (16 * δ * Nat.log2 (internalCoveringNumber (δ/4) J).toNat) ^ q
         * internalCoveringNumber (δ/4) J := by
@@ -194,10 +191,10 @@ variable {J : Set T} {C : ℕ → Finset T} {ε : ℕ → ℝ≥0∞} {j k m : �
 
 lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hjk : j < k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
-        edist (X (chainingSequence hC ht j) ω) (X (chainingSequence hC ht (j + 1)) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k),
+        edist (X (chainingSequence hC t.2 j) ω) (X (chainingSequence hC t.2 (j + 1)) ω) ^ p ∂P
       ≤ #(C (j + 1)) * M * ε j ^ q := by
-  refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all) (fun hJ => ?_)
+  refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all [iSup_subtype]) (fun hJ => ?_)
 
   -- Define the set `C'`, which is called `C` in the blueprint
   let f₀ : { x : T // x ∈ C (j + 1) } → T × T := fun x => (chainingSequence hC x.2 j, x.1)
@@ -216,7 +213,6 @@ lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P
   conv_lhs at hle =>
     right; ext ω; congr; ext x;
       rw [chainingSequence_chainingSequence _ hJ _ _ (by omega) _ (by omega)]
-  simp only [iSup_subtype] at hle
 
   -- Second step: apply previous results
   refine hle.trans (hC' ▸ lintegral_sup_rpow_edist_le_card_mul_rpow hq hX (ε := ε j) C' ?_)
@@ -227,10 +223,10 @@ lemma lintegral_sup_rpow_edist_succ (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P
 
 lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
-      ≤ (∑ i ∈ Finset.range (k - m), (∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
-        edist (X (chainingSequence hC ht (m + i)) ω)
-          (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p := by
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
+      ≤ (∑ i ∈ Finset.range (k - m), (∫⁻ ω, ⨆ (t : C k),
+        edist (X (chainingSequence hC t.2 (m + i)) ω)
+          (X (chainingSequence hC t.2 (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p := by
   have hp' : 0 < p := by bound
   simp only [← (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp')).map_iSup_of_continuousAt
     ENNReal.continuous_rpow_const.continuousAt (by simp [hp']), iSup_subtype']
@@ -247,13 +243,13 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProc
 
 lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsKolmogorovProcess X P p q M) (hq : 0 ≤ q)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ M * (∑ i ∈ Finset.range (k - m), #(C (m + i + 1)) ^ (1 / p)
               * ε (m + i) ^ (q / p)) ^ p := by
   refine (lintegral_sup_rpow_edist_le_sum_rpow hp hX hC hm).trans ?_
   calc (∑ i ∈ Finset.range (k - m),
-      (∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X (chainingSequence hC ht (m + i)) ω)
-        (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p
+      (∫⁻ ω, ⨆ (t : C k), edist (X (chainingSequence hC t.2 (m + i)) ω)
+        (X (chainingSequence hC t.2 (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p
   _ ≤ (∑ i ∈ Finset.range (k - m), (#(C (m + i + 1)) * M * ε (m + i) ^ q) ^ (1 / p)) ^ p := by
     gcongr with i hi
     refine (lintegral_sup_rpow_edist_succ hq hX _ hC_subset ?_).trans_eq (by ring)
@@ -278,7 +274,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d ≤ q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ M * c₁
         * (∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d / p) * ε (m + j) ^ (q / p)) ^ p := by
   refine (lintegral_sup_rpow_edist_le_sum hp hX ?_ hC hC_subset hm).trans ?_
@@ -312,18 +308,17 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
   sorry
 
 lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
     (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
-      ≤ ∑ i ∈ Finset.range (k - m), ∫⁻ ω, ⨆ (t) (ht : t ∈ C k),
-        edist (X (chainingSequence hC ht (m + i)) ω)
-          (X (chainingSequence hC ht (m + i + 1)) ω) ^ p ∂P := by
-  simp only [iSup_subtype']
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
+      ≤ ∑ i ∈ Finset.range (k - m), ∫⁻ ω, ⨆ (t : C k),
+        edist (X (chainingSequence hC t.2 (m + i)) ω)
+          (X (chainingSequence hC t.2 (m + i + 1)) ω) ^ p ∂P := by
   rw [← lintegral_finset_sum' _ (fun _ _ => .iSup (fun _ => hX.aemeasurable_edist.pow_const _))]
   gcongr with ω
   refine le_trans ?_ (Finset.iSup_sum_le _)
@@ -335,7 +330,7 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p �
 lemma lintegral_sup_rpow_edist_le_sum_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1) (hq : 0 ≤ q)
     (hX : IsKolmogorovProcess X P p q M)
     (hC : ∀ n, IsCover (C n) (ε n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J) (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ M * ∑ i ∈ Finset.range (k - m), #(C (m + i + 1)) * ε (m + i) ^ q := by
   refine (lintegral_sup_rpow_edist_le_sum_rpow_of_le_one hp_pos hp hX hC hm).trans ?_
   rw [Finset.mul_sum]
@@ -352,7 +347,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp_pos : 0 < p) (h
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d ≤ q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ M * c₁
         * ∑ j ∈ Finset.range (k - m), ε (m + j + 1) ^ (- d) * ε (m + j) ^ q := by
   refine (lintegral_sup_rpow_edist_le_sum_of_le_one hp_pos hp ?_ hX hC hC_subset hm).trans ?_
@@ -373,7 +368,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
   sorry
 
@@ -394,14 +389,13 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
     {c₁ : ℝ≥0} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
-    ∫⁻ ω, ⨆ (t) (ht : t ∈ C k), edist (X t ω) (X (chainingSequence hC ht m) ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
   sorry
 
 lemma cover_eq_of_lt_iInf_edist {C : Finset T} {ε : ℝ≥0∞}
     (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
-    (hε : ε < ⨅ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hst : s ≠ t), edist s t) :
-    C = J := by
+    (hε : ε < ⨅ (s : J) (t : { t : J // s ≠ t }), edist s t) : C = J := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_diam_le {T : Type*} [EMetricSpace T] {J : Set T}
@@ -410,7 +404,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le {T : Type*} [EMetricSpace T] {J : 
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   sorry
 
@@ -419,7 +413,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam {T : Type*} [EMetricSpace T] {J : 
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
         * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
               * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
@@ -431,7 +425,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam' {T : Type*} [EMetricSpace T] {J :
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
@@ -441,7 +435,7 @@ lemma finite_set_bound_of_edist_le {T : Type*} [EMetricSpace T] {J : Set T}
     {X : T → Ω → E} (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
-    ∫⁻ ω, ⨆ (s) (t) (_hs : s ∈ J) (_ht : t ∈ J) (_hd : edist s t ≤ δ), edist (X s ω) (X t ω) ^ p ∂P
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 ((c : ℝ) * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
