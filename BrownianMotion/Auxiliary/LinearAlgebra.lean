@@ -65,6 +65,8 @@ variable {ι ι' 𝕜 E E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
     [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (b : OrthonormalBasis ι 𝕜 E)
     (b' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι')
 
+/-- The `LinearIsometryEquiv` which maps an orthonormal basis to another. This is a convenience
+wrapper around `Orthonormal.equiv`. -/
 protected noncomputable def equiv : E ≃ₗᵢ[𝕜] E' :=
   Orthonormal.equiv (v := b.toBasis) (v' := b'.toBasis) b.orthonormal b'.orthonormal e
 
@@ -76,7 +78,7 @@ lemma equiv_apply (x : E) : b.equiv b' e x = ∑ i, b.repr x i • b' (e i) := b
   nth_rw 1 [← b.sum_repr x, map_sum]
   simp_rw [map_smul, equiv_apply_basis]
 
-lemma equiv_apply_euclidean (x : EuclideanSpace 𝕜 ι) :
+lemma equiv_apply_euclideanSpace (x : EuclideanSpace 𝕜 ι) :
     (EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι) x = ∑ i, x i • b i := by
   simp_rw [equiv_apply, EuclideanSpace.basisFun_repr, Equiv.refl_apply]
 
