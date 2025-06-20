@@ -456,7 +456,18 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  sorry
+  refine (finite_set_bound_of_edist_le_of_le_diam hJ hX hd_pos hp_pos hdq_lt hδ hδ_le).trans ?_
+  simp_rw [mul_assoc]
+  gcongr _ * (_ * ?_)
+  simp_rw [mul_add, ← mul_assoc]
+  gcongr ?_ + ?_
+  · rw [mul_comm c]
+    simp_rw [mul_assoc]
+    gcongr _ * ?_
+    simp_rw [← mul_assoc]
+    specialize hJ (δ / 4) hδ_le
+    sorry
+  · exact le_of_eq (by ring)
 
 lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
@@ -465,7 +476,30 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  sorry
+  by_cases hδ_le : δ / 4 ≤ EMetric.diam J
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hd_pos hp_pos hdq_lt hδ hδ_le
+  refine (finite_set_bound_of_edist_le_of_diam_le hJ hX hd_pos hp_pos hdq_lt hδ ?_).trans ?_
+  · exact (not_le.mp hδ_le).le
+  have hq_pos : 0 < q := hd_pos.trans hdq_lt
+  calc 2 ^ q * ↑M * c * δ ^ (q - d) * Cp d p q
+  _ ≤ 4 ^ (p + 2 * q + 1) * ↑M * c * δ ^ (q - d) * Cp d p q := by
+    gcongr
+    calc (2 : ℝ≥0∞) ^ q
+    _ ≤ 4 ^ q := by
+      gcongr
+      norm_cast
+    _ ≤ 4 ^ q * 4 ^ (p + q + 1) := by
+      conv_lhs => rw [← mul_one ((4 : ℝ≥0∞) ^ q)]
+      gcongr
+      exact ENNReal.one_le_rpow (by norm_cast) (by positivity)
+    _ = 4 ^ (p + 2 * q + 1) := by
+      rw [← ENNReal.rpow_add _ _ (by positivity) (by simp)]
+      ring_nf
+  _ ≤ 4 ^ (p + 2 * q + 1) * ↑M * c * δ ^ (q - d) *
+      ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+      + Cp d p q) := by
+    rw [mul_add]
+    exact le_add_self
 
 end Together
 
