@@ -329,3 +329,51 @@ theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoEMetricSpace
   exact packingNumber_two_le_externalCoveringNumber A hr
 
 end comparisons
+
+section Volume
+
+open MeasureTheory
+
+variable [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+  [MeasurableSpace E] [BorelSpace E]
+  {A : Set E} {C : Finset E} {ε : ℝ≥0∞}
+
+lemma volume_le_of_isCover (hC : IsCover C ε A) :
+    volume A ≤ C.card * volume (EMetric.closedBall (0 : E) ε) := by
+  sorry
+
+lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
+    volume A ≤ externalCoveringNumber ε A * volume (EMetric.closedBall (0 : E) ε) := by
+  sorry
+
+open scoped Pointwise in
+lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
+    C.card * volume (EMetric.ball (0 : E) (ε/2)) ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+  sorry
+
+open scoped Pointwise in
+lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
+    packingNumber ε A * volume (EMetric.ball (0 : E) (ε/2))
+      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+  sorry
+
+lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
+    volume A / volume (EMetric.closedBall (0 : E) ε) ≤ internalCoveringNumber ε A := by
+  sorry
+
+open scoped Pointwise in
+lemma internalCoveringNumber_le_volume_div (A : Set E) (ε : ℝ≥0∞) :
+    internalCoveringNumber ε A
+      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) / volume (EMetric.closedBall (0 : E) (ε/2)) := by
+  sorry
+
+lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
+    ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall (0 : E) 1) := by
+  sorry
+
+lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
+    internalCoveringNumber ε (EMetric.closedBall (0 : E) 1)
+      ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) := by
+  sorry
+
+end Volume
