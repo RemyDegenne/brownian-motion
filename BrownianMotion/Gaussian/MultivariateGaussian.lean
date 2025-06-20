@@ -90,15 +90,14 @@ lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
-lemma variance_dual_stdGaussian (L : Dual ℝ E) :
-    Var[L; stdGaussian E] = ∑ i, L (stdOrthonormalBasis ℝ E i) ^ 2 := by
+lemma variance_dual_stdGaussian (L : Dual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
   rw [stdGaussian, variance_map]
   · have : L ∘ (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i) =
         ∑ i, (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ L (stdOrthonormalBasis ℝ E i) * x i) := by
       ext x; simp [mul_comm]
     rw [this, variance_pi]
     · change ∑ i, Var[fun x ↦ _ * (id x); gaussianReal 0 1] = _
-      simp_rw [variance_mul, variance_id_gaussianReal]
+      simp_rw [variance_mul, variance_id_gaussianReal, (stdOrthonormalBasis ℝ E).norm_dual]
       simp
     · exact fun i ↦ ((isGaussian_gaussianReal 0 1).memLp_two_id _).const_mul _
   · exact L.continuous.aemeasurable
@@ -123,6 +122,12 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
+lemma charFunDual_stdGaussian (L : Dual ℝ E) :
+    charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
+  rw [IsGaussian.charFunDual_eq, integral_complex_ofReal, isCentered_stdGaussian,
+    variance_dual_stdGaussian]
+  simp [neg_div]
+
 lemma covInnerBilin_stdGaussian :
     covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
   refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
@@ -131,18 +136,51 @@ lemma covInnerBilin_stdGaussian :
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
 
-lemma test {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
+lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
     [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :
     haveI := f.finiteDimensional; (stdGaussian E).map f = stdGaussian F := by
-  haveI := f.finiteDimensional
-  apply Measure.ext_of_charFun
-  ext t
-  rw [← f.coe_coe'', charFun_map_eq_charFunDual_smul (f : E →L[ℝ] F) t]
+  have := f.finiteDimensional
+  apply Measure.ext_of_charFunDual
+  ext L
+  simp_rw [← f.coe_coe'', charFunDual_map, charFunDual_stdGaussian, ← f.coe_coe_eq_coe,
+    L.opNorm_comp_linearIsometryEquiv]
 
-lemma stdGaussian_iff (d : ℕ) : stdGaussian (EuclideanSpace ℝ (Fin d)) =
-    (Measure.pi (fun _ : Fin d ↦ gaussianReal 0 1)) := by
-  have : IsFiniteMeasure (Measure.pi fun _ : Fin d ↦ gaussianReal 0 1) := inferInstance
-  have : ∀ (t : EuclideanSpace ℝ (Fin d)), ‖t‖ ^ 2 = ∑ i, (t i) ^ 2 := by -- missing lemma
+noncomputable
+def OrthonormalBasis.test {𝕜 E ι ι' E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
+    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
+    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (v : OrthonormalBasis ι 𝕜 E)
+    (v' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι') : E ≃ₗᵢ[𝕜] E' :=
+  Orthonormal.equiv (v := v.toBasis) (v' := v'.toBasis)
+    v.orthonormal v'.orthonormal e
+
+lemma OrthonormalBasis.test_apply {𝕜 E ι ι' E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
+    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
+    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (v : OrthonormalBasis ι 𝕜 E)
+    (v' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι') (i : ι) :
+    v.test v' e (v i) = v' (e i) := by
+  simp only [test, Orthonormal.equiv, LinearEquiv.coe_isometryOfOrthonormal]
+  rw [← v.coe_toBasis, Basis.equiv_apply, v'.coe_toBasis]
+
+lemma test {ι : Type*} [Fintype ι] (b : OrthonormalBasis ι ℝ E) :
+    stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map
+      (fun x ↦ ∑ i, x i • b i) := by
+  have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
+      ⇑((EuclideanSpace.basisFun ι ℝ).test (E := EuclideanSpace ℝ ι) b (Equiv.refl ι)) := by
+    ext x
+    nth_rw 2 [← (EuclideanSpace.basisFun ι ℝ).sum_repr x]
+    simp_rw [map_sum, EuclideanSpace.basisFun_repr, map_smul, OrthonormalBasis.test_apply,
+      Equiv.refl_apply]
+  rw [this, ← LinearIsometryEquiv.coe_toMeasurableEquiv]
+  symm
+  rw [MeasurableEquiv.map_apply_eq_iff_map_symm_apply_eq (e := (OrthonormalBasis.test
+      (EuclideanSpace.basisFun ι ℝ) b (Equiv.refl ι)).toMeasurableEquiv),
+    LinearIsometryEquiv.toMeasurableEquiv_symm, LinearIsometryEquiv.coe_toMeasurableEquiv,
+    stdGaussian_map]
+
+lemma stdGaussian_iff {n : Type*} [Fintype n] :
+    stdGaussian (EuclideanSpace ℝ n) = (Measure.pi (fun _ ↦ gaussianReal 0 1)) := by
+  have : IsFiniteMeasure (Measure.pi fun _ : n ↦ gaussianReal 0 1) := inferInstance
+  have : ∀ (t : EuclideanSpace ℝ n), ‖t‖ ^ 2 = ∑ i, (t i) ^ 2 := by -- missing lemma
     intro t
     rw [EuclideanSpace.norm_eq, Real.sq_sqrt]
     · congr with i
