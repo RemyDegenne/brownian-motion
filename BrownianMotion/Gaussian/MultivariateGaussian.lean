@@ -141,4 +141,5 @@ variable {μ : EuclideanSpace ℝ (Fin d)} {S : Matrix (Fin d) (Fin d) ℝ} {hS 
 
 instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S hS) := by
   sorry
+
 end ProbabilityTheory
