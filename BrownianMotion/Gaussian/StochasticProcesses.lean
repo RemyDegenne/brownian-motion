@@ -116,27 +116,19 @@ lemma finite_distributions_eq_iff_same_law (hX : AEMeasurable (fun t ω ↦ X ω
     rw [x, y, h]
 
 open TopologicalSpace in
+omit [MeasurableSpace E] in
 lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T]
-  [SeparableSpace T] [T2Space E] [IsProbabilityMeasure P]
+  [SeparableSpace T] [T2Space E]
   (hX: ∀ᵐ ω ∂P, Continuous fun t ↦ X t ω) (hY: ∀ᵐ ω ∂P, Continuous fun t ↦ Y t ω)
-  (hXM : AEMeasurable (fun ω t ↦ X t ω) P) (hYM : AEMeasurable (fun ω t ↦ Y t ω) P)
   (h : ∀ t, ∀ᵐ ω ∂P, X t ω = Y t ω) : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω := by
   let ⟨D, ⟨D_countable, D_dense⟩⟩ := ‹SeparableSpace T›
+
   have eq: (∀ t ∈ D, ∀ᵐ ω ∂P, X t ω = Y t ω) → ∀ᵐ ω ∂P, ∀ t ∈ D, X t ω = Y t ω := by
     intro ht
-    sorry
+    exact (ae_ball_iff D_countable).mpr ht
 
-  have h' : ∀ᵐ ω ∂P, ∀ t ∈ D, X t ω = Y t ω := by
-    apply eq
-    intro t ht
-    exact h t
-
-  let cond := Filter.inter_sets _ (Filter.inter_sets _ hX hY) h'
-  apply Filter.Eventually.mono cond
-  intro ω hω
-  let ⟨⟨X_cont, Y_cont⟩, h_eq⟩ := hω
-  intro t
+  filter_upwards [hX, hY, eq (fun t ht ↦ h t)] with ω hX hY h t
   show (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
-  rw [Continuous.ext_on D_dense X_cont Y_cont ?_]
+  rw [Continuous.ext_on D_dense hX hY ?_]
   rw [Set.EqOn]
-  exact h_eq
+  exact h
