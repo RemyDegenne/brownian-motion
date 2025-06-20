@@ -450,7 +450,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
@@ -465,9 +465,14 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
     simp_rw [mul_assoc]
     gcongr _ * ?_
     simp_rw [← mul_assoc]
-    specialize hJ (δ / 4) hδ_le
+    have hδ_ne_top : δ ≠ ∞ := by
+      refine ne_of_lt ?_
+      calc δ
+      _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
+      _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam.lt_top
+    have hJδ := hJ (δ / 4) hδ_le
     have hJ' : internalCoveringNumber (δ / 4) J ≤ c * 4 ^ d * δ⁻¹ ^ d := by
-      refine hJ.trans_eq ?_
+      refine hJδ.trans_eq ?_
       rw [ENNReal.inv_div, ENNReal.div_rpow_of_nonneg, div_eq_mul_inv, ENNReal.inv_rpow]
       · ring
       · exact hd_pos.le
@@ -475,7 +480,24 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
       · exact .inr hδ
     have hJ'' : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
         ≤ ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d)) := by
-      sorry
+      by_cases h0 : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat = 0
+      · simp [h0]
+      refine (ENNReal.natCast_le_ofReal h0).mpr ?_
+      have (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by -- extract lemma
+        sorry
+      calc (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat : ℝ)
+      _ ≤ Real.logb 2 (internalCoveringNumber (δ / 4) J).toNat := this _
+      _ ≤ Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d) := by
+        gcongr
+        · simp
+        · by_contra h_eq
+          have h_ne_top : internalCoveringNumber (δ / 4) J ≠ ⊤ := by
+            refine (hJ.internalCoveringNumber_lt_top ?_ hc hd_pos.le).ne
+            simp [hδ]
+          simp only [Nat.cast_pos, not_lt, nonpos_iff_eq_zero, ENat.toNat_eq_zero, h_ne_top,
+            or_false] at h_eq
+          simp [h_eq] at h0
+        sorry
     have hq_pos : 0 < q := hd_pos.trans hdq_lt
     calc δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
         * (internalCoveringNumber (δ / 4) J)
@@ -489,23 +511,18 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
       rw [ENNReal.inv_mul_cancel]
       · ring
       · simp [hδ, hd_pos.le]
-      · simp only [ne_eq, ENNReal.rpow_eq_top_iff, hδ, false_and, false_or, not_and, not_lt]
-        suffices δ ≠ ∞ by simp [this]
-        refine ne_of_lt ?_
-        calc δ
-        _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
-        _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam.lt_top
+      · simp [hδ_ne_top, hδ]
   · exact le_of_eq (by ring)
 
 lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
-    (hX : IsKolmogorovProcess X P p q M)
+    (hX : IsKolmogorovProcess X P p q M) (hc : c ≠ ∞)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   by_cases hδ_le : δ / 4 ≤ EMetric.diam J
-  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hd_pos hp_pos hdq_lt hδ hδ_le h_diam
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hc hd_pos hp_pos hdq_lt hδ hδ_le h_diam
   refine (finite_set_bound_of_edist_le_of_diam_le hJ hX hd_pos hp_pos hdq_lt hδ ?_).trans ?_
   · exact (not_le.mp hδ_le).le
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
