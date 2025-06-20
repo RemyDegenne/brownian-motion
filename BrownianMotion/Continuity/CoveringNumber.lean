@@ -12,7 +12,7 @@ import BrownianMotion.Init
 - Vershynin, High-Dimensional Probability (section 4.2)
 -/
 
-open ENNReal
+open ENNReal Metric
 
 variable {E : Type*}
 
@@ -25,10 +25,6 @@ variable [EDist E]
 def IsCover (C : Set E) (ε : ℝ≥0∞) (A : Set E) : Prop :=
   ∀ a ∈ A, ∃ c ∈ C, edist a c ≤ ε
 
-/-- A set `C` is a `r`-separated if all pairs of points `a,b` of `C` satisfy `r < dist a b`. -/
-def IsSeparated (C : Set E) (r : ℝ≥0∞) : Prop :=
-  ∀ (a : E) (b : E) (_ : a ∈ C) (_ : b ∈ C), r < edist a b
-
 noncomputable
 def externalCoveringNumber (r : ℝ≥0∞) (A : Set E) : ENat :=
   ⨅ (C : Finset E) (_ : IsCover C r A), C.card
@@ -38,8 +34,8 @@ def internalCoveringNumber (r : ℝ≥0∞) (A : Set E) : ENat :=
   ⨅ (C : Finset E) (_ : ↑C ⊆ A) (_ : IsCover C r A), C.card
 
 noncomputable
-def packingNumber (r : ℝ≥0∞) (A : Set E) : ENat :=
-  ⨆ (C : Finset E) (_ : ↑C ⊆ A) (_ : IsSeparated (C : Set E) r), C.card
+def packingNumber [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E) : ENat :=
+  ⨆ (C : Finset E) (_ : ↑C ⊆ A) (_ : IsSeparated r (C : Set E)), C.card
 
 end Definitions
 
@@ -102,12 +98,6 @@ lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ�
       _ ≤ _ := iInf₂_le (α := ℕ∞) C (by simp [C])
       _ ≤ C.card := iInf_le (α := ℕ∞) _ hCover
     simp [C]
-
-
-@[simp]
-lemma isSeparated_empty [EDist E] (r : ℝ≥0∞) : IsSeparated (∅ : Set E) r := by
-  intros a b ha _
-  simp at ha
 
 lemma subset_iUnion_of_isCover [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E}
     (hC : IsCover C ε A) :
@@ -172,35 +162,35 @@ section maximalSeparatedSet
 
 variable {r : ℝ≥0∞} {A : Set E}
 
-lemma exists_finset_card_eq_packingNumber [EDist E] (h : packingNumber r A < ⊤) :
-    ∃ (C : Finset E), ↑C ⊆ A ∧ IsSeparated (C : Set E) r ∧ C.card = packingNumber r A := by
+lemma exists_finset_card_eq_packingNumber [PseudoEMetricSpace E] (h : packingNumber r A < ⊤) :
+    ∃ (C : Finset E), ↑C ⊆ A ∧ IsSeparated r (C : Set E) ∧ C.card = packingNumber r A := by
   sorry
 
 /-- A maximal `r`-separated finite subset of `A`. -/
 noncomputable
-def maximalSeparatedSet [EDist E] (r : ℝ≥0∞) (A : Set E) : Finset E :=
+def maximalSeparatedSet [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E) : Finset E :=
   if h : packingNumber r A < ⊤ then (exists_finset_card_eq_packingNumber h).choose else ∅
 
-lemma maximalSeparatedSet_subset [EDist E] : ↑(maximalSeparatedSet r A) ⊆ A := by
+lemma maximalSeparatedSet_subset [PseudoEMetricSpace E] : ↑(maximalSeparatedSet r A) ⊆ A := by
   by_cases h : packingNumber r A < ⊤
   · simp only [maximalSeparatedSet, h, dite_true]
     exact (exists_finset_card_eq_packingNumber h).choose_spec.1
   · simp only [maximalSeparatedSet, h, dite_false, Finset.coe_empty, Set.empty_subset]
 
-lemma isSeparated_maximalSeparatedSet [EDist E] :
-    IsSeparated (maximalSeparatedSet r A : Set E) r := by
+lemma isSeparated_maximalSeparatedSet [PseudoEMetricSpace E] :
+    IsSeparated r (maximalSeparatedSet r A : Set E) := by
   by_cases h : packingNumber r A < ⊤
   · simp only [maximalSeparatedSet, h, dite_true]
     exact (exists_finset_card_eq_packingNumber h).choose_spec.2.1
-  · simp only [maximalSeparatedSet, h, dite_false, Finset.coe_empty,isSeparated_empty]
+  · simp only [maximalSeparatedSet, h, dite_false, Finset.coe_empty, IsSeparated.empty]
 
-lemma card_maximalSeparatedSet [EDist E] (h : packingNumber r A < ⊤) :
+lemma card_maximalSeparatedSet [PseudoEMetricSpace E] (h : packingNumber r A < ⊤) :
     (maximalSeparatedSet r A).card = packingNumber r A := by
   simp only [maximalSeparatedSet, h, dite_true]
   exact (exists_finset_card_eq_packingNumber h).choose_spec.2.2
 
-lemma card_le_of_isSeparated [EDist E] {C : Finset E} (h_subset : ↑C ⊆ A)
-    (h : IsSeparated (C : Set E) r) :
+lemma card_le_of_isSeparated [PseudoEMetricSpace E] {C : Finset E} (h_subset : ↑C ⊆ A)
+    (h : IsSeparated r (C : Set E)) :
     C.card ≤ (maximalSeparatedSet r A).card := by
   sorry
 
@@ -217,8 +207,19 @@ lemma isCover_maximalSeparatedSet [PseudoEMetricSpace E] (h : packingNumber r A 
   let C := {x} ∪ maximalSeparatedSet r A
   have hC_subset : ↑C ⊆ A := by
     simp [C, hxA, maximalSeparatedSet_subset, Set.insert_subset]
-  have hC_separated : IsSeparated (C : Set E) r := by
-    sorry
+  have hC_separated : IsSeparated r (C : Set E) := by
+    intro a ha b hb hab
+    by_cases hax : a = x
+    · subst hax
+      have hb' : b ∈ maximalSeparatedSet r A := by simpa [C, hab.symm] using hb
+      exact h_dist b hb'
+    by_cases hbx : b = x
+    · subst hbx
+      have ha' : a ∈ maximalSeparatedSet r A := by simpa [C, hab] using ha
+      have h := h_dist a ha'
+      rwa [edist_comm] at h
+    simp [hax, hbx, C] at ha hb
+    exact isSeparated_maximalSeparatedSet ha hb hab
   refine absurd (card_le_of_isSeparated hC_subset hC_separated) ?_
   simp only [Finset.disjoint_singleton_left, hx_not_mem, not_false_eq_true,
     Finset.card_union_of_disjoint, Finset.card_singleton, add_le_iff_nonpos_left,
@@ -237,7 +238,7 @@ theorem internalCoveringNumber_le_packingNumber [PseudoEMetricSpace E] (r : ℝ�
   · rw [not_lt_top_iff] at h_top
     simp [h_top]
 
-theorem packingNumber_two_le_externalCoveringNumber [EDist E] (r : ℝ≥0∞) (A : Set E) :
+theorem packingNumber_two_le_externalCoveringNumber [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E) :
     packingNumber (2 * r) A ≤ externalCoveringNumber r A := by
   simp only [packingNumber, externalCoveringNumber, le_iInf_iff, iSup_le_iff, Nat.cast_le]
   intro C hC_cover D hD_subset hD_separated
