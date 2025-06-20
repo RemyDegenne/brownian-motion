@@ -113,7 +113,7 @@ lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- �
     simp only [Complex.ofReal_zero, mul_zero, zero_mul, NNReal.coe_one, Complex.ofReal_one, one_mul,
       zero_sub]
     simp_rw [← Complex.exp_sum, Finset.sum_neg_distrib, ← Finset.sum_div, ← Complex.ofReal_pow,
-      ← Complex.ofReal_sum, ← (stdOrthonormalBasis ℝ E).sum_sq_inner_right, neg_div]
+      ← Complex.ofReal_sum, ← (stdOrthonormalBasis ℝ E).norm_sq_eq_sum_sq_inner_right, neg_div]
   · exact Measurable.aemeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
 
@@ -145,52 +145,24 @@ lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ 
   simp_rw [← f.coe_coe'', charFunDual_map, charFunDual_stdGaussian, ← f.coe_coe_eq_coe,
     L.opNorm_comp_linearIsometryEquiv]
 
-noncomputable
-def OrthonormalBasis.test {𝕜 E ι ι' E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
-    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (v : OrthonormalBasis ι 𝕜 E)
-    (v' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι') : E ≃ₗᵢ[𝕜] E' :=
-  Orthonormal.equiv (v := v.toBasis) (v' := v'.toBasis)
-    v.orthonormal v'.orthonormal e
+lemma pi_eq_stdGaussian {n : Type*} [Fintype n] :
+    Measure.pi (fun _ ↦ gaussianReal 0 1) = stdGaussian (EuclideanSpace ℝ n) := by
+  -- This instance is not found automatically, probably a defeq issue between
+  -- `n → ℝ` and `EuclideanSpace ℝ n`.
+  have : IsFiniteMeasure (Measure.pi fun _ : n ↦ gaussianReal 0 1) := inferInstance
+  apply Measure.ext_of_charFun (E := EuclideanSpace ℝ n)
+  ext t
+  simp_rw [charFun_stdGaussian, charFun_pi, charFun_gaussianReal, ← Complex.exp_sum,
+    ← Complex.ofReal_pow, EuclideanSpace.real_norm_sq_eq]
+  simp [Finset.sum_div, neg_div]
 
-lemma OrthonormalBasis.test_apply {𝕜 E ι ι' E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
-    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (v : OrthonormalBasis ι 𝕜 E)
-    (v' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι') (i : ι) :
-    v.test v' e (v i) = v' (e i) := by
-  simp only [test, Orthonormal.equiv, LinearEquiv.coe_isometryOfOrthonormal]
-  rw [← v.coe_toBasis, Basis.equiv_apply, v'.coe_toBasis]
-
-lemma test {ι : Type*} [Fintype ι] (b : OrthonormalBasis ι ℝ E) :
+lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : OrthonormalBasis ι ℝ E) :
     stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map
       (fun x ↦ ∑ i, x i • b i) := by
   have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
-      ⇑((EuclideanSpace.basisFun ι ℝ).test (E := EuclideanSpace ℝ ι) b (Equiv.refl ι)) := by
-    ext x
-    nth_rw 2 [← (EuclideanSpace.basisFun ι ℝ).sum_repr x]
-    simp_rw [map_sum, EuclideanSpace.basisFun_repr, map_smul, OrthonormalBasis.test_apply,
-      Equiv.refl_apply]
-  rw [this, ← LinearIsometryEquiv.coe_toMeasurableEquiv]
-  symm
-  rw [MeasurableEquiv.map_apply_eq_iff_map_symm_apply_eq (e := (OrthonormalBasis.test
-      (EuclideanSpace.basisFun ι ℝ) b (Equiv.refl ι)).toMeasurableEquiv),
-    LinearIsometryEquiv.toMeasurableEquiv_symm, LinearIsometryEquiv.coe_toMeasurableEquiv,
-    stdGaussian_map]
-
-lemma stdGaussian_iff {n : Type*} [Fintype n] :
-    stdGaussian (EuclideanSpace ℝ n) = (Measure.pi (fun _ ↦ gaussianReal 0 1)) := by
-  have : IsFiniteMeasure (Measure.pi fun _ : n ↦ gaussianReal 0 1) := inferInstance
-  have : ∀ (t : EuclideanSpace ℝ n), ‖t‖ ^ 2 = ∑ i, (t i) ^ 2 := by -- missing lemma
-    intro t
-    rw [EuclideanSpace.norm_eq, Real.sq_sqrt]
-    · congr with i
-      simp
-    positivity
-  apply Measure.ext_of_charFun
-  ext t
-  simp_rw [charFun_stdGaussian, charFun_pi, charFun_gaussianReal, ← Complex.exp_sum,
-    ← Complex.ofReal_pow, this t]
-  simp [Finset.sum_div, neg_div]
+      ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) := by
+    simp_rw [← b.equiv_apply_euclidean]
+  rw [this, pi_eq_stdGaussian, stdGaussian_map (f := (EuclideanSpace.basisFun ι ℝ).equiv _ _)]
 
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)
