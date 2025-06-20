@@ -95,7 +95,7 @@ $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
 $P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -174,7 +174,16 @@ Then $\vert S \vert V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
 \end{lemma}
 
 \begin{proof}
-
+Since $S$ is $\varepsilon$-separated, the closed balls $B_{\varepsilon/2}(s)$ for $s \in S$ are pairwise disjoint.
+Furthermore, these balls are contained in $A + B_{\varepsilon/2}$.
+Thus, we have
+\begin{align*}
+  \vert S \vert V(B_{\varepsilon/2})
+  &= \sum_{s \in S} V(B_{\varepsilon/2}(s))
+  = V(\bigcup_{s \in S} B_{\varepsilon/2}(s))
+  \le V(A + B_{\varepsilon/2})
+  \: .
+\end{align*}
 \end{proof}
 
 
@@ -196,7 +205,7 @@ $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 
 \begin{proof}
   \uses{lem:volume_le_externalCoveringNumber_mul, lem:externalCoveringNumber_le_internalCoveringNumber}
-
+We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref{lem:volume_le_externalCoveringNumber_mul} and $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$ by Lemma~\ref{lem:externalCoveringNumber_le_internalCoveringNumber}.
 \end{proof}
 
 
@@ -207,7 +216,7 @@ $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})
 
 \begin{proof}
   \uses{lem:packingNumber_mul_le_volume, lem:internalCoveringNumber_le_packingNumber}
-
+We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internalCoveringNumber_le_packingNumber} and $P_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$ by Lemma~\ref{lem:packingNumber_mul_le_volume}.
 \end{proof}
 
 
