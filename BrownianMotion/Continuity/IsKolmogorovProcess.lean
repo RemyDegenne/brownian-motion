@@ -444,17 +444,17 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
         * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
-              * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
+              * internalCoveringNumber (δ / 4) J
             + c * Cp d p q) := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   refine (finite_set_bound_of_edist_le_of_le_diam hJ hX hd_pos hp_pos hdq_lt hδ hδ_le).trans ?_
   simp_rw [mul_assoc]
@@ -466,18 +466,46 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
     gcongr _ * ?_
     simp_rw [← mul_assoc]
     specialize hJ (δ / 4) hδ_le
-    sorry
+    have hJ' : internalCoveringNumber (δ / 4) J ≤ c * 4 ^ d * δ⁻¹ ^ d := by
+      refine hJ.trans_eq ?_
+      rw [ENNReal.inv_div, ENNReal.div_rpow_of_nonneg, div_eq_mul_inv, ENNReal.inv_rpow]
+      · ring
+      · exact hd_pos.le
+      · simp
+      · exact .inr hδ
+    have hJ'' : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
+        ≤ ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d)) := by
+      sorry
+    have hq_pos : 0 < q := hd_pos.trans hdq_lt
+    calc δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
+        * (internalCoveringNumber (δ / 4) J)
+    _ ≤ δ ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (c * 4 ^ d * δ⁻¹ ^ d) := by gcongr
+    _ = c * 4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q := by
+      rw [ENNReal.inv_rpow]
+      simp_rw [mul_assoc]
+      rw [mul_comm]
+      simp_rw [← mul_assoc, mul_assoc]
+      rw [ENNReal.inv_mul_cancel]
+      · ring
+      · simp [hδ, hd_pos.le]
+      · simp only [ne_eq, ENNReal.rpow_eq_top_iff, hδ, false_and, false_or, not_and, not_lt]
+        suffices δ ≠ ∞ by simp [this]
+        refine ne_of_lt ?_
+        calc δ
+        _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
+        _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam.lt_top
   · exact le_of_eq (by ring)
 
 lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   by_cases hδ_le : δ / 4 ≤ EMetric.diam J
-  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hd_pos hp_pos hdq_lt hδ hδ_le
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hd_pos hp_pos hdq_lt hδ hδ_le h_diam
   refine (finite_set_bound_of_edist_le_of_diam_le hJ hX hd_pos hp_pos hdq_lt hδ ?_).trans ?_
   · exact (not_le.mp hδ_le).le
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
@@ -496,7 +524,7 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
       rw [← ENNReal.rpow_add _ _ (by positivity) (by simp)]
       ring_nf
   _ ≤ 4 ^ (p + 2 * q + 1) * ↑M * c * δ ^ (q - d) *
-      ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+      (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
       + Cp d p q) := by
     rw [mul_add]
     exact le_add_self
