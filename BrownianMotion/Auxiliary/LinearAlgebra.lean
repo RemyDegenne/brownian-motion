@@ -96,8 +96,9 @@ theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerP
   simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
     InnerProductSpace.toDual_symm_apply]
 
+@[simp]
 lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
     [NormedAddCommGroup F] [InnerProductSpace 𝕜 E] [InnerProductSpace 𝕜 F] (f : E ≃ₗᵢ[𝕜] F) :
-    f.toLinearIsometry.toContinuousLinearMap = (f : E →L[𝕜] F) := rfl
+    ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace

@@ -142,7 +142,7 @@ lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ 
   have := f.finiteDimensional
   apply Measure.ext_of_charFunDual
   ext L
-  simp_rw [← f.coe_coe'', charFunDual_map, charFunDual_stdGaussian, ← f.coe_coe_eq_coe,
+  simp_rw [← f.coe_coe_eq_coe, charFunDual_map, charFunDual_stdGaussian,
     L.opNorm_comp_linearIsometryEquiv]
 
 lemma pi_eq_stdGaussian {n : Type*} [Fintype n] :
@@ -161,7 +161,7 @@ lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : Orth
       (fun x ↦ ∑ i, x i • b i) := by
   have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
       ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) := by
-    simp_rw [← b.equiv_apply_euclidean]
+    simp_rw [← b.equiv_apply_euclideanSpace]
   rw [this, pi_eq_stdGaussian, stdGaussian_map (f := (EuclideanSpace.basisFun ι ℝ).equiv _ _)]
 
 noncomputable
