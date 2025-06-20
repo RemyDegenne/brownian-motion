@@ -1,4 +1,5 @@
-import Mathlib
+import Mathlib.Analysis.InnerProductSpace.Dual
+import Mathlib.Analysis.InnerProductSpace.PiL2
 
 section mkContinuous₂
 
