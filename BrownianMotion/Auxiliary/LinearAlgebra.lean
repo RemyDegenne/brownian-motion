@@ -53,13 +53,9 @@ theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddC
     ‖x‖ ^ 2 = ∑ i, ⟪x, b i⟫_ℝ ^ 2 := by
   simp_rw [b.norm_sq_eq_sum_sq_inner_right, real_inner_comm]
 
-theorem EuclideanSpace.norm_sq_eq {n 𝕜 : Type*} [Fintype n] [RCLike 𝕜] (x : EuclideanSpace 𝕜 n) :
-    ‖x‖ ^ 2 = ∑ i, ‖x i‖ ^ 2 := by
-  rw [EuclideanSpace.norm_eq, Real.sq_sqrt (by positivity)]
-
 theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpace ℝ n) :
     ‖x‖ ^ 2 = ∑ i, (x i) ^ 2 := by
-  rw [EuclideanSpace.norm_sq_eq]
+  rw [PiLp.norm_sq_eq_of_L2]
   congr with i; simp
 
 namespace OrthonormalBasis
