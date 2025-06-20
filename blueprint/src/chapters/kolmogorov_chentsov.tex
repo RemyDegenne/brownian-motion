@@ -48,11 +48,51 @@ Let $(E, d_E)$ be a pseudo-metric space.
 \end{definition}
 
 
+\begin{definition}[Separated set]\label{def:IsSeparated}
+  \mathlibok
+  \lean{Metric.IsSeparated}
+A set $c \subseteq E$ is $\varepsilon$-separated if for all $x, y \in c$, $d_E(x, y) > \varepsilon$.
+\end{definition}
+
+
+\begin{definition}[Packing number]\label{def:packingNumber}
+  \uses{def:IsSeparated}
+  \leanok
+  \lean{packingNumber}
+The packing number of a set $A \subseteq E$ for $\varepsilon > 0$ is the largest cardinality of an $\varepsilon$-separated subset of $A$.
+Denote it by $P_\varepsilon(A)$.
+\end{definition}
+
+
 \begin{lemma}\label{lem:externalCoveringNumber_le_internalCoveringNumber}
   \uses{def:externalCoveringNumber, def:internalCoveringNumber}
   \leanok
   \lean{externalCoveringNumber_le_internalCoveringNumber}
 $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_le_packingNumber}
+  \uses{def:internalCoveringNumber, def:packingNumber}
+  \leanok
+  \lean{internalCoveringNumber_le_packingNumber}
+$N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:packingNumber_two_le_externalCoveringNumber}
+  \uses{def:packingNumber, def:externalCoveringNumber}
+  \leanok
+  \lean{packingNumber_two_le_externalCoveringNumber}
+$P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -89,12 +129,157 @@ And by assumption $C \subseteq J$.
 \end{proof}
 
 
+\subsection{Covering number and volume}
+
+In this section $E$ is a finite dimensional inner product space, with dimension $d$.
+
+\begin{lemma}\label{lem:volume_le_of_isCover}
+  \uses{def:IsCover}
+  \leanok
+  \lean{volume_le_of_isCover}
+Let $A \subseteq E$ and $C \subseteq E$ be a finite $\varepsilon$-cover of $A$. Denote by $V(A)$ the volume of $A$.
+Then $V(A) \le \vert C \vert V(B_\varepsilon)$, in which $B_\varepsilon$ is the closed ball of radius $\varepsilon$ in $E$.
+\end{lemma}
+
+\begin{proof}
+Since $C$ is a cover of $A$, $A$ is a subset of the union of the closed balls $B_\varepsilon(c)$ for $c \in C$. Then
+\begin{align*}
+  V(A) \le V(\bigcup_{c \in C} B_\varepsilon(c))
+  &\le \sum_{c \in C} V(B_\varepsilon(c))
+  = \vert C \vert V(B_\varepsilon)
+  \: .
+\end{align*}
+\end{proof}
+
+The volume of $B_\varepsilon$ is given by the following formula (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/VolumeOfBalls.html#InnerProductSpace.volume_closedBall}{InnerProductSpace.volume\_closedBall}).
+\begin{align*}
+  V(B_\varepsilon) = \frac{\pi^{d/2}}{\Gamma(d/2 + 1)} \varepsilon^d
+  \: .
+\end{align*}
+
+
+\begin{lemma}\label{lem:volume_le_externalCoveringNumber_mul}
+  \uses{def:externalCoveringNumber}
+  \leanok
+  \lean{volume_le_externalCoveringNumber_mul}
+$V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:volume_le_of_isCover}
+Use Lemma~\ref{lem:volume_le_of_isCover} with a cover of minimal cardinal.
+\end{proof}
+
+
+\begin{lemma}\label{lem:le_volume_of_isSeparated}
+  \uses{def:IsSeparated}
+  \leanok
+  \lean{le_volume_of_isSeparated}
+Let $A \subseteq E$ and let $S \subseteq A$ be an $\varepsilon$-separated set.
+Then $\vert S \vert V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
+\end{lemma}
+
+\begin{proof}
+Since $S$ is $\varepsilon$-separated, the closed balls $B_{\varepsilon/2}(s)$ for $s \in S$ are pairwise disjoint.
+Furthermore, these balls are contained in $A + B_{\varepsilon/2}$.
+Thus, we have
+\begin{align*}
+  \vert S \vert V(B_{\varepsilon/2})
+  &= \sum_{s \in S} V(B_{\varepsilon/2}(s))
+  = V(\bigcup_{s \in S} B_{\varepsilon/2}(s))
+  \le V(A + B_{\varepsilon/2})
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:packingNumber_mul_le_volume}
+  \uses{def:packingNumber}
+  \leanok
+  \lean{packingNumber_mul_le_volume}
+$P_\varepsilon(A) V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:le_volume_of_isSeparated}
+Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated set of maximal cardinality.
+\end{proof}
+
+
+\begin{lemma}\label{lem:volume_div_le_internalCoveringNumber}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{volume_div_le_internalCoveringNumber}
+$\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:volume_le_externalCoveringNumber_mul, lem:externalCoveringNumber_le_internalCoveringNumber}
+We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref{lem:volume_le_externalCoveringNumber_mul} and $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$ by Lemma~\ref{lem:externalCoveringNumber_le_internalCoveringNumber}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_le_volume_div}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_le_volume_div}
+$N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:packingNumber_mul_le_volume, lem:internalCoveringNumber_le_packingNumber}
+We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internalCoveringNumber_le_packingNumber} and $P_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$ by Lemma~\ref{lem:packingNumber_mul_le_volume}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_closedBall_ge}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_closedBall_ge}
+$N_\varepsilon^{int}(B_1) \ge \frac{1}{\varepsilon^d}$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:volume_div_le_internalCoveringNumber}
+By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
+\begin{align*}
+  N^{int}_\varepsilon(B_1)
+  &\ge \frac{V(B_1)}{V(B_\varepsilon)}
+  = \frac{1}{\varepsilon^d}
+  \: .
+\end{align*}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_closedBall_le}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_closedBall_le}
+$N_\varepsilon^{int}(B_1) \le \left(\frac{2}{\varepsilon} + 1\right)^d$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:internalCoveringNumber_le_volume_div}
+By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
+\begin{align*}
+  N^{int}_\varepsilon(B_1)
+  &\le \frac{V(B_1 + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}
+  = \frac{V(B_{1 + \varepsilon/2})}{V(B_{\varepsilon/2})}
+  = \frac{(1 + \varepsilon/2)^d}{(\varepsilon/2)^d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Bounded internal covering number}
+
 \begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
   \uses{def:internalCoveringNumber}
   \leanok
   \lean{HasBoundedInternalCoveringNumber}
   Let $\mathrm{diam}(A)$ be the diameter of $A \subseteq E$, i.e. $\mathrm{diam}(A) = \sup_{x,y \in A} d_E(x, y)$.
-  A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A))$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
+  A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A)]$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
 \end{definition}
 
 
