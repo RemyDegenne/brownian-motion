@@ -49,46 +49,34 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : 0 < c �
     constL T c d p q β < ∞ := by
   -- 1. L is finite as long as the sum in it is finite.
   unfold constL
-  have hc' := hc.2
-  repeat (any_goals first | apply ENNReal.mul_lt_top | apply ENNReal.rpow_lt_top_of_nonneg)
-  all_goals norm_num
-  any_goals assumption
-  any_goals linarith
+  have := hc.2
+  repeat (
+    first | apply ENNReal.mul_lt_top | apply ENNReal.rpow_lt_top_of_nonneg
+    all_goals try norm_num
+    all_goals try assumption
+    all_goals try linarith
+  )
   clear! T
   -- 2. The sum is finite as long as its summand is a O(1 / k^2).
   unfold Cp
-  -- Let f k be the k-th summand.
+  -- Let f(k) be the k-th summand.
   let' f : ℕ → ℝ≥0∞ := _
   change ∑' (k : ℕ), f k < ∞
   rw [tsum_congr (g := fun k => ↑ (ENNReal.toNNReal (f k)))]
   rotate_left
+  -- All terms are finite.
   · intro k
     symm
     apply ENNReal.coe_toNNReal
     subst f
-    rw [←lt_top_iff_ne_top]
-    apply ENNReal.mul_lt_top
-    · rw [lt_top_iff_ne_top]
-      apply ENNReal.rpow_ne_top_of_ne_zero
-      all_goals norm_num
-    simp_all
-    split_ands
-    · apply ENNReal.mul_lt_top
-      · rw [lt_top_iff_ne_top]
-        apply ENNReal.rpow_ne_top_of_ne_zero
-        all_goals norm_num
-      apply ENNReal.rpow_lt_top_of_nonneg
-      · linarith
-      simp_all
-    · apply ENNReal.rpow_pos
-      · field_simp
-        apply ENNReal.one_lt_rpow
-        · norm_num
-        simp_all
-      simp_all
-    apply ENNReal.one_lt_rpow
-    · norm_num
-    simp_all
+    simp [←lt_top_iff_ne_top]
+    repeat (
+        first | apply ENNReal.mul_lt_top | apply ENNReal.rpow_lt_top_of_nonneg
+              | apply ENNReal.one_lt_rpow | apply ENNReal.rpow_pos
+        all_goals try (simp [lt_top_iff_ne_top]; done)
+        all_goals try simp_all
+        all_goals try linarith
+        all_goals try split_ands)
   rw [lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable, ←NNReal.summable_coe]
   apply summable_of_isBigO_nat (g := fun k => (k ^ 2)⁻¹)
   · rw [Real.summable_nat_pow_inv]
