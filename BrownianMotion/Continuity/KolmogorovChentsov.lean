@@ -47,8 +47,8 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     rw [eventually_countable_forall]; intro t
     by_cases h_dist : edist s t = 0
     · apply Filter.Eventually.mp (IsKolmogorovProcess.edist_eq_zero hX hp hq h_dist)
-      filter_upwards using (fun _ h _ ↦ h)
-    filter_upwards using (fun _ ↦ by simp [h_dist])
+      filter_upwards with _ h _ using h
+    filter_upwards with _ using by simp [h_dist]
   refine lintegral_mono_ae (Filter.Eventually.mp hη_ae ?_)
   filter_upwards with ω h
   rw [iSup_le_iff]; rintro ⟨s, hs⟩
