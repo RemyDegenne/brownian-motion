@@ -37,6 +37,11 @@ lemma Finset.sup_le_sum {α β : Type*} [AddCommMonoid β] [LinearOrder β] [Ord
     s.sup f ≤ ∑ a ∈ s, f a :=
   Finset.sup_le_iff.2 (fun _ hb => Finset.single_le_sum hfs hb)
 
+lemma log2_le_logb_two (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by
+  calc (Nat.log2 n : ℝ)
+  _ = Nat.log 2 n := mod_cast Nat.log2_eq_log_two
+  _ ≤ Real.logb 2 n := Real.natLog_le_logb _ _
+
 end Aux
 
 namespace ProbabilityTheory
@@ -446,9 +451,6 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
         * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
               * internalCoveringNumber (δ / 4) J
             + c * Cp d p q) := by
-  sorry
-
-lemma log2_le_logb_two (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
