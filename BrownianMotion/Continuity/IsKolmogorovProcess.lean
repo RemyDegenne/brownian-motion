@@ -89,6 +89,7 @@ lemma IsKolmogorovProcess.aestronglyMeasurable_edist
   exact h_str.aestronglyMeasurable.comp_aemeasurable (hX.aemeasurablePair s t)
 
 omit [MeasurableSpace E] [BorelSpace E] in
+@[fun_prop]
 lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M) {s t : T} :
     AEMeasurable (fun ω ↦ edist (X s ω) (X t ω)) P := hX.aestronglyMeasurable_edist.aemeasurable
 

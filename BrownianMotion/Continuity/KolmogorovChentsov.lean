@@ -11,20 +11,22 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 
 -/
 
+#check ContinuousLinearMap.toLinearMap
+
 open MeasureTheory
 open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-variable {T Ω E : Type*} [EMetricSpace T] {mΩ : MeasurableSpace Ω}
-  [PseudoEMetricSpace E] [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]
+variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
+  [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
   {X : T → Ω → E}
   {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0}
   {P : Measure Ω}
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
-    (hX : ∀ t, AEMeasurable (X t) P)
-    (hβ_pos : 0 < β) (hp_pos : 0 < p) {J : Set T} (hJ : Countable J) :
+    (hX : IsKolmogorovProcess X P p q M)
+    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} (hJ : Countable J) :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s : J) (t : J)
@@ -39,15 +41,24 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     apply ENNReal.Tendsto.mul_const (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num))
     simp [← lt_top_iff_ne_top, hT]
   conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
-  rw [← lintegral_tsum (by fun_prop)]
-  refine lintegral_mono (fun ω ↦ ?_)
+  rw [← lintegral_tsum (by fun_prop (disch := exact hX))]
+  have hη_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : J), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
+    rw [eventually_countable_forall]; intro s
+    rw [eventually_countable_forall]; intro t
+    by_cases h_dist : edist s t = 0
+    · apply Filter.Eventually.mp (IsKolmogorovProcess.edist_eq_zero hX hp hq h_dist)
+      filter_upwards using (fun _ h _ ↦ h)
+    filter_upwards using (fun _ ↦ by simp [h_dist])
+  refine lintegral_mono_ae (Filter.Eventually.mp hη_ae ?_)
+  filter_upwards with ω h
   rw [iSup_le_iff]; rintro ⟨s, hs⟩
   rw [iSup_le_iff]; intro ⟨t, ht⟩
-  wlog hst : s ≠ t
-  · simp [not_ne_iff.mp hst, edist_self, ge_iff_le, ENNReal.zero_rpow_of_pos (by positivity)]
+  wlog hst : 0 < edist s t
+  · simp [(h ⟨s, hs⟩ ⟨t, ht⟩) <| nonpos_iff_eq_zero.mp (le_of_not_gt hst),
+      ENNReal.zero_rpow_of_pos (by positivity)]
   obtain ⟨k, lb, ub⟩ : ∃ k, (η k ≤ edist s t) ∧ (edist s t ≤ 2 * η k) := by
     have hη_dist : ∃ k, η k ≤ edist s t :=
-      (Filter.Eventually.exists (Filter.Tendsto.eventually_le_const (edist_pos.mpr hst) hη_lim))
+      (Filter.Eventually.exists (Filter.Tendsto.eventually_le_const hst hη_lim))
     refine ⟨Nat.find hη_dist, Nat.find_spec hη_dist, ?_⟩
     match hk : Nat.find hη_dist with
     | 0 =>
