@@ -1504,6 +1504,8 @@ We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam_bis} and Th
 
 \subsection{Sets with bounded internal covering number}
 
+TODO: change the proofs here to avoid $s \ne t$ and use instead properties of processes satisfying the Kolmogorov condition for exponents $(p,q)$.
+
 \begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
   \leanok
   \lean{ProbabilityTheory.lintegral_div_edist_le_sum_integral_edist_le}
@@ -1517,8 +1519,7 @@ For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
-\leanok
+\begin{proof}\leanok
 We introduce for each $k \in \mathbb{N}$ the set of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
 Note that $\eta_k \ge 2^{-k}$.
 \begin{align*}
