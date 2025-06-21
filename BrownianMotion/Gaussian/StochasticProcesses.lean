@@ -12,7 +12,7 @@ lemma modification_of_indistinduishable (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t
 
 variable [MeasurableSpace E]
 
-lemma finite_distributions_eq {n : ℕ} {t : Fin n → T} (h : ∀ t, ∀ᵐ ω ∂P, X t ω = Y t ω) :
+lemma finite_distributions_eq {n : ℕ} {t : Fin n → T} (h : ∀ t, X t =ᵐ[P] Y t) :
     P.map (fun ω m ↦ X (t m) ω) = P.map (fun ω m ↦ Y (t m) ω) := by
   have h' : ∀ᵐ ω ∂P, ∀ (m : Fin n), X (t m) ω = Y (t m) ω := by
     rw [MeasureTheory.ae_all_iff]
