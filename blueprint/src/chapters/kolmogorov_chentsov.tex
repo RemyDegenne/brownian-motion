@@ -285,10 +285,12 @@ By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
 
 \begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_unitInterval}
   \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_Icc_zero_one_le_one_div}
 The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal covering number with constant $1$ and exponent $1$: for $\varepsilon \le 1$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -1466,7 +1468,7 @@ With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_
 \end{align*}
 \end{corollary}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:finite_set_bound_of_dist_le_of_le_diam}
 We apply Theorem~\ref{thm:finite_set_bound_of_dist_le_of_le_diam} and then remark that for $\delta \le 4\mathrm{diam}(T)$, we can use the bounded internal covering number hypothesis to bound $N^{int}_{\delta/4}(T)$~:
 \begin{align*}
@@ -1504,6 +1506,8 @@ We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam_bis} and Th
 
 \subsection{Sets with bounded internal covering number}
 
+TODO: change the proofs here to avoid $s \ne t$ and use instead properties of processes satisfying the Kolmogorov condition for exponents $(p,q)$.
+
 \begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
   \leanok
   \lean{ProbabilityTheory.lintegral_div_edist_le_sum_integral_edist_le}
@@ -1517,8 +1521,7 @@ For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
-\leanok
+\begin{proof}\leanok
 We introduce for each $k \in \mathbb{N}$ the set of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
 Note that $\eta_k \ge 2^{-k}$.
 \begin{align*}
