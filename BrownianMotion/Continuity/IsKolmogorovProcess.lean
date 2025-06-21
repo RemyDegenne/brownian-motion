@@ -37,6 +37,11 @@ lemma Finset.sup_le_sum {α β : Type*} [AddCommMonoid β] [LinearOrder β] [Ord
     s.sup f ≤ ∑ a ∈ s, f a :=
   Finset.sup_le_iff.2 (fun _ hb => Finset.single_le_sum hfs hb)
 
+lemma log2_le_logb_two (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by
+  calc (Nat.log2 n : ℝ)
+  _ = Nat.log 2 n := mod_cast Nat.log2_eq_log_two
+  _ ≤ Real.logb 2 n := Real.natLog_le_logb _ _
+
 end Aux
 
 namespace ProbabilityTheory
@@ -445,28 +450,111 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * δ ^ (q - d)
         * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
-              * Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
+              * internalCoveringNumber (δ / 4) J
             + c * Cp d p q) := by
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  sorry
+  refine (finite_set_bound_of_edist_le_of_le_diam hJ hX hd_pos hp_pos hdq_lt hδ hδ_le).trans ?_
+  simp_rw [mul_assoc]
+  gcongr _ * (_ * ?_)
+  simp_rw [mul_add, ← mul_assoc]
+  gcongr ?_ + ?_
+  · rw [mul_comm c]
+    simp_rw [mul_assoc]
+    gcongr _ * ?_
+    simp_rw [← mul_assoc]
+    have hδ_ne_top : δ ≠ ∞ := by
+      refine ne_of_lt ?_
+      calc δ
+      _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
+      _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam.lt_top
+    have hJδ := hJ (δ / 4) hδ_le
+    have hJ' : internalCoveringNumber (δ / 4) J ≤ c * 4 ^ d * δ⁻¹ ^ d := by
+      refine hJδ.trans_eq ?_
+      rw [ENNReal.inv_div, ENNReal.div_rpow_of_nonneg, div_eq_mul_inv, ENNReal.inv_rpow]
+      · ring
+      · exact hd_pos.le
+      · simp
+      · exact .inr hδ
+    have hJ'' : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat
+        ≤ ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d)) := by
+      by_cases h0 : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat = 0
+      · simp [h0]
+      refine (ENNReal.natCast_le_ofReal h0).mpr ?_
+      calc (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat : ℝ)
+      _ ≤ Real.logb 2 (internalCoveringNumber (δ / 4) J).toNat := log2_le_logb_two _
+      _ ≤ Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d) := by
+        have h_ne_top : internalCoveringNumber (δ / 4) J ≠ ⊤ := by
+          refine (hJ.internalCoveringNumber_lt_top ?_ hc hd_pos.le).ne
+          simp [hδ]
+        gcongr
+        · simp
+        · by_contra h_eq
+          simp only [Nat.cast_pos, not_lt, nonpos_iff_eq_zero, ENat.toNat_eq_zero, h_ne_top,
+            or_false] at h_eq
+          simp [h_eq] at h0
+        have h_toReal : c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d
+            = (c * 4 ^ d * δ⁻¹ ^ d).toReal := by simp [ENNReal.toReal_mul, ← ENNReal.toReal_rpow]
+        rw [h_toReal, ← ENNReal.ofReal_le_ofReal_iff ENNReal.toReal_nonneg, ENNReal.ofReal_toReal]
+        · refine le_trans (le_of_eq ?_) hJ'
+          norm_cast
+          simp [h_ne_top]
+        · finiteness
+    have hq_pos : 0 < q := hd_pos.trans hdq_lt
+    calc δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
+        * (internalCoveringNumber (δ / 4) J)
+    _ ≤ δ ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (c * 4 ^ d * δ⁻¹ ^ d) := by gcongr
+    _ = c * 4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q := by
+      rw [ENNReal.inv_rpow]
+      simp_rw [mul_assoc]
+      rw [mul_comm]
+      simp_rw [← mul_assoc, mul_assoc]
+      rw [ENNReal.inv_mul_cancel]
+      · ring
+      · simp [hδ, hd_pos.le]
+      · simp [hδ_ne_top, hδ]
+  · exact le_of_eq (by ring)
 
 lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
+    (hX : IsKolmogorovProcess X P p q M) (hc : c ≠ ∞)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) (h_diam : EMetric.diam J ≠ ∞) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
-        * ((4 ^ d * ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+        * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  sorry
+  by_cases hδ_le : δ / 4 ≤ EMetric.diam J
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hc hd_pos hp_pos hdq_lt hδ hδ_le h_diam
+  refine (finite_set_bound_of_edist_le_of_diam_le hJ hX hd_pos hp_pos hdq_lt hδ ?_).trans ?_
+  · exact (not_le.mp hδ_le).le
+  have hq_pos : 0 < q := hd_pos.trans hdq_lt
+  calc 2 ^ q * ↑M * c * δ ^ (q - d) * Cp d p q
+  _ ≤ 4 ^ (p + 2 * q + 1) * ↑M * c * δ ^ (q - d) * Cp d p q := by
+    gcongr
+    calc (2 : ℝ≥0∞) ^ q
+    _ ≤ 4 ^ q := by
+      gcongr
+      norm_cast
+    _ ≤ 4 ^ q * 4 ^ (p + q + 1) := by
+      conv_lhs => rw [← mul_one ((4 : ℝ≥0∞) ^ q)]
+      gcongr
+      exact ENNReal.one_le_rpow (by norm_cast) (by positivity)
+    _ = 4 ^ (p + 2 * q + 1) := by
+      rw [← ENNReal.rpow_add _ _ (by positivity) (by simp)]
+      ring_nf
+  _ ≤ 4 ^ (p + 2 * q + 1) * ↑M * c * δ ^ (q - d) *
+      (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
+      + Cp d p q) := by
+    rw [mul_add]
+    exact le_add_self
 
 end Together
 
