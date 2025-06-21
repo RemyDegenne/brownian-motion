@@ -11,8 +11,6 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 
 -/
 
-#check ContinuousLinearMap.toLinearMap
-
 open MeasureTheory
 open scoped ENNReal NNReal
 
