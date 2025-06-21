@@ -11,6 +11,15 @@ open scoped NNReal ProbabilityTheory
 
 namespace ProbabilityTheory
 
+open scoped InnerProductSpace in
+lemma charFun_pi {ι : Type*} [Fintype ι] {E : ι → Type*} {mE : ∀ i, MeasurableSpace (E i)}
+    [∀ i, NormedAddCommGroup (E i)] [∀ i, InnerProductSpace ℝ (E i)] (μ : (i : ι) → Measure (E i))
+    [∀ i, IsProbabilityMeasure (μ i)] (t : PiLp 2 E) :
+    charFun (E := PiLp 2 E) (Measure.pi μ) t = ∏ i, charFun (μ i) (t i) := by
+  simp_rw [charFun, PiLp.inner_apply, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,
+    PiLp, WithLp]
+  rw [integral_fintype_prod_eq_prod (f := fun i x ↦ Complex.exp (⟪x, t i⟫_ℝ * Complex.I))]
+
 @[simp]
 lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
     [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : NormedSpace.Dual ℝ E) :
@@ -18,11 +27,6 @@ lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [Com
   rw [charFun_eq_charFunDual_toDualMap]
   congr with x
   simp
-
-@[simp]
-lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
-    [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : NormedSpace.Dual 𝕜 E) :
-  inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
 
 lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥0}
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by

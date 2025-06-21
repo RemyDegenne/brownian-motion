@@ -90,15 +90,14 @@ lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
-lemma variance_dual_stdGaussian (L : Dual ℝ E) :
-    Var[L; stdGaussian E] = ∑ i, L (stdOrthonormalBasis ℝ E i) ^ 2 := by
+lemma variance_dual_stdGaussian (L : Dual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
   rw [stdGaussian, variance_map]
   · have : L ∘ (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i) =
         ∑ i, (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ L (stdOrthonormalBasis ℝ E i) * x i) := by
       ext x; simp [mul_comm]
     rw [this, variance_pi]
     · change ∑ i, Var[fun x ↦ _ * (id x); gaussianReal 0 1] = _
-      simp_rw [variance_mul, variance_id_gaussianReal]
+      simp_rw [variance_mul, variance_id_gaussianReal, (stdOrthonormalBasis ℝ E).norm_dual]
       simp
     · exact fun i ↦ ((isGaussian_gaussianReal 0 1).memLp_two_id _).const_mul _
   · exact L.continuous.aemeasurable
@@ -114,7 +113,7 @@ lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- �
     simp only [Complex.ofReal_zero, mul_zero, zero_mul, NNReal.coe_one, Complex.ofReal_one, one_mul,
       zero_sub]
     simp_rw [← Complex.exp_sum, Finset.sum_neg_distrib, ← Finset.sum_div, ← Complex.ofReal_pow,
-      ← Complex.ofReal_sum, ← (stdOrthonormalBasis ℝ E).sum_sq_inner_right, neg_div]
+      ← Complex.ofReal_sum, ← (stdOrthonormalBasis ℝ E).norm_sq_eq_sum_sq_inner_right, neg_div]
   · exact Measurable.aemeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
 
@@ -123,6 +122,12 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
+lemma charFunDual_stdGaussian (L : Dual ℝ E) :
+    charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
+  rw [IsGaussian.charFunDual_eq, integral_complex_ofReal, isCentered_stdGaussian,
+    variance_dual_stdGaussian]
+  simp [neg_div]
+
 lemma covInnerBilin_stdGaussian :
     covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
   refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
@@ -130,6 +135,34 @@ lemma covInnerBilin_stdGaussian :
 
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
+
+lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
+    [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :
+    haveI := f.finiteDimensional; (stdGaussian E).map f = stdGaussian F := by
+  have := f.finiteDimensional
+  apply Measure.ext_of_charFunDual
+  ext L
+  simp_rw [← f.coe_coe_eq_coe, charFunDual_map, charFunDual_stdGaussian,
+    L.opNorm_comp_linearIsometryEquiv]
+
+lemma pi_eq_stdGaussian {n : Type*} [Fintype n] :
+    Measure.pi (fun _ ↦ gaussianReal 0 1) = stdGaussian (EuclideanSpace ℝ n) := by
+  -- This instance is not found automatically, probably a defeq issue between
+  -- `n → ℝ` and `EuclideanSpace ℝ n`.
+  have : IsFiniteMeasure (Measure.pi fun _ : n ↦ gaussianReal 0 1) := inferInstance
+  apply Measure.ext_of_charFun (E := EuclideanSpace ℝ n)
+  ext t
+  simp_rw [charFun_stdGaussian, charFun_pi, charFun_gaussianReal, ← Complex.exp_sum,
+    ← Complex.ofReal_pow, EuclideanSpace.real_norm_sq_eq]
+  simp [Finset.sum_div, neg_div]
+
+lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : OrthonormalBasis ι ℝ E) :
+    stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map
+      (fun x ↦ ∑ i, x i • b i) := by
+  have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
+      ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) := by
+    simp_rw [← b.equiv_apply_euclideanSpace]
+  rw [this, pi_eq_stdGaussian, stdGaussian_map (f := (EuclideanSpace.basisFun ι ℝ).equiv _ _)]
 
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)

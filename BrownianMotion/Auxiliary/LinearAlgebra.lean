@@ -1,3 +1,4 @@
+import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 section mkContinuous₂
@@ -41,15 +42,63 @@ lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLi
     · simp
   · simp [h]
 
-theorem OrthonormalBasis.sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
+theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
-    ∑ i : ι, ⟪b i, x⟫_ℝ ^ 2 = ‖x‖ ^ 2 := by
+    ‖x‖ ^ 2 = ∑ i, ⟪b i, x⟫_ℝ ^ 2 := by
   rw [← b.sum_sq_norm_inner]
   simp
 
-theorem OrthonormalBasis.sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
+theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
-    ∑ i : ι, ⟪x, b i⟫_ℝ ^ 2 = ‖x‖ ^ 2 := by
-  simp_rw [← b.sum_sq_inner_right, real_inner_comm]
+    ‖x‖ ^ 2 = ∑ i, ⟪x, b i⟫_ℝ ^ 2 := by
+  simp_rw [b.norm_sq_eq_sum_sq_inner_right, real_inner_comm]
+
+theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpace ℝ n) :
+    ‖x‖ ^ 2 = ∑ i, (x i) ^ 2 := by
+  rw [PiLp.norm_sq_eq_of_L2]
+  congr with i; simp
+
+namespace OrthonormalBasis
+
+variable {ι ι' 𝕜 E E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
+    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
+    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (b : OrthonormalBasis ι 𝕜 E)
+    (b' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι')
+
+/-- The `LinearIsometryEquiv` which maps an orthonormal basis to another. This is a convenience
+wrapper around `Orthonormal.equiv`. -/
+protected noncomputable def equiv : E ≃ₗᵢ[𝕜] E' :=
+  Orthonormal.equiv (v := b.toBasis) (v' := b'.toBasis) b.orthonormal b'.orthonormal e
+
+lemma equiv_apply_basis (i : ι) : b.equiv b' e (b i) = b' (e i) := by
+  simp only [OrthonormalBasis.equiv, Orthonormal.equiv, LinearEquiv.coe_isometryOfOrthonormal]
+  rw [← b.coe_toBasis, Basis.equiv_apply, b'.coe_toBasis]
+
+lemma equiv_apply (x : E) : b.equiv b' e x = ∑ i, b.repr x i • b' (e i) := by
+  nth_rw 1 [← b.sum_repr x, map_sum]
+  simp_rw [map_smul, equiv_apply_basis]
+
+lemma equiv_apply_euclideanSpace (x : EuclideanSpace 𝕜 ι) :
+    (EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι) x = ∑ i, x i • b i := by
+  simp_rw [equiv_apply, EuclideanSpace.basisFun_repr, Equiv.refl_apply]
+
+end OrthonormalBasis
+
+@[simp]
+lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
+    [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : NormedSpace.Dual 𝕜 E) :
+  inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
+
+theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : NormedSpace.Dual ℝ E) :
+    ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
+  have := FiniteDimensional.of_fintype_basis b.toBasis
+  simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
+    InnerProductSpace.toDual_symm_apply]
+
+@[simp]
+lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
+    [NormedAddCommGroup F] [InnerProductSpace 𝕜 E] [InnerProductSpace 𝕜 F] (f : E ≃ₗᵢ[𝕜] F) :
+    ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace
