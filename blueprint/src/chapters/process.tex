@@ -32,22 +32,26 @@ A summary of the next few lemmas is this:
 
 \begin{lemma}\label{lem:Indistinguishable.Modification}
   \uses{def:indistinguishable, def:modification}
+  \leanok
+  \lean{modification_of_indistinduishable}
 If $Y$ is indistinguishable from $X$, then $Y$ is a modification of $X$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Obvious.
 \end{proof}
 
 
 \begin{lemma}\label{lem:map_eq_of_modification}
   \uses{def:modification}
+  \leanok
+  \lean{finite_distributions_eq}
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other.
 Then for all $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has the same distribution as the random vector $(Y_{t_1}, \ldots, Y_{t_n})$.
 That is, $X$ and $Y$ have same finite-dimensional distributions.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 By the modification property, almost surely $X_{t_i} = Y_{t_i}$ for all $i \in [n]$.
 Thus the function $\omega \mapsto (X_{t_1}(\omega), \ldots, X_{t_n}(\omega))$ is equal to $\omega \mapsto (Y_{t_1}(\omega), \ldots, Y_{t_n}(\omega))$ almost surely, hence the maps of $\mathbb{P}$ by these two functions are equal.
 \end{proof}
@@ -55,23 +59,27 @@ Thus the function $\omega \mapsto (X_{t_1}(\omega), \ldots, X_{t_n}(\omega))$ is
 
 \begin{lemma}\label{lem:map_eq_iff}
   \uses{def:processLaw}
+  \leanok
+  \lean{finite_distributions_eq_iff_same_law}
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes.
 Then $X$ and $Y$ have same finite-dimensional distributions if and only if they have the same law.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 TODO: consider the $\pi$-system of cylinder sets.
 \end{proof}
 
 
 \begin{lemma}\label{lem:indistinguishable_of_modification_of_continuous}
   \uses{def:modification, def:indistinguishable}
+  \leanok
+  \lean{indistinduishable_of_modification}
 Let $T$ and $E$ be topological spaces and suppose that $T$ is separable Hausdorff.
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other and are almost surely continuous.
 Then $X$ and $Y$ are indistinguishable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Since $T$ is separable, it has a countable dense subset $D$.
 Since $D$ is countable,
 \begin{align*}
