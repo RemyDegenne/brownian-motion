@@ -27,9 +27,9 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} (hJ : Countable J) :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
-          * ∫⁻ ω, ⨆ (s : J) (t : J)
-            (_he : edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1)),
-            edist (X s ω) (X t ω) ^p ∂P := by
+          * ∫⁻ ω, ⨆ (s : J)
+              (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1)}),
+                edist (X s ω) (X t ω) ^p ∂P := by
   let η k := 2⁻¹ ^ k * (EMetric.diam (Set.univ : Set T) + 1)
   have hη_ge (k : ℕ) : 2⁻¹ ^ (k : ℝ) ≤ η k := by simp [η, mul_add]
   have hη_succ (k : ℕ) : η (k + 1) = 2⁻¹ * η k := by simp [η, pow_add, mul_assoc, mul_comm]
@@ -73,13 +73,8 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
   · rw [ENNReal.inv_le_iff_inv_le, ← ENNReal.inv_rpow, mul_assoc, ENNReal.rpow_mul,
       ENNReal.rpow_le_rpow_iff (by positivity)]
     exact le_trans (hη_ge k) lb
-  apply le_trans
-  · apply le_iSup (fun (_ :edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1))
-      ↦ edist (X s ω) (X t ω) ^ p)
-    rwa [mul_assoc]
   apply le_iSup_of_le (i := ⟨s, hs⟩)
-  apply le_iSup_of_le (i := ⟨t, ht⟩)
-  exact le_refl _
+  exact le_iSup_of_le (i := ⟨⟨t, ht⟩, by rwa [mul_assoc]⟩) (le_refl _)
 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
