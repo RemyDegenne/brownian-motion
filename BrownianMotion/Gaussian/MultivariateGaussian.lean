@@ -173,6 +173,10 @@ def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (
 variable {μ : EuclideanSpace ℝ (Fin d)} {S : Matrix (Fin d) (Fin d) ℝ} {hS : S.PosSemidef}
 
 instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S hS) := by
-  sorry
+  have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) =
+    (fun x ↦ μ + (toEuclideanCLM (𝕜 := ℝ) hS.sqrt) x) := rfl
+  simp only [multivariateGaussian]
+  rw [← h, ← Measure.map_map (measurable_const_add μ) (by measurability)]
+  infer_instance
 
 end ProbabilityTheory
