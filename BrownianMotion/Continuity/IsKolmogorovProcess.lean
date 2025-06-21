@@ -448,6 +448,9 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
             + c * Cp d p q) := by
   sorry
 
+lemma log2_le_logb_two (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by
+  sorry
+
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
@@ -483,21 +486,25 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
       by_cases h0 : Nat.log2 (internalCoveringNumber (δ / 4) J).toNat = 0
       · simp [h0]
       refine (ENNReal.natCast_le_ofReal h0).mpr ?_
-      have (n : ℕ) : Nat.log2 n ≤ Real.logb 2 n := by -- extract lemma
-        sorry
       calc (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat : ℝ)
-      _ ≤ Real.logb 2 (internalCoveringNumber (δ / 4) J).toNat := this _
+      _ ≤ Real.logb 2 (internalCoveringNumber (δ / 4) J).toNat := log2_le_logb_two _
       _ ≤ Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d) := by
+        have h_ne_top : internalCoveringNumber (δ / 4) J ≠ ⊤ := by
+          refine (hJ.internalCoveringNumber_lt_top ?_ hc hd_pos.le).ne
+          simp [hδ]
         gcongr
         · simp
         · by_contra h_eq
-          have h_ne_top : internalCoveringNumber (δ / 4) J ≠ ⊤ := by
-            refine (hJ.internalCoveringNumber_lt_top ?_ hc hd_pos.le).ne
-            simp [hδ]
           simp only [Nat.cast_pos, not_lt, nonpos_iff_eq_zero, ENat.toNat_eq_zero, h_ne_top,
             or_false] at h_eq
           simp [h_eq] at h0
-        sorry
+        have h_toReal : c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d
+            = (c * 4 ^ d * δ⁻¹ ^ d).toReal := by simp [ENNReal.toReal_mul, ← ENNReal.toReal_rpow]
+        rw [h_toReal, ← ENNReal.ofReal_le_ofReal_iff ENNReal.toReal_nonneg, ENNReal.ofReal_toReal]
+        · refine le_trans (le_of_eq ?_) hJ'
+          norm_cast
+          simp [h_ne_top]
+        · finiteness
     have hq_pos : 0 < q := hd_pos.trans hdq_lt
     calc δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
         * (internalCoveringNumber (δ / 4) J)
