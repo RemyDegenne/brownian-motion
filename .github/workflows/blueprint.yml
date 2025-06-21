@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master # Trigger on pushes to the default branch
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:        # Allow manual triggering of the workflow from the GitHub Actions interface
 
 # Cancel previous runs if a new commit is pushed to the same PR or branch
