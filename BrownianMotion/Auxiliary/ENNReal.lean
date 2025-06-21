@@ -18,4 +18,12 @@ lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, ((1 : ENNReal) 
   rw [← ENNReal.toReal_le_toReal (by simp) (by simp), toReal_ofNat, toReal_sum (by simp)]
   simpa [-one_div] using _root_.sum_geometric_two_le _
 
+lemma ofReal_one_div {x : ℝ} (hx : 0 < x) :
+    ENNReal.ofReal (1 / x) = 1 / (ENNReal.ofReal x) := by
+  rwa [ENNReal.ofReal_div_of_pos, ofReal_one]
+
+lemma le_one_div_iff {x y : ℝ≥0∞} : x ≤ 1 / y ↔ y ≤ 1 / x := by
+  rw [ENNReal.le_div_iff_mul_le, ENNReal.le_div_iff_mul_le, mul_comm]
+  all_goals simp
+
 end ENNReal

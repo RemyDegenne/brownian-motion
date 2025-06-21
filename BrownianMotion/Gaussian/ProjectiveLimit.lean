@@ -12,8 +12,24 @@ import BrownianMotion.Init
 
 -/
 
-open MeasureTheory NormedSpace
+open MeasureTheory NormedSpace Set
 open scoped ENNReal NNReal
+
+namespace L2
+
+variable {ι : Type*} [Fintype ι]
+variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
+
+/- In an `L2` space, the matrix of intersections of pairs of sets is positive semi-definite. -/
+theorem posSemidef_interMatrix {μ : Measure α} {v : ι → (Set α)}
+    (hv₁ : ∀ j, MeasurableSet (v j)) (hv₂ : ∀ j, μ (v j) ≠ ∞ := by finiteness) :
+    Matrix.PosSemidef (Matrix.of fun i j : ι ↦ μ.real (v i ∩ v j)) := by
+  -- simp only [hv₁, ne_eq, hv₂, not_false_eq_true,
+      -- ← inner_indicatorConstLp_one_indicatorConstLp_one']
+  -- exact gram_posSemidef
+  sorry -- include once Mathlib PR #25883 is available
+
+end L2
 
 namespace ProbabilityTheory
 
@@ -23,7 +39,14 @@ def brownianCovMatrix (I : ι → ℝ≥0) : Matrix ι ι ℝ := Matrix.of fun i
 
 lemma posSemidef_brownianCovMatrix (I : ι → ℝ≥0) :
     (brownianCovMatrix I).PosSemidef := by
-  sorry -- done in Mathlib PR #24575
+  let v : ι → (Set ℝ) := fun i ↦ Set.Icc 0 (I i)
+  have h : brownianCovMatrix I =
+    fun i j ↦ (volume.real ((Icc 0 (I i).toReal) ∩ (Icc 0 (I j)))) := by
+    simp only [Icc_inter_Icc, max_self, Real.volume_real_Icc, sub_zero, le_inf_iff,
+      NNReal.zero_le_coe, and_self, sup_of_le_left]
+    rfl
+  apply h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
+    (fun j ↦ IsCompact.measure_ne_top isCompact_Icc)
 
 noncomputable
 def gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
