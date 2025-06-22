@@ -62,6 +62,7 @@ lemma integral_eval_pi {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] {X : ι → 
   rw [← this, integral_fintype_prod_eq_prod, show ∫ x, f x ∂μ i = ∫ x, g i x ∂μ i by simp [g]]
   exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [g, hj])
 
+@[simp]
 lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
   rw [stdGaussian, integral_map _ (by fun_prop)]
   swap; · exact (Finset.measurable_sum _ (by fun_prop)).aemeasurable -- todo: add fun_prop tag
@@ -178,5 +179,13 @@ instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S
   simp only [multivariateGaussian]
   rw [← h, ← Measure.map_map (measurable_const_add μ) (by measurability)]
   infer_instance
+
+lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S hS) = μ := by
+  rw [multivariateGaussian, integral_map (by fun_prop) (by fun_prop),
+    integral_add (integrable_const _), integral_const]
+  · simp [ContinuousLinearMap.integral_comp_comm _ (IsGaussian.integrable_fun_id _)]
+  · have h_id : Integrable id ((stdGaussian (EuclideanSpace ℝ (Fin d))).map
+      (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) := IsGaussian.integrable_id _
+    exact h_id.comp_measurable (by fun_prop)
 
 end ProbabilityTheory
