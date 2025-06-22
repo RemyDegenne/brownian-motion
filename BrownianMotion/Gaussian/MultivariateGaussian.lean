@@ -191,6 +191,24 @@ lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S 
       (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) := IsGaussian.integrable_id _
     exact h_id.comp_measurable (by fun_prop)
 
+lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
+    ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫
+      = (EuclideanSpace.basisFun ι ℝ).toBasis.repr x ⬝ᵥ S
+        *ᵥ (EuclideanSpace.basisFun ι ℝ).toBasis.repr y := by
+  simp only [toEuclideanCLM, AddHom.toFun_eq_coe, LinearMap.coe_toAddHom, LinearEquiv.coe_coe,
+    LinearEquiv.invFun_eq_symm, LinearMap.coe_toContinuousLinearMap_symm, StarAlgEquiv.trans_apply,
+    LinearMap.toMatrixOrthonormal_symm_apply, LinearMap.toMatrix_symm, StarAlgEquiv.coe_mk,
+    RingEquiv.coe_mk, Equiv.coe_fn_mk, LinearMap.coe_toContinuousLinearMap', toLin_apply,
+    mulVec_eq_sum, OrthonormalBasis.coe_toBasis_repr_apply, EuclideanSpace.basisFun_repr,
+    op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply, transpose_apply, smul_eq_mul,
+    OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply, PiLp.inner_apply,
+    RCLike.inner_apply, conj_trivial, dotProduct]
+  congr with i
+  rw [mul_comm]
+  congr
+  rw [Finset.sum_apply]
+  simp
+
 lemma covInnerBilin_multivariateGaussian :
     covInnerBilin (multivariateGaussian μ S hS)
       = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis := by
@@ -221,8 +239,7 @@ lemma covInnerBilin_multivariateGaussian :
     rw [← this y]
     simp
   _ = ((EuclideanSpace.basisFun ι ℝ).toBasis.repr x) ⬝ᵥ
-      S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := by
-    sorry
+      S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := inner_toEuclideanCLM _ _
 
 lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
     charFun (multivariateGaussian μ S hS) x =
