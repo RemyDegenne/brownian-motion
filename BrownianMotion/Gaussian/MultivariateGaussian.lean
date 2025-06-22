@@ -188,4 +188,37 @@ lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S 
       (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) := IsGaussian.integrable_id _
     exact h_id.comp_measurable (by fun_prop)
 
+lemma covInnerBilin_multivariateGaussian :
+    covInnerBilin (multivariateGaussian μ S hS)
+      = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun (Fin d) ℝ).toBasis := by
+  have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) =
+    (fun x ↦ μ + (toEuclideanCLM (𝕜 := ℝ) hS.sqrt) x) := rfl
+  simp only [multivariateGaussian]
+  rw [← h, ← Measure.map_map (measurable_const_add μ) (by fun_prop)]
+  rw [covInnerBilin_map_const_add]
+  swap; · exact IsGaussian.memLp_two_id _
+  ext x y
+  rw [covInnerBilin_map, covInnerBilin_stdGaussian]
+  swap; · exact IsGaussian.memLp_two_id _
+  rw [ContinuousBilinForm.inner_apply, ContinuousBilinForm.ofMatrix_apply,
+    ContinuousLinearMap.adjoint_inner_left]
+  rw [IsSelfAdjoint.adjoint_eq]
+  swap; · sorry
+  calc ⟪x, (toEuclideanCLM (𝕜 := ℝ) hS.sqrt) (toEuclideanCLM (𝕜 := ℝ) hS.sqrt y)⟫
+  _ = ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫ := by
+    congr 1
+    sorry
+  _ = ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr x) ⬝ᵥ
+      S *ᵥ ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr y) := by
+    sorry
+
+lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ (Fin d)) :
+    charFun (multivariateGaussian μ S hS) x =
+      Complex.exp (⟪x, μ⟫ * Complex.I
+        - ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun (Fin d) ℝ).toBasis x x / 2) := by
+  rw [IsGaussian.charFun_eq]
+  congr
+  · exact integral_id_multivariateGaussian
+  · exact covInnerBilin_multivariateGaussian
+
 end ProbabilityTheory

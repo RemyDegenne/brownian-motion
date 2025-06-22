@@ -444,6 +444,8 @@ The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
 
 \begin{lemma}\label{lem:covMatrix_multivariateGaussian}
   \uses{def:multivariateGaussian}
+  \leanok
+  \lean{ProbabilityTheory.covInnerBilin_multivariateGaussian}
 The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $\Sigma$.
 \end{lemma}
 
@@ -468,6 +470,8 @@ The multivariate Gaussian measure is the pushforward of the standard Gaussian me
 
 \begin{theorem}\label{thm:charFun_multivariateGaussian}
   \uses{def:multivariateGaussian, def:charFun}
+  \leanok
+  \lean{ProbabilityTheory.charFun_multivariateGaussian}
 The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is given by
 \begin{align*}
   \hat{\mu}(t) = \exp\left(i \langle m, t \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right)
@@ -475,7 +479,7 @@ The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \
 \end{align*}
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq, lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
 Since the multivariate Gaussian measure is a Gaussian measure, we can apply Lemma~\ref{lem:IsGaussian.charFun_eq} to it.
 It suffices then to show that the mean and the covariance matrix of the multivariate Gaussian measure are equal to $m$ and $\Sigma$, respectively.

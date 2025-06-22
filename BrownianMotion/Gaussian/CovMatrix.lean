@@ -74,6 +74,20 @@ lemma covInnerBilin_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace �
     all_goals fun_prop
   · exact memLp_map_measure_iff (by fun_prop) (by fun_prop) |>.2 (L.comp_memLp' h)
 
+lemma covInnerBilin_map_const_add [CompleteSpace E] [IsProbabilityMeasure μ]
+    (c : E) (h : MemLp id 2 μ) :
+    covInnerBilin (μ.map (fun x ↦ c + x)) = covInnerBilin μ := by
+  ext x y
+  have h_Lp : MemLp id 2 (μ.map (fun x ↦ c + x)) :=
+    (measurableEmbedding_addLeft _).memLp_map_measure_iff.mpr <| (memLp_const c).add h
+  rw [covInnerBilin_apply h_Lp, covInnerBilin_apply h, integral_map (by fun_prop) (by fun_prop)]
+  congr with z
+  rw [integral_map (by fun_prop) h_Lp.1]
+  simp only [id_eq]
+  rw [integral_add (integrable_const _)]
+  · simp
+  · exact h.integrable (by simp)
+
 variable [FiniteDimensional ℝ E]
 
 /-- Covariance matrix of a measure on a finite dimensional inner product space. -/
