@@ -180,6 +180,7 @@ instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S
   rw [← h, ← Measure.map_map (measurable_const_add μ) (by measurability)]
   infer_instance
 
+@[simp]
 lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S hS) = μ := by
   rw [multivariateGaussian, integral_map (by fun_prop) (by fun_prop),
     integral_add (integrable_const _), integral_const]
@@ -203,11 +204,20 @@ lemma covInnerBilin_multivariateGaussian :
   rw [ContinuousBilinForm.inner_apply, ContinuousBilinForm.ofMatrix_apply,
     ContinuousLinearMap.adjoint_inner_left]
   rw [IsSelfAdjoint.adjoint_eq]
-  swap; · sorry
+  swap
+  · unfold _root_.IsSelfAdjoint
+    rw [← map_star, EmbeddingLike.apply_eq_iff_eq]
+    exact hS.posSemidef_sqrt.isHermitian
   calc ⟪x, (toEuclideanCLM (𝕜 := ℝ) hS.sqrt) (toEuclideanCLM (𝕜 := ℝ) hS.sqrt y)⟫
   _ = ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫ := by
     congr 1
-    sorry
+    have : (toEuclideanCLM (𝕜 := ℝ) hS.sqrt).comp (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)
+        = toEuclideanCLM (𝕜 := ℝ) (hS.sqrt * hS.sqrt) := by
+      rw [map_mul]
+      rfl
+    rw [PosSemidef.sqrt_mul_self, ContinuousLinearMap.ext_iff] at this
+    rw [← this y]
+    simp
   _ = ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr x) ⬝ᵥ
       S *ᵥ ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr y) := by
     sorry
