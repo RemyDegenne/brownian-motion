@@ -428,12 +428,32 @@ section Together
 
 variable {M : ℝ≥0} {d p q : ℝ} {J : Set T} {c δ : ℝ≥0∞}
 
+-- todo: this should be replaced by two lemmas that state that both sides are 0?
 lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T}
-    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite) (hC : IsCover C δ J)
+    (hX : IsKolmogorovProcess X P p q M) (hp : 0 < p) (hq : 0 < q)
+    (hJ : J.Finite) (hC : IsCover C δ J)
     (hC_subset : (C : Set T) ⊆ J) (hδ_lt : δ < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t) :
     ∫⁻ ω, ⨆ (s : C) (t : { t : C // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       = ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P := by
-  sorry
+  have h_le_iff {s t : T} (hs : s ∈ J) (ht : t ∈ J) : edist s t ≤ δ ↔ edist s t = 0 := by
+    sorry
+  have hl : ∀ᵐ ω ∂P, ∀ s : C, ∀ t : { t : C // edist s t ≤ δ }, edist (X s ω) (X t ω) ^ p = 0 := by
+    simp_rw [ae_all_iff]
+    intro s t
+    have h := hX.edist_eq_zero hp hq (s := s) (t := t) ?_
+    · filter_upwards [h] with ω hω using by simp [hω, hp]
+    rw [← h_le_iff (hC_subset s.2) (hC_subset t.1.2)]
+    exact t.2
+  have hr : ∀ᵐ ω ∂P, ∀ s : J, ∀ t : { t : J // edist s t ≤ δ }, edist (X s ω) (X t ω) ^ p = 0 := by
+    have : Countable J := by simp [hJ.countable]
+    simp_rw [ae_all_iff]
+    intro s t
+    have h := hX.edist_eq_zero hp hq (s := s) (t := t) ?_
+    · filter_upwards [h] with ω hω using by simp [hω, hp]
+    rw [← h_le_iff s.2 t.1.2]
+    exact t.2
+  refine lintegral_congr_ae ?_
+  filter_upwards [hl, hr] with ω hCω hJω using by simp [hCω, hJω]
 
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
