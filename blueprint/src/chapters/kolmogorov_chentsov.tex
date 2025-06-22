@@ -949,7 +949,7 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Let $\delta \in (0, 4 \varepsilon_0]$ and let $m = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
+Suppose $\varepsilon_0 < \infty$, let $\delta \in (0, 4 \varepsilon_0]$ and let $m = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
 Then for $k \ge m$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
@@ -958,7 +958,7 @@ Then for $k \ge m$,
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
 By definition of $m$, $\varepsilon_0 2^{-m} < \delta/2 \le \varepsilon_0 2^{-m+1}$.
 

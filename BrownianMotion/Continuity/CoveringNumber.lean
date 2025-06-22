@@ -47,6 +47,15 @@ lemma internalCoveringNumber_le_of_isCover [EDist E] {C : Finset E} {r : ℝ≥0
     internalCoveringNumber r A ≤ C.card :=
   iInf_le_of_le C <| iInf_le_of_le C_sub <| iInf_le_of_le C_cov le_rfl
 
+@[simp]
+lemma IsCover.self [PseudoEMetricSpace E] (A : Set E) (r : ℝ≥0∞) : IsCover A r A :=
+  fun a ha => ⟨a, ha, by simp⟩
+
+lemma Set.Finite.internalCoveringNumber_le_ncard [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E)
+    (ha : A.Finite) : internalCoveringNumber r A ≤ A.ncard := by
+  rw [internalCoveringNumber]
+  exact sInf_le ⟨ha.toFinset, by simpa using (ncard_eq_toFinset_card _ _).symm⟩
+
 lemma EMetric.isCover_iff [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E} :
     IsCover C ε A ↔ A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
   simp [IsCover, Set.subset_def]
