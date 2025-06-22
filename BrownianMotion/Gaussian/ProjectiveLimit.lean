@@ -61,8 +61,8 @@ instance isGaussian_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
   infer_instance
 
 lemma integral_id_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    ∫ x, x ∂(gaussianProjectiveFamilyAux I) = 0 := by
-  sorry
+    ∫ x, x ∂(gaussianProjectiveFamilyAux I) = 0 :=
+  integral_id_multivariateGaussian
 
 noncomputable
 def finToSubtype (I : Finset ℝ≥0) : EuclideanSpace ℝ (Fin I.card) ≃L[ℝ] (I → ℝ) :=
