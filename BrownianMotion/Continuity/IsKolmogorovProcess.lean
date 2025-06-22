@@ -428,11 +428,14 @@ section Together
 
 variable {M : ℝ≥0} {d p q : ℝ} {J : Set T} {c δ : ℝ≥0∞}
 
-lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T}
-    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite) (hC : IsCover C δ J)
-    (hC_subset : (C : Set T) ⊆ J) (hδ_lt : δ < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t) :
+lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T} {ε : ℝ≥0∞}
+    (hX : IsKolmogorovProcess X P p q M) (hp : 0 < p) (hq : 0 < q)
+    (hJ : J.Finite) (hC : IsCover C ε J) (hC_subset : (C : Set T) ⊆ J)
+    (hε_lt : ε < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t) :
     ∫⁻ ω, ⨆ (s : C) (t : { t : C // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       = ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P := by
+  have h_le_iff {s t : T} (hs : s ∈ J) (ht : t ∈ J) : edist s t ≤ ε ↔ edist s t = 0 := by
+    sorry
   sorry
 
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
