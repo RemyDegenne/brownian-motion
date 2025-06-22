@@ -80,14 +80,50 @@ noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
   4 ^ (p + 2 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
-  * ∑' k, 2 ^ (k * β * p + (-k + 1) * (q - d))
+  * ∑' (k: ℕ), 2 ^ (k * β * p + (-k + 1) * (q - d))
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
         + Cp d p q)
 
-lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) ≠ ∞) (hc : 0 < c ∧ c < ⊤) (hd_pos : 0 < d)
+    (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β < ∞ := by
-  sorry
+  -- 1. L is finite as long as the sum in it is finite.
+  unfold constL
+  have := hc.2
+  repeat (
+    first | apply ENNReal.mul_lt_top | apply ENNReal.rpow_lt_top_of_nonneg
+    all_goals try norm_num
+    all_goals try assumption
+    all_goals try linarith
+  )
+  clear! T
+  -- 2. The sum is finite as long as its summand is a O(1 / k^2).
+  unfold Cp
+  -- Let f(k) be the k-th summand.
+  let' f : ℕ → ℝ≥0∞ := _
+  change ∑' (k : ℕ), f k < ∞
+  rw [tsum_congr (g := fun k => ↑ (ENNReal.toNNReal (f k)))]
+  rotate_left
+  -- All terms are finite.
+  · intro k
+    symm
+    apply ENNReal.coe_toNNReal
+    subst f
+    simp [←lt_top_iff_ne_top]
+    repeat (
+        first | apply ENNReal.mul_lt_top | apply ENNReal.rpow_lt_top_of_nonneg
+              | apply ENNReal.one_lt_rpow | apply ENNReal.rpow_pos
+        all_goals try (simp [lt_top_iff_ne_top]; done)
+        all_goals try simp_all
+        all_goals try linarith
+        all_goals try split_ands)
+  rw [lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable, ←NNReal.summable_coe]
+  apply summable_of_isBigO_nat (g := fun k => (k ^ 2)⁻¹)
+  · rw [Real.summable_nat_pow_inv]
+    norm_num
+  -- 3. The summand is a O(1 / k^2).
+  calc (fun a ↦ (f a).toNNReal.toReal)
+      =O[Filter.atTop] fun (k: ℕ) ↦ ((k: ℝ) ^ 2)⁻¹ := by sorry
 
 theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
