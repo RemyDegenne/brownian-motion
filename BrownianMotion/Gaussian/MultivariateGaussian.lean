@@ -165,13 +165,15 @@ lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : Orth
     simp_rw [← b.equiv_apply_euclideanSpace]
   rw [this, pi_eq_stdGaussian, stdGaussian_map (f := (EuclideanSpace.basisFun ι ℝ).equiv _ _)]
 
-noncomputable
-def multivariateGaussian (μ : EuclideanSpace ℝ (Fin d)) (S : Matrix (Fin d) (Fin d) ℝ)
-    (hS : S.PosSemidef) :
-    Measure (EuclideanSpace ℝ (Fin d)) :=
-  (stdGaussian (EuclideanSpace ℝ (Fin d))).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) hS.sqrt x)
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-variable {μ : EuclideanSpace ℝ (Fin d)} {S : Matrix (Fin d) (Fin d) ℝ} {hS : S.PosSemidef}
+noncomputable
+def multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ)
+    (hS : S.PosSemidef) :
+    Measure (EuclideanSpace ℝ ι) :=
+  (stdGaussian (EuclideanSpace ℝ ι)).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) hS.sqrt x)
+
+variable {μ : EuclideanSpace ℝ ι} {S : Matrix ι ι ℝ} {hS : S.PosSemidef}
 
 instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S hS) := by
   have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) =
@@ -185,13 +187,13 @@ lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S 
   rw [multivariateGaussian, integral_map (by fun_prop) (by fun_prop),
     integral_add (integrable_const _), integral_const]
   · simp [ContinuousLinearMap.integral_comp_comm _ (IsGaussian.integrable_fun_id _)]
-  · have h_id : Integrable id ((stdGaussian (EuclideanSpace ℝ (Fin d))).map
+  · have h_id : Integrable id ((stdGaussian (EuclideanSpace ℝ ι)).map
       (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) := IsGaussian.integrable_id _
     exact h_id.comp_measurable (by fun_prop)
 
 lemma covInnerBilin_multivariateGaussian :
     covInnerBilin (multivariateGaussian μ S hS)
-      = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun (Fin d) ℝ).toBasis := by
+      = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis := by
   have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) =
     (fun x ↦ μ + (toEuclideanCLM (𝕜 := ℝ) hS.sqrt) x) := rfl
   simp only [multivariateGaussian]
@@ -218,14 +220,14 @@ lemma covInnerBilin_multivariateGaussian :
     rw [PosSemidef.sqrt_mul_self, ContinuousLinearMap.ext_iff] at this
     rw [← this y]
     simp
-  _ = ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr x) ⬝ᵥ
-      S *ᵥ ((EuclideanSpace.basisFun (Fin d) ℝ).toBasis.repr y) := by
+  _ = ((EuclideanSpace.basisFun ι ℝ).toBasis.repr x) ⬝ᵥ
+      S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := by
     sorry
 
-lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ (Fin d)) :
+lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
     charFun (multivariateGaussian μ S hS) x =
       Complex.exp (⟪x, μ⟫ * Complex.I
-        - ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun (Fin d) ℝ).toBasis x x / 2) := by
+        - ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis x x / 2) := by
   rw [IsGaussian.charFun_eq]
   congr
   · exact integral_id_multivariateGaussian

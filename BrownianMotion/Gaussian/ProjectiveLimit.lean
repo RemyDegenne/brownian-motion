@@ -48,17 +48,19 @@ lemma posSemidef_brownianCovMatrix (I : ι → ℝ≥0) :
   apply h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
     (fun j ↦ IsCompact.measure_ne_top isCompact_Icc)
 
+variable [DecidableEq ι]
+
 noncomputable
-def gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
-    Measure (EuclideanSpace ℝ (Fin d)) :=
+def gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
+    Measure (EuclideanSpace ℝ ι) :=
   multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)
 
-instance isGaussian_gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
+instance isGaussian_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
     IsGaussian (gaussianProjectiveFamilyAux I) := by
   unfold gaussianProjectiveFamilyAux
   infer_instance
 
-lemma integral_id_gaussianProjectiveFamilyAux (I : Fin d → ℝ≥0) :
+lemma integral_id_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
     ∫ x, x ∂(gaussianProjectiveFamilyAux I) = 0 := by
   sorry
 
