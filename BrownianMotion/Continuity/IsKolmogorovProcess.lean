@@ -547,7 +547,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp_pos : 0 < p) (h
   · rw [ENNReal.inv_rpow, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ∞)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
@@ -555,22 +555,77 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
-  sorry
+  refine (lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one hp_pos hp hX ?_ hC hC_subset
+    hC_card hd_pos hdq.le h_cov hm).trans ?_
+  · intro n
+    rw [← mul_one (EMetric.diam J)]
+    gcongr
+    apply pow_le_one₀ <;> norm_num
+  rw [mul_comm _ c₁]
+  conv_rhs => rw [mul_comm _ c₁]
+  simp only [mul_assoc, mul_div_assoc]
+  gcongr c₁ * ?_
+  simp only [← mul_assoc, mul_div_assoc]
+  rw [mul_comm (2 ^ d), mul_assoc]
+  gcongr M * ?_
+  calc ∑ j ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + j + 1)) ^ (-d) * (ε₀ * 2⁻¹ ^ (m + j)) ^ q
+    _ = ∑ j ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + j)) ^ (q - d) * 2⁻¹ ^ (-d) := by
+      congr with j
+      rw [pow_add, ← mul_assoc, ENNReal.mul_rpow_of_ne_top
+        (by apply ENNReal.mul_ne_top <;> simp [hε']) (by simp)]
+      rw [mul_comm, ← mul_assoc,
+        ← ENNReal.rpow_add_of_add_pos (by apply ENNReal.mul_ne_top <;> simp [hε']),
+        pow_one, ← sub_eq_add_neg]
+      bound
+    _ ≤ 2 ^ d * ((2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1)) := ?_
+  rw [← Finset.sum_mul, ENNReal.mul_rpow_of_nonneg _ _ (by bound), mul_comm]
+  gcongr
+  · rw [ENNReal.inv_rpow, ENNReal.rpow_neg, inv_inv]
+  calc ∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + i)) ^ (q + -d)
+    _ = ∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m)) ^ (q - d) * (2⁻¹ ^ (q - d)) ^ i := by
+      congr with i
+      rw [← sub_eq_add_neg, pow_add, ← mul_assoc, ENNReal.mul_rpow_of_nonneg
+        _ _ (sub_nonneg_of_le (le_of_lt hdq))]
+      congr 1
+      rw [← ENNReal.rpow_natCast_mul, ← ENNReal.rpow_mul_natCast, mul_comm]
+    _ ≤ (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * (2 ^ (q - d) - 1)⁻¹ := ?_
+    _ = (2 * ε₀) ^ (q - d) * (2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
+      rw [div_eq_mul_inv, ENNReal.mul_rpow_of_nonneg _ _ (sub_nonneg_of_le hdq.le)]
+  rw [← Finset.mul_sum, ENNReal.mul_rpow_of_nonneg _ _ (by bound), mul_comm (2 : ℝ≥0∞),
+    mul_assoc _ (2 : ℝ≥0∞), mul_comm (2 : ℝ≥0∞),
+    ENNReal.mul_rpow_of_nonneg _ _ (by bound), ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+  simp_rw [mul_assoc]
+  gcongr _ * (_ * ?_)
+  calc ∑ i ∈ Finset.range (k - m), ((2⁻¹ : ℝ≥0∞) ^ (q - d)) ^ i
+    _ ≤ ∑' (i : ℕ), ((2⁻¹ : ℝ≥0∞) ^ (q - d)) ^ i := ENNReal.sum_le_tsum _
+    _ = (1 - (2⁻¹ ^ (q - d)))⁻¹ := ENNReal.tsum_geometric _
+    _ = (2⁻¹ ^ (q - d) * 2 ^ (q - d) - 2⁻¹ ^ (q - d))⁻¹ := by
+      congr
+      rw [← ENNReal.mul_rpow_of_nonneg _ _ (by bound), ENNReal.inv_mul_cancel]
+        <;> simp
+    _ = (2⁻¹ ^ (q - d) * (2 ^ (q - d) - 1))⁻¹ := by simp [ENNReal.mul_sub]
+    _ = 2 ^ (q - d) * (2 ^ (q - d) - 1)⁻¹ := by
+      rw [ENNReal.mul_inv (.inr (by finiteness)) (.inl (by simp)), ENNReal.inv_rpow, inv_inv]
 
 noncomputable
 def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
 
 lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ∞)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
-    {c₁ : ℝ≥0∞} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
-  sorry
+  rw [Cp, mul_max, mul_one_div, mul_one_div]
+  rcases le_total p 1 with hp | hp
+  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one hp_pos hp hX hε hε'
+      hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_right _ _)
+  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two hp hX hε hε'
+      hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_left _ _)
 
 end SecondTerm
 
