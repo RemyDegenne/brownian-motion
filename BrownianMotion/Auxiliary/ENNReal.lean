@@ -1,5 +1,7 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
 
+open NNReal
+
 namespace ENNReal
 
 lemma rpow_max {x y : ℝ≥0∞} {p : ℝ} (hp : 0 ≤ p) : max x y ^ p = max (x ^ p) (y ^ p) := by
