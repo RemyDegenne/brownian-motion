@@ -1304,7 +1304,7 @@ If $\varepsilon < \inf_{s, t \in J; d_T(s, t)>0} d_T(s, t)$ then
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:IsKolmogorovProcess.edist_eq_zero}
 First, remark that $C$ is actually a $0$-cover of $J$.
 For $s, t \in J$, let $s', t' \in C$ be such that $d_T(s, s') = 0$ and $d_T(t, t') = 0$.
@@ -1345,7 +1345,7 @@ For all $\delta \ge 4\mathrm{diam}(T)$,
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
+  \uses{lem:second_term_bound, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
