@@ -12,6 +12,16 @@ namespace ProbabilityTheory
 
 section InnerProductSpace
 
+protected lemma IsGaussian.ne_zero {E : Type*} [TopologicalSpace E] [AddCommMonoid E] [Module ℝ E]
+    {mE : MeasurableSpace E} (μ : Measure E) [hμ : IsGaussian μ] : μ ≠ 0 := by
+  by_contra h
+  let L : E →L[ℝ] ℝ := Classical.ofNonempty
+  have := hμ.map_eq_gaussianReal L
+  rw [h, Measure.map_zero] at this
+  have : IsProbabilityMeasure (0 : Measure ℝ) := this ▸ inferInstance
+  have := this.ne_zero
+  contradiction
+
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 

@@ -2,7 +2,7 @@ import Mathlib
 
 open MeasureTheory
 
-variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {T Ω E ι : Type*} [Finite ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {X Y : T → Ω → E}
 
 lemma modification_of_indistinduishable (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω) :
@@ -12,9 +12,9 @@ lemma modification_of_indistinduishable (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t
 
 variable [MeasurableSpace E]
 
-lemma finite_distributions_eq {n : ℕ} {t : Fin n → T} (h : ∀ t, X t =ᵐ[P] Y t) :
-    P.map (fun ω m ↦ X (t m) ω) = P.map (fun ω m ↦ Y (t m) ω) := by
-  have h' : ∀ᵐ ω ∂P, ∀ (m : Fin n), X (t m) ω = Y (t m) ω := by
+lemma finite_distributions_eq {t : ι → T} (h : ∀ t, X t =ᵐ[P] Y t) :
+    P.map (fun ω i ↦ X (t i) ω) = P.map (fun ω i ↦ Y (t i) ω) := by
+  have h' : ∀ᵐ ω ∂P, ∀ i, X (t i) ω = Y (t i) ω := by
     rw [MeasureTheory.ae_all_iff]
     exact fun i ↦ h (t i)
   refine Measure.map_congr ?_
