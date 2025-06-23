@@ -649,11 +649,10 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T} {ε : ℝ≥0∞}
   apply le_antisymm
   · gcongr with ω
     refine iSup_le fun s ↦ iSup_le fun t ↦ ?_
-    exact le_iSup_of_le ⟨s.1, hC_subset s.2⟩ <| le_iSup_of_le ⟨⟨t.1, hC_subset t.1.2⟩, t.2⟩
-      <| le_rfl
+    exact le_iSup_of_le ⟨s.1, hC_subset s.2⟩ <| le_iSup_of_le ⟨⟨t.1, hC_subset t.1.2⟩, t.2⟩ le_rfl
   · choose f' hf'C hf'_edist using hC_zero
     simp only [nonpos_iff_eq_zero] at hf'_edist
-    let f : J → C := fun s => ⟨f' s s.2, hf'C s s.2⟩
+    let f : J → C := fun s ↦ ⟨f' s s.2, hf'C s s.2⟩
     have hf_edist (s : J) : edist s.1 (f s).1 = 0 := hf'_edist s s.2
     have hfX_edist (s : J) : ∀ᵐ ω ∂P, edist (X s ω) (X (f s) ω) = 0 :=
       hX.edist_eq_zero hp hq (hf_edist s)
