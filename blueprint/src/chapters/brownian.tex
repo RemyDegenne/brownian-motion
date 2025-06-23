@@ -27,32 +27,53 @@ We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \O
 \end{proof}
 
 
-\begin{lemma}\label{lem:isKolmogorovProcess_preBrownian}
+\begin{lemma}\label{lem:map_sub_preBrownian}
   \uses{def:preBrownian}
-  The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} satisfies the Kolmogorov condition for exponents $(2n,n)$ with some constant $M_n$ for all $n \in \mathbb{N}$.
-  That is, for all $s, t \in \mathbb{R}_+$, we have
-  \begin{align*}
-    \mathbb{E} \left[ |X_t - X_s|^{2n} \right] \le M_n |t - s|^n
-    \: .
-  \end{align*}
+  \leanok
+  \lean{ProbabilityTheory.map_sub_preBrownian}
+Let $X$ be the pre-Brownian process of Definition~\ref{def:preBrownian}.
+Then, for all $s, t \in \mathbb{R}_+$, the random variable $X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:centralMoment_two_mul_gaussianReal}
 
 \end{proof}
 
 
-\begin{definition}[Brownian motion]\label{def:brownianMotion}
-  \uses{thm:localized_holder_modification, def:preBrownian, lem:isKolmogorovProcess_preBrownian, lem:hasBoundedCoveringNumberCover_nnreal}
-  \notready
-By Theorem~\ref{thm:localized_holder_modification}, there exists a modification $B$ of the pre-Brownian process such that all the paths of $B$ are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
+\begin{lemma}\label{lem:isKolmogorovProcess_preBrownian}
+  \uses{def:preBrownian}
+  \leanok
+  \lean{ProbabilityTheory.isKolmogorovProcess_preBrownian}
+The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} satisfies the Kolmogorov condition for exponents $(2n,n)$ with constant $(2n - 1)!!$ for all $n \in \mathbb{N}$.
+That is, for all $s, t \in \mathbb{R}_+$, we have
+\begin{align*}
+  \mathbb{E} \left[ |X_t - X_s|^{2n} \right] \le (2n - 1)!! |t - s|^n
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:centralMoment_two_mul_gaussianReal, lem:map_sub_preBrownian}
+$X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$ (Lemma~\ref{lem:map_sub_preBrownian}).
+Thus, by Lemma~\ref{lem:centralMoment_two_mul_gaussianReal}, we have
+\begin{align*}
+  \mathbb{E} \left[ |X_t - X_s|^{2n} \right]
+  = (2n - 1)!! |t - s|^n
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}[Brownian motion]\label{def:brownian}
+  \uses{thm:localized_holder_modification_sup, def:preBrownian, lem:isKolmogorovProcess_preBrownian, lem:hasBoundedCoveringNumberCover_nnreal}
+  \leanok
+By Theorem~\ref{thm:localized_holder_modification_sup}, there exists a modification $B$ of the pre-Brownian process such that all the paths of $B$ are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
 We call $B$ the \emph{Brownian motion} on $\mathbb{R}_+$.
 \end{definition}
 
 
-\begin{lemma}\label{lem:isGaussianProcess_brownianMotion}
-  \uses{def:brownianMotion, def:IsGaussianProcess}
+\begin{lemma}\label{lem:isGaussianProcess_brownian}
+  \uses{def:brownian, def:IsGaussianProcess}
   \leanok
   \lean{ProbabilityTheory.isGaussianProcess_brownian}
 The Brownian motion is a Gaussian process.
@@ -61,16 +82,16 @@ The Brownian motion is a Gaussian process.
 \begin{proof}\leanok
   \uses{lem:isGaussianProcess_of_modification, lem:isGaussianProcess_preBrownian}
 The pre-Brownian process is a Gaussian process by Lemma~\ref{lem:isGaussianProcess_preBrownian}.
-The Brownian motion is a modification of the pre-Brownian process by Definition~\ref{def:brownianMotion}.
+The Brownian motion is a modification of the pre-Brownian process by Definition~\ref{def:brownian}.
 Thus, the Brownian motion is a Gaussian process as well by Lemma~\ref{lem:isGaussianProcess_of_modification}.
 \end{proof}
 
 
-\begin{lemma}\label{lem:continuous_brownianMotion}
-  \uses{def:brownianMotion}
+\begin{lemma}\label{lem:isHolderWith_brownian}
+  \uses{def:brownian}
   \leanok
-  \lean{ProbabilityTheory.continuous_brownian}
-The paths of the Brownian motion are continuous.
+  \lean{ProbabilityTheory.isHolderWith_brownian}
+The paths of the Brownian motion are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
 \end{lemma}
 
 \begin{proof}
@@ -78,8 +99,21 @@ The paths of the Brownian motion are continuous.
 \end{proof}
 
 
+\begin{lemma}\label{lem:continuous_brownian}
+  \uses{def:brownian}
+  \leanok
+  \lean{ProbabilityTheory.continuous_brownian}
+The paths of the Brownian motion are continuous.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isHolderWith_brownian}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:law_brownian_apply}
-  \uses{def:brownianMotion}
+  \uses{def:brownian}
 For $t \in \mathbb{R}_+$, the law of $B_t$ (the Brownian motion at time $t$) is the real Gaussian measure $\mathcal{N}(0,t)$.
 \end{lemma}
 
@@ -93,7 +127,7 @@ We want to turn the Brownian motion into a measure on the continuous functions $
 
 
 \begin{definition}[Auxiliary Wiener measure]\label{def:wienerMeasureAux}
-  \uses{def:brownianMotion, def:gaussianLimit, lem:continuous_brownianMotion}
+  \uses{def:brownian, def:gaussianLimit, lem:continuous_brownian}
   \leanok
   \lean{ProbabilityTheory.wienerMeasureAux}
 The pushforward of the measure $P_B$ of Definition~\ref{def:gaussianLimit} by the Brownian motion $B$ is a measure on the continuous functions on $\mathbb{R}^{\mathbb{R}_+}$, with the sigma-algebra induced by the product sigma-algebra on $\mathbb{R}^{\mathbb{R}_+}$.

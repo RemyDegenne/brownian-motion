@@ -122,4 +122,21 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
         ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
   sorry
 
+lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
+    (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
+    (hX : IsKolmogorovProcess X P p q M) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
+        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+  sorry
+
+lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
+    (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
+    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
+    (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
+        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+  sorry
+
 end ProbabilityTheory
