@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.MeanInequalities
+import BrownianMotion.Auxiliary.Real
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 import BrownianMotion.Continuity.LogSizeBallSequence
@@ -204,8 +205,9 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le (hp : 0 < p) (hq : 0 ≤ q)
     gcongr
     norm_cast
 
-lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite)
-    {C : ℕ → Finset T} {ε₀ : ℝ≥0∞}
+lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
+    (hX : IsKolmogorovProcess X P p q M) (hJ : J.Finite)
+    {C : ℕ → Finset T} {ε₀ : ℝ≥0∞} (hε₀ : ε₀ ≠ ⊤)
     (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) J) (hC_subset : ∀ i, (C i : Set T) ⊆ J)
     (hC_card : ∀ i, #(C i) = internalCoveringNumber (ε₀ * 2⁻¹ ^ i) J)
     {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 4 * ε₀)
@@ -216,7 +218,85 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsKolmogorovProcess X P p q M
       ≤ 2 ^ (p + 1) * M
         * (16 * δ * Nat.log2 (internalCoveringNumber (δ/4) J).toNat) ^ q
         * internalCoveringNumber (δ/4) J := by
-  sorry
+  refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all [iSup_subtype]) (fun hJ' => ?_)
+
+  lift ε₀ to ℝ≥0 using hε₀
+  have : δ ≠ ⊤ := (lt_of_le_of_lt (c := ⊤) hδ_le (by finiteness)).ne_top
+  lift δ to ℝ≥0 using this
+
+  rw [ENNReal.toReal_div, ENNReal.toReal_mul] at hm
+  simp only [ENNReal.toReal_ofNat, ENNReal.coe_toReal] at hm
+
+  norm_cast at hδ_pos hδ_le
+  rw [Eq.comm, Nat.floor_eq_iff] at hm
+  swap; · exact Real.logb_nonneg (by norm_num) (by rw [le_div_iff₀, one_mul] <;> assumption)
+
+  have h4ε₀ : 0 < 4 * ε₀ := lt_of_lt_of_le hδ_pos hδ_le
+  have hε₀ : 0 < ε₀ := pos_of_mul_pos_right h4ε₀ (by norm_num)
+
+  have hm₁ : ε₀ * 2⁻¹ ^ m < δ / 2 := by
+    have := Real.strictAnti_rpow_of_base_lt_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.2
+    dsimp only at this
+    rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_add (by norm_num),
+      Real.rpow_one, ← div_eq_mul_inv, div_lt_iff₀ (by norm_num), Real.rpow_natCast] at this
+    rw [mul_comm, ← lt_div_iff₀ (mod_cast hε₀), ← NNReal.coe_lt_coe]
+    convert this using 1
+    field_simp
+    ring
+
+  have hm₁' : (ε₀ * 2⁻¹ ^ m : ℝ≥0∞) < δ / 2 := by
+    simpa [← ENNReal.coe_lt_coe, ENNReal.inv_pow] using hm₁
+
+  have hm₂ : δ ≤ ε₀ * 4 * 2⁻¹ ^ m := by
+    have := Real.antitone_rpow_of_base_le_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.1
+    dsimp only at this
+    rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_natCast] at this
+    rw [mul_comm, ← div_le_iff₀ (by positivity), ← NNReal.coe_le_coe]
+    convert this using 1
+    field_simp
+    exact Or.inl (mul_comm _ _)
+
+  have hm₂' : (δ : ℝ≥0∞) ≤ ε₀ * 4 * 2⁻¹ ^ m := by
+    simpa [← ENNReal.coe_le_coe, ENNReal.inv_pow] using hm₂
+
+  simp only [iSup_sigma']
+
+  have hf (p : (s : { s // s ∈ C k }) × { t : { t // t ∈ C k } // edist s t ≤ δ }) :
+      edist (chainingSequence hC p.1.2 m) (chainingSequence hC p.2.1.2 m) ≤ ε₀ * 8 * 2⁻¹ ^ m := by
+    refine (edist_chainingSequence_pow_two_le _ hC_subset _ _ _ hmk hmk).trans ?_
+    rw [(show (8 : ℝ≥0∞) = 4 + 4 by norm_num), mul_add, add_mul]
+    exact add_le_add_right (p.2.2.trans hm₂') _
+
+  let f : (s : C k) × { t : C k // edist s t ≤ δ } →
+      (s : C m) × { t : C m // edist s t ≤ ε₀ * 8 * 2⁻¹ ^ m } :=
+    fun p => ⟨⟨chainingSequence hC p.1.2 m, chainingSequence_mem _ hJ' _ _ hmk⟩,
+      ⟨⟨chainingSequence hC p.2.1.2 m, chainingSequence_mem _ hJ' _ _ hmk⟩, hf _⟩⟩
+
+  refine (lintegral_mono_fn
+    (fun ω => iSup_comp_le (fun st => edist (X st.1 ω) (X st.2 ω) ^ p) f)).trans ?_
+  simp only [iSup_sigma]
+
+  refine (lintegral_sup_rpow_edist_cover_of_dist_le hp hq hX (hC_card _)).trans ?_
+
+  have hint : internalCoveringNumber (ε₀ * 2⁻¹ ^ m) J ≤ internalCoveringNumber (δ / 4) J := by
+    apply internalCoveringNumber_anti
+    rw [ENNReal.div_le_iff (by norm_num) (by norm_num)]
+    convert hm₂' using 1
+    ring
+
+  gcongr _ * _ * (?_ * ?_) ^ q * ?_
+  · rw [mul_comm _ 8, ← mul_assoc, ← mul_assoc, mul_assoc]
+    gcongr
+    · norm_num
+    · exact le_of_lt (lt_of_lt_of_le hm₁' ENNReal.half_le_self)
+  · rw [Nat.log2_eq_log_two, Nat.log2_eq_log_two]
+    simp only [Nat.cast_le]
+    apply Nat.log_mono_right
+    apply ENat.toNat_le_toNat hint
+    have := hJ.internalCoveringNumber_le_ncard (δ / 4)
+    obtain ⟨n₀, ⟨hn₀, -⟩⟩ := ENat.le_coe_iff.1 this
+    simp [hn₀]
+  · simpa only [ENat.toENNReal_le]
 
 end FirstTerm
 
@@ -337,7 +417,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     rw [ENNReal.inv_rpow, neg_div, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ⊤)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
@@ -345,7 +425,77 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
-  sorry
+  refine (lintegral_sup_rpow_edist_le_of_minimal_cover hp hX ?_ hC hC_subset hC_card hd_pos
+    (le_of_lt hdq) h_cov hm).trans ?_
+  · intro n
+    rw [← mul_one (EMetric.diam J)]
+    gcongr
+    apply pow_le_one₀ <;> norm_num
+
+  rw [mul_comm _ c₁]
+  conv_rhs => rw [mul_comm _ c₁]
+  simp only [mul_assoc, mul_div_assoc]
+  gcongr c₁ * ?_
+  simp only [← mul_assoc, mul_div_assoc]
+  rw [mul_comm (2 ^ d), mul_assoc]
+  gcongr M * ?_
+
+  calc (∑ j ∈ Finset.range (k - m),
+          ((ε₀ : ℝ≥0∞) * 2⁻¹ ^ (m + j + 1)) ^ (-d / p) * (ε₀ * 2⁻¹ ^ (m + j)) ^ (q / p)) ^ p
+    _ = (∑ j ∈ Finset.range (k - m),
+          ((ε₀ : ℝ≥0∞) * 2⁻¹ ^ (m + j)) ^ (q / p + (-d / p)) * 2⁻¹ ^ (-d / p)) ^ p := ?_
+    _ ≤ 2 ^ d * ((2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p) := ?_
+
+  · congr with j
+    rw [pow_add, ← mul_assoc, ENNReal.mul_rpow_of_ne_top
+      (by apply ENNReal.mul_ne_top <;> simp [hε']) (by simp)]
+    rw [mul_comm, ← mul_assoc,
+      ← ENNReal.rpow_add_of_add_pos (by apply ENNReal.mul_ne_top <;> simp [hε']), pow_one]
+    rw [← add_div]
+    bound
+
+  rw [← Finset.sum_mul, ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+  rw [mul_comm]
+  gcongr
+  · rw [← ENNReal.rpow_mul, div_mul_cancel₀ _ (by bound), ← zpow_neg_one,
+      ← ENNReal.rpow_intCast_mul]
+    simp
+
+  conv_rhs => rw [div_eq_mul_inv, ← ENNReal.rpow_neg]
+
+  calc (∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + i)) ^ (q / p + -d / p)) ^ p
+    _ = (∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m)) ^ ((q - d) / p) *
+          (2⁻¹ ^ ((q - d) / p)) ^ i) ^ p := ?_
+    _ ≤ (2 * ↑ε₀ * 2⁻¹ ^ m) ^ (q - d) * (2 ^ ((q - d) / p) - 1) ^ (-p) := ?_
+
+  · congr with i
+    rw [neg_div, ← sub_eq_add_neg, ← sub_div, pow_add, ← mul_assoc, ENNReal.mul_rpow_of_nonneg
+      _ _ (div_nonneg (sub_nonneg_of_le (le_of_lt hdq)) (by bound))]
+    congr 1
+    rw [← ENNReal.rpow_natCast_mul, ← ENNReal.rpow_mul_natCast, mul_comm]
+
+  rw [← Finset.mul_sum, ENNReal.mul_rpow_of_nonneg _ _ (by bound), ← ENNReal.rpow_mul,
+    div_mul_cancel₀ _ (by bound), mul_assoc 2, mul_comm 2, ENNReal.mul_rpow_of_nonneg _ 2
+      (sub_nonneg_of_le (le_of_lt hdq)), mul_assoc]
+  gcongr _ * ?_
+
+  calc (∑ i ∈ Finset.range (k - m), ((2⁻¹ : ℝ≥0∞) ^ ((q - d) / p)) ^ i) ^ p
+    _ ≤ (∑' (i : ℕ), ((2⁻¹ : ℝ≥0∞) ^ ((q - d) / p)) ^ i) ^ p :=
+          by gcongr; apply ENNReal.sum_le_tsum
+    _ = ((1 - (2⁻¹ ^ ((q - d) / p)))⁻¹) ^ p := by congr 1; apply ENNReal.tsum_geometric _
+    _ ≤ 2 ^ (q - d) * (2 ^ ((q - d) / p) - 1) ^ (-p) := ?_
+
+  rw [← neg_one_mul p, ENNReal.rpow_mul, ← ENNReal.rpow_inv_rpow (y := p) (by bound) (2 ^ (q - d))]
+  rw [← ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+  gcongr
+  conv_rhs => rw [← ENNReal.rpow_mul, ← div_eq_mul_inv]; rw (occs := [1]) [← one_mul ((q - d) / p)]
+  rw (occs := [1]) [← neg_neg (1 : ℝ), ← neg_one_mul, mul_assoc (-1), mul_comm (-1)]
+  rw [ENNReal.rpow_mul, ← ENNReal.mul_rpow_of_ne_top (by norm_num) (by norm_num),
+    AddLECancellable.mul_tsub (ENNReal.cancel_of_ne (by simp))]
+  rw [← ENNReal.rpow_add _ _ (by norm_num) (by norm_num)]
+  simp only [neg_mul, one_mul, neg_add_cancel, ENNReal.rpow_zero, mul_one]
+  rw [← zpow_neg_one, ← zpow_neg_one, ← ENNReal.rpow_intCast_mul]
+  simp [← ENNReal.rpow_intCast]
 
 lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
     (hX : IsKolmogorovProcess X P p q M)
