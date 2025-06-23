@@ -612,15 +612,20 @@ def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
 
 lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ∞)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
-    {c₁ : ℝ≥0∞} {d : ℝ} (hc₁_pos : 0 < c₁) (hd_pos : 0 < d) (hdq : d < q)
+    {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
     (h_cov : HasBoundedInternalCoveringNumber J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
-  sorry
+  rw [Cp, mul_max, mul_one_div, mul_one_div]
+  rcases le_total p 1 with hp | hp
+  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one hp_pos hp hX hε hε'
+      hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_right _ _)
+  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two hp hX hε hε'
+      hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_left _ _)
 
 end SecondTerm
 
