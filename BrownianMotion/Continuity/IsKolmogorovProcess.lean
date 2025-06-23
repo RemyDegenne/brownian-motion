@@ -425,7 +425,6 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
-  lift ε₀ to ℝ≥0 using hε'
   refine (lintegral_sup_rpow_edist_le_of_minimal_cover hp hX ?_ hC hC_subset hC_card hd_pos
     (le_of_lt hdq) h_cov hm).trans ?_
   · intro n
@@ -449,9 +448,9 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
 
   · congr with j
     rw [pow_add, ← mul_assoc, ENNReal.mul_rpow_of_ne_top
-      (by apply ENNReal.mul_ne_top <;> simp) (by simp)]
-    rw [mul_comm, ← mul_assoc, ← ENNReal.rpow_add_of_add_pos (by apply ENNReal.mul_ne_top <;> simp),
-      pow_one]
+      (by apply ENNReal.mul_ne_top <;> simp [hε']) (by simp)]
+    rw [mul_comm, ← mul_assoc,
+      ← ENNReal.rpow_add_of_add_pos (by apply ENNReal.mul_ne_top <;> simp [hε']), pow_one]
     rw [← add_div]
     bound
 
@@ -464,8 +463,8 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
 
   conv_rhs => rw [div_eq_mul_inv, ← ENNReal.rpow_neg]
 
-  calc (∑ i ∈ Finset.range (k - m), ((ε₀ : ENNReal) * 2⁻¹ ^ (m + i)) ^ (q / p + -d / p)) ^ p
-    _ = (∑ i ∈ Finset.range (k - m), ((ε₀ : ENNReal) * 2⁻¹ ^ (m)) ^ ((q - d) / p) *
+  calc (∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + i)) ^ (q / p + -d / p)) ^ p
+    _ = (∑ i ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m)) ^ ((q - d) / p) *
           (2⁻¹ ^ ((q - d) / p)) ^ i) ^ p := ?_
     _ ≤ (2 * ↑ε₀ * 2⁻¹ ^ m) ^ (q - d) * (2 ^ ((q - d) / p) - 1) ^ (-p) := ?_
 
@@ -480,8 +479,8 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
       (sub_nonneg_of_le (le_of_lt hdq)), mul_assoc]
   gcongr _ * ?_
 
-  calc (∑ i ∈ Finset.range (k - m), ((2⁻¹ : ENNReal) ^ ((q - d) / p)) ^ i) ^ p
-    _ ≤ (∑' (i : ℕ), ((2⁻¹ : ENNReal) ^ ((q - d) / p)) ^ i) ^ p :=
+  calc (∑ i ∈ Finset.range (k - m), ((2⁻¹ : ℝ≥0∞) ^ ((q - d) / p)) ^ i) ^ p
+    _ ≤ (∑' (i : ℕ), ((2⁻¹ : ℝ≥0∞) ^ ((q - d) / p)) ^ i) ^ p :=
           by gcongr; apply ENNReal.sum_le_tsum
     _ = ((1 - (2⁻¹ ^ ((q - d) / p)))⁻¹) ^ p := by congr 1; apply ENNReal.tsum_geometric _
     _ ≤ 2 ^ (q - d) * (2 ^ ((q - d) / p) - 1) ^ (-p) := ?_
