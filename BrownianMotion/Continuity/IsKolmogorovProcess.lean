@@ -18,12 +18,6 @@ open scoped ENNReal NNReal Finset
 
 section Aux
 
--- This is in mathlib, but our mathlib is too old.
-@[to_additive]
-lemma iSup_mul_le {α : Type*} {ι : Sort*} [CompleteLattice α] [Mul α] [MulLeftMono α]
-    [MulRightMono α] (u v : ι → α) : ⨆ i, u i * v i ≤ (⨆ i, u i) * ⨆ i, v i :=
-  iSup_le fun _ ↦ mul_le_mul' (le_iSup ..) (le_iSup ..)
-
 theorem Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
     [IsOrderedAddMonoid α] {I : Finset ι} (f : ι → β → α) :
     ⨆ (b), ∑ i ∈ I, f i b ≤ ∑ i ∈ I, ⨆ (b), f i b := by
