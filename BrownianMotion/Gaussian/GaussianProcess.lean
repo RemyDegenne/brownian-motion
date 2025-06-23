@@ -39,7 +39,7 @@ lemma IsGaussianProcess.aemeasurable (hX : IsGaussianProcess X P) :
   let t := Classical.choice (not_isEmpty_iff.1 hT)
   have := hX {t}
   rw [Measure.map_of_not_aemeasurable h, Measure.map_zero] at this
-  have := this.ne_zero
+  have := this.isProbabilityMeasure.ne_zero
   contradiction
 
 lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P)
