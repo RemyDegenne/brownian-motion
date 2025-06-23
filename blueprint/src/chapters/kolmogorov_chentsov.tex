@@ -1722,16 +1722,18 @@ Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \
 
 \subsection{Localized Kolmogorov-Chentsov theorem}
 
-TODO: this section will be reworked. Don't formalize it yet.
-
 \begin{definition}[Cover with bounded covering numbers]\label{def:HasBoundedCoveringNumberCover}
   \uses{def:HasBoundedInternalCoveringNumber}
-A set $T$ is said to have a cover with bounded covering numbers if there exists a monotone sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ of $T$ such that for all $n$, $T_n$ has bounded internal covering number with constant $c_n>0$ and exponent $d_n > 0$, and such that $\bigcup_{n \in \mathbb{N}} T_n = T$.
+  \leanok
+  \lean{IsCoverWithBoundedCoveringNumber}
+A set $T$ is said to have a cover with bounded covering numbers if there exists a monotone sequence of totally bounded subsets $(T_n)_{n \in \mathbb{N}}$ of $T$ such that for all $n$, $T_n$ has bounded internal covering number with constant $c_n$ and exponent $d_n > 0$, and such that $T \subseteq \bigcup_{n \in \mathbb{N}} T_n$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:hasBoundedCoveringNumberCover_nnreal}
   \uses{def:HasBoundedCoveringNumberCover}
+  \leanok
+  \lean{isCoverWithBoundedCoveringNumber_Ico_nnreal}
 $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,n)$, constants $c_n = n$ and exponents $d_n = 1$.
 \end{lemma}
 
@@ -1741,47 +1743,51 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 \end{proof}
 
 
-% \begin{definition}[Localized Kolmogorov conditions]\label{def:IsLocalizedKolmogorovProcess}
-%   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
-%   \notready
-% Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-% A stochastic process $X : T \to \Omega \to E$ satisfies the localized Kolmogorov conditions if $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$ and if for all $n \in \mathbb{N}$, there are exponents $(p_n, q_n)$ with $p_n > 0$ and $q_n > d_n$ and a constant $M_n > 0$ as well as $\rho_n > 0$ such that for all $s, t \in T_n$ with $d_T(s, t) \le \rho_n$,
-% \begin{align*}
-%   \mathbb{E}\left[ d_E(X_s, X_t)^{p_n} \right]
-%   &\le M_n d_T(s, t)^{q_n}
-%   \: .
-% \end{align*}
-% \end{definition}
-
-
-% \begin{lemma}\label{lem:IsKolmogorovProcess.IsLocalizedKolmogorovProcess}
-%   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover, def:IsLocalizedKolmogorovProcess}
-%   \notready
-% Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-% Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > \sup_n d_n$.
-% Then $X$ satisfies the localized Kolmogorov conditions with exponents $(p_n, q_n) = (p, q)$, constants $M_n = M$ and any $\rho_n > 0$.
-% \end{lemma}
-
-% \begin{proof}
-
-% \end{proof}
-
-
 \begin{theorem}\label{thm:localized_holder_modification}
   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
-  \notready
-Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and exponents $d_n$.
-Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p, q)$ with $q > \sup_n d_n$.
-Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in [0, (q - \sup_n d_n)/p)$, in which ``Hölder continuous of order 0'' means ``uniformly continuous''.
-Moreover, for $n \in \mathbb{N}$, $t \in T_n$, there is an open neighborhood $V_t$ of $t$ in $T$ such that for all $\beta \in [0, (q - d_n)/p)$,
-\begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in V_t} \frac{d_E(Y_s, Y_t)^{p}}{d_T(s, t)^{\beta p}} \right]
-  &< \infty
-  \: .
-\end{align*}
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_holder'}
+Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p, q)$ with $q > d$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
 \begin{proof}
-  \uses{thm:holder_modification}
+  \uses{thm:holder_modification, lem:indistinguishable_of_modification_of_continuous}
+For each $n$, by Theorem~\ref{thm:holder_modification} there is a modification $Y_n$ of $X$ seen as a process on $T_n$ such that the paths of $Y_n$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, $Y_n$ and $Y_{n+1}$ are indistinguishable on $T_n$.
+That is, almost surely $Y_n = Y_{n+1}$ on $T_n$.
+Since there are countably many such almost sure equalities, we get that almost surely there is equality for all $n$.
+Let $A$ be the event that this happens, let $x_0 \in E$ be arbitrary and define a process $Y : T \to \Omega \to E$ by
+\begin{align*}
+  Y(t, \omega)
+  &= \begin{cases}
+    Y_n(t, \omega) & \text{if } \omega \in A \: , \: t \in T_n \setminus T_{n-1} \: ,
+    \\
+    x_0 & \text{if } \omega \notin A \: .
+  \end{cases}
+\end{align*}
+Then $Y$ is a modification of $X$ and has paths that are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$ almost surely.
+\end{proof}
 
+
+\begin{theorem}\label{thm:localized_holder_modification_sup}
+  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_holder_iSup}
+Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
+Let $(p_n, q_n)_{n \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_n > d$ for all $n \in \mathbb{N}$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p_n, q_n)$ for all $n \in \mathbb{N}$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, \sup_n (q_n - d)/p_n)$.
+\end{theorem}
+
+\begin{proof}
+  \uses{thm:localized_holder_modification}
+For each $n$, by Theorem~\ref{thm:localized_holder_modification} there is a modification $Y_n$ of $X$ such that the paths of $Y_n$ are Hölder continuous of all orders $\gamma \in (0, (q_n - d)/p_n)$.
+By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, any two processes $Y_n, Y_m$ are indistinguishable.
+That is, almost surely $Y_n = Y_m$.
+Since there are countably many such almost sure equalities, we get that almost surely there is equality for all $n, m$.
+Let then $Y$ be the process equal to $Y_0$ on the event that the equalities hold, and equal to an arbitrary point $x_0 \in E$ otherwise.
+Then first, $Y$ is a modification of $X$.
+Then for any $\gamma < \sup_n (q_n - d)/p_n$ there is $n$ such that $\gamma < (q_n - d)/p_n$ and thus since $Y = Y_n$ the paths of $Y$ are Hölder continuous of order $\gamma$ almost surely.
 \end{proof}

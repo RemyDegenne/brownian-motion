@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.ProjectiveLimit
+import BrownianMotion.Continuity.KolmogorovChentsov
 
 /-!
 # Brownian motion
@@ -28,10 +29,34 @@ lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimi
   rw [isProjectiveLimit_gaussianLimit]
   infer_instance
 
-def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := sorry
+lemma map_sub_preBrownian (s t : ℝ≥0) :
+    gaussianLimit.map (preBrownian s - preBrownian t) = gaussianReal 0 (max (s - t) (t - s)) := by
+  sorry
+
+lemma isKolmogorovProcess_preBrownian (n : ℕ) :
+    IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
+  sorry
+
+noncomputable
+def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
+  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
+    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
+    (fun n ↦ by simp; norm_cast; omega)).choose
 
 lemma brownian_eq_preBrownian (t : ℝ≥0) :
-    brownian t =ᵐ[gaussianLimit] preBrownian t := by
+    brownian t =ᵐ[gaussianLimit] preBrownian t :=
+  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
+    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
+    (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
+
+lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
+    ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
+  refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
+    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
+    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2 β hβ_pos ?_ ω
+  have hβ_lt' : (β : ℝ) < 2⁻¹ := by
+    sorry
+  refine hβ_lt'.trans_eq ?_
   sorry
 
 lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit :=
