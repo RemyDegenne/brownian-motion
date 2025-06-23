@@ -28,9 +28,6 @@ lemma le_one_div_iff {x y : ℝ≥0∞} : x ≤ 1 / y ↔ y ≤ 1 / x := by
   rw [ENNReal.le_div_iff_mul_le, ENNReal.le_div_iff_mul_le, mul_comm]
   all_goals simp
 
-lemma exists_eq_coe {a : ℝ≥0∞} (ha : a ≠ ⊤) : ∃ (b : ℝ≥0), a = b := by
-  exact Option.ne_none_iff_exists'.mp ha
-
 lemma rpow_add_of_add_pos {x : ENNReal} (hx : x ≠ ⊤) (y z : ℝ) (hyz : 0 < y + z) :
     x ^ (y + z) = x ^ y * x ^ z := by
   obtain (rfl|hx') := eq_or_ne x 0

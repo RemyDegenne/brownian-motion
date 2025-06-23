@@ -220,10 +220,9 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
         * internalCoveringNumber (δ/4) J := by
   refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all [iSup_subtype]) (fun hJ' => ?_)
 
-  obtain ⟨ε₀, rfl⟩ := ENNReal.exists_eq_coe hε₀
-  have : δ ≠ ⊤ := (lt_of_le_of_lt (c := ⊤) hδ_le
-    (ENNReal.mul_lt_top (by norm_num) ENNReal.coe_lt_top)).ne_top
-  obtain ⟨δ, rfl⟩ := ENNReal.exists_eq_coe this
+  lift ε₀ to ℝ≥0 using hε₀
+  have : δ ≠ ⊤ := (lt_of_le_of_lt (c := ⊤) hδ_le (by finiteness)).ne_top
+  lift δ to ℝ≥0 using this
 
   rw [ENNReal.toReal_div, ENNReal.toReal_mul] at hm
   simp only [ENNReal.toReal_ofNat, ENNReal.coe_toReal] at hm
@@ -426,14 +425,13 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
-  obtain ⟨ε₀, rfl⟩ := ENNReal.exists_eq_coe hε'
+  lift ε₀ to ℝ≥0 using hε'
   refine (lintegral_sup_rpow_edist_le_of_minimal_cover hp hX ?_ hC hC_subset hC_card hd_pos
     (le_of_lt hdq) h_cov hm).trans ?_
   · intro n
     rw [← mul_one (EMetric.diam J)]
     gcongr
     apply pow_le_one₀ <;> norm_num
-
 
   rw [mul_comm _ c₁]
   conv_rhs => rw [mul_comm _ c₁]
@@ -449,8 +447,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
           ((ε₀ : ℝ≥0∞) * 2⁻¹ ^ (m + j)) ^ (q / p + (-d / p)) * 2⁻¹ ^ (-d / p)) ^ p := ?_
     _ ≤ 2 ^ d * ((2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p) := ?_
 
-  · congr
-    ext j
+  · congr with j
     rw [pow_add, ← mul_assoc, ENNReal.mul_rpow_of_ne_top
       (by apply ENNReal.mul_ne_top <;> simp) (by simp)]
     rw [mul_comm, ← mul_assoc, ← ENNReal.rpow_add_of_add_pos (by apply ENNReal.mul_ne_top <;> simp),
@@ -472,8 +469,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
           (2⁻¹ ^ ((q - d) / p)) ^ i) ^ p := ?_
     _ ≤ (2 * ↑ε₀ * 2⁻¹ ^ m) ^ (q - d) * (2 ^ ((q - d) / p) - 1) ^ (-p) := ?_
 
-  · congr
-    ext i
+  · congr with i
     rw [neg_div, ← sub_eq_add_neg, ← sub_div, pow_add, ← mul_assoc, ENNReal.mul_rpow_of_nonneg
       _ _ (div_nonneg (sub_nonneg_of_le (le_of_lt hdq)) (by bound))]
     congr 1
