@@ -49,6 +49,11 @@ lemma covInnerBilin_self [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 
   rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_same_eq_variance h]
   congr
 
+lemma covInnerBilin_apply_eq [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
+    covInnerBilin μ x y = cov[fun u ↦ ⟪x, u⟫_ℝ, fun u ↦ ⟪y, u⟫_ℝ ; μ] := by
+  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_apply'' h]
+  congr
+
 lemma covInnerBilin_self_nonneg [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x : E) :
     0 ≤ covInnerBilin μ x x := by
   rw [covInnerBilin_self h]

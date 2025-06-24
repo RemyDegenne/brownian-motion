@@ -84,29 +84,19 @@ lemma finToSubtype_apply' (I : Finset ℝ≥0) (x : Fin I.card → ℝ) (i : I) 
     finToSubtype I x i = x (I.equivFin i) := rfl
 
 noncomputable
-def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
-  (gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)).map (finToSubtype I)
+def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (EuclideanSpace ℝ I) :=
+  (gaussianProjectiveFamilyAux ((↑) : I → ℝ≥0))
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) where
   map_eq_gaussianReal L := by
-    unfold gaussianProjectiveFamily
-    have : IsGaussian (gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) := inferInstance
-    have : (L.comp (finToSubtype I).toContinuousLinearMap : (Fin I.card → ℝ) → ℝ)
-      = L ∘ (finToSubtype I) := by ext; simp
-    rw [Measure.map_map (by fun_prop) (by fun_prop), variance_map (by fun_prop) (by fun_prop),
-      integral_map (by fun_prop) (by fun_prop), ← this,
-      IsGaussian.map_eq_gaussianReal (L.comp (finToSubtype I).toContinuousLinearMap)]
-    congr
+    unfold gaussianProjectiveFamily gaussianProjectiveFamilyAux
+    rw [IsGaussian.map_eq_gaussianReal]
 
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
-  calc ∫ x, x ∂(gaussianProjectiveFamily I)
-  _ = ∫ x, finToSubtype I x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) :=
-    integral_map (by fun_prop) (by fun_prop)
-  _ = finToSubtype I (∫ x, x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) :=
-    (finToSubtype I).toContinuousLinearMap.integral_comp_id_comm (IsGaussian.integrable_id _)
-  _ = 0 := by simp [integral_id_gaussianProjectiveFamilyAux]; rfl
+  rw [gaussianProjectiveFamily, gaussianProjectiveFamilyAux, integral_id_multivariateGaussian]
+
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by
