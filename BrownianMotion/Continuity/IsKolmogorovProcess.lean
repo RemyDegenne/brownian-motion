@@ -703,6 +703,9 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ p * 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
+  rcases isEmpty_or_nonempty J with hJ_empty | hJ_nonempty
+  · simp
+  replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
   let ε₀ := EMetric.diam J
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
@@ -737,8 +740,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   have hC_zero : #(C 0) = 1 := by
     suffices (#(C 0) : ℕ∞) = 1 by norm_cast at this
     simp only [hC_card 0, pow_zero, mul_one, ε₀]
-    refine internalCoveringNumber_eq_one_of_diam_le ?_ le_rfl
-    sorry
+    exact internalCoveringNumber_eq_one_of_diam_le hJ_nonempty le_rfl
   have h_first_eq_zero :
       ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
           edist (X (chainingSequence hC s.2 0) ω) (X (chainingSequence hC t.1.2 0) ω) ^ p ∂P
@@ -749,7 +751,10 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     simp only [Pi.zero_apply, ENNReal.iSup_eq_zero, ENNReal.rpow_eq_zero_iff, ε₀]
     intro s t
     suffices chainingSequence hC s.2 0 = chainingSequence hC t.1.2 0 by simp [this, hp_pos]
-    sorry
+    have hC_zero' : #(C 0) ≤ 1 := hC_zero.le
+    rw [Finset.card_le_one_iff] at hC_zero'
+    exact hC_zero' (chainingSequence_mem hC hJ_nonempty s.2 0 zero_le')
+      (chainingSequence_mem hC hJ_nonempty t.1.2 0 zero_le')
   simp only [h_first_eq_zero, mul_zero, zero_add]
   -- the second term is bounded by the result we want
   simp_rw [mul_assoc]
@@ -758,7 +763,21 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   refine (second_term_bound hp_pos hX le_rfl hC hC_subset hC_card hd_pos hdq_lt hJ
     zero_le').trans ?_
   simp only [pow_zero, mul_one, ε₀]
-  sorry
+  calc 2 ^ d * M * c * (2 * EMetric.diam J) ^ (q - d) * Cp d p q
+  _ = 2 ^ d * 2 ^ (q - d) * M * c * (EMetric.diam J) ^ (q - d) * Cp d p q := by
+    rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+    ring
+  _ = 2 ^ q * M * c * (EMetric.diam J) ^ (q - d) * Cp d p q := by
+    rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
+    ring_nf
+  _ ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
+    gcongr
+    · bound
+    · refine hδ_le.trans ?_
+      rw [ENNReal.div_le_iff (by simp) (by simp)]
+      conv_lhs => rw [← mul_one δ]
+      gcongr
+      norm_cast
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
