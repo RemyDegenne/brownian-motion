@@ -70,8 +70,7 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) :
   sorry
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  isGaussianProcess_preBrownian.modification aemeasurable_brownian
-    (fun t ↦ (brownian_eq_preBrownian t).symm)
+  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_eq_preBrownian t).symm
 
 section Measure
 
