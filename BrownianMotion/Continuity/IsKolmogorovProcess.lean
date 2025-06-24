@@ -715,7 +715,12 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
       suffices ∀ᶠ k in atTop,
           ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t from this.exists
       have h_tendsto : Tendsto (fun n ↦ ε₀ * 2⁻¹ ^ n) atTop (𝓝 0) := by
-        sorry
+        rw [← mul_zero (ε₀ : ℝ≥0∞)]
+        change Tendsto ((fun p : ℝ≥0∞ × ℝ≥0∞ ↦ p.1 * p.2) ∘ (fun n : ℕ ↦ (ε₀, 2⁻¹ ^ n))) atTop
+          (𝓝 (ε₀ * 0))
+        refine (ENNReal.tendsto_mul (a := ε₀) (b := 0) (by simp) (.inr hε'.ne)).comp ?_
+        refine Tendsto.prodMk_nhds tendsto_const_nhds ?_
+        exact ENNReal.tendsto_pow_atTop_nhds_zero_iff.mpr (by simp)
       exact h_tendsto.eventually_lt_const this
     sorry
   let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
