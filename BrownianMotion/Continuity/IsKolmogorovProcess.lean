@@ -699,10 +699,27 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T} {ε : ℝ≥0∞}
 
 open Filter in
 open scoped Topology in
+lemma exists_nat_pow_lt_iInf (hJ : EMetric.diam J < ∞) (hJ_finite : J.Finite)
+    (hJ_nonempty : J.Nonempty) :
+    ∃ k : ℕ, EMetric.diam J * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
+  let ε₀ := EMetric.diam J
+  suffices 0 < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t by
+    suffices ∀ᶠ k in atTop,
+        ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t from this.exists
+    have h_tendsto : Tendsto (fun n ↦ ε₀ * 2⁻¹ ^ n) atTop (𝓝 0) := by
+      rw [← mul_zero (ε₀ : ℝ≥0∞)]
+      change Tendsto ((fun p : ℝ≥0∞ × ℝ≥0∞ ↦ p.1 * p.2) ∘ (fun n : ℕ ↦ (ε₀, 2⁻¹ ^ n))) atTop
+        (𝓝 (ε₀ * 0))
+      refine (ENNReal.tendsto_mul (a := ε₀) (b := 0) (by simp) (.inr hJ.ne)).comp ?_
+      refine Tendsto.prodMk_nhds tendsto_const_nhds ?_
+      exact ENNReal.tendsto_pow_atTop_nhds_zero_iff.mpr (by simp)
+    exact h_tendsto.eventually_lt_const this
+  -- `⊢ 0 < ⨅ s, ⨅ t, ⨅ (_ : 0 < edist s t), edist s t`, since `J` is nonempty and finite
+  sorry
+
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ_le : EMetric.diam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ p * 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   rcases isEmpty_or_nonempty J with hJ_empty | hJ_nonempty
@@ -710,19 +727,8 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
   let ε₀ := EMetric.diam J
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
-  obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
-    suffices 0 < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t by
-      suffices ∀ᶠ k in atTop,
-          ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t from this.exists
-      have h_tendsto : Tendsto (fun n ↦ ε₀ * 2⁻¹ ^ n) atTop (𝓝 0) := by
-        rw [← mul_zero (ε₀ : ℝ≥0∞)]
-        change Tendsto ((fun p : ℝ≥0∞ × ℝ≥0∞ ↦ p.1 * p.2) ∘ (fun n : ℕ ↦ (ε₀, 2⁻¹ ^ n))) atTop
-          (𝓝 (ε₀ * 0))
-        refine (ENNReal.tendsto_mul (a := ε₀) (b := 0) (by simp) (.inr hε'.ne)).comp ?_
-        refine Tendsto.prodMk_nhds tendsto_const_nhds ?_
-        exact ENNReal.tendsto_pow_atTop_nhds_zero_iff.mpr (by simp)
-      exact h_tendsto.eventually_lt_const this
-    sorry
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t :=
+    exists_nat_pow_lt_iInf hε' hJ_finite hJ_nonempty
   let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
   have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset
   have hC_card n : #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J :=
@@ -794,7 +800,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     ring_nf
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
-    (hX : IsKolmogorovProcess X P p q M)
+    (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
@@ -802,10 +808,22 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
         * (δ ^ d * (Nat.log2 (internalCoveringNumber (δ / 4) J).toNat) ^ q
               * internalCoveringNumber (δ / 4) J
             + c * Cp d p q) := by
+  rcases isEmpty_or_nonempty J with hJ_empty | hJ_nonempty
+  · simp
+  replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
+  let ε₀ := EMetric.diam J
+  have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t :=
+    exists_nat_pow_lt_iInf hε' hJ_finite hJ_nonempty
+  let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
+  have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset
+  have hC_card n : #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J :=
+    card_minimalCover hJ_finite.totallyBounded
+  have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J := isCover_minimalCover hJ_finite.totallyBounded
   sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
-    (hX : IsKolmogorovProcess X P p q M)
+    (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
@@ -813,7 +831,8 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   have h_diam_lt_top : EMetric.diam J < ∞ := hJ.diam_lt_top hd_pos
-  refine (finite_set_bound_of_edist_le_of_le_diam hJ hX hd_pos hp_pos hdq_lt hδ hδ_le).trans ?_
+  refine (finite_set_bound_of_edist_le_of_le_diam hJ hJ_finite hX hd_pos hp_pos hdq_lt hδ
+    hδ_le).trans ?_
   simp_rw [mul_assoc]
   gcongr _ * (_ * ?_)
   simp_rw [mul_add, ← mul_assoc]
@@ -883,9 +902,8 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   by_cases hδ_le : δ / 4 ≤ EMetric.diam J
-  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hc hd_pos hp_pos hdq_lt hδ hδ_le
-  refine (finite_set_bound_of_edist_le_of_diam_le hJ hJ_finite hX hd_pos hp_pos hdq_lt hδ
-    ?_).trans ?_
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hJ_finite hX hc hd_pos hp_pos hdq_lt hδ hδ_le
+  refine (finite_set_bound_of_edist_le_of_diam_le hJ hJ_finite hX hd_pos hp_pos hdq_lt ?_).trans ?_
   · exact (not_le.mp hδ_le).le
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
   calc 4 ^ p * 2 ^ q * ↑M * c * δ ^ (q - d) * Cp d p q
