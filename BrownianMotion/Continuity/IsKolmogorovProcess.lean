@@ -781,12 +781,12 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   swap; · bound
   refine le_of_eq ?_
   calc 2 ^ d * M * c * (2 * δ) ^ (q - d) * Cp d p q
-    _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
-      rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
-      ring
-    _ = 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
-      rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
-      ring_nf
+  _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
+    rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+    ring
+  _ = 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
+    rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
+    ring_nf
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
