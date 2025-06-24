@@ -205,7 +205,8 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
     (hC : ∀ i, IsCover (C i) (ε₀ * 2⁻¹ ^ i) J) (hC_subset : ∀ i, (C i : Set T) ⊆ J)
     (hC_card : ∀ i, #(C i) = internalCoveringNumber (ε₀ * 2⁻¹ ^ i) J)
     {δ : ℝ≥0∞} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 4 * ε₀)
-    {k m : ℕ} (hm : m = ⌊Real.logb 2 (4 * ε₀ / δ).toReal⌋₊)
+    {k m : ℕ} (hm₁ : ε₀ * 2⁻¹ ^ m ≤ δ) (hm₂ : δ ≤ ε₀ * 4 * 2⁻¹ ^ m)
+    --(hm : m = ⌊Real.logb 2 (4 * ε₀ / δ).toReal⌋₊)
     (hmk : m ≤ k) :
     ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
         edist (X (chainingSequence hC s.2 m) ω) (X (chainingSequence hC t.1.2 m) ω) ^ p ∂P
@@ -214,41 +215,39 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
         * internalCoveringNumber (δ/4) J := by
   refine (Set.eq_empty_or_nonempty J).elim (by rintro rfl; simp_all [iSup_subtype]) (fun hJ' => ?_)
 
-  lift ε₀ to ℝ≥0 using hε₀
   have : δ ≠ ⊤ := (lt_of_le_of_lt (c := ⊤) hδ_le (by finiteness)).ne_top
-  lift δ to ℝ≥0 using this
 
-  rw [ENNReal.toReal_div, ENNReal.toReal_mul] at hm
-  simp only [ENNReal.toReal_ofNat, ENNReal.coe_toReal] at hm
+  -- rw [ENNReal.toReal_div, ENNReal.toReal_mul] at hm
+  -- simp only [ENNReal.toReal_ofNat, ENNReal.coe_toReal] at hm
 
   norm_cast at hδ_pos hδ_le
-  rw [Eq.comm, Nat.floor_eq_iff] at hm
-  swap; · exact Real.logb_nonneg (by norm_num) (by rw [le_div_iff₀, one_mul] <;> assumption)
+  -- rw [Eq.comm, Nat.floor_eq_iff] at hm
+  -- swap; · exact Real.logb_nonneg (by norm_num) (by rw [le_div_iff₀, one_mul] <;> assumption)
 
   have h4ε₀ : 0 < 4 * ε₀ := lt_of_lt_of_le hδ_pos hδ_le
   have hε₀ : 0 < ε₀ := pos_of_mul_pos_right h4ε₀ (by norm_num)
 
-  have hm₁ : ε₀ * 2⁻¹ ^ m < δ / 2 := by
-    have := Real.strictAnti_rpow_of_base_lt_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.2
-    dsimp only at this
-    rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_add (by norm_num),
-      Real.rpow_one, ← div_eq_mul_inv, div_lt_iff₀ (by norm_num), Real.rpow_natCast] at this
-    rw [mul_comm, ← lt_div_iff₀ (mod_cast hε₀), ← NNReal.coe_lt_coe]
-    convert this using 1
-    field_simp
-    ring
+  -- have hm₁ : ε₀ * 2⁻¹ ^ m < δ / 2 := by
+  --   have := Real.strictAnti_rpow_of_base_lt_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.2
+  --   dsimp only at this
+  --   rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_add (by norm_num),
+  --     Real.rpow_one, ← div_eq_mul_inv, div_lt_iff₀ (by norm_num), Real.rpow_natCast] at this
+  --   rw [mul_comm, ← lt_div_iff₀ (mod_cast hε₀), ← NNReal.coe_lt_coe]
+  --   convert this using 1
+  --   field_simp
+  --   ring
 
-  have hm₁' : (ε₀ * 2⁻¹ ^ m : ℝ≥0∞) < δ / 2 := by
-    simpa [← ENNReal.coe_lt_coe, ENNReal.inv_pow] using hm₁
+  -- have hm₁' : (ε₀ * 2⁻¹ ^ m : ℝ≥0∞) < δ / 2 := by
+  --   simpa [← ENNReal.coe_lt_coe, ENNReal.inv_pow] using hm₁
 
-  have hm₂ : δ ≤ ε₀ * 4 * 2⁻¹ ^ m := by
-    have := Real.antitone_rpow_of_base_le_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.1
-    dsimp only at this
-    rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_natCast] at this
-    rw [mul_comm, ← div_le_iff₀ (by positivity), ← NNReal.coe_le_coe]
-    convert this using 1
-    field_simp
-    exact Or.inl (mul_comm _ _)
+  -- have hm₂ : δ ≤ ε₀ * 4 * 2⁻¹ ^ m := by
+  --   have := Real.antitone_rpow_of_base_le_one (by norm_num : 0 < (2 : Real)⁻¹) (by norm_num) hm.1
+  --   dsimp only at this
+  --   rw [Real.inv_rpow_logb (by norm_num) (by norm_num) (by bound), Real.rpow_natCast] at this
+  --   rw [mul_comm, ← div_le_iff₀ (by positivity), ← NNReal.coe_le_coe]
+  --   convert this using 1
+  --   field_simp
+  --   exact Or.inl (mul_comm _ _)
 
   have hm₂' : (δ : ℝ≥0∞) ≤ ε₀ * 4 * 2⁻¹ ^ m := by
     simpa [← ENNReal.coe_le_coe, ENNReal.inv_pow] using hm₂
@@ -282,7 +281,7 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
   · rw [mul_comm _ 8, ← mul_assoc, ← mul_assoc, mul_assoc]
     gcongr
     · norm_num
-    · exact le_of_lt (lt_of_lt_of_le hm₁' ENNReal.half_le_self)
+    --· exact le_of_lt (lt_of_lt_of_le hm₁' ENNReal.half_le_self)
   · rw [Nat.log2_eq_log_two, Nat.log2_eq_log_two]
     simp only [Nat.cast_le]
     apply Nat.log_mono_right
@@ -756,8 +755,8 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     exact scale_change_rpow hC 0 (fun s ↦ X s ω) _ _ hp_pos.le
   refine h_rescale.trans ?_
   -- the first term of the sum is zero because `C 0` is a singleton
-  have hC_zero : #(C 0) = 1 := by
-    suffices (#(C 0) : ℕ∞) = 1 by norm_cast at this
+  have hC_zero : #(C 0) ≤ 1 := by
+    suffices (#(C 0) : ℕ∞) = 1 by norm_cast at this; simp [this]
     simp only [hC_card 0, pow_zero, mul_one, ε₀]
     exact internalCoveringNumber_eq_one_of_diam_le hJ_nonempty le_rfl
   have h_first_eq_zero :
@@ -770,9 +769,8 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
     simp only [Pi.zero_apply, ENNReal.iSup_eq_zero, ENNReal.rpow_eq_zero_iff, ε₀]
     intro s t
     suffices chainingSequence hC s.2 0 = chainingSequence hC t.1.2 0 by simp [this, hp_pos]
-    have hC_zero' : #(C 0) ≤ 1 := hC_zero.le
-    rw [Finset.card_le_one_iff] at hC_zero'
-    exact hC_zero' (chainingSequence_mem hC hJ_nonempty s.2 0 zero_le')
+    rw [Finset.card_le_one_iff] at hC_zero
+    exact hC_zero (chainingSequence_mem hC hJ_nonempty s.2 0 zero_le')
       (chainingSequence_mem hC hJ_nonempty t.1.2 0 zero_le')
   simp only [h_first_eq_zero, mul_zero, zero_add]
   -- the second term is bounded by the result we want
@@ -812,6 +810,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
   · simp
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
   let ε₀ := EMetric.diam J
+  have hε₀_pos : 0 < ε₀ := sorry
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t :=
     exists_nat_pow_lt_iInf hε' hJ_finite hJ_nonempty
@@ -820,7 +819,79 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
   have hC_card n : #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J :=
     card_minimalCover hJ_finite.totallyBounded
   have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J := isCover_minimalCover hJ_finite.totallyBounded
-  sorry
+  -- change the supremum over `J` to a supremum over `C k`
+  have hq_pos : 0 < q := hd_pos.trans hdq_lt
+  rw [← lintegral_sup_cover_eq_of_lt_iInf_dist hX hp_pos hq_pos hJ_finite (hC k) (hC_subset k)
+    hk (δ := δ)]
+  -- deal with the possibility that `δ < ε₀ * 2⁻¹ ^ k`
+  rcases lt_or_ge δ (ε₀ * 2⁻¹ ^ k) with hδ_lt | hδ_ge
+  · sorry
+  -- change the scale: go to `C m`
+  let m := min k ⌊Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal⌋₊
+  have hmk : m ≤ k := min_le_left _ _
+  have hm' : m ≤ ⌊Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal⌋₊ := min_le_right _ _
+  have hδ_eq_logb : δ = ε₀ * 4 * 2⁻¹ ^ (Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal) := by
+    sorry
+  have hmδ : ε₀ * 2⁻¹ ^ m ≤ δ := by
+    unfold m
+    rcases le_total k ⌊Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal⌋₊ with hk | hk
+    · rwa [min_eq_left hk]
+    · rw [min_eq_right hk]
+      calc ε₀ * 2⁻¹ ^ ⌊Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal⌋₊
+      _ ≤ ε₀ * 4 * 2⁻¹ ^ (Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal) := by
+        sorry
+      _ = δ := hδ_eq_logb.symm
+  have hmδ₂ : δ ≤ ε₀ * 4 * 2⁻¹ ^ m := by
+    calc δ
+    _ = ε₀ * 4 * 2⁻¹ ^ (Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal) := hδ_eq_logb
+    _ ≤ ε₀ * 4 * 2⁻¹ ^ ⌊Real.logb 2⁻¹ (δ / (4 * ε₀)).toReal⌋₊ := by
+      gcongr
+      sorry
+    _ ≤ ε₀ * 4 * 2⁻¹ ^ m := by
+      gcongr _ * ?_
+      refine pow_le_pow_right_of_le_one' ?_ (min_le_right _ _)
+      exact ENNReal.one_half_lt_one.le
+  have h_rescale : ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
+      ≤ 2 ^ p * ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
+          edist (X (chainingSequence hC s.2 m) ω) (X (chainingSequence hC t.1.2 m) ω) ^ p ∂P
+        + 4 ^ p * ∫⁻ ω, ⨆ (s : C k), edist (X s ω) (X (chainingSequence hC s.2 m) ω) ^ p ∂P := by
+    rw [← lintegral_const_mul'', ← lintegral_const_mul'', ← lintegral_add_left']
+    rotate_left
+    · refine AEMeasurable.const_mul ?_ _
+      refine AEMeasurable.iSup fun s ↦ AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    · refine AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    · refine AEMeasurable.iSup fun s ↦ AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    gcongr with ω
+    exact scale_change_rpow hC m (fun s ↦ X s ω) _ _ hp_pos.le
+  refine h_rescale.trans ?_
+  -- cut into two terms
+  simp_rw [mul_add]
+  gcongr ?_ + ?_
+  · have h_fst := lintegral_sup_rpow_edist_cover_rescale hp_pos hq_pos.le hX hJ_finite
+        hε'.ne hC hC_subset hC_card (δ := δ) ?_ ?_ hmδ hmδ₂ (m := m) (k := k) (min_le_left _ _)
+    rotate_left
+    · positivity
+    · rwa [ENNReal.div_le_iff (by simp) (by simp), mul_comm] at hδ_le
+    grw [h_fst]
+    refine le_of_eq ?_
+    sorry
+  · -- massage it a bit and apply `second_term_bound`
+    simp_rw [add_assoc]
+    rw [ENNReal.rpow_add _ _ (by positivity) (by simp)]
+    simp_rw [mul_assoc]
+    gcongr _ * ?_
+    simp_rw [← mul_assoc]
+    refine (second_term_bound hp_pos hX le_rfl hC hC_subset hC_card hd_pos hdq_lt hJ hmk).trans ?_
+    change 2 ^ d * ↑M * c * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q
+      ≤ 4 ^ (2 * q + 1) * ↑M * δ ^ (q - d) * c * Cp d p q
+    -- now use `ε₀ * 2⁻¹ ^ m ≤ δ` to get the result
+    rw [mul_assoc _ ε₀]
+    grw [hmδ]
+    swap; · bound
+    sorry
 
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
