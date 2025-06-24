@@ -721,7 +721,17 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
       ≤ 2 ^ p * ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
           edist (X (chainingSequence hC s.2 0) ω) (X (chainingSequence hC t.1.2 0) ω) ^ p ∂P
         + 4 ^ p * ∫⁻ ω, ⨆ (s : C k), edist (X s ω) (X (chainingSequence hC s.2 0) ω) ^ p ∂P := by
-    sorry
+    rw [← lintegral_const_mul'', ← lintegral_const_mul'', ← lintegral_add_left']
+    rotate_left
+    · refine AEMeasurable.const_mul ?_ _
+      refine AEMeasurable.iSup fun s ↦ AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    · refine AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    · refine AEMeasurable.iSup fun s ↦ AEMeasurable.iSup fun t ↦ ?_
+      exact hX.aemeasurable_edist.pow_const _
+    gcongr with ω
+    exact scale_change_rpow hC 0 (fun s ↦ X s ω) _ _ hp_pos.le
   refine h_rescale.trans ?_
   -- the first term of the sum is zero because `C 0` is a singleton
   have hC_zero : #(C 0) = 1 := by
@@ -733,6 +743,11 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
       ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
           edist (X (chainingSequence hC s.2 0) ω) (X (chainingSequence hC t.1.2 0) ω) ^ p ∂P
         = 0 := by
+    refine (lintegral_eq_zero_iff' ?_).mpr (ae_of_all _ fun ω ↦ ?_)
+    · sorry
+    simp only [Pi.zero_apply, ENNReal.iSup_eq_zero, ENNReal.rpow_eq_zero_iff, ε₀]
+    intro s t
+    suffices chainingSequence hC s.2 0 = chainingSequence hC t.1.2 0 by simp [this, hp_pos]
     sorry
   simp only [h_first_eq_zero, mul_zero, zero_add]
   -- the second term is bounded by the result we want
