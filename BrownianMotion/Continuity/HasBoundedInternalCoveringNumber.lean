@@ -33,6 +33,11 @@ lemma HasBoundedInternalCoveringNumber.internalCoveringNumber_lt_top
     _ ≤ 1 := internalCoveringNumber_le_one_of_diam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
+lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
+    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) :
+    HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
+  sorry
+
 structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : ℕ → ℝ≥0∞) (d : ℕ → ℝ)
     where
   c_ne_top : ∀ n, c n ≠ ∞

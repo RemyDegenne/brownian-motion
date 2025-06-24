@@ -79,9 +79,9 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
-  4 ^ (p + 2 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
-  * ∑' k, 2 ^ (k * β * p + (-k + 1) * (q - d))
-      * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 1) * d)) ^ q
+  4 ^ (p + 3 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
+  * ∑' (k : ℕ), 2 ^ (k * (β * p - (q - d)))
+      * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
         + Cp d p q)
 
 lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
@@ -94,7 +94,7 @@ theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.u
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     (T' : Set T) (hT' : T'.Finite) :
-    ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^p / edist s t ^ (β * p) ∂P
+    ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
   sorry
 
