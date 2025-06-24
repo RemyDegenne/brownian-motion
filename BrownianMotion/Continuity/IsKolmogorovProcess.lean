@@ -541,7 +541,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp_pos : 0 < p) (h
   · rw [ENNReal.inv_rpow, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p) (hp : p ≤ 1)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ∞)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
@@ -549,6 +549,8 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
+  have h_diam_lt_top : EMetric.diam J < ∞ := h_cov.diam_lt_top hd_pos
+  have hε' : ε₀ ≠ ∞ := (hε.trans_lt h_diam_lt_top).ne
   refine (lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one hp_pos hp hX ?_ hC hC_subset
     hC_card hd_pos hdq.le h_cov hm).trans ?_
   · intro n
@@ -606,7 +608,7 @@ def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
 
 lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
-    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J) (hε' : ε₀ ≠ ∞)
+    (hX : IsKolmogorovProcess X P p q M) {ε₀ : ℝ≥0∞} (hε : ε₀ ≤ EMetric.diam J)
     (hC : ∀ n, IsCover (C n) (ε₀ * 2⁻¹ ^ n) J) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hd_pos : 0 < d) (hdq : d < q)
@@ -614,9 +616,11 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ} (hp_pos : 0 < p)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence hC t.2 m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
+  have h_diam_lt_top : EMetric.diam J < ∞ := h_cov.diam_lt_top hd_pos
+  have hε' : ε₀ ≠ ∞ := (hε.trans_lt h_diam_lt_top).ne
   rw [Cp, mul_max, mul_one_div, mul_one_div]
   rcases le_total p 1 with hp | hp
-  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one hp_pos hp hX hε hε'
+  · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one hp_pos hp hX hε
       hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_right _ _)
   · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two hp hX hε hε'
       hC hC_subset hC_card hd_pos hdq h_cov hm).trans (le_max_left _ _)
@@ -696,10 +700,11 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T} {ε : ℝ≥0∞}
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) (h_diam : EMetric.diam J ≠ ∞) :
+    (hδ : δ ≠ 0) (hδ_le : EMetric.diam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ p * 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   let ε₀ := EMetric.diam J
+  have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
     sorry
   let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
@@ -734,7 +739,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   simp_rw [mul_assoc]
   gcongr
   simp_rw [← mul_assoc]
-  refine (second_term_bound hp_pos hX le_rfl h_diam hC hC_subset hC_card hd_pos hdq_lt hJ
+  refine (second_term_bound hp_pos hX le_rfl hC hC_subset hC_card hd_pos hdq_lt hJ
     zero_le').trans ?_
   simp only [pow_zero, mul_one, ε₀]
   sorry
@@ -753,11 +758,12 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) (h_diam : EMetric.diam J ≠ ∞) :
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
+  have h_diam_lt_top : EMetric.diam J < ∞ := hJ.diam_lt_top hd_pos
   refine (finite_set_bound_of_edist_le_of_le_diam hJ hX hd_pos hp_pos hdq_lt hδ hδ_le).trans ?_
   simp_rw [mul_assoc]
   gcongr _ * (_ * ?_)
@@ -771,7 +777,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
       refine ne_of_lt ?_
       calc δ
       _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
-      _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam.lt_top
+      _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam_lt_top
     have hJδ := hJ (δ / 4) hδ_le
     have hJ' : internalCoveringNumber (δ / 4) J ≤ c * 4 ^ d * δ⁻¹ ^ d := by
       refine hJδ.trans_eq ?_
@@ -822,15 +828,15 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedInternalCoveringN
 
 lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M) (hc : c ≠ ∞)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) (h_diam : EMetric.diam J ≠ ∞) :
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ (p + 2 * q + 1) * M * c * δ ^ (q - d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
   by_cases hδ_le : δ / 4 ≤ EMetric.diam J
-  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hc hd_pos hp_pos hdq_lt hδ hδ_le h_diam
-  refine (finite_set_bound_of_edist_le_of_diam_le hJ hJ_finite hX hd_pos hp_pos hdq_lt hδ ?_
-    h_diam).trans ?_
+  · exact finite_set_bound_of_edist_le_of_le_diam' hJ hX hc hd_pos hp_pos hdq_lt hδ hδ_le
+  refine (finite_set_bound_of_edist_le_of_diam_le hJ hJ_finite hX hd_pos hp_pos hdq_lt hδ
+    ?_).trans ?_
   · exact (not_le.mp hδ_le).le
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
   calc 4 ^ p * 2 ^ q * ↑M * c * δ ^ (q - d) * Cp d p q
