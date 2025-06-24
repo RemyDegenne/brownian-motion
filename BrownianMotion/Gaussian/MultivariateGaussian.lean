@@ -241,6 +241,17 @@ lemma covInnerBilin_multivariateGaussian :
   _ = ((EuclideanSpace.basisFun ι ℝ).toBasis.repr x) ⬝ᵥ
       S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := inner_toEuclideanCLM _ _
 
+lemma test' (i j : ι) : cov[fun x ↦ x i, fun x ↦ x j; multivariateGaussian μ S hS] = S i j := by
+  have (i : ι) : (fun x : EuclideanSpace ℝ ι ↦ x i) =
+      fun x ↦ ⟪EuclideanSpace.basisFun ι ℝ i, x⟫ := by ext; simp
+  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
+    ContinuousBilinForm.ofMatrix_orthonormalBasis]
+  exact IsGaussian.memLp_two_id _
+
+lemma test (i : ι) : Var[fun x ↦ x i; multivariateGaussian μ S hS] = S i i := by
+  rw [← covariance_same, test']
+  exact measurable_pi_apply _ |>.aemeasurable
+
 lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
     charFun (multivariateGaussian μ S hS) x =
       Complex.exp (⟪x, μ⟫ * Complex.I

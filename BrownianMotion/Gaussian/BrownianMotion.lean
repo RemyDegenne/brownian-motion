@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Gaussian.GaussianProcess
+import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Continuity.KolmogorovChentsov
 
@@ -19,6 +20,7 @@ namespace ProbabilityTheory
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
+@[fun_prop]
 lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
   unfold preBrownian
   fun_prop
@@ -43,7 +45,7 @@ lemma tkt {Ω : Type*} [MeasurableSpace Ω] (P : Measure Ω) [IsProbabilityMeasu
 
 open scoped RealInnerProductSpace
 
-lemma test (s t : ℝ≥0) : s + t - 2 * min s t = max (s - t) (t - s) := by
+lemma teste (s t : ℝ≥0) : s + t - 2 * min s t = max (s - t) (t - s) := by
   suffices h : ∀ (s t : ℝ≥0), s ≤ t → s + t - 2 * min s t = max (s - t) (t - s) by
     obtain hst | hts := le_total s t
     · exact h s t hst
@@ -56,63 +58,71 @@ lemma test (s t : ℝ≥0) : s + t - 2 * min s t = max (s - t) (t - s) := by
 
 lemma map_sub_preBrownian (s t : ℝ≥0) :
     gaussianLimit.map (preBrownian s - preBrownian t) = gaussianReal 0 (max (s - t) (t - s)) := by
+  let I : Finset ℝ≥0 := {s, t}
+  let u := EuclideanSpace.basisFun I ℝ ⟨s, by simp [I]⟩
+  let v := EuclideanSpace.basisFun I ℝ ⟨t, by simp [I]⟩
   let L : EuclideanSpace ℝ ({s, t} : Finset ℝ≥0) →L[ℝ] ℝ :=
-    { toFun x := x ⟨s, by simp⟩ - x ⟨t, by simp⟩
-      map_add' x y := by simp only [PiLp.add_apply]; abel
-      map_smul' m x := by simp only [PiLp.smul_apply, smul_eq_mul, RingHom.id_apply]; ring
-      cont := by fun_prop }
-  have : preBrownian s - preBrownian t =
-      L ∘ ({s, t} : Finset ℝ≥0).restrict := by ext; simp [L, preBrownian]
-  rw [this, ← AEMeasurable.map_map_of_aemeasurable, isProjectiveLimit_gaussianLimit,
-    IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
-    map_zero]
-  · congr
-    rw [gaussianProjectiveFamily, gaussianProjectiveFamilyAux]
-    · simp only [ContinuousLinearMap.coe_mk', LinearMap.coe_mk, AddHom.coe_mk, L]
-      rw [← Pi.sub_def, tkt]
-      · have this (x : EuclideanSpace ℝ ({s, t} : Finset ℝ≥0)) :
-            x ⟨s, by simp⟩ = ⟪EuclideanSpace.basisFun ({s, t} : Finset ℝ≥0) ℝ ⟨s, by simp⟩, x⟫ := by
-          simp
-        simp_rw [this]
-        rw [← covInnerBilin_self, covInnerBilin_multivariateGaussian,
-          ← OrthonormalBasis.coe_toBasis, ContinuousBilinForm.ofMatrix_basis]
-        · simp_rw [brownianCovMatrix, Matrix.of_apply]
-          have this (x : EuclideanSpace ℝ ({s, t} : Finset ℝ≥0)) :
-              x ⟨t, by simp⟩ =
-                ⟪EuclideanSpace.basisFun ({s, t} : Finset ℝ≥0) ℝ ⟨t, by simp⟩, x⟫ := by
-            simp
-          simp_rw [this]
-          rw [← covInnerBilin_self, covInnerBilin_multivariateGaussian,
-            ← OrthonormalBasis.coe_toBasis, ContinuousBilinForm.ofMatrix_basis]
-          · simp_rw [Matrix.of_apply]
-            rw [← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
-              ContinuousBilinForm.ofMatrix_basis]
-            · simp_rw [Matrix.of_apply, min_self]
-              norm_cast
-              rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe, test]
-              rw [two_mul]
-              nth_grw 1 [min_le_left, min_le_right]
-          exact IsGaussian.memLp_two_id _
-        exact IsGaussian.memLp_two_id _
-      · have : (fun (x : EuclideanSpace ℝ ({s, t} : Finset ℝ≥0)) ↦ x ⟨s, by simp⟩) =
-            ContinuousBilinForm.inner _
-              (EuclideanSpace.basisFun ({s, t} : Finset ℝ≥0) ℝ ⟨s, by simp⟩) := by
-          ext; simp
-        rw [this]
-        exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id _
-      · have : (fun (x : EuclideanSpace ℝ ({s, t} : Finset ℝ≥0)) ↦ x ⟨t, by simp⟩) =
-            ContinuousBilinForm.inner _
-              (EuclideanSpace.basisFun ({s, t} : Finset ℝ≥0) ℝ ⟨t, by simp⟩) := by
-          ext; simp
-        rw [this]
-        exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id _
-  · exact IsGaussian.integrable_id _
-  · fun_prop
-  · fun_prop
+    ContinuousBilinForm.inner _ u - ContinuousBilinForm.inner _ v
+  have : preBrownian s - preBrownian t = L ∘ I.restrict := by
+    ext; simp [L, u, v, preBrownian, I]
+  rw [this, ← AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop),
+    isProjectiveLimit_gaussianLimit, IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm,
+    integral_id_gaussianProjectiveFamily, map_zero, gaussianProjectiveFamily]
+  swap; · exact IsGaussian.integrable_id _
+  congr
+  simp only [ContinuousLinearMap.coe_sub', ContinuousBilinForm.inner_apply', basisFun_inner, L, I,
+    u, v]
+  rw [tkt]
+  · simp_rw [test, test', brownianCovMatrix_apply, min_self]
+    norm_cast
+    rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe, teste]
+    rw [two_mul]
+    nth_grw 1 [min_le_left, min_le_right]
+  all_goals
+    simp_rw [← basisFun_inner, ← ContinuousBilinForm.inner_apply']
+    exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id _
+
+lemma lol {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) (X : Ω → ℝ) (p : ℕ)
+    (hX : μ[X] = 0) :
+    centralMoment X p μ = ∫ ω, X ω ^ p ∂μ := by
+  rw [centralMoment]
+  simp [hX]
 
 lemma isKolmogorovProcess_preBrownian (n : ℕ) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
-  sorry
+  constructor
+  · intro s t
+    rw [← BorelSpace.measurable_eq]
+    fun_prop
+  intro s t
+  apply Eq.le
+  norm_cast
+  simp_rw [edist_dist, Real.dist_eq]
+  change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+    ((preBrownian s - preBrownian t) ω) ∂_ = _
+  rw [← lintegral_map (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n)), map_sub_preBrownian]
+  simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
+  rw [← ofReal_integral_eq_lintegral_ofReal]
+  · simp_rw [Even.pow_abs (n := 2 * n) ⟨n, by omega⟩]
+    rw [← lol, ← NNReal.sq_sqrt (max _ _)]
+    change ENNReal.ofReal (centralMoment id _ _) = _
+    rw [centralMoment_two_mul_gaussianReal, ENNReal.ofReal_mul, mul_comm]
+    · congr
+      · norm_cast
+      · norm_cast
+        rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg]
+        congr
+        rw [← NNReal.nndist_eq, NNReal.coe_pow, coe_nndist]
+    · positivity
+    · simp
+  · simp_rw [← Real.norm_eq_abs]
+    apply MemLp.integrable_norm_pow'
+    exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
+  · exact ae_of_all _ fun _ ↦ by positivity
+  · fun_prop
+  · fun_prop
+
+
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=

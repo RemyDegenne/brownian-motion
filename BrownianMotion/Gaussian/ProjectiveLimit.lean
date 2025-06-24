@@ -33,35 +33,39 @@ end L2
 
 namespace ProbabilityTheory
 
-variable {ι : Type*} [Fintype ι] {d : ℕ}
+variable {ι : Type*} {d : ℕ}
 
-def brownianCovMatrix (I : ι → ℝ≥0) : Matrix ι ι ℝ := Matrix.of fun i j ↦ min (I i) (I j)
+def brownianCovMatrix (I : Finset ℝ≥0) : Matrix I I ℝ := Matrix.of fun s t ↦ min s.1 t.1
 
-lemma posSemidef_brownianCovMatrix (I : ι → ℝ≥0) :
+lemma brownianCovMatrix_apply {I : Finset ℝ≥0} (s t : I) :
+    brownianCovMatrix I s t = min s.1 t.1 := rfl
+
+variable [Fintype ι]
+
+lemma posSemidef_brownianCovMatrix (I : Finset ℝ≥0) :
     (brownianCovMatrix I).PosSemidef := by
-  let v : ι → (Set ℝ) := fun i ↦ Set.Icc 0 (I i)
   have h : brownianCovMatrix I =
-    fun i j ↦ (volume.real ((Icc 0 (I i).toReal) ∩ (Icc 0 (I j)))) := by
-    simp only [Icc_inter_Icc, max_self, Real.volume_real_Icc, sub_zero, le_inf_iff,
+      fun s t ↦ volume.real ((Icc 0 s.1.toReal) ∩ (Icc 0 t.1.toReal)) := by
+    simp [Icc_inter_Icc, max_self, Real.volume_real_Icc, sub_zero, le_inf_iff,
       NNReal.zero_le_coe, and_self, sup_of_le_left]
     rfl
-  apply h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
-    (fun j ↦ IsCompact.measure_ne_top isCompact_Icc)
+  exact h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
+    (fun j ↦ isCompact_Icc.measure_ne_top)
 
 variable [DecidableEq ι]
 
 noncomputable
-def gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    Measure (EuclideanSpace ℝ ι) :=
+def gaussianProjectiveFamily (I : Finset ℝ≥0) :
+    Measure (EuclideanSpace ℝ I) :=
   multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)
 
-instance isGaussian_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    IsGaussian (gaussianProjectiveFamilyAux I) := by
-  unfold gaussianProjectiveFamilyAux
+instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+    IsGaussian (gaussianProjectiveFamily I) := by
+  unfold gaussianProjectiveFamily
   infer_instance
 
-lemma integral_id_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    ∫ x, x ∂(gaussianProjectiveFamilyAux I) = 0 :=
+lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+    ∫ x, x ∂(gaussianProjectiveFamily I) = 0 :=
   integral_id_multivariateGaussian
 
 noncomputable
@@ -83,19 +87,19 @@ lemma finToSubtype_apply (I : Finset ℝ≥0) (x : Fin I.card → ℝ) :
 lemma finToSubtype_apply' (I : Finset ℝ≥0) (x : Fin I.card → ℝ) (i : I) :
     finToSubtype I x i = x (I.equivFin i) := rfl
 
-noncomputable
-def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (EuclideanSpace ℝ I) :=
-  (gaussianProjectiveFamilyAux ((↑) : I → ℝ≥0))
+-- noncomputable
+-- def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (EuclideanSpace ℝ I) :=
+--   (gaussianProjectiveFamilyAux ((↑) : I → ℝ≥0))
 
-instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    IsGaussian (gaussianProjectiveFamily I) where
-  map_eq_gaussianReal L := by
-    unfold gaussianProjectiveFamily gaussianProjectiveFamilyAux
-    rw [IsGaussian.map_eq_gaussianReal]
+-- instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+--     IsGaussian (gaussianProjectiveFamily I) where
+--   map_eq_gaussianReal L := by
+--     unfold gaussianProjectiveFamily gaussianProjectiveFamilyAux
+--     rw [IsGaussian.map_eq_gaussianReal]
 
-lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
-  rw [gaussianProjectiveFamily, gaussianProjectiveFamilyAux, integral_id_multivariateGaussian]
+-- lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+--     ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
+--   rw [gaussianProjectiveFamily, gaussianProjectiveFamilyAux, integral_id_multivariateGaussian]
 
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :

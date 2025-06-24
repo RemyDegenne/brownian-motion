@@ -137,6 +137,11 @@ lemma ofMatrix_apply (x y : E) :
 lemma ofMatrix_basis (i j : n) : ofMatrix M b (b i) (b j) = M i j := by
   simp [ofMatrix_apply, Finsupp.single_eq_pi_single, Matrix.mulVec_single_one]
 
+lemma ofMatrix_orthonormalBasis {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
+    (b : OrthonormalBasis n 𝕜 E) (i j : n) :
+    ofMatrix M b.toBasis (b i) (b j) = M i j := by
+  rw [← b.coe_toBasis, ofMatrix_basis]
+
 lemma toMatrix_ofMatrix : ofMatrix (f.toMatrix b) b = f := by
   ext x y
   rw [ofMatrix_apply, f.apply_eq_dotProduct_toMatrix_mulVec b]
@@ -244,6 +249,8 @@ protected noncomputable def inner : ContinuousBilinForm ℝ E :=
 
 @[simp]
 lemma inner_apply (x y : E) : ContinuousBilinForm.inner E x y = ⟪x, y⟫_ℝ := rfl
+
+lemma inner_apply' (x : E) : ContinuousBilinForm.inner E x = fun y ↦ ⟪x, y⟫_ℝ := rfl
 
 lemma isPosSemidef_inner : IsPosSemidef (ContinuousBilinForm.inner E) where
   map_symm := by simp [real_inner_comm]
