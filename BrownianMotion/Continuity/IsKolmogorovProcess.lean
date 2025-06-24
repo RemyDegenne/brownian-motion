@@ -697,6 +697,8 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Finset T} {ε : ℝ≥0∞}
       refine iSup_le fun s ↦ iSup_le fun t ↦ ?_
       exact le_iSup_of_le (f s) <| le_iSup_of_le (g s t) le_rfl
 
+open Filter in
+open scoped Topology in
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
@@ -709,6 +711,12 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   let ε₀ := EMetric.diam J
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
+    suffices 0 < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t by
+      suffices ∀ᶠ k in atTop,
+          ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t from this.exists
+      have h_tendsto : Tendsto (fun n ↦ ε₀ * 2⁻¹ ^ n) atTop (𝓝 0) := by
+        sorry
+      exact h_tendsto.eventually_lt_const this
     sorry
   let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
   have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset
@@ -763,21 +771,22 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   refine (second_term_bound hp_pos hX le_rfl hC hC_subset hC_card hd_pos hdq_lt hJ
     zero_le').trans ?_
   simp only [pow_zero, mul_one, ε₀]
-  calc 2 ^ d * M * c * (2 * EMetric.diam J) ^ (q - d) * Cp d p q
-  _ = 2 ^ d * 2 ^ (q - d) * M * c * (EMetric.diam J) ^ (q - d) * Cp d p q := by
-    rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
-    ring
-  _ = 2 ^ q * M * c * (EMetric.diam J) ^ (q - d) * Cp d p q := by
-    rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
-    ring_nf
-  _ ≤ 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
+  have hδ_le' : EMetric.diam J ≤ δ := by
+    refine hδ_le.trans ?_
+    rw [ENNReal.div_le_iff (by simp) (by simp)]
+    conv_lhs => rw [← mul_one δ]
     gcongr
-    · bound
-    · refine hδ_le.trans ?_
-      rw [ENNReal.div_le_iff (by simp) (by simp)]
-      conv_lhs => rw [← mul_one δ]
-      gcongr
-      norm_cast
+    norm_cast
+  grw [hδ_le']
+  swap; · bound
+  refine le_of_eq ?_
+  calc 2 ^ d * M * c * (2 * δ) ^ (q - d) * Cp d p q
+    _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
+      rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
+      ring
+    _ = 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
+      rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
+      ring_nf
 
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNumber J c d)
     (hX : IsKolmogorovProcess X P p q M)
