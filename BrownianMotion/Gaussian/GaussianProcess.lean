@@ -27,31 +27,13 @@ variable [MeasurableSpace E] [TopologicalSpace E] [AddCommMonoid E] [Module ℝ 
 /-- A stochastic process is a Gaussian process if all its finite dimensional distributions are
 Gaussian. -/
 def IsGaussianProcess (X : T → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
-  ∀ I : Finset T, IsGaussian ((P.map (fun ω t ↦ X t ω)).map I.restrict)
+  ∀ I : Finset T, IsGaussian (P.map (fun ω ↦ I.restrict (X · ω)))
 
-lemma IsGaussianProcess.aemeasurable (hX : IsGaussianProcess X P) :
-    AEMeasurable (fun ω t ↦ X t ω) P := by
-  by_contra h
-  by_cases hT : IsEmpty T
-  · have : (fun ω t ↦ X t ω) = fun ω ↦ hT.elim := by ext ω t; exact hT.elim t
-    rw [this] at h
-    exact h aemeasurable_const
-  let t := Classical.choice (not_isEmpty_iff.1 hT)
-  have := hX {t}
-  rw [Measure.map_of_not_aemeasurable h, Measure.map_zero] at this
-  have := this.isProbabilityMeasure.ne_zero
-  contradiction
-
-lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P)
-    (hY : AEMeasurable (fun ω t ↦ Y t ω) P) (hXY : ∀ t, X t =ᵐ[P] Y t) :
+lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P) (hXY : ∀ t, X t =ᵐ[P] Y t) :
     IsGaussianProcess Y P := by
   intro I
-  convert hX I using 1
-  rw [AEMeasurable.map_map_of_aemeasurable, AEMeasurable.map_map_of_aemeasurable]
-  · exact finite_distributions_eq fun t ↦ (hXY t).symm
-  any_goals fun_prop
-  · exact hX.aemeasurable
-  · exact hY
+  rw [finite_distributions_eq fun t ↦ (hXY t).symm]
+  exact hX I
 
 end Basic
 
