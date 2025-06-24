@@ -104,6 +104,10 @@ lemma IsCover.mono [EDist E] {C : Set E} {ε ε' : ℝ≥0∞} {A : Set E} (h : 
   obtain ⟨c, ⟨hc₁, hc₂⟩⟩ := hC a ha
   exact ⟨c, hc₁, hc₂.trans h⟩
 
+lemma IsCover.subset [EDist E] {C : Set E} {ε : ℝ≥0∞} {A B : Set E}
+    (h : A ⊆ B) (hC : IsCover C ε B) :
+    IsCover C ε A := fun a ha ↦ hC a (h ha)
+
 lemma internalCoveringNumber_anti [EDist E] {r r' : ℝ≥0∞} {A : Set E} (h : r ≤ r') :
     internalCoveringNumber r' A ≤ internalCoveringNumber r A := by
   rw [internalCoveringNumber, internalCoveringNumber]
@@ -357,6 +361,17 @@ theorem internalCoveringNumber_two_le_externalCoveringNumber [PseudoEMetricSpace
   refine (internalCoveringNumber_le_packingNumber _ A).trans ?_
   exact packingNumber_two_le_externalCoveringNumber A hr
 
+lemma externalCoveringNumber_mono_set [EDist E] {r : ℝ≥0∞} {A B : Set E} (h : A ⊆ B) :
+    externalCoveringNumber r A ≤ externalCoveringNumber r B := by
+  simp only [externalCoveringNumber, le_iInf_iff]
+  exact fun C hC ↦ iInf_le_of_le C <| iInf_le_of_le (hC.subset h) le_rfl
+
+lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A B : Set E} (h : A ⊆ B) :
+    internalCoveringNumber r A ≤ internalCoveringNumber (r / 2) B := by
+  sorry
+
+end comparisons
+
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
     internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
   obtain rfl | ε_pos := eq_zero_or_pos ε
@@ -437,8 +452,6 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     exact internalCoveringNumber_le_of_isCover C_sub this
   _ = k := by simp_all
   _ ≤ 1 / ε := k_le
-
-end comparisons
 
 section Volume
 

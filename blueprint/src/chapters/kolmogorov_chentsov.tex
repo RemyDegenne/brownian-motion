@@ -112,6 +112,38 @@ If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\vareps
 \end{proof}
 
 
+\begin{lemma}\label{lem:externalCoveringNumber_mono}
+  \uses{def:externalCoveringNumber}
+  \leanok
+  \lean{externalCoveringNumber_mono_set}
+For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_subset_le}
+  \uses{def:internalCoveringNumber}
+  \leanok
+  \lean{internalCoveringNumber_subset_le}
+For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:internalCoveringNumber_le_packingNumber, lem:packingNumber_two_le_externalCoveringNumber, lem:externalCoveringNumber_mono, lem:externalCoveringNumber_le_internalCoveringNumber}
+\begin{align*}
+  N^{int}_\varepsilon(B)
+  &\le P_{\varepsilon}(B)
+  \le N^{ext}_{\varepsilon/2}(B)
+  \le N^{ext}_{\varepsilon/2}(A)
+  \le N^{int}_{\varepsilon/2}(A)
+  \: .
+\end{align*}
+\end{proof}
+
+
 \begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
   \uses{def:IsCover}
   \leanok
@@ -292,6 +324,25 @@ The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal coverin
 
 \begin{proof}\leanok
 
+\end{proof}
+
+
+\begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_subset}
+  \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{HasBoundedInternalCoveringNumber.subset}
+If $A$ has bounded internal covering number with constant $c>0$ and exponent $d>0$, then for all $B \subseteq A$, $B$ has bounded internal covering number with constant $2^d c$ and exponent $d$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:internalCoveringNumber_subset_le}
+\begin{align*}
+  N^{int}_\varepsilon(B)
+  &\le N^{int}_{\varepsilon/2}(A)
+  \le c (\varepsilon/2)^{-d}
+  = 2^d c \varepsilon^{-d}
+  \: .
+\end{align*}
 \end{proof}
 
 
@@ -1590,7 +1641,10 @@ Then
 \end{lemma}
 
 \begin{proof}
-  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:L_lt_top}
+  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:L_lt_top, lem:hasBoundedInternalCoveringNumber_subset}
+
+TODO: $J$ has bounded internal covering number with constant $2^d c_1$ and exponent $d$ (Lemma~\ref{lem:hasBoundedInternalCoveringNumber_subset}). Fix the lemma statement and the proof below to adapt the constant.
+
 Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
 By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
 \begin{align*}
