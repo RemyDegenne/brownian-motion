@@ -378,6 +378,18 @@ lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} (
   _ ≤ internalCoveringNumber (r / 2) B :=
     externalCoveringNumber_le_internalCoveringNumber (r / 2) B
 
+lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} :
+    internalCoveringNumber r A ≤ A.encard := by
+  by_cases h_top : A.encard = ⊤
+  · simp [h_top]
+  have hA : A.Finite := Set.encard_ne_top_iff.mp h_top
+  have : Fintype A := hA.fintype
+  rw [← card_minimalCover hA.totallyBounded]
+  rw [Set.encard_eq_coe_toFinset_card]
+  gcongr
+  simp only [Set.subset_toFinset]
+  exact minimalCover_subset
+
 end comparisons
 
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :

@@ -47,7 +47,7 @@ lemma HasBoundedInternalCoveringNumber.diam_lt_top
   simp [h] at this
 
 lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
-    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 < d):
+    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 < d) :
     HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
   intro ε hε_le
   calc (internalCoveringNumber ε B : ℝ≥0∞)
