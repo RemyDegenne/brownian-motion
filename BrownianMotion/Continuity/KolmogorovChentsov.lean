@@ -146,7 +146,7 @@ theorem finite_kolmogorov_chentsov
   apply le_trans
   · apply mul_le_mul_left'
     refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hp_pos hdq_lt ?_
-    · exact hT.subset (Set.subset_univ _) hd_pos
+    · exact hT.subset (Set.subset_univ _) hd_pos.le
     · finiteness
     · simp
   rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
