@@ -32,7 +32,7 @@ variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hX : IsKolmogorovProcess X P p q M)
-    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} (hJ : Countable J) :
+    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} [hJ : Countable J] :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s : J)
@@ -101,7 +101,7 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) (T' : Finset T) :
+    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) (T' : Set T) [hT' : Finite T'] :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
@@ -130,8 +130,7 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
   have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
   apply le_trans
-  · apply lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos
-    exact T'.countable_toSet
+    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos)
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
@@ -144,10 +143,10 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
     · simp [le_of_lt hdq_lt]
   apply le_trans
   · apply mul_le_mul_left'
-    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hX ?_ hd_pos hp_pos hdq_lt (by simp) ?_
+    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hp_pos hdq_lt ?_
     · exact hT.subset (Set.subset_univ _)
     · finiteness
-    · exact ne_top_of_le_ne_top (by finiteness) (EMetric.diam_mono (Set.subset_univ _))
+    · simp
   rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
     ← mul_assoc _ (2 ^ ((k : ℝ) * _)), ← mul_assoc (M : ℝ≥0∞)]
   refine mul_le_mul' (le_of_eq ?_) ?_
