@@ -181,7 +181,7 @@ lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
   _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
   _ = 0 := by simp [h, hq]
 
-lemma IsKolmogorovProcess.M_eq_zero (hX : IsKolmogorovProcess X P p q 0)
+lemma IsKolmogorovProcess.edist_eq_zero_of_M_eq_zero (hX : IsKolmogorovProcess X P p q 0)
     (hp : 0 < p) {s t : T} :
     ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
   suffices ∀ᵐ ω ∂P, edist (X s ω) (X t ω) ^ p = 0 by
