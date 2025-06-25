@@ -38,6 +38,19 @@ lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
     HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
   sorry
 
+lemma HasBoundedInternalCoveringNumber.diam_lt_top
+    (h : HasBoundedInternalCoveringNumber A c d) (hd : 0 < d) :
+    EMetric.diam A < ∞ := by
+  specialize h _ le_rfl
+  by_contra!
+  simp only [top_le_iff] at this
+  simp only [this, ENNReal.inv_top, hd, ENNReal.zero_rpow_of_pos, mul_zero, nonpos_iff_eq_zero] at h
+  norm_cast at h
+  simp only [internalCoveringNumber, ENat.iInf_eq_zero, Nat.cast_eq_zero, Finset.card_eq_zero,
+    exists_prop, exists_and_left, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff,
+    Set.empty_subset, and_true] at h
+  simp [h] at this
+
 structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : ℕ → ℝ≥0∞) (d : ℕ → ℝ)
     where
   c_ne_top : ∀ n, c n ≠ ∞
