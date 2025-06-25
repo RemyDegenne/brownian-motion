@@ -118,8 +118,8 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
-    apply hX.M_eq_zero hp_pos
-    exact_mod_cast h_ae
+    rw_mod_cast [h_ae] at hX
+    exact hX.M_eq_zero hp_pos
   have h_diam_zero : 0 < EMetric.diam (.univ : Set T) := by
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s

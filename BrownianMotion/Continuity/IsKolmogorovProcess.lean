@@ -109,8 +109,8 @@ lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
   _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
   _ = 0 := by simp [h, hq]
 
-lemma IsKolmogorovProcess.M_eq_zero (hX : IsKolmogorovProcess X P p q M)
-    (hp : 0 < p) {s t : T} (h : M = 0) :
+lemma IsKolmogorovProcess.M_eq_zero (hX : IsKolmogorovProcess X P p q 0)
+    (hp : 0 < p) {s t : T} :
     ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
   suffices ∀ᵐ ω ∂P, edist (X s ω) (X t ω) ^ p = 0 by
     filter_upwards [this] with ω hω
@@ -120,8 +120,8 @@ lemma IsKolmogorovProcess.M_eq_zero (hX : IsKolmogorovProcess X P p q M)
     exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
   refine le_antisymm ?_ zero_le'
   calc ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
-  _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
-  _ = 0 := by simp [h]
+  _ ≤ 0 * edist s t ^ q := hX.kolmogorovCondition s t
+  _ = 0 := by simp
 
 lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
     (hp : 0 < p) (hq : 0 < q) {T' : Set T} (hT' : T'.Countable)
