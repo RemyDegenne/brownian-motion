@@ -828,7 +828,6 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
     rw [mul_add]
     exact le_add_self
 
-
 end Together
 
 end ProbabilityTheory

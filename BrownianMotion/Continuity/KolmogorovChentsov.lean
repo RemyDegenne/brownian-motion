@@ -14,6 +14,14 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 open MeasureTheory
 open scoped ENNReal NNReal
 
+section aux
+
+theorem lintegral_eq_zero_of_zero_ae {α : Type*} [MeasurableSpace α] {μ : Measure α}
+    {f : α → ℝ≥0∞} : f =ᵐ[μ] 0 →  ∫⁻ a, f a ∂μ = 0 :=
+  fun h ↦ (lintegral_congr_ae h).trans lintegral_zero
+
+end aux
+
 namespace ProbabilityTheory
 
 variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
@@ -40,14 +48,14 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     simp [← lt_top_iff_ne_top, hT]
   conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
   rw [← lintegral_tsum (by fun_prop (disch := exact hX))]
-  have hη_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : J), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
+  have h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : J), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
     rw [eventually_countable_forall]; intro s
     rw [eventually_countable_forall]; intro t
     by_cases h_dist : edist s t = 0
     · apply Filter.Eventually.mp (IsKolmogorovProcess.edist_eq_zero hX hp hq h_dist)
       filter_upwards with _ h _ using h
     filter_upwards with _ using by simp [h_dist]
-  refine lintegral_mono_ae (Filter.Eventually.mp hη_ae ?_)
+  refine lintegral_mono_ae (Filter.Eventually.mp h_ae ?_)
   filter_upwards with ω h
   rw [iSup_le_iff]; rintro ⟨s, hs⟩
   rw [iSup_le_iff]; intro ⟨t, ht⟩
@@ -89,26 +97,41 @@ lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt :
     constL T c d p q β < ∞ := by
   sorry
 
-#check HasBoundedInternalCoveringNumber.subset
-
 theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
-    (T' : Set T) (hT' : T'.Finite) :
+    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) (T' : Finset T) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
+  have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp [constL, ← ENNReal.tsum_mul_left]
-  wlog hM : (M : ℝ≥0∞) ≠ 0
-  · sorry
-  wlog h_diam_zero : 0 < EMetric.diam (.univ : Set T)
-  · sorry
+  by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
+  · convert zero_le'
+    apply lintegral_eq_zero_of_zero_ae
+    filter_upwards [h_ae] with ω h
+    rw [Pi.zero_apply]
+    rw [ENNReal.iSup_eq_zero]; rintro ⟨s, hs⟩
+    rw [ENNReal.iSup_eq_zero]; rintro ⟨t, ht⟩
+    simp [h ⟨s, hs⟩ ⟨t, ht⟩, hp_pos]
+  have hM : (M : ℝ≥0∞) ≠ 0 := by
+    contrapose! h_ae
+    rw [Filter.eventually_all]; intro s
+    rw [Filter.eventually_all]; intro t
+    apply hX.M_eq_zero hp_pos
+    exact_mod_cast h_ae
+  have h_diam_zero : 0 < EMetric.diam (.univ : Set T) := by
+    contrapose! h_ae
+    rw [Filter.eventually_all]; intro s
+    rw [Filter.eventually_all]; intro t
+    apply hX.edist_eq_zero hp_pos hq_pos
+    rw [← le_zero_iff]
+    exact le_trans (EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _)) h_ae
   have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
-  have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   apply le_trans
-    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos hT'.countable)
+  · apply lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos
+    exact T'.countable_toSet
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
@@ -122,7 +145,7 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
   apply le_trans
   · apply mul_le_mul_left'
     refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hX ?_ hd_pos hp_pos hdq_lt (by simp) ?_
-    · exact hT.subset T'.subset_univ
+    · exact hT.subset (Set.subset_univ _)
     · finiteness
     · exact ne_top_of_le_ne_top (by finiteness) (EMetric.diam_mono (Set.subset_univ _))
   rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
