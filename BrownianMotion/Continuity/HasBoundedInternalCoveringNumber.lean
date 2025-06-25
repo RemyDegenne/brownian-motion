@@ -33,11 +33,6 @@ lemma HasBoundedInternalCoveringNumber.internalCoveringNumber_lt_top
     _ ≤ 1 := internalCoveringNumber_le_one_of_diam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
-lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
-    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) :
-    HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
-  sorry
-
 lemma HasBoundedInternalCoveringNumber.diam_lt_top
     (h : HasBoundedInternalCoveringNumber A c d) (hd : 0 < d) :
     EMetric.diam A < ∞ := by
@@ -50,6 +45,36 @@ lemma HasBoundedInternalCoveringNumber.diam_lt_top
     exists_prop, exists_and_left, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff,
     Set.empty_subset, and_true] at h
   simp [h] at this
+
+lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
+    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
+    HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
+  intro ε hε_le
+  by_cases hdA : d = 0 ∧ EMetric.diam A = ∞
+  · simp only [hdA.1, ENNReal.rpow_zero, one_mul, mul_one]
+    specialize h 0 zero_le'
+    simp only [ENNReal.inv_zero, hdA.1, ENNReal.rpow_zero, mul_one] at h
+    calc (internalCoveringNumber ε B : ℝ≥0∞)
+    _ ≤ internalCoveringNumber 0 B := mod_cast internalCoveringNumber_anti zero_le'
+    _ ≤ internalCoveringNumber (0 / 2) A := mod_cast internalCoveringNumber_subset_le (by simp) hBA
+    _ = internalCoveringNumber 0 A := by simp
+    _ ≤ c := h
+  push_neg at hdA
+  calc (internalCoveringNumber ε B : ℝ≥0∞)
+  _ ≤ internalCoveringNumber (ε / 2) A := by
+    refine mod_cast internalCoveringNumber_subset_le (ne_of_lt ?_) hBA
+    refine (hε_le.trans (EMetric.diam_mono hBA)).trans_lt ?_
+    by_cases hd_zero : d = 0
+    · exact (hdA hd_zero).lt_top
+    · exact h.diam_lt_top (lt_of_le_of_ne' hd hd_zero)
+  _ ≤ c * (ε / 2)⁻¹ ^ d := h _ <| by
+    calc ε / 2 ≤ ε := ENNReal.half_le_self
+    _ ≤ EMetric.diam B := hε_le
+    _ ≤ EMetric.diam A := EMetric.diam_mono hBA
+  _ = 2 ^ d * c * ε⁻¹ ^ d := by
+    rw [div_eq_mul_inv, ENNReal.mul_inv (by simp) (by simp), inv_inv,
+      ENNReal.mul_rpow_of_nonneg _ _ hd]
+    ring
 
 structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : ℕ → ℝ≥0∞) (d : ℕ → ℝ)
     where
