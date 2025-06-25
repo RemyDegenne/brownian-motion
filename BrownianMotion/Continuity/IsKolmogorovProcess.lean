@@ -124,6 +124,21 @@ lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsKolmogorovPro
   simp_rw [ae_all_iff]
   exact fun s t ↦ hX.edist_eq_zero hp hq (h s.1 s.2 t.1 t.2)
 
+lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero' (hX : IsKolmogorovProcess X P p q M)
+    (hp : 0 < p) (hq : 0 < q) {J : Set T} (hJ : J.Countable) {δ : ℝ≥0∞}
+    (h : ∀(s : J) (t : { t : J // edist s t ≤ δ }), edist s t = 0) :
+    ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0 := by
+  have : Countable J := by simp [hJ]
+  refine (lintegral_eq_zero_iff' ?_).mpr ?_
+  · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
+    change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
+  suffices ∀ᵐ ω ∂P, ∀ s : J, ∀ t : { t : J // edist s t ≤ δ }, edist (X s ω) (X t ω) = 0 by
+    filter_upwards [this] with ω hω
+    simp [hω, hp]
+  simp_rw [ae_all_iff]
+  exact fun s t ↦ hX.edist_eq_zero hp hq (h s t)
+
 lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hq : 0 ≤ q) (hX : IsKolmogorovProcess X P p q M)
     {ε : ℝ≥0∞} (C : Finset (T × T)) (hC : ∀ u ∈ C, edist u.1 u.2 ≤ ε) :
     ∫⁻ ω, ⨆ u : C, edist (X u.1.1 ω) (X u.1.2 ω) ^ p ∂P
@@ -776,7 +791,13 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
   let ε₀ := EMetric.diam J
   rcases eq_zero_or_pos ε₀ with hε₀_eq_zero | hε₀_pos
-  · sorry
+  · suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
+      by simp [this]
+    refine hX.lintegral_sup_rpow_edist_eq_zero' hp_pos (hd_pos.trans hdq_lt) hJ_finite.countable ?_
+    refine fun s t ↦ le_antisymm ?_ zero_le'
+    calc edist s t
+    _ ≤ ε₀ := EMetric.edist_le_diam_of_mem s.2 t.1.2
+    _ = 0 := hε₀_eq_zero
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   have hδ_le_mul : δ ≤ ε₀ * 4 := by rwa [ENNReal.div_le_iff_le_mul (by simp) (by simp)] at hδ_le
   have hδ_lt_top : δ < ∞ := hδ_le_mul.trans_lt (by finiteness)
@@ -803,7 +824,19 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
     hk (δ := δ)]
   -- deal with the possibility that `δ < ε₀ * 2⁻¹ ^ k`
   rcases lt_or_ge δ (ε₀ * 2⁻¹ ^ k) with hδ_lt | hδ_ge
-  · sorry
+  · suffices ∫⁻ ω, ⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
+      by simp [this]
+    refine hX.lintegral_sup_rpow_edist_eq_zero' hp_pos (hd_pos.trans hdq_lt) (J := C k) ?_ ?_
+    · exact (hJ_finite.subset (hC_subset k)).countable
+    intro s t
+    by_contra! h_pos
+    replace h_pos := h_pos.bot_lt
+    rw [bot_eq_zero] at h_pos
+    have hδ_lt_st : δ < edist s t := by
+      refine (hδ_lt.trans hk).trans_le ?_
+      refine (iInf_le _ ⟨s, hC_subset k s.2⟩).trans ?_
+      exact (iInf_le _ ⟨t.1, hC_subset k t.1.2⟩).trans (iInf_le _ h_pos)
+    exact not_le.mpr hδ_lt_st t.2
   -- introduce `m` such that `ε₀ * 2⁻¹ ^ m ≤ δ ≤ ε₀ * 4 * 2⁻¹ ^ m` and `m ≤ k`
   let m := min k ⌊Real.logb 2⁻¹ (δ / (ε₀ * 4)).toReal⌋₊
   have hmk : m ≤ k := min_le_left _ _
