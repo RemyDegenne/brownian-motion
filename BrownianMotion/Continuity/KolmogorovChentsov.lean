@@ -97,13 +97,15 @@ lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt :
     constL T c d p q β < ∞ := by
   sorry
 
-theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
+
+theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) (T' : Set T) [hT' : Finite T'] :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
+  have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp [constL, ← ENNReal.tsum_mul_left]
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
@@ -119,7 +121,7 @@ theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
     rw_mod_cast [h_ae] at hX
-    exact hX.M_eq_zero hp_pos
+    exact hX.edist_eq_zero_of_M_eq_zero hp_pos
   have h_diam_zero : 0 < EMetric.diam (.univ : Set T) := by
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s
