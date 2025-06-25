@@ -95,6 +95,8 @@ lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M
 
 end Measurability
 
+-- M eq zero
+
 lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
     (hp : 0 < p) (hq : 0 < q) {s t : T} (h : edist s t = 0) :
     ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by

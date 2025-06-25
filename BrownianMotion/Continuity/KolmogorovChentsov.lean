@@ -79,7 +79,7 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
-  4 ^ (p + 3 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
+  4 ^ (p + (5 / 2) * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
   * ∑' (k : ℕ), 2 ^ (k * (β * p - (q - d)))
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
         + Cp d p q)
@@ -89,14 +89,73 @@ lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt :
     constL T c d p q β < ∞ := by
   sorry
 
-theorem finite_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+#check HasBoundedInternalCoveringNumber.subset
+
+theorem finite_kolmogorov_chentsov (h_diam : EMetric.diam (.univ : Set T) < ∞)
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     (T' : Set T) (hT' : T'.Finite) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
-  sorry
+  simp [constL, ← ENNReal.tsum_mul_left]
+  wlog hM : (M : ℝ≥0∞) ≠ 0
+  · sorry
+  wlog h_diam_zero : 0 < EMetric.diam (.univ : Set T)
+  · sorry
+  have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
+    ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
+  have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
+  apply le_trans
+    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos hT'.countable)
+  apply ENNReal.tsum_le_tsum
+  intro k
+  wlog hc : c ≠ ∞
+  · simp [not_ne_iff.mp hc]
+    repeat rw [ENNReal.top_mul]
+    · rw [ENNReal.mul_top hM]
+      exact le_top
+    · have : 0 < (k + 2) * d := by positivity
+      simp [this]
+    · simp [le_of_lt hdq_lt]
+  apply le_trans
+  · apply mul_le_mul_left'
+    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hX ?_ hd_pos hp_pos hdq_lt (by simp) ?_
+    · exact hT.subset T'.subset_univ
+    · finiteness
+    · exact ne_top_of_le_ne_top (by finiteness) (EMetric.diam_mono (Set.subset_univ _))
+  rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
+    ← mul_assoc _ (2 ^ ((k : ℝ) * _)), ← mul_assoc (M : ℝ≥0∞)]
+  refine mul_le_mul' (le_of_eq ?_) ?_
+  · rw [(by ring : p + (5 / 2) * q + 1 = p + 2 * q  + 1 + 2⁻¹ * q),
+      (by ring : k * (β * p - (q - d)) = k * β * p + (-1 * (k * (q - d)))),
+      ENNReal.rpow_add _ (2⁻¹ * q) (by positivity) (by finiteness),
+      ENNReal.rpow_add (k * β * p) _ (by positivity) (by finiteness),
+      ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness),
+      ← ENNReal.rpow_natCast, ← ENNReal.rpow_neg_one, ← ENNReal.rpow_mul, ← ENNReal.rpow_mul,
+      ENNReal.rpow_sub _ _ (by positivity) (by finiteness), div_eq_mul_inv,
+      ← ENNReal.mul_inv_cancel_left (a := 2 ^ d) (b := 4 ^ (2⁻¹ * q)) (by simp) (by finiteness),
+      ENNReal.rpow_mul _ 2⁻¹, (by norm_num : (4 : ℝ≥0∞) = 2 ^ (2 : ℝ)),
+      ENNReal.rpow_rpow_inv (by positivity)]
+    ring
+  by_cases hc_zero : c.toReal = 0
+  · simp [hc_zero]; gcongr; exact zero_le _
+  gcongr with k
+  simp only [← ENNReal.rpow_natCast, ENNReal.toReal_mul, ← ENNReal.toReal_rpow, ENNReal.toReal_inv,
+    ENNReal.toReal_ofNat, mul_inv_rev]
+  rw [ENNReal.toReal_add (by finiteness) (by finiteness)]
+  repeat rw [Real.mul_rpow (by positivity) (by positivity)]
+  repeat rw [Real.logb_mul (by positivity) (by positivity)]
+  grw [inv_lt_one_of_one_lt₀ (by simp [h_diam_real])]
+  · apply le_of_eq
+    rw [(by norm_num : (4 : ℝ) = 2 ^ (2 : ℝ)), ← Real.inv_rpow (by positivity), inv_inv,
+      ← Real.rpow_neg_one]
+    repeat rw [← Real.rpow_mul (by positivity)]
+    repeat rw [Real.logb_rpow (by norm_num) (by norm_num)]
+    simp
+    ring
+  · norm_num
 
 theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
