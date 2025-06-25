@@ -332,8 +332,7 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hp : 0 < p) (hq : 0 ≤ q)
   gcongr _ * _ * (?_ * ?_) ^ q * ?_
   · rw [mul_comm _ 8, ← mul_assoc, ← mul_assoc, mul_assoc]
     gcongr
-    · norm_num
-    --· exact le_of_lt (lt_of_lt_of_le hm₁' ENNReal.half_le_self)
+    norm_num
   · rw [Nat.log2_eq_log_two, Nat.log2_eq_log_two]
     simp only [Nat.cast_le]
     apply Nat.log_mono_right
