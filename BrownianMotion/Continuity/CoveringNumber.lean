@@ -16,6 +16,7 @@ import BrownianMotion.Init
 -/
 
 open ENNReal Metric
+open scoped NNReal
 
 variable {E : Type*}
 
@@ -392,6 +393,12 @@ lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {
 
 end comparisons
 
+open scoped Pointwise in
+lemma internaCoveringNumber_smul [NormedAddCommGroup E] [Module ℝ E] {r : ℝ≥0∞} {A : Set E}
+    {c : ℝ≥0} (hc : c ≠ 0) :
+  internalCoveringNumber (c * r) (c • A) = internalCoveringNumber r A := by
+  sorry
+
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
     internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
   obtain rfl | ε_pos := eq_zero_or_pos ε
@@ -473,6 +480,10 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
   _ = k := by simp_all
   _ ≤ 1 / ε := k_le
 
+theorem internalCoveringNumber_Ico_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
+    internalCoveringNumber ε (Set.Ico (0 : ℝ≥0) 1) ≤ 1 / ε := by
+  sorry
+
 section Volume
 
 open MeasureTheory
@@ -483,7 +494,11 @@ variable [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ
 
 lemma volume_le_of_isCover (hC : IsCover C ε A) :
     volume A ≤ C.card * volume (EMetric.closedBall (0 : E) ε) := by
-  sorry
+  have : A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by rwa [EMetric.isCover_iff] at hC
+  calc volume A
+  _ ≤ volume (⋃ x ∈ C, EMetric.closedBall x ε) := measure_mono this
+  _ ≤ ∑ x ∈ C, volume (EMetric.closedBall x ε) := measure_biUnion_finset_le _ _
+  _ = C.card * volume (EMetric.closedBall (0 : E) ε) := by sorry
 
 lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
     volume A ≤ externalCoveringNumber ε A * volume (EMetric.closedBall (0 : E) ε) := by
@@ -491,13 +506,14 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
 
 open scoped Pointwise in
 lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
-    C.card * volume (EMetric.ball (0 : E) (ε/2)) ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+    C.card * volume (EMetric.closedBall (0 : E) (ε/2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 open scoped Pointwise in
 lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
-    packingNumber ε A * volume (EMetric.ball (0 : E) (ε/2))
-      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+    packingNumber ε A * volume (EMetric.closedBall (0 : E) (ε/2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
@@ -507,7 +523,8 @@ lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
 open scoped Pointwise in
 lemma internalCoveringNumber_le_volume_div (A : Set E) (ε : ℝ≥0∞) :
     internalCoveringNumber ε A
-      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) / volume (EMetric.closedBall (0 : E) (ε/2)) := by
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2))
+        / volume (EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
