@@ -1000,7 +1000,7 @@ Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
   \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
-Suppose $\varepsilon_0 < \infty$, let $\delta \in (0, 4 \varepsilon_0]$ and let $m = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$.
+Suppose $\varepsilon_0 < \infty$, let $\delta \in (0, 4 \varepsilon_0]$ and let $m$ be a natular number such that $\varepsilon_0 2^{-m} \le \delta$ and $\delta \le \varepsilon_0 2^{-m+2}$.
 Then for $k \ge m$,
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
@@ -1011,8 +1011,7 @@ Then for $k \ge m$,
 
 \begin{proof}\leanok
   \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
-By definition of $m$, $\varepsilon_0 2^{-m} < \delta/2 \le \varepsilon_0 2^{-m+1}$.
-
+By definition of $m$, $\delta \le \varepsilon_0 2^{-m+2}$.
 For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
 It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
 
@@ -1022,7 +1021,7 @@ We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\vare
   &\le 2^{p+1} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
   \: .
 \end{align*}
-By definition of $m$, $\varepsilon_m \ge \varepsilon_0 2^{-m} \ge \delta/4$,
+By definition of $m$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \delta/4$,
 hence $N^{int}_{\varepsilon_m}(J) \le N^{int}_{\delta / 4}(J)$.
 
 Finally, by definition of $m$ we have $\varepsilon_0 2^{-m} \le \delta$.
@@ -1390,17 +1389,17 @@ Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov conditio
 For all $\delta \ge 4\mathrm{diam}(T)$,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \le 2^q M c_1 \delta^{q - d} C_p
+  \le 4^p 2^q M c_1 \delta^{q - d} C_p
   \: .
 \end{align*}
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:second_term_bound, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
+Let $k$ be a natural number such that $\varepsilon_0 2^{-k} < \inf_{s, t \in T; d_T(s,t)>0} d_T(s, t)$, which exists since $T$ is finite.
 By Lemma~\ref{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}, the supremum over $T$ can be replaced by a supremum over $C_k$.
 
 By Corollary~\ref{cor:scale_change_rpow},
@@ -1446,13 +1445,12 @@ For all $\delta \in (0, 4\mathrm{diam}(T)]$,
 \end{align*}
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist, lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
 Let $\varepsilon_0 = \mathrm{diam}(T)$.
 For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
 
-Let $k = \max \left\{ 0, \left\lceil 1 + \log_2\left(\frac{\varepsilon_0}{\inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)}\right) \right\rceil \right\}$.
-It satisfies $\varepsilon_0 2^{-k} < \inf_{s, t \in J; d_T(s,t)>0}d_T(s, t)$.
+Let $k$ be a natural number such that $\varepsilon_0 2^{-k} < \inf_{s, t \in T; d_T(s,t)>0} d_T(s, t)$, which exists since $T$ is finite.
 If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially (by Lemma~\ref{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}).
 We can thus assume $\delta > \varepsilon_0 2^{-k}$.
 
@@ -1474,6 +1472,7 @@ Let $n_2 = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$ and $m = \min\{n_2, k\
 If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
 Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
 We thus get $\varepsilon_0 2^{-m} \le \delta$.
+We can also verify that $\delta \le \varepsilon_0 2^{-n_2+2} \le \varepsilon_0 2^{-m+2}$.
 By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale},
 \begin{align*}
   \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
