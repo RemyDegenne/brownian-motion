@@ -95,8 +95,6 @@ lemma IsKolmogorovProcess.aemeasurable_edist (hX : IsKolmogorovProcess X P p q M
 
 end Measurability
 
--- M eq zero
-
 lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
     (hp : 0 < p) (hq : 0 < q) {s t : T} (h : edist s t = 0) :
     ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
@@ -110,6 +108,20 @@ lemma IsKolmogorovProcess.edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
   calc ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
   _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
   _ = 0 := by simp [h, hq]
+
+lemma IsKolmogorovProcess.M_eq_zero (hX : IsKolmogorovProcess X P p q M)
+    (hp : 0 < p) {s t : T} (h : M = 0) :
+    ∀ᵐ ω ∂P, edist (X s ω) (X t ω) = 0 := by
+  suffices ∀ᵐ ω ∂P, edist (X s ω) (X t ω) ^ p = 0 by
+    filter_upwards [this] with ω hω
+    simpa [hp, not_lt_of_gt hp] using hω
+  refine (lintegral_eq_zero_iff' ?_).mp ?_
+  · change AEMeasurable ((fun x ↦ x ^ p) ∘ (fun ω ↦ edist (X s ω) (X t ω))) P
+    exact Measurable.comp_aemeasurable (by fun_prop) hX.aemeasurable_edist
+  refine le_antisymm ?_ zero_le'
+  calc ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P
+  _ ≤ M * edist s t ^ q := hX.kolmogorovCondition s t
+  _ = 0 := by simp [h]
 
 lemma IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsKolmogorovProcess X P p q M)
     (hp : 0 < p) (hq : 0 < q) {T' : Set T} (hT' : T'.Countable)
@@ -815,6 +827,7 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedInternalCoveringNumber J c d)
       + Cp d p q) := by
     rw [mul_add]
     exact le_add_self
+
 
 end Together
 
