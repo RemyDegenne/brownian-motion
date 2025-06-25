@@ -16,6 +16,7 @@ import BrownianMotion.Init
 -/
 
 open ENNReal Metric
+open scoped NNReal
 
 variable {E : Type*}
 
@@ -188,32 +189,41 @@ section minimalCover
 
 variable [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
 
-lemma exists_finset_card_eq_internalCoveringNumber (h : TotallyBounded A) (r : ℝ≥0∞) :
+lemma exists_finset_card_eq_internalCoveringNumber (h : TotallyBounded A) (hr : 0 < r) :
     ∃ (C : Finset E), ↑C ⊆ A ∧ IsCover (C : Set E) r A ∧ C.card = internalCoveringNumber r A := by
-  sorry
+  have : Nonempty { s : Finset E // ↑s ⊆ A ∧ IsCover (↑s) r A } := by
+    obtain ⟨C, hC⟩ := h.exists_isCover r hr
+    exact⟨⟨C, hC⟩⟩
+  let h := ENat.exists_eq_iInf
+    (fun C : {s : Finset E // ↑s ⊆ A ∧ IsCover s r A} ↦ (C : Finset E).card)
+  obtain ⟨C, hC⟩ := h
+  refine ⟨C, C.2.1, C.2.2, ?_⟩
+  rw [hC]
+  simp_rw [iInf_subtype, iInf_and]
+  rfl
 
 open Classical in
 /-- An internal `r`-cover of `A` with minimal cardinal. -/
 noncomputable
-def minimalCover (r : ℝ≥0∞) (A : Set E) : Finset E :=
+def minimalCover (r : ℝ≥0∞) (A : Set E) (hr : 0 < r) : Finset E :=
   if h : TotallyBounded A
-    then (exists_finset_card_eq_internalCoveringNumber h r).choose else ∅
+    then (exists_finset_card_eq_internalCoveringNumber h hr).choose else ∅
 
-lemma minimalCover_subset : ↑(minimalCover r A) ⊆ A := by
+lemma minimalCover_subset (hr : 0 < r) : ↑(minimalCover r A hr) ⊆ A := by
   by_cases h : TotallyBounded A
   · simp only [minimalCover, h, dite_true]
-    exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.1
+    exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.1
   · simp only [minimalCover, h, dite_false, Finset.coe_empty, Set.empty_subset]
 
-lemma isCover_minimalCover (h : TotallyBounded A) :
-    IsCover (minimalCover r A : Set E) r A := by
+lemma isCover_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
+    IsCover (minimalCover r A hr : Set E) r A := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.2.1
+  exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.2.1
 
-lemma card_minimalCover (h : TotallyBounded A) :
-    (minimalCover r A).card = internalCoveringNumber r A := by
+lemma card_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
+    (minimalCover r A hr).card = internalCoveringNumber r A := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.2.2
+  exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.2.2
 
 end minimalCover
 
@@ -223,7 +233,19 @@ variable {r : ℝ≥0∞} {A : Set E}
 
 lemma exists_finset_card_eq_packingNumber [PseudoEMetricSpace E] (h : packingNumber r A < ⊤) :
     ∃ (C : Finset E), ↑C ⊆ A ∧ IsSeparated r (C : Set E) ∧ C.card = packingNumber r A := by
-  sorry
+  rcases Set.eq_empty_or_nonempty A with hA | hA
+  · simp [hA, packingNumber]
+  have : Nonempty { s : Finset E // ↑s ⊆ A ∧ IsSeparated r (↑s : Set E) } := by
+    obtain ⟨a, ha⟩ := hA
+    exact ⟨⟨{a}, by simp [ha], by simp⟩⟩
+  let h_exists := ENat.exists_eq_iSup_of_lt_top
+    (f := fun C : { s : Finset E // ↑s ⊆ A ∧ IsSeparated r (↑s : Set E) } ↦ (C : Finset E).card)
+  simp_rw [packingNumber] at h ⊢
+  simp_rw [iSup_subtype, iSup_and] at h_exists
+  specialize h_exists h
+  obtain ⟨C, hC⟩ := h_exists
+  refine ⟨C, C.2.1, C.2.2, ?_⟩
+  rw [hC]
 
 /-- A maximal `r`-separated finite subset of `A`. -/
 noncomputable
@@ -378,19 +400,25 @@ lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} (
   _ ≤ internalCoveringNumber (r / 2) B :=
     externalCoveringNumber_le_internalCoveringNumber (r / 2) B
 
-lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} :
+lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} (hr : 0 < r) :
     internalCoveringNumber r A ≤ A.encard := by
   by_cases h_top : A.encard = ⊤
   · simp [h_top]
   have hA : A.Finite := Set.encard_ne_top_iff.mp h_top
   have : Fintype A := hA.fintype
-  rw [← card_minimalCover hA.totallyBounded]
+  rw [← card_minimalCover hA.totallyBounded hr]
   rw [Set.encard_eq_coe_toFinset_card]
   gcongr
   simp only [Set.subset_toFinset]
-  exact minimalCover_subset
+  exact minimalCover_subset hr
 
 end comparisons
+
+open scoped Pointwise in
+lemma internalCoveringNumber_smul [NormedAddCommGroup E] [Module ℝ E] {r : ℝ≥0∞} {A : Set E}
+    {c : ℝ≥0} (hc : c ≠ 0) :
+  internalCoveringNumber (c * r) (c • A) = internalCoveringNumber r A := by
+  sorry
 
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
     internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
@@ -473,6 +501,10 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
   _ = k := by simp_all
   _ ≤ 1 / ε := k_le
 
+theorem internalCoveringNumber_Ico_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
+    internalCoveringNumber ε (Set.Ico (0 : ℝ≥0) 1) ≤ 1 / ε := by
+  sorry
+
 section Volume
 
 open MeasureTheory
@@ -483,7 +515,11 @@ variable [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ
 
 lemma volume_le_of_isCover (hC : IsCover C ε A) :
     volume A ≤ C.card * volume (EMetric.closedBall (0 : E) ε) := by
-  sorry
+  have : A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by rwa [EMetric.isCover_iff] at hC
+  calc volume A
+  _ ≤ volume (⋃ x ∈ C, EMetric.closedBall x ε) := measure_mono this
+  _ ≤ ∑ x ∈ C, volume (EMetric.closedBall x ε) := measure_biUnion_finset_le _ _
+  _ = C.card * volume (EMetric.closedBall (0 : E) ε) := by sorry
 
 lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
     volume A ≤ externalCoveringNumber ε A * volume (EMetric.closedBall (0 : E) ε) := by
@@ -491,13 +527,14 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
 
 open scoped Pointwise in
 lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
-    C.card * volume (EMetric.ball (0 : E) (ε/2)) ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+    C.card * volume (EMetric.closedBall (0 : E) (ε/2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 open scoped Pointwise in
 lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
-    packingNumber ε A * volume (EMetric.ball (0 : E) (ε/2))
-      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) := by
+    packingNumber ε A * volume (EMetric.closedBall (0 : E) (ε/2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
@@ -507,7 +544,8 @@ lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
 open scoped Pointwise in
 lemma internalCoveringNumber_le_volume_div (A : Set E) (ε : ℝ≥0∞) :
     internalCoveringNumber ε A
-      ≤ volume (A + EMetric.ball (0 : E) (ε/2)) / volume (EMetric.closedBall (0 : E) (ε/2)) := by
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2))
+        / volume (EMetric.closedBall (0 : E) (ε/2)) := by
   sorry
 
 lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :

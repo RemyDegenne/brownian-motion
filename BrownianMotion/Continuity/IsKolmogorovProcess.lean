@@ -743,14 +743,24 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   · simp
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
   let ε₀ := EMetric.diam J
+  rcases eq_zero_or_pos ε₀ with hε₀_eq_zero | hε₀_pos
+  · suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
+      by simp [this]
+    refine hX.lintegral_sup_rpow_edist_eq_zero' hp_pos (hd_pos.trans hdq_lt) hJ_finite.countable ?_
+    refine fun s t ↦ le_antisymm ?_ zero_le'
+    calc edist s t
+    _ ≤ ε₀ := EMetric.edist_le_diam_of_mem s.2 t.1.2
+    _ = 0 := hε₀_eq_zero
   have hε' : ε₀ < ∞ := hJ.diam_lt_top hd_pos
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t :=
     exists_nat_pow_lt_iInf hε' hJ_finite hJ_nonempty
-  let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
-  have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset
+  have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := ENNReal.mul_pos hε₀_pos.ne' (by simp)
+  let C : ℕ → Finset T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
+  have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset (hε₀_mul_pos n)
   have hC_card n : #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded
-  have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J := isCover_minimalCover hJ_finite.totallyBounded
+    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+  have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J :=
+    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
   -- change the supremum over `J` to a supremum over `C k`
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
   rw [← lintegral_sup_cover_eq_of_lt_iInf_dist hX hp_pos hq_pos hJ_finite (hC k) (hC_subset k)
@@ -837,11 +847,13 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
   obtain ⟨k, hk⟩ : ∃ k : ℕ, ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t :=
     exists_nat_pow_lt_iInf hε' hJ_finite hJ_nonempty
   -- introduce covers
-  let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J
-  have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset
+  have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := ENNReal.mul_pos hε₀_pos.ne' (by simp)
+  let C : ℕ → Finset T := fun n ↦ minimalCover  (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
+  have hC_subset n : (C n : Set T) ⊆ J := minimalCover_subset (hε₀_mul_pos n)
   have hC_card n : #(C n) = internalCoveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded
-  have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J := isCover_minimalCover hJ_finite.totallyBounded
+    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+  have hC n : IsCover (C n) (ε₀ * 2⁻¹ ^ n) J :=
+    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
   -- change the supremum over `J` to a supremum over `C k`
   have hq_pos : 0 < q := hd_pos.trans hdq_lt
   rw [← lintegral_sup_cover_eq_of_lt_iInf_dist hX hp_pos hq_pos hJ_finite (hC k) (hC_subset k)

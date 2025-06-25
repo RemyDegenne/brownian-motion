@@ -85,18 +85,40 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
   mono : ∀ n m, n ≤ m → C n ⊆ C m
   subset_iUnion : A ⊆ ⋃ i, C i
 
+open scoped Pointwise in
 lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
-    IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) n) Set.univ
-      (fun n ↦ n) (fun _ ↦ 1) where
+    IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) (n + 1)) Set.univ
+      (fun n ↦ (n + 1)) (fun _ ↦ 1) where
   c_ne_top := by simp
   d_pos := by simp
-  totallyBounded n := by
-    sorry
+  totallyBounded n := totallyBounded_Ico _ _
   hasBoundedCoveringNumber n ε hε_le := by
-    sorry
+    simp only [ENNReal.rpow_one]
+    have : Set.Ico (0 : ℝ≥0) (n + 1) = (n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1 := by
+      have : (n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1
+          = (fun x ↦ (n + 1 : ℝ≥0) * x) '' Set.Ico (0 : ℝ≥0) 1 := by
+        ext; simp [Set.mem_smul_set]
+      rw [this, Set.image_mul_left_Ico]
+      simp only [mul_zero, mul_one]
+      simp
+    rw [this]
+    calc (internalCoveringNumber ε ((n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1) : ℝ≥0∞)
+    _ = internalCoveringNumber ((n + 1 : ℝ≥0) * (ε / (n + 1)))
+        ((n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1) := by
+      congr
+      norm_cast
+      rw [ENNReal.mul_div_cancel (by simp) (by simp)]
+    _ = internalCoveringNumber (ε / (n + 1)) (Set.Ico (0 : ℝ≥0) 1) := by
+      sorry
+      --refine internalCoveringNumber_smul ?_
+    _ ≤ (n + 1) * ε⁻¹ := by
+      refine (internalCoveringNumber_Ico_zero_one_le_one_div ?_).trans_eq ?_
+      · sorry
+      · rw [← ENNReal.div_mul _ (by simp) (by simp), mul_comm, one_div]
   mono n m hnm x hx := by
     simp only [Set.mem_Ico, zero_le, true_and] at hx ⊢
-    exact hx.trans_le (mod_cast hnm)
+    exact hx.trans_le (mod_cast (by gcongr))
   subset_iUnion x hx := by
     simp only [Set.mem_iUnion, Set.mem_Ico, zero_le, true_and]
-    exact exists_nat_gt x
+    obtain ⟨i, hi⟩ := exists_nat_gt x
+    exact ⟨i, hi.trans (by simp)⟩
