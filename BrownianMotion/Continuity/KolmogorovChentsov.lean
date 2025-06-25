@@ -87,7 +87,7 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
-  4 ^ (p + (5 / 2) * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
+  2 ^ (2 * p + 5 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
   * ∑' (k : ℕ), 2 ^ (k * (β * p - (q - d)))
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
         + Cp d p q)
@@ -96,7 +96,6 @@ lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt :
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β < ∞ := by
   sorry
-
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -131,8 +130,7 @@ theorem finite_kolmogorov_chentsov
     exact le_trans (EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _)) h_ae
   have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
-  apply le_trans
-    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos)
+  apply le_trans (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos)
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
@@ -152,17 +150,25 @@ theorem finite_kolmogorov_chentsov
   rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
     ← mul_assoc _ (2 ^ ((k : ℝ) * _)), ← mul_assoc (M : ℝ≥0∞)]
   refine mul_le_mul' (le_of_eq ?_) ?_
-  · rw [(by ring : p + (5 / 2) * q + 1 = p + 2 * q  + 1 + 2⁻¹ * q),
-      (by ring : k * (β * p - (q - d)) = k * β * p + (-1 * (k * (q - d)))),
-      ENNReal.rpow_add _ (2⁻¹ * q) (by positivity) (by finiteness),
-      ENNReal.rpow_add (k * β * p) _ (by positivity) (by finiteness),
-      ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness),
-      ← ENNReal.rpow_natCast, ← ENNReal.rpow_neg_one, ← ENNReal.rpow_mul, ← ENNReal.rpow_mul,
-      ENNReal.rpow_sub _ _ (by positivity) (by finiteness), div_eq_mul_inv,
-      ← ENNReal.mul_inv_cancel_left (a := 2 ^ d) (b := 4 ^ (2⁻¹ * q)) (by simp) (by finiteness),
-      ENNReal.rpow_mul _ 2⁻¹, (by norm_num : (4 : ℝ≥0∞) = 2 ^ (2 : ℝ)),
-      ENNReal.rpow_rpow_inv (by positivity)]
-    ring
+  · calc 2 ^ (k * β * p) * (2 ^ (2 * p + 4 * q + 1) * M * (2 ^ d * c)
+        * ((2 * 2⁻¹ ^ k) ^ (q - d) * (EMetric.diam Set.univ + 1) ^ (q - d)))
+    _ = 2 ^ (k * β * p) * (2 ^ (2 * p + 4 * q + 1) * M * (2 ^ d * c)
+        * ((2 ^ (q - d) * 2 ^ (- k * (q - d)))
+        * (EMetric.diam (Set.univ : Set T) + 1) ^ (q - d))) := by
+      congr
+      rw [ENNReal.rpow_mul, ENNReal.mul_rpow_of_nonneg _ _ (by bound), ENNReal.rpow_neg,
+        ← ENNReal.inv_pow, ENNReal.rpow_natCast]
+    _ = M * (2 ^ (2 * p + 4 * q + 1) * (2 ^ (q - d) * 2 ^ d)) * c
+        * (EMetric.diam (Set.univ : Set T) + 1) ^ (q - d)
+        * (2 ^ (k * β * p) * 2 ^ (- k * (q - d))) := by ring
+    _ = M * 2 ^ (2 * p + 5 * q + 1) * c * (EMetric.diam Set.univ + 1) ^ (q - d)
+        * 2 ^ (↑k * (↑β * p - (q - d))) := by
+      congr
+      · rw [← ENNReal.rpow_add _ _ (by simp) (by simp), ← ENNReal.rpow_add _ _ (by simp) (by simp)]
+        ring_nf
+      · rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
+        ring_nf
+    _ = _ := by ring
   by_cases hc_zero : c.toReal = 0
   · simp [hc_zero]; gcongr; exact zero_le _
   gcongr with k
