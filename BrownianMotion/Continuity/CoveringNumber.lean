@@ -189,32 +189,41 @@ section minimalCover
 
 variable [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E}
 
-lemma exists_finset_card_eq_internalCoveringNumber (h : TotallyBounded A) (r : ℝ≥0∞) :
+lemma exists_finset_card_eq_internalCoveringNumber (h : TotallyBounded A) (hr : 0 < r) :
     ∃ (C : Finset E), ↑C ⊆ A ∧ IsCover (C : Set E) r A ∧ C.card = internalCoveringNumber r A := by
-  sorry
+  have : Nonempty { s : Finset E // ↑s ⊆ A ∧ IsCover (↑s) r A } := by
+    obtain ⟨C, hC⟩ := h.exists_isCover r hr
+    exact⟨⟨C, hC⟩⟩
+  let h := ENat.exists_eq_iInf
+    (fun C : {s : Finset E // ↑s ⊆ A ∧ IsCover s r A} ↦ (C : Finset E).card)
+  obtain ⟨C, hC⟩ := h
+  refine ⟨C, C.2.1, C.2.2, ?_⟩
+  rw [hC]
+  simp_rw [iInf_subtype, iInf_and]
+  rfl
 
 open Classical in
 /-- An internal `r`-cover of `A` with minimal cardinal. -/
 noncomputable
-def minimalCover (r : ℝ≥0∞) (A : Set E) : Finset E :=
+def minimalCover (r : ℝ≥0∞) (A : Set E) (hr : 0 < r) : Finset E :=
   if h : TotallyBounded A
-    then (exists_finset_card_eq_internalCoveringNumber h r).choose else ∅
+    then (exists_finset_card_eq_internalCoveringNumber h hr).choose else ∅
 
-lemma minimalCover_subset : ↑(minimalCover r A) ⊆ A := by
+lemma minimalCover_subset (hr : 0 < r) : ↑(minimalCover r A hr) ⊆ A := by
   by_cases h : TotallyBounded A
   · simp only [minimalCover, h, dite_true]
-    exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.1
+    exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.1
   · simp only [minimalCover, h, dite_false, Finset.coe_empty, Set.empty_subset]
 
-lemma isCover_minimalCover (h : TotallyBounded A) :
-    IsCover (minimalCover r A : Set E) r A := by
+lemma isCover_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
+    IsCover (minimalCover r A hr : Set E) r A := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.2.1
+  exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.2.1
 
-lemma card_minimalCover (h : TotallyBounded A) :
-    (minimalCover r A).card = internalCoveringNumber r A := by
+lemma card_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
+    (minimalCover r A hr).card = internalCoveringNumber r A := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_internalCoveringNumber h r).choose_spec.2.2
+  exact (exists_finset_card_eq_internalCoveringNumber h hr).choose_spec.2.2
 
 end minimalCover
 
@@ -379,22 +388,22 @@ lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} (
   _ ≤ internalCoveringNumber (r / 2) B :=
     externalCoveringNumber_le_internalCoveringNumber (r / 2) B
 
-lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} :
+lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} (hr : 0 < r) :
     internalCoveringNumber r A ≤ A.encard := by
   by_cases h_top : A.encard = ⊤
   · simp [h_top]
   have hA : A.Finite := Set.encard_ne_top_iff.mp h_top
   have : Fintype A := hA.fintype
-  rw [← card_minimalCover hA.totallyBounded]
+  rw [← card_minimalCover hA.totallyBounded hr]
   rw [Set.encard_eq_coe_toFinset_card]
   gcongr
   simp only [Set.subset_toFinset]
-  exact minimalCover_subset
+  exact minimalCover_subset hr
 
 end comparisons
 
 open scoped Pointwise in
-lemma internaCoveringNumber_smul [NormedAddCommGroup E] [Module ℝ E] {r : ℝ≥0∞} {A : Set E}
+lemma internalCoveringNumber_smul [NormedAddCommGroup E] [Module ℝ E] {r : ℝ≥0∞} {A : Set E}
     {c : ℝ≥0} (hc : c ≠ 0) :
   internalCoveringNumber (c * r) (c • A) = internalCoveringNumber r A := by
   sorry

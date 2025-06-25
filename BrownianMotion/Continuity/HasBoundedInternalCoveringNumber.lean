@@ -110,7 +110,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       rw [ENNReal.mul_div_cancel (by simp) (by simp)]
     _ = internalCoveringNumber (ε / (n + 1)) (Set.Ico (0 : ℝ≥0) 1) := by
       sorry
-      --refine internaCoveringNumber_smul ?_
+      --refine internalCoveringNumber_smul ?_
     _ ≤ (n + 1) * ε⁻¹ := by
       refine (internalCoveringNumber_Ico_zero_one_le_one_div ?_).trans_eq ?_
       · sorry
