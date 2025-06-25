@@ -233,7 +233,19 @@ variable {r : ℝ≥0∞} {A : Set E}
 
 lemma exists_finset_card_eq_packingNumber [PseudoEMetricSpace E] (h : packingNumber r A < ⊤) :
     ∃ (C : Finset E), ↑C ⊆ A ∧ IsSeparated r (C : Set E) ∧ C.card = packingNumber r A := by
-  sorry
+  rcases Set.eq_empty_or_nonempty A with hA | hA
+  · simp [hA, packingNumber]
+  have : Nonempty { s : Finset E // ↑s ⊆ A ∧ IsSeparated r (↑s : Set E) } := by
+    obtain ⟨a, ha⟩ := hA
+    exact ⟨⟨{a}, by simp [ha], by simp⟩⟩
+  let h_exists := ENat.exists_eq_iSup_of_lt_top
+    (f := fun C : { s : Finset E // ↑s ⊆ A ∧ IsSeparated r (↑s : Set E) } ↦ (C : Finset E).card)
+  simp_rw [packingNumber] at h ⊢
+  simp_rw [iSup_subtype, iSup_and] at h_exists
+  specialize h_exists h
+  obtain ⟨C, hC⟩ := h_exists
+  refine ⟨C, C.2.1, C.2.2, ?_⟩
+  rw [hC]
 
 /-- A maximal `r`-separated finite subset of `A`. -/
 noncomputable
