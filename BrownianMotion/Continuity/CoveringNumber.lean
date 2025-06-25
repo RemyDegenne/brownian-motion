@@ -366,9 +366,17 @@ lemma externalCoveringNumber_mono_set [EDist E] {r : ℝ≥0∞} {A B : Set E} (
   simp only [externalCoveringNumber, le_iInf_iff]
   exact fun C hC ↦ iInf_le_of_le C <| iInf_le_of_le (hC.subset h) le_rfl
 
-lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} {A B : Set E} (h : A ⊆ B) :
+lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} (hr : r ≠ ∞)
+    {A B : Set E} (h : A ⊆ B) :
     internalCoveringNumber r A ≤ internalCoveringNumber (r / 2) B := by
-  sorry
+  calc internalCoveringNumber r A
+  _ ≤ packingNumber r A := internalCoveringNumber_le_packingNumber r A
+  _ = packingNumber (2 * (r / 2)) A := by rw [ENNReal.mul_div_cancel (by simp) (by simp)]
+  _ ≤ externalCoveringNumber (r / 2) A :=
+    packingNumber_two_le_externalCoveringNumber A (by finiteness)
+  _ ≤ externalCoveringNumber (r / 2) B := externalCoveringNumber_mono_set h
+  _ ≤ internalCoveringNumber (r / 2) B :=
+    externalCoveringNumber_le_internalCoveringNumber (r / 2) B
 
 end comparisons
 
