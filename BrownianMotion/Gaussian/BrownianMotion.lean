@@ -223,76 +223,120 @@ theorem limUnder_works [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
 
 end pause
 
-lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussianLimit := by
-  classical
-  let X (n : ℕ) (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ :=
-    if t = 0 then 0
-    else brownian (Nat.ceil (2 ^ n * t) / 2 ^ n) ω
-  let Y (n : ℕ) (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ :=
-    if t = 0 then 0
-    else (aemeasurable_brownian_apply ((Nat.ceil (2 ^ n * t) / 2 ^ n))).mk _ ω
-  have hY n : Measurable (Y n) := by
-    rw [measurable_pi_iff]
-    intro t
-    simp_rw [Y, ok]
-    split_ifs with ht
-    · fun_prop
-    · exact AEMeasurable.measurable_mk _
-  have (n k : ℕ) : (fun ω ↦ X n ω (k / 2 ^ n)) =ᵐ[gaussianLimit] (fun ω ↦ Y n ω (k / 2 ^ n)) := by
-    filter_upwards [(aemeasurable_brownian_apply ((k / 2 ^ n))).ae_eq_mk] with ω hω
-    simp_rw [X, Y]
-    obtain rfl | hk := eq_zero_or_pos k
+theorem omg : Measurable (fun ω t ↦ brownian t ω) := sorry
+
+open Filter Topology in
+lemma measurable_brownian : Measurable brownian.uncurry := by
+  let k (n : ℕ) (t : ℝ≥0) := Nat.ceil (t * 2 ^ n) - 1
+  have k_simp (n i : ℕ) : k n ((i + 1) / 2 ^ n) = i := by
+    simp_rw [k]
+    field_simp
+    norm_cast
+    rw [Nat.ceil_natCast]
+    rfl
+  have hk1 n t (ht : 0 < t) : k n t / 2 ^ n < t := by
+    simp_rw [k]
+    push_cast
+    rw [NNReal.sub_div, tsub_lt_iff_right]
+    · calc
+      Nat.ceil (t * 2 ^ n) / 2 ^ n < (t * 2 ^ n + 1) / 2 ^ n := by
+        rw [div_lt_div_iff_of_pos_right]
+        · apply Nat.ceil_lt_add_one
+          exact (mul_pos ht (by simp)).le
+        simp
+      _ = t + 1 / 2 ^ n := by field_simp [mul_comm]
+    rw [div_le_div_iff_of_pos_right (by simp)]
+    simpa
+  have hk2 n t : t ≤ (k n t + 1) / 2 ^ n := by
+    obtain rfl | ht := eq_zero_or_pos t
     · simp
-    rw [if_neg, if_neg]
-    · convert hω
-      all_goals field_simp
-    all_goals
-      apply div_ne_zero
-      · norm_cast; omega
+    nth_rw 1 [← mul_div_cancel_right₀ t (b := 2 ^ n) (by simp),
+      div_le_div_iff_of_pos_right (by simp)]
+    convert Nat.le_ceil _
+    simp_rw [k]
+    push_cast
+    rw [tsub_add_cancel_of_le]
+    norm_cast
+    rw [Nat.one_le_ceil_iff]
+    simpa
+  let X (n : ℕ) (tω : ℝ≥0 × (ℝ≥0 → ℝ)) : ℝ := brownian ((k n tω.1 + 1) / 2 ^ n) tω.2
+  have hX (n : ℕ) (t : ℝ≥0) : Measurable (fun ω ↦ X n (t, ω)) := by
+    simp_rw [X]
+    exact omg.eval
+  have hX n : Measurable (X n) := by
+    intro s hs
+    have : X n ⁻¹' s = {0} ×ˢ ((fun ω ↦ X n (0, ω)) ⁻¹' s) ∪
+        ⋃ k : ℕ, (Set.Ioc (k / 2 ^ n : ℝ≥0) ((k + 1) / 2 ^ n)) ×ˢ
+          ((fun ω ↦ X n ((k + 1) / 2 ^ n, ω)) ⁻¹' s) := by
+      ext ⟨t, ω⟩
+      constructor
+      · intro h
+        obtain rfl | ht := eq_zero_or_pos t
+        · apply Set.mem_union_left
+          simpa
+        · apply Set.mem_union_right
+          rw [Set.mem_iUnion]
+          use k n t
+          simp only [Set.mem_prod, Set.mem_Ioc, Set.mem_preimage]
+          refine ⟨⟨hk1 n t ht, hk2 n t⟩, ?_⟩
+          convert h
+          simp [X, k_simp]
+      · intro h
+        simp only [Set.mem_union, Set.mem_prod, Set.mem_singleton_iff, Set.mem_preimage,
+          Set.mem_iUnion, Set.mem_Ioc] at h
+        obtain ⟨rfl, h⟩ | ⟨i, ⟨hi1, hi2⟩, h⟩ := h
+        · exact h
+        convert h
+        simp [X, k_simp]
+        congrm brownian (?_ / _) _ ∈ s
+        norm_cast
+        simp_rw [k]
+        congr
+        apply Nat.sub_eq_of_eq_add
+        apply le_antisymm
+        · rw [Nat.ceil_le]
+          grw [hi2]
+          field_simp
+        · refine Nat.add_one_le_iff.2 <| Nat.lt_ceil.2 ?_
+          rwa [← div_lt_iff₀ (by simp)]
+    rw [this]
+    apply MeasurableSet.union
+    · apply MeasurableSet.prod
+      · exact measurableSet_singleton 0
+      · exact hX n 0 hs
+    apply MeasurableSet.iUnion
+    intro i
+    apply MeasurableSet.prod
+    · exact measurableSet_Ioc
+    · exact hX n _ hs
+  have this tω : Tendsto (fun n ↦ X n tω) atTop (𝓝 (brownian.uncurry tω)) := by
+    simp_rw [X]
+    obtain ⟨t, ω⟩ := tω
+    refine continuous_brownian ω |>.tendsto t |>.comp ?_
+    obtain rfl | ht := eq_zero_or_pos t
+    · simp [k, -one_div]
+      simp_rw [← one_div_pow]
+      refine NNReal.tendsto_atTop_zero_of_summable ?_
+      apply NNReal.summable_geometric
+      field_simp
+    have h1 n : t ≤ (k n t + 1) / 2 ^ n := by
+      apply (hk2 n t).trans
+      field_simp
+    have h2 n : (k n t + 1) / 2 ^ n ≤ t + 1 / 2 ^ n := by
+      rw [add_div, add_le_add_iff_right]
+      exact hk1 n t ht |>.le
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le ?_ ?_ h1 h2
+    · simp
+    · nth_rw 2 [← add_zero t]
+      apply Tendsto.add
       · simp
-  have hX (n : ℕ) : AEMeasurable (X n) gaussianLimit := by
-    refine ⟨Y n, hY n, ?_⟩
-    filter_upwards [ae_all_iff.2 (this n)] with ω hω
-    simp_rw [X, Y]
-    ext t
-    split_ifs with ht
-    · rfl
-    convert hω ⌈2 ^ n * t⌉₊
-    · simp_rw [X]
-      rw [if_neg]
-      · field_simp
-      apply div_ne_zero
-      · apply LT.lt.ne'
-        norm_cast
-        rw [Nat.ceil_pos]
-        norm_cast
-        apply mul_pos
-        · simp
-        exact NE.ne.pos ht
-      · simp
-    · simp_rw [Y]
-      rw [if_neg]
-      · field_simp
-      apply div_ne_zero
-      · apply LT.lt.ne'
-        norm_cast
-        rw [Nat.ceil_pos]
-        norm_cast
-        apply mul_pos
-        · simp
-        exact NE.ne.pos ht
-      · simp
-  let Z (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ := limUnder Filter.atTop (fun n ↦ Y n ω t)
-  have hZ : Measurable Z := by
-    rw [measurable_pi_iff]
-    intro t
-    exact limUnder_works fun n ↦ measurable_pi_iff.1 (hY n) t
-  refine ⟨Z, hZ, ?_⟩
-
-
-    -- rw [measurable_pi_iff]
-    -- intro t s hs
-    -- have : fun ω ↦ X n ω t ⁻¹' s =
+      · refine NNReal.tendsto_atTop_zero_of_summable ?_
+        simp_rw [← one_div_pow]
+        apply NNReal.summable_geometric
+        field_simp
+  refine measurable_of_tendsto_metrizable hX ?_
+  rw [@tendsto_pi_nhds]
+  exact this
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   isGaussianProcess_preBrownian.modification fun t ↦ (brownian_eq_preBrownian t).symm
