@@ -101,24 +101,24 @@ lemma isKolmogorovProcess_preBrownian (n : ℕ) :
   change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     ((preBrownian s - preBrownian t) ω) ∂_ = _
   rw [← lintegral_map (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n)), map_sub_preBrownian]
-  simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
-  rw [← ofReal_integral_eq_lintegral_ofReal]
-  · simp_rw [Even.pow_abs (n := 2 * n) ⟨n, by omega⟩]
-    rw [← lol, ← NNReal.sq_sqrt (max _ _)]
-    change ENNReal.ofReal (centralMoment id _ _) = _
-    rw [centralMoment_two_mul_gaussianReal, ENNReal.ofReal_mul, mul_comm]
-    · congr
-      · norm_cast
-      · norm_cast
-        rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg]
-        congr
-        rw [← NNReal.nndist_eq, NNReal.coe_pow, coe_nndist]
-    · positivity
-    · simp
-  · simp_rw [← Real.norm_eq_abs]
-    apply MemLp.integrable_norm_pow'
-    exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
-  · exact ae_of_all _ fun _ ↦ by positivity
+  · simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
+    rw [← ofReal_integral_eq_lintegral_ofReal]
+    · simp_rw [Even.pow_abs (n := 2 * n) ⟨n, by omega⟩]
+      rw [← lol, ← NNReal.sq_sqrt (max _ _)]
+      · change ENNReal.ofReal (centralMoment id _ _) = _
+        rw [centralMoment_two_mul_gaussianReal, ENNReal.ofReal_mul, mul_comm]
+        · congr
+          · norm_cast
+          · norm_cast
+            rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg]
+            congr
+            rw [← NNReal.nndist_eq, NNReal.coe_pow, coe_nndist]
+        · positivity
+      · simp
+    · simp_rw [← Real.norm_eq_abs]
+      apply MemLp.integrable_norm_pow'
+      exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
+    · exact ae_of_all _ fun _ ↦ by positivity
   · fun_prop
   · fun_prop
 
@@ -141,20 +141,158 @@ lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2�
   refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
     (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
     (fun n ↦ by simp; norm_cast; omega)).choose_spec.2 β hβ_pos ?_ ω
-  have hβ_lt' : (β : ℝ) < 2⁻¹ := by
-    sorry
-  refine hβ_lt'.trans_eq ?_
-  sorry
+  have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
+  refine hβ_lt'.trans_eq (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) ?_ ?_).symm
+  · intro n
+    calc
+    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by
+      rw [inv_eq_one_div, mul_div_assoc, div_mul_div_comm]
+      congr
+      · push_cast
+        ring
+      · push_cast
+        rfl
+    _ ≤ 2⁻¹ * 1 := by
+      rw [mul_div_assoc, mul_le_mul_left, div_le_one₀]
+      · linarith
+      · norm_cast
+        omega
+      · norm_num
+    _ = 2⁻¹ := mul_one _
+  · have : (fun n : ℕ ↦ ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2))) =
+        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by
+      ext n
+      simp only [Nat.cast_add, Nat.cast_ofNat, Function.comp_apply, Nat.cast_one]
+      rw [inv_eq_one_div, div_mul_div_comm]
+      congr 2
+      · ring
+      · norm_cast
+    simp_rw [this]
+    refine Filter.Tendsto.comp ?_ (Filter.tendsto_add_atTop_nat 1)
+    nth_rw 2 [← mul_one 2⁻¹]
+    apply Filter.Tendsto.const_mul
+    exact tendsto_natCast_div_add_atTop 1
 
 lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit :=
   ⟨preBrownian t, measurable_preBrownian t, brownian_eq_preBrownian t⟩
 
-lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussianLimit := by
-  sorry
-
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) :
     Continuous (brownian · ω) := by
-  sorry
+  obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
+    apply isHolderWith_brownian
+    · norm_num
+    refine NNReal.inv_lt_inv ?_ ?_
+    all_goals norm_num
+  exact h.continuous (by norm_num)
+
+lemma ok (a b : Type*) (p : Prop) [Decidable p] (u v : b → a) :
+    (fun x ↦ if p then u x else v x) = if p then u else v := by
+  ext x
+  split_ifs <;> rfl
+
+section pause
+
+open Filter MeasureTheory Set TopologicalSpace
+
+open scoped Topology
+
+variable {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
+  [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
+  [l.IsCountablyGenerated] {f : ι → X → E}
+
+theorem limUnder_works [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
+    Measurable (fun x ↦ limUnder l (f · x)) := by
+  obtain rfl | hl := eq_or_neBot l
+  · simp [limUnder, Filter.map_bot]
+  letI := upgradeIsCompletelyMetrizable
+  let e := Classical.choice hE
+  let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
+  have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
+  have : (fun x ↦ _root_.limUnder l (f · x)) = ((↑) : conv → X).extend
+      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ e) := by
+    ext x
+    by_cases hx : x ∈ conv
+    · rw [Function.extend_val_apply hx]
+    · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
+  rw [this]
+  refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend
+    (measurable_of_tendsto_metrizable' l
+      (fun i ↦ (hf i).comp measurable_subtype_coe)
+      (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
+  rwa [hc.limUnder_eq]
+
+end pause
+
+lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussianLimit := by
+  classical
+  let X (n : ℕ) (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ :=
+    if t = 0 then 0
+    else brownian (Nat.ceil (2 ^ n * t) / 2 ^ n) ω
+  let Y (n : ℕ) (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ :=
+    if t = 0 then 0
+    else (aemeasurable_brownian_apply ((Nat.ceil (2 ^ n * t) / 2 ^ n))).mk _ ω
+  have hY n : Measurable (Y n) := by
+    rw [measurable_pi_iff]
+    intro t
+    simp_rw [Y, ok]
+    split_ifs with ht
+    · fun_prop
+    · exact AEMeasurable.measurable_mk _
+  have (n k : ℕ) : (fun ω ↦ X n ω (k / 2 ^ n)) =ᵐ[gaussianLimit] (fun ω ↦ Y n ω (k / 2 ^ n)) := by
+    filter_upwards [(aemeasurable_brownian_apply ((k / 2 ^ n))).ae_eq_mk] with ω hω
+    simp_rw [X, Y]
+    obtain rfl | hk := eq_zero_or_pos k
+    · simp
+    rw [if_neg, if_neg]
+    · convert hω
+      all_goals field_simp
+    all_goals
+      apply div_ne_zero
+      · norm_cast; omega
+      · simp
+  have hX (n : ℕ) : AEMeasurable (X n) gaussianLimit := by
+    refine ⟨Y n, hY n, ?_⟩
+    filter_upwards [ae_all_iff.2 (this n)] with ω hω
+    simp_rw [X, Y]
+    ext t
+    split_ifs with ht
+    · rfl
+    convert hω ⌈2 ^ n * t⌉₊
+    · simp_rw [X]
+      rw [if_neg]
+      · field_simp
+      apply div_ne_zero
+      · apply LT.lt.ne'
+        norm_cast
+        rw [Nat.ceil_pos]
+        norm_cast
+        apply mul_pos
+        · simp
+        exact NE.ne.pos ht
+      · simp
+    · simp_rw [Y]
+      rw [if_neg]
+      · field_simp
+      apply div_ne_zero
+      · apply LT.lt.ne'
+        norm_cast
+        rw [Nat.ceil_pos]
+        norm_cast
+        apply mul_pos
+        · simp
+        exact NE.ne.pos ht
+      · simp
+  let Z (ω : ℝ≥0 → ℝ) (t : ℝ≥0) : ℝ := limUnder Filter.atTop (fun n ↦ Y n ω t)
+  have hZ : Measurable Z := by
+    rw [measurable_pi_iff]
+    intro t
+    exact limUnder_works fun n ↦ measurable_pi_iff.1 (hY n) t
+  refine ⟨Z, hZ, ?_⟩
+
+
+    -- rw [measurable_pi_iff]
+    -- intro t s hs
+    -- have : fun ω ↦ X n ω t ⁻¹' s =
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   isGaussianProcess_preBrownian.modification fun t ↦ (brownian_eq_preBrownian t).symm
