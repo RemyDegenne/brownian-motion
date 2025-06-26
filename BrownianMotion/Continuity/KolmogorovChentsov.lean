@@ -11,8 +11,8 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 
 -/
 
-open MeasureTheory
-open scoped ENNReal NNReal
+open MeasureTheory Filter
+open scoped ENNReal NNReal Topology
 
 section aux
 
@@ -257,6 +257,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
       refine MeasurableSet.union ?_ ?_
       · exact MeasurableSet.preimage (measurableSet_singleton 0) (h_meas_edist s t)
       · exact (MeasurableSet.preimage (measurableSet_singleton 0) (by fun_prop)).compl
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := by
+    filter_upwards [hC_lt_top, h_ae_zero] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
   -- -- If `X · ω` is not constant, then `C ω > 0`
   -- have hAC_pos ω (h : ∃ (s t : T'), X s ω ≠ X t ω) : 0 < C ω := by
   --   by_contra hC
@@ -267,33 +269,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   --     false_or, Subtype.forall, Subtype.edist_mk_mk, C, fun s t ↦ (h_edist_lt_top s t).ne] at hC
   --   obtain ⟨s, t, hst⟩ := h
   --   exact hst (hC s s.2 t t.2)
-  let x₀ : E := Nonempty.some inferInstance
-  classical
-  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Dense.extend hT'_dense (fun t ↦ X t ω) t else x₀
-  refine ⟨Y, fun s t ↦ ?_, fun t ↦ ?_, fun ω ↦ ?_⟩
-  · have h_eq : (fun ω ↦ (Y s ω, Y t ω))
-        = fun ω ↦ if ω ∈ A then (Dense.extend hT'_dense (fun t ↦ X t ω) s,
-          Dense.extend hT'_dense (fun t ↦ X t ω) t) else (x₀, x₀) := by
-      ext ω : 1
-      split_ifs with h <;> simp [h, Y]
-    rw [h_eq]
-    refine Measurable.ite hA ?_ (by fun_prop)
-    sorry -- ???
-  · suffices ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0 by
-      filter_upwards [this] with ω h using by simpa using h
-    sorry -- main goal
-  · by_cases hω : ω ∈ A
-    swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
-    simp only [hω, ↓reduceIte, Y, A]
-    refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    refine hT'_dense.holderWith_extend ?_
-    -- `⊢ HolderWith (C ω ^ p⁻¹).toNNReal β fun (t : T') ↦ X t ω`
-    -- by_cases h_all_eq : ∀ s t : T', X s ω = X t ω
-    -- · let t₀ : T' := sorry
-    --   have : (fun (t : T') ↦ X t ω) = fun _ ↦ X t₀ ω := by ext t; exact h_all_eq t t₀
-    --   rw [this]
-    --   simp [HolderWith]
-    -- push_neg at h_all_eq
+  have h_holder {ω} (hω : ω ∈ A) : HolderWith (C ω ^ p⁻¹).toNNReal β fun (t : T') ↦ X t ω := by
     intro s t
     have h_dist_top : edist s t ^ (β : ℝ) ≠ ∞
     · simp only [ne_eq, ENNReal.rpow_eq_top_iff, NNReal.coe_pos, not_or, not_and, not_lt,
@@ -305,7 +281,49 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     unfold C
     rw [ENNReal.coe_toNNReal]
     swap; · exact ENNReal.rpow_ne_top_of_nonneg (by positivity) hω.1.ne
-    sorry -- annoying juggling of `iSup` and `rpow`
+    rw [ENNReal.le_rpow_inv_iff hp_pos, ENNReal.div_rpow_of_nonneg _ _ hp_pos.le,
+      ← ENNReal.rpow_mul]
+    exact le_iSup₂ s t (f := fun (s t : T') ↦ edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p))
+  have h_cont {ω} (hω : ω ∈ A) : Continuous fun (t : T') ↦ X t ω := (h_holder hω).continuous hβ_pos
+  let x₀ : E := Nonempty.some inferInstance
+  classical
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Dense.extend hT'_dense (fun t ↦ X t ω) t else x₀
+  have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
+    simp only [hω, ↓reduceIte, Y]
+    exact hT'_dense.extend_eq (h_cont hω) t
+  refine ⟨Y, fun s t ↦ ?_, fun t ↦ ?_, fun ω ↦ ?_⟩
+  · have h_eq : (fun ω ↦ (Y s ω, Y t ω))
+        = fun ω ↦ if ω ∈ A then (Dense.extend hT'_dense (fun t ↦ X t ω) s,
+          Dense.extend hT'_dense (fun t ↦ X t ω) t) else (x₀, x₀) := by
+      ext ω : 1
+      split_ifs with h <;> simp [h, Y]
+    rw [h_eq]
+    refine Measurable.ite hA ?_ (by fun_prop)
+    sorry -- ???
+  · suffices ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0 by
+      filter_upwards [this] with ω h using by simpa using h
+    filter_upwards [hA_ae] with ω hω
+    obtain ⟨u, hu⟩ : ∃ u : ℕ → T', Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t) := by
+      sorry
+    have h_le n : edist (Y t ω) (X t ω)
+        ≤ edist (Y t ω) (Y (u n) ω) + edist (X (u n) ω) (X t ω) := by
+      refine (edist_triangle4 (Y t ω) (Y (u n) ω) (X (u n) ω) (X t ω)).trans_eq ?_
+      simp [hY_eq hω (u n)]
+    suffices Tendsto (fun (_ : ℕ) ↦ edist (Y t ω) (Y t ω)) atTop (𝓝 0) by
+      sorry
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
+      (fun n ↦ by simp [h_le])
+      (g := fun _ ↦ 0) (h := fun n ↦ edist (Y t ω) (Y (u n) ω) + edist (X (u n) ω) (X t ω))
+    rw [← add_zero 0]
+    refine Tendsto.add ?_ ?_
+    · simp_rw [edist_comm (Y t ω)]
+      sorry
+    · sorry
+  · by_cases hω : ω ∈ A
+    swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
+    simp only [hω, ↓reduceIte, Y, A]
+    refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
+    refine hT'_dense.holderWith_extend (h_holder hω)
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
