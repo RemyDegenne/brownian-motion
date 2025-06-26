@@ -36,25 +36,24 @@ lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimi
 lemma map_sub_preBrownian (s t : ℝ≥0) :
     gaussianLimit.map (preBrownian s - preBrownian t) = gaussianReal 0 (max (s - t) (t - s)) := by
   let I : Finset ℝ≥0 := {s, t}
-  let L : EuclideanSpace ℝ I →L[ℝ] ℝ :=
-    EuclideanSpace.proj ⟨s, by simp [I]⟩ - EuclideanSpace.proj ⟨t, by simp [I]⟩
+  let L : (I → ℝ) →L[ℝ] ℝ :=
+    ContinuousLinearMap.proj ⟨s, by simp [I]⟩ - ContinuousLinearMap.proj ⟨t, by simp [I]⟩
   have : preBrownian s - preBrownian t = L ∘ I.restrict := by
     ext; simp [L, preBrownian, I]
   rw [this, ← AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop),
     isProjectiveLimit_gaussianLimit, IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm,
-    integral_id_gaussianProjectiveFamily, map_zero, gaussianProjectiveFamily]
+    integral_id_gaussianProjectiveFamily, map_zero]
   swap; · exact IsGaussian.integrable_id
   congr
-  simp only [ContinuousLinearMap.coe_sub', EuclideanSpace.coe_proj, I, L]
+  simp only [ContinuousLinearMap.coe_sub', ContinuousLinearMap.coe_proj', I, L]
   rw [variance_sub]
-  · simp_rw [variance_eval_multivariateGaussian, covariance_eval_multivariateGaussian,
-      brownianCovMatrix_apply, min_self]
+  · simp_rw [variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
     norm_cast
     rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
       add_sub_two_mul_min_eq_max]
     nth_grw 1 [two_mul, min_le_left, min_le_right]
   all_goals
-    simp_rw [← basisFun_inner, ← ContinuousBilinForm.inner_apply']
+    rw [← ContinuousLinearMap.coe_proj' ℝ]
     exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
 
 lemma isKolmogorovProcess_preBrownian (n : ℕ) :

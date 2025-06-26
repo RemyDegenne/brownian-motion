@@ -55,18 +55,52 @@ lemma posSemidef_brownianCovMatrix (I : Finset ℝ≥0) :
 variable [DecidableEq ι]
 
 noncomputable
-def gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    Measure (EuclideanSpace ℝ I) :=
-  multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)
+def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
+  multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) |>.map
+    (EuclideanSpace.measurableEquiv I)
+
+lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (I : Finset ℝ≥0) (f : (I → ℝ) → E) :
+    ∫ x, f x ∂gaussianProjectiveFamily I =
+      ∫ x, f (EuclideanSpace.equiv I ℝ x)
+        ∂multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) := by
+  rw [gaussianProjectiveFamily, integral_map_equiv, EuclideanSpace.coe_measurableEquiv']
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) := by
   unfold gaussianProjectiveFamily
+  rw [EuclideanSpace.coe_measurableEquiv']
   infer_instance
 
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    ∫ x, x ∂(gaussianProjectiveFamily I) = 0 :=
-  integral_id_multivariateGaussian
+    ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
+  rw [integral_gaussianProjectiveFamily, ← ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.integral_comp_id_comm IsGaussian.integrable_id,
+    integral_id_multivariateGaussian, map_zero]
+
+open scoped RealInnerProductSpace in
+lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
+    cov[fun x ↦ x s, fun x ↦ x t; gaussianProjectiveFamily I] = min s.1 t.1 := by
+  rw [gaussianProjectiveFamily, covariance_map_equiv]
+  change cov[fun x : EuclideanSpace ℝ I ↦ x s, fun x ↦ x t; _] = _
+  have (u : I) : (fun x : EuclideanSpace ℝ I ↦ x u) =
+      fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp
+  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
+    ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
+  exact IsGaussian.memLp_two_id
+
+lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
+    Var[fun x ↦ x s; gaussianProjectiveFamily I] = s := by
+  rw [← covariance_same, covariance_eval_gaussianProjectiveFamily, min_self]
+  exact Measurable.aemeasurable <| by fun_prop
+
+lemma eval_map_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
+    (gaussianProjectiveFamily I).map (fun x ↦ x s) = gaussianReal 0 s := by
+  rw [← ContinuousLinearMap.coe_proj' ℝ, IsGaussian.map_eq_gaussianReal,
+    ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
+    map_zero, ContinuousLinearMap.coe_proj', variance_eval_gaussianProjectiveFamily,
+    Real.toNNReal_coe]
+  exact IsGaussian.integrable_id
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by

@@ -110,6 +110,18 @@ lemma variance_sub {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [Is
   · exact hX.aemeasurable
   · exact hX.aemeasurable.sub hY.aemeasurable
 
+lemma covariance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
+    {μ : Measure Ω'} (X Y : Ω → ℝ) (Z : Ω' ≃ᵐ Ω) :
+    cov[X, Y; μ.map Z] = cov[X ∘ Z, Y ∘ Z; μ] := by
+  simp_rw [covariance, integral_map_equiv]
+  rfl
+
+lemma variance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
+    {μ : Measure Ω'} (X : Ω → ℝ) (Y : Ω' ≃ᵐ Ω) :
+    Var[X; μ.map Y] = Var[X ∘ Y; μ] := by
+  simp_rw [variance, evariance, lintegral_map_equiv, integral_map_equiv]
+  rfl
+
 lemma centralMoment_of_integral_id_eq_zero {Ω : Type*} {mΩ : MeasurableSpace Ω}
     {μ : Measure Ω} {X : Ω → ℝ} (p : ℕ) (hX : μ[X] = 0) :
     centralMoment X p μ = ∫ ω, X ω ^ p ∂μ := by
@@ -175,3 +187,6 @@ theorem Measurable.limUnder [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
       (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ by rwa [hc.limUnder_eq])) measurable_const
 
 end limUnder
+
+lemma EuclideanSpace.coe_measurableEquiv' {ι : Type*} :
+    ⇑(EuclideanSpace.measurableEquiv ι) = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
