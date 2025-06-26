@@ -225,34 +225,109 @@ end pause
 
 theorem omg : Measurable (fun ω t ↦ brownian t ω) := sorry
 
+namespace _root_.NNReal
+
+variable (n : ℕ) (t : ℝ≥0)
+
+noncomputable def step : ℕ := Nat.ceil (t * 2 ^ n) - 1
+
+lemma step_def : step n t = Nat.ceil (t * 2 ^ n) - 1 := rfl
+
+variable {n}
+
+@[simp]
+lemma step_zero : step n 0 = 0 := by simp [step]
+
+@[simp]
+lemma step_cast_add_one_div (k : ℕ) : step n ((k + 1) / 2 ^ n) = k := by
+  rw [step_def]
+  field_simp
+  norm_cast
+  rw [Nat.ceil_natCast, Nat.add_sub_cancel]
+
+variable {t}
+
+lemma step_add_one (ht : 0 < t) : step n t + 1 = Nat.ceil (t * 2 ^ n) := by
+  rw [step_def, tsub_add_cancel_of_le]
+  rw [Nat.one_le_ceil_iff]
+  simpa
+
+lemma step_add_one' (ht : 0 < t) : (step n t : ℝ≥0) + 1 = Nat.ceil (t * 2 ^ n) := by
+  norm_cast
+  convert step_add_one ht using 3
+  norm_cast
+
+lemma ceil_sub_one_lt (ht : 0 < t) :
+    Nat.ceil t - 1 < t := by
+  rw [tsub_lt_iff_right]
+  · exact Nat.ceil_lt_add_one ht.le
+  · norm_cast
+    exact Nat.one_le_ceil_iff.2 ht
+
+lemma step_div_lt (ht : 0 < t) : step n t / 2 ^ n < t := by
+  rw [step_def]
+  push_cast
+  exact (div_lt_div_iff_of_pos_right (by simp)).2
+    (ceil_sub_one_lt (by simpa)) |>.trans_le (by field_simp)
+
+variable (t) in
+lemma le_step_add_one_div : t ≤ (step n t + 1) / 2 ^ n := by
+  obtain rfl | ht := eq_zero_or_pos t
+  · simp
+  nth_rw 1 [← mul_div_cancel_right₀ t (b := 2 ^ n) (by simp),
+    div_le_div_iff_of_pos_right (by simp), step_add_one' ht]
+  exact Nat.le_ceil _
+
+lemma step_eq_of_lt_of_le (k : ℕ) (h1 : k / 2 ^ n < t) (h2 : t ≤ (k + 1) / 2 ^ n) :
+    step n t = k := by
+  rw [step_def]
+  apply Nat.sub_eq_of_eq_add
+  apply le_antisymm
+  · rw [Nat.ceil_le]
+    grw [h2]
+    field_simp
+  · refine Nat.add_one_le_iff.2 <| Nat.lt_ceil.2 ?_
+    rwa [← div_lt_iff₀ (by simp)]
+
+lemma NNReal.le_ceil_mul_div (a : ℝ≥0) {b : ℝ≥0} (hb : b ≠ 0) :
+    a ≤ Nat.ceil (a * b) / b := by
+  nth_rw 1 [← mul_div_cancel_right₀ a (b := b) hb, div_le_div_iff_of_pos_right (NE.ne.pos hb)]
+  exact Nat.le_ceil _
+
+lemma NNReal.ceil_mul_div_lt_add_one_div (a : ℝ≥0) {b : ℝ≥0} (hb : b ≠ 0) :
+    Nat.ceil (a * b) / b < a + 1 / b :=
+  (div_lt_div_iff_of_pos_right (NE.ne.pos hb)).2
+    (Nat.ceil_lt_add_one (by simp)) |>.trans_le (by field_simp)
+
+lemma NNReal.ceil_mul_div_lt_add_one_div' {a : ℝ≥0} (b : ℝ≥0) (ha : a ≠ 0) :
+    Nat.ceil (a * b) / b < a + 1 / b := by
+  obtain rfl | hb := eq_zero_or_pos b
+  · simp [NE.ne.pos ha]
+  exact (div_lt_div_iff_of_pos_right hb).2
+    (Nat.ceil_lt_add_one (by simp)) |>.trans_le (by field_simp)
+
+lemma NNReal.ceil_mul_sub_one_div_lt {a : ℝ≥0} (b : ℝ≥0) (ha : a ≠ 0) :
+    (Nat.ceil (a * b) - 1) / b < a := by
+  obtain rfl | hb := eq_zero_or_pos b
+  · simp [NE.ne.pos ha]
+  exact (div_lt_div_iff_of_pos_right hb).2
+    (NNReal.ceil_sub_one_lt (by simp [NE.ne.pos ha, hb])) |>.trans_eq (by field_simp)
+
 open Filter Topology in
 lemma measurable_brownian : Measurable brownian.uncurry := by
   let k (n : ℕ) (t : ℝ≥0) := Nat.ceil (t * 2 ^ n) - 1
   have k_simp (n i : ℕ) : k n ((i + 1) / 2 ^ n) = i := by
-    simp_rw [k]
-    field_simp
+    simp [k]
     norm_cast
-    rw [Nat.ceil_natCast]
-    rfl
+    rw [Nat.ceil_natCast, Nat.add_sub_cancel]
   have hk1 n t (ht : 0 < t) : k n t / 2 ^ n < t := by
     simp_rw [k]
     push_cast
-    rw [NNReal.sub_div, tsub_lt_iff_right]
-    · calc
-      Nat.ceil (t * 2 ^ n) / 2 ^ n < (t * 2 ^ n + 1) / 2 ^ n := by
-        rw [div_lt_div_iff_of_pos_right]
-        · apply Nat.ceil_lt_add_one
-          exact (mul_pos ht (by simp)).le
-        simp
-      _ = t + 1 / 2 ^ n := by field_simp [mul_comm]
-    rw [div_le_div_iff_of_pos_right (by simp)]
-    simpa
+    exact NNReal.ceil_mul_sub_one_div_lt _ ht.ne'
   have hk2 n t : t ≤ (k n t + 1) / 2 ^ n := by
     obtain rfl | ht := eq_zero_or_pos t
     · simp
-    nth_rw 1 [← mul_div_cancel_right₀ t (b := 2 ^ n) (by simp),
-      div_le_div_iff_of_pos_right (by simp)]
-    convert Nat.le_ceil _
+    convert NNReal.le_ceil_mul_div t (b := 2 ^ n) (by simp)
     simp_rw [k]
     push_cast
     rw [tsub_add_cancel_of_le]
@@ -272,11 +347,9 @@ lemma measurable_brownian : Measurable brownian.uncurry := by
       constructor
       · intro h
         obtain rfl | ht := eq_zero_or_pos t
-        · apply Set.mem_union_left
-          simpa
+        · exact Set.mem_union_left _ (by simpa)
         · apply Set.mem_union_right
-          rw [Set.mem_iUnion]
-          use k n t
+          refine Set.mem_iUnion.2 ⟨k n t, ?_⟩
           simp only [Set.mem_prod, Set.mem_Ioc, Set.mem_preimage]
           refine ⟨⟨hk1 n t ht, hk2 n t⟩, ?_⟩
           convert h
@@ -288,10 +361,7 @@ lemma measurable_brownian : Measurable brownian.uncurry := by
         · exact h
         convert h
         simp [X, k_simp]
-        congrm brownian (?_ / _) _ ∈ s
-        norm_cast
-        simp_rw [k]
-        congr
+        congrm brownian ((Nat.cast (R := ℝ≥0) ?_ + 1) / _) _ ∈ s
         apply Nat.sub_eq_of_eq_add
         apply le_antisymm
         · rw [Nat.ceil_le]
