@@ -1,5 +1,6 @@
 import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Moments.Covariance
 
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
@@ -7,7 +8,16 @@ import Mathlib.Probability.Distributions.Gaussian.Real
 
 open MeasureTheory
 
-open scoped NNReal ProbabilityTheory
+open scoped ENNReal NNReal ProbabilityTheory
+
+namespace MeasureTheory
+
+lemma MemLp.aemeasurable {X Y : Type*} {mX : MeasurableSpace X} {μ : Measure X}
+    [MeasurableSpace Y] [ENorm Y] [TopologicalSpace Y] [TopologicalSpace.PseudoMetrizableSpace Y]
+    [BorelSpace Y] {f : X → Y} {p : ℝ≥0∞} (hf : MemLp f p μ) : AEMeasurable f μ :=
+  hf.aestronglyMeasurable.aemeasurable
+
+end MeasureTheory
 
 namespace ProbabilityTheory
 
@@ -90,6 +100,22 @@ lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
   · exact fun i _ j _ hij ↦
       (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
 
+lemma variance_sub {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
+    {X Y : Ω → ℝ} (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
+    Var[X - Y; μ] = Var[X; μ] - 2 * cov[X, Y; μ] + Var[Y; μ] := by
+  rw [← covariance_same, covariance_sub_left hX hY (hX.sub hY), covariance_sub_right hX hX hY,
+    covariance_sub_right hY hX hY, covariance_same, covariance_same, covariance_comm]
+  · ring
+  · exact hY.aemeasurable
+  · exact hX.aemeasurable
+  · exact hX.aemeasurable.sub hY.aemeasurable
+
+lemma centralMoment_of_integral_id_eq_zero {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} {X : Ω → ℝ} (p : ℕ) (hX : μ[X] = 0) :
+    centralMoment X p μ = ∫ ω, X ω ^ p ∂μ := by
+  rw [centralMoment]
+  simp [hX]
+
 end iIndepFun
 
 end ProbabilityTheory
@@ -117,3 +143,35 @@ lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
   simp [L.integral_comp_id_comm h]
 
 end ContinuousLinearMap
+
+section limUnder
+
+open Filter MeasureTheory Set TopologicalSpace
+
+open scoped Topology
+
+variable {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
+  [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
+  [l.IsCountablyGenerated] {f : ι → X → E}
+
+theorem Measurable.limUnder [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
+    Measurable (fun x ↦ limUnder l (f · x)) := by
+  obtain rfl | hl := eq_or_neBot l
+  · simp [limUnder, Filter.map_bot]
+  letI := upgradeIsCompletelyMetrizable E
+  let e := Classical.choice hE
+  let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
+  have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
+  have : (fun x ↦ _root_.limUnder l (f · x)) = ((↑) : conv → X).extend
+      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ e) := by
+    ext x
+    by_cases hx : x ∈ conv
+    · rw [Function.extend_val_apply hx]
+    · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
+  rw [this]
+  exact (MeasurableEmbedding.subtype_coe mconv).measurable_extend
+    (measurable_of_tendsto_metrizable' l
+      (fun i ↦ (hf i).comp measurable_subtype_coe)
+      (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ by rwa [hc.limUnder_eq])) measurable_const
+
+end limUnder

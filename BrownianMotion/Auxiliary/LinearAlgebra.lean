@@ -1,5 +1,15 @@
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.LinearAlgebra.Matrix.PosDef
+
+lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [Fintype n] [CommRing R] [PartialOrder R]
+    [StarRing R] {M : Matrix n n R} (hM : M.PosSemidef) (i : n) : 0 ≤ M i i := by
+  classical
+  convert hM.2 (Pi.single i 1)
+  have : star (Pi.single (M := fun _ ↦ R) i 1) = Pi.single i 1 := by
+    ext j
+    simp [Pi.single_apply, apply_ite star]
+  simp [this]
 
 section mkContinuous₂
 
@@ -10,7 +20,7 @@ variable {E F G 𝕜 : Type*} [NormedAddCommGroup E]
     [NormedSpace 𝕜 E] [NormedSpace 𝕜 F] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 E]
     [FiniteDimensional 𝕜 F] (f : E →ₗ[𝕜] F →ₗ[𝕜] G)
 
-/-- Given a biliniear map whose codomains are finite dimensional, outputs the continuous
+/-- Given a bilinear map whose codomains are finite dimensional, outputs the continuous
 version. -/
 def mkContinuous₂OfFiniteDimensional : E →L[𝕜] F →L[𝕜] G :=
   letI g x : F →L[𝕜] G := (f x).toContinuousLinearMap

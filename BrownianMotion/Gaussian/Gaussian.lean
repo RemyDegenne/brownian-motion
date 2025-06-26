@@ -40,8 +40,8 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
     charFun μ t = exp (⟪t, μ[id]⟫_ℝ * I - covInnerBilin μ t t / 2) := by
   rw [isGaussian_iff_charFun_eq.1 inferInstance]
   congr
-  · simp_rw [integral_complex_ofReal, ← integral_inner (IsGaussian.integrable_id μ), id]
-  · rw [covInnerBilin_self (IsGaussian.memLp_two_id μ)]
+  · simp_rw [integral_complex_ofReal, ← integral_inner IsGaussian.integrable_id, id]
+  · rw [covInnerBilin_self IsGaussian.memLp_two_id]
 
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔
@@ -121,8 +121,8 @@ protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] 
   apply Measure.ext_of_charFunDual
   ext L
   simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
-    L.integral_comp_id_comm' (IsGaussian.integrable_id _), hm,
-    ← covarianceBilin_same_eq_variance (IsGaussian.memLp_two_id _), hv]
+    L.integral_comp_id_comm' IsGaussian.integrable_id, hm,
+    ← covarianceBilin_same_eq_variance IsGaussian.memLp_two_id, hv]
 
 /-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
