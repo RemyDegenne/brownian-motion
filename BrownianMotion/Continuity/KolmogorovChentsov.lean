@@ -25,10 +25,11 @@ end aux
 namespace ProbabilityTheory
 
 variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
-  [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
-  {X : T → Ω → E}
-  {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0}
-  {P : Measure Ω}
+  {X : T → Ω → E} {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0} {P : Measure Ω}
+
+section PseudoEMetricSpace
+
+variable [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hX : IsKolmogorovProcess X P p q M)
@@ -196,11 +197,28 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Se
       ≤ M * constL T c d p q β := by
   sorry
 
+end PseudoEMetricSpace
+
+section EMetricSpace
+
+variable [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+  [SecondCountableTopology T]
+
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t) ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : Countable T' := hT'_countable
+  have h_ae : ∀ᵐ ω ∂P, (⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p))
+      < ∞ := by
+    refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX hd_pos hp_pos hdq_lt
+      hβ_pos hβ_lt T' hT'_countable).trans_lt ?_).ne
+    · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
+      exact AEMeasurable.div (hX.aemeasurable_edist.pow_const _) (by fun_prop)
+    · exact ENNReal.mul_lt_top (by simp) (constL_lt_top hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt)
   sorry
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -227,5 +245,7 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
         ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
   sorry
+
+end EMetricSpace
 
 end ProbabilityTheory
