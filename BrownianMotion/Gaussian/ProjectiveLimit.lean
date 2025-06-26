@@ -72,11 +72,15 @@ instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
   rw [EuclideanSpace.coe_measurableEquiv']
   infer_instance
 
+@[simp]
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
   rw [integral_gaussianProjectiveFamily, ← ContinuousLinearEquiv.coe_coe,
     ContinuousLinearMap.integral_comp_id_comm IsGaussian.integrable_id,
     integral_id_multivariateGaussian, map_zero]
+
+lemma integral_id_gaussianProjectiveFamily' (I : Finset ℝ≥0) :
+    ∫ x, id x ∂(gaussianProjectiveFamily I) = 0 := integral_id_gaussianProjectiveFamily I
 
 open scoped RealInnerProductSpace in
 lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :

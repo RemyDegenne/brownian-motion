@@ -23,7 +23,7 @@ We reorder the arguments to define a stochastic process $X : \mathbb{R}_+ \to \O
 
 \begin{proof}\leanok
   \uses{lem:isGaussian_multivariateGaussian}
-
+For any $t_1, \ldots, t_n \in \mathbb{R}_+$, the distribution of $(X_{t_1}, \ldots, X_{t_n})$ is given by a finite-dimensional distribution of $P_B$, and therefore is Gaussian.
 \end{proof}
 
 
@@ -35,8 +35,18 @@ Let $X$ be the pre-Brownian process of Definition~\ref{def:preBrownian}.
 Then, for all $s, t \in \mathbb{R}_+$, the random variable $X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$.
 \end{lemma}
 
-\begin{proof}
-
+\begin{proof}\leanok
+  \uses{lem:isGaussianProcess_preBrownian, lem:isGaussian_map}
+The map
+\begin{align*}
+  L : \R^2 &\to \R \\
+  (x_1, x_2) &\mapsto x_2 - x_1
+\end{align*}
+is a continuous linear map, and $(X_s, X_t)$ is Gaussian by Lemma~\ref{lem:isGaussianProcess_preBrownian}, therefore $X_t - X_s$ is Gaussian by Lemma~\ref{lem:isGaussian_map}. By definition of $P_B$, we have
+$$\mathbb{E}[X_t - X_s] = \mathbb{E}[X_t] - \mathbb{E}[X_s] = 0 - 0 = 0,$$
+and
+$$\mathrm{Var}(X_t - X_s) = \mathrm{Var}(X_t) - 2\mathrm{Cov}(X_t, X_s) + \mathrm{Var}(X_s) = t - 2(t \land s) + s = t \lor s - t \land s = |t - s|.$$
+Therefore $X_t - X_s$ is Gaussian with mean $0$ and variance $|t - s|$.
 \end{proof}
 
 
@@ -94,8 +104,9 @@ Thus, the Brownian motion is a Gaussian process as well by Lemma~\ref{lem:isGaus
 The paths of the Brownian motion are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
 \end{lemma}
 
-\begin{proof}
-
+\begin{proof}\leanok
+  \uses{lem:hasBoundedCoveringNumberCover_nnreal, lem:isKolmogorovProcess_preBrownian, thm:localized_holder_modification_sup}
+Consider the cover of $\mathbb{R}_+$ given by $T_n := [0, n + 1)$. By Lemma~\ref{lem:hasBoundedCoveringNumberCover_nnreal}, this cover has bounded covering numbers with exponent $1$. Moreover, by Lemma~\ref{lem:isKolmogorovProcess_preBrownian}, the pre-Brownian process satisfies the Kolmogorov condition with exponents $(2n + 4, n + 2)$ for all $n \in \mathbb{N}$. In particular, for all $n \in \mathbn{N}$, $2n + 4 > 1$. Applying Theorem~\ref{thm:localized_holder_modification_sup} we deduce that the modification used in Definition~\ref{def:brownian} has Hölder continuous paths for all orders $\gamma \in (0, \sup_n (n + 1) / (2n + 4))$. Clearly for all $n \in \mathbb{N}$ we have $(n + 1) / (2n + 4) \leqslant 2$, and this quantity tends to $2$ as $n$ goes to infinity. Therefore the Brownian motion has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, 1 / 2)$.
 \end{proof}
 
 
@@ -106,9 +117,9 @@ The paths of the Brownian motion are Hölder continuous of all orders $\gamma \i
 The paths of the Brownian motion are continuous.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isHolderWith_brownian}
-
+The paths are $1/4$-Hölder continuous by Lemma~\ref{lem:isHolderWith_brownian} because $0 < 1/4 < 1/2$, therefore they are continuous.
 \end{proof}
 
 

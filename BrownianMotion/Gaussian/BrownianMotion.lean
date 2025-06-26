@@ -123,6 +123,27 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     all_goals norm_num
   exact h.continuous (by norm_num)
 
+lemma law_brownian_apply (t : ℝ≥0) : gaussianLimit.map (brownian t) = gaussianReal 0 t := by
+  let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ := ContinuousLinearMap.proj ⟨t, by simp⟩
+  have : preBrownian t = L ∘ ({t} : Finset ℝ≥0).restrict := by
+    ext; simp [L, preBrownian]
+  rw [Measure.map_congr (brownian_ae_eq_preBrownian t), this, ← Measure.map_map,
+    isProjectiveLimit_gaussianLimit]
+  · refine (isGaussian_map L).ext ?_ ?_
+    · rw [L.integral_id_map IsGaussian.integrable_id]
+      simp
+    ext
+    rw [covInnerBilin_self, variance_map]
+    · have : (fun u ↦ inner ℝ 1 u) ∘ ⇑L = fun x ↦ x ⟨t, by simp⟩ := by ext; simp [L]
+      rw [this, variance_eval_gaussianProjectiveFamily, covInnerBilin_self]
+      · simp
+      · exact IsGaussian.memLp_two_id
+    · fun_prop
+    · fun_prop
+    · exact IsGaussian.memLp_two_id
+  · fun_prop
+  · fun_prop
+
 theorem measurable_brownian : Measurable (fun ω t ↦ brownian t ω) := sorry
 
 open NNReal Filter Topology in
