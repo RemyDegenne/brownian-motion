@@ -1,5 +1,6 @@
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ContinuousBilinForm
+import BrownianMotion.Auxiliary.EDistEgorov
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.LinearAlgebra
