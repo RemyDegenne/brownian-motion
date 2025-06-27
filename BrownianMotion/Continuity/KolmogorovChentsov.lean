@@ -346,7 +346,7 @@ lemma ae_iSup_rpow_edist_div_lt_top (hT : HasBoundedInternalCoveringNumber (Set.
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
   refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsKolmogorovProcess hd_pos hp_pos
-    hdq_lt hβ_pos hβ_lt T' hT').trans_lt ?_).ne
+    hdq_lt hβ_pos T').trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
     exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
   · exact ENNReal.mul_lt_top (by simp) (constL_lt_top hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt)
