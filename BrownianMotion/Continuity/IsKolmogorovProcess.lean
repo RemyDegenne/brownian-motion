@@ -50,7 +50,7 @@ variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
 
 structure IsMeasurableKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) :
     Prop where
-  measurablePair : ∀ s t : T, @Measurable _ _ _ (borel (E × E)) (fun ω ↦ (X s ω, X t ω))
+  measurablePair : ∀ s t : T, Measurable[_, borel (E × E)] (fun ω ↦ (X s ω, X t ω))
   kolmogorovCondition : ∀ s t : T, ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q
 
 def IsKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) : Prop :=
