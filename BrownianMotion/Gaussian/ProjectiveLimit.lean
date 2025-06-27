@@ -136,6 +136,10 @@ noncomputable
 def gaussianLimit : Measure (ℝ≥0 → ℝ) :=
   projectiveLimit gaussianProjectiveFamily isProjectiveMeasureFamily_gaussianProjectiveFamily
 
+instance IsProbabilityMeasure_gaussianLimit :
+    IsProbabilityMeasure gaussianLimit :=
+  isProbabilityMeasure_projectiveLimit isProjectiveMeasureFamily_gaussianProjectiveFamily
+
 lemma isProjectiveLimit_gaussianLimit :
     IsProjectiveLimit gaussianLimit gaussianProjectiveFamily :=
   isProjectiveLimit_projectiveLimit isProjectiveMeasureFamily_gaussianProjectiveFamily

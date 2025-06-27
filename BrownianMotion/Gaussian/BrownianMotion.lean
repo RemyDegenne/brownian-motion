@@ -76,17 +76,28 @@ lemma isKolmogorovProcess_preBrownian (n : ℕ) :
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
   · exact ae_of_all _ fun _ ↦ by positivity
 
+lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
+    IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
+      (Nat.doubleFactorial (2 * n - 1)) := by
+  sorry
+
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose
+
+lemma measurable_brownian (t : ℝ≥0) :
+    Measurable (brownian t) :=
+  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
 
 lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
 
 lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
     ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
