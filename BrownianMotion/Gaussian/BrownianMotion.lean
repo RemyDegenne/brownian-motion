@@ -116,9 +116,6 @@ lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2�
     nth_rw 2 [← mul_one 2⁻¹]
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
-lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit :=
-  ⟨preBrownian t, measurable_preBrownian t, brownian_ae_eq_preBrownian t⟩
-
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
   obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
     refine isHolderWith_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
