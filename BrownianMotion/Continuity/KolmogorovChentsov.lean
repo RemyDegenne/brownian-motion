@@ -625,7 +625,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     exists_modification_holder_aux' hT hX.isMeasurableKolmogorovProcess_mk hc hd_pos hp_pos hdq_lt
       hβ_pos hβ_lt
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
-  filter_upwards [hX.ae_eq_mk, hY_eq t] with ω hω1 hω2 using hω2.trans (hω1 t).symm
+  filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)

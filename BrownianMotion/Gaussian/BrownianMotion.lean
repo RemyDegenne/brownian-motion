@@ -144,6 +144,13 @@ lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
 
+lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
+    IsMeasurableKolmogorovProcess brownian gaussianLimit (2 * n) n
+      (Nat.doubleFactorial (2 * n - 1)) where
+  measurablePair := measurable_pair_of_measurable measurable_brownian
+  kolmogorovCondition := (isMeasurableKolmogorovProcess_preBrownian n).isKolmogorovProcess.congr
+    (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
+
 section Measure
 
 -- Subtype measurable space. The measurable space on `ℝ≥0 → ℝ` is the product of Borel σ-algebras
