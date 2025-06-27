@@ -43,7 +43,7 @@ Then, for all $s, t \in \mathbb{R}_+$, the random variable $X_t - X_s$ is a Gaus
 \begin{lemma}\label{lem:isKolmogorovProcess_preBrownian}
   \uses{def:preBrownian}
   \leanok
-  \lean{ProbabilityTheory.isKolmogorovProcess_preBrownian}
+  \lean{ProbabilityTheory.isMeasurableKolmogorovProcess_preBrownian}
 The pre-Brownian process $X$ of Definition~\ref{def:preBrownian} satisfies the Kolmogorov condition for exponents $(2n,n)$ with constant $(2n - 1)!!$ for all $n \in \mathbb{N}$.
 That is, for all $s, t \in \mathbb{R}_+$, we have
 \begin{align*}
@@ -108,6 +108,16 @@ The paths of the Brownian motion are continuous.
 
 \begin{proof}
   \uses{lem:isHolderWith_brownian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:law_brownian_sub}
+  \uses{def:brownian}
+For $s, t \in \mathbb{R}_+$, the law of $B_t - B_s$ is the real Gaussian measure $\mathcal{N}(0,\vert t - s \vert)$.
+\end{lemma}
+
+\begin{proof}
 
 \end{proof}
 
