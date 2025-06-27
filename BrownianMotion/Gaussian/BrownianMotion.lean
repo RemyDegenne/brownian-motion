@@ -32,28 +32,55 @@ lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimi
   rw [isProjectiveLimit_gaussianLimit]
   exact isGaussian_gaussianProjectiveFamily I
 
+lemma measurePreserving_preBrownian_eval (t : ℝ≥0) :
+    MeasurePreserving (preBrownian t) gaussianLimit (gaussianReal 0 t) where
+  measurable := by fun_prop
+  map_eq := by
+    let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ := ContinuousLinearMap.proj ⟨t, by simp⟩
+    have : preBrownian t = L ∘ ({t} : Finset ℝ≥0).restrict := by
+      ext; simp [L, preBrownian]
+    rw [this, ← Measure.map_map,
+      (isProjectiveLimit_gaussianLimit.measurePreserving_restrict _).map_eq]
+    · refine (isGaussian_map L).ext ?_ ?_
+      · rw [L.integral_id_map IsGaussian.integrable_id]
+        simp
+      ext
+      rw [covInnerBilin_self, variance_map]
+      · have : (fun u ↦ inner ℝ 1 u) ∘ ⇑L = fun x ↦ x ⟨t, by simp⟩ := by ext; simp [L]
+        rw [this, variance_eval_gaussianProjectiveFamily, covInnerBilin_self]
+        · simp
+        · exact IsGaussian.memLp_two_id
+      · fun_prop
+      · fun_prop
+      · exact IsGaussian.memLp_two_id
+    · fun_prop
+    · fun_prop
+
 lemma map_sub_preBrownian (s t : ℝ≥0) :
-    gaussianLimit.map (preBrownian s - preBrownian t) = gaussianReal 0 (max (s - t) (t - s)) := by
-  let I : Finset ℝ≥0 := {s, t}
-  let L : (I → ℝ) →L[ℝ] ℝ :=
-    ContinuousLinearMap.proj ⟨s, by simp [I]⟩ - ContinuousLinearMap.proj ⟨t, by simp [I]⟩
-  have : preBrownian s - preBrownian t = L ∘ I.restrict := by
-    ext; simp [L, preBrownian, I]
-  rw [this, ← AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop),
-    isProjectiveLimit_gaussianLimit, IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm,
-    integral_id_gaussianProjectiveFamily, map_zero]
-  swap; · exact IsGaussian.integrable_id
-  congr
-  simp only [ContinuousLinearMap.coe_sub', ContinuousLinearMap.coe_proj', I, L]
-  rw [variance_sub]
-  · simp_rw [variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
-    norm_cast
-    rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
-      add_sub_two_mul_min_eq_max]
-    nth_grw 1 [two_mul, min_le_left, min_le_right]
-  all_goals
-    rw [← ContinuousLinearMap.coe_proj' ℝ]
-    exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
+    MeasurePreserving (preBrownian s - preBrownian t) gaussianLimit
+      (gaussianReal 0 (max (s - t) (t - s))) where
+  measurable := by fun_prop
+  map_eq := by
+    let I : Finset ℝ≥0 := {s, t}
+    let L : (I → ℝ) →L[ℝ] ℝ :=
+      ContinuousLinearMap.proj ⟨s, by simp [I]⟩ - ContinuousLinearMap.proj ⟨t, by simp [I]⟩
+    have : preBrownian s - preBrownian t = L ∘ I.restrict := by
+      ext; simp [L, preBrownian, I]
+    rw [this, ← AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop),
+      isProjectiveLimit_gaussianLimit, IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm,
+      integral_id_gaussianProjectiveFamily, map_zero]
+    swap; · exact IsGaussian.integrable_id
+    congr
+    simp only [ContinuousLinearMap.coe_sub', ContinuousLinearMap.coe_proj', I, L]
+    rw [variance_sub]
+    · simp_rw [variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
+      norm_cast
+      rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
+        add_sub_two_mul_min_eq_max]
+      nth_grw 1 [two_mul, min_le_left, min_le_right]
+    all_goals
+      rw [← ContinuousLinearMap.coe_proj' ℝ]
+      exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
 
 lemma isKolmogorovProcess_preBrownian (n : ℕ) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
@@ -66,8 +93,8 @@ lemma isKolmogorovProcess_preBrownian (n : ℕ) :
   simp_rw [edist_dist, Real.dist_eq]
   change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     ((preBrownian s - preBrownian t) ω) ∂_ = _
-  rw [← lintegral_map (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n)) (by fun_prop) (by fun_prop),
-    map_sub_preBrownian]
+  rw [(map_sub_preBrownian s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+    (by fun_prop)]
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
   · simp_rw [pow_two_mul_abs]

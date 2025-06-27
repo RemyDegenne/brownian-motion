@@ -118,4 +118,11 @@ lemma isProjectiveLimit_gaussianLimit :
     IsProjectiveLimit gaussianLimit gaussianProjectiveFamily :=
   isProjectiveLimit_projectiveLimit isProjectiveMeasureFamily_gaussianProjectiveFamily
 
+lemma _root_.MeasureTheory.IsProjectiveLimit.measurePreserving_restrict {ι : Type*} {X : ι → Type*}
+    {mX : ∀ i, MeasurableSpace (X i)} {μ : Measure (Π i, X i)}
+    {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) (I : Finset ι) :
+    MeasurePreserving I.restrict μ (P I) where
+  measurable := by fun_prop
+  map_eq := h I
+
 end ProbabilityTheory
