@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
-import BrownianMotion.Gaussian.CovarianceBilin
 import BrownianMotion.Auxiliary.MeasureTheory
+import BrownianMotion.Gaussian.CovarianceBilin
+import BrownianMotion.Gaussian.Fernique
 
 /-!
 # Covariance matrix
