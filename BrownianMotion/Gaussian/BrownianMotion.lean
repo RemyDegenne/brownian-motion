@@ -36,51 +36,19 @@ lemma measurePreserving_preBrownian_eval (t : ℝ≥0) :
     MeasurePreserving (preBrownian t) gaussianLimit (gaussianReal 0 t) where
   measurable := by fun_prop
   map_eq := by
-    let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ := ContinuousLinearMap.proj ⟨t, by simp⟩
-    have : preBrownian t = L ∘ ({t} : Finset ℝ≥0).restrict := by
-      ext; simp [L, preBrownian]
-    rw [this, ← Measure.map_map,
-      (isProjectiveLimit_gaussianLimit.measurePreserving_restrict _).map_eq]
-    · refine (isGaussian_map L).ext ?_ ?_
-      · rw [L.integral_id_map IsGaussian.integrable_id]
-        simp
-      ext
-      rw [covInnerBilin_self, variance_map]
-      · have : (fun u ↦ inner ℝ 1 u) ∘ ⇑L = fun x ↦ x ⟨t, by simp⟩ := by ext; simp [L]
-        rw [this, variance_eval_gaussianProjectiveFamily, covInnerBilin_self]
-        · simp
-        · exact IsGaussian.memLp_two_id
-      · fun_prop
-      · fun_prop
-      · exact IsGaussian.memLp_two_id
-    · fun_prop
-    · fun_prop
+    have : preBrownian t = (fun x ↦ x ⟨t, by simp⟩) ∘ ({t} : Finset ℝ≥0).restrict := by
+      ext; simp [preBrownian]
+    rw [this,
+      (measurePreserving_gaussianProjectiveFamily.comp measurePreserving_gaussianLimit).map_eq]
 
 lemma map_sub_preBrownian (s t : ℝ≥0) :
     MeasurePreserving (preBrownian s - preBrownian t) gaussianLimit
-      (gaussianReal 0 (max (s - t) (t - s))) where
-  measurable := by fun_prop
-  map_eq := by
-    let I : Finset ℝ≥0 := {s, t}
-    let L : (I → ℝ) →L[ℝ] ℝ :=
-      ContinuousLinearMap.proj ⟨s, by simp [I]⟩ - ContinuousLinearMap.proj ⟨t, by simp [I]⟩
-    have : preBrownian s - preBrownian t = L ∘ I.restrict := by
-      ext; simp [L, preBrownian, I]
-    rw [this, ← AEMeasurable.map_map_of_aemeasurable (by fun_prop) (by fun_prop),
-      isProjectiveLimit_gaussianLimit, IsGaussian.map_eq_gaussianReal, L.integral_comp_id_comm,
-      integral_id_gaussianProjectiveFamily, map_zero]
-    swap; · exact IsGaussian.integrable_id
-    congr
-    simp only [ContinuousLinearMap.coe_sub', ContinuousLinearMap.coe_proj', I, L]
-    rw [variance_sub]
-    · simp_rw [variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
-      norm_cast
-      rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
-        add_sub_two_mul_min_eq_max]
-      nth_grw 1 [two_mul, min_le_left, min_le_right]
-    all_goals
-      rw [← ContinuousLinearMap.coe_proj' ℝ]
-      exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
+      (gaussianReal 0 (max (s - t) (t - s))) := by
+  have : preBrownian s - preBrownian t =
+      ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
+    ext; simp [preBrownian]
+  rw [this]
+  exact measurePreserving_gaussianProjectiveFamily₂.comp measurePreserving_gaussianLimit
 
 lemma isKolmogorovProcess_preBrownian (n : ℕ) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
@@ -98,13 +66,11 @@ lemma isKolmogorovProcess_preBrownian (n : ℕ) :
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
   · simp_rw [pow_two_mul_abs]
-    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (max _ _)]
-    rw [centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
-    congr
-    · norm_cast
-    · norm_cast
-      rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg, ← NNReal.nndist_eq,
-        NNReal.coe_pow, coe_nndist]
+    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (max _ _),
+    centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
+    norm_cast
+    rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg, ← NNReal.nndist_eq,
+      NNReal.coe_pow, coe_nndist]
   · simp_rw [← Real.norm_eq_abs]
     apply MemLp.integrable_norm_pow'
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
@@ -150,28 +116,23 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     all_goals norm_num
   exact h.continuous (by norm_num)
 
-lemma law_brownian_apply (t : ℝ≥0) : gaussianLimit.map (brownian t) = gaussianReal 0 t := by
-  let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ := ContinuousLinearMap.proj ⟨t, by simp⟩
-  have : preBrownian t = L ∘ ({t} : Finset ℝ≥0).restrict := by
-    ext; simp [L, preBrownian]
-  rw [Measure.map_congr (brownian_ae_eq_preBrownian t), this, ← Measure.map_map,
-    isProjectiveLimit_gaussianLimit]
-  · refine (isGaussian_map L).ext ?_ ?_
-    · rw [L.integral_id_map IsGaussian.integrable_id]
-      simp
-    ext
-    rw [covInnerBilin_self, variance_map]
-    · have : (fun u ↦ inner ℝ 1 u) ∘ ⇑L = fun x ↦ x ⟨t, by simp⟩ := by ext; simp [L]
-      rw [this, variance_eval_gaussianProjectiveFamily, covInnerBilin_self]
-      · simp
-      · exact IsGaussian.memLp_two_id
-    · fun_prop
-    · fun_prop
-    · exact IsGaussian.memLp_two_id
-  · fun_prop
-  · fun_prop
-
 theorem measurable_brownian : Measurable (fun ω t ↦ brownian t ω) := sorry
+
+lemma measurePreserving_brownian_apply {t : ℝ≥0} :
+    MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
+  measurable := measurable_pi_iff.1 measurable_brownian t
+  map_eq := by
+    rw [Measure.map_congr (brownian_ae_eq_preBrownian t),
+      (measurePreserving_preBrownian_eval t).map_eq]
+
+lemma measurePreserving_brownian_sub {s t : ℝ≥0} :
+    MeasurePreserving (brownian s - brownian t) gaussianLimit
+      (gaussianReal 0 (max (s - t) (t - s))) where
+  measurable := (measurable_pi_iff.1 measurable_brownian s).sub
+    (measurable_pi_iff.1 measurable_brownian t)
+  map_eq := by
+    rw [Measure.map_congr ((brownian_ae_eq_preBrownian s).sub' (brownian_ae_eq_preBrownian t)),
+      (map_sub_preBrownian s t).map_eq]
 
 open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=

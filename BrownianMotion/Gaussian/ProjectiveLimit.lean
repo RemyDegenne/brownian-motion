@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.MeasureTheory
+import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Init
 
@@ -98,13 +99,34 @@ lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   rw [← covariance_same, covariance_eval_gaussianProjectiveFamily, min_self]
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma eval_map_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
-    (gaussianProjectiveFamily I).map (fun x ↦ x s) = gaussianReal 0 s := by
-  rw [← ContinuousLinearMap.coe_proj' ℝ, IsGaussian.map_eq_gaussianReal,
-    ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
-    map_zero, ContinuousLinearMap.coe_proj', variance_eval_gaussianProjectiveFamily,
-    Real.toNNReal_coe]
-  exact IsGaussian.integrable_id
+lemma measurePreserving_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
+    MeasurePreserving (fun x ↦ x s) (gaussianProjectiveFamily I) (gaussianReal 0 s) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← ContinuousLinearMap.coe_proj' ℝ, IsGaussian.map_eq_gaussianReal,
+      ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
+      map_zero, ContinuousLinearMap.coe_proj', variance_eval_gaussianProjectiveFamily,
+      Real.toNNReal_coe]
+    exact IsGaussian.integrable_id
+
+open ContinuousLinearMap in
+lemma measurePreserving_gaussianProjectiveFamily₂ {I : Finset ℝ≥0} {s t : I} :
+    MeasurePreserving ((fun x ↦ x s) - (fun x ↦ x t)) (gaussianProjectiveFamily I)
+      (gaussianReal 0 (max (s - t) (t - s))) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← coe_proj' ℝ, ← coe_proj' ℝ, ← coe_sub', IsGaussian.map_eq_gaussianReal,
+      integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero, coe_sub', coe_proj',
+      coe_proj', variance_sub, variance_eval_gaussianProjectiveFamily,
+      variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
+    · norm_cast
+      rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
+        NNReal.add_sub_two_mul_min_eq_max]
+      nth_grw 1 [two_mul, min_le_left, min_le_right]
+    any_goals
+      rw [← ContinuousLinearMap.coe_proj' ℝ]
+      exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
+    exact IsGaussian.integrable_id
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by
@@ -120,9 +142,13 @@ lemma isProjectiveLimit_gaussianLimit :
 
 lemma _root_.MeasureTheory.IsProjectiveLimit.measurePreserving_restrict {ι : Type*} {X : ι → Type*}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : Measure (Π i, X i)}
-    {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) (I : Finset ι) :
+    {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) {I : Finset ι} :
     MeasurePreserving I.restrict μ (P I) where
   measurable := by fun_prop
   map_eq := h I
+
+lemma measurePreserving_gaussianLimit {I : Finset ℝ≥0} :
+    MeasurePreserving I.restrict gaussianLimit (gaussianProjectiveFamily I) :=
+  isProjectiveLimit_gaussianLimit.measurePreserving_restrict
 
 end ProbabilityTheory

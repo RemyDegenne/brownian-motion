@@ -253,12 +253,15 @@ lemma variance_eval_multivariateGaussian (i : ι) :
   rw [← covariance_same, covariance_eval_multivariateGaussian]
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma eval_map_multivariateGaussian (i : ι) :
-    (multivariateGaussian μ S hS).map (fun x ↦ x i) = gaussianReal (μ i) (S i i).toNNReal := by
-  rw [← EuclideanSpace.coe_proj ℝ, IsGaussian.map_eq_gaussianReal,
-    ContinuousLinearMap.integral_comp_id_comm, integral_id_multivariateGaussian,
-    EuclideanSpace.proj_apply, EuclideanSpace.coe_proj, variance_eval_multivariateGaussian]
-  exact IsGaussian.integrable_id
+lemma measurePreserving_multivariateGaussian {i : ι} :
+    MeasurePreserving (fun x ↦ x i) (multivariateGaussian μ S hS)
+      (gaussianReal (μ i) (S i i).toNNReal) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← EuclideanSpace.coe_proj ℝ, IsGaussian.map_eq_gaussianReal,
+      ContinuousLinearMap.integral_comp_id_comm, integral_id_multivariateGaussian,
+      EuclideanSpace.proj_apply, EuclideanSpace.coe_proj, variance_eval_multivariateGaussian]
+    exact IsGaussian.integrable_id
 
 lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
     charFun (multivariateGaussian μ S hS) x =

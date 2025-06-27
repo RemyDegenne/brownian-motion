@@ -10,6 +10,13 @@ open MeasureTheory
 
 open scoped ENNReal NNReal ProbabilityTheory
 
+
+
+@[to_additive]
+theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β} {l : Filter α}
+    (h : f =ᶠ[l] g) (h' : f' =ᶠ[l] g') : f / f' =ᶠ[l] g / g' :=
+  h.comp₂ (· / ·) h'
+
 namespace MeasureTheory
 
 lemma MemLp.aemeasurable {X Y : Type*} {mX : MeasurableSpace X} {μ : Measure X}
