@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Gaussian.MultivariateGaussian
-import BrownianMotion.Init
+import KolmogorovExtension4.KolmogorovExtension
 
 /-!
 # Pre-Brownian motion as a projective limit

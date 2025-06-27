@@ -5,10 +5,10 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.MeanInequalities
-import BrownianMotion.Auxiliary.Real
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 import BrownianMotion.Continuity.LogSizeBallSequence
+import Mathlib.Order.CompleteLattice.Group
 
 /-!
 # Stochastic processes satisfying the Kolmogorov condition

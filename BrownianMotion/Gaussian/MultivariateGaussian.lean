@@ -5,6 +5,13 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.WithLp
 import BrownianMotion.Gaussian.Gaussian
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.CStarAlgebra.Matrix
+import Mathlib.Analysis.Normed.Field.Instances
+import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
+import Mathlib.Topology.EMetricSpace.Paracompact
+import Mathlib.Topology.Separation.CompletelyRegular
 
 
 /-!

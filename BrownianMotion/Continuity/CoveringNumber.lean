@@ -6,7 +6,11 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.Nat
-import BrownianMotion.Init
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Data.ENat.Lattice
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import Mathlib.Order.CompletePartialOrder
+import Mathlib.Topology.MetricSpace.MetricSeparated
 
 /-!
 # Covering and packing numbers
