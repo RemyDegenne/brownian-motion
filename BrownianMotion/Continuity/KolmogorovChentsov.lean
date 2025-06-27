@@ -387,7 +387,8 @@ def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
       ∧ ∀ (s t : T'), edist s t = 0 → edist (X s ω) (X t ω) = 0}
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma measurableSet_holderSet (hX : IsMeasurableKolmogorovProcess X P p q M)
+lemma IsMeasurableKolmogorovProcess.measurableSet_holderSet
+    (hX : IsMeasurableKolmogorovProcess X P p q M)
     {T' : Set T} (hT' : T'.Countable) :
     MeasurableSet (holderSet X T' p β) := by
   have : Countable T' := hT'
@@ -408,7 +409,7 @@ lemma measurableSet_holderSet (hX : IsMeasurableKolmogorovProcess X P p q M)
     · exact (MeasurableSet.preimage (measurableSet_singleton 0) (by fun_prop)).compl
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma holderWith_X (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma holderWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
     letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
@@ -432,34 +433,60 @@ lemma holderWith_X (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d
   exact le_iSup₂ s t (f := fun (s t : T') ↦ edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p))
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma uniformContinuous_X (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma uniformContinuous_of_mem_holderSet
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
     letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
     UniformContinuous fun (t : T') ↦ X t ω :=
-      (holderWith_X hT hd_pos hp_pos hβ_pos hω).uniformContinuous hβ_pos
+      (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).uniformContinuous hβ_pos
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma continuous_X (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
     letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
-    Continuous fun (t : T') ↦ X t ω := (holderWith_X hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
+    Continuous fun (t : T') ↦ X t ω :=
+  (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
 
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma tendstoInMeasure_X (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma tendstoInMeasure_of_mem_holderSet
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) {ε : ℝ≥0∞} (hε : 0 < ε) :
     Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) := by
+  suffices h_of_ne_top :
+      ∀ ε, 0 < ε → ε ≠ ∞ → Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) by
+    by_cases hε_top : ε = ∞
+    swap; · exact h_of_ne_top _ hε hε_top
+    have h1 : Tendsto (fun n ↦ P {ω | 1 ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
+      h_of_ne_top 1 (by simp) (by simp)
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h1 (fun _ ↦ zero_le') ?_
+    intro n
+    simp only [hε_top]
+    gcongr
+    simp
+  intro ε hε hε_top
   have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
       (fun n ↦ hX.kolmogorovCondition (u n) t)
     have : Tendsto (fun n ↦ edist (u n).1 t) atTop (𝓝 0) := by
       rwa [← tendsto_iff_edist_tendsto_0]
     sorry -- no problem, except for the lack of `ContinuousMul ℝ≥0∞`
-  sorry -- go to `... ^ p`, use Markov and `h_tendsto`
+  suffices Tendsto (fun n ↦ P {ω | ε ^ p ≤ edist (X (u n) ω) (X t ω) ^ p}) atTop (𝓝 0) by
+    convert this using 3 with n
+    ext ω
+    simp only [Set.mem_setOf_eq]
+    rw [ENNReal.rpow_le_rpow_iff hp_pos]
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') ?_
+    (h := fun n ↦ (ε ^ p)⁻¹ * ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P)
+  · sorry
+  · refine fun n ↦ (meas_ge_le_lintegral_div ?_ ?_ ?_).trans_eq ?_
+    · exact ((hX.measurable_edist).pow_const _).aemeasurable
+    · simp [hε.ne', hp_pos.le]
+    · simp [hε.ne', hε_top]
+    · rw [ENNReal.div_eq_inv_mul]
 
 -- TODO: I (Rémy) gave up on separability of `E`. The measurability checks are driving me crazy.
 variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
@@ -491,7 +518,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
   -- Let `A` be the event that `C ω < ∞` and `X s ω = X t ω` for `edist s t = 0`.
   -- This is an event of probability 1.
   let A := holderSet X T' p β
-  have hA : MeasurableSet A := measurableSet_holderSet hX hT'_countable
+  have hA : MeasurableSet A := hX.measurableSet_holderSet hT'_countable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := by
     filter_upwards [hC_lt_top, h_ae_zero] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
   have hPA {s : Set Ω} (hs : MeasurableSet s) : P (s ∩ A) = P s := by
@@ -508,12 +535,12 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     exact measurable_limUnder (f := fun (t : T') ω ↦ X t ω) fun t ↦ hX.measurable t
   have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
     simp only [hω, ↓reduceIte, Y]
-    exact hT'_dense.extend_eq (continuous_X hT hd_pos hp_pos hβ_pos hω) t
+    exact hT'_dense.extend_eq (continuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω) t
   have hY_unif ω : UniformContinuous (fun t ↦ Y t ω) := by
     by_cases hω : ω ∈ A
     · simp only [hω, ↓reduceIte, Y]
       refine hT'_dense.uniformContinuous_extend ?_
-      exact uniformContinuous_X hT hd_pos hp_pos hβ_pos hω
+      exact uniformContinuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω
     · simp only [hω, ↓reduceIte, Y]
       exact uniformContinuous_const
   have hY_cont ω : Continuous (fun t ↦ Y t ω) := (hY_unif ω).continuous
@@ -532,7 +559,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     -- `X (u n)` converges in measure to `X t`
     have h_tendsto_X (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      tendstoInMeasure_X hT hX hd_pos hp_pos hβ_pos hu hε
+      tendstoInMeasure_of_mem_holderSet hT hX hd_pos hp_pos hβ_pos hu hε
     -- `Y (u n)` converges in measure to `Y t`
     have h_tendsto_Y (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (Y (u n) ω) (Y t ω)}) atTop (𝓝 0) := by
@@ -581,7 +608,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
     simp only [hω, ↓reduceIte, Y, A]
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    refine hT'_dense.holderWith_extend (holderWith_X hT hd_pos hp_pos hβ_pos hω)
+    refine hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
