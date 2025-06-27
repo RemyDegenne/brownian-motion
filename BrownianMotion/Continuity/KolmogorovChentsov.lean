@@ -368,7 +368,8 @@ section EMetricSpace
 
 variable [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
-lemma ae_iSup_rpow_edist_div_lt_top (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
@@ -388,8 +389,7 @@ def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsMeasurableKolmogorovProcess.measurableSet_holderSet
-    (hX : IsMeasurableKolmogorovProcess X P p q M)
-    {T' : Set T} (hT' : T'.Countable) :
+    (hX : IsMeasurableKolmogorovProcess X P p q M) {T' : Set T} (hT' : T'.Countable) :
     MeasurableSet (holderSet X T' p β) := by
   have : Countable T' := hT'
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
@@ -449,11 +449,10 @@ lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.un
     Continuous fun (t : T') ↦ X t ω :=
   (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
 
-lemma tendstoInMeasure_of_mem_holderSet
-    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma IsMeasurableKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     (hX : IsMeasurableKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
-    {T' : Set T} {u : ℕ → T'} {t : T}
+    (hp_pos : 0 < p) (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) {ε : ℝ≥0∞} (hε : 0 < ε) :
     Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) := by
   suffices h_of_ne_top :
@@ -473,7 +472,12 @@ lemma tendstoInMeasure_of_mem_holderSet
       (fun n ↦ hX.kolmogorovCondition (u n) t)
     have : Tendsto (fun n ↦ edist (u n).1 t) atTop (𝓝 0) := by
       rwa [← tendsto_iff_edist_tendsto_0]
-    sorry -- no problem, except for the lack of `ContinuousMul ℝ≥0∞`
+    rw [← mul_zero (M : ℝ≥0∞)]
+    refine ENNReal.Tendsto.const_mul ?_ (by simp)
+    change Tendsto ((fun x : ℝ≥0∞ ↦ x ^ q) ∘ (fun n ↦ edist (u n).1 t)) atTop (𝓝 0)
+    refine Tendsto.comp ?_ this
+    convert ENNReal.continuous_rpow_const.tendsto 0
+    simp [hq_pos]
   suffices Tendsto (fun n ↦ P {ω | ε ^ p ≤ edist (X (u n) ω) (X t ω) ^ p}) atTop (𝓝 0) by
     convert this using 3 with n
     ext ω
@@ -481,9 +485,10 @@ lemma tendstoInMeasure_of_mem_holderSet
     rw [ENNReal.rpow_le_rpow_iff hp_pos]
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') ?_
     (h := fun n ↦ (ε ^ p)⁻¹ * ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P)
-  · sorry
+  · rw [← mul_zero (ε ^ p)⁻¹]
+    exact ENNReal.Tendsto.const_mul h_tendsto (by simp [hε_top, hε.ne'])
   · refine fun n ↦ (meas_ge_le_lintegral_div ?_ ?_ ?_).trans_eq ?_
-    · exact ((hX.measurable_edist).pow_const _).aemeasurable
+    · exact (hX.measurable_edist.pow_const _).aemeasurable
     · simp [hε.ne', hp_pos.le]
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
@@ -514,7 +519,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
   -- For each `ω`, `C ω < ∞` is a bound on `edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)`
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
   have hC_lt_top : ∀ᵐ ω ∂P, C ω < ∞ :=
-    ae_iSup_rpow_edist_div_lt_top hT hX hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt hT'_countable
+    hX.ae_iSup_rpow_edist_div_lt_top hT hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt hT'_countable
   -- Let `A` be the event that `C ω < ∞` and `X s ω = X t ω` for `edist s t = 0`.
   -- This is an event of probability 1.
   let A := holderSet X T' p β
@@ -559,7 +564,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     -- `X (u n)` converges in measure to `X t`
     have h_tendsto_X (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      tendstoInMeasure_of_mem_holderSet hT hX hd_pos hp_pos hβ_pos hu hε
+      hX.tendstoInMeasure_of_mem_holderSet hp_pos (hd_pos.trans hdq_lt) hu hε
     -- `Y (u n)` converges in measure to `Y t`
     have h_tendsto_Y (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (Y (u n) ω) (Y t ω)}) atTop (𝓝 0) := by
