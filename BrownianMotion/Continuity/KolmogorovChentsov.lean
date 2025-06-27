@@ -20,6 +20,44 @@ theorem lintegral_eq_zero_of_zero_ae {α : Type*} [MeasurableSpace α] {μ : Mea
     {f : α → ℝ≥0∞} : f =ᵐ[μ] 0 →  ∫⁻ a, f a ∂μ = 0 :=
   fun h ↦ (lintegral_congr_ae h).trans lintegral_zero
 
+-- copied from Etienne's fork
+theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
+    [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
+    [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
+    Measurable (fun x ↦ limUnder l (f · x)) := by
+  obtain rfl | hl := eq_or_neBot l
+  · simp [limUnder, Filter.map_bot]
+  letI := TopologicalSpace.upgradeIsCompletelyMetrizable
+  let e := Classical.choice hE
+  let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
+  have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
+  have : (fun x ↦ _root_.limUnder l (f · x)) = ((↑) : conv → X).extend
+      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ e) := by
+    ext x
+    by_cases hx : x ∈ conv
+    · rw [Function.extend_val_apply hx]
+    · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
+  rw [this]
+  refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend
+    (measurable_of_tendsto_metrizable' l
+      (fun i ↦ (hf i).comp measurable_subtype_coe)
+      (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
+  rwa [hc.limUnder_eq]
+
+lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_measure_eq_measure_univ
+    {α : Type*} {_ : MeasurableSpace α} {μ : Measure α}
+    {s t : Set α} (hs : MeasurableSet s) (h : μ t = μ .univ)
+    (ht_ne_top : μ t ≠ ∞) : μ (t ∩ s) = μ s := by
+  rw [Measure.measure_inter_eq_of_measure_eq hs h (Set.subset_univ _) ht_ne_top, Set.univ_inter]
+
+lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
+    {α : Type*} {_ : MeasurableSpace α} {μ : Measure α} [IsFiniteMeasure μ]
+    {s t : Set α} (hs : MeasurableSet s) (ht : NullMeasurableSet t μ) (h : ∀ᵐ a ∂μ, a ∈ t)
+    (ht_ne_top : μ t ≠ ∞) : μ (t ∩ s) = μ s := by
+  rw [Measure.measure_inter_eq_of_measure_eq hs _ (Set.subset_univ _) ht_ne_top, Set.univ_inter]
+  rwa [ae_iff_measure_eq] at h
+  exact ht
+
 end aux
 
 namespace ProbabilityTheory
@@ -271,25 +309,18 @@ lemma _root_.Dense.holderWith_extend {A : Set T} (hA : Dense A) {f : A → E} {C
     HolderWith C β (hA.extend f) := by
   sorry
 
-variable [Nonempty E] [SecondCountableTopology T]
+-- TODO: I (Rémy) gave up on separability of `E`. The measurability checks are driving me crazy.
+variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
+  [IsFiniteMeasure P]
 
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
-lemma exists_modification_holder_aux' [IsFiniteMeasure P]
-    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
-    ∃ Y : T → Ω → E, (∀ s t : T, Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Y t ω)))
-      ∧ (∀ t, Y t =ᵐ[P] X t)
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
-  have h_edist_lt_top (s t : T) : edist s t < ∞ := by
-    calc edist s t ≤ EMetric.diam (Set.univ : Set T) :=
-      EMetric.edist_le_diam_of_mem (Set.mem_univ s) (Set.mem_univ t)
-    _ < ∞ := hT.diam_lt_top hd_pos
-  have hX_meas_apply (t : T) : Measurable (X t) := hX.measurable t
-  have h_meas_edist (s t : T) : Measurable (fun ω ↦ edist (X s ω) (X t ω)) :=
-    hX.measurable_edist
   -- Let `T'` be a countable dense subset of `T`
   obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
   have : Countable T' := hT'_countable
@@ -312,18 +343,14 @@ lemma exists_modification_holder_aux' [IsFiniteMeasure P]
   let x₀ : E := Nonempty.some inferInstance
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then hT'_dense.extend (fun t ↦ X t ω) t else x₀
+  have hY t : Measurable (Y t) := by
+    refine Measurable.ite hA ?_ (by fun_prop)
+    -- todo: extract lemma `measurable_extend`
+    exact measurable_limUnder (f := fun (t : T') ω ↦ X t ω) fun t ↦ hX.measurable t
   have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
     simp only [hω, ↓reduceIte, Y]
     exact hT'_dense.extend_eq (h_cont hω) t
-  refine ⟨Y, fun s t ↦ ?_, fun t ↦ ?_, fun ω ↦ ?_⟩
-  · have h_eq : (fun ω ↦ (Y s ω, Y t ω))
-        = fun ω ↦ if ω ∈ A then (hT'_dense.extend (fun t ↦ X t ω) s,
-          hT'_dense.extend (fun t ↦ X t ω) t) else (x₀, x₀) := by
-      ext ω : 1
-      split_ifs with h <;> simp [h, Y]
-    rw [h_eq]
-    refine Measurable.ite hA ?_ (by fun_prop)
-    sorry -- ???
+  refine ⟨Y, hY, fun t ↦ ?_, fun ω ↦ ?_⟩
   · suffices ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) ≤ 0 by
       filter_upwards [this] with ω h using by simpa using h
     obtain ⟨u, hu⟩ : ∃ u : ℕ → T', Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t) := by
@@ -355,12 +382,10 @@ lemma exists_modification_holder_aux' [IsFiniteMeasure P]
     have hP_le n : P {ω | ε ≤ edist (Y t ω) (X t ω)}
         ≤ P {ω | ε/2 ≤ edist (Y (u n) ω) (Y t ω)} + P {ω | ε/2 ≤ edist (X (u n) ω) (X t ω)} := by
       calc P {ω | ε ≤ edist (Y t ω) (X t ω)}
-      _ = P ({ω | ε ≤ edist (Y t ω) (X t ω)} ∩ A) := by -- todo: introduce a lemma to shorten this?
-        rw [Set.inter_comm, Measure.measure_inter_eq_of_measure_eq _ _ (Set.subset_univ _)
-          (measure_ne_top _ _), Set.univ_inter]
-        · sorry -- measurability of `fun ω ↦ edist (Y t ω) (X t ω)` ?
-        · rwa [ae_iff_measure_eq] at hA_ae
-          exact hA.nullMeasurableSet
+      _ = P ({ω | ε ≤ edist (Y t ω) (X t ω)} ∩ A) := by
+        rw [Set.inter_comm,
+          Measure.measure_inter_eq_of_ae _ hA.nullMeasurableSet hA_ae (measure_ne_top _ _)]
+        exact measurableSet_le (by fun_prop) (Measurable.edist (hY t) (hX.measurable t))
       _ ≤ P ({ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} ∩ A) := by
         refine measure_mono fun ω ↦ ?_
         simp only [Set.mem_inter_iff, Set.mem_setOf_eq, and_imp]
@@ -368,7 +393,10 @@ lemma exists_modification_holder_aux' [IsFiniteMeasure P]
         rw [edist_comm]
       _ = P {ω | ε / 2 + ε / 2 ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by
         simp only [ENNReal.add_halves]
-        sorry -- P(A) = 1
+        rw [Set.inter_comm, Measure.measure_inter_eq_of_ae _ hA.nullMeasurableSet hA_ae
+          (measure_ne_top _ _)]
+        refine measurableSet_le (by fun_prop) ?_
+        exact ((hY (u n)).edist (hY t)).add ((hX.measurable (u n)).edist (hX.measurable t))
       _ ≤ P ({ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
           ∪ {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)}) := by
           gcongr
