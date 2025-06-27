@@ -412,7 +412,7 @@ variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCount
 
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
-lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
@@ -516,35 +516,27 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
     refine hT'_dense.holderWith_extend (h_holder hω)
 
-lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
-    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t) ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
-  sorry
-
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
+    (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
-    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
         ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
   sorry
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hp_pos : 0 < p) (hdq_lt : d < q) :
-    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+    (hX : IsMeasurableKolmogorovProcess X P p q M) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
         ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
   sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
+    (hX : ∀ n, IsMeasurableKolmogorovProcess X P (p n) (q n) (M n))
     (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
-    ∃ Y : T → Ω → E, (∀ t, Y t =ᵐ[P] X t)
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
         ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
   sorry
