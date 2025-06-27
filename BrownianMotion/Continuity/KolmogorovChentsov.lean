@@ -275,7 +275,8 @@ variable [Nonempty E] [SecondCountableTopology T]
 
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
-lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma exists_modification_holder_aux' [IsFiniteMeasure P]
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsMeasurableKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
@@ -334,23 +335,56 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
         ≤ edist (Y t ω) (Y (u n) ω) + edist (X (u n) ω) (X t ω) := by
       refine (edist_triangle4 (Y t ω) (Y (u n) ω) (X (u n) ω) (X t ω)).trans_eq ?_
       simp [hY_eq hω (u n)]
-    have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
-      refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
-        (fun n ↦ hX.kolmogorovCondition (u n) t)
-      sorry
-    have h_tendsto' (ε : ℝ≥0∞) (hε : 0 < ε) :
+    -- `X (u n)` converges in measure to `X t`
+    have h_tendsto_X (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) := by
-      sorry
+      have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
+        refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
+          (fun n ↦ hX.kolmogorovCondition (u n) t)
+        have : Tendsto (fun n ↦ edist (u n).1 t) atTop (𝓝 0) := by
+          rwa [← tendsto_iff_edist_tendsto_0]
+        sorry -- no problem
+      sorry -- go to `... ^ p`, use Markov and `h_tendsto`
+    -- `Y (u n)` converges in measure to `Y t`
+    have h_tendsto_Y (ε : ℝ≥0∞) (hε : 0 < ε) :
+        Tendsto (fun n ↦ P {ω | ε ≤ edist (Y (u n) ω) (Y t ω)}) atTop (𝓝 0) := by
+      sorry -- why?
     refine (ae_le_const_iff_forall_gt_measure_zero _ _).mpr fun ε hε ↦ ?_
     suffices Tendsto (fun n : ℕ ↦ P {ω | ε ≤ edist (Y t ω) (X t ω)}) atTop (𝓝 0) by
       simpa using this
-    have hP_le n : P {x | ε ≤ edist (Y t x) (X t x)}
-        ≤ P {ω | ε/2 ≤ edist (Y t ω) (Y (u n) ω)} + P {ω | ε/2 ≤ edist (X (u n) ω) (X t ω)} := by
-      sorry
+    have hP_le n : P {ω | ε ≤ edist (Y t ω) (X t ω)}
+        ≤ P {ω | ε/2 ≤ edist (Y (u n) ω) (Y t ω)} + P {ω | ε/2 ≤ edist (X (u n) ω) (X t ω)} := by
+      calc P {ω | ε ≤ edist (Y t ω) (X t ω)}
+      _ = P ({ω | ε ≤ edist (Y t ω) (X t ω)} ∩ A) := by -- todo: introduce a lemma to shorten this?
+        rw [Set.inter_comm, Measure.measure_inter_eq_of_measure_eq _ _ (Set.subset_univ _)
+          (measure_ne_top _ _), Set.univ_inter]
+        · sorry -- measurability of `fun ω ↦ edist (Y t ω) (X t ω)` ?
+        · rwa [ae_iff_measure_eq] at hA_ae
+          exact hA.nullMeasurableSet
+      _ ≤ P ({ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} ∩ A) := by
+        refine measure_mono fun ω ↦ ?_
+        simp only [Set.mem_inter_iff, Set.mem_setOf_eq, and_imp]
+        refine fun hε_le hω ↦ ⟨(hε_le.trans (h_le n hω)).trans_eq ?_, hω⟩
+        rw [edist_comm]
+      _ = P {ω | ε / 2 + ε / 2 ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by
+        simp only [ENNReal.add_halves]
+        sorry -- P(A) = 1
+      _ ≤ P ({ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
+          ∪ {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)}) := by
+          gcongr
+          intro ω
+          simp only [ENNReal.add_halves, Set.mem_setOf_eq, Set.mem_union]
+          contrapose!
+          intro ⟨h1, h2⟩
+          calc _
+          _ < ε / 2 + ε / 2 := by gcongr
+          _ = ε := by simp
+      _ ≤ P {ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
+          + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_union_le _ _
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') hP_le
     rw [← add_zero (0 : ℝ≥0∞)]
-    refine Tendsto.add ?_ (h_tendsto' (ε / 2) (ENNReal.half_pos hε.ne'))
-    sorry
+    exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
+      (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
   · by_cases hω : ω ∈ A
     swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
     simp only [hω, ↓reduceIte, Y, A]
