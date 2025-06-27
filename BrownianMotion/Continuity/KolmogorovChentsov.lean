@@ -12,13 +12,66 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 -/
 
 open MeasureTheory
-open scoped ENNReal NNReal
+open scoped ENNReal NNReal Set
 
 section aux
 
 theorem lintegral_eq_zero_of_zero_ae {α : Type*} [MeasurableSpace α] {μ : Measure α}
     {f : α → ℝ≥0∞} : f =ᵐ[μ] 0 →  ∫⁻ a, f a ∂μ = 0 :=
   fun h ↦ (lintegral_congr_ae h).trans lintegral_zero
+
+theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
+  ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := sorry
+
+-- modelled after `CompactExhaustion`
+structure FiniteExhaustion {α : Type*} (s : Set α) where
+  toFun : ℕ → Set α
+  Finite' : ∀ n, (toFun n).Finite
+  subset_succ' : ∀ n, toFun n ⊆ toFun (n + 1)
+  iUnion_eq' : ⋃ n, toFun n = s
+
+namespace FiniteExhaustion
+
+instance {α : Type*} {s : Set α} : FunLike (FiniteExhaustion s) ℕ (Set α) where
+  coe := toFun
+  coe_injective' | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
+
+instance  {α : Type*} {s : Set α} : RelHomClass (FiniteExhaustion s) LE.le HasSubset.Subset where
+  map_rel K _ _ h := monotone_nat_of_le_succ (fun n ↦ K.subset_succ' n) h
+
+variable {α : Type*} {s : Set α} (K : FiniteExhaustion s)
+
+@[simp]
+theorem toFun_eq_coe : K.toFun = K := rfl
+
+protected theorem Finite (n : ℕ) : (K n).Finite := K.Finite' n
+
+theorem subset_succ (n : ℕ) : K n ⊆ K (n + 1) := K.subset_succ' n
+
+protected theorem subset {m n : ℕ} (h : m ≤ n) : K m ⊆ K n :=
+  OrderHomClass.mono K h
+
+theorem iUnion_eq : ⋃ n, K n = s :=
+  K.iUnion_eq'
+
+noncomputable def choice {α : Type*} {s : Set α} (hS : Countable s) : FiniteExhaustion s := by sorry
+
+section prod
+
+variable {β : Type*} {t : Set β} (K' : FiniteExhaustion t)
+
+protected def prod :
+    FiniteExhaustion (s ×ˢ t) :=
+  { toFun := fun n ↦ K n ×ˢ K' n
+    Finite' := fun n ↦ Set.Finite.prod (K.Finite n) (K'.Finite n)
+    subset_succ' := fun n ↦ Set.prod_mono (K.subset_succ n) (K'.subset_succ n)
+    iUnion_eq' := by sorry }
+
+protected theorem prod_apply (n : ℕ) : (K.prod K') n = K n ×ˢ K' n := by rfl
+
+end prod
+
+end FiniteExhaustion
 
 end aux
 
@@ -32,12 +85,13 @@ variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hX : IsKolmogorovProcess X P p q M)
-    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} [hJ : Countable J] :
+    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} (hJ : J.Countable) :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s : J)
               (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1)}),
                 edist (X s ω) (X t ω) ^p ∂P := by
+  have : Countable J := hJ
   let η k := 2⁻¹ ^ k * (EMetric.diam (Set.univ : Set T) + 1)
   have hη_ge (k : ℕ) : 2⁻¹ ^ (k : ℝ) ≤ η k := by simp [η, mul_add]
   have hη_succ (k : ℕ) : η (k + 1) = 2⁻¹ * η k := by simp [η, pow_add, mul_assoc, mul_comm]
@@ -101,9 +155,10 @@ theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) (T' : Set T) [hT' : Finite T'] :
+    (hβ_pos : 0 < β) {T' : Set T} (hT' : T'.Finite) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
+  have : Finite T' := hT'
   have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp [constL, ← ENNReal.tsum_mul_left]
@@ -130,7 +185,8 @@ theorem finite_kolmogorov_chentsov
     exact le_trans (EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _)) h_ae
   have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
-  apply le_trans (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos)
+  apply le_trans
+    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos hT'.countable)
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
@@ -187,14 +243,29 @@ theorem finite_kolmogorov_chentsov
     ring
   · norm_num
 
+set_option trace.Meta.Tactic.fun_prop true
+
 theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_pos : 0 < β)
     (T' : Set T) (hT' : T'.Countable) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
-  sorry
+  let K := (FiniteExhaustion.choice hT')
+  simp only [iSup_subtype, Subtype.edist_mk_mk, ← biSup_prod', ← (K.prod K).iUnion_eq,
+    Set.mem_iUnion, iSup_exists, K.prod_apply, iSup_comm (ι' := ℕ)]
+  simp only [biSup_prod]
+  simp only [← iSup_subtype'']
+  rw [MeasureTheory.lintegral_iSup', iSup_le_iff]
+  · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hp_pos hdq_lt hβ_pos (K.Finite n)
+  · intro n
+    have : Countable (K n) := (K.Finite n).countable
+    fun_prop (disch := simp [hX])
+  · filter_upwards with ω
+    intro _ _ h
+    simp only [iSup_subtype, ← biSup_prod']
+    exact iSup_le_iSup_of_subset (Set.prod_mono (K.subset h) (K.subset h))
+
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
