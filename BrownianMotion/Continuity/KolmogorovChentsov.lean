@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.EDistEgorov
+import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
@@ -503,11 +504,6 @@ lemma IsMeasurableKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
 variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
   [IsFiniteMeasure P]
 
-lemma _root_.Dense.holderWith_extend {A : Set T} (hA : Dense A) {f : A → E} {C β : ℝ≥0}
-    (hf : HolderWith C β f) :
-    HolderWith C β (hA.extend f) := by
-  sorry
-
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -619,7 +615,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
     simp only [hω, ↓reduceIte, Y, A]
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    refine hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
+    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
+      hβ_pos
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
