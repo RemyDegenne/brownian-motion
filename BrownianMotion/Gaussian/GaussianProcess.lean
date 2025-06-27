@@ -39,47 +39,28 @@ end Basic
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
 
+instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] [Subsingleton ι] :
+    BorelSpace (ι → E) := by
+  refine ⟨le_antisymm pi_le_borel_pi ?_⟩
+  obtain h | h := isEmpty_or_nonempty ι
+  · exact fun s _ ↦ Subsingleton.set_cases .empty .univ s
+  have := @Unique.mk' ι ⟨Classical.choice h⟩ inferInstance
+  rw [borel]
+  refine MeasurableSpace.generateFrom_le fun s hs ↦ ?_
+  simp only [Pi.topologicalSpace, ciInf_unique, isOpen_induced_eq, Set.mem_image,
+    Set.mem_setOf_eq] at hs
+  simp_rw [MeasurableSpace.measurableSet_iSup, MeasurableSpace.measurableSet_comap]
+  refine MeasurableSpace.GenerateMeasurable.basic _ ⟨Classical.choice h, ?_⟩
+  obtain ⟨t, ht, rfl⟩ := hs
+  exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
+
 lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) (t : T)
     (hX' : AEMeasurable (X t) P) : IsGaussian (P.map (X t)) := by
-  have : BorelSpace (({t} : Finset T) → E) := by
-    constructor
-    apply le_antisymm
-    · exact pi_le_borel_pi
-    rw [borel]
-    apply MeasurableSpace.generateFrom_le
-    intro s hs
-    rw [Pi.topologicalSpace] at hs
-    simp at hs
-    rw [isOpen_induced_eq] at hs
-    rw [MeasurableSpace.measurableSet_iSup]
-    apply MeasurableSpace.GenerateMeasurable.basic
-    use ⟨t, by simp⟩
-    rw [MeasurableSpace.measurableSet_comap]
-    obtain ⟨t, ht, rfl⟩ := hs
-    use t, ht.measurableSet
-    rfl
   let L : (({t} : Finset T) → E) →L[ℝ] E := ContinuousLinearMap.proj ⟨t, by simp⟩
   have : X t = L ∘ (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp [L]
   rw [this, ← AEMeasurable.map_map_of_aemeasurable]
-  · have : BorelSpace (({t} : Finset T) → E) := by
-      constructor
-      apply le_antisymm
-      · exact pi_le_borel_pi
-      rw [borel]
-      apply MeasurableSpace.generateFrom_le
-      intro s hs
-      rw [Pi.topologicalSpace] at hs
-      simp at hs
-      rw [isOpen_induced_eq] at hs
-      rw [MeasurableSpace.measurableSet_iSup]
-      apply MeasurableSpace.GenerateMeasurable.basic
-      use ⟨t, by simp⟩
-      rw [MeasurableSpace.measurableSet_comap]
-      obtain ⟨t, ht, rfl⟩ := hs
-      use t, ht.measurableSet
-      rfl
-    have := hX {t}
-    exact @isGaussian_map _ _ _ _ _ _ _ _ _ _ _ (hX {t}) L
+  · have := hX {t}
+    exact isGaussian_map L
   · exact L.continuous.aemeasurable
   rw [aemeasurable_pi_iff]
   simpa
