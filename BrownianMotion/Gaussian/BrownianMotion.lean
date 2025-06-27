@@ -147,51 +147,9 @@ lemma law_brownian_apply (t : ℝ≥0) : gaussianLimit.map (brownian t) = gaussi
 theorem measurable_brownian : Measurable (fun ω t ↦ brownian t ω) := sorry
 
 open NNReal Filter Topology in
-lemma _root_.Measurable.measurable_uncurry {Ω E : Type*} {mΩ : MeasurableSpace Ω}
-    [TopologicalSpace E] [TopologicalSpace.PseudoMetrizableSpace E] [MeasurableSpace E]
-    [BorelSpace E] {X : ℝ≥0 → Ω → E} (cont : ∀ ω, Continuous (X · ω))
-    (hX : Measurable fun ω t ↦ X t ω) : Measurable X.uncurry := by
-  let Y (n : ℕ) (tω : ℝ≥0 × Ω) : E := X ((step n tω.1 + 1) / 2 ^ n) tω.2
-  have hY (n : ℕ) (t : ℝ≥0) : Measurable (fun ω ↦ Y n (t, ω)) := by
-    simpa [Y] using hX.eval
-  have hY n : Measurable (Y n) := by
-    intro s hs
-    have : Y n ⁻¹' s = {0} ×ˢ ((fun ω ↦ Y n (0, ω)) ⁻¹' s) ∪
-        ⋃ k : ℕ, (Set.Ioc (k / 2 ^ n : ℝ≥0) ((k + 1) / 2 ^ n)) ×ˢ
-          ((fun ω ↦ Y n ((k + 1) / 2 ^ n, ω)) ⁻¹' s) := by
-      ext ⟨t, ω⟩
-      refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-      · obtain rfl | ht := eq_zero_or_pos t
-        · exact Set.mem_union_left _ (by simpa)
-        refine Set.mem_union_right _ <| Set.mem_iUnion.2 ⟨step n t, ?_⟩
-        refine ⟨⟨step_div_lt ht, le_step_add_one_div t⟩, ?_⟩
-        convert h
-        simp [Y]
-      · simp only [Set.mem_union, Set.mem_prod, Set.mem_singleton_iff, Set.mem_preimage,
-          Set.mem_iUnion, Set.mem_Ioc] at h
-        obtain ⟨rfl, h⟩ | ⟨i, ⟨hi1, hi2⟩, h⟩ := h
-        · exact h
-        convert h
-        simp only [Set.mem_preimage, step_cast_add_one_div, Y]
-        rw [step_eq_of_lt_of_le hi1 hi2]
-    rw [this]
-    exact measurableSet_singleton 0 |>.prod (hY n 0 hs) |>.union <| .iUnion
-      fun _ ↦ measurableSet_Ioc.prod (hY n _ hs)
-  have this tω : Tendsto (fun n ↦ Y n tω) atTop (𝓝 (X.uncurry tω)) := by
-    simp_rw [Y]
-    obtain ⟨t, ω⟩ := tω
-    refine cont ω |>.tendsto t |>.comp ?_
-    obtain rfl | ht := eq_zero_or_pos t
-    · simp [-one_div, ← one_div_pow]
-    have h n : (step n t + 1) / 2 ^ n ≤ t + 1 / 2 ^ n := by grw [add_div, step_div_lt ht]
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le (by simp) ?_ (fun _ ↦ le_step_add_one_div t) h
-    nth_rw 2 [← add_zero t]
-    exact Tendsto.add (by simp) (by simp [-one_div, ← one_div_pow])
-  exact measurable_of_tendsto_metrizable hY <| tendsto_pi_nhds.2 this
-
-open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
-    measurable_brownian.measurable_uncurry continuous_brownian
+  measurable_uncurry_of_continuous_of_measurable continuous_brownian
+    (measurable_pi_iff.1 measurable_brownian)
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
