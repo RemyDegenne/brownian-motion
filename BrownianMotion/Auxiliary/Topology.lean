@@ -7,11 +7,8 @@ open scoped NNReal ENNReal Topology
 variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] [CompleteSpace Y]
     {C r : ℝ≥0} {s : Set X} {f : s → Y}
 
-lemma neBot_comap_nhds (hs : Dense s) (x : X) : ((𝓝 x).comap ((↑) : s → X)).NeBot := by
-  refine comap_neBot fun t ht ↦ ?_
-  obtain ⟨y, hy⟩ := hs.inter_nhds_nonempty ht
-  use ⟨y, Set.mem_of_mem_inter_left hy⟩
-  exact Set.mem_of_mem_inter_right hy
+lemma neBot_comap_nhds (hs : Dense s) (x : X) : ((𝓝 x).comap ((↑) : s → X)).NeBot :=
+  hs.isDenseInducing_val.comap_nhds_neBot _
 
 lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r) :
     HolderWith C r (hs.extend f) := by
