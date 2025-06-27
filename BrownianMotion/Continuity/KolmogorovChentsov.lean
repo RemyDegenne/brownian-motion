@@ -662,7 +662,26 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    sorry
+    obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+    have : {ω | ∀ (t : T), Z n t ω = Z 0 t ω} = {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} := by
+      ext ω
+      simp only [Set.mem_setOf_eq, Subtype.forall]
+      refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+      rw [← funext_iff]
+      refine Continuous.ext_on hT'_dense ?_ ?_ h
+      · obtain ⟨_, h⟩ := hZ_holder n ω
+        exact h.continuous (hβ_pos n)
+      · obtain ⟨_, h⟩ := hZ_holder 0 ω
+        exact h.continuous (hβ_pos 0)
+    rw [this]
+    have : {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} = ⋂ (t : T'), {ω | Z n t ω = Z 0 t ω} := by
+      ext; simp
+    rw [this]
+    have : Countable T' := hT'_countable
+    refine MeasurableSet.iInter (fun t ↦ ?_)
+    refine StronglyMeasurable.measurableSet_eq_fun ?_ ?_
+    · exact (hZ_meas n t).stronglyMeasurable
+    · exact (hZ_meas 0 t).stronglyMeasurable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
