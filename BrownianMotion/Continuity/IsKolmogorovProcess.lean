@@ -48,13 +48,32 @@ variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
   {P : Measure Ω}
   {X : T → Ω → E}
 
+structure IsMeasurableKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) :
+    Prop where
+  measurablePair : ∀ s t : T, @Measurable _ _ _ (borel (E × E)) (fun ω ↦ (X s ω, X t ω))
+  kolmogorovCondition : ∀ s t : T, ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q
+
 structure IsKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) : Prop where
   aemeasurablePair : ∀ s t : T, @AEMeasurable _ _ (borel (E × E)) _ (fun ω ↦ (X s ω, X t ω)) P
-  kolmogorovCondition : ∀ s t : T, ∫⁻ ω, (edist (X s ω) (X t ω)) ^ p ∂P ≤ M * edist s t ^ q
+  kolmogorovCondition : ∀ s t : T, ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q
+
+lemma IsMeasurableKolmogorovProcess.IsKolmogorovProcess
+    (hX : IsMeasurableKolmogorovProcess X P p q M) :
+    IsKolmogorovProcess X P p q M where
+  aemeasurablePair s t :=
+    @Measurable.aemeasurable Ω (E × E) _ (borel (E × E)) _ _ (hX.measurablePair s t)
+  kolmogorovCondition := hX.kolmogorovCondition
 
 section Measurability
 
 variable [MeasurableSpace E] [BorelSpace E]
+
+lemma IsMeasurableKolmogorovProcess.measurable (hX : IsMeasurableKolmogorovProcess X P p q M)
+    (s : T) :
+    Measurable (X s) := by
+  have : Measurable[borel (E × E), _] (Prod.fst : E × E → E) :=
+    measurable_fst.mono prod_le_borel_prod le_rfl
+  exact @Measurable.comp Ω (E × E) E _ (borel (E × E)) _ _ _ this (hX.measurablePair s s)
 
 lemma IsKolmogorovProcess.aemeasurable (hX : IsKolmogorovProcess X P p q M) (s : T) :
     AEMeasurable (X s) P := by
@@ -79,6 +98,16 @@ lemma IsKolmogorovProcess.mk_of_secondCountableTopology [SecondCountableTopology
   kolmogorovCondition := h_kol
 
 omit [MeasurableSpace E] [BorelSpace E] in
+lemma IsMeasurableKolmogorovProcess.stronglyMeasurable_edist
+    (hX : IsMeasurableKolmogorovProcess X P p q M) {s t : T} :
+    StronglyMeasurable (fun ω ↦ edist (X s ω) (X t ω)) := by
+  have h_str : StronglyMeasurable[borel (E × E)] (fun p : E × E ↦ edist p.1 p.2) := by
+    refine @Continuous.stronglyMeasurable _ _ (borel (E × E)) _ ?_ _ _ _ _ continuous_edist
+    refine @BorelSpace.opensMeasurable _ _ (borel (E × E)) ?_
+    exact @BorelSpace.mk _ _ (borel (E × E)) rfl
+  exact h_str.comp_measurable (hX.measurablePair s t)
+
+omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.aestronglyMeasurable_edist
     (hX : IsKolmogorovProcess X P p q M) {s t : T} :
     AEStronglyMeasurable (fun ω ↦ edist (X s ω) (X t ω)) P := by
@@ -87,6 +116,12 @@ lemma IsKolmogorovProcess.aestronglyMeasurable_edist
     refine @BorelSpace.opensMeasurable _ _ (borel (E × E)) ?_
     exact @BorelSpace.mk _ _ (borel (E × E)) rfl
   exact h_str.aestronglyMeasurable.comp_aemeasurable (hX.aemeasurablePair s t)
+
+omit [MeasurableSpace E] [BorelSpace E] in
+@[fun_prop]
+lemma IsMeasurableKolmogorovProcess.measurable_edist
+    (hX : IsMeasurableKolmogorovProcess X P p q M) {s t : T} :
+    Measurable (fun ω ↦ edist (X s ω) (X t ω)) := hX.stronglyMeasurable_edist.measurable
 
 omit [MeasurableSpace E] [BorelSpace E] in
 @[fun_prop]
