@@ -1,4 +1,4 @@
-import Mathlib.Topology.MetricSpace.Holder
+import Mathlib.Topology.MetricSpace.HolderNorm
 
 open Bornology Filter
 
@@ -29,9 +29,10 @@ lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r
     · fun_prop (disch := exact ENNReal.coe_ne_top)
     exact Tendsto.prodMk_nhds (tendsto_comap.comp tendsto_fst) (tendsto_comap.comp tendsto_snd)
 
-lemma HolderWith.mono_right {X Y : Type*} [PseudoMetricSpace X] [hX : BoundedSpace X]
-    [PseudoEMetricSpace Y] {f : X → Y} {C r : ℝ≥0} (hf : HolderWith C r f) {s : ℝ≥0} (hs : s ≤ r) :
-    ∃ C', HolderWith C' s f := by
+lemma MemHolder.mono {X Y : Type*} [PseudoMetricSpace X] [hX : BoundedSpace X]
+    [PseudoEMetricSpace Y] {f : X → Y} {r s : ℝ≥0} (hf : MemHolder r f) (hs : s ≤ r) :
+    MemHolder s f := by
+  obtain ⟨C, hf⟩ := hf
   obtain rfl | hr := eq_zero_or_pos r
   · rw [nonpos_iff_eq_zero.1 hs]
     exact ⟨C, hf⟩
