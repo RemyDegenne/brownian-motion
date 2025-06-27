@@ -53,16 +53,42 @@ structure IsMeasurableKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p
   measurablePair : ∀ s t : T, @Measurable _ _ _ (borel (E × E)) (fun ω ↦ (X s ω, X t ω))
   kolmogorovCondition : ∀ s t : T, ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q
 
-structure IsKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) : Prop where
-  aemeasurablePair : ∀ s t : T, @AEMeasurable _ _ (borel (E × E)) _ (fun ω ↦ (X s ω, X t ω)) P
-  kolmogorovCondition : ∀ s t : T, ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q
+def IsKolmogorovProcess (X : T → Ω → E) (P : Measure Ω) (p q : ℝ) (M : ℝ≥0) : Prop :=
+  ∃ Y, IsMeasurableKolmogorovProcess Y P p q M ∧ ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω
+
+namespace IsKolmogorovProcess
+
+noncomputable
+def mk (X : T → Ω → E) (h : IsKolmogorovProcess X P p q M) : T → Ω → E :=
+  Classical.choose h
+
+@[measurability]
+theorem isMeasurableKolmogorovProcess_mk (h : IsKolmogorovProcess X P p q M) :
+  IsMeasurableKolmogorovProcess (h.mk X) P p q M :=
+  (Classical.choose_spec h).1
+
+theorem ae_eq_mk (h : IsKolmogorovProcess X P p q M) : ∀ᵐ ω ∂P, ∀ t, X t ω = h.mk X t ω :=
+  (Classical.choose_spec h).2
+
+theorem congr {Y : T → Ω → E} (hX : IsKolmogorovProcess X P p q M)
+    (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω) :
+    IsKolmogorovProcess Y P p q M := by
+  refine ⟨hX.mk X, hX.isMeasurableKolmogorovProcess_mk, ?_⟩
+  filter_upwards [hX.ae_eq_mk, h] with ω hX hY using fun t ↦ (hY t).symm.trans (hX t)
+
+end IsKolmogorovProcess
 
 lemma IsMeasurableKolmogorovProcess.IsKolmogorovProcess
     (hX : IsMeasurableKolmogorovProcess X P p q M) :
-    IsKolmogorovProcess X P p q M where
-  aemeasurablePair s t :=
-    @Measurable.aemeasurable Ω (E × E) _ (borel (E × E)) _ _ (hX.measurablePair s t)
-  kolmogorovCondition := hX.kolmogorovCondition
+    IsKolmogorovProcess X P p q M :=
+  ⟨X, hX, by simp⟩
+
+lemma IsKolmogorovProcess.kolmogorovCondition (hX : IsKolmogorovProcess X P p q M) (s t : T) :
+    ∫⁻ ω, edist (X s ω) (X t ω) ^ p ∂P ≤ M * edist s t ^ q := by
+  convert hX.isMeasurableKolmogorovProcess_mk.kolmogorovCondition s t using 1
+  refine lintegral_congr_ae ?_
+  filter_upwards [hX.ae_eq_mk] with ω hω
+  simp_rw [hω]
 
 section Measurability
 
@@ -77,10 +103,16 @@ lemma IsMeasurableKolmogorovProcess.measurable (hX : IsMeasurableKolmogorovProce
 
 lemma IsKolmogorovProcess.aemeasurable (hX : IsKolmogorovProcess X P p q M) (s : T) :
     AEMeasurable (X s) P := by
-  have : Measurable[borel (E × E), _] (Prod.fst : E × E → E) :=
-    measurable_fst.mono prod_le_borel_prod le_rfl
-  exact @Measurable.comp_aemeasurable Ω E (E × E) _ _ _ (borel (E × E)) _ _ this
-    (hX.aemeasurablePair s s)
+  refine ⟨hX.mk X s, hX.isMeasurableKolmogorovProcess_mk.measurable s, ?_⟩
+  filter_upwards [hX.ae_eq_mk] with ω hω using hω s
+
+omit [PseudoEMetricSpace T] in
+lemma measurable_pair_of_measurable [SecondCountableTopology E] (hX : ∀ s, Measurable (X s))
+    (s t : T) :
+    Measurable[_, borel (E × E)] (fun ω ↦ (X s ω, X t ω)) := by
+  suffices Measurable (fun ω ↦ (X s ω, X t ω)) by
+    rwa [(Prod.borelSpace (α := E) (β := E)).measurable_eq] at this
+  fun_prop
 
 omit [PseudoEMetricSpace T] in
 lemma aemeasurable_pair_of_aemeasurable [SecondCountableTopology E] (hX : ∀ s, AEMeasurable (X s) P)
@@ -90,11 +122,11 @@ lemma aemeasurable_pair_of_aemeasurable [SecondCountableTopology E] (hX : ∀ s,
     rwa [(Prod.borelSpace (α := E) (β := E)).measurable_eq] at this
   fun_prop
 
-lemma IsKolmogorovProcess.mk_of_secondCountableTopology [SecondCountableTopology E]
-    (h_meas : ∀ s, AEMeasurable (X s) P)
+lemma IsMeasurableKolmogorovProcess.mk_of_secondCountableTopology [SecondCountableTopology E]
+    (h_meas : ∀ s, Measurable (X s))
     (h_kol : ∀ s t : T, ∫⁻ ω, (edist (X s ω) (X t ω)) ^ p ∂P ≤ M * edist s t ^ q) :
-    IsKolmogorovProcess X P p q M where
-  aemeasurablePair := aemeasurable_pair_of_aemeasurable h_meas
+    IsMeasurableKolmogorovProcess X P p q M where
+  measurablePair := measurable_pair_of_measurable h_meas
   kolmogorovCondition := h_kol
 
 omit [MeasurableSpace E] [BorelSpace E] in
@@ -111,11 +143,9 @@ omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.aestronglyMeasurable_edist
     (hX : IsKolmogorovProcess X P p q M) {s t : T} :
     AEStronglyMeasurable (fun ω ↦ edist (X s ω) (X t ω)) P := by
-  have h_str : StronglyMeasurable[borel (E × E)] (fun p : E × E ↦ edist p.1 p.2) := by
-    refine @Continuous.stronglyMeasurable _ _ (borel (E × E)) _ ?_ _ _ _ _ continuous_edist
-    refine @BorelSpace.opensMeasurable _ _ (borel (E × E)) ?_
-    exact @BorelSpace.mk _ _ (borel (E × E)) rfl
-  exact h_str.aestronglyMeasurable.comp_aemeasurable (hX.aemeasurablePair s t)
+  refine ⟨(fun ω ↦ edist (hX.mk X s ω) (hX.mk X t ω)),
+    hX.isMeasurableKolmogorovProcess_mk.stronglyMeasurable_edist, ?_⟩
+  filter_upwards [hX.ae_eq_mk] with ω hω using by simp [hω]
 
 omit [MeasurableSpace E] [BorelSpace E] in
 @[fun_prop]

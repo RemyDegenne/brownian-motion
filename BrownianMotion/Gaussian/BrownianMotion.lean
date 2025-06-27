@@ -41,26 +41,26 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isMeasurableKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose
 
 lemma measurable_brownian (t : ℝ≥0) :
     Measurable (brownian t) :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isMeasurableKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
 
 lemma brownian_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isMeasurableKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
 
 lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
     ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
   refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isMeasurableKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
   have hβ_lt' : (β : ℝ) < 2⁻¹ := by
     sorry
   refine hβ_lt'.trans_eq ?_
