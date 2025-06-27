@@ -50,8 +50,9 @@ lemma map_sub_preBrownian (s t : ℝ≥0) :
   rw [this]
   exact measurePreserving_gaussianProjectiveFamily₂.comp measurePreserving_gaussianLimit
 
-lemma isKolmogorovProcess_preBrownian (n : ℕ) :
-    IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
+lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
+    IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
+      (Nat.doubleFactorial (2 * n - 1)) := by
   constructor
   · intro s t
     rw [← BorelSpace.measurable_eq]
@@ -76,34 +77,31 @@ lemma isKolmogorovProcess_preBrownian (n : ℕ) :
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
   · exact ae_of_all _ fun _ ↦ by positivity
 
-lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
-    IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
-      (Nat.doubleFactorial (2 * n - 1)) := by
-  sorry
-
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose
 
+@[fun_prop]
 lemma measurable_brownian (t : ℝ≥0) :
     Measurable (brownian t) :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
 
 lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
 
 lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
     ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
   refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ isKolmogorovProcess_preBrownian (n + 2)) (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2 β hβ_pos ?_ ω
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
+    (fun n ↦ by positivity)
+    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
   have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
   refine hβ_lt'.trans_eq
     (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_).symm
@@ -127,11 +125,9 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     all_goals norm_num
   exact h.continuous (by norm_num)
 
-theorem measurable_brownian : Measurable (fun ω t ↦ brownian t ω) := sorry
-
 lemma measurePreserving_brownian_apply {t : ℝ≥0} :
     MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
-  measurable := measurable_pi_iff.1 measurable_brownian t
+  measurable := by fun_prop
   map_eq := by
     rw [Measure.map_congr (brownian_ae_eq_preBrownian t),
       (measurePreserving_preBrownian_eval t).map_eq]
@@ -139,16 +135,14 @@ lemma measurePreserving_brownian_apply {t : ℝ≥0} :
 lemma measurePreserving_brownian_sub {s t : ℝ≥0} :
     MeasurePreserving (brownian s - brownian t) gaussianLimit
       (gaussianReal 0 (max (s - t) (t - s))) where
-  measurable := (measurable_pi_iff.1 measurable_brownian s).sub
-    (measurable_pi_iff.1 measurable_brownian t)
+  measurable := by fun_prop
   map_eq := by
     rw [Measure.map_congr ((brownian_ae_eq_preBrownian s).sub' (brownian_ae_eq_preBrownian t)),
       (map_sub_preBrownian s t).map_eq]
 
 open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
-  measurable_uncurry_of_continuous_of_measurable continuous_brownian
-    (measurable_pi_iff.1 measurable_brownian)
+  measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm

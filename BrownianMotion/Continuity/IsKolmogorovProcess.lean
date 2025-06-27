@@ -76,7 +76,7 @@ theorem congr {Y : T → Ω → E} (hX : IsKolmogorovProcess X P p q M)
 
 end IsKolmogorovProcess
 
-lemma IsMeasurableKolmogorovProcess.IsKolmogorovProcess
+lemma IsMeasurableKolmogorovProcess.isKolmogorovProcess
     (hX : IsMeasurableKolmogorovProcess X P p q M) :
     IsKolmogorovProcess X P p q M :=
   ⟨X, hX, by simp⟩
