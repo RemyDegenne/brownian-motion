@@ -5,11 +5,13 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.EDistEgorov
 import BrownianMotion.Continuity.IsKolmogorovProcess
+import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
 import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.MetricSpace.Holder
 import Mathlib.Topology.Separation.CompletelyRegular
+import Mathlib.Topology.MetricSpace.HolderNorm
 
 /-!
 # Kolmogorov-Chentsov theorem
@@ -624,7 +626,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+      ∧ ∀ ω, MemHolder β (Y · ω) := by
   obtain ⟨Y, hY_meas, hY_eq, hY_holder⟩ :=
     exists_modification_holder_aux' hT hX.isMeasurableKolmogorovProcess_mk hc hd_pos hp_pos hdq_lt
       hβ_pos hβ_lt
@@ -633,27 +635,66 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
-  sorry
+        ∀ ω, MemHolder β (Y · ω) := by
+  have h_ratio_pos : 0 < (q - d) / p := by
+    have : 0 < q - d := by bound
+    positivity
+  obtain ⟨β', hβ'_mono, hβ'_mem, hβ'_tendsto⟩ := exists_seq_strictMono_tendsto' h_ratio_pos
+  let β : ℕ → ℝ≥0 := fun n ↦ ⟨β' n, (hβ'_mem n).1.le⟩
+  have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast (hβ'_mem n).1
+  have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hp_pos hdq_lt (β := β n)
+    (hβ_pos n) (mod_cast (hβ'_mem n).2)
+  choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
+  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
+    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    · obtain ⟨C, hC⟩ := hZ_holder n ω
+      exact hC.continuous (hβ_pos n)
+    · obtain ⟨C, hC⟩ := hZ_holder 0 ω
+      exact hC.continuous (hβ_pos 0)
+    · intro t
+      filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+  rw [← ae_all_iff] at hZ_ae_eq'
+  let A := {ω | ∀ n t, Z n t ω = Z 0 t ω}
+  have hA : MeasurableSet A := by
+    have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
+    rw [this]
+    refine MeasurableSet.iInter (fun n ↦ ?_)
+    sorry
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
+  classical
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
+  refine ⟨Y, fun t ↦ Measurable.ite hA (hZ_meas 0 t) (by fun_prop), fun t ↦ ?_, ?_⟩
+  · filter_upwards [hA_ae, hZ_ae_eq 0 t] with ω hω hω₂
+    simpa only [hω, ↓reduceIte, Y] using hω₂
+  · intro β₀ hβ₀_pos hβ₀_lt ω
+    by_cases hω : ω ∈ A
+    swap; · simp [hω, Y, HolderWith]
+    simp only [hω, ↓reduceIte, Y]
+    obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
+      obtain ⟨n, hn⟩ : ∃ n, β₀ < β' n := (Tendsto.eventually_const_lt hβ₀_lt hβ'_tendsto).exists
+      exact ⟨n, mod_cast hn⟩
+    suffices MemHolder (β n) fun x ↦ Z 0 x ω by
+      sorry -- there is no mono lemma for `MemHolder`?
+    simp_rw [← hω n]
+    exact hZ_holder n ω
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p), ∀ ω, MemHolder β (Y · ω) := by
   sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
     (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
-    (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    (hc : ∀ n, c n ≠ ∞) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+        ∀ ω, MemHolder β (Y · ω) := by
   sorry
 
 end EMetricSpace
