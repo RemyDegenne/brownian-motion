@@ -1,6 +1,6 @@
 import Mathlib.Topology.MetricSpace.Holder
 
-open Filter
+open Bornology Filter
 
 open scoped NNReal ENNReal Topology
 
@@ -28,3 +28,21 @@ lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r
     refine (Continuous.tendsto ?_ (x, y)).comp ?_
     · fun_prop (disch := exact ENNReal.coe_ne_top)
     exact Tendsto.prodMk_nhds (tendsto_comap.comp tendsto_fst) (tendsto_comap.comp tendsto_snd)
+
+lemma HolderWith.mono_right {X Y : Type*} [PseudoMetricSpace X] [hX : BoundedSpace X]
+    [PseudoEMetricSpace Y] {f : X → Y} {C r : ℝ≥0} (hf : HolderWith C r f) {s : ℝ≥0} (hs : s ≤ r) :
+    ∃ C', HolderWith C' s f := by
+  obtain rfl | hr := eq_zero_or_pos r
+  · rw [nonpos_iff_eq_zero.1 hs]
+    exact ⟨C, hf⟩
+  obtain ⟨C', hC'⟩ := Metric.isBounded_iff.1 <| isBounded_univ.2 hX
+  refine ⟨C * C'.toNNReal ^ (r - s : ℝ), fun x y ↦ ?_⟩
+  obtain h | h := eq_or_ne (edist x y) 0
+  · have := hf x y
+    simp_all
+  nth_grw 1 [hf x y, ← sub_add_cancel r.toReal s, ENNReal.rpow_add _ _ h (edist_ne_top _ _),
+    edist_dist, edist_dist, edist_dist]
+  norm_cast
+  rw [ENNReal.coe_mul, mul_assoc, ← ENNReal.rpow_ofNNReal (by simp), ENNReal.ofNNReal_toNNReal]
+  gcongr
+  exact hC' (by simp) (by simp)
