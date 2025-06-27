@@ -12,7 +12,7 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 -/
 
 open MeasureTheory
-open scoped ENNReal NNReal Set
+open scoped ENNReal NNReal
 
 section aux
 
@@ -96,8 +96,7 @@ protected def prod :
       simp only [← K.iUnion_eq, ← K'.iUnion_eq, Set.mem_prod, Set.mem_iUnion] at h
       obtain ⟨⟨i,hi⟩, ⟨j, hj⟩⟩ := h
       simp only [Set.mem_iUnion, Set.mem_prod]
-      exact ⟨max i j, K.subset (le_max_left _ _) hi, K'.subset (le_max_right _ _ ) hj⟩
-  }
+      exact ⟨max i j, K.subset (le_max_left _ _) hi, K'.subset (le_max_right _ _ ) hj⟩ }
 
 
 protected theorem prod_apply (n : ℕ) : (K.prod K') n = K n ×ˢ K' n := by rfl
@@ -187,7 +186,7 @@ theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) {T' : Set T} [hT' : Finite T'] :
+    (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
   have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
@@ -286,7 +285,7 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Se
   simp only [biSup_prod]
   simp only [← iSup_subtype'']
   rw [MeasureTheory.lintegral_iSup', iSup_le_iff]
-  · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hp_pos hdq_lt hβ_pos
+  · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hp_pos hdq_lt hβ_pos (K n)
   · intro n
     fun_prop (disch := exact hX)
   · filter_upwards with ω
