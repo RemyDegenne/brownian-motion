@@ -539,7 +539,7 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) {ε : ℝ≥0∞} (hε : 
   · simp only [ENat.iInf_eq_top_of_isEmpty, ENat.toENNReal_top]
     rw [ENNReal.top_mul]
     · exact le_top
-    exact EMetric.pos_measure_closedBall _ _ hε |>.ne'
+    exact EMetric.measure_closedBall_pos _ _ hε.ne' |>.ne'
   obtain ⟨C, hC⟩ := ENat.exists_eq_iInf (fun C : X ↦ (C : Finset E).card)
   grw [← hC, volume_le_of_isCover C.2]
   norm_cast

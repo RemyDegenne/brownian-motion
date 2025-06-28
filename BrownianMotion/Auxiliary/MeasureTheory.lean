@@ -270,23 +270,3 @@ lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const'
     map_mul_right_eq_self]
   · fun_prop
   · exact EMetric.isClosed_closedBall.measurableSet
-
-lemma Metric.pos_measure_ball {E : Type*} [PseudoMetricSpace E] [MeasurableSpace E]
-    (μ : Measure E) [μ.IsOpenPosMeasure] (x : E) {r : ℝ} (h : 0 < r) :
-    0 < μ (ball x r) := by
-  exact NE.ne.pos <| Measure.IsOpenPosMeasure.open_pos (ball x r) isOpen_ball ⟨x, by simpa⟩
-
-lemma Metric.pos_measure_closedBall {E : Type*} [PseudoMetricSpace E] [MeasurableSpace E]
-    (μ : Measure E) [μ.IsOpenPosMeasure] (x : E) {r : ℝ} (h : 0 < r) :
-    0 < μ (closedBall x r) := by
-  exact pos_measure_ball μ x h |>.trans_le <| measure_mono ball_subset_closedBall
-
-lemma EMetric.pos_measure_ball {E : Type*} [PseudoMetricSpace E] [MeasurableSpace E]
-    (μ : Measure E) [μ.IsOpenPosMeasure] (x : E) {r : ℝ≥0∞} (h : 0 < r) :
-    0 < μ (ball x r) := by
-  exact NE.ne.pos <| Measure.IsOpenPosMeasure.open_pos (ball x r) isOpen_ball ⟨x, by simpa⟩
-
-lemma EMetric.pos_measure_closedBall {E : Type*} [PseudoMetricSpace E] [MeasurableSpace E]
-    (μ : Measure E) [μ.IsOpenPosMeasure] (x : E) {r : ℝ≥0∞} (h : 0 < r) :
-    0 < μ (closedBall x r) := by
-  exact pos_measure_ball μ x h |>.trans_le <| measure_mono ball_subset_closedBall
