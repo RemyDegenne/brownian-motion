@@ -183,6 +183,8 @@ lemma volume_of_nonempty_of_subsingleton {E : Type*} [NormedAddCommGroup E] [Inn
   · exact (stdOrthonormalBasis ℝ E).toBasis.addHaar_self
   · exact nonempty_parallelepiped
 
+--generalizing `MeasureTheory.Measure.addHaar_ball_center`
+
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_ball_const
     {G : Type*} [Group G] [PseudoMetricSpace G] [MeasurableSpace G]
