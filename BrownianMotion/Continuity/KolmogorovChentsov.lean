@@ -184,12 +184,12 @@ end aux
 
 namespace ProbabilityTheory
 
-variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
+variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
   {X : T → Ω → E} {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0} {P : Measure Ω}
 
 section PseudoEMetricSpace
 
-variable [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+variable [PseudoEMetricSpace T] [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hX : IsKolmogorovProcess X P p q M)
@@ -373,7 +373,7 @@ end PseudoEMetricSpace
 
 section EMetricSpace
 
-variable [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+variable [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -634,8 +634,7 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
-        ∀ ω, MemHolder β (Y · ω) := by
+      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p) ω, MemHolder β (Y · ω) := by
   have h_ratio_pos : 0 < (q - d) / p := by
     have : 0 < q - d := by bound
     positivity
@@ -693,7 +692,11 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
       obtain ⟨n, hn⟩ : ∃ n, β₀ < β' n := (Tendsto.eventually_const_lt hβ₀_lt hβ'_tendsto).exists
       exact ⟨n, mod_cast hn⟩
     suffices MemHolder (β n) fun x ↦ Z 0 x ω by
-      sorry -- there is no mono lemma for `MemHolder`?
+      have h_bounded : BoundedSpace T := by -- extract this lemma
+        constructor
+        rw [Metric.isBounded_iff_ediam_ne_top]
+        exact (hT.diam_lt_top hd_pos).ne
+      refine this.mono hn.le
     simp_rw [← hω n]
     exact hZ_holder n ω
 

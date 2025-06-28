@@ -96,7 +96,7 @@ lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   exists_brownian.choose_spec.2.1 t
 
-lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
+lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
     MemHolder β (brownian · ω) := by
   refine exists_brownian.choose_spec.2.2 β hβ_pos ?_ ω
   have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
@@ -115,7 +115,7 @@ lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2�
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
   obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
-    refine isHolderWith_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
+    refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
     all_goals norm_num
   exact h.continuous (by norm_num)
 
