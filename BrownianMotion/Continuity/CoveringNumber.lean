@@ -90,6 +90,21 @@ lemma externalCoveringNumber_empty [EDist E] (r : ℝ≥0∞) :
     externalCoveringNumber r (∅ : Set E) = 0 := by
   simp [externalCoveringNumber, isCover_empty]
 
+@[simp]
+lemma packingNumber_empty [PseudoEMetricSpace E] (r : ℝ≥0∞) :
+    packingNumber r (∅ : Set E) = 0 := by simp [packingNumber]
+
+@[simp]
+lemma packingNumber_singleton [PseudoEMetricSpace E] (r : ℝ≥0∞) (x : E) :
+    packingNumber r ({x} : Set E) = 1 := by
+  rw [packingNumber]
+  apply le_antisymm
+  · simp only [Set.subset_singleton_iff, Finset.mem_coe, iSup_le_iff, Nat.cast_le_one]
+    intro C hC _
+    exact Finset.card_le_one.2 (fun a ha b hb ↦ by rw [hC a ha, hC b hb])
+  refine le_iSup_of_le ({x} : Finset E) <| le_iSup_of_le ?_ <| le_iSup_of_le ?_ ?_
+  all_goals simp
+
 lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A : Set E} {a : E}
     (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
     IsCover ({a} : Set E) ε A :=
@@ -578,11 +593,77 @@ lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑
     · rwa [EMetric.mem_closedBall, edist_zero_right, ← edist_eq_enorm_sub]
     · simp
 
+lemma iSup_coe_ennreal_enat {ι : Type*} (f : ι → ℕ∞) : ⨆ i, (f i : ℝ≥0∞) = ⨆ i, f i := by
+  apply eq_of_forall_ge_iff
+  intro c
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · obtain rfl | hc := eq_or_ne c ⊤
+    · exact le_top
+    lift c to ℝ≥0 using hc
+    have : ∀ i, f i ≤ Nat.floor c := by
+      intro i
+      have := (le_iSup _ i).trans h
+      have h' : f i ≠ ⊤ := by
+        rw [← ENat.toENNReal_ne_top]
+        apply ne_of_lt
+        apply this.trans_lt
+        exact coe_lt_top
+      lift f i to ℕ using h' with k
+      norm_cast
+      rw [Nat.le_floor_iff]
+      · change ((k : ℝ≥0) : ℝ≥0∞) ≤ c at this
+        exact ENNReal.coe_le_coe.1 this
+      exact zero_le _
+    calc
+    (↑(⨆ i, f i) : ℝ≥0∞) ≤ Nat.floor c := by
+      change (↑(⨆ i, f i) : ℝ≥0∞) ≤ ((Nat.floor c : ENat) : ℝ≥0∞)
+      rw [ENat.toENNReal_le]
+      exact iSup_le this
+    _ ≤ c := by
+      change ((Nat.floor c : ℝ≥0) : ℝ≥0∞) ≤ _
+      rw [ENNReal.coe_le_coe]
+      exact Nat.floor_le (zero_le _)
+  · apply iSup_le
+    intro i
+    refine le_trans ?_ h
+    rw [ENat.toENNReal_le]
+    exact le_iSup f i
+
+open scoped Pointwise in
+lemma volume_eq_top_of_packingNumber (A : Set E) {ε : ℝ≥0∞} (hε : 0 < ε)
+    (h : packingNumber ε A = ⊤) : volume (A + EMetric.closedBall (0 : E) (ε / 2)) = ∞ := by
+  set X := {C : Finset E | (C : Set E) ⊆ A ∧ IsSeparated ε (C : Set E)}
+  simp_rw [packingNumber, iSup_and'] at h
+  change (⨆ C ∈ X, C.card : ℕ∞) = ⊤ at h
+  have : ⨆ C ∈ X, C.1.card * volume (EMetric.closedBall (0 : E) (ε / 2)) = ⊤ := by
+    rw [← iSup_subtype'', ← ENNReal.iSup_mul]
+    change (⨆ C : X, ((C.1.card : ℕ∞) : ℝ≥0∞)) * _ = _
+    rw [iSup_coe_ennreal_enat, iSup_subtype'' X (fun C ↦ (C.card : ℕ∞)), h, ENat.toENNReal_top,
+      top_mul]
+    · exact EMetric.measure_closedBall_pos volume _
+        (ENNReal.div_ne_zero.2 ⟨hε.ne', by norm_num⟩) |>.ne'
+  rw [eq_top_iff, ← this]
+  apply iSup₂_le
+  rintro C ⟨hC₁, hC₂⟩
+  exact le_volume_of_isSeparated hC₂ hC₁
+
 open scoped Pointwise in
 lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
     packingNumber ε A * volume (EMetric.closedBall (0 : E) (ε/2))
       ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
-  sorry
+  obtain rfl | hε := eq_zero_or_pos ε
+  · obtain _ | _ := subsingleton_or_nontrivial E
+    · obtain rfl | hA := Set.eq_empty_or_nonempty A
+      · simp
+      rw [hA.eq_zero]
+      simp
+    · simp
+  obtain h | h := eq_top_or_lt_top (packingNumber ε A)
+  · simp [volume_eq_top_of_packingNumber A hε h]
+  rw [← card_maximalSeparatedSet h]
+  norm_cast
+  exact le_volume_of_isSeparated isSeparated_maximalSeparatedSet maximalSeparatedSet_subset
+
 
 lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
     volume A / volume (EMetric.closedBall (0 : E) ε) ≤ internalCoveringNumber ε A := by
