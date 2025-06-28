@@ -5,9 +5,11 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ENNReal
+import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Nat
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Data.ENat.Lattice
+import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.Topology.MetricSpace.MetricSeparated
@@ -523,11 +525,25 @@ lemma volume_le_of_isCover (hC : IsCover C ε A) :
   calc volume A
   _ ≤ volume (⋃ x ∈ C, EMetric.closedBall x ε) := measure_mono this
   _ ≤ ∑ x ∈ C, volume (EMetric.closedBall x ε) := measure_biUnion_finset_le _ _
-  _ = C.card * volume (EMetric.closedBall (0 : E) ε) := by sorry
+  _ = C.card * volume (EMetric.closedBall (0 : E) ε) := by
+    simp_rw [fun x ↦ Measure.IsAddLeftInvariant.measure_closedBall_const' volume x (0 : E) ε,
+      Finset.sum_const, nsmul_eq_mul]
 
-lemma volume_le_externalCoveringNumber_mul (A : Set E) (ε : ℝ≥0∞) :
+lemma volume_le_externalCoveringNumber_mul (A : Set E) {ε : ℝ≥0∞} (hε : 0 < ε) :
     volume A ≤ externalCoveringNumber ε A * volume (EMetric.closedBall (0 : E) ε) := by
-  sorry
+  rw [externalCoveringNumber]
+  set X := {C : Finset E | IsCover (C : Set E) ε A}
+  change _ ≤ (⨅ C ∈ X, (C.card : ℕ∞)).toENNReal * _
+  rw [← iInf_subtype'']
+  obtain _ | _ := isEmpty_or_nonempty X
+  · simp only [ENat.iInf_eq_top_of_isEmpty, ENat.toENNReal_top]
+    rw [ENNReal.top_mul]
+    · exact le_top
+    exact EMetric.pos_measure_closedBall _ _ hε |>.ne'
+  obtain ⟨C, hC⟩ := ENat.exists_eq_iInf (fun C : X ↦ (C : Finset E).card)
+  grw [← hC, volume_le_of_isCover C.2]
+  norm_cast
+
 
 open scoped Pointwise in
 lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
