@@ -10,9 +10,7 @@ import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
 import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.Topology.EMetricSpace.Paracompact
-import Mathlib.Topology.MetricSpace.Holder
 import Mathlib.Topology.Separation.CompletelyRegular
-import Mathlib.Topology.MetricSpace.HolderNorm
 
 /-!
 # Kolmogorov-Chentsov theorem
