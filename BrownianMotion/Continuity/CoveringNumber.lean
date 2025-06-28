@@ -544,11 +544,39 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) {ε : ℝ≥0∞} (hε : 
   grw [← hC, volume_le_of_isCover C.2]
   norm_cast
 
+lemma Metric.IsSeparated.disjoint_closedBall {E : Type*} [PseudoEMetricSpace E] {s : Set E}
+    {ε : ℝ≥0∞} (hs : IsSeparated ε s) : s.PairwiseDisjoint (EMetric.closedBall · (ε / 2)) := by
+  intro x hx y hy hxy
+  have hxy := hs hx hy hxy
+  by_contra!
+  obtain ⟨z, hz1, hz2⟩ := Set.not_disjoint_iff.1 this
+  refine lt_irrefl (edist x y) ?_ |>.elim
+  calc
+  edist x y ≤ edist x z + edist y z := edist_triangle_right x y z
+  _ ≤ ε / 2 + ε / 2 := by grw [EMetric.mem_closedBall'.1 hz1, EMetric.mem_closedBall'.1 hz2]
+  _ < edist x y := by rwa [ENNReal.add_halves]
+
 open scoped Pointwise in
 lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
-    C.card * volume (EMetric.closedBall (0 : E) (ε/2))
-      ≤ volume (A + EMetric.closedBall (0 : E) (ε/2)) := by
-  sorry
+    C.card * volume (EMetric.closedBall (0 : E) (ε / 2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
+  calc
+  C.card * volume (EMetric.closedBall (0 : E) (ε / 2)) =
+      ∑ x ∈ C, volume (EMetric.closedBall x (ε / 2)) := by
+    simp_rw [fun x ↦ Measure.IsAddLeftInvariant.measure_closedBall_const' volume x (0 : E),
+      Finset.sum_const, nsmul_eq_mul]
+  _ = volume (⋃ x ∈ C, EMetric.closedBall x (ε / 2)) := by
+    rw [measure_biUnion_finset]
+    · exact hC.disjoint_closedBall
+    · exact fun _ _ ↦ EMetric.isClosed_closedBall.measurableSet
+  _ ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
+    apply measure_mono
+    intro x hx
+    rw [Set.mem_iUnion₂] at hx
+    obtain ⟨y, hy, hx⟩ := hx
+    refine ⟨y, h_subset hy, x - y, ?_, ?_⟩
+    · rwa [EMetric.mem_closedBall, edist_zero_right, ← edist_eq_enorm_sub]
+    · simp
 
 open scoped Pointwise in
 lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
