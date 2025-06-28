@@ -92,8 +92,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       (fun n ↦ (n + 1)) (fun _ ↦ 1) where
   c_ne_top := by simp
   d_pos := by simp
-  isOpen n := by
-    sorry
+  isOpen n := NNReal.isOpen_Ico_zero
   totallyBounded n := totallyBounded_Ico _ _
   hasBoundedCoveringNumber n ε hε_le := by
     simp only [ENNReal.rpow_one]
