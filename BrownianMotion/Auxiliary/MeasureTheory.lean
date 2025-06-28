@@ -163,37 +163,5 @@ lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
 
 end ContinuousLinearMap
 
-section limUnder
-
-open Filter MeasureTheory Set TopologicalSpace
-
-open scoped Topology
-
-variable {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
-  [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
-  [l.IsCountablyGenerated] {f : ι → X → E}
-
-theorem Measurable.limUnder [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
-    Measurable (fun x ↦ limUnder l (f · x)) := by
-  obtain rfl | hl := eq_or_neBot l
-  · simp [limUnder, Filter.map_bot]
-  letI := upgradeIsCompletelyMetrizable E
-  let e := Classical.choice hE
-  let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
-  have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
-  have : (fun x ↦ _root_.limUnder l (f · x)) = ((↑) : conv → X).extend
-      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ e) := by
-    ext x
-    by_cases hx : x ∈ conv
-    · rw [Function.extend_val_apply hx]
-    · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
-  rw [this]
-  exact (MeasurableEmbedding.subtype_coe mconv).measurable_extend
-    (measurable_of_tendsto_metrizable' l
-      (fun i ↦ (hf i).comp measurable_subtype_coe)
-      (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ by rwa [hc.limUnder_eq])) measurable_const
-
-end limUnder
-
 lemma EuclideanSpace.coe_measurableEquiv' {ι : Type*} :
     ⇑(EuclideanSpace.measurableEquiv ι) = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
