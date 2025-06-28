@@ -81,7 +81,7 @@ lemma exists_brownian :
       ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
         ∀ ω, MemHolder β (Y · ω) :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by simp) (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
