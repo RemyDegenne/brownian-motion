@@ -700,10 +700,46 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p), ∀ ω, MemHolder β (Y · ω) := by
-  sorry
+  let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
+  have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
+    sorry
+  have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
+    have h := hC.hasBoundedCoveringNumber n
+    refine fun ε hε ↦ ?_
+    specialize h ε (hε.trans_eq ?_)
+    · sorry
+    refine le_of_eq_of_le ?_ h
+    simp only [ENat.toENNReal_inj]
+    sorry
+  choose Z hZ hZ_eq hZ_holder
+    using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hp_pos hdq_lt
+  have hZ_ae_eq : ∀ᵐ ω ∂P,
+      ∀ n t (ht : t ∈ C n), Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω := by
+    rw [ae_all_iff]
+    intro n
+    sorry
+  let A := {ω | ∀ n t (ht : t ∈ C n),
+    Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω}
+  have hA : MeasurableSet A := by
+    sorry
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
+  classical
+  have h_mem t : ∃ n, t ∈ C n := sorry
+  choose nt hnt using h_mem
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
+  refine ⟨Y, fun t ↦ Measurable.ite hA ?_ (by fun_prop), fun t ↦ ?_, ?_⟩
+  · sorry
+  · specialize hZ (nt t) ⟨t, hnt t⟩
+    sorry
+  · intro β₀ hβ₀_pos hβ₀_lt ω
+    by_cases hω : ω ∈ A
+    swap; · simp [hω, Y, HolderWith]
+    simp only [hω, ↓reduceIte, Y]
+    sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
