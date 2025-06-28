@@ -7,6 +7,7 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
+import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
 # Brownian motion
@@ -170,6 +171,13 @@ instance : MeasurableSpace C(X, Y) := borel _
 instance : BorelSpace C(X, Y) where
   measurable_eq := rfl
 
+lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X)}
+    (h1 : s.Finite) (h2 : ∀ t ∈ s, IsClosed t) : IsClosed (⋃₀ s) := by
+  rw [Set.sUnion_eq_biUnion]
+  exact h1.isClosed_biUnion h2
+
+open Filter TopologicalSpace in
+open scoped Topology in
 lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
     borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
@@ -181,7 +189,125 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
     simp_rw [← BorelSpace.measurable_eq]
     refine Continuous.measurable ?_
     fun_prop
-  sorry
+  rw [borel_eq_generateFrom_of_subbasis ContinuousMap.compactOpen_eq]
+  apply MeasurableSpace.generateFrom_le
+  intro s hs
+  let V := countableBasis Y
+  have hV : IsTopologicalBasis V := isBasis_countableBasis Y
+  have cV : Countable V := countable_countableBasis Y
+  obtain ⟨K, hK, U, hU, hs⟩ := hs
+  rw [← hs]
+  let W := {v | ∃ u ∈ V, v ⊆ U ∧ v = closure u}
+  have cW : W.Countable := by
+    apply Set.Countable.mono (s₂ := closure '' V)
+    · rintro - ⟨u, hu, -, rfl⟩
+      exact ⟨u, hu, rfl⟩
+    apply Set.Countable.image
+    exact cV
+  have main : U = ⋃₀ W := by
+    ext x
+    rw [Set.mem_sUnion]
+    constructor
+    · intro hx
+      obtain ⟨v, ⟨hv1, hv2⟩, hv3⟩ := hV.nhds_basis_closure x |>.mem_iff.1 <| hU.mem_nhds hx
+      exact ⟨closure v, ⟨v, hv2, hv3, rfl⟩, subset_closure hv1⟩
+    · intro hx
+      obtain ⟨-, ⟨t, ht1, ht2, rfl⟩, hx⟩ := hx
+      exact ht2 hx
+  have h' : U = ⋃₀ {v | v ∈ V ∧ closure v ⊆ U} := by
+    ext x
+    rw [Set.mem_sUnion]
+    constructor
+    · intro hx
+      obtain ⟨v, ⟨hv1, hv2⟩, hv3⟩ := hV.nhds_basis_closure x |>.mem_iff.1 <| hU.mem_nhds hx
+      exact ⟨v, ⟨hv2, hv3⟩, hv1⟩
+    · intro hx
+      obtain ⟨t, ⟨ht1, ht2⟩, hx⟩ := hx
+      exact ht2 <| subset_closure hx
+  have (f : C(X, Y)) (hf : K.MapsTo f U) : ∃ I, I.Finite ∧ I ⊆ W ∧ K.MapsTo f (⋃₀ I) := by
+    have := hf.image_subset
+    rw [h', Set.sUnion_eq_biUnion] at this
+    have h'' : ∀ i ∈ {v | v ∈ V ∧ closure v ⊆ U}, IsOpen i :=
+      fun x ⟨hx, _⟩ ↦ hV.isOpen hx
+    obtain ⟨b, hb1, hb2, hb3⟩ := (hK.image f.continuous).elim_finite_subcover_image h'' this
+    refine ⟨closure '' b, hb2.image _, ?_, ?_⟩
+    · rintro - ⟨v, hv, rfl⟩
+      exact ⟨v, (hb1 hv).1, (hb1 hv).2, rfl⟩
+    rw [← Set.sUnion_eq_biUnion] at hb3
+    rw [Set.mapsTo']
+    apply hb3.trans
+    apply Set.sUnion_mono_subsets
+    exact fun _ ↦ subset_closure
+  have : {f : C(X, Y) | K.MapsTo f U} =
+      ⋃₀ {v | ∃ I, I.Finite ∧ I ⊆ W ∧ v = { f : C(X, Y) | K.MapsTo f (⋃₀ I)}} := by
+    ext f
+    constructor
+    · intro h
+      rw [Set.mem_sUnion]
+      obtain ⟨I, hI1, hI2, hI3⟩ := this f h
+      exact ⟨{f : C(X, Y) | K.MapsTo f (⋃₀ I)}, ⟨I, hI1, hI2, rfl⟩, hI3⟩
+    · intro h
+      rw [Set.mem_sUnion] at h
+      obtain ⟨-, ⟨I, hI1, hI2, rfl⟩, h⟩ := h
+      simp only [Set.mapsTo', Set.mem_setOf_eq] at h ⊢
+      rw [main]
+      apply h.trans
+      exact Set.sUnion_subset_sUnion hI2
+  simp only
+  rw [this]
+  apply MeasurableSet.sUnion
+  · let f : Set (Set Y) → Set C(X, Y) := fun I ↦ {f : C(X, Y) | Set.MapsTo (⇑f) K (⋃₀ I)}
+    have h1 : {I | I.Finite ∧ I ⊆ W}.Countable := by
+      apply Set.countable_setOf_finite_subset
+      exact cW
+    apply (h1.image f).mono
+    rintro - ⟨I, hI1, hI2, rfl⟩
+    exact ⟨I, ⟨hI1, hI2⟩, rfl⟩
+  rintro - ⟨I, hI1, hI2, rfl⟩
+  obtain ⟨Q, cQ, dQ⟩ := TopologicalSpace.exists_countable_dense K
+  have : {f : C(X, Y) | K.MapsTo f (⋃₀ I)} =
+      {f : C(X, Y) | (Subtype.val '' Q ∩ K).MapsTo f (⋃₀ I)} := by
+    ext f
+    constructor
+    · intro h x hx
+      exact h (Set.mem_of_mem_inter_right hx)
+    · intro h x hx
+      have : x ∈ closure (Subtype.val '' Q) := Subtype.dense_iff.1 dQ hx
+      rw [mem_closure_iff_seq_limit] at this
+      obtain ⟨u, hu1, hu2⟩ := this
+      have : ∀ s ∈ I, IsClosed s := by
+        intro x hx
+        have := hI2 hx
+        obtain ⟨u, -, -, rfl⟩ := this
+        exact isClosed_closure
+      refine (isClosed_sUnion_of_finite hI1 this).mem_of_tendsto
+        ((f.continuous.tendsto x).comp hu2)
+        (Filter.Eventually.of_forall fun n ↦ h (Set.mem_inter (hu1 n) ?_))
+      obtain ⟨y, hy, h'⟩ := hu1 n
+      rw [← h']
+      exact y.2
+  have : {f : C(X, Y) | K.MapsTo f (⋃₀ I)} =
+      ⋂ q ∈ Subtype.val '' Q ∩ K, (fun b ↦ b q) ⁻¹' (⋃₀ I) := by
+    rw [this]
+    ext f
+    rw [Set.mem_iInter₂]
+    constructor
+    · exact fun h x hx ↦ h hx
+    · exact fun h x hx ↦ h x hx
+  rw [this]
+  apply MeasurableSet.biInter
+  · exact (cQ.image _).mono Set.inter_subset_left
+  intro q hq
+  apply MeasurableSet.preimage
+  · have : ∀ s ∈ I, IsClosed s := by
+      intro x hx
+      have := hI2 hx
+      obtain ⟨u, -, -, rfl⟩ := this
+      exact isClosed_closure
+    exact (isClosed_sUnion_of_finite hI1 this).measurableSet
+  · apply Measurable.le (le_iSup _ q)
+    rw [BorelSpace.measurable_eq (α := Y)]
+    exact comap_measurable _
 
 lemma ContinuousMap.measurableSpace_eq_iSup_comap_eval
     [SecondCountableTopology X] [SecondCountableTopology Y]
