@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
+import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
 
 /-!
@@ -12,13 +13,14 @@ import BrownianMotion.Gaussian.ProjectiveLimit
 
 -/
 
-open MeasureTheory
+open MeasureTheory NNReal
 open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
+@[fun_prop]
 lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
   unfold preBrownian
   fun_prop
@@ -27,57 +29,126 @@ lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimi
   intro I
   simp only [preBrownian, Measure.map_id']
   rw [isProjectiveLimit_gaussianLimit]
-  infer_instance
+  exact isGaussian_gaussianProjectiveFamily I
+
+lemma measurePreserving_preBrownian_eval (t : ℝ≥0) :
+    MeasurePreserving (preBrownian t) gaussianLimit (gaussianReal 0 t) where
+  measurable := by fun_prop
+  map_eq := by
+    have : preBrownian t = (fun x ↦ x ⟨t, by simp⟩) ∘ ({t} : Finset ℝ≥0).restrict := by
+      ext; simp [preBrownian]
+    rw [this,
+      (measurePreserving_gaussianProjectiveFamily.comp measurePreserving_gaussianLimit).map_eq]
 
 lemma map_sub_preBrownian (s t : ℝ≥0) :
-    gaussianLimit.map (preBrownian s - preBrownian t) = gaussianReal 0 (max (s - t) (t - s)) := by
-  sorry
+    MeasurePreserving (preBrownian s - preBrownian t) gaussianLimit
+      (gaussianReal 0 (max (s - t) (t - s))) := by
+  have : preBrownian s - preBrownian t =
+      ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
+    ext; simp [preBrownian]
+  rw [this]
+  exact measurePreserving_gaussianProjectiveFamily₂.comp measurePreserving_gaussianLimit
 
 lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
     IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
       (Nat.doubleFactorial (2 * n - 1)) := by
-  sorry
+  constructor
+  · intro s t
+    rw [← BorelSpace.measurable_eq]
+    fun_prop
+  refine fun s t ↦ Eq.le ?_
+  norm_cast
+  simp_rw [edist_dist, Real.dist_eq]
+  change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+    ((preBrownian s - preBrownian t) ω) ∂_ = _
+  rw [(map_sub_preBrownian s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+    (by fun_prop)]
+  simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
+  rw [← ofReal_integral_eq_lintegral_ofReal]
+  · simp_rw [pow_two_mul_abs]
+    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (max _ _),
+    centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
+    norm_cast
+    rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg, ← NNReal.nndist_eq,
+      NNReal.coe_pow, coe_nndist]
+  · simp_rw [← Real.norm_eq_abs]
+    apply MemLp.integrable_norm_pow'
+    exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
+  · exact ae_of_all _ fun _ ↦ by positivity
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose
 
+@[fun_prop]
 lemma measurable_brownian (t : ℝ≥0) :
     Measurable (brownian t) :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
 
-lemma brownian_eq_preBrownian (t : ℝ≥0) :
+lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
 
 lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
     ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
   refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).IsKolmogorovProcess)
-    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
-  have hβ_lt' : (β : ℝ) < 2⁻¹ := by
-    sorry
-  refine hβ_lt'.trans_eq ?_
-  sorry
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
+    (fun n ↦ by positivity)
+    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
+  have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
+  refine hβ_lt'.trans_eq
+    (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_).symm
+  · calc
+    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by field_simp; ring
+    _ ≤ 2⁻¹ * 1 := by grw [mul_div_assoc, (div_le_one₀ (by positivity)).2]; linarith
+    _ = 2⁻¹ := mul_one _
+  · have : (fun n : ℕ ↦ ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2))) =
+        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by ext n; field_simp; ring
+    rw [this]
+    refine Filter.Tendsto.comp ?_ (Filter.tendsto_add_atTop_nat 1)
+    nth_rw 2 [← mul_one 2⁻¹]
+    exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
-lemma aemeasurable_brownian_apply (t : ℝ≥0) : AEMeasurable (brownian t) gaussianLimit :=
-  ⟨preBrownian t, measurable_preBrownian t, brownian_eq_preBrownian t⟩
+lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
+  obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
+    refine isHolderWith_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
+    all_goals norm_num
+  exact h.continuous (by norm_num)
 
-lemma aemeasurable_brownian : AEMeasurable (fun ω t ↦ brownian t ω) gaussianLimit := by
-  sorry
+lemma measurePreserving_brownian_apply {t : ℝ≥0} :
+    MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [Measure.map_congr (brownian_ae_eq_preBrownian t),
+      (measurePreserving_preBrownian_eval t).map_eq]
 
-lemma continuous_brownian (ω : ℝ≥0 → ℝ) :
-    Continuous (brownian · ω) := by
-  sorry
+lemma measurePreserving_brownian_sub {s t : ℝ≥0} :
+    MeasurePreserving (brownian s - brownian t) gaussianLimit
+      (gaussianReal 0 (max (s - t) (t - s))) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [Measure.map_congr ((brownian_ae_eq_preBrownian s).sub' (brownian_ae_eq_preBrownian t)),
+      (map_sub_preBrownian s t).map_eq]
+
+open NNReal Filter Topology in
+lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
+  measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_eq_preBrownian t).symm
+  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
+
+lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
+    IsMeasurableKolmogorovProcess brownian gaussianLimit (2 * n) n
+      (Nat.doubleFactorial (2 * n - 1)) where
+  measurablePair := measurable_pair_of_measurable measurable_brownian
+  kolmogorovCondition := (isMeasurableKolmogorovProcess_preBrownian n).isKolmogorovProcess.congr
+    (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
 
 section Measure
 

@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import Mathlib.Probability.Moments.Covariance
 import Mathlib.Probability.Moments.CovarianceBilin
 
 /-!
@@ -34,6 +35,11 @@ lemma covarianceBilin_apply' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp i
   rw [covarianceBilin_apply h]
   have hL (L : Dual ℝ E) : μ[L] = L (∫ x, x ∂μ) := L.integral_comp_comm (h.integrable (by simp))
   simp [← hL]
+
+lemma covarianceBilin_apply'' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ)
+    (L₁ L₂ : Dual ℝ E) :
+    covarianceBilin μ L₁ L₂ = cov[L₁, L₂; μ] := by
+  rw [covarianceBilin_apply h, covariance]
 
 end NormedSpace
 
