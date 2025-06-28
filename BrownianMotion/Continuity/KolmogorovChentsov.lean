@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.EDistEgorov
+import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Continuity.IsKolmogorovProcess
+import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.MeasureTheory.Constructions.Polish.Basic
 import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.Topology.EMetricSpace.Paracompact
-import Mathlib.Topology.MetricSpace.Holder
 import Mathlib.Topology.Separation.CompletelyRegular
 
 /-!
@@ -181,12 +182,12 @@ end aux
 
 namespace ProbabilityTheory
 
-variable {T Ω E : Type*} [PseudoEMetricSpace T] {mΩ : MeasurableSpace Ω}
+variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
   {X : T → Ω → E} {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0} {P : Measure Ω}
 
 section PseudoEMetricSpace
 
-variable [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+variable [PseudoEMetricSpace T] [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hX : IsKolmogorovProcess X P p q M)
@@ -370,7 +371,7 @@ end PseudoEMetricSpace
 
 section EMetricSpace
 
-variable [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+variable [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -501,11 +502,6 @@ lemma IsMeasurableKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
 variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
   [IsFiniteMeasure P]
 
-lemma _root_.Dense.holderWith_extend {A : Set T} (hA : Dense A) {f : A → E} {C β : ℝ≥0}
-    (hf : HolderWith C β f) :
-    HolderWith C β (hA.extend f) := by
-  sorry
-
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -617,14 +613,15 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
     simp only [hω, ↓reduceIte, Y, A]
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    refine hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
+    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
+      hβ_pos
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+      ∧ ∀ ω, MemHolder β (Y · ω) := by
   obtain ⟨Y, hY_meas, hY_eq, hY_holder⟩ :=
     exists_modification_holder_aux' hT hX.isMeasurableKolmogorovProcess_mk hc hd_pos hp_pos hdq_lt
       hβ_pos hβ_lt
@@ -633,27 +630,88 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
-  sorry
+      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p) ω, MemHolder β (Y · ω) := by
+  have h_ratio_pos : 0 < (q - d) / p := by
+    have : 0 < q - d := by bound
+    positivity
+  obtain ⟨β', hβ'_mono, hβ'_mem, hβ'_tendsto⟩ := exists_seq_strictMono_tendsto' h_ratio_pos
+  let β : ℕ → ℝ≥0 := fun n ↦ ⟨β' n, (hβ'_mem n).1.le⟩
+  have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast (hβ'_mem n).1
+  have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hp_pos hdq_lt (β := β n)
+    (hβ_pos n) (mod_cast (hβ'_mem n).2)
+  choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
+  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
+    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    · obtain ⟨C, hC⟩ := hZ_holder n ω
+      exact hC.continuous (hβ_pos n)
+    · obtain ⟨C, hC⟩ := hZ_holder 0 ω
+      exact hC.continuous (hβ_pos 0)
+    · intro t
+      filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+  rw [← ae_all_iff] at hZ_ae_eq'
+  let A := {ω | ∀ n t, Z n t ω = Z 0 t ω}
+  have hA : MeasurableSet A := by
+    have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
+    rw [this]
+    refine MeasurableSet.iInter (fun n ↦ ?_)
+    obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+    have : {ω | ∀ (t : T), Z n t ω = Z 0 t ω} = {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} := by
+      ext ω
+      simp only [Set.mem_setOf_eq, Subtype.forall]
+      refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+      rw [← funext_iff]
+      refine Continuous.ext_on hT'_dense ?_ ?_ h
+      · obtain ⟨_, h⟩ := hZ_holder n ω
+        exact h.continuous (hβ_pos n)
+      · obtain ⟨_, h⟩ := hZ_holder 0 ω
+        exact h.continuous (hβ_pos 0)
+    rw [this]
+    have : {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} = ⋂ (t : T'), {ω | Z n t ω = Z 0 t ω} := by
+      ext; simp
+    rw [this]
+    have : Countable T' := hT'_countable
+    refine MeasurableSet.iInter (fun t ↦ ?_)
+    refine StronglyMeasurable.measurableSet_eq_fun ?_ ?_
+    · exact (hZ_meas n t).stronglyMeasurable
+    · exact (hZ_meas 0 t).stronglyMeasurable
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
+  classical
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
+  refine ⟨Y, fun t ↦ Measurable.ite hA (hZ_meas 0 t) (by fun_prop), fun t ↦ ?_, ?_⟩
+  · filter_upwards [hA_ae, hZ_ae_eq 0 t] with ω hω hω₂
+    simpa only [hω, ↓reduceIte, Y] using hω₂
+  · intro β₀ hβ₀_pos hβ₀_lt ω
+    by_cases hω : ω ∈ A
+    swap; · simp [hω, Y, HolderWith]
+    simp only [hω, ↓reduceIte, Y]
+    obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
+      obtain ⟨n, hn⟩ : ∃ n, β₀ < β' n := (Tendsto.eventually_const_lt hβ₀_lt hβ'_tendsto).exists
+      exact ⟨n, mod_cast hn⟩
+    suffices MemHolder (β n) fun x ↦ Z 0 x ω by
+      have h_bounded : BoundedSpace T := by -- extract this lemma
+        constructor
+        rw [Metric.isBounded_iff_ediam_ne_top]
+        exact (hT.diam_lt_top hd_pos).ne
+      refine this.mono hn.le
+    simp_rw [← hω n]
+    exact hZ_holder n ω
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p), ∀ ω, MemHolder β (Y · ω) := by
   sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
     (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
-    (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    (hc : ∀ n, c n ≠ ∞) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
-        ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
+        ∀ ω, MemHolder β (Y · ω) := by
   sorry
 
 end EMetricSpace

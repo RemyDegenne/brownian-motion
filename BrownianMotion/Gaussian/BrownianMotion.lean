@@ -76,31 +76,29 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
   · exact ae_of_all _ fun _ ↦ by positivity
 
+lemma exists_brownian :
+    ∃ Y : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[gaussianLimit] preBrownian t)
+      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
+        ∀ ω, MemHolder β (Y · ω) :=
+  exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
+    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
+    (fun n ↦ by simp) (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
-  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose
+  exists_brownian.choose
 
 @[fun_prop]
-lemma measurable_brownian (t : ℝ≥0) :
-    Measurable (brownian t) :=
-  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.1 t
+lemma measurable_brownian (t : ℝ≥0) : Measurable (brownian t) :=
+  exists_brownian.choose_spec.1 t
 
 lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
-  (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.1 t
+  exists_brownian.choose_spec.2.1 t
 
-lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
-    ∃ C : ℝ≥0, HolderWith C β (brownian · ω) := by
-  refine (exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by positivity)
-    (fun n ↦ by simp; norm_cast; omega)).choose_spec.2.2 β hβ_pos ?_ ω
+lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
+    MemHolder β (brownian · ω) := by
+  refine exists_brownian.choose_spec.2.2 β hβ_pos ?_ ω
   have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
   refine hβ_lt'.trans_eq
     (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_).symm
@@ -117,7 +115,7 @@ lemma isHolderWith_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2�
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
   obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
-    refine isHolderWith_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
+    refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
     all_goals norm_num
   exact h.continuous (by norm_num)
 
