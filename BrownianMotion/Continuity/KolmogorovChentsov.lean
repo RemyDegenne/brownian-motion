@@ -725,13 +725,17 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     sorry
   let A := {ω | ∀ n t (ht : t ∈ C n),
     Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω}
+  have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) :
+      Z n ⟨t, t.2⟩ ω = Z m ⟨t, hC.mono _ _ hnm t.2⟩ ω := by
+    sorry
   have hA : MeasurableSet A := by
     sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
   -- let Cdiff : ℕ → Set T := disjointed C
   classical
   have h_mem t : ∃ n, t ∈ C n := sorry
-  choose nt hnt using h_mem
+  let nt t := Nat.find (h_mem t)
+  have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
   have hnt_preimage_zero : nt ⁻¹' {0} = C 0 := by
     sorry
   have hnt_preimage n : nt ⁻¹' {n + 1} = C (n + 1) \ C n := by
@@ -742,31 +746,30 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     cases nt t with
     | zero =>
       rw [hnt_preimage_zero]
-      sorry
+      exact (hC.isOpen 0).measurableSet
     | succ n =>
       rw [hnt_preimage n]
       refine MeasurableSet.diff ?_ ?_
-      · sorry
-      · sorry
+      · exact (hC.isOpen (n + 1)).measurableSet
+      · exact (hC.isOpen n).measurableSet
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
+  have hY_eq {ω} (hω : ω ∈ A) n (t : T) (ht : t ∈ C n) : Y t ω = Z n ⟨t, ht⟩ ω := by
+    simp only [hω, ↓reduceIte, Y]
+    exact hA_eq_le hω (Nat.find_le ht) ⟨t, hnt t⟩
   refine ⟨Y, fun t ↦ Measurable.ite hA ?_ (by fun_prop), fun t ↦ ?_, ?_⟩
   · sorry
   · specialize hZ (nt t) ⟨t, hnt t⟩
     filter_upwards [hA_ae, hZ_eq (nt t) ⟨t, hnt t⟩] with ω hω hω₂
     simp only [hω, ↓reduceIte, hω₂, Y, A, Xn]
   · intro ω t
-    obtain ⟨U, hU_mem, hU_subset⟩ :
-        ∃ U ∈ 𝓝 t, U ⊆ C (nt t) \ if nt t = 0 then ∅ else C (nt t - 1) := by
-      sorry
-    refine ⟨U, hU_mem, ?_⟩
+    refine ⟨C (nt t), (hC.isOpen (nt t)).mem_nhds (hnt t), ?_⟩
     intro β₀ hβ₀_pos hβ₀_lt
     by_cases hω : ω ∈ A
     swap
     · simp [hω, Y, HolderOnWith]
     obtain ⟨C', hC'⟩ := hZ_holder (nt t) β₀ hβ₀_pos hβ₀_lt ω
     refine ⟨C', ?_⟩
-    -- todo: here replace Y by `Z (nt t)` since they are equal on `U`.
-    refine HolderOnWith.mono ?_ hU_subset
+    -- todo: here replace Y by `Z (nt t)` since they are equal on `C (nt t)`.
     sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
