@@ -115,11 +115,13 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) :
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
-  sorry
-  -- obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
-  --   refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
-  --   all_goals norm_num
-  -- exact h.continuous (by norm_num)
+  rw [continuous_iff_continuousAt]
+  intro t
+  obtain ⟨U, hu_mem, hu⟩ := memHolder_brownian ω t
+  obtain ⟨C, h⟩ : ∃ C, HolderOnWith C 4⁻¹ (brownian · ω) U := by
+    refine hu 4⁻¹ (by norm_num) (NNReal.inv_lt_inv ?_ ?_)
+    all_goals norm_num
+  exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
 lemma measurePreserving_brownian_apply {t : ℝ≥0} :
     MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
