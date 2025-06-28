@@ -176,8 +176,7 @@ lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X
   rw [Set.sUnion_eq_biUnion]
   exact h1.isClosed_biUnion h2
 
-open Filter TopologicalSpace in
-open scoped Topology in
+open TopologicalSpace in
 lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
     borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
