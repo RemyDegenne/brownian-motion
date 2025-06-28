@@ -145,4 +145,9 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
       ring_nf
       field_simp
 
+lemma centralMoment_fun_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
+    centralMoment (fun x ↦ x) (2 * n) (gaussianReal μ (σ^2))
+    = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) :=
+  centralMoment_two_mul_gaussianReal ..
+
 end ProbabilityTheory

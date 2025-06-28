@@ -1,5 +1,15 @@
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.LinearAlgebra.Matrix.PosDef
+
+lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [Fintype n] [CommRing R] [PartialOrder R]
+    [StarRing R] {M : Matrix n n R} (hM : M.PosSemidef) (i : n) : 0 ≤ M i i := by
+  classical
+  convert hM.2 (Pi.single i 1)
+  have : star (Pi.single (M := fun _ ↦ R) i 1) = Pi.single i 1 := by
+    ext j
+    simp [Pi.single_apply, apply_ite star]
+  simp [this]
 
 section mkContinuous₂
 
@@ -10,7 +20,7 @@ variable {E F G 𝕜 : Type*} [NormedAddCommGroup E]
     [NormedSpace 𝕜 E] [NormedSpace 𝕜 F] [NormedSpace 𝕜 G] [FiniteDimensional 𝕜 E]
     [FiniteDimensional 𝕜 F] (f : E →ₗ[𝕜] F →ₗ[𝕜] G)
 
-/-- Given a biliniear map whose codomains are finite dimensional, outputs the continuous
+/-- Given a bilinear map whose codomains are finite dimensional, outputs the continuous
 version. -/
 def mkContinuous₂OfFiniteDimensional : E →L[𝕜] F →L[𝕜] G :=
   letI g x : F →L[𝕜] G := (f x).toContinuousLinearMap
@@ -57,6 +67,14 @@ theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpa
     ‖x‖ ^ 2 = ∑ i, (x i) ^ 2 := by
   rw [PiLp.norm_sq_eq_of_L2]
   congr with i; simp
+
+theorem basisFun_inner {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] (x : EuclideanSpace 𝕜 ι) (i : ι) :
+    ⟪EuclideanSpace.basisFun ι 𝕜 i, x⟫_𝕜 = x i := by
+  simp [← OrthonormalBasis.repr_apply_apply]
+
+theorem inner_basisFun_real {ι : Type*} [Fintype ι] (x : EuclideanSpace ℝ ι) (i : ι) :
+    inner ℝ x (EuclideanSpace.basisFun ι ℝ i) = x i := by
+  rw [real_inner_comm, basisFun_inner]
 
 namespace OrthonormalBasis
 

@@ -36,4 +36,32 @@ lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P) (hXY : ∀ t, 
 
 end Basic
 
+variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+
+instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] [Subsingleton ι] :
+    BorelSpace (ι → E) := by
+  refine ⟨le_antisymm pi_le_borel_pi ?_⟩
+  obtain h | h := isEmpty_or_nonempty ι
+  · exact fun s _ ↦ Subsingleton.set_cases .empty .univ s
+  have := @Unique.mk' ι ⟨Classical.choice h⟩ inferInstance
+  rw [borel]
+  refine MeasurableSpace.generateFrom_le fun s hs ↦ ?_
+  simp only [Pi.topologicalSpace, ciInf_unique, isOpen_induced_eq, Set.mem_image,
+    Set.mem_setOf_eq] at hs
+  simp_rw [MeasurableSpace.measurableSet_iSup, MeasurableSpace.measurableSet_comap]
+  refine MeasurableSpace.GenerateMeasurable.basic _ ⟨Classical.choice h, ?_⟩
+  obtain ⟨t, ht, rfl⟩ := hs
+  exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
+
+lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) (t : T)
+    (hX' : AEMeasurable (X t) P) : IsGaussian (P.map (X t)) := by
+  let L : (({t} : Finset T) → E) →L[ℝ] E := ContinuousLinearMap.proj ⟨t, by simp⟩
+  have : X t = L ∘ (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp [L]
+  rw [this, ← AEMeasurable.map_map_of_aemeasurable]
+  · have := hX {t}
+    exact isGaussian_map L
+  · exact L.continuous.aemeasurable
+  rw [aemeasurable_pi_iff]
+  simpa
+
 end ProbabilityTheory

@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Gaussian.MultivariateGaussian
 import KolmogorovExtension4.KolmogorovExtension
 
@@ -32,80 +33,99 @@ end L2
 
 namespace ProbabilityTheory
 
-variable {ι : Type*} [Fintype ι] {d : ℕ}
+variable {ι : Type*} {d : ℕ}
 
-def brownianCovMatrix (I : ι → ℝ≥0) : Matrix ι ι ℝ := Matrix.of fun i j ↦ min (I i) (I j)
+def brownianCovMatrix (I : Finset ℝ≥0) : Matrix I I ℝ := Matrix.of fun s t ↦ min s.1 t.1
 
-lemma posSemidef_brownianCovMatrix (I : ι → ℝ≥0) :
+lemma brownianCovMatrix_apply {I : Finset ℝ≥0} (s t : I) :
+    brownianCovMatrix I s t = min s.1 t.1 := rfl
+
+variable [Fintype ι]
+
+lemma posSemidef_brownianCovMatrix (I : Finset ℝ≥0) :
     (brownianCovMatrix I).PosSemidef := by
-  let v : ι → (Set ℝ) := fun i ↦ Set.Icc 0 (I i)
   have h : brownianCovMatrix I =
-    fun i j ↦ (volume.real ((Icc 0 (I i).toReal) ∩ (Icc 0 (I j)))) := by
-    simp only [Icc_inter_Icc, max_self, Real.volume_real_Icc, sub_zero, le_inf_iff,
+      fun s t ↦ volume.real ((Icc 0 s.1.toReal) ∩ (Icc 0 t.1.toReal)) := by
+    simp [Icc_inter_Icc, max_self, Real.volume_real_Icc, sub_zero, le_inf_iff,
       NNReal.zero_le_coe, and_self, sup_of_le_left]
     rfl
-  apply h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
-    (fun j ↦ IsCompact.measure_ne_top isCompact_Icc)
+  exact h ▸ L2.posSemidef_interMatrix (fun j ↦ measurableSet_Icc)
+    (fun j ↦ isCompact_Icc.measure_ne_top)
 
 variable [DecidableEq ι]
 
 noncomputable
-def gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    Measure (EuclideanSpace ℝ ι) :=
-  multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)
-
-instance isGaussian_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    IsGaussian (gaussianProjectiveFamilyAux I) := by
-  unfold gaussianProjectiveFamilyAux
-  infer_instance
-
-lemma integral_id_gaussianProjectiveFamilyAux (I : ι → ℝ≥0) :
-    ∫ x, x ∂(gaussianProjectiveFamilyAux I) = 0 :=
-  integral_id_multivariateGaussian
-
-noncomputable
-def finToSubtype (I : Finset ℝ≥0) : EuclideanSpace ℝ (Fin I.card) ≃L[ℝ] (I → ℝ) :=
-  (EuclideanSpace.equiv (Fin I.card) ℝ).trans
-  { toEquiv := Equiv.arrowCongr' I.equivFin.symm (Equiv.refl ℝ)
-    map_add' x y := by
-      have : (x + y) ∘ I.equivFin = x ∘ I.equivFin + y ∘ I.equivFin := by ext; simp
-      simp [Equiv.arrowCongr', Equiv.arrowCongr, this]
-    map_smul' c x := by
-      have : (c • x) ∘ I.equivFin = c • (x ∘ I.equivFin) := by ext; simp
-      simp [Equiv.arrowCongr', Equiv.arrowCongr, this] }
-
-@[simp]
-lemma finToSubtype_apply (I : Finset ℝ≥0) (x : Fin I.card → ℝ) :
-    finToSubtype I x = fun i ↦ x (I.equivFin i) := rfl
-
-@[simp]
-lemma finToSubtype_apply' (I : Finset ℝ≥0) (x : Fin I.card → ℝ) (i : I) :
-    finToSubtype I x i = x (I.equivFin i) := rfl
-
-noncomputable
 def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
-  (gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)).map (finToSubtype I)
+  multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) |>.map
+    (EuclideanSpace.measurableEquiv I)
+
+lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (I : Finset ℝ≥0) (f : (I → ℝ) → E) :
+    ∫ x, f x ∂gaussianProjectiveFamily I =
+      ∫ x, f (EuclideanSpace.equiv I ℝ x)
+        ∂multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) := by
+  rw [gaussianProjectiveFamily, integral_map_equiv, EuclideanSpace.coe_measurableEquiv']
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    IsGaussian (gaussianProjectiveFamily I) where
-  map_eq_gaussianReal L := by
-    unfold gaussianProjectiveFamily
-    have : IsGaussian (gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) := inferInstance
-    have : (L.comp (finToSubtype I).toContinuousLinearMap : (Fin I.card → ℝ) → ℝ)
-      = L ∘ (finToSubtype I) := by ext; simp
-    rw [Measure.map_map (by fun_prop) (by fun_prop), variance_map (by fun_prop) (by fun_prop),
-      integral_map (by fun_prop) (by fun_prop), ← this,
-      IsGaussian.map_eq_gaussianReal (L.comp (finToSubtype I).toContinuousLinearMap)]
-    congr
+    IsGaussian (gaussianProjectiveFamily I) := by
+  unfold gaussianProjectiveFamily
+  rw [EuclideanSpace.coe_measurableEquiv']
+  infer_instance
 
+@[simp]
 lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     ∫ x, x ∂(gaussianProjectiveFamily I) = 0 := by
-  calc ∫ x, x ∂(gaussianProjectiveFamily I)
-  _ = ∫ x, finToSubtype I x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i)) :=
-    integral_map (by fun_prop) (by fun_prop)
-  _ = finToSubtype I (∫ x, x ∂(gaussianProjectiveFamilyAux (fun i ↦ I.equivFin.symm i))) :=
-    (finToSubtype I).toContinuousLinearMap.integral_comp_id_comm (IsGaussian.integrable_id _)
-  _ = 0 := by simp [integral_id_gaussianProjectiveFamilyAux]; rfl
+  rw [integral_gaussianProjectiveFamily, ← ContinuousLinearEquiv.coe_coe,
+    ContinuousLinearMap.integral_comp_id_comm IsGaussian.integrable_id,
+    integral_id_multivariateGaussian, map_zero]
+
+lemma integral_id_gaussianProjectiveFamily' (I : Finset ℝ≥0) :
+    ∫ x, id x ∂(gaussianProjectiveFamily I) = 0 := integral_id_gaussianProjectiveFamily I
+
+open scoped RealInnerProductSpace in
+lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
+    cov[fun x ↦ x s, fun x ↦ x t; gaussianProjectiveFamily I] = min s.1 t.1 := by
+  rw [gaussianProjectiveFamily, covariance_map_equiv]
+  change cov[fun x : EuclideanSpace ℝ I ↦ x s, fun x ↦ x t; _] = _
+  have (u : I) : (fun x : EuclideanSpace ℝ I ↦ x u) =
+      fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp
+  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
+    ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
+  exact IsGaussian.memLp_two_id
+
+lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
+    Var[fun x ↦ x s; gaussianProjectiveFamily I] = s := by
+  rw [← covariance_same, covariance_eval_gaussianProjectiveFamily, min_self]
+  exact Measurable.aemeasurable <| by fun_prop
+
+lemma measurePreserving_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
+    MeasurePreserving (fun x ↦ x s) (gaussianProjectiveFamily I) (gaussianReal 0 s) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← ContinuousLinearMap.coe_proj' ℝ, IsGaussian.map_eq_gaussianReal,
+      ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
+      map_zero, ContinuousLinearMap.coe_proj', variance_eval_gaussianProjectiveFamily,
+      Real.toNNReal_coe]
+    exact IsGaussian.integrable_id
+
+open ContinuousLinearMap in
+lemma measurePreserving_gaussianProjectiveFamily₂ {I : Finset ℝ≥0} {s t : I} :
+    MeasurePreserving ((fun x ↦ x s) - (fun x ↦ x t)) (gaussianProjectiveFamily I)
+      (gaussianReal 0 (max (s - t) (t - s))) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← coe_proj' ℝ, ← coe_proj' ℝ, ← coe_sub', IsGaussian.map_eq_gaussianReal,
+      integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero, coe_sub', coe_proj',
+      coe_proj', variance_sub, variance_eval_gaussianProjectiveFamily,
+      variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
+    · norm_cast
+      rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
+        NNReal.add_sub_two_mul_min_eq_max]
+      nth_grw 1 [two_mul, min_le_left, min_le_right]
+    any_goals
+      rw [← ContinuousLinearMap.coe_proj' ℝ]
+      exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
+    exact IsGaussian.integrable_id
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by
@@ -122,5 +142,16 @@ instance IsProbabilityMeasure_gaussianLimit :
 lemma isProjectiveLimit_gaussianLimit :
     IsProjectiveLimit gaussianLimit gaussianProjectiveFamily :=
   isProjectiveLimit_projectiveLimit isProjectiveMeasureFamily_gaussianProjectiveFamily
+
+lemma _root_.MeasureTheory.IsProjectiveLimit.measurePreserving_restrict {ι : Type*} {X : ι → Type*}
+    {mX : ∀ i, MeasurableSpace (X i)} {μ : Measure (Π i, X i)}
+    {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) {I : Finset ι} :
+    MeasurePreserving I.restrict μ (P I) where
+  measurable := by fun_prop
+  map_eq := h I
+
+lemma measurePreserving_gaussianLimit {I : Finset ℝ≥0} :
+    MeasurePreserving I.restrict gaussianLimit (gaussianProjectiveFamily I) :=
+  isProjectiveLimit_gaussianLimit.measurePreserving_restrict
 
 end ProbabilityTheory

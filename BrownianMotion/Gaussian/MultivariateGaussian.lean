@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.WithLp
 import BrownianMotion.Gaussian.Gaussian
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
@@ -94,7 +95,7 @@ lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   rw [stdGaussian, integrable_map_measure]
   · rw [Function.id_comp]
     exact integrable_finset_sum _ fun i _ ↦ Integrable.smul_const
-      (integrable_eval_pi (f := id) (IsGaussian.integrable_id _)) _
+      (integrable_eval_pi (f := id) IsGaussian.integrable_id) _
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
@@ -107,7 +108,7 @@ lemma variance_dual_stdGaussian (L : Dual ℝ E) : Var[L; stdGaussian E] = ‖L�
     · change ∑ i, Var[fun x ↦ _ * (id x); gaussianReal 0 1] = _
       simp_rw [variance_mul, variance_id_gaussianReal, (stdOrthonormalBasis ℝ E).norm_dual]
       simp
-    · exact fun i ↦ ((isGaussian_gaussianReal 0 1).memLp_two_id _).const_mul _
+    · exact fun i ↦ IsGaussian.memLp_two_id.const_mul _
   · exact L.continuous.aemeasurable
   · exact Measurable.aemeasurable (by fun_prop)
 
@@ -193,10 +194,8 @@ instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S
 lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S hS) = μ := by
   rw [multivariateGaussian, integral_map (by fun_prop) (by fun_prop),
     integral_add (integrable_const _), integral_const]
-  · simp [ContinuousLinearMap.integral_comp_comm _ (IsGaussian.integrable_fun_id _)]
-  · have h_id : Integrable id ((stdGaussian (EuclideanSpace ℝ ι)).map
-      (toEuclideanCLM (𝕜 := ℝ) hS.sqrt)) := IsGaussian.integrable_id _
-    exact h_id.comp_measurable (by fun_prop)
+  · simp [ContinuousLinearMap.integral_comp_comm _ IsGaussian.integrable_fun_id]
+  · exact IsGaussian.integrable_id.comp_measurable (by fun_prop)
 
 lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫
@@ -224,10 +223,10 @@ lemma covInnerBilin_multivariateGaussian :
   simp only [multivariateGaussian]
   rw [← h, ← Measure.map_map (measurable_const_add μ) (by fun_prop)]
   rw [covInnerBilin_map_const_add]
-  swap; · exact IsGaussian.memLp_two_id _
+  swap; · exact IsGaussian.memLp_two_id
   ext x y
   rw [covInnerBilin_map, covInnerBilin_stdGaussian]
-  swap; · exact IsGaussian.memLp_two_id _
+  swap; · exact IsGaussian.memLp_two_id
   rw [ContinuousBilinForm.inner_apply, ContinuousBilinForm.ofMatrix_apply,
     ContinuousLinearMap.adjoint_inner_left]
   rw [IsSelfAdjoint.adjoint_eq]
@@ -247,6 +246,29 @@ lemma covInnerBilin_multivariateGaussian :
     simp
   _ = ((EuclideanSpace.basisFun ι ℝ).toBasis.repr x) ⬝ᵥ
       S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := inner_toEuclideanCLM _ _
+
+lemma covariance_eval_multivariateGaussian (i j : ι) :
+    cov[fun x ↦ x i, fun x ↦ x j; multivariateGaussian μ S hS] = S i j := by
+  have (i : ι) : (fun x : EuclideanSpace ℝ ι ↦ x i) =
+      fun x ↦ ⟪EuclideanSpace.basisFun ι ℝ i, x⟫ := by ext; simp
+  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
+    ContinuousBilinForm.ofMatrix_orthonormalBasis]
+  exact IsGaussian.memLp_two_id
+
+lemma variance_eval_multivariateGaussian (i : ι) :
+    Var[fun x ↦ x i; multivariateGaussian μ S hS] = S i i := by
+  rw [← covariance_same, covariance_eval_multivariateGaussian]
+  exact Measurable.aemeasurable <| by fun_prop
+
+lemma measurePreserving_multivariateGaussian {i : ι} :
+    MeasurePreserving (fun x ↦ x i) (multivariateGaussian μ S hS)
+      (gaussianReal (μ i) (S i i).toNNReal) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [← EuclideanSpace.coe_proj ℝ, IsGaussian.map_eq_gaussianReal,
+      ContinuousLinearMap.integral_comp_id_comm, integral_id_multivariateGaussian,
+      EuclideanSpace.proj_apply, EuclideanSpace.coe_proj, variance_eval_multivariateGaussian]
+    exact IsGaussian.integrable_id
 
 lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
     charFun (multivariateGaussian μ S hS) x =

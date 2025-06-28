@@ -383,7 +383,7 @@ lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     {T' : Set T} (hT' : T'.Countable) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
-  refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsKolmogorovProcess hd_pos hp_pos
+  refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.isKolmogorovProcess hd_pos hp_pos
     hdq_lt hβ_pos T').trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
     exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
@@ -517,7 +517,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   have : Countable T' := hT'_countable
   have h_ae_zero : ∀ᵐ ω ∂P, ∀ (s t : T'), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
     simp_rw [ae_all_iff]
-    exact fun s t hst ↦ hX.IsKolmogorovProcess.edist_eq_zero hp_pos (hd_pos.trans hdq_lt) hst
+    exact fun s t hst ↦ hX.isKolmogorovProcess.edist_eq_zero hp_pos (hd_pos.trans hdq_lt) hst
   -- For each `ω`, `C ω < ∞` is a bound on `edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)`
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
   have hC_lt_top : ∀ᵐ ω ∂P, C ω < ∞ :=
@@ -628,7 +628,7 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
     exists_modification_holder_aux' hT hX.isMeasurableKolmogorovProcess_mk hc hd_pos hp_pos hdq_lt
       hβ_pos hβ_lt
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
-  filter_upwards [hX.ae_eq_mk, hY_eq t] with ω hω1 hω2 using hω2.trans (hω1 t).symm
+  filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
