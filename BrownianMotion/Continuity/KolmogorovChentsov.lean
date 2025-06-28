@@ -713,6 +713,13 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p),
         ∃ C, HolderOnWith C β (Y · ω) U := by
+  have h_div_pos : 0 < (q - d) / p := by
+    have : 0 < q - d := by bound
+    positivity
+  let ⟨β₀', hβ₀_pos', hβ₀_lt'⟩ := exists_between h_div_pos
+  let β₀ : ℝ≥0 := ⟨β₀', hβ₀_pos'.le⟩
+  have hβ₀_pos : 0 < β₀ := mod_cast hβ₀_pos'
+  have hβ₀_lt : β₀ < (q - d) / p := mod_cast hβ₀_lt'
   let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
   have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
     sorry
@@ -720,7 +727,8 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     have h := hC.hasBoundedCoveringNumber n
     refine fun ε hε ↦ ?_
     specialize h ε (hε.trans_eq ?_)
-    · sorry
+    · unfold EMetric.diam
+      simp [iSup_subtype]
     refine le_of_eq_of_le ?_ h
     simp only [ENat.toENNReal_inj]
     sorry
@@ -730,7 +738,18 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       ∀ n t (ht : t ∈ C n), Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω := by
     rw [ae_all_iff]
     intro n
-    sorry
+    suffices ∀ᵐ ω ∂P, ∀ (t : C n), Z n ⟨t, t.2⟩ ω
+        = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩ ω by
+      filter_upwards [this] with ω hω t ht using hω ⟨t, ht⟩
+    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
+      exact h.continuous hβ₀_pos
+    · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
+      have h_cont := h.continuous hβ₀_pos
+      sorry
+    · intro t
+      filter_upwards [hZ_eq n t, hZ_eq (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩] with ω hω₁ hω₂
+      exact hω₁.trans hω₂.symm
   let A := {ω | ∀ n t (ht : t ∈ C n),
     Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω}
   have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) :
@@ -749,8 +768,11 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
     refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
-    · sorry
-    · sorry
+    · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
+      exact h.continuous hβ₀_pos
+    · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
+      have h_cont := h.continuous hβ₀_pos
+      sorry
     · exact fun t ↦ (hZ n t).stronglyMeasurable
     · exact fun t ↦ (hZ _ ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩).stronglyMeasurable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
