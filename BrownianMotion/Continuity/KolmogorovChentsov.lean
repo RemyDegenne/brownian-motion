@@ -727,19 +727,30 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω}
   have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) :
       Z n ⟨t, t.2⟩ ω = Z m ⟨t, hC.mono _ _ hnm t.2⟩ ω := by
-    sorry
+    induction m with
+    | zero => simp only [nonpos_iff_eq_zero] at hnm; subst hnm; simp
+    | succ m hm =>
+      by_cases hnm' : n ≤ m
+      · exact (hm hnm').trans (hω m t (hC.mono _ _ hnm' t.2))
+      · have : n = m + 1 := by omega
+        subst this
+        rfl
   have hA : MeasurableSet A := by
     sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
-  -- let Cdiff : ℕ → Set T := disjointed C
   classical
-  have h_mem t : ∃ n, t ∈ C n := sorry
+  have h_mem t : ∃ n, t ∈ C n := by
+    have ht : t ∈ ⋃ n, C n := hC.subset_iUnion (by simp : t ∈ Set.univ)
+    simpa using ht
   let nt t := Nat.find (h_mem t)
   have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
-  have hnt_preimage_zero : nt ⁻¹' {0} = C 0 := by
-    sorry
+  have hnt_preimage_zero : nt ⁻¹' {0} = C 0 := by ext t; simp [nt, Nat.find_eq_zero (h_mem t)]
   have hnt_preimage n : nt ⁻¹' {n + 1} = C (n + 1) \ C n := by
-    sorry
+    ext t
+    simp only [Set.mem_preimage, Set.mem_singleton_iff, Nat.find_eq_iff (h_mem t), Set.mem_diff,
+      and_congr_right_iff, nt, Nat.lt_succ_iff]
+    intro htn
+    sorry -- monotonicity of `C`
   borelize T
   have measurable_nt : Measurable nt := by
     refine measurable_to_nat fun t ↦ ?_
