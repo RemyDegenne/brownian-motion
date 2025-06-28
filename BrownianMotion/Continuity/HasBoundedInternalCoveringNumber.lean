@@ -80,6 +80,7 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
     where
   c_ne_top : ∀ n, c n ≠ ∞
   d_pos : ∀ n, 0 < d n
+  isOpen : ∀ n, IsOpen (C n)
   totallyBounded : ∀ n, TotallyBounded (C n)
   hasBoundedCoveringNumber : ∀ n, HasBoundedInternalCoveringNumber (C n) (c n) (d n)
   mono : ∀ n m, n ≤ m → C n ⊆ C m
@@ -91,6 +92,8 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       (fun n ↦ (n + 1)) (fun _ ↦ 1) where
   c_ne_top := by simp
   d_pos := by simp
+  isOpen n := by
+    sorry
   totallyBounded n := totallyBounded_Ico _ _
   hasBoundedCoveringNumber n ε hε_le := by
     simp only [ENNReal.rpow_one]

@@ -703,7 +703,8 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p), ∀ ω, MemHolder β (Y · ω) := by
+      ∧ ∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p),
+        ∃ C, HolderOnWith C β (Y · ω) U := by
   let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
   have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
     sorry
@@ -727,27 +728,54 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
   have hA : MeasurableSet A := by
     sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
+  -- let Cdiff : ℕ → Set T := disjointed C
   classical
   have h_mem t : ∃ n, t ∈ C n := sorry
   choose nt hnt using h_mem
+  have hnt_preimage_zero : nt ⁻¹' {0} = C 0 := by
+    sorry
+  have hnt_preimage n : nt ⁻¹' {n + 1} = C (n + 1) \ C n := by
+    sorry
+  borelize T
+  have measurable_nt : Measurable nt := by
+    refine measurable_to_nat fun t ↦ ?_
+    cases nt t with
+    | zero =>
+      rw [hnt_preimage_zero]
+      sorry
+    | succ n =>
+      rw [hnt_preimage n]
+      refine MeasurableSet.diff ?_ ?_
+      · sorry
+      · sorry
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
   refine ⟨Y, fun t ↦ Measurable.ite hA ?_ (by fun_prop), fun t ↦ ?_, ?_⟩
   · sorry
   · specialize hZ (nt t) ⟨t, hnt t⟩
-    sorry
-  · intro β₀ hβ₀_pos hβ₀_lt ω
+    filter_upwards [hA_ae, hZ_eq (nt t) ⟨t, hnt t⟩] with ω hω hω₂
+    simp only [hω, ↓reduceIte, hω₂, Y, A, Xn]
+  · intro ω t
+    obtain ⟨U, hU_mem, hU_subset⟩ :
+        ∃ U ∈ 𝓝 t, U ⊆ C (nt t) \ if nt t = 0 then ∅ else C (nt t - 1) := by
+      sorry
+    refine ⟨U, hU_mem, ?_⟩
+    intro β₀ hβ₀_pos hβ₀_lt
     by_cases hω : ω ∈ A
-    swap; · simp [hω, Y, HolderWith]
-    simp only [hω, ↓reduceIte, Y]
+    swap
+    · simp [hω, Y, HolderOnWith]
+    obtain ⟨C', hC'⟩ := hZ_holder (nt t) β₀ hβ₀_pos hβ₀_lt ω
+    refine ⟨C', ?_⟩
+    -- todo: here replace Y by `Z (nt t)` since they are equal on `U`.
+    refine HolderOnWith.mono ?_ hU_subset
     sorry
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
-    (hc : ∀ n, c n ≠ ∞) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n)) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
-        ∀ ω, MemHolder β (Y · ω) := by
+      ∧ ∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (q n - d) / (p n)),
+        ∃ C, HolderOnWith C β (Y · ω) U := by
   sorry
 
 end EMetricSpace

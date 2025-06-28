@@ -14,7 +14,7 @@ import BrownianMotion.Gaussian.ProjectiveLimit
 -/
 
 open MeasureTheory NNReal
-open scoped ENNReal NNReal
+open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
 
@@ -78,11 +78,12 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
 
 lemma exists_brownian :
     ∃ Y : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[gaussianLimit] preBrownian t)
-      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
-        ∀ ω, MemHolder β (Y · ω) :=
+      ∧ ∀ ω t, ∃ U ∈ 𝓝 t,
+          ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
+          ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
     (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by simp) (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+    (fun n ↦ by simp) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
@@ -96,12 +97,11 @@ lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   exists_brownian.choose_spec.2.1 t
 
-lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
-    MemHolder β (brownian · ω) := by
-  refine exists_brownian.choose_spec.2.2 β hβ_pos ?_ ω
-  have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
-  refine hβ_lt'.trans_eq
-    (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_).symm
+lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) :
+    ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < 2⁻¹), ∃ C, HolderOnWith C β (brownian · ω) U := by
+  convert exists_brownian.choose_spec.2.2 ω t
+  suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
+  refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
     ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by field_simp; ring
     _ ≤ 2⁻¹ * 1 := by grw [mul_div_assoc, (div_le_one₀ (by positivity)).2]; linarith
@@ -114,10 +114,11 @@ lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
-  obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
-    refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
-    all_goals norm_num
-  exact h.continuous (by norm_num)
+  sorry
+  -- obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
+  --   refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
+  --   all_goals norm_num
+  -- exact h.continuous (by norm_num)
 
 lemma measurePreserving_brownian_apply {t : ℝ≥0} :
     MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
