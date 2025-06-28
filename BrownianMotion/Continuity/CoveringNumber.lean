@@ -544,7 +544,6 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) {ε : ℝ≥0∞} (hε : 
   grw [← hC, volume_le_of_isCover C.2]
   norm_cast
 
-
 open scoped Pointwise in
 lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑C ⊆ A) :
     C.card * volume (EMetric.closedBall (0 : E) (ε/2))
