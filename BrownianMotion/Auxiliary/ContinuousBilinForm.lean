@@ -22,7 +22,6 @@ abbrev _root_.ContinuousBilinForm := E →L[𝕜] E →L[𝕜] 𝕜
 
 variable (f : ContinuousBilinForm 𝕜 E) (b : Basis n 𝕜 E)
 
-
 /-- The underlying bilinear form of a continuous bilinear form -/
 def toBilinForm : LinearMap.BilinForm 𝕜 E where
   toFun x := f x
