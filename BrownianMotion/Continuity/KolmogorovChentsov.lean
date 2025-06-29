@@ -722,9 +722,10 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
   have hβ₀_lt : β₀ < (q - d) / p := mod_cast hβ₀_lt'
   let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
   have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
-    refine ⟨fun t ω ↦ hX.mk X t ω, ?_, fun t ↦ ?_⟩
-    · sorry
-    · filter_upwards [hX.ae_eq_mk t] with ω hω using hω
+    refine ⟨fun t ω ↦ hX.mk X t ω, ?_, fun t ↦ by filter_upwards [hX.ae_eq_mk t] with ω hω using hω⟩
+    constructor
+    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.measurablePair s t
+    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.kolmogorovCondition s t
   have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
     have h := hC.hasBoundedCoveringNumber n
     refine fun ε hε ↦ ?_
