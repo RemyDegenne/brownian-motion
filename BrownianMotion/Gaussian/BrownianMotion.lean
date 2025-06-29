@@ -150,15 +150,9 @@ lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
 
 section Measure
 
--- Subtype measurable space. The measurable space on `ℝ≥0 → ℝ` is the product of Borel σ-algebras
--- #synth MeasurableSpace {f : ℝ≥0 → ℝ // Continuous f}
-
 noncomputable
 def wienerMeasureAux : Measure {f : ℝ≥0 → ℝ // Continuous f} :=
   gaussianLimit.map (fun ω ↦ (⟨fun t ↦ brownian t ω, continuous_brownian ω⟩))
-
--- Compact-open topology
--- #synth TopologicalSpace C(ℝ≥0, ℝ)
 
 section ContinuousMap.MeasurableSpace
 
