@@ -165,3 +165,110 @@ end ContinuousLinearMap
 
 lemma EuclideanSpace.coe_measurableEquiv' {ι : Type*} :
     ⇑(EuclideanSpace.measurableEquiv ι) = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
+
+@[simp]
+lemma zero_mem_parallelepiped {ι E : Type*} [Fintype ι] [AddCommGroup E] [Module ℝ E] {v : ι → E} :
+    0 ∈ parallelepiped v := ⟨0, by simp, by simp⟩
+
+@[simp]
+lemma nonempty_parallelepiped {ι E : Type*} [Fintype ι] [AddCommGroup E] [Module ℝ E] {v : ι → E} :
+    (parallelepiped v).Nonempty := ⟨0, zero_mem_parallelepiped⟩
+
+@[simp, nontriviality]
+lemma volume_of_nonempty_of_subsingleton {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [MeasurableSpace E] [Subsingleton E] {s : Set E} (hs : s.Nonempty) :
+    volume s = 1 := by
+  rw [Subsingleton.eq_univ_of_nonempty hs,
+    ← Subsingleton.eq_univ_of_nonempty (s := parallelepiped (stdOrthonormalBasis ℝ E))]
+  · exact (stdOrthonormalBasis ℝ E).toBasis.addHaar_self
+  · exact nonempty_parallelepiped
+
+--generalizing `MeasureTheory.Measure.addHaar_ball_center`
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_ball_const
+    {G : Type*} [Group G] [PseudoMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
+    [MeasurableMul G] (a b : G) (r : ℝ) :
+    μ (Metric.ball a r) = μ (Metric.ball b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_ball, ← Measure.map_apply,
+    map_mul_left_eq_self]
+  · fun_prop
+  · exact Metric.isOpen_ball.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulRightInvariant.measure_ball_const
+    {G : Type*} [CommGroup G] [PseudoMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
+    [MeasurableMul G] (a b : G) (r : ℝ) :
+    μ (Metric.ball a r) = μ (Metric.ball b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_ball, ← Measure.map_apply,
+    map_mul_right_eq_self]
+  · fun_prop
+  · exact Metric.isOpen_ball.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_closedBall_const
+    {G : Type*} [Group G] [PseudoMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
+    [MeasurableMul G] (a b : G) (r : ℝ) :
+    μ (Metric.closedBall a r) = μ (Metric.closedBall b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_closedBall, ← Measure.map_apply,
+    map_mul_left_eq_self]
+  · fun_prop
+  · exact Metric.isClosed_closedBall.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const
+    {G : Type*} [CommGroup G] [PseudoMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
+    [MeasurableMul G] (a b : G) (r : ℝ) :
+    μ (Metric.closedBall a r) = μ (Metric.closedBall b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_closedBall, ← Measure.map_apply,
+    map_mul_right_eq_self]
+  · fun_prop
+  · exact Metric.isClosed_closedBall.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_ball_const'
+    {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
+    [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
+    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_ball, ← Measure.map_apply,
+    map_mul_left_eq_self]
+  · fun_prop
+  · exact EMetric.isOpen_ball.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulRightInvariant.measure_ball_const'
+    {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
+    [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
+    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
+  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_ball, ← Measure.map_apply,
+    map_mul_right_eq_self]
+  · fun_prop
+  · exact EMetric.isOpen_ball.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_closedBall_const'
+    {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
+    [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
+    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_closedBall, ← Measure.map_apply,
+    map_mul_left_eq_self]
+  · fun_prop
+  · exact EMetric.isClosed_closedBall.measurableSet
+
+@[to_additive]
+lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const'
+    {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
+    [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
+    [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
+    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
+  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_closedBall, ← Measure.map_apply,
+    map_mul_right_eq_self]
+  · fun_prop
+  · exact EMetric.isClosed_closedBall.measurableSet
