@@ -79,9 +79,8 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
 
 lemma exists_brownian :
     ∃ Y : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[gaussianLimit] preBrownian t)
-      ∧ ∀ ω t, ∃ U ∈ 𝓝 t,
-          ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
-          ∃ C, HolderOnWith C β (Y · ω) U :=
+      ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
+          ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
     (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
     (fun n ↦ by simp) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
@@ -98,9 +97,9 @@ lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   exists_brownian.choose_spec.2.1 t
 
-lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) :
-    ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < 2⁻¹), ∃ C, HolderOnWith C β (brownian · ω) U := by
-  convert exists_brownian.choose_spec.2.2 ω t
+lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) :
+    ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (brownian · ω) U := by
+  convert exists_brownian.choose_spec.2.2 ω t β hβ_pos ?_
   suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
   refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
@@ -115,12 +114,9 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) :
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
-  rw [continuous_iff_continuousAt]
-  intro t
-  obtain ⟨U, hu_mem, hu⟩ := memHolder_brownian ω t
-  obtain ⟨C, h⟩ : ∃ C, HolderOnWith C 4⁻¹ (brownian · ω) U := by
-    refine hu 4⁻¹ (by norm_num) (NNReal.inv_lt_inv ?_ ?_)
-    all_goals norm_num
+  refine continuous_iff_continuousAt.mpr fun t ↦ ?_
+  obtain ⟨U, hu_mem, ⟨C, h⟩⟩ := memHolder_brownian ω t 4⁻¹ (by norm_num)
+    (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
 lemma measurePreserving_brownian_apply {t : ℝ≥0} :
