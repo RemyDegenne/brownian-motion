@@ -40,7 +40,9 @@ def brownianCovMatrix (I : Finset ℝ≥0) : Matrix I I ℝ := Matrix.of fun s t
 lemma brownianCovMatrix_apply {I : Finset ℝ≥0} (s t : I) :
     brownianCovMatrix I s t = min s.1 t.1 := rfl
 
-variable [Fintype ι]
+lemma brownianCovMatrix_submatrix {I J : Finset ℝ≥0} (hJI : J ⊆ I) :
+    (brownianCovMatrix I).submatrix (fun i : J ↦ ⟨i.1, hJI i.2⟩) (fun i : J ↦ ⟨i.1, hJI i.2⟩) =
+    brownianCovMatrix J := rfl
 
 lemma posSemidef_brownianCovMatrix (I : Finset ℝ≥0) :
     (brownianCovMatrix I).PosSemidef := by
@@ -58,6 +60,22 @@ noncomputable
 def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
   multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) |>.map
     (EuclideanSpace.measurableEquiv I)
+
+lemma measurePreserving_equiv_multivariateGaussian (I : Finset ℝ≥0) :
+    MeasurePreserving (EuclideanSpace.measurableEquiv I)
+      (multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I))
+      (gaussianProjectiveFamily I) where
+  measurable := by fun_prop
+  map_eq := rfl
+
+lemma measurePreserving_equiv_gaussianProjectiveFamily (I : Finset ℝ≥0) :
+    MeasurePreserving (EuclideanSpace.measurableEquiv I).symm (gaussianProjectiveFamily I)
+      (multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)) where
+  measurable := by fun_prop
+  map_eq := by
+    rw [gaussianProjectiveFamily, Measure.map_map, MeasurableEquiv.symm_comp_self,
+      Measure.map_id]
+    all_goals fun_prop
 
 lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     (I : Finset ℝ≥0) (f : (I → ℝ) → E) :
@@ -98,7 +116,7 @@ lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   rw [← covariance_same, covariance_eval_gaussianProjectiveFamily, min_self]
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma measurePreserving_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
+lemma measurePreserving_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
     MeasurePreserving (fun x ↦ x s) (gaussianProjectiveFamily I) (gaussianReal 0 s) where
   measurable := by fun_prop
   map_eq := by
@@ -109,7 +127,7 @@ lemma measurePreserving_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
     exact IsGaussian.integrable_id
 
 open ContinuousLinearMap in
-lemma measurePreserving_gaussianProjectiveFamily₂ {I : Finset ℝ≥0} {s t : I} :
+lemma measurePreserving_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s t : I} :
     MeasurePreserving ((fun x ↦ x s) - (fun x ↦ x t)) (gaussianProjectiveFamily I)
       (gaussianReal 0 (max (s - t) (t - s))) where
   measurable := by fun_prop
@@ -129,7 +147,22 @@ lemma measurePreserving_gaussianProjectiveFamily₂ {I : Finset ℝ≥0} {s t : 
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by
-  sorry
+  intro I J hJI
+  nth_rw 2 [gaussianProjectiveFamily]
+  rw [Measure.map_map]
+  · have : (Finset.restrict₂ (π := fun _ ↦ ℝ) hJI ∘ EuclideanSpace.measurableEquiv I) =
+        EuclideanSpace.measurableEquiv J ∘ (EuclideanSpace.restrict₂ hJI) := by
+      ext; simp [EuclideanSpace.measurableEquiv]
+    rw [this, ((measurePreserving_equiv_multivariateGaussian J).comp
+      (measurePreserving_restrict_multivariateGaussian hJI)).map_eq]
+  · exact Finset.measurable_restrict₂ _ -- fun_prop fails
+  · fun_prop
+
+lemma measurePreserving_restrict_gaussianProjectiveFamily {I J : Finset ℝ≥0} (hIJ : I ⊆ J) :
+    MeasurePreserving (Finset.restrict₂ (π := fun _ ↦ ℝ) hIJ) (gaussianProjectiveFamily J)
+      (gaussianProjectiveFamily I) where
+  measurable := Finset.measurable_restrict₂ _
+  map_eq := isProjectiveMeasureFamily_gaussianProjectiveFamily J I hIJ |>.symm
 
 noncomputable
 def gaussianLimit : Measure (ℝ≥0 → ℝ) :=

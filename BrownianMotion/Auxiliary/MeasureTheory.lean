@@ -123,6 +123,22 @@ lemma covariance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : M
   simp_rw [covariance, integral_map_equiv]
   rfl
 
+lemma covariance_map {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
+    {μ : Measure Ω'} {X Y : Ω → ℝ} {Z : Ω' → Ω} (hX : AEStronglyMeasurable X (μ.map Z))
+    (hY : AEStronglyMeasurable Y (μ.map Z)) (hZ : AEMeasurable Z μ) :
+    cov[X, Y; μ.map Z] = cov[X ∘ Z, Y ∘ Z; μ] := by
+  simp_rw [covariance]
+  repeat rw [integral_map]
+  · rfl
+  any_goals assumption
+  apply AEStronglyMeasurable.mul
+  apply AEStronglyMeasurable.sub
+  exact hX
+  exact aestronglyMeasurable_const
+  apply AEStronglyMeasurable.sub
+  exact hY
+  exact aestronglyMeasurable_const
+
 lemma variance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
     {μ : Measure Ω'} (X : Ω → ℝ) (Y : Ω' ≃ᵐ Ω) :
     Var[X; μ.map Y] = Var[X ∘ Y; μ] := by
@@ -157,7 +173,7 @@ lemma integral_comp_id_comm (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
 variable [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
 
 lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
-    (μ.map L)[_root_.id] = L μ[_root_.id] := by
+    ∫ x, x ∂(μ.map L) = L (∫ x, x ∂μ) := by
   rw [integral_map (by fun_prop) (by fun_prop)]
   simp [L.integral_comp_id_comm h]
 
