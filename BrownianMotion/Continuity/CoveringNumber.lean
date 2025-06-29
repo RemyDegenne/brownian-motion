@@ -664,10 +664,23 @@ lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
   norm_cast
   exact le_volume_of_isSeparated isSeparated_maximalSeparatedSet maximalSeparatedSet_subset
 
+@[gcongr]
+alias ⟨_, ENat.toENNReal_le'⟩ := ENat.toENNReal_le
 
-lemma volume_div_le_internalCoveringNumber (A : Set E) (ε : ℝ≥0∞) :
+lemma volume_div_le_internalCoveringNumber (A : Set E) {ε : ℝ≥0∞} (hε : 0 < ε) :
     volume A / volume (EMetric.closedBall (0 : E) ε) ≤ internalCoveringNumber ε A := by
-  sorry
+  obtain rfl | hε' := eq_top_or_lt_top ε
+  · obtain _ | _ := subsingleton_or_nontrivial E
+    · grw [volume_le_externalCoveringNumber_mul A hε, ENNReal.mul_div_cancel_right,
+        externalCoveringNumber_le_internalCoveringNumber ⊤ A]
+      all_goals simp
+    simp
+  grw [volume_le_externalCoveringNumber_mul A hε, ENNReal.mul_div_cancel_right,
+    externalCoveringNumber_le_internalCoveringNumber ε A]
+  · exact EMetric.measure_closedBall_pos volume _ hε.ne' |>.ne'
+  · lift ε to ℝ≥0 using hε'.ne
+    rw [Metric.emetric_closedBall_nnreal]
+    exact ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
 open scoped Pointwise in
 lemma internalCoveringNumber_le_volume_div (A : Set E) (ε : ℝ≥0∞) :
