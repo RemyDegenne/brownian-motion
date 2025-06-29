@@ -1795,6 +1795,7 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
 
 \end{proof}
 
+We say that a function is \emph{locally} Hölder continuous of order $\gamma$ if for any point $x$ in its domain there is a neighborhood of $x$ on which the function is Hölder continuous of order $\gamma$.
 
 \begin{theorem}\label{thm:localized_holder_modification}
   \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
@@ -1802,10 +1803,10 @@ $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,
   \lean{ProbabilityTheory.exists_modification_holder'}
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p, q)$ with $q > d$.
-Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are locally Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:holder_modification, lem:indistinguishable_of_modification_of_continuous}
 For each $n$, by Theorem~\ref{thm:holder_modification} there is a modification $Y_n$ of $X$ seen as a process on $T_n$ such that the paths of $Y_n$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
 By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, $Y_n$ and $Y_{n+1}$ are indistinguishable on $T_n$.
@@ -1820,7 +1821,7 @@ Let $A$ be the event that this happens, let $x_0 \in E$ be arbitrary and define 
     x_0 & \text{if } \omega \notin A \: .
   \end{cases}
 \end{align*}
-Then $Y$ is a modification of $X$ and has paths that are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$ almost surely.
+Then $Y$ is a modification of $X$ and has paths that are locally Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$ almost surely.
 \end{proof}
 
 
@@ -1831,16 +1832,16 @@ Then $Y$ is a modification of $X$ and has paths that are Hölder continuous of a
 Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
 Let $(p_n, q_n)_{n \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_n > d$ for all $n \in \mathbb{N}$.
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p_n, q_n)$ for all $n \in \mathbb{N}$.
-Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, \sup_n (q_n - d)/p_n)$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are locally Hölder continuous of all orders $\gamma \in (0, \sup_n (q_n - d)/p_n)$.
 \end{theorem}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:localized_holder_modification}
-For each $n$, by Theorem~\ref{thm:localized_holder_modification} there is a modification $Y_n$ of $X$ such that the paths of $Y_n$ are Hölder continuous of all orders $\gamma \in (0, (q_n - d)/p_n)$.
+For each $n$, by Theorem~\ref{thm:localized_holder_modification} there is a modification $Y_n$ of $X$ such that the paths of $Y_n$ are locally Hölder continuous of all orders $\gamma \in (0, (q_n - d)/p_n)$.
 By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, any two processes $Y_n, Y_m$ are indistinguishable.
 That is, almost surely $Y_n = Y_m$.
 Since there are countably many such almost sure equalities, we get that almost surely there is equality for all $n, m$.
 Let then $Y$ be the process equal to $Y_0$ on the event that the equalities hold, and equal to an arbitrary point $x_0 \in E$ otherwise.
 Then first, $Y$ is a modification of $X$.
-Then for any $\gamma < \sup_n (q_n - d)/p_n$ there is $n$ such that $\gamma < (q_n - d)/p_n$ and thus since $Y = Y_n$ the paths of $Y$ are Hölder continuous of order $\gamma$ almost surely.
+Then for any $\gamma < \sup_n (q_n - d)/p_n$ there is $n$ such that $\gamma < (q_n - d)/p_n$ and thus since $Y = Y_n$ the paths of $Y$ are locally Hölder continuous of order $\gamma$ almost surely.
 \end{proof}

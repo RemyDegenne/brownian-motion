@@ -15,7 +15,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 -/
 
 open MeasureTheory NNReal
-open scoped ENNReal NNReal
+open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
 
@@ -79,11 +79,11 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
 
 lemma exists_brownian :
     ∃ Y : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[gaussianLimit] preBrownian t)
-      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
-        ∀ ω, MemHolder β (Y · ω) :=
+      ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
+          ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
     (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by simp) (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+    (fun n ↦ by simp) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
@@ -97,12 +97,11 @@ lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
   exists_brownian.choose_spec.2.1 t
 
-lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) (ω : ℝ≥0 → ℝ) :
-    MemHolder β (brownian · ω) := by
-  refine exists_brownian.choose_spec.2.2 β hβ_pos ?_ ω
-  have hβ_lt' : (β : ℝ) < 2⁻¹ := by norm_cast
-  refine hβ_lt'.trans_eq
-    (iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_).symm
+lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) :
+    ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (brownian · ω) U := by
+  convert exists_brownian.choose_spec.2.2 ω t β hβ_pos ?_
+  suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
+  refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
     ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by field_simp; ring
     _ ≤ 2⁻¹ * 1 := by grw [mul_div_assoc, (div_le_one₀ (by positivity)).2]; linarith
@@ -115,10 +114,10 @@ lemma memHolder_brownian {β : ℝ≥0} (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
-  obtain ⟨C, h⟩ : ∃ C, HolderWith C 4⁻¹ (brownian · ω) := by
-    refine memHolder_brownian (by norm_num) (NNReal.inv_lt_inv ?_ ?_) ω
-    all_goals norm_num
-  exact h.continuous (by norm_num)
+  refine continuous_iff_continuousAt.mpr fun t ↦ ?_
+  obtain ⟨U, hu_mem, ⟨C, h⟩⟩ := memHolder_brownian ω t 4⁻¹ (by norm_num)
+    (NNReal.inv_lt_inv (by norm_num) (by norm_num))
+  exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
 lemma measurePreserving_brownian_apply {t : ℝ≥0} :
     MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
@@ -151,15 +150,9 @@ lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
 
 section Measure
 
--- Subtype measurable space. The measurable space on `ℝ≥0 → ℝ` is the product of Borel σ-algebras
--- #synth MeasurableSpace {f : ℝ≥0 → ℝ // Continuous f}
-
 noncomputable
 def wienerMeasureAux : Measure {f : ℝ≥0 → ℝ // Continuous f} :=
   gaussianLimit.map (fun ω ↦ (⟨fun t ↦ brownian t ω, continuous_brownian ω⟩))
-
--- Compact-open topology
--- #synth TopologicalSpace C(ℝ≥0, ℝ)
 
 section ContinuousMap.MeasurableSpace
 

@@ -628,6 +628,27 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
+omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [SecondCountableTopology E]
+  [CompleteSpace E] in
+lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
+    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
+    (hf_meas : ∀ t, StronglyMeasurable (f t)) (hg_meas : ∀ t, StronglyMeasurable (g t)) :
+    MeasurableSet  {ω | ∀ t, f t ω = g t ω} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    rw [← funext_iff]
+    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
+  rw [this]
+  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by
+    ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
+
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
@@ -656,26 +677,13 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
-    have : {ω | ∀ (t : T), Z n t ω = Z 0 t ω} = {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} := by
-      ext ω
-      simp only [Set.mem_setOf_eq, Subtype.forall]
-      refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
-      rw [← funext_iff]
-      refine Continuous.ext_on hT'_dense ?_ ?_ h
-      · obtain ⟨_, h⟩ := hZ_holder n ω
-        exact h.continuous (hβ_pos n)
-      · obtain ⟨_, h⟩ := hZ_holder 0 ω
-        exact h.continuous (hβ_pos 0)
-    rw [this]
-    have : {ω | ∀ (t : T'), Z n t ω = Z 0 t ω} = ⋂ (t : T'), {ω | Z n t ω = Z 0 t ω} := by
-      ext; simp
-    rw [this]
-    have : Countable T' := hT'_countable
-    refine MeasurableSet.iInter (fun t ↦ ?_)
-    refine StronglyMeasurable.measurableSet_eq_fun ?_ ?_
-    · exact (hZ_meas n t).stronglyMeasurable
-    · exact (hZ_meas 0 t).stronglyMeasurable
+    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    · obtain ⟨_, h⟩ := hZ_holder n ω
+      exact h.continuous (hβ_pos n)
+    · obtain ⟨_, h⟩ := hZ_holder 0 ω
+      exact h.continuous (hβ_pos 0)
+    · exact fun t ↦ (hZ_meas n t).stronglyMeasurable
+    · exact fun t ↦ (hZ_meas 0 t).stronglyMeasurable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
@@ -700,19 +708,184 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p), ∀ ω, MemHolder β (Y · ω) := by
-  sorry
+      ∧ ∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p),
+        ∃ C, HolderOnWith C β (Y · ω) U := by
+  have h_div_pos : 0 < (q - d) / p := by
+    have : 0 < q - d := by bound
+    positivity
+  let ⟨β₀', hβ₀_pos', hβ₀_lt'⟩ := exists_between h_div_pos
+  let β₀ : ℝ≥0 := ⟨β₀', hβ₀_pos'.le⟩
+  have hβ₀_pos : 0 < β₀ := mod_cast hβ₀_pos'
+  have hβ₀_lt : β₀ < (q - d) / p := mod_cast hβ₀_lt'
+  let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
+  have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
+    refine ⟨fun t ω ↦ hX.mk X t ω, ?_, fun t ↦ by filter_upwards [hX.ae_eq_mk t] with ω hω using hω⟩
+    constructor
+    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.measurablePair s t
+    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.kolmogorovCondition s t
+  have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
+    have h := hC.hasBoundedCoveringNumber n
+    refine fun ε hε ↦ ?_
+    specialize h ε (hε.trans_eq ?_)
+    · unfold EMetric.diam
+      simp [iSup_subtype]
+    refine le_of_eq_of_le ?_ h
+    simp only [ENat.toENNReal_inj]
+    unfold internalCoveringNumber
+    simp only [Set.subset_univ, iInf_pos]
+    classical
+    refine le_antisymm ?_ ?_
+    · simp only [le_iInf_iff]
+      intro A hA hA_cover
+      refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
+      · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
+        exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
+      · simp only [Finset.card_subtype, Nat.cast_le]
+        exact Finset.card_filter_le _ _
+    · simp only [le_iInf_iff]
+      intro A hA_cover
+      refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
+      refine (iInf_le _ ?_).trans ?_
+      · intro x hx_mem
+        obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
+        exact ⟨c, by simpa using hc_mem, hc⟩
+      · exact mod_cast Finset.card_image_le
+  choose Z hZ hZ_eq hZ_holder
+    using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hp_pos hdq_lt
+  have hZ_ae_eq : ∀ᵐ ω ∂P,
+      ∀ n t (ht : t ∈ C n), Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω := by
+    rw [ae_all_iff]
+    intro n
+    suffices ∀ᵐ ω ∂P, ∀ (t : C n), Z n ⟨t, t.2⟩ ω
+        = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩ ω by
+      filter_upwards [this] with ω hω t ht using hω ⟨t, ht⟩
+    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
+      exact h.continuous hβ₀_pos
+    · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
+      have h_cont := h.continuous hβ₀_pos
+      fun_prop
+    · intro t
+      filter_upwards [hZ_eq n t, hZ_eq (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩] with ω hω₁ hω₂
+      exact hω₁.trans hω₂.symm
+  let A := {ω | ∀ n t (ht : t ∈ C n),
+    Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω}
+  have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) :
+      Z n ⟨t, t.2⟩ ω = Z m ⟨t, hC.mono _ _ hnm t.2⟩ ω := by
+    induction m with
+    | zero => simp only [nonpos_iff_eq_zero] at hnm; subst hnm; simp
+    | succ m hm =>
+      by_cases hnm' : n ≤ m
+      · exact (hm hnm').trans (hω m t (hC.mono _ _ hnm' t.2))
+      · have : n = m + 1 := by omega
+        subst this
+        rfl
+  have hA : MeasurableSet A := by
+    have : A = ⋂ n, {ω | ∀ t : C n,
+      Z n ⟨t, t.2⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩ ω} := by ext; simp [A]
+    rw [this]
+    refine MeasurableSet.iInter (fun n ↦ ?_)
+    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
+      exact h.continuous hβ₀_pos
+    · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
+      have h_cont := h.continuous hβ₀_pos
+      fun_prop
+    · exact fun t ↦ (hZ n t).stronglyMeasurable
+    · exact fun t ↦ (hZ _ ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩).stronglyMeasurable
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
+  classical
+  have h_mem t : ∃ n, t ∈ C n := by
+    have ht : t ∈ ⋃ n, C n := hC.subset_iUnion (by simp : t ∈ Set.univ)
+    simpa using ht
+  let nt t := Nat.find (h_mem t)
+  have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
+  have hY_eq {ω} (hω : ω ∈ A) n (t : T) (ht : t ∈ C n) : Y t ω = Z n ⟨t, ht⟩ ω := by
+    simp only [hω, ↓reduceIte, Y]
+    exact hA_eq_le hω (Nat.find_le ht) ⟨t, hnt t⟩
+  refine ⟨Y, fun t ↦ Measurable.ite hA (hZ _ _) (by fun_prop), fun t ↦ ?_, ?_⟩
+  · specialize hZ (nt t) ⟨t, hnt t⟩
+    filter_upwards [hA_ae, hZ_eq (nt t) ⟨t, hnt t⟩] with ω hω hω₂
+    simp only [hω, ↓reduceIte, hω₂, Y, A, Xn]
+  · intro ω t
+    refine ⟨C (nt t), (hC.isOpen (nt t)).mem_nhds (hnt t), ?_⟩
+    intro β₀ hβ₀_pos hβ₀_lt
+    by_cases hω : ω ∈ A
+    swap
+    · simp [hω, Y, HolderOnWith]
+    obtain ⟨C', hC'⟩ := hZ_holder (nt t) β₀ hβ₀_pos hβ₀_lt ω
+    refine ⟨C', ?_⟩
+    intro s hs s' hs'
+    simp only
+    rw [hY_eq hω (nt t) s hs, hY_eq hω (nt t) s' hs']
+    exact hC' ⟨s, hs⟩ ⟨s', hs'⟩
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n))
-    (hc : ∀ n, c n ≠ ∞) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n)) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
-      ∧ ∀ (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < ⨆ n, (q n - d) / (p n)),
-        ∀ ω, MemHolder β (Y · ω) := by
-  sorry
+      ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (q n - d) / (p n)),
+        ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U := by
+  by_cases h_bdd : BddAbove (Set.range fun n ↦ (q n - d) / p n)
+  swap
+  · refine ⟨(hX 0).mk X, (hX 0).isMeasurableKolmogorovProcess_mk.measurable,
+        fun t ↦ ((hX 0).ae_eq_mk t).symm, fun ω t β hβ_pos hβ_lt ↦ ?_⟩
+    simp only [ciSup_of_not_bddAbove h_bdd, Real.sSup_empty] at hβ_lt
+    norm_cast at hβ_lt
+    exact absurd hβ_pos hβ_lt.not_gt
+  have h_ratio_pos n : 0 < (q n - d) / p n := by
+    have : 0 < q n - d := by bound
+    specialize hp_pos n
+    positivity
+  let β : ℕ → ℝ≥0 := fun n ↦ ⟨(q n - d) / p n, (h_ratio_pos n).le⟩
+  have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast h_ratio_pos n
+  have h_exists := fun n ↦ exists_modification_holder' hC (hX n) hc hd_pos (hp_pos n) (hdq_lt n)
+  choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
+  have hZ_cont n ω : Continuous fun t ↦ Z n t ω := by
+    refine continuous_iff_continuousAt.mpr fun t ↦ ?_
+    obtain ⟨U, hU_mem, hU⟩ := hZ_holder n ω t
+    have hβ_pos_half : 0 < β n / 2 := by specialize hβ_pos n; positivity
+    specialize hU (β n / 2) hβ_pos_half ?_
+    · simp [β, h_ratio_pos]
+    · obtain ⟨_, h⟩ := hU
+      exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
+  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
+    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    · exact hZ_cont n ω
+    · exact hZ_cont 0 ω
+    · intro t
+      filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+  rw [← ae_all_iff] at hZ_ae_eq'
+  let A := {ω | ∀ n t, Z n t ω = Z 0 t ω}
+  have hA : MeasurableSet A := by
+    have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
+    rw [this]
+    refine MeasurableSet.iInter (fun n ↦ ?_)
+    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    · exact hZ_cont n ω
+    · exact hZ_cont 0 ω
+    · exact fun t ↦ (hZ_meas n t).stronglyMeasurable
+    · exact fun t ↦ (hZ_meas 0 t).stronglyMeasurable
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
+  classical
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
+  refine ⟨Y, fun t ↦ Measurable.ite hA (hZ_meas 0 t) (by fun_prop), fun t ↦ ?_, ?_⟩
+  · filter_upwards [hA_ae, hZ_ae_eq 0 t] with ω hω hω₂
+    simpa only [hω, ↓reduceIte, Y] using hω₂
+  · intro ω t β₀ hβ₀_pos hβ₀_lt
+    by_cases hω : ω ∈ A
+    swap; · exact ⟨.univ, by simp [hω, Y, HolderOnWith]⟩
+    simp only [hω, ↓reduceIte, Y]
+    obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
+      rwa [lt_ciSup_iff h_bdd] at hβ₀_lt
+    refine ⟨(hZ_holder n ω t).choose, (hZ_holder n ω t).choose_spec.1, ?_⟩
+    simp_rw [← hω n]
+    exact (hZ_holder n ω t).choose_spec.2 β₀ hβ₀_pos hn
 
 end EMetricSpace
 
