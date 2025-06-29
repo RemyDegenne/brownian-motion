@@ -9,11 +9,10 @@ import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.CStarAlgebra.Matrix
 import Mathlib.Analysis.Normed.Field.Instances
+import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.Separation.CompletelyRegular
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.LinearAlgebra.Matrix.PosDef
 
 
 /-!
@@ -359,5 +358,5 @@ lemma multivariateGaussian_zero_one [Fintype ι] :
       ext; simp [Matrix.PosSemidef.one.sqrt_eq_one_iff.2]
     rw [this, Measure.map_id]
 
-
 end ProbabilityTheory
+#min_imports
