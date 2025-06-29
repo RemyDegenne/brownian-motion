@@ -827,10 +827,18 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
   have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast h_ratio_pos n
   have h_exists := fun n ↦ exists_modification_holder' hC (hX n) hc hd_pos (hp_pos n) (hdq_lt n)
   choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
+  have hZ_cont n ω : Continuous fun t ↦ Z n t ω := by
+    refine continuous_iff_continuousAt.mpr fun t ↦ ?_
+    obtain ⟨U, hU_mem, hU⟩ := hZ_holder n ω t
+    have hβ_pos_half : 0 < β n / 2 := by specialize hβ_pos n; positivity
+    specialize hU (β n / 2) hβ_pos_half ?_
+    · simp [β, h_ratio_pos]
+    · obtain ⟨_, h⟩ := hU
+      exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
     refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
-    · sorry
-    · sorry
+    · exact hZ_cont n ω
+    · exact hZ_cont 0 ω
     · intro t
       filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
   rw [← ae_all_iff] at hZ_ae_eq'
@@ -840,8 +848,8 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
     refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
-    · sorry
-    · sorry
+    · exact hZ_cont n ω
+    · exact hZ_cont 0 ω
     · exact fun t ↦ (hZ_meas n t).stronglyMeasurable
     · exact fun t ↦ (hZ_meas 0 t).stronglyMeasurable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
