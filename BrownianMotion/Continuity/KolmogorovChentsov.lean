@@ -746,7 +746,7 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       exact h.continuous hβ₀_pos
     · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
       have h_cont := h.continuous hβ₀_pos
-      sorry
+      fun_prop
     · intro t
       filter_upwards [hZ_eq n t, hZ_eq (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩] with ω hω₁ hω₂
       exact hω₁.trans hω₂.symm
@@ -772,7 +772,7 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       exact h.continuous hβ₀_pos
     · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
       have h_cont := h.continuous hβ₀_pos
-      sorry
+      fun_prop
     · exact fun t ↦ (hZ n t).stronglyMeasurable
     · exact fun t ↦ (hZ _ ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩).stronglyMeasurable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
@@ -782,31 +782,11 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     simpa using ht
   let nt t := Nat.find (h_mem t)
   have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
-  have hnt_preimage_zero : nt ⁻¹' {0} = C 0 := by ext t; simp [nt, Nat.find_eq_zero (h_mem t)]
-  have hnt_preimage n : nt ⁻¹' {n + 1} = C (n + 1) \ C n := by
-    ext t
-    simp only [Set.mem_preimage, Set.mem_singleton_iff, Nat.find_eq_iff (h_mem t), Set.mem_diff,
-      and_congr_right_iff, nt, Nat.lt_succ_iff]
-    intro htn
-    sorry -- monotonicity of `C`
-  borelize T
-  have measurable_nt : Measurable nt := by
-    refine measurable_to_nat fun t ↦ ?_
-    cases nt t with
-    | zero =>
-      rw [hnt_preimage_zero]
-      exact (hC.isOpen 0).measurableSet
-    | succ n =>
-      rw [hnt_preimage n]
-      refine MeasurableSet.diff ?_ ?_
-      · exact (hC.isOpen (n + 1)).measurableSet
-      · exact (hC.isOpen n).measurableSet
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
   have hY_eq {ω} (hω : ω ∈ A) n (t : T) (ht : t ∈ C n) : Y t ω = Z n ⟨t, ht⟩ ω := by
     simp only [hω, ↓reduceIte, Y]
     exact hA_eq_le hω (Nat.find_le ht) ⟨t, hnt t⟩
-  refine ⟨Y, fun t ↦ Measurable.ite hA ?_ (by fun_prop), fun t ↦ ?_, ?_⟩
-  · sorry
+  refine ⟨Y, fun t ↦ Measurable.ite hA (hZ _ _) (by fun_prop), fun t ↦ ?_, ?_⟩
   · specialize hZ (nt t) ⟨t, hnt t⟩
     filter_upwards [hA_ae, hZ_eq (nt t) ⟨t, hnt t⟩] with ω hω hω₂
     simp only [hω, ↓reduceIte, hω₂, Y, A, Xn]
@@ -818,8 +798,10 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     · simp [hω, Y, HolderOnWith]
     obtain ⟨C', hC'⟩ := hZ_holder (nt t) β₀ hβ₀_pos hβ₀_lt ω
     refine ⟨C', ?_⟩
-    -- todo: here replace Y by `Z (nt t)` since they are equal on `C (nt t)`.
-    sorry
+    intro s hs s' hs'
+    simp only
+    rw [hY_eq hω (nt t) s hs, hY_eq hω (nt t) s' hs']
+    exact hC' ⟨s, hs⟩ ⟨s', hs'⟩
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
