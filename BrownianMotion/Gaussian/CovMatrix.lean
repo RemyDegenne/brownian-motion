@@ -74,7 +74,7 @@ lemma covInnerBilin_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace �
     [IsFiniteMeasure μ] (h : MemLp id 2 μ) (L : E →L[ℝ] F) (u v : F) :
     covInnerBilin (μ.map L) u v = covInnerBilin μ (L.adjoint u) (L.adjoint v) := by
   rw [covInnerBilin_apply, covInnerBilin_apply h]
-  · simp_rw [L.integral_id_map (h.integrable (by simp)), id]
+  · simp_rw [id, L.integral_id_map (h.integrable (by simp))]
     rw [integral_map]
     · simp_rw [← map_sub, ← L.adjoint_inner_left]
     all_goals fun_prop

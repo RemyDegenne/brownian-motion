@@ -39,7 +39,7 @@ lemma measurePreserving_preBrownian_eval (t : ℝ≥0) :
     have : preBrownian t = (fun x ↦ x ⟨t, by simp⟩) ∘ ({t} : Finset ℝ≥0).restrict := by
       ext; simp [preBrownian]
     rw [this,
-      (measurePreserving_gaussianProjectiveFamily.comp measurePreserving_gaussianLimit).map_eq]
+      (measurePreserving_eval_gaussianProjectiveFamily.comp measurePreserving_gaussianLimit).map_eq]
 
 lemma map_sub_preBrownian (s t : ℝ≥0) :
     MeasurePreserving (preBrownian s - preBrownian t) gaussianLimit
@@ -48,7 +48,8 @@ lemma map_sub_preBrownian (s t : ℝ≥0) :
       ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
     ext; simp [preBrownian]
   rw [this]
-  exact measurePreserving_gaussianProjectiveFamily₂.comp measurePreserving_gaussianLimit
+  exact measurePreserving_eval_sub_eval_gaussianProjectiveFamily.comp
+    measurePreserving_gaussianLimit
 
 lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
     IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n

@@ -31,6 +31,15 @@ def toBilinForm : LinearMap.BilinForm 𝕜 E where
 @[simp]
 lemma toBilinForm_apply (x y : E) : f.toBilinForm x y = f x y := rfl
 
+lemma ext_basis {f g : ContinuousBilinForm 𝕜 E} (h : ∀ i, ∀ j, f (b i) (b j) = g (b i) (b j)) :
+    f = g := by
+  ext x y
+  rw [← toBilinForm_apply, ← toBilinForm_apply]
+  have : f.toBilinForm = g.toBilinForm := by
+    apply LinearMap.BilinForm.ext_basis b
+    simpa
+  rw [this]
+
 section IsSymm
 
 /-- A continuous bilinear form `f` is symmetric if for any `x, y` we have `f x y = f y x`. -/

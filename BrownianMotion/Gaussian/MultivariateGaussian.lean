@@ -9,6 +9,7 @@ import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.CStarAlgebra.Matrix
 import Mathlib.Analysis.Normed.Field.Instances
+import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.Separation.CompletelyRegular
@@ -181,6 +182,13 @@ def multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ)
     Measure (EuclideanSpace ℝ ι) :=
   (stdGaussian (EuclideanSpace ℝ ι)).map (fun x ↦ μ + toEuclideanCLM (𝕜 := ℝ) hS.sqrt x)
 
+/-- Because `multivariateGaussian` carries a proof that `S` is positive semidefinite,
+`rw [h]` will not solve the goal below. This is what this lemma is used for. -/
+lemma multivariateGaussian_congr_matrix {μ : EuclideanSpace ℝ ι} {S S' : Matrix ι ι ℝ}
+    {hS : S.PosSemidef} (h : S = S') :
+    multivariateGaussian μ S hS = multivariateGaussian μ S' (h ▸ hS) := by
+  cases h; rfl
+
 variable {μ : EuclideanSpace ℝ ι} {S : Matrix ι ι ℝ} {hS : S.PosSemidef}
 
 instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S hS) := by
@@ -278,5 +286,77 @@ lemma charFun_multivariateGaussian (x : EuclideanSpace ℝ ι) :
   congr
   · exact integral_id_multivariateGaussian
   · exact covInnerBilin_multivariateGaussian
+
+/-- `Finset.restrict₂` as a continuous linear map. -/
+def _root_.Finset.restrict₂CLM {ι : Type*} (R : Type*) {M : ι → Type*} [Semiring R]
+    [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)] [∀ i, TopologicalSpace (M i)]
+    {I J : Finset ι} (hIJ : I ⊆ J) :
+    (Π i : J, M i) →L[R] Π i : I, M i where
+  toFun := Finset.restrict₂ hIJ
+  map_add' x y := by ext; simp
+  map_smul' m x := by ext; simp
+  cont := by fun_prop
+
+lemma _root_.Finset.coe_restrict₂CLM {ι R : Type*} {M : ι → Type*} [Semiring R]
+    [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)] [∀ i, TopologicalSpace (M i)] {I J : Finset ι}
+    (hIJ : I ⊆ J) :
+    ⇑(Finset.restrict₂CLM (R := R) (M := M) hIJ) = Finset.restrict₂ hIJ := rfl
+
+@[simp]
+lemma _root_.Finset.restrict₂CLM_apply {ι R : Type*} {M : ι → Type*} [Semiring R]
+    [∀ i, AddCommMonoid (M i)] [∀ i, Module R (M i)] [∀ i, TopologicalSpace (M i)] {I J : Finset ι}
+    (hIJ : I ⊆ J) (x : Π i : J, M i) (i : I) :
+    Finset.restrict₂CLM (R := R) hIJ x i = x ⟨i.1, hIJ i.2⟩ := rfl
+
+/-- The restriction from `EuclideanSpace 𝕜 J` to `EuclideanSpace κ I` when `I ⊆ J`. -/
+def _root_.EuclideanSpace.restrict₂ {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι} (hIJ : I ⊆ J) :
+    EuclideanSpace 𝕜 J →L[𝕜] EuclideanSpace 𝕜 I :=
+  (EuclideanSpace.equiv I 𝕜).symm.toContinuousLinearMap ∘L
+    (Finset.restrict₂CLM 𝕜 (M := fun _ ↦ 𝕜) hIJ) ∘L
+      (EuclideanSpace.equiv J 𝕜).toContinuousLinearMap
+
+lemma _root_.EuclideanSpace.coe_restrict₂ {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι} (hIJ : I ⊆ J) :
+    ⇑(@EuclideanSpace.restrict₂ ι 𝕜 _ I J hIJ) = EuclideanSpace.restrict₂ hIJ := rfl
+
+@[simp]
+lemma _root_.EuclideanSpace.restrict₂_apply {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι}
+    (hIJ : I ⊆ J) (x : EuclideanSpace 𝕜 J) (i : I) :
+    EuclideanSpace.restrict₂ hIJ x i = x ⟨i.1, hIJ i.2⟩ := rfl
+
+variable {ι : Type*} [DecidableEq ι] {I J : Finset ι}
+
+variable {μ : EuclideanSpace ℝ I} {S : Matrix I I ℝ} {hS : S.PosSemidef}
+
+lemma measurePreserving_restrict_multivariateGaussian (hJI : J ⊆ I) :
+    MeasurePreserving (EuclideanSpace.restrict₂ hJI) (multivariateGaussian μ S hS)
+      (multivariateGaussian (μ.restrict₂ hJI)
+      (S.submatrix (fun i : J ↦ ⟨i.1, hJI i.2⟩) (fun i : J ↦ ⟨i.1, hJI i.2⟩))
+      (hS.submatrix _)) where
+  measurable := by fun_prop
+  map_eq := by
+    apply IsGaussian.ext
+    · simp only [id_eq, integral_id_multivariateGaussian]
+      rw [ContinuousLinearMap.integral_id_map, integral_id_multivariateGaussian]
+      exact IsGaussian.integrable_id
+    apply ContinuousBilinForm.ext_basis (EuclideanSpace.basisFun J ℝ).toBasis
+    intro i j
+    rw [covInnerBilin_apply_eq, covariance_map]
+    · have (i : J) : (fun u ↦ ⟪(EuclideanSpace.basisFun J ℝ).toBasis i, u⟫) ∘
+          EuclideanSpace.restrict₂ hJI = fun u ↦ u ⟨i.1, hJI i.2⟩ := by ext; simp
+      simp_rw [this, covariance_eval_multivariateGaussian, covInnerBilin_multivariateGaussian,
+        ContinuousBilinForm.ofMatrix_basis, S.submatrix_apply]
+    any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+    · fun_prop
+    · exact IsGaussian.memLp_two_id
+
+open scoped ComplexOrder in
+@[simp]
+lemma _root_.Matrix.PosSemidef.sqrt_one {n 𝕜 : Type*} [Fintype n] [RCLike 𝕜] [DecidableEq n]
+    (h : Matrix.PosSemidef (1 : Matrix n n 𝕜)) : h.sqrt = 1 := h.sqrt_eq_one_iff.2 rfl
+
+lemma multivariateGaussian_zero_one [Fintype ι] :
+    multivariateGaussian 0 (1 : Matrix ι ι ℝ) Matrix.PosSemidef.one =
+      stdGaussian (EuclideanSpace ℝ ι) := by
+  simp [multivariateGaussian]
 
 end ProbabilityTheory
