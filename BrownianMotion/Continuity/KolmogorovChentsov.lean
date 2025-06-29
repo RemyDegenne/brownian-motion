@@ -812,6 +812,13 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (q n - d) / (p n)),
         ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U := by
+  by_cases h_bdd : BddAbove (Set.range fun n ↦ (q n - d) / p n)
+  swap
+  · refine ⟨(hX 0).mk X, (hX 0).isMeasurableKolmogorovProcess_mk.measurable,
+        fun t ↦ ((hX 0).ae_eq_mk t).symm, fun ω t β hβ_pos hβ_lt ↦ ?_⟩
+    simp only [ciSup_of_not_bddAbove h_bdd, Real.sSup_empty] at hβ_lt
+    norm_cast at hβ_lt
+    exact absurd hβ_pos hβ_lt.not_gt
   have h_ratio_pos n : 0 < (q n - d) / p n := by
     have : 0 < q n - d := by bound
     specialize hp_pos n
@@ -848,8 +855,7 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     swap; · exact ⟨.univ, by simp [hω, Y, HolderOnWith]⟩
     simp only [hω, ↓reduceIte, Y]
     obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
-      rwa [lt_ciSup_iff] at hβ₀_lt
-      sorry -- `BddAbove (Set.range fun n ↦ (q n - d) / p n)`: by_cases somewhere above
+      rwa [lt_ciSup_iff h_bdd] at hβ₀_lt
     refine ⟨(hZ_holder n ω t).choose, (hZ_holder n ω t).choose_spec.1, ?_⟩
     simp_rw [← hω n]
     exact (hZ_holder n ω t).choose_spec.2 β₀ hβ₀_pos hn
