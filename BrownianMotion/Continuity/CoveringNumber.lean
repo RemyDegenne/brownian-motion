@@ -13,6 +13,7 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.Topology.MetricSpace.MetricSeparated
+import Mathlib.Tactic.Push
 
 /-!
 # Covering and packing numbers
@@ -58,10 +59,35 @@ lemma internalCoveringNumber_le_of_isCover [EDist E] {C : Finset E} {r : ℝ≥0
 lemma IsCover.self [PseudoEMetricSpace E] (A : Set E) (r : ℝ≥0∞) : IsCover A r A :=
   fun a ha => ⟨a, ha, by simp⟩
 
+lemma isCover_zero_iff [EMetricSpace E] (C A : Set E) : IsCover C 0 A ↔ A ⊆ C := by
+  constructor
+  · intro h a ha
+    obtain ⟨c, hc, h⟩ := h a ha
+    simp at h
+    rwa [h]
+  · intro h a ha
+    refine ⟨a, h ha, ?_⟩
+    simp
+
 lemma Set.Finite.internalCoveringNumber_le_ncard [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E)
     (ha : A.Finite) : internalCoveringNumber r A ≤ A.ncard := by
   rw [internalCoveringNumber]
   exact sInf_le ⟨ha.toFinset, by simpa using (ncard_eq_toFinset_card _ _).symm⟩
+
+@[simp]
+lemma internalCoveringNumber_zero [EMetricSpace E] (A : Set E) :
+    internalCoveringNumber 0 A = A.encard := by
+  obtain hA | hA := A.finite_or_infinite
+  · apply le_antisymm
+    · exact hA.cast_ncard_eq ▸ hA.internalCoveringNumber_le_ncard _
+    · rw [internalCoveringNumber]
+      refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
+      rw [isCover_zero_iff] at hC₂
+      simp [subset_antisymm hC₂ hC₁]
+  · rw [hA.encard_eq, internalCoveringNumber]
+    refine iInf_eq_top.2 fun C ↦ iInf_eq_top.2 fun hC₁ ↦ iInf_neg fun hC₂ ↦ ?_
+    rw [isCover_zero_iff] at hC₂
+    exact (subset_antisymm hC₁ hC₂ ▸ C.finite_toSet).not_infinite hA
 
 lemma EMetric.isCover_iff [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E} :
     IsCover C ε A ↔ A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
@@ -75,6 +101,27 @@ lemma isCover_empty_iff [EDist E] (ε : ℝ≥0∞) (A : Set E) :
 lemma isCover_empty [EDist E] (ε : ℝ≥0∞) :
     IsCover (∅ : Set E) ε ∅ := by
   simp [isCover_empty_iff]
+
+lemma Set.Nonempty.one_le_internalCoveringNumber [EDist E] {A : Set E} (hA : A.Nonempty)
+    (r : ℝ≥0∞) : 1 ≤ internalCoveringNumber r A := by
+  refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
+  simp only [Nat.one_le_cast, Finset.one_le_card]
+  by_contra!
+  rw [Finset.not_nonempty_iff_eq_empty] at this
+  rw [this, Finset.coe_empty, isCover_empty_iff] at hC₂
+  exact Set.nonempty_iff_ne_empty.1 hA hC₂
+
+lemma internalCoveringNumber_top_of_nonempty [PseudoEMetricSpace E] {A : Set E} (hA : A.Nonempty) :
+    internalCoveringNumber ⊤ A  = 1 := by
+  apply le_antisymm
+  · rw [internalCoveringNumber]
+    obtain ⟨x, hx⟩ := hA
+    refine iInf_le_of_le {x} <| iInf_le_of_le ?_ <| iInf_le_of_le ?_ ?_
+    · simpa
+    · rintro a -
+      exact ⟨x, by simp, by simp⟩
+    · simp
+  · exact hA.one_le_internalCoveringNumber _
 
 lemma not_isCover_empty [EDist E] (ε : ℝ≥0∞) (A : Set E) (h_nonempty : A.Nonempty) :
     ¬ IsCover (∅ : Set E) ε A := by
@@ -695,9 +742,35 @@ lemma internalCoveringNumber_le_volume_div (A : Set E) {ε : ℝ≥0∞} (hε₁
     rw [show (ε : ℝ≥0∞) / 2 = ↑(ε / 2) by simp, Metric.emetric_closedBall_nnreal]
     exact Or.inl <| ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
+lemma EMetric.nonempty_closedball {E : Type*} [PseudoEMetricSpace E] {x : E} {r : ℝ≥0∞} :
+    (closedBall x r).Nonempty := ⟨x, mem_closedBall_self⟩
+
 lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
     ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall (0 : E) 1) := by
-  sorry
+  obtain _ | _ := subsingleton_or_nontrivial E
+  · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
+    norm_cast
+    exact EMetric.nonempty_closedball.one_le_internalCoveringNumber _
+  obtain rfl | hε := eq_zero_or_pos ε
+  · simp only [ENNReal.inv_zero, internalCoveringNumber_zero]
+    rw [Set.encard_eq_top]
+    · simp
+    exact infinite_of_mem_nhds 0 (EMetric.closedBall_mem_nhds 0 (by norm_num))
+  obtain rfl | hε' := eq_top_or_lt_top ε
+  · simp [zero_pow Module.finrank_pos.ne']
+  refine le_of_eq_of_le ?_
+    (volume_div_le_internalCoveringNumber (EMetric.closedBall (0 : E) 1) hε)
+  lift ε to ℝ≥0 using hε'.ne
+  rw [show (1 : ℝ≥0∞) = ↑(1 : ℝ≥0) from rfl, Metric.emetric_closedBall_nnreal,
+    Metric.emetric_closedBall_nnreal, InnerProductSpace.volume_closedBall,
+    InnerProductSpace.volume_closedBall, ENNReal.mul_div_mul_right]
+  · simp_rw [← ENNReal.rpow_natCast]
+    rw [← ENNReal.div_rpow_of_nonneg]
+    congr
+    simp
+    simp
+  positivity
+  simp
 
 lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
     internalCoveringNumber ε (EMetric.closedBall (0 : E) 1)
