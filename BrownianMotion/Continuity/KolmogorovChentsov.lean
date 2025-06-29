@@ -734,7 +734,25 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       simp [iSup_subtype]
     refine le_of_eq_of_le ?_ h
     simp only [ENat.toENNReal_inj]
-    sorry
+    unfold internalCoveringNumber
+    simp only [Set.subset_univ, iInf_pos]
+    classical
+    refine le_antisymm ?_ ?_
+    · simp only [le_iInf_iff]
+      intro A hA hA_cover
+      refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
+      · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
+        exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
+      · simp only [Finset.card_subtype, Nat.cast_le]
+        exact Finset.card_filter_le _ _
+    · simp only [le_iInf_iff]
+      intro A hA_cover
+      refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
+      refine (iInf_le _ ?_).trans ?_
+      · intro x hx_mem
+        obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
+        exact ⟨c, by simpa using hc_mem, hc⟩
+      · exact mod_cast Finset.card_image_le
   choose Z hZ hZ_eq hZ_holder
     using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hp_pos hdq_lt
   have hZ_ae_eq : ∀ᵐ ω ∂P,
