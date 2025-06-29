@@ -683,11 +683,17 @@ lemma volume_div_le_internalCoveringNumber (A : Set E) {ε : ℝ≥0∞} (hε : 
     exact ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
 open scoped Pointwise in
-lemma internalCoveringNumber_le_volume_div (A : Set E) (ε : ℝ≥0∞) :
+lemma internalCoveringNumber_le_volume_div (A : Set E) {ε : ℝ≥0∞} (hε₁ : 0 < ε) (hε₂ : ε < ∞) :
     internalCoveringNumber ε A
       ≤ volume (A + EMetric.closedBall (0 : E) (ε/2))
         / volume (EMetric.closedBall (0 : E) (ε/2)) := by
-  sorry
+  grw [internalCoveringNumber_le_packingNumber, ENNReal.le_div_iff_mul_le,
+    packingNumber_mul_le_volume]
+  · exact Or.inl <| EMetric.measure_closedBall_pos volume _
+      (ENNReal.div_ne_zero.2 ⟨hε₁.ne', by norm_num⟩) |>.ne'
+  · lift ε to ℝ≥0 using hε₂.ne
+    rw [show (ε : ℝ≥0∞) / 2 = ↑(ε / 2) by simp, Metric.emetric_closedBall_nnreal]
+    exact Or.inl <| ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
 lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
     ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall (0 : E) 1) := by

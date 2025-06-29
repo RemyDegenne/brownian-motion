@@ -201,7 +201,6 @@ If $0 < \varepsilon$ then $V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
   \uses{lem:volume_le_of_isCover}
 If $A$ has no $\varepsilon$-cover, then $N^{ext}_\varepsilon(A) = \infty$, and because $0 < \varepsilon$, we have that $0 < V(B_\varepsilon)$, so the right-hand side is infinite and the inequality follows.
 
-
 Otherwise there exists an $\varepsilon$-cover which realizes $N^{ext}_\varepsilon(A)$. We can conclude by Lemma~\ref{lem:volume_le_of_isCover}.
 \end{proof}
 
@@ -245,7 +244,7 @@ Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated
   \uses{def:internalCoveringNumber}
   \leanok
   \lean{volume_div_le_internalCoveringNumber}
-$\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
+If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
 \begin{proof}
