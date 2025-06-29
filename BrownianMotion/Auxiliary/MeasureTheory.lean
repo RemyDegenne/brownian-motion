@@ -131,13 +131,7 @@ lemma covariance_map {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : Measura
   repeat rw [integral_map]
   · rfl
   any_goals assumption
-  apply AEStronglyMeasurable.mul
-  apply AEStronglyMeasurable.sub
-  exact hX
-  exact aestronglyMeasurable_const
-  apply AEStronglyMeasurable.sub
-  exact hY
-  exact aestronglyMeasurable_const
+  exact (hX.sub aestronglyMeasurable_const).mul (hY.sub aestronglyMeasurable_const)
 
 lemma variance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
     {μ : Measure Ω'} (X : Ω → ℝ) (Y : Ω' ≃ᵐ Ω) :
