@@ -349,14 +349,14 @@ lemma measurePreserving_restrict_multivariateGaussian (hJI : J ⊆ I) :
     · fun_prop
     · exact IsGaussian.memLp_two_id
 
+open scoped ComplexOrder in
+@[simp]
+lemma _root_.Matrix.PosSemidef.sqrt_one {n 𝕜 : Type*} [Fintype n] [RCLike 𝕜] [DecidableEq n]
+    (h : Matrix.PosSemidef (1 : Matrix n n 𝕜)) : h.sqrt = 1 := h.sqrt_eq_one_iff.2 rfl
+
 lemma multivariateGaussian_zero_one [Fintype ι] :
     multivariateGaussian 0 (1 : Matrix ι ι ℝ) Matrix.PosSemidef.one =
       stdGaussian (EuclideanSpace ℝ ι) := by
-    rw [multivariateGaussian]
-    have : (fun x : EuclideanSpace ℝ ι ↦ 0 +
-        (toEuclideanCLM (𝕜 := ℝ) Matrix.PosSemidef.one.sqrt) x) = id := by
-      ext; simp [Matrix.PosSemidef.one.sqrt_eq_one_iff.2]
-    rw [this, Measure.map_id]
+  simp [multivariateGaussian]
 
 end ProbabilityTheory
-#min_imports
