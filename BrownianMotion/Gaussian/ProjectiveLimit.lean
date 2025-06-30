@@ -95,7 +95,7 @@ lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
 
 lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
     Var[fun x ↦ x s; gaussianProjectiveFamily I] = s := by
-  rw [← covariance_same, covariance_eval_gaussianProjectiveFamily, min_self]
+  rw [← covariance_self, covariance_eval_gaussianProjectiveFamily, min_self]
   exact Measurable.aemeasurable <| by fun_prop
 
 lemma measurePreserving_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
