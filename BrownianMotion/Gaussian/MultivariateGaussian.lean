@@ -257,7 +257,7 @@ lemma covariance_eval_multivariateGaussian (i j : ι) :
 
 lemma variance_eval_multivariateGaussian (i : ι) :
     Var[fun x ↦ x i; multivariateGaussian μ S hS] = S i i := by
-  rw [← covariance_same, covariance_eval_multivariateGaussian]
+  rw [← covariance_self, covariance_eval_multivariateGaussian]
   exact Measurable.aemeasurable <| by fun_prop
 
 lemma measurePreserving_multivariateGaussian {i : ι} :
