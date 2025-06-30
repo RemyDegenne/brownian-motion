@@ -575,17 +575,27 @@ lemma volume_le_of_isCover (hC : IsCover C ε A) :
 lemma volume_le_externalCoveringNumber_mul (A : Set E) {ε : ℝ≥0∞} (hε : 0 < ε) :
     volume A ≤ externalCoveringNumber ε A * volume (EMetric.closedBall (0 : E) ε) := by
   rw [externalCoveringNumber]
-  set X := {C : Finset E | IsCover (C : Set E) ε A}
+  let X := {C : Finset E | IsCover (C : Set E) ε A}
   change _ ≤ (⨅ C ∈ X, (C.card : ℕ∞)).toENNReal * _
   rw [← iInf_subtype'']
   obtain _ | _ := isEmpty_or_nonempty X
-  · simp only [ENat.iInf_eq_top_of_isEmpty, ENat.toENNReal_top]
-    rw [ENNReal.top_mul]
-    · exact le_top
-    exact EMetric.measure_closedBall_pos _ _ hε.ne' |>.ne'
+  · simp [ENat.iInf_eq_top_of_isEmpty, ENat.toENNReal_top,
+      EMetric.measure_closedBall_pos _ _ hε.ne' |>.ne']
   obtain ⟨C, hC⟩ := ENat.exists_eq_iInf (fun C : X ↦ (C : Finset E).card)
   grw [← hC, volume_le_of_isCover C.2]
   norm_cast
+
+lemma Metric.IsSeparated.disjoint_ball {E : Type*} [PseudoEMetricSpace E] {s : Set E}
+    {ε : ℝ≥0∞} (hs : IsSeparated ε s) : s.PairwiseDisjoint (EMetric.ball · (ε / 2)) := by
+  intro x hx y hy hxy
+  have hxy := hs hx hy hxy
+  by_contra!
+  obtain ⟨z, hz1, hz2⟩ := Set.not_disjoint_iff.1 this
+  refine lt_irrefl (edist x y) ?_ |>.elim
+  calc
+  edist x y ≤ edist x z + edist y z := edist_triangle_right x y z
+  _ ≤ ε / 2 + ε / 2 := by grw [EMetric.mem_ball'.1 hz1 |>.le, EMetric.mem_ball'.1 hz2 |>.le]
+  _ < edist x y := by rwa [ENNReal.add_halves]
 
 lemma Metric.IsSeparated.disjoint_closedBall {E : Type*} [PseudoEMetricSpace E] {s : Set E}
     {ε : ℝ≥0∞} (hs : IsSeparated ε s) : s.PairwiseDisjoint (EMetric.closedBall · (ε / 2)) := by
@@ -608,72 +618,50 @@ lemma le_volume_of_isSeparated (hC : IsSeparated ε (C : Set E)) (h_subset : ↑
       ∑ x ∈ C, volume (EMetric.closedBall x (ε / 2)) := by
     simp_rw [fun x ↦ Measure.IsAddLeftInvariant.measure_closedBall_const' volume x (0 : E),
       Finset.sum_const, nsmul_eq_mul]
-  _ = volume (⋃ x ∈ C, EMetric.closedBall x (ε / 2)) := by
-    rw [measure_biUnion_finset]
-    · exact hC.disjoint_closedBall
-    · exact fun _ _ ↦ EMetric.isClosed_closedBall.measurableSet
+  _ = volume (⋃ x ∈ C, EMetric.closedBall x (ε / 2)) :=
+    (measure_biUnion_finset hC.disjoint_closedBall
+      fun _ _ ↦ EMetric.isClosed_closedBall.measurableSet).symm
   _ ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
-    apply measure_mono
-    intro x hx
+    refine measure_mono fun x hx ↦ ?_
     rw [Set.mem_iUnion₂] at hx
     obtain ⟨y, hy, hx⟩ := hx
-    refine ⟨y, h_subset hy, x - y, ?_, ?_⟩
-    · rwa [EMetric.mem_closedBall, edist_zero_right, ← edist_eq_enorm_sub]
-    · simp
+    refine ⟨y, h_subset hy, x - y, ?_, by simp⟩
+    rwa [EMetric.mem_closedBall, edist_zero_right, ← edist_eq_enorm_sub]
 
-lemma iSup_coe_ennreal_enat {ι : Type*} (f : ι → ℕ∞) : ⨆ i, (f i : ℝ≥0∞) = ⨆ i, f i := by
-  apply eq_of_forall_ge_iff
-  intro c
-  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+lemma iSup_coe_ennreal_enat {ι : Sort*} (f : ι → ℕ∞) : ⨆ i, (f i : ℝ≥0∞) = ⨆ i, f i := by
+  refine eq_of_forall_ge_iff fun c ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · obtain rfl | hc := eq_or_ne c ⊤
     · exact le_top
     lift c to ℝ≥0 using hc
-    have : ∀ i, f i ≤ Nat.floor c := by
-      intro i
+    have (i : ι) : f i ≤ Nat.floor c := by
       have := (le_iSup _ i).trans h
       have h' : f i ≠ ⊤ := by
         rw [← ENat.toENNReal_ne_top]
-        apply ne_of_lt
-        apply this.trans_lt
-        exact coe_lt_top
+        exact this.trans_lt coe_lt_top |>.ne
       lift f i to ℕ using h' with k
       norm_cast
-      rw [Nat.le_floor_iff]
-      · change ((k : ℝ≥0) : ℝ≥0∞) ≤ c at this
-        exact ENNReal.coe_le_coe.1 this
-      exact zero_le _
+      change ((k : ℝ≥0) : ℝ≥0∞) ≤ c at this
+      exact Nat.le_floor_iff (zero_le _) |>.2 <| ENNReal.coe_le_coe.1 this
     calc
     (↑(⨆ i, f i) : ℝ≥0∞) ≤ Nat.floor c := by
       change (↑(⨆ i, f i) : ℝ≥0∞) ≤ ((Nat.floor c : ENat) : ℝ≥0∞)
-      rw [ENat.toENNReal_le]
-      exact iSup_le this
-    _ ≤ c := by
-      change ((Nat.floor c : ℝ≥0) : ℝ≥0∞) ≤ _
-      rw [ENNReal.coe_le_coe]
-      exact Nat.floor_le (zero_le _)
-  · apply iSup_le
-    intro i
-    refine le_trans ?_ h
-    rw [ENat.toENNReal_le]
-    exact le_iSup f i
+      exact ENat.toENNReal_le.2 (iSup_le this)
+    _ ≤ c := by norm_cast; exact Nat.floor_le (zero_le _)
+  · exact iSup_le fun i ↦ le_trans (ENat.toENNReal_le.2 (le_iSup f i)) h
 
 open scoped Pointwise in
 lemma volume_eq_top_of_packingNumber (A : Set E) {ε : ℝ≥0∞} (hε : 0 < ε)
     (h : packingNumber ε A = ⊤) : volume (A + EMetric.closedBall (0 : E) (ε / 2)) = ∞ := by
   set X := {C : Finset E | (C : Set E) ⊆ A ∧ IsSeparated ε (C : Set E)}
-  simp_rw [packingNumber, iSup_and'] at h
-  change (⨆ C ∈ X, C.card : ℕ∞) = ⊤ at h
-  have : ⨆ C ∈ X, C.1.card * volume (EMetric.closedBall (0 : E) (ε / 2)) = ⊤ := by
-    rw [← iSup_subtype'', ← ENNReal.iSup_mul]
-    change (⨆ C : X, ((C.1.card : ℕ∞) : ℝ≥0∞)) * _ = _
-    rw [iSup_coe_ennreal_enat, iSup_subtype'' X (fun C ↦ (C.card : ℕ∞)), h, ENat.toENNReal_top,
-      top_mul]
-    · exact EMetric.measure_closedBall_pos volume _
+  rw [packingNumber] at h
+  have : ⨆ C : Finset E, ⨆ (_ : (C : Set E) ⊆ A), ⨆ (_ : IsSeparated ε (C : Set E)),
+      C.card * volume (EMetric.closedBall (0 : E) (ε / 2)) = ⊤ := by
+    simp_rw [← ENNReal.iSup_mul, ← ENat.toENNReal_coe, iSup_coe_ennreal_enat, h]
+    rw [ENat.toENNReal_top, top_mul]
+    exact EMetric.measure_closedBall_pos volume _
         (ENNReal.div_ne_zero.2 ⟨hε.ne', by norm_num⟩) |>.ne'
   rw [eq_top_iff, ← this]
-  apply iSup₂_le
-  rintro C ⟨hC₁, hC₂⟩
-  exact le_volume_of_isSeparated hC₂ hC₁
+  exact iSup_le fun C ↦ iSup₂_le fun hC₁ hC₂ ↦ le_volume_of_isSeparated hC₂ hC₁
 
 open scoped Pointwise in
 lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0∞) :
