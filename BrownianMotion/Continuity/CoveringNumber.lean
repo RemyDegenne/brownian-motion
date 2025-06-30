@@ -111,7 +111,7 @@ lemma Set.Nonempty.one_le_internalCoveringNumber [EDist E] {A : Set E} (hA : A.N
   rw [this, Finset.coe_empty, isCover_empty_iff] at hC₂
   exact Set.nonempty_iff_ne_empty.1 hA hC₂
 
-lemma internalCoveringNumber_top_of_nonempty [PseudoEMetricSpace E] {A : Set E} (hA : A.Nonempty) :
+lemma Set.Nonempty.internalCoveringNumber_top [PseudoEMetricSpace E] {A : Set E} (hA : A.Nonempty) :
     internalCoveringNumber ⊤ A  = 1 := by
   apply le_antisymm
   · rw [internalCoveringNumber]
@@ -480,6 +480,12 @@ lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {
   simp only [Set.subset_toFinset]
   exact minimalCover_subset hr
 
+lemma internalCoveringNumber_le_encard' [EMetricSpace E] (r : ℝ≥0∞) {A : Set E} :
+    internalCoveringNumber r A ≤ A.encard := by
+  obtain rfl | hr := eq_zero_or_pos r
+  · rw [internalCoveringNumber_zero]
+  exact internalCoveringNumber_le_encard hr
+
 end comparisons
 
 open scoped Pointwise in
@@ -742,7 +748,8 @@ lemma internalCoveringNumber_le_volume_div (A : Set E) {ε : ℝ≥0∞} (hε₁
     rw [show (ε : ℝ≥0∞) / 2 = ↑(ε / 2) by simp, Metric.emetric_closedBall_nnreal]
     exact Or.inl <| ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
-lemma EMetric.nonempty_closedball {E : Type*} [PseudoEMetricSpace E] {x : E} {r : ℝ≥0∞} :
+@[simp]
+lemma EMetric.nonempty_closedBall {E : Type*} [PseudoEMetricSpace E] {x : E} {r : ℝ≥0∞} :
     (closedBall x r).Nonempty := ⟨x, mem_closedBall_self⟩
 
 lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
@@ -750,14 +757,14 @@ lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
-    exact EMetric.nonempty_closedball.one_le_internalCoveringNumber _
+    exact EMetric.nonempty_closedBall.one_le_internalCoveringNumber _
   obtain rfl | hε := eq_zero_or_pos ε
   · simp only [ENNReal.inv_zero, internalCoveringNumber_zero]
     rw [Set.encard_eq_top]
     · simp
     exact infinite_of_mem_nhds 0 (EMetric.closedBall_mem_nhds 0 (by norm_num))
   obtain rfl | hε' := eq_top_or_lt_top ε
-  · simp [zero_pow Module.finrank_pos.ne']
+  · simp [Module.finrank_pos.ne']
   refine le_of_eq_of_le ?_
     (volume_div_le_internalCoveringNumber (EMetric.closedBall (0 : E) 1) hε)
   lift ε to ℝ≥0 using hε'.ne
@@ -766,15 +773,83 @@ lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
     InnerProductSpace.volume_closedBall, ENNReal.mul_div_mul_right]
   · simp_rw [← ENNReal.rpow_natCast]
     rw [← ENNReal.div_rpow_of_nonneg]
-    congr
+    · congr
+      simp
     simp
-    simp
-  positivity
+  · positivity
   simp
+
+lemma InnerProductSpace.volume_closedBall_div {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+    volume (closedBall x r) / volume (closedBall y s) =
+      ENNReal.ofReal (r / s) ^ (Module.finrank ℝ E) := by
+  obtain _ | _ := subsingleton_or_nontrivial E
+  · simp [Module.finrank_zero_of_subsingleton, hr.le, hs.le]
+  rw [InnerProductSpace.volume_closedBall, InnerProductSpace.volume_closedBall]
+  rw [ENNReal.mul_div_mul_right]
+  · simp_rw [← ENNReal.rpow_natCast]
+    rw [← ENNReal.div_rpow_of_nonneg, ENNReal.ofReal_div_of_pos]
+    · congr
+    simp
+  · positivity
+  simp
+
+lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) (r s : ℝ≥0∞) :
+    volume (EMetric.closedBall x r) / volume (EMetric.closedBall y s) =
+      (r / s) ^ (Module.finrank ℝ E) := by
+  nontriviality E
+  obtain rfl | hr := eq_top_or_lt_top r <;> obtain rfl | hs := eq_top_or_lt_top s
+  any_goals simp [Module.finrank_pos.ne']
+  · lift s to ℝ≥0 using hs.ne
+    simp [ENNReal.top_div, Module.finrank_pos.ne', emetric_closedBall_nnreal,
+      (isCompact_closedBall _ _).measure_ne_top]
+  · obtain rfl | hr' := eq_zero_or_pos r <;> obtain rfl | hs' := eq_zero_or_pos s
+    · simp [Module.finrank_pos.ne']
+    · simp [Module.finrank_pos.ne']
+    · simp [ENNReal.div_zero, hr'.ne', EMetric.measure_closedBall_pos volume x hr'.ne' |>.ne',
+        Module.finrank_pos.ne']
+    lift r to ℝ≥0 using hr.ne
+    lift s to ℝ≥0 using hs.ne
+    simp_rw [emetric_closedBall_nnreal]
+    rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
+    · simp
+    all_goals simp_all
+
+open scoped Pointwise in
+lemma EMetric.closedBall_add_closedBall {E : Type*} [SeminormedAddCommGroup E] [NormedSpace ℝ E]
+    [ProperSpace E] (x y : E) (r s : ℝ≥0∞) :
+    closedBall x r + closedBall y s = closedBall (x + y) (r + s) := by
+  by_cases h : r = ⊤ ∨ s = ⊤
+  · obtain rfl | rfl := h <;> simp [nonempty_closedBall]
+  simp only [not_or] at h
+  lift r to ℝ≥0 using h.1
+  lift s to ℝ≥0 using h.2
+  norm_cast
+  simp_rw [Metric.emetric_closedBall_nnreal]
+  rw [_root_.closedBall_add_closedBall, NNReal.coe_add]
+  all_goals simp
 
 lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
     internalCoveringNumber ε (EMetric.closedBall (0 : E) 1)
       ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) := by
-  sorry
+  obtain _ | _ := subsingleton_or_nontrivial E
+  · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
+    norm_cast
+    grw [internalCoveringNumber_le_encard', Set.encard_le_one_iff]
+    exact fun a b _ _ ↦ Subsingleton.allEq a b
+  obtain rfl | hε := eq_top_or_lt_top ε
+  · simp [EMetric.nonempty_closedBall.internalCoveringNumber_top]
+  lift ε to ℝ≥0 using hε.ne
+  obtain rfl | hε' := eq_zero_or_pos ε
+  · simp [div_zero, Module.finrank_pos.ne']
+  grw [internalCoveringNumber_le_volume_div (EMetric.closedBall 0 1),
+    EMetric.closedBall_add_closedBall, InnerProductSpace.volume_closedBall_div',
+    ← ENNReal.div_mul, ENNReal.add_div, ← mul_one_div (ε / 2 : ℝ≥0∞), ← ENNReal.mul_div_mul_comm,
+    mul_comm (ε : ℝ≥0∞) 1, ENNReal.mul_div_mul_right, add_mul, ENNReal.div_mul_cancel,
+    ENNReal.mul_comm_div, one_mul]
+  all_goals simp_all [hε'.ne']
 
 end Volume
