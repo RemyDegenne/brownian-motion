@@ -110,8 +110,8 @@ lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
 lemma variance_sub {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
     {X Y : Ω → ℝ} (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
     Var[X - Y; μ] = Var[X; μ] - 2 * cov[X, Y; μ] + Var[Y; μ] := by
-  rw [← covariance_same, covariance_sub_left hX hY (hX.sub hY), covariance_sub_right hX hX hY,
-    covariance_sub_right hY hX hY, covariance_same, covariance_same, covariance_comm]
+  rw [← covariance_self, covariance_sub_left hX hY (hX.sub hY), covariance_sub_right hX hX hY,
+    covariance_sub_right hY hX hY, covariance_self, covariance_self, covariance_comm]
   · ring
   · exact hY.aemeasurable
   · exact hX.aemeasurable
