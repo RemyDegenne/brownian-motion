@@ -1,4 +1,7 @@
+import BrownianMotion.Auxiliary.Algebra
+import BrownianMotion.Auxiliary.Metric
 import Mathlib.MeasureTheory.Measure.CharacteristicFunction
+import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
 import Mathlib.Probability.Moments.Covariance
 
@@ -271,3 +274,38 @@ lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const'
     map_mul_right_eq_self]
   · fun_prop
   · exact EMetric.isClosed_closedBall.measurableSet
+
+open Metric
+
+lemma InnerProductSpace.volume_closedBall_div {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) {r s : ℝ} (hr : 0 < r) (hs : 0 < s) :
+    volume (closedBall x r) / volume (closedBall y s) =
+      ENNReal.ofReal (r / s) ^ (Module.finrank ℝ E) := by
+  obtain _ | _ := subsingleton_or_nontrivial E
+  · simp [hr.le, hs.le]
+  rw [InnerProductSpace.volume_closedBall, InnerProductSpace.volume_closedBall,
+    ENNReal.mul_div_mul_right _ _ (by positivity) (by simp)]
+  simp_rw [← ENNReal.rpow_natCast]
+  rw [← ENNReal.div_rpow_of_nonneg _ _ (by simp), ENNReal.ofReal_div_of_pos hs]
+
+lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (x y : E) (r s : ℝ≥0∞) :
+    volume (EMetric.closedBall x r) / volume (EMetric.closedBall y s) =
+      (r / s) ^ (Module.finrank ℝ E) := by
+  nontriviality E
+  obtain rfl | hr := eq_top_or_lt_top r <;> obtain rfl | hs := eq_top_or_lt_top s
+  any_goals simp
+  · lift s to ℝ≥0 using hs.ne
+    simp [ENNReal.top_div, emetric_closedBall_nnreal, (isCompact_closedBall _ _).measure_ne_top]
+  · obtain rfl | hr' := eq_zero_or_pos r <;> obtain rfl | hs' := eq_zero_or_pos s
+    · simp
+    · simp
+    · simp [ENNReal.div_zero, hr'.ne', EMetric.measure_closedBall_pos volume x hr'.ne' |>.ne']
+    lift r to ℝ≥0 using hr.ne
+    lift s to ℝ≥0 using hs.ne
+    simp_rw [emetric_closedBall_nnreal]
+    rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
+    · simp
+    all_goals simp_all

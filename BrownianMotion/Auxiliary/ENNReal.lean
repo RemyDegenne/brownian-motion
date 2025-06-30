@@ -1,6 +1,6 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib
 
-open NNReal
+open ENNReal NNReal
 
 namespace ENNReal
 
@@ -41,3 +41,28 @@ lemma rpow_add_of_add_pos {x : ENNReal} (hx : x ≠ ⊤) (y z : ℝ) (hyz : 0 < 
   · rw [ENNReal.rpow_add _ _ hx' hx]
 
 end ENNReal
+
+@[norm_cast]
+lemma ENat.toENNReal_iSup {ι : Sort*} (f : ι → ℕ∞) : ⨆ i, f i = ⨆ i, (f i : ℝ≥0∞) := by
+  refine eq_of_forall_ge_iff fun c ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · exact iSup_le fun i ↦ le_trans (ENat.toENNReal_le.2 (le_iSup f i)) h
+  · obtain rfl | hc := eq_or_ne c ⊤
+    · exact le_top
+    lift c to ℝ≥0 using hc
+    have (i : ι) : f i ≤ Nat.floor c := by
+      have := (le_iSup _ i).trans h
+      have h' : f i ≠ ⊤ := by
+        rw [← ENat.toENNReal_ne_top]
+        exact this.trans_lt ENNReal.coe_lt_top |>.ne
+      lift f i to ℕ using h' with k
+      norm_cast
+      change ((k : ℝ≥0) : ℝ≥0∞) ≤ c at this
+      exact Nat.le_floor_iff (zero_le _) |>.2 <| ENNReal.coe_le_coe.1 this
+    calc
+    (↑(⨆ i, f i) : ℝ≥0∞) ≤ Nat.floor c := by
+      change (↑(⨆ i, f i) : ℝ≥0∞) ≤ ((Nat.floor c : ENat) : ℝ≥0∞)
+      exact ENat.toENNReal_le.2 (iSup_le this)
+    _ ≤ c := by norm_cast; exact Nat.floor_le (zero_le _)
+
+@[gcongr]
+alias ⟨_, ENat.toENNReal_le'⟩ := ENat.toENNReal_le
