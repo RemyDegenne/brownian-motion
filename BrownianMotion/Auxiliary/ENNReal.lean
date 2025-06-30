@@ -1,4 +1,7 @@
-import Mathlib
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Data.ENat.Lattice
+import Mathlib.Data.Real.ENatENNReal
+import Mathlib.Order.CompletePartialOrder
 
 open ENNReal NNReal
 

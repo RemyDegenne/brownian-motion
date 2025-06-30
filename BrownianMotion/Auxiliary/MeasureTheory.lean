@@ -1,6 +1,5 @@
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.Metric
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
 import Mathlib.Probability.Moments.Covariance

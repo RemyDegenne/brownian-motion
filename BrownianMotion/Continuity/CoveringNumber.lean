@@ -3,15 +3,10 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Auxiliary.Metric
 import BrownianMotion.Auxiliary.Nat
 import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Topology.MetricSpace.MetricSeparated
 
 /-!
 # Covering and packing numbers

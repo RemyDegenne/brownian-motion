@@ -1,4 +1,6 @@
-import Mathlib
+import Mathlib.Analysis.NormedSpace.Pointwise
+import Mathlib.Order.CompletePartialOrder
+import Mathlib.Topology.MetricSpace.MetricSeparated
 
 open ENNReal NNReal
 
