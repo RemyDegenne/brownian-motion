@@ -179,9 +179,8 @@ lemma volume_of_nonempty_of_subsingleton {E : Type*} [NormedAddCommGroup E] [Inn
     [FiniteDimensional ℝ E] [MeasurableSpace E] [Subsingleton E] {s : Set E} (hs : s.Nonempty) :
     volume s = 1 := by
   rw [Subsingleton.eq_univ_of_nonempty hs,
-    ← Subsingleton.eq_univ_of_nonempty (s := parallelepiped (stdOrthonormalBasis ℝ E))]
-  · exact (stdOrthonormalBasis ℝ E).toBasis.addHaar_self
-  · exact nonempty_parallelepiped
+    ← Subsingleton.eq_univ_of_nonempty (nonempty_parallelepiped (v := stdOrthonormalBasis ℝ E))]
+  exact (stdOrthonormalBasis ℝ E).toBasis.addHaar_self
 
 --generalizing `MeasureTheory.Measure.addHaar_ball_center`
 

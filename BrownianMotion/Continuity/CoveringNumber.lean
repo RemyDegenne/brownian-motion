@@ -8,12 +8,9 @@ import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Nat
 import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Data.ENat.Lattice
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.Topology.MetricSpace.MetricSeparated
-import Mathlib.Tactic.Push
 
 /-!
 # Covering and packing numbers
@@ -60,14 +57,9 @@ lemma IsCover.self [PseudoEMetricSpace E] (A : Set E) (r : ℝ≥0∞) : IsCover
   fun a ha => ⟨a, ha, by simp⟩
 
 lemma isCover_zero_iff [EMetricSpace E] (C A : Set E) : IsCover C 0 A ↔ A ⊆ C := by
-  constructor
-  · intro h a ha
-    obtain ⟨c, hc, h⟩ := h a ha
-    simp at h
-    rwa [h]
-  · intro h a ha
-    refine ⟨a, h ha, ?_⟩
-    simp
+  refine ⟨fun h a ha ↦ ?_, fun h a ha ↦ ⟨a, h ha, by simp⟩⟩
+  obtain ⟨c, hc, h⟩ := h a ha
+  simp_all
 
 lemma Set.Finite.internalCoveringNumber_le_ncard [PseudoEMetricSpace E] (r : ℝ≥0∞) (A : Set E)
     (ha : A.Finite) : internalCoveringNumber r A ≤ A.ncard := by
@@ -78,12 +70,11 @@ lemma Set.Finite.internalCoveringNumber_le_ncard [PseudoEMetricSpace E] (r : ℝ
 lemma internalCoveringNumber_zero [EMetricSpace E] (A : Set E) :
     internalCoveringNumber 0 A = A.encard := by
   obtain hA | hA := A.finite_or_infinite
-  · apply le_antisymm
-    · exact hA.cast_ncard_eq ▸ hA.internalCoveringNumber_le_ncard _
-    · rw [internalCoveringNumber]
-      refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
-      rw [isCover_zero_iff] at hC₂
-      simp [subset_antisymm hC₂ hC₁]
+  · refine le_antisymm (hA.cast_ncard_eq ▸ hA.internalCoveringNumber_le_ncard _) ?_
+    rw [internalCoveringNumber]
+    refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
+    rw [isCover_zero_iff] at hC₂
+    simp [subset_antisymm hC₂ hC₁]
   · rw [hA.encard_eq, internalCoveringNumber]
     refine iInf_eq_top.2 fun C ↦ iInf_eq_top.2 fun hC₁ ↦ iInf_neg fun hC₂ ↦ ?_
     rw [isCover_zero_iff] at hC₂
@@ -112,16 +103,11 @@ lemma Set.Nonempty.one_le_internalCoveringNumber [EDist E] {A : Set E} (hA : A.N
   exact Set.nonempty_iff_ne_empty.1 hA hC₂
 
 lemma Set.Nonempty.internalCoveringNumber_top [PseudoEMetricSpace E] {A : Set E} (hA : A.Nonempty) :
-    internalCoveringNumber ⊤ A  = 1 := by
-  apply le_antisymm
-  · rw [internalCoveringNumber]
-    obtain ⟨x, hx⟩ := hA
-    refine iInf_le_of_le {x} <| iInf_le_of_le ?_ <| iInf_le_of_le ?_ ?_
-    · simpa
-    · rintro a -
-      exact ⟨x, by simp, by simp⟩
-    · simp
-  · exact hA.one_le_internalCoveringNumber _
+    internalCoveringNumber ⊤ A = 1 := by
+  refine le_antisymm ?_ (hA.one_le_internalCoveringNumber _)
+  obtain ⟨x, hx⟩ := hA
+  exact iInf_le_of_le {x} <| iInf_le_of_le (by simpa) <|
+    iInf_le_of_le (fun _ _ ↦ ⟨x, by simp⟩) (by simp)
 
 lemma not_isCover_empty [EDist E] (ε : ℝ≥0∞) (A : Set E) (h_nonempty : A.Nonempty) :
     ¬ IsCover (∅ : Set E) ε A := by
@@ -144,13 +130,11 @@ lemma packingNumber_empty [PseudoEMetricSpace E] (r : ℝ≥0∞) :
 @[simp]
 lemma packingNumber_singleton [PseudoEMetricSpace E] (r : ℝ≥0∞) (x : E) :
     packingNumber r ({x} : Set E) = 1 := by
+  refine le_antisymm ?_ <|
+    le_iSup_of_le ({x} : Finset E) <| le_iSup_of_le (by simp) <| le_iSup_of_le (by simp) (by simp)
   rw [packingNumber]
-  apply le_antisymm
-  · simp only [Set.subset_singleton_iff, Finset.mem_coe, iSup_le_iff, Nat.cast_le_one]
-    intro C hC _
-    exact Finset.card_le_one.2 (fun a ha b hb ↦ by rw [hC a ha, hC b hb])
-  refine le_iSup_of_le ({x} : Finset E) <| le_iSup_of_le ?_ <| le_iSup_of_le ?_ ?_
-  all_goals simp
+  simp only [Set.subset_singleton_iff, Finset.mem_coe, iSup_le_iff, Nat.cast_le_one]
+  exact fun C hC _ ↦ Finset.card_le_one.2 (fun a ha b hb ↦ by rw [hC a ha, hC b hb])
 
 lemma isCover_singleton_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0∞} {A : Set E} {a : E}
     (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
@@ -468,23 +452,14 @@ lemma internalCoveringNumber_subset_le [PseudoEMetricSpace E] {r : ℝ≥0∞} (
   _ ≤ internalCoveringNumber (r / 2) B :=
     externalCoveringNumber_le_internalCoveringNumber (r / 2) B
 
-lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] {r : ℝ≥0∞} {A : Set E} (hr : 0 < r) :
+lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] (r : ℝ≥0∞) {A : Set E} :
     internalCoveringNumber r A ≤ A.encard := by
   by_cases h_top : A.encard = ⊤
   · simp [h_top]
-  have hA : A.Finite := Set.encard_ne_top_iff.mp h_top
-  have : Fintype A := hA.fintype
-  rw [← card_minimalCover hA.totallyBounded hr]
-  rw [Set.encard_eq_coe_toFinset_card]
-  gcongr
-  simp only [Set.subset_toFinset]
-  exact minimalCover_subset hr
-
-lemma internalCoveringNumber_le_encard' [EMetricSpace E] (r : ℝ≥0∞) {A : Set E} :
-    internalCoveringNumber r A ≤ A.encard := by
-  obtain rfl | hr := eq_zero_or_pos r
-  · rw [internalCoveringNumber_zero]
-  exact internalCoveringNumber_le_encard hr
+  rw [internalCoveringNumber]
+  refine iInf_le_of_le (Set.encard_ne_top_iff.mp h_top).toFinset <| iInf_le_of_le (by simp) <|
+    iInf_le_of_le (fun a _ ↦ ⟨a, by simpa⟩) ?_
+  rw [← (Set.encard_ne_top_iff.mp h_top).encard_eq_coe_toFinset_card]
 
 end comparisons
 
@@ -838,7 +813,7 @@ lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
-    grw [internalCoveringNumber_le_encard', Set.encard_le_one_iff]
+    grw [internalCoveringNumber_le_encard, Set.encard_le_one_iff]
     exact fun a b _ _ ↦ Subsingleton.allEq a b
   obtain rfl | hε := eq_top_or_lt_top ε
   · simp [EMetric.nonempty_closedBall.internalCoveringNumber_top]
