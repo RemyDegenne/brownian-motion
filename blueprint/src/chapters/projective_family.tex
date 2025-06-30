@@ -160,8 +160,8 @@ We call the family of measures $P^B_I$ the \emph{projective family of the Browni
 The projective family of the Brownian motion is a projective family of measures.
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:isGaussian_map, lem:isGaussian_multivariateGaussian, lem:covMatrix_map,
+\begin{proof}\leanok
+  \uses{lem:isGaussian_multivariateGaussian, lem:covMatrix_map,
   lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian, lem:IsGaussian.ext_iff}
 Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
 We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ (denote it by $\pi_{IJ}$) maps $P^B_I$ to $P^B_J$.
@@ -172,14 +172,7 @@ It thus suffices to show that the mean and covariance matrix of the map are equa
 
 The mean of the map is $0$, since the mean of $P^B_I$ is $0$ and the map is linear.
 
-For the covariance matrix and $i, j \in J$, by Lemma~\ref{lem:covMatrix_map} we have
-\begin{align*}
-  \langle e_i, \Sigma_{\pi_{IJ*}\mu} e_j\rangle
-  &= \langle \pi_{IJ}^\dagger(e_i), \Sigma_\mu \pi_{IJ}^\dagger(e_j)\rangle
-  \: .
-\end{align*}
-$\pi_{IJ}^\dagger(u)$ is the vector of $\mathbb{R}^I$ with coordinates $(\pi_{IJ}^\dagger(u))_i = u_i$ if $i \in J$ and $(\pi_{IJ}^\dagger(u))_i = 0$ otherwise.
-This gives the same covariance matrix as the one of $P^B_J$.
+Let us turn to the covariance matrix. For any $i \in J$, the map $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) i$ is equal to $x : \mathbb{R}^I \mapsto x i$. Let $i, j \in J$. The covariance of $x : \mathbb{R}^J \mapsto x i$ and $x : \mathbb{R}^J \mapsto x j$ with respect to $\pi_{IJ}_*P^B_J$ is equal to the covariance of $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) i$ and $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) j$ with respect to $P^B_I$, which is equal to the covariance of $x : \mathbb{R}^I \mapsto x i$ and $x : \mathbb{R}^I \mapsto x i$ with respect to $P^B_I$, which is equal to $t_i \land t_j$. But this is also the covariance of $x : \mathbb{R}^J \mapsto x i$ and $x : \mathbb{R}^J \mapsto x j$ with respect to $P^B_J$, so we are done.
 \end{proof}
 
 
