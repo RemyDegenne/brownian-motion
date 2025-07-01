@@ -659,8 +659,8 @@ lemma internalCoveringNumber_le_volume_div (A : Set E) {ε : ℝ≥0∞} (hε₁
     rw [show (ε : ℝ≥0∞) / 2 = ↑(ε / 2) by simp, Metric.emetric_closedBall_nnreal]
     exact Or.inl <| ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
-lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
-    ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall (0 : E) 1) := by
+lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) (x : E) :
+    ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall x 1) := by
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
@@ -669,13 +669,13 @@ lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) :
   · simp only [ENNReal.inv_zero, internalCoveringNumber_zero]
     rw [Set.encard_eq_top]
     · simp
-    · exact infinite_of_mem_nhds 0 (EMetric.closedBall_mem_nhds 0 (by norm_num))
+    · exact infinite_of_mem_nhds x (EMetric.closedBall_mem_nhds x (by norm_num))
   refine le_of_eq_of_le ?_
-    (volume_div_le_internalCoveringNumber (EMetric.closedBall (0 : E) 1) hε)
+    (volume_div_le_internalCoveringNumber (EMetric.closedBall x 1) hε)
   rw [InnerProductSpace.volume_closedBall_div', one_div]
 
-lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
-    internalCoveringNumber ε (EMetric.closedBall (0 : E) 1)
+lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) (x : E) :
+    internalCoveringNumber ε (EMetric.closedBall x 1)
       ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) := by
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
@@ -687,7 +687,7 @@ lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) :
   lift ε to ℝ≥0 using hε.ne
   obtain rfl | hε' := eq_zero_or_pos ε
   · simp [div_zero]
-  grw [internalCoveringNumber_le_volume_div (EMetric.closedBall 0 1),
+  grw [internalCoveringNumber_le_volume_div (EMetric.closedBall x 1),
     EMetric.closedBall_add_closedBall, InnerProductSpace.volume_closedBall_div',
     ← ENNReal.div_mul, ENNReal.add_div, ← mul_one_div (ε / 2 : ℝ≥0∞), ← ENNReal.mul_div_mul_comm,
     mul_comm (ε : ℝ≥0∞) 1, ENNReal.mul_div_mul_right, add_mul, ENNReal.div_mul_cancel,
