@@ -202,6 +202,16 @@ lemma internalCoveringNumber_le_one_of_diam_le [PseudoEMetricSpace E] {r : ℝ�
       _ ≤ C.card := iInf_le (α := ℕ∞) _ hCover
     simp [C]
 
+@[simp]
+lemma internalCoveringNumber_singleton [PseudoEMetricSpace E] {x : E} {r : ℝ≥0∞} :
+    internalCoveringNumber r ({x} : Set E) = 1 :=
+  internalCoveringNumber_eq_one_of_diam_le (by simp) (by simp)
+
+@[simp]
+lemma externalCoveringNumber_singleton [PseudoEMetricSpace E] {x : E} {r : ℝ≥0∞} :
+    externalCoveringNumber r ({x} : Set E) = 1 :=
+  externalCoveringNumber_eq_one_of_diam_le (by simp) (by simp)
+
 lemma subset_iUnion_of_isCover [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E}
     (hC : IsCover C ε A) :
     A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
@@ -654,8 +664,8 @@ lemma internalCoveringNumber_le_volume_div (A : Set E) {ε : ℝ≥0∞} (hε₁
     rw [show (ε : ℝ≥0∞) / 2 = ↑(ε / 2) by simp, Metric.emetric_closedBall_nnreal]
     exact Or.inl <| ProperSpace.isCompact_closedBall _ _ |>.measure_ne_top
 
-lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) (x : E) :
-    ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall x 1) := by
+lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) (x : E) {r : ℝ≥0∞} (hr : 0 < r) :
+    (r / ε) ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall x r) := by
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
@@ -664,14 +674,18 @@ lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) (x : E) :
   · simp only [ENNReal.inv_zero, internalCoveringNumber_zero]
     rw [Set.encard_eq_top]
     · simp
-    · exact infinite_of_mem_nhds x (EMetric.closedBall_mem_nhds x (by norm_num))
+    · exact infinite_of_mem_nhds x (EMetric.closedBall_mem_nhds x hr)
   refine le_of_eq_of_le ?_
-    (volume_div_le_internalCoveringNumber (EMetric.closedBall x 1) hε)
-  rw [InnerProductSpace.volume_closedBall_div', one_div]
+    (volume_div_le_internalCoveringNumber (EMetric.closedBall x r) hε)
+  rw [InnerProductSpace.volume_closedBall_div']
 
-lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) (x : E) :
-    internalCoveringNumber ε (EMetric.closedBall x 1)
-      ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) := by
+lemma internalCoveringNumber_closedBall_one_ge (ε : ℝ≥0∞) (x : E) :
+    ε⁻¹ ^ (Module.finrank ℝ E) ≤ internalCoveringNumber ε (EMetric.closedBall x 1) :=
+  le_of_eq_of_le (by simp) (internalCoveringNumber_closedBall_ge _ _ (by norm_num))
+
+lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) (x : E) (r : ℝ≥0∞) :
+    internalCoveringNumber ε (EMetric.closedBall x r)
+      ≤ (2 * r / ε + 1) ^ (Module.finrank ℝ E) := by
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
@@ -679,14 +693,21 @@ lemma internalCoveringNumber_closedBall_le (ε : ℝ≥0∞) (x : E) :
     exact fun a b _ _ ↦ Subsingleton.allEq a b
   obtain rfl | hε := eq_top_or_lt_top ε
   · simp [EMetric.nonempty_closedBall.internalCoveringNumber_top]
+  obtain rfl | hr := eq_zero_or_pos r
+  · simp
   lift ε to ℝ≥0 using hε.ne
   obtain rfl | hε' := eq_zero_or_pos ε
-  · simp [div_zero]
-  grw [internalCoveringNumber_le_volume_div (EMetric.closedBall x 1),
+  · simp [div_zero, hr.ne']
+  grw [internalCoveringNumber_le_volume_div (EMetric.closedBall x r),
     EMetric.closedBall_add_closedBall, InnerProductSpace.volume_closedBall_div',
     ← ENNReal.div_mul, ENNReal.add_div, ← mul_one_div (ε / 2 : ℝ≥0∞), ← ENNReal.mul_div_mul_comm,
     mul_comm (ε : ℝ≥0∞) 1, ENNReal.mul_div_mul_right, add_mul, ENNReal.div_mul_cancel,
-    ENNReal.mul_comm_div, one_mul]
+    ENNReal.mul_comm_div, mul_comm (2 : ℝ≥0∞), mul_div_assoc]
   all_goals simp_all [hε'.ne']
+
+lemma internalCoveringNumber_closedBall_one_le (ε : ℝ≥0∞) (x : E) :
+    internalCoveringNumber ε (EMetric.closedBall x 1)
+      ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) :=
+  (internalCoveringNumber_closedBall_le _ _ _).trans_eq (by simp)
 
 end Volume
