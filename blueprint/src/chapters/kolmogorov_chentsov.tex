@@ -144,23 +144,6 @@ For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:cover_eq_of_lt_iInf_dist}
-  \uses{def:IsCover}
-  \leanok
-  \lean{cover_eq_of_lt_iInf_edist}
-Let $C$ be a $\varepsilon$-cover of a $J$ with $C \subseteq J$.
-If $\varepsilon < \inf_{s, t \in J; s \ne t} d_T(s, t)$ then $C = J$.
-\end{lemma}
-
-\begin{proof}
-Let $s \in J$. Since $C$ is an $\varepsilon$-cover of $J$, there exists $t \in C$ such that $d_T(s, t) \le \varepsilon$.
-Since $\varepsilon < \inf_{s, t \in J; s \ne t}d_T(s, t)$, we have $s = t$.
-Thus, $s \in C$.
-Since $s$ was arbitrary, we have $J \subseteq C$.
-And by assumption $C \subseteq J$.
-\end{proof}
-
-
 \subsection{Covering number and volume}
 
 In this section $E$ is a finite dimensional inner product space, with dimension $d$.
@@ -213,7 +196,7 @@ Let $A \subseteq E$ and let $S \subseteq A$ be an $\varepsilon$-separated set.
 Then $\vert S \vert V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Since $S$ is $\varepsilon$-separated, the closed balls $B_{\varepsilon/2}(s)$ for $s \in S$ are pairwise disjoint.
 Furthermore, these balls are contained in $A + B_{\varepsilon/2}$.
 Thus, we have
@@ -234,7 +217,7 @@ Thus, we have
 $P_\varepsilon(A) V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:le_volume_of_isSeparated}
 Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated set of maximal cardinality.
 \end{proof}
@@ -247,7 +230,7 @@ Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated
 If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:volume_le_externalCoveringNumber_mul, lem:externalCoveringNumber_le_internalCoveringNumber}
 We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref{lem:volume_le_externalCoveringNumber_mul} and $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$ by Lemma~\ref{lem:externalCoveringNumber_le_internalCoveringNumber}.
 \end{proof}
@@ -260,7 +243,7 @@ We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref
 If $0 < \varepsilon < \infty$ then $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:packingNumber_mul_le_volume, lem:internalCoveringNumber_le_packingNumber}
 We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internalCoveringNumber_le_packingNumber} and $P_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$ by Lemma~\ref{lem:packingNumber_mul_le_volume}.
 \end{proof}
@@ -273,7 +256,7 @@ We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internal
 $N_\varepsilon^{int}(B_1) \ge \frac{1}{\varepsilon^d}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:volume_div_le_internalCoveringNumber}
 By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
 \begin{align*}
@@ -293,7 +276,7 @@ By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
 $N_\varepsilon^{int}(B_1) \le \left(\frac{2}{\varepsilon} + 1\right)^d$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:internalCoveringNumber_le_volume_div}
 By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
 \begin{align*}

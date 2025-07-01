@@ -142,11 +142,6 @@ lemma isCover_singleton_finset_of_diam_le [PseudoEMetricSpace E] {ε : ℝ≥0�
     IsCover ({a} : Finset E) ε A :=
   fun x hxA ↦ ⟨a, by simp, (EMetric.edist_le_diam_of_mem hxA ha).trans hA⟩
 
-lemma cover_eq_of_lt_iInf_edist [PseudoEMetricSpace E] {C : Set E} {ε : ℝ≥0∞} {A : Set E}
-    (hC : IsCover C ε A) (hC_subset : C ⊆ A)
-    (hε : ε < ⨅ (s : A) (t : { t : A // s ≠ t }), edist s t) : C = A := by
-  sorry
-
 lemma IsCover.mono [EDist E] {C : Set E} {ε ε' : ℝ≥0∞} {A : Set E} (h : ε ≤ ε')
     (hC : IsCover C ε A) : IsCover C ε' A := by
   intro a ha
