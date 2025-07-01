@@ -77,6 +77,7 @@ Thus, by Lemma~\ref{lem:centralMoment_two_mul_gaussianReal}, we have
 \begin{definition}[Brownian motion]\label{def:brownian}
   \uses{thm:localized_holder_modification_sup, def:preBrownian, lem:isKolmogorovProcess_preBrownian, lem:hasBoundedCoveringNumberCover_nnreal}
   \leanok
+  \lean{ProbabilityTheory.brownian}
 By Theorem~\ref{thm:localized_holder_modification_sup}, there exists a modification $B$ of the pre-Brownian process such that all the paths of $B$ are Hölder continuous of all orders $\gamma \in (0, 1/2)$.
 We call $B$ the \emph{Brownian motion} on $\mathbb{R}_+$.
 \end{definition}
@@ -147,8 +148,28 @@ For $s, t \in \mathbb{R}_+$, the law of $B_t - B_s$ is the real Gaussian measure
 
 \begin{proof}\leanok
   \uses{lem:map_sub_preBrownian}
-The Brownian motion $B$ is a modification of the pre-Brownian process, and therefore has same finite dimensional distributions. By Lemma~\ref{lem:map_sub_preBrownian}, $B_t$ has law $\mathcal{N}(0,t)$.
+The Brownian motion $B$ is a modification of the pre-Brownian process, and therefore has same finite dimensional distributions. By Lemma~\ref{lem:map_sub_preBrownian}, $B_t - B_s$ has law $\mathcal{N}(0,\vert t - s \vert)$.
 \end{proof}
+
+
+\begin{definition}\label{def:HasIndependentIncrements}
+We say that a stochastic process $X : T \to \Omega \to E$ has independent increments if for all $t_1, \ldots, t_n \in T$ with $t_1 \le t_2 \le \cdots \le t_n$, the random variables $X_{t_2} - X_{t_1}, X_{t_3} - X_{t_2}, \ldots, X_{t_n} - X_{t_{n-1}}$ are independent.
+\end{definition}
+
+
+\begin{lemma}\label{lem:hasIndependentIncrements_brownian}
+  \uses{def:brownian, def:HasIndependentIncrements}
+The Brownian motion has independent increments.
+\end{lemma}
+
+\begin{proof}
+Let $t_1 \le t_2 \le \ldots \le t_n$ be $n$ times in $\mathbb{R}_+$.
+Then $(B_{t_2} - B_{t_1}, B_{t_3} - B_{t_2}, \ldots, B_{t_n} - B_{t_{n-1}})$ is a linear transformation of $(B_{t_1}, \ldots, B_{t_n})$, hence it is Gaussian.
+We can compute its mean (which is $0$) and its covariance matrix.
+The covariance matrix is diagonal, which means the the random variables are uncorrelated.
+Because they are jointly Gaussian, this implies that they are independent.
+\end{proof}
+
 
 \section{Wiener measure on the continuous functions}
 
