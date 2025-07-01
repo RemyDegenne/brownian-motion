@@ -173,7 +173,7 @@ Let $A \subseteq E$ and $C \subseteq E$ be a finite $\varepsilon$-cover of $A$. 
 Then $V(A) \le \vert C \vert V(B_\varepsilon)$, in which $B_\varepsilon$ is the closed ball of radius $\varepsilon$ in $E$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Since $C$ is a cover of $A$, $A$ is a subset of the union of the closed balls $B_\varepsilon(c)$ for $c \in C$. Then
 \begin{align*}
   V(A) \le V(\bigcup_{c \in C} B_\varepsilon(c))
@@ -194,12 +194,14 @@ The volume of $B_\varepsilon$ is given by the following formula (see \href{https
   \uses{def:externalCoveringNumber}
   \leanok
   \lean{volume_le_externalCoveringNumber_mul}
-$V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
+If $0 < \varepsilon$ then $V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:volume_le_of_isCover}
-Use Lemma~\ref{lem:volume_le_of_isCover} with a cover of minimal cardinal.
+If $A$ has no $\varepsilon$-cover, then $N^{ext}_\varepsilon(A) = \infty$, and because $0 < \varepsilon$, we have that $0 < V(B_\varepsilon)$, so the right-hand side is infinite and the inequality follows.
+
+Otherwise there exists an $\varepsilon$-cover which realizes $N^{ext}_\varepsilon(A)$. We can conclude by Lemma~\ref{lem:volume_le_of_isCover}.
 \end{proof}
 
 
@@ -242,7 +244,7 @@ Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated
   \uses{def:internalCoveringNumber}
   \leanok
   \lean{volume_div_le_internalCoveringNumber}
-$\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
+If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
 \begin{proof}
@@ -255,7 +257,7 @@ We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref
   \uses{def:internalCoveringNumber}
   \leanok
   \lean{internalCoveringNumber_le_volume_div}
-$N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
+If $0 < \varepsilon < \infty$ then $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
 \end{lemma}
 
 \begin{proof}
