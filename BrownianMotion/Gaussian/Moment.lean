@@ -106,13 +106,13 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     -- 7. ... = σ^(2n) 2^n / √π Γ(n + 1/2)
     _ = σ^(2 * n) * 2^n / √ Real.pi * Real.Gamma (n + 1/2) := by
       rw [Real.Gamma_eq_integral (by positivity)]
-      simp only [integral_mul_const, ← integral_const_mul]
+      simp only [← integral_const_mul]
       apply setIntegral_congr_fun (by measurability)
       intros x hx
       subst φ
       simp_all only [Set.mem_Ioi, Nat.ofNat_nonneg, Real.sqrt_mul,
                       NNReal.zero_le_coe, pow_nonneg, Real.sqrt_mul', Real.sqrt_sq,
-                      differentiableAt_const, deriv_const_mul_field', one_div]
+                      deriv_const_mul_field', one_div]
       rw [show deriv Real.sqrt x = 1 / (2 * Real.sqrt x) by
         have hd := deriv_sqrt (f := id) (x := x) (by fun_prop) (by positivity)
         simp at hd
@@ -130,7 +130,9 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
       rw [←Set.InjOn.eq_iff (f := Real.log) (s := Set.Ioi 0) Real.log_injOn_pos]
         <;> try { rw [Set.mem_Ioi]; positivity }
       repeat rw [Real.log_mul (by positivity) (by positivity)]
-      simp [Real.log_mul (by positivity) (by positivity)]
+      simp only [Real.log_zpow, Int.cast_mul, Int.cast_natCast, Int.cast_ofNat, Real.log_exp,
+        Real.log_abs, Int.reduceNeg, zpow_neg, zpow_one, Real.log_inv, one_div, zpow_natCast,
+        Real.log_pow]
       ring_nf
       rw [←sub_eq_zero]
       ring_nf

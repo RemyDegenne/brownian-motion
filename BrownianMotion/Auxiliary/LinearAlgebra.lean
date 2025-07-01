@@ -48,7 +48,7 @@ lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLi
   by_cases h : i = j
   · simp only [h, ↓reduceIte]
     apply RCLike.ext
-    · simp [inner_self_eq_norm_sq]
+    · simp
     · simp
   · simp [h]
 

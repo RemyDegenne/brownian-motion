@@ -28,7 +28,7 @@ lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
 
 lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit := by
   intro I
-  simp only [preBrownian, Measure.map_id']
+  simp only [preBrownian]
   rw [isProjectiveLimit_gaussianLimit]
   exact isGaussian_gaussianProjectiveFamily I
 

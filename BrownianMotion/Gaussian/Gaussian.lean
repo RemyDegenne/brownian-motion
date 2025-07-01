@@ -14,7 +14,7 @@ namespace ProbabilityTheory
 instance IsGaussian.isProbabilityMeasure {E : Type*} [TopologicalSpace E] [AddCommMonoid E]
     [Module ℝ E] {mE : MeasurableSpace E} (μ : Measure E) [IsGaussian μ] :
     IsProbabilityMeasure μ where
-  measure_univ := by simp [Measure.map_apply (by fun_prop : Measurable (0 : E →L[ℝ] ℝ)) .univ]
+  measure_univ := by simp
 
 section InnerProductSpace
 

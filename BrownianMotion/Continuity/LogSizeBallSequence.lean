@@ -332,7 +332,7 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
   · have h' : t ∉ (logSizeBallSeq J hJ a c (l + 1)).finset := by
       have hl : l < #J - 1 := by
         by_contra hl
-        simp only [not_lt, tsub_le_iff_right, P] at hl
+        simp only [not_lt, tsub_le_iff_right] at hl
         have hlJ : l + 1 = #J := by
           refine Nat.le_antisymm_iff.mpr ⟨?_, hl⟩
           rw [← Nat.sub_add_cancel <| Order.one_le_iff_pos.mpr (Finset.card_pos.mpr hJ)]
@@ -341,7 +341,7 @@ lemma iSup_edist_pairSet {E : Type*} [PseudoEMetricSpace E] (ha : 1 < a) (f : T 
         suffices h_emp : (logSizeBallSeq J hJ a c (l + 1)).finset = ∅ from by simp [h_emp]
         rw [← Finset.card_eq_zero, ← Nat.le_zero, ← Nat.sub_self #J, hlJ]
         apply card_finset_logSizeBallSeq_le
-      simp only [Decidable.not_not, P] at h
+      simp only [Decidable.not_not] at h
       have hP := Nat.findGreatest_is_greatest (lt_add_one l) (Nat.add_one_le_of_lt hl)
       simp [P, h] at hP; exact hP
     have hts : edist t s ≤ c := by rw [edist_comm]; exact hst

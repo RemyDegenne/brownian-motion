@@ -671,7 +671,7 @@ lemma internalCoveringNumber_closedBall_ge (ε : ℝ≥0∞) (x : E) {r : ℝ≥
     norm_cast
     exact EMetric.nonempty_closedBall.one_le_internalCoveringNumber _
   obtain rfl | hε := eq_zero_or_pos ε
-  · simp only [ENNReal.inv_zero, internalCoveringNumber_zero]
+  · simp only [internalCoveringNumber_zero]
     rw [Set.encard_eq_top]
     · simp
     · exact infinite_of_mem_nhds x (EMetric.closedBall_mem_nhds x hr)
