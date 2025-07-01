@@ -3,7 +3,6 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.EDistEgorov
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Gaussian.StochasticProcesses
@@ -38,7 +37,7 @@ theorem tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable' [IsFiniteMeasure �
   · simp only [hδi, imp_true_iff, le_top, exists_const]
   lift δ to ℝ≥0 using hδi
   rw [gt_iff_lt, ENNReal.coe_pos, ← NNReal.coe_pos] at hδ
-  obtain ⟨t, _, ht, hunif⟩ := tendstoUniformlyOn_of_ae_tendsto''' hf hg hfg hδ
+  obtain ⟨t, _, ht, hunif⟩ := tendstoUniformlyOn_of_ae_tendsto' hf hg hfg hδ
   rw [ENNReal.ofReal_coe_nnreal] at ht
   rw [EMetric.tendstoUniformlyOn_iff] at hunif
   obtain ⟨N, hN⟩ := eventually_atTop.1 (hunif ε hε)
@@ -442,7 +441,6 @@ lemma uniformContinuous_of_mem_holderSet
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
-    letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
     UniformContinuous fun (t : T') ↦ X t ω :=
       (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).uniformContinuous hβ_pos
 
@@ -450,7 +448,6 @@ omit [MeasurableSpace E] [BorelSpace E] in
 lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
-    letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
     Continuous fun (t : T') ↦ X t ω :=
   (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
 
@@ -692,7 +689,7 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     simpa only [hω, ↓reduceIte, Y] using hω₂
   · intro β₀ hβ₀_pos hβ₀_lt ω
     by_cases hω : ω ∈ A
-    swap; · simp [hω, Y, HolderWith]
+    swap; · simp [hω, Y]
     simp only [hω, ↓reduceIte, Y]
     obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
       obtain ⟨n, hn⟩ : ∃ n, β₀ < β' n := (Tendsto.eventually_const_lt hβ₀_lt hβ'_tendsto).exists

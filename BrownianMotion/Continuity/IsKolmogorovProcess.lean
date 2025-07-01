@@ -389,14 +389,14 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow (hp : 1 ≤ p) (hX : IsKolmogorovProc
           (X (chainingSequence hC t.2 (m + i + 1)) ω) ^ p ∂P) ^ (1 / p)) ^ p := by
   have hp' : 0 < p := by bound
   simp only [← (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp')).map_iSup_of_continuousAt
-    ENNReal.continuous_rpow_const.continuousAt (by simp [hp']), iSup_subtype']
+    ENNReal.continuous_rpow_const.continuousAt (by simp [hp'])]
   refine le_trans ?_ (ENNReal.monotone_rpow_of_nonneg (le_of_lt hp')
     (ENNReal.lintegral_Lp_finsum_le
       (fun _ _ => AEMeasurable.iSup (fun _ => hX.aemeasurable_edist)) hp))
   dsimp only
   rw [one_div, ENNReal.rpow_inv_rpow (by bound)]
   gcongr with ω
-  simp only [Finset.sum_apply, iSup_subtype']
+  simp only [Finset.sum_apply]
   refine le_trans ?_ (Finset.iSup_sum_le _)
   gcongr
   exact edist_chainingSequence_le_sum_edist (X · ω) hm
@@ -481,7 +481,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
   conv_rhs => rw [mul_comm _ c₁]
   simp only [mul_assoc, mul_div_assoc]
   gcongr c₁ * ?_
-  simp only [← mul_assoc, mul_div_assoc]
+  simp only [← mul_assoc]
   rw [mul_comm (2 ^ d), mul_assoc]
   gcongr M * ?_
 
@@ -612,7 +612,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp_pos : 0 < p
   conv_rhs => rw [mul_comm _ c₁]
   simp only [mul_assoc, mul_div_assoc]
   gcongr c₁ * ?_
-  simp only [← mul_assoc, mul_div_assoc]
+  simp only [← mul_assoc]
   rw [mul_comm (2 ^ d), mul_assoc]
   gcongr M * ?_
   calc ∑ j ∈ Finset.range (k - m), (ε₀ * 2⁻¹ ^ (m + j + 1)) ^ (-d) * (ε₀ * 2⁻¹ ^ (m + j)) ^ q
@@ -850,7 +850,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedInternalCoveringNu
   simp_rw [← mul_assoc]
   refine (second_term_bound hp_pos hX le_rfl hC hC_subset hC_card hd_pos hdq_lt hJ
     zero_le').trans ?_
-  simp only [pow_zero, mul_one, ε₀]
+  simp only [pow_zero, mul_one]
   have hδ_le' : EMetric.diam J ≤ δ := by
     refine hδ_le.trans ?_
     rw [ENNReal.div_le_iff (by simp) (by simp)]

@@ -42,8 +42,7 @@ lemma HasBoundedInternalCoveringNumber.diam_lt_top
   simp only [this, ENNReal.inv_top, hd, ENNReal.zero_rpow_of_pos, mul_zero, nonpos_iff_eq_zero] at h
   norm_cast at h
   simp only [internalCoveringNumber, ENat.iInf_eq_zero, Nat.cast_eq_zero, Finset.card_eq_zero,
-    exists_prop, exists_and_left, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff,
-    Set.empty_subset, and_true] at h
+    exists_prop, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff, Set.empty_subset] at h
   simp [h] at this
 
 lemma HasBoundedInternalCoveringNumber.subset {B : Set T}

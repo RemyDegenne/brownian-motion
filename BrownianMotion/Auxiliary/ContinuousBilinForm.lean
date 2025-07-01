@@ -144,7 +144,7 @@ lemma ofMatrix_apply (x y : E) :
   simp [ofMatrix_apply', Matrix.toBilin_apply, dotProduct, Matrix.mulVec, Finset.mul_sum, mul_assoc]
 
 lemma ofMatrix_basis (i j : n) : ofMatrix M b (b i) (b j) = M i j := by
-  simp [ofMatrix_apply, Finsupp.single_eq_pi_single, Matrix.mulVec_single_one]
+  simp [ofMatrix_apply, Finsupp.single_eq_pi_single]
 
 lemma ofMatrix_orthonormalBasis {E : Type*} [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
     (b : OrthonormalBasis n 𝕜 E) (i j : n) :
