@@ -96,8 +96,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
   hasBoundedCoveringNumber n ε hε_le := by
     simp only [ENNReal.rpow_one]
     have h_iso : Isometry ((↑) : ℝ≥0 → ℝ) := fun x y ↦ rfl
-    have h_inj : Function.Injective ((↑) : ℝ≥0 → ℝ) := NNReal.coe_injective
-    rw [← h_iso.internalCoveringNumber_image h_inj.injOn]
+    rw [← h_iso.internalCoveringNumber_image]
     have h_image : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
       ext x
       simp only [Set.mem_image, Set.mem_Ico, zero_le, true_and]

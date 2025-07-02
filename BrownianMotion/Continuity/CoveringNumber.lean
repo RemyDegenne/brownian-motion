@@ -476,7 +476,7 @@ lemma Isometry.isCover_image_iff {F : Type*} [PseudoEMetricSpace E] [PseudoEMetr
     refine ⟨f c, Set.mem_image_of_mem _ hc_mem, ?_⟩
     rwa [hf.edist_eq]
 
-lemma Isometry.internalCoveringNumber_image
+lemma Isometry.internalCoveringNumber_image'
     {F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
     {f : E → F} (hf : Isometry f) {r : ℝ≥0∞} {A : Set E} (hf_inj : Set.InjOn f A) :
     internalCoveringNumber r (f '' A) = internalCoveringNumber r A := by
@@ -514,6 +514,12 @@ lemma Isometry.internalCoveringNumber_image
     simp only [Finset.coe_image, hf.isCover_image_iff] at hC_cover
     refine (iInf_le _ hC_cover).trans ?_
     rw [Finset.card_image_iff.mpr (hf_inj.mono hC'_subset)]
+
+lemma Isometry.internalCoveringNumber_image
+    {F : Type*} [EMetricSpace E] [PseudoEMetricSpace F]
+    {f : E → F} (hf : Isometry f) {r : ℝ≥0∞} {A : Set E} :
+    internalCoveringNumber r (f '' A) = internalCoveringNumber r A :=
+  hf.internalCoveringNumber_image' hf.injective.injOn
 
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
     internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
