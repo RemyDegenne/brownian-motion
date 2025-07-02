@@ -757,4 +757,24 @@ lemma internalCoveringNumber_closedBall_one_le (ε : ℝ≥0∞) (x : E) :
       ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) :=
   (internalCoveringNumber_closedBall_le _ _ _).trans_eq (by simp)
 
+lemma internalCoveringNumber_closedBall_le_three_mul [Nontrivial E]
+    {ε : ℝ≥0∞} {x : E} {r : ℝ≥0∞} (hr_zero : r ≠ 0) (hr_top : r ≠ ∞) (hε : ε ≤ r) :
+    internalCoveringNumber ε (EMetric.closedBall x r)
+      ≤ (3 * r / ε) ^ (Module.finrank ℝ E) := by
+  by_cases hε_zero : ε = 0
+  · simp only [hε_zero, internalCoveringNumber_zero]
+    rw [ENNReal.div_zero, ENNReal.top_pow]
+    · exact le_top
+    · exact Module.finrank_ne_zero
+    · simp [hr_zero]
+  refine (internalCoveringNumber_closedBall_le _ _ _).trans ?_
+  let d := Module.finrank ℝ E
+  calc (2 * r / ε + 1) ^ d
+  _ ≤ (2 * r / ε + r / ε) ^ d := by
+    gcongr
+    rwa [ENNReal.le_div_iff_mul_le (.inl hε_zero) (.inr hr_top), one_mul]
+  _ = (3 * r / ε) ^ d := by
+    congr
+    rw [← two_add_one_eq_three, add_mul, one_mul, ENNReal.add_div]
+
 end Volume

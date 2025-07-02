@@ -88,7 +88,7 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
 open scoped Pointwise in
 lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) (n + 1)) Set.univ
-      (fun n ↦ 4 * (n + 1)) (fun _ ↦ 1) where
+      (fun n ↦ 3 * (n + 1)) (fun _ ↦ 1) where
   c_ne_top n := by finiteness
   d_pos := by simp
   isOpen n := NNReal.isOpen_Ico_zero
@@ -125,22 +125,19 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       gcongr
       refine internalCoveringNumber_subset_le ?_ this
       exact ne_top_of_le_ne_top (by finiteness) hε_le
-    _ ≤ 2 * ((n + 1) / 2) / (ε / 2) + 1 :=
-      (internalCoveringNumber_closedBall_le _ _ _).trans_eq (by simp)
-    _ = 2 * (n + 1) / ε + 1 := by
-      rw [mul_div_assoc, mul_div_assoc]
-      congr 2
+    _ ≤ 3 * ((n + 1) / 2) / (ε / 2) := by
+      refine (internalCoveringNumber_closedBall_le_three_mul ?_ ?_ ?_).trans_eq (by simp)
+      · simp
+      · finiteness
+      · gcongr
+    _ = 3 * (n + 1) / ε := by
+      conv_lhs => rw [mul_div_assoc]
+      conv_rhs => rw [mul_div_assoc]
+      congr 1
       simp_rw [div_eq_mul_inv]
       rw [ENNReal.mul_inv (by simp) (by simp), inv_inv, mul_assoc, mul_comm _ (2 : ℝ≥0∞),
         ← mul_assoc _ (2 : ℝ≥0∞), ENNReal.inv_mul_cancel (by simp) (by simp), one_mul]
-    _ ≤ 2 * (n + 1) / ε + 2 * (n + 1) / ε := by
-      gcongr
-      rw [ENNReal.le_div_iff_mul_le (by simp) (.inr <| by finiteness), one_mul, two_mul]
-      exact hε_le.trans le_self_add
-    _ = 4 * (n + 1) * ε⁻¹ := by
-      rw [← two_mul, ← mul_div_assoc, ← mul_assoc]
-      congr
-      norm_num
+    _ = 3 * (n + 1) * ε⁻¹ := by rw [div_eq_mul_inv]
   mono n m hnm x hx := by
     simp only [Set.mem_Ico, zero_le, true_and] at hx ⊢
     exact hx.trans_le (mod_cast (by gcongr))
