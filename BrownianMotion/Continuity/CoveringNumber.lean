@@ -495,7 +495,21 @@ lemma Isometry.internalCoveringNumber_image
   · simp only [le_iInf_iff]
     intro C hC_subset hC_cover
     obtain ⟨C', hC'_subset, rfl⟩ : ∃ (C' : Finset E), ↑C' ⊆ A ∧ C = C'.image f := by
-      sorry
+      have (x : C) : ∃ y ∈ A, f y = x := by
+        have hx : (x : F) ∈ f '' A := hC_subset x.2
+        simpa only [Set.mem_image] using hx
+      choose g hg_mem hg using this
+      refine ⟨Finset.univ.image (fun x ↦ g x), ?_, ?_⟩
+      · simp only [Finset.univ_eq_attach, Finset.coe_image, Finset.coe_attach, Set.image_univ]
+        rwa [Set.range_subset_iff]
+      · ext x
+        simp only [Finset.univ_eq_attach, Finset.mem_image, Finset.mem_attach, true_and,
+          Subtype.exists]
+        refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+        · exact ⟨g ⟨x, h⟩, ⟨x, h, rfl⟩, hg _⟩
+        · obtain ⟨x, hx, rfl⟩ := h
+          obtain ⟨y, hy, rfl⟩ := hx
+          rwa [hg]
     refine (iInf_le _ C').trans <| (iInf_le _ hC'_subset).trans ?_
     simp only [Finset.coe_image, hf.isCover_image_iff] at hC_cover
     refine (iInf_le _ hC_cover).trans ?_

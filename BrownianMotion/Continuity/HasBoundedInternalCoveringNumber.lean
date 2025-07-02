@@ -95,21 +95,23 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
   totallyBounded n := totallyBounded_Ico _ _
   hasBoundedCoveringNumber n ε hε_le := by
     simp only [ENNReal.rpow_one]
-    -- todo : extract that have as a lemma
-    have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
-      sorry
-    rw [h_diam] at hε_le
     have h_iso : Isometry ((↑) : ℝ≥0 → ℝ) := fun x y ↦ rfl
     have h_inj : Function.Injective ((↑) : ℝ≥0 → ℝ) := NNReal.coe_injective
     rw [← h_iso.internalCoveringNumber_image h_inj.injOn]
-    have : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
+    have h_image : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
       ext x
       simp only [Set.mem_image, Set.mem_Ico, zero_le, true_and]
       refine ⟨fun ⟨y, hy, hy_eq⟩ ↦ ?_, fun h ↦ ?_⟩
       · rw [← hy_eq]
         exact ⟨y.2, hy⟩
       · exact ⟨⟨x, h.1⟩, h.2, rfl⟩
-    rw [this]
+    rw [h_image]
+    -- todo : extract that have as a lemma
+    have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
+      rw [← h_iso.ediam_image, h_image]
+      simp only [Real.ediam_Ico, sub_zero]
+      norm_cast
+    rw [h_diam] at hε_le
     have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
       intro x hx
       simp only [Set.mem_Ico, EMetric.mem_closedBall, edist_dist, dist] at hx ⊢
