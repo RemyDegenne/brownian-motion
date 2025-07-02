@@ -1775,7 +1775,9 @@ A set $T$ is said to have a cover with bounded covering numbers if there exists 
 $\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,n)$, constants $c_n = n$ and exponents $d_n = 1$.
 \end{lemma}
 
-\begin{proof}
+Note: in the Lean code, we proved this result for weaker constants: $c_n = 3n$.
+
+\begin{proof}\leanok
   \uses{lem:hasBoundedInternalCoveringNumber_unitInterval}
 
 \end{proof}
