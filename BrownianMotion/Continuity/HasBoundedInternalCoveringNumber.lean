@@ -88,34 +88,56 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
 open scoped Pointwise in
 lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) (n + 1)) Set.univ
-      (fun n ↦ (n + 1)) (fun _ ↦ 1) where
-  c_ne_top := by simp
+      (fun n ↦ 3 * (n + 1)) (fun _ ↦ 1) where
+  c_ne_top n := by finiteness
   d_pos := by simp
   isOpen n := NNReal.isOpen_Ico_zero
   totallyBounded n := totallyBounded_Ico _ _
   hasBoundedCoveringNumber n ε hε_le := by
     simp only [ENNReal.rpow_one]
-    have : Set.Ico (0 : ℝ≥0) (n + 1) = (n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1 := by
-      have : (n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1
-          = (fun x ↦ (n + 1 : ℝ≥0) * x) '' Set.Ico (0 : ℝ≥0) 1 := by
-        ext; simp [Set.mem_smul_set]
-      rw [this, Set.image_mul_left_Ico]
-      simp only [mul_zero, mul_one]
-      simp
-    rw [this]
-    calc (internalCoveringNumber ε ((n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1) : ℝ≥0∞)
-    _ = internalCoveringNumber ((n + 1 : ℝ≥0) * (ε / (n + 1)))
-        ((n + 1 : ℝ≥0) • Set.Ico (0 : ℝ≥0) 1) := by
-      congr
+    have h_iso : Isometry ((↑) : ℝ≥0 → ℝ) := fun x y ↦ rfl
+    rw [← h_iso.internalCoveringNumber_image]
+    have h_image : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
+      ext x
+      simp only [Set.mem_image, Set.mem_Ico, zero_le, true_and]
+      refine ⟨fun ⟨y, hy, hy_eq⟩ ↦ ?_, fun h ↦ ?_⟩
+      · rw [← hy_eq]
+        exact ⟨y.2, hy⟩
+      · exact ⟨⟨x, h.1⟩, h.2, rfl⟩
+    rw [h_image]
+    -- todo : extract that have as a lemma
+    have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
+      rw [← h_iso.ediam_image, h_image]
+      simp only [Real.ediam_Ico, sub_zero]
       norm_cast
-      rw [ENNReal.mul_div_cancel (by simp) (by simp)]
-    _ = internalCoveringNumber (ε / (n + 1)) (Set.Ico (0 : ℝ≥0) 1) := by
-      sorry
-      --refine internalCoveringNumber_smul ?_
-    _ ≤ (n + 1) * ε⁻¹ := by
-      refine (internalCoveringNumber_Ico_zero_one_le_one_div ?_).trans_eq ?_
-      · sorry
-      · rw [← ENNReal.div_mul _ (by simp) (by simp), mul_comm, one_div]
+    rw [h_diam] at hε_le
+    have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
+      intro x hx
+      simp only [Set.mem_Ico, EMetric.mem_closedBall, edist_dist, dist] at hx ⊢
+      refine ENNReal.ofReal_le_of_le_toReal ?_
+      simp only [ENNReal.toReal_div, ENNReal.toReal_ofNat]
+      norm_cast
+      refine abs_le.mpr ⟨?_, ?_⟩
+      · linarith
+      · simp [hx.2.le]
+    calc (internalCoveringNumber ε (Set.Ico (0 : ℝ) (n + 1)) : ℝ≥0∞)
+    _ ≤ internalCoveringNumber (ε / 2) (EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
+      gcongr
+      refine internalCoveringNumber_subset_le ?_ this
+      exact ne_top_of_le_ne_top (by finiteness) hε_le
+    _ ≤ 3 * ((n + 1) / 2) / (ε / 2) := by
+      refine (internalCoveringNumber_closedBall_le_three_mul ?_ ?_ ?_).trans_eq (by simp)
+      · simp
+      · finiteness
+      · gcongr
+    _ = 3 * (n + 1) / ε := by
+      conv_lhs => rw [mul_div_assoc]
+      conv_rhs => rw [mul_div_assoc]
+      congr 1
+      simp_rw [div_eq_mul_inv]
+      rw [ENNReal.mul_inv (by simp) (by simp), inv_inv, mul_assoc, mul_comm _ (2 : ℝ≥0∞),
+        ← mul_assoc _ (2 : ℝ≥0∞), ENNReal.inv_mul_cancel (by simp) (by simp), one_mul]
+    _ = 3 * (n + 1) * ε⁻¹ := by rw [div_eq_mul_inv]
   mono n m hnm x hx := by
     simp only [Set.mem_Ico, zero_le, true_and] at hx ⊢
     exact hx.trans_le (mod_cast (by gcongr))

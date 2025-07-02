@@ -84,7 +84,7 @@ lemma exists_brownian :
           ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
     (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by simp) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+    (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=

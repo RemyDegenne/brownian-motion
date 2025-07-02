@@ -464,11 +464,62 @@ lemma internalCoveringNumber_le_encard [PseudoEMetricSpace E] (r : ℝ≥0∞) {
 
 end comparisons
 
-open scoped Pointwise in
-lemma internalCoveringNumber_smul [NormedAddCommGroup E] [Module ℝ E] {r : ℝ≥0∞} {A : Set E}
-    {c : ℝ≥0} (hc : c ≠ 0) :
-  internalCoveringNumber (c * r) (c • A) = internalCoveringNumber r A := by
-  sorry
+lemma Isometry.isCover_image_iff {F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    {f : E → F} (hf : Isometry f) {r : ℝ≥0∞} {A : Set E} (C : Set E) :
+    IsCover (f '' C) r (f '' A) ↔ IsCover C r A := by
+  refine ⟨fun h x hx ↦ ?_, fun h x hx ↦ ?_⟩
+  · obtain ⟨c, hc_mem, hc⟩ := h (f x) (Set.mem_image_of_mem _ hx)
+    obtain ⟨c', hc', rfl⟩ := hc_mem
+    refine ⟨c', hc', le_of_eq_of_le (hf.edist_eq _ _).symm hc⟩
+  · obtain ⟨y, hy_mem, rfl⟩ := hx
+    obtain ⟨c, hc_mem, hc⟩ := h y hy_mem
+    refine ⟨f c, Set.mem_image_of_mem _ hc_mem, ?_⟩
+    rwa [hf.edist_eq]
+
+lemma Isometry.internalCoveringNumber_image'
+    {F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    {f : E → F} (hf : Isometry f) {r : ℝ≥0∞} {A : Set E} (hf_inj : Set.InjOn f A) :
+    internalCoveringNumber r (f '' A) = internalCoveringNumber r A := by
+  unfold internalCoveringNumber
+  classical
+  refine le_antisymm ?_ ?_
+  · simp only [le_iInf_iff]
+    intro C hC_subset hC_cover
+    refine (iInf_le _ (C.image f)).trans ?_
+    simp only [Finset.coe_image, Set.image_subset_iff]
+    have : ↑C ⊆ f ⁻¹' (f '' A) := hC_subset.trans (Set.subset_preimage_image f A)
+    refine (iInf_le _ this).trans ?_
+    rw [hf.isCover_image_iff]
+    refine (iInf_le _ hC_cover).trans ?_
+    exact mod_cast Finset.card_image_le
+  · simp only [le_iInf_iff]
+    intro C hC_subset hC_cover
+    obtain ⟨C', hC'_subset, rfl⟩ : ∃ (C' : Finset E), ↑C' ⊆ A ∧ C = C'.image f := by
+      have (x : C) : ∃ y ∈ A, f y = x := by
+        have hx : (x : F) ∈ f '' A := hC_subset x.2
+        simpa only [Set.mem_image] using hx
+      choose g hg_mem hg using this
+      refine ⟨Finset.univ.image (fun x ↦ g x), ?_, ?_⟩
+      · simp only [Finset.univ_eq_attach, Finset.coe_image, Finset.coe_attach, Set.image_univ]
+        rwa [Set.range_subset_iff]
+      · ext x
+        simp only [Finset.univ_eq_attach, Finset.mem_image, Finset.mem_attach, true_and,
+          Subtype.exists]
+        refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+        · exact ⟨g ⟨x, h⟩, ⟨x, h, rfl⟩, hg _⟩
+        · obtain ⟨x, hx, rfl⟩ := h
+          obtain ⟨y, hy, rfl⟩ := hx
+          rwa [hg]
+    refine (iInf_le _ C').trans <| (iInf_le _ hC'_subset).trans ?_
+    simp only [Finset.coe_image, hf.isCover_image_iff] at hC_cover
+    refine (iInf_le _ hC_cover).trans ?_
+    rw [Finset.card_image_iff.mpr (hf_inj.mono hC'_subset)]
+
+lemma Isometry.internalCoveringNumber_image
+    {F : Type*} [EMetricSpace E] [PseudoEMetricSpace F]
+    {f : E → F} (hf : Isometry f) {r : ℝ≥0∞} {A : Set E} :
+    internalCoveringNumber r (f '' A) = internalCoveringNumber r A :=
+  hf.internalCoveringNumber_image' hf.injective.injOn
 
 theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
     internalCoveringNumber ε (Set.Icc (0 : ℝ) 1) ≤ 1 / ε := by
@@ -550,10 +601,6 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     exact internalCoveringNumber_le_of_isCover C_sub this
   _ = k := by simp_all
   _ ≤ 1 / ε := k_le
-
-theorem internalCoveringNumber_Ico_zero_one_le_one_div {ε : ℝ≥0∞} (hε : ε ≤ 1) :
-    internalCoveringNumber ε (Set.Ico (0 : ℝ≥0) 1) ≤ 1 / ε := by
-  sorry
 
 section Volume
 
@@ -709,5 +756,25 @@ lemma internalCoveringNumber_closedBall_one_le (ε : ℝ≥0∞) (x : E) :
     internalCoveringNumber ε (EMetric.closedBall x 1)
       ≤ (2 / ε + 1) ^ (Module.finrank ℝ E) :=
   (internalCoveringNumber_closedBall_le _ _ _).trans_eq (by simp)
+
+lemma internalCoveringNumber_closedBall_le_three_mul [Nontrivial E]
+    {ε : ℝ≥0∞} {x : E} {r : ℝ≥0∞} (hr_zero : r ≠ 0) (hr_top : r ≠ ∞) (hε : ε ≤ r) :
+    internalCoveringNumber ε (EMetric.closedBall x r)
+      ≤ (3 * r / ε) ^ (Module.finrank ℝ E) := by
+  by_cases hε_zero : ε = 0
+  · simp only [hε_zero, internalCoveringNumber_zero]
+    rw [ENNReal.div_zero, ENNReal.top_pow]
+    · exact le_top
+    · exact Module.finrank_ne_zero
+    · simp [hr_zero]
+  refine (internalCoveringNumber_closedBall_le _ _ _).trans ?_
+  let d := Module.finrank ℝ E
+  calc (2 * r / ε + 1) ^ d
+  _ ≤ (2 * r / ε + r / ε) ^ d := by
+    gcongr
+    rwa [ENNReal.le_div_iff_mul_le (.inl hε_zero) (.inr hr_top), one_mul]
+  _ = (3 * r / ε) ^ d := by
+    congr
+    rw [← two_add_one_eq_three, add_mul, one_mul, ENNReal.add_div]
 
 end Volume
