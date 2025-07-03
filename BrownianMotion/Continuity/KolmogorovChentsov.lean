@@ -91,6 +91,29 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rw [Measure.measure_inter_eq_of_measure_eq hs _ (Set.subset_univ _) ht_ne_top, Set.univ_inter]
   rwa [ae_iff_measure_eq] at h
   exact ht
+-- variable {α β : Type*} [NormedField β] [LinearOrder β] [IsStrictOrderedRing β]
+--   {u v : α → β} {l : Filter α}
+
+-- theorem IsEquivalent.tendsto_atTop [OrderTopology β] (huv : u ~[l] v) (hu : Tendsto u l atTop) :
+--     Tendsto v l atTop :=
+--   let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul
+--   Tendsto.congr' h.symm (mul_comm u φ ▸ hu.atTop_mul_pos zero_lt_one hφ)
+#check Asymptotics.isLittleO_of_tendsto'
+#check Asymptotics.isLittleO_const_left
+
+theorem Asymptotics.IsEquivalent.add_const_of_tendsto_atTop {α β : Type*}
+    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
+    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
+    (fun x ↦ u x + c) ~[l] (fun x ↦ v x) := by
+  apply Asymptotics.IsEquivalent.add_isLittleO huv
+  rw [Asymptotics.isLittleO_const_left]
+  exact Or.inr hv
+
+theorem Asymptotics.IsEquivalent.const_add_of_tendsto_atTop {α β : Type*}
+    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
+    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
+    (fun x ↦ c + u x) ~[l] (fun x ↦ v x) := by
+  sorry
 
 theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
     {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
@@ -101,9 +124,8 @@ theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
   simp only [← Real.norm_eq_abs]
   apply Asymptotics.IsLittleO.add_add htu hvw
 
--- perhaps remove nonneg assumption?
-protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*} {t u : α → ℝ} {l : Filter α}
-    (hu : 0 ≤ u) (h : t ~[l] u) (r : ℝ) :
+protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
+    {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
     (fun x ↦ t x ^ r) ~[l] (fun x ↦ u x ^ r) := by
   obtain ⟨φ, hφ, htφu⟩ := IsEquivalent.exists_eq_mul h
   rw [isEquivalent_iff_exists_eq_mul]
@@ -314,24 +336,33 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   conv => enter [3, 1]; rw [← mul_one (_ ^ _)]
   apply Tendsto.const_mul
   conv => enter [1]; change ((fun n ↦ _) + _) / ((fun n ↦ _) + _)
-  rw [← Asymptotics.isEquivalent_iff_tendsto_one]
-  · refine Asymptotics.IsEquivalent.add_add_of_nonneg
-      (by intro _; positivity) (by intro _; positivity) ?_ Asymptotics.IsEquivalent.refl
-    apply Asymptotics.IsEquivalent.mul Asymptotics.IsEquivalent.refl
-    apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity)
-    have h_nonneg : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + 2) * d := by sorry
-    have h_nonneg' : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + 1 + 2) * d := by sorry
-    apply Asymptotics.IsEquivalent.congr_right; swap
-    · filter_upwards [h_nonneg] with n h_nonneg
-      rw [ENNReal.toReal_ofReal h_nonneg]
-    · apply Asymptotics.IsEquivalent.congr_left; swap
-      · filter_upwards [h_nonneg'] with n h_nonneg'
-        rw [ENNReal.toReal_ofReal h_nonneg']
-      · sorry
-  filter_upwards with _
-  apply ne_of_gt
-  refine lt_of_le_of_lt ?_ <| (add_lt_add_left (ENNReal.toReal_pos (by positivity) hC)) _
-  positivity
+  rw [← Asymptotics.isEquivalent_iff_tendsto_one]; swap
+  · filter_upwards with _
+    apply ne_of_gt
+    refine lt_of_le_of_lt ?_ <| (add_lt_add_left (ENNReal.toReal_pos (by positivity) hC)) _
+    positivity
+  refine Asymptotics.IsEquivalent.add_add_of_nonneg
+    (by intro _; positivity) (by intro _; positivity) ?_ .refl
+  apply Asymptotics.IsEquivalent.mul .refl
+  apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity)
+  have h (k : ℕ) : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + k + 2) * d := by
+      sorry
+  apply Asymptotics.IsEquivalent.congr_right; swap
+  · filter_upwards [h 0] with n h_nonneg
+    rw [← add_zero (n : ℝ), ← Nat.cast_zero, ENNReal.toReal_ofReal h_nonneg]
+  apply Asymptotics.IsEquivalent.congr_left; swap
+  · filter_upwards [h 1] with n h_nonneg
+    rw [← Nat.cast_one, ENNReal.toReal_ofReal h_nonneg]
+  apply Asymptotics.IsEquivalent.const_add_of_tendsto_atTop; swap
+  · sorry
+  refine (Asymptotics.IsEquivalent.const_add_of_tendsto_atTop ?_ ?_).symm; swap
+  · sorry
+  refine Asymptotics.IsEquivalent.mul ?_ .refl
+  simp only [add_assoc]
+  apply Asymptotics.IsEquivalent.add_const_of_tendsto_atTop; swap
+  · sorry
+  refine (Asymptotics.IsEquivalent.add_const_of_tendsto_atTop .refl ?_).symm
+  · sorry
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
