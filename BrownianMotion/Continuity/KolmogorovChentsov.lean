@@ -17,7 +17,7 @@ import Mathlib.Topology.Separation.CompletelyRegular
 -/
 
 open MeasureTheory Filter
-open scoped ENNReal NNReal Topology
+open scoped ENNReal NNReal Topology Asymptotics
 
 section aux
 
@@ -92,9 +92,21 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rwa [ae_iff_measure_eq] at h
   exact ht
 
-theorem ENNReal.ofReal_toReal_eq_of_ne_top {a : ℝ≥0∞} (h : a ≠ ∞) :
-    ENNReal.ofReal a.toReal = a :=
-  ENNReal.ofReal_toReal_eq_iff.mpr h
+#check Asymptotics.IsLittleO.add_add
+#check Asymptotics.IsLittleO.right_isBigO_add'
+#check Real.norm_eq_abs
+
+theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
+    {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
+    (htu : t ~[l] u) (hvw : v ~[l] w) : t + v ~[l] u + w := by
+  simp only [IsEquivalent, add_sub_add_comm]
+  change (fun x ↦ (t - u) x + (v - w) x) =o[l] (fun x ↦ u x + w x)
+  conv => enter [3, x]; rw [← (abs_eq_self).mpr (hu x), ← (abs_eq_self).mpr (hw x)]
+  simp only [← Real.norm_eq_abs]
+  apply Asymptotics.IsLittleO.add_add htu hvw
+
+protected theorem Asymptotics.IsEquivalent.rpow {α : Type*} {t u : α → ℝ} {l : Filter α}
+    (h : t ~[l] u) (r : ℝ) : t ^ r ~[l] u ^ r := by sorry
 
 theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
   ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := biSup_prod
@@ -254,25 +266,55 @@ def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) 
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
         + Cp d p q)
 
-#check ENNReal.tsum_coe_ne_top_iff_summable_coe
-#check ENNReal.ofNNReal_toNNReal
-#check Real.coe_toNNReal'
-#check ENNReal.ofReal
-
 lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β < ∞ := by
-  simp only [constL, Cp]
-  -- simp only [ENNReal.ofReal, Real.toNNReal]
-  conv =>
-    enter [1, 2, 1, k]
-    rw [← ENNReal.ofReal_toReal_eq_iff.mpr (a := _ * _)]
-
+  have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
+  have hC : Cp d p q ≠ ⊤ := by
+    unfold Cp
+    apply max_ne_top <;> apply ENNReal.div_ne_top (by norm_num)
+    · apply ne_of_gt
+      refine ENNReal.rpow_pos ?_ (by finiteness)
+      exact tsub_pos_of_lt (ENNReal.one_lt_rpow (by norm_num) (by bound))
+    · exact ne_of_gt <| tsub_pos_of_lt (ENNReal.one_lt_rpow (by norm_num) (by bound))
+  have hC_pos : 0 < Cp d p q := by
+    unfold Cp
+    apply lt_max_of_lt_right (ENNReal.div_pos (by norm_num) (by finiteness))
+  unfold constL
   apply ENNReal.mul_lt_top (by finiteness)
-
-
-  -- rw [ENNReal.tsum_coe_ne_top_iff_summable_coe]
+  conv =>
+    enter [1, 1, _]
+    rw [← (ENNReal.ofReal_toReal_eq_iff (a := _ * _)).mpr (by finiteness),
+      ENNReal.ofReal_eq_coe_nnreal (by positivity)]
+  rw [lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
+  apply summable_of_ratio_test_tendsto_lt_one (l := 2 ^ (β * p - (q - d)))
+  · apply Real.rpow_lt_one_of_one_lt_of_neg (by norm_num)
+    simp [← lt_div_iff₀, hp_pos, hβ_lt]
+  · filter_upwards with k
+    apply ne_of_gt
+    simp only [ENNReal.toReal_mul, NNReal.coe_mk]
+    apply mul_pos <;> refine ENNReal.toReal_pos_iff.mpr ⟨?_, by finiteness⟩
+    · exact ENNReal.rpow_pos (by norm_num) (by norm_num)
+    · positivity
+  simp only [Nat.cast_add, Nat.cast_one, ENNReal.toReal_mul, NNReal.coe_mk, norm_mul,
+    Real.norm_eq_abs, ENNReal.abs_toReal, ← div_mul_div_comm, add_mul (b := (1 : ℝ)), one_mul]
+  conv => enter [1, _, 2, 1]; rw [ENNReal.toReal_add (by finiteness) (by finiteness)]
+  conv => enter [1, _, 2, 2]; rw [ENNReal.toReal_add (by finiteness) (by finiteness)]
+  simp only [← ENNReal.toReal_rpow, ENNReal.toReal_ofNat, Nat.ofNat_pos, Real.rpow_add,
+    ENNReal.toReal_mul]
+  conv => enter [1, _, 1]; rw [mul_div_cancel_left₀ _ (by positivity)]
+  conv => enter [3, 1]; rw [← mul_one (_ ^ _)]
+  apply Tendsto.const_mul
+  conv => enter [1]; change ((fun n ↦ _) + _) / ((fun n ↦ _) + _)
+  rw [← Asymptotics.isEquivalent_iff_tendsto_one]
+  · refine Asymptotics.IsEquivalent.add_add_of_nonneg
+      (fun _ ↦ by positivity) (fun _ ↦ by positivity) ?_ Asymptotics.IsEquivalent.refl
+    apply Asymptotics.IsEquivalent.mul Asymptotics.IsEquivalent.refl
+    apply Asymptotics.IsEquivalent.rpow
+    sorry
+    --apply Asymptotics.IsEquivalent.congr_left (use congr with eventually positive)
+  sorry
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -399,11 +441,12 @@ lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     {T' : Set T} (hT' : T'.Countable) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
+  have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
   refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.isKolmogorovProcess hd_pos hp_pos
     hdq_lt hβ_pos T').trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
     exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
-  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt)
+  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt)
 
 omit [MeasurableSpace E] [BorelSpace E] in
 def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
