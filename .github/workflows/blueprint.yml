@@ -40,4 +40,3 @@ jobs:
         with:
           blueprint: true
           homepage: home_page
-          api_docs: false
