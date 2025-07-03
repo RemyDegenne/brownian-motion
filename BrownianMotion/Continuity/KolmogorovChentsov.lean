@@ -101,15 +101,20 @@ theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
   simp only [← Real.norm_eq_abs]
   apply Asymptotics.IsLittleO.add_add htu hvw
 
-#check tendsto_rpow_div_mul_add
-
+-- perhaps remove nonneg assumption?
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*} {t u : α → ℝ} {l : Filter α}
-    (ht : 0 ≤ t) (hu : 0 ≤ u) (h : t ~[l] u) (r : ℝ) :
-      (fun x ↦ t x ^ r) ~[l] (fun x ↦ u x ^ r) := by
-  rw [isEquivalent_iff_exists_eq_mul]
+    (hu : 0 ≤ u) (h : t ~[l] u) (r : ℝ) :
+    (fun x ↦ t x ^ r) ~[l] (fun x ↦ u x ^ r) := by
   obtain ⟨φ, hφ, htφu⟩ := IsEquivalent.exists_eq_mul h
-  -- will need to use the fact that φ is eventually positive
-  sorry
+  rw [isEquivalent_iff_exists_eq_mul]
+  have hφr : Tendsto ((fun x ↦ x ^ r) ∘ φ) l (𝓝 1) := by
+    rw [← Real.one_rpow r]
+    refine Filter.Tendsto.comp ?_ hφ
+    exact ContinuousAt.tendsto (Real.continuousAt_rpow_const _ _ (by left; norm_num))
+  use (· ^ r) ∘ φ, hφr
+  conv => enter [3]; change fun x ↦ φ x ^ r * u x ^ r
+  filter_upwards [Filter.Tendsto.eventually_const_lt (zero_lt_one) hφ, htφu] with x hφ_pos htu'
+  simp [← Real.mul_rpow (le_of_lt hφ_pos) (hu x), htu']
 
 theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
   ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := biSup_prod
@@ -313,9 +318,16 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   · refine Asymptotics.IsEquivalent.add_add_of_nonneg
       (by intro _; positivity) (by intro _; positivity) ?_ Asymptotics.IsEquivalent.refl
     apply Asymptotics.IsEquivalent.mul Asymptotics.IsEquivalent.refl
-    apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity) (by intro _; positivity)
-    sorry
-    --apply Asymptotics.IsEquivalent.congr_left (use congr with eventually positive)
+    apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity)
+    have h_nonneg : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + 2) * d := by sorry
+    have h_nonneg' : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + 1 + 2) * d := by sorry
+    apply Asymptotics.IsEquivalent.congr_right; swap
+    · filter_upwards [h_nonneg] with n h_nonneg
+      rw [ENNReal.toReal_ofReal h_nonneg]
+    · apply Asymptotics.IsEquivalent.congr_left; swap
+      · filter_upwards [h_nonneg'] with n h_nonneg'
+        rw [ENNReal.toReal_ofReal h_nonneg']
+      · sorry
   filter_upwards with _
   apply ne_of_gt
   refine lt_of_le_of_lt ?_ <| (add_lt_add_left (ENNReal.toReal_pos (by positivity) hC)) _
