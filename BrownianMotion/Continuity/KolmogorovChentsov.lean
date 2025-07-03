@@ -92,6 +92,10 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rwa [ae_iff_measure_eq] at h
   exact ht
 
+theorem ENNReal.ofReal_toReal_eq_of_ne_top {a : ℝ≥0∞} (h : a ≠ ∞) :
+    ENNReal.ofReal a.toReal = a :=
+  ENNReal.ofReal_toReal_eq_iff.mpr h
+
 theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
   ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := biSup_prod
 
@@ -250,10 +254,25 @@ def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) 
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
         + Cp d p q)
 
-lemma constL_lt_top (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+#check ENNReal.tsum_coe_ne_top_iff_summable_coe
+#check ENNReal.ofNNReal_toNNReal
+#check Real.coe_toNNReal'
+#check ENNReal.ofReal
+
+lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β < ∞ := by
-  sorry
+  simp only [constL, Cp]
+  -- simp only [ENNReal.ofReal, Real.toNNReal]
+  conv =>
+    enter [1, 2, 1, k]
+    rw [← ENNReal.ofReal_toReal_eq_iff.mpr (a := _ * _)]
+
+  apply ENNReal.mul_lt_top (by finiteness)
+
+
+  -- rw [ENNReal.tsum_coe_ne_top_iff_summable_coe]
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
