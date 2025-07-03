@@ -5,7 +5,6 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.StochasticProcesses
-import Mathlib.Probability.Distributions.Gaussian.Basic
 
 /-!
 # Gaussian processes
@@ -28,6 +27,16 @@ variable [MeasurableSpace E] [TopologicalSpace E] [AddCommMonoid E] [Module ℝ 
 Gaussian. -/
 def IsGaussianProcess (X : T → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
   ∀ I : Finset T, IsGaussian (P.map (fun ω ↦ I.restrict (X · ω)))
+
+lemma IsGaussianProcess.aemeasurable (hX : IsGaussianProcess X P) (t : T) :
+    AEMeasurable (X t) P := by
+  by_contra h
+  have := hX {t}
+  rw [Measure.map_of_not_aemeasurable] at this
+  · exact this.toIsProbabilityMeasure.ne_zero _ rfl
+  · rw [aemeasurable_pi_iff]
+    push_neg
+    exact ⟨⟨t, by simp⟩, h⟩
 
 lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P) (hXY : ∀ t, X t =ᵐ[P] Y t) :
     IsGaussianProcess Y P := by
@@ -54,8 +63,8 @@ instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] 
   obtain ⟨t, ht, rfl⟩ := hs
   exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
 
-lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) {t : T}
-    (hX' : AEMeasurable (X t) P) : IsGaussian (P.map (X t)) := by
+instance IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) {t : T} :
+    IsGaussian (P.map (X t)) := by
   let L : (({t} : Finset T) → E) →L[ℝ] E := ContinuousLinearMap.proj ⟨t, by simp⟩
   have : X t = L ∘ (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp [L]
   rw [this, ← AEMeasurable.map_map_of_aemeasurable]
@@ -63,14 +72,11 @@ lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) {t : T}
     exact isGaussian_map L
   · exact L.continuous.aemeasurable
   rw [aemeasurable_pi_iff]
-  simpa
+  simpa using hX.aemeasurable t
 
 lemma IsGaussianProcess.memLp_eval [SecondCountableTopology E] [CompleteSpace E]
-    (hX : IsGaussianProcess X P) {t : T}
-    (hX' : AEMeasurable (X t) P) {p : ℝ≥0∞} (hp : p ≠ ∞) : MemLp (X t) p P := by
+    (hX : IsGaussianProcess X P) {t : T} {p : ℝ≥0∞} (hp : p ≠ ∞) : MemLp (X t) p P := by
   rw [← Function.id_comp (X t)]
-  apply MemLp.comp_of_map
-  · exact hX.isGaussian_eval hX' |>.memLp_id _ p hp
-  · exact hX'
+  exact MemLp.comp_of_map (hX.isGaussian_eval |>.memLp_id _ p hp) (hX.aemeasurable t)
 
 end ProbabilityTheory

@@ -162,36 +162,34 @@ lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*
 -- PR #26269 in Mathlib
 
 lemma test {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [IsProbabilityMeasure P] {X : ι → Ω → ℝ} (mX : ∀ i, AEMeasurable (X i) P)
-    (h1 : IsGaussian (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω))))
+    [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
+    [h1 : IsGaussian (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)))]
     (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
     iIndepFun X P := by
+  have mX : ∀ i, AEMeasurable (X i) P := by
+    rw [← aemeasurable_pi_iff, ← Function.id_comp (fun ω i ↦ X i ω),
+      ← (EuclideanSpace.measurableEquiv ι).self_comp_symm, Function.comp_assoc,
+      (EuclideanSpace.measurableEquiv ι).measurableEmbedding.aemeasurable_comp_iff]
+    by_contra!
+    rw [Measure.map_of_not_aemeasurable] at h1
+    · exact h1.toIsProbabilityMeasure.ne_zero _ rfl
+    · exact this
   rw [iIndepFun_iff_charFun_eq_pi]
   · intro ξ
     rw [← EuclideanSpace.coe_measurableEquiv_symm, IsGaussian.charFun_eq]
     nth_rw 1 2 3 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' ξ]
-    rw [sum_inner, map_sum]
-    simp_rw [map_sum, Complex.ofReal_sum, basisFun_inner, ContinuousLinearMap.sum_apply, map_smul,
-      ContinuousLinearMap.smul_apply, ← Finset.smul_sum]
+    simp_rw [sum_inner, map_sum, Complex.ofReal_sum, basisFun_inner, ContinuousLinearMap.sum_apply,
+      map_smul, ContinuousLinearMap.smul_apply, ← Finset.smul_sum]
     have (i : ι) : ∑ j, ξ j •
         covInnerBilin (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)))
           (EuclideanSpace.basisFun ι ℝ j) (EuclideanSpace.basisFun ι ℝ i) =
           ξ i • Var[X i; P] := by
-      rw [Finset.sum_eq_single_of_mem i, covInnerBilin_self, variance_map]
-      · congr with
-        simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
-      · fun_prop
+      rw [Finset.sum_eq_single_of_mem i, covInnerBilin_apply_basisFun_self]; rfl
       · fun_prop
       · exact IsGaussian.memLp_two_id
       · simp
       · rintro j - hj
-        rw [covInnerBilin_apply_eq, covariance_map, ← smul_zero (ξ j), ← h2 j i hj]
-        · congr with
-          all_goals simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
-        · rw [← ContinuousBilinForm.inner_apply']
-          exact (ContinuousLinearMap.continuous _).aestronglyMeasurable
-        · rw [← ContinuousBilinForm.inner_apply']
-          exact (ContinuousLinearMap.continuous _).aestronglyMeasurable
+        rw [covInnerBilin_apply_basisFun, ← smul_zero (ξ j), ← h2 j i hj]; rfl
         · fun_prop
         · exact IsGaussian.memLp_two_id
     simp_rw [this]
@@ -280,7 +278,7 @@ lemma indep_incr_bm : indep_incr gaussianLimit brownian := by
           (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩) = ⇑L := rfl
       rw [this]
       refine @isGaussian_map _ _ _ _ _ _ _ _ _ _ _ ?_ L
-      exact isGaussianProcess_brownian (Finset.univ.image t)
+      exact isGaussianProcess_brownian.restrict (Finset.univ.image t)
     · fun_prop
     · fun_prop
   intro i j hij
@@ -301,10 +299,10 @@ lemma indep_incr_bm : indep_incr gaussianLimit brownian := by
       simp
   rotate_right
   · exact
-      (isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num)).sub
-      (isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num))
+      (isGaussianProcess_brownian.memLp_eval (by norm_num)).sub
+      (isGaussianProcess_brownian.memLp_eval (by norm_num))
   all_goals
-    exact isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num)
+    exact isGaussianProcess_brownian.memLp_eval (by norm_num)
 
 section Measure
 

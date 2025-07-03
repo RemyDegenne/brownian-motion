@@ -68,6 +68,7 @@ theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpa
   rw [PiLp.norm_sq_eq_of_L2]
   congr with i; simp
 
+@[simp]
 theorem basisFun_inner {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] (x : EuclideanSpace 𝕜 ι) (i : ι) :
     ⟪EuclideanSpace.basisFun ι 𝕜 i, x⟫_𝕜 = x i := by
   simp [← OrthonormalBasis.repr_apply_apply]

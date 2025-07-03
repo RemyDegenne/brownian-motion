@@ -27,6 +27,31 @@ def covInnerBilin (μ : Measure E) : ContinuousBilinForm ℝ E :=
   ContinuousLinearMap.bilinearComp (covarianceBilin μ)
     (toDualMap ℝ E).toContinuousLinearMap (toDualMap ℝ E).toContinuousLinearMap
 
+@[simp]
+lemma _root_.ContinuousLinearMap.flip_zero {𝕜 𝕜₂ 𝕜₃ E F G : Type*} [SeminormedAddCommGroup E]
+    [SeminormedAddCommGroup F] [SeminormedAddCommGroup G] [NontriviallyNormedField 𝕜]
+    [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃] [NormedSpace 𝕜 E]
+    [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+    [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃] :
+    ContinuousLinearMap.flip (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) = 0 := rfl
+
+@[simp]
+lemma _root_.ContinuousLinearMap.bilinearComp_zero {𝕜 𝕜₂ 𝕜₃ 𝕜₁' 𝕜₂' E F G E' F' : Type*}
+    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup G]
+    [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
+    [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+    [SeminormedAddCommGroup E'] [SeminormedAddCommGroup F'] [NontriviallyNormedField 𝕜₁']
+    [NontriviallyNormedField 𝕜₂'] [NormedSpace 𝕜₁' E'] [NormedSpace 𝕜₂' F'] {σ₁' : 𝕜₁' →+* 𝕜}
+    {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃} [RingHomCompTriple σ₁' σ₁₃ σ₁₃']
+    [RingHomCompTriple σ₂' σ₂₃ σ₂₃'] [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃']
+    [RingHomIsometric σ₂₃'] {gE : E' →SL[σ₁'] E} {gF : F' →SL[σ₂'] F} :
+    ContinuousLinearMap.bilinearComp (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) gE gF = 0 := rfl
+
+@[simp]
+lemma covInnerBilin_zero : covInnerBilin (0 : Measure E) = 0 := by
+  rw [covInnerBilin]
+  simp
+
 lemma covInnerBilin_eq_covarianceBilin (x y : E) :
     covInnerBilin μ x y = covarianceBilin μ (toDualMap ℝ E x) (toDualMap ℝ E y) := rfl
 
@@ -93,6 +118,24 @@ lemma covInnerBilin_map_const_add [CompleteSpace E] [IsProbabilityMeasure μ]
   rw [integral_add (integrable_const _)]
   · simp
   · exact h.integrable (by simp)
+
+lemma covInnerBilin_apply_basisFun {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
+    (mX : AEMeasurable X μ) (hX : MemLp id 2 (μ.map X)) (i j : ι) :
+    covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) =
+    cov[(X · i), (X · j); μ] := by
+  rw [covInnerBilin_apply_eq hX, covariance_map]
+  · simp only [basisFun_inner]; rfl
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · exact mX
+
+lemma covInnerBilin_apply_basisFun_self {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
+    (mX : AEMeasurable X μ) (hX : MemLp id 2 (μ.map X)) (i : ι) :
+    covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ i) =
+    Var[(X · i); μ] := by
+  rw [covInnerBilin_apply_basisFun mX hX, covariance_self (by fun_prop)]
 
 variable [FiniteDimensional ℝ E]
 
