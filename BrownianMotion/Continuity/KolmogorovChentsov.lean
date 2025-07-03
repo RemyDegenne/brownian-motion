@@ -92,10 +92,6 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rwa [ae_iff_measure_eq] at h
   exact ht
 
-#check Asymptotics.IsLittleO.add_add
-#check Asymptotics.IsLittleO.right_isBigO_add'
-#check Real.norm_eq_abs
-
 theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
     {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
     (htu : t ~[l] u) (hvw : v ~[l] w) : t + v ~[l] u + w := by
@@ -105,8 +101,15 @@ theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
   simp only [← Real.norm_eq_abs]
   apply Asymptotics.IsLittleO.add_add htu hvw
 
-protected theorem Asymptotics.IsEquivalent.rpow {α : Type*} {t u : α → ℝ} {l : Filter α}
-    (h : t ~[l] u) (r : ℝ) : t ^ r ~[l] u ^ r := by sorry
+#check tendsto_rpow_div_mul_add
+
+protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*} {t u : α → ℝ} {l : Filter α}
+    (ht : 0 ≤ t) (hu : 0 ≤ u) (h : t ~[l] u) (r : ℝ) :
+      (fun x ↦ t x ^ r) ~[l] (fun x ↦ u x ^ r) := by
+  rw [isEquivalent_iff_exists_eq_mul]
+  obtain ⟨φ, hφ, htφu⟩ := IsEquivalent.exists_eq_mul h
+  -- will need to use the fact that φ is eventually positive
+  sorry
 
 theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
   ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := biSup_prod
@@ -281,7 +284,6 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   have hC_pos : 0 < Cp d p q := by
     unfold Cp
     apply lt_max_of_lt_right (ENNReal.div_pos (by norm_num) (by finiteness))
-  unfold constL
   apply ENNReal.mul_lt_top (by finiteness)
   conv =>
     enter [1, 1, _]
@@ -309,12 +311,15 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   conv => enter [1]; change ((fun n ↦ _) + _) / ((fun n ↦ _) + _)
   rw [← Asymptotics.isEquivalent_iff_tendsto_one]
   · refine Asymptotics.IsEquivalent.add_add_of_nonneg
-      (fun _ ↦ by positivity) (fun _ ↦ by positivity) ?_ Asymptotics.IsEquivalent.refl
+      (by intro _; positivity) (by intro _; positivity) ?_ Asymptotics.IsEquivalent.refl
     apply Asymptotics.IsEquivalent.mul Asymptotics.IsEquivalent.refl
-    apply Asymptotics.IsEquivalent.rpow
+    apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity) (by intro _; positivity)
     sorry
     --apply Asymptotics.IsEquivalent.congr_left (use congr with eventually positive)
-  sorry
+  filter_upwards with _
+  apply ne_of_gt
+  refine lt_of_le_of_lt ?_ <| (add_lt_add_left (ENNReal.toReal_pos (by positivity) hC)) _
+  positivity
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
