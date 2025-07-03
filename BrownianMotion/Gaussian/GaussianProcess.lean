@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.Probability.Distributions.Gaussian.Basic
 
@@ -53,7 +54,7 @@ instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] 
   obtain ⟨t, ht, rfl⟩ := hs
   exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
 
-lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) (t : T)
+lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) {t : T}
     (hX' : AEMeasurable (X t) P) : IsGaussian (P.map (X t)) := by
   let L : (({t} : Finset T) → E) →L[ℝ] E := ContinuousLinearMap.proj ⟨t, by simp⟩
   have : X t = L ∘ (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp [L]
@@ -63,5 +64,13 @@ lemma IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) (t : T)
   · exact L.continuous.aemeasurable
   rw [aemeasurable_pi_iff]
   simpa
+
+lemma IsGaussianProcess.memLp_eval [SecondCountableTopology E] [CompleteSpace E]
+    (hX : IsGaussianProcess X P) {t : T}
+    (hX' : AEMeasurable (X t) P) {p : ℝ≥0∞} (hp : p ≠ ∞) : MemLp (X t) p P := by
+  rw [← Function.id_comp (X t)]
+  apply MemLp.comp_of_map
+  · exact hX.isGaussian_eval hX' |>.memLp_id _ p hp
+  · exact hX'
 
 end ProbabilityTheory
