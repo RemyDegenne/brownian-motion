@@ -7,6 +7,7 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
@@ -14,7 +15,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 -/
 
-open MeasureTheory NNReal
+open MeasureTheory NNReal WithLp Finset
 open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
@@ -114,6 +115,7 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (h�
     nth_rw 2 [← mul_one 2⁻¹]
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
+@[fun_prop]
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) := by
   refine continuous_iff_continuousAt.mpr fun t ↦ ?_
   obtain ⟨U, hu_mem, ⟨C, h⟩⟩ := memHolder_brownian ω t 4⁻¹ (by norm_num)
@@ -148,6 +150,161 @@ lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
   measurablePair := measurable_pair_of_measurable measurable_brownian
   kolmogorovCondition := (isMeasurableKolmogorovProcess_preBrownian n).isKolmogorovProcess.congr
     (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
+
+lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, InnerProductSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
+    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] (mX : ∀ i, AEMeasurable (X i) μ) :
+    iIndepFun X μ ↔ ∀ t,
+      charFun (μ.map fun ω ↦ toLp 2 (X · ω)) t = ∏ i, charFun (μ.map (X i)) (t i) := sorry
+-- PR #26269 in Mathlib
+
+lemma test {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [IsProbabilityMeasure P] {X : ι → Ω → ℝ} (mX : ∀ i, AEMeasurable (X i) P)
+    (h1 : IsGaussian (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω))))
+    (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
+    iIndepFun X P := by
+  rw [iIndepFun_iff_charFun_eq_pi]
+  · intro ξ
+    rw [← EuclideanSpace.coe_measurableEquiv_symm, IsGaussian.charFun_eq]
+    nth_rw 1 2 3 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' ξ]
+    rw [sum_inner, map_sum]
+    simp_rw [map_sum, Complex.ofReal_sum, basisFun_inner, ContinuousLinearMap.sum_apply, map_smul,
+      ContinuousLinearMap.smul_apply, ← Finset.smul_sum]
+    have (i : ι) : ∑ j, ξ j •
+        covInnerBilin (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)))
+          (EuclideanSpace.basisFun ι ℝ j) (EuclideanSpace.basisFun ι ℝ i) =
+          ξ i • Var[X i; P] := by
+      rw [Finset.sum_eq_single_of_mem i, covInnerBilin_self, variance_map]
+      · congr with
+        simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
+      · fun_prop
+      · fun_prop
+      · exact IsGaussian.memLp_two_id
+      · simp
+      · rintro j - hj
+        rw [covInnerBilin_apply_eq, covariance_map, ← smul_zero (ξ j), ← h2 j i hj]
+        · congr with
+          all_goals simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
+        · rw [← ContinuousBilinForm.inner_apply']
+          exact (ContinuousLinearMap.continuous _).aestronglyMeasurable
+        · rw [← ContinuousBilinForm.inner_apply']
+          exact (ContinuousLinearMap.continuous _).aestronglyMeasurable
+        · fun_prop
+        · exact IsGaussian.memLp_two_id
+    simp_rw [this]
+    rw [sum_mul, sum_div, ← sum_sub_distrib, Complex.exp_sum]
+    congr with i
+    have : X i = (ContinuousBilinForm.inner (EuclideanSpace ℝ ι) (EuclideanSpace.basisFun ι ℝ i)) ∘
+        (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)) := by
+      ext; simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
+    nth_rw 2 [this]
+    rw [← AEMeasurable.map_map_of_aemeasurable, IsGaussian.charFun_eq]
+    · congr
+      rw [integral_map, integral_map]
+      simp_rw [id]
+      rw [(ContinuousBilinForm.inner (EuclideanSpace ℝ ι) (EuclideanSpace.basisFun ι ℝ i)).integral_comp_id_comm, real_inner_smul_left, mul_comm, integral_map]
+      · simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
+      · fun_prop
+      · exact aestronglyMeasurable_id
+      · exact h1.integrable_id
+      · exact (ContinuousLinearMap.continuous _).aemeasurable
+      · exact aestronglyMeasurable_id
+      · fun_prop
+      · exact aestronglyMeasurable_id
+      rw [covInnerBilin_self, variance_map, variance_map]
+      · have : (((fun u ↦ inner ℝ (ξ i) u) ∘
+        ⇑((ContinuousBilinForm.inner (EuclideanSpace ℝ ι)) ((EuclideanSpace.basisFun ι ℝ) i))) ∘
+            fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm fun x ↦ X x ω) =
+            fun ω ↦ (ξ i) * (X i ω) := by
+          ext; simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner, mul_comm]
+        rw [this]
+        simp [variance_mul, ← mul_assoc]
+        exact Or.inl ((by rw [pow_two]))
+      · fun_prop
+      · fun_prop
+      · fun_prop
+      · fun_prop
+      · exact IsGaussian.memLp_two_id
+    · fun_prop
+    · fun_prop
+  · exact mX
+
+def indep_incr {Ω T E : Type*} {mΩ : MeasurableSpace Ω} (P : Measure Ω) [Sub E] [Preorder T]
+    [MeasurableSpace E] (X : T → Ω → E) : Prop :=
+  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+
+lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
+    x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by
+  simp
+
+lemma cov_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t := by
+  have h1 : brownian s = (fun x : ({s, t} : Finset ℝ≥0) → ℝ ↦ x ⟨s, by simp⟩) ∘
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
+  have h2 : brownian t = (fun x : ({s, t} : Finset ℝ≥0) → ℝ ↦ x ⟨t, by simp⟩) ∘
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
+  have : (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) =ᵐ[gaussianLimit]
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (preBrownian · ω)) := by
+    filter_upwards [brownian_ae_eq_preBrownian s, brownian_ae_eq_preBrownian t] with ω hω₁ hω₂
+    ext r
+    obtain hr | hr := mem_pair_iff.1 r.2
+    all_goals simp [hr, hω₁, hω₂]
+  rw [h1, h2, ← covariance_map, Measure.map_congr this]
+  · simp_rw [preBrownian, measurePreserving_gaussianLimit.map_eq]
+    rw [covariance_eval_gaussianProjectiveFamily]
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  exact Measurable.aemeasurable <| by fun_prop
+
+lemma indep_incr_bm : indep_incr gaussianLimit brownian := by
+  intro n t ht
+  apply test
+  · exact fun i ↦ by fun_prop
+  · have : (fun ω ↦
+        (EuclideanSpace.measurableEquiv (Fin (n + 1))).symm
+        fun i ↦ (brownian (t i.succ) - brownian (t i.castSucc)) ω) =
+        (fun x ↦ toLp 2 fun (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
+        (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩) ∘ ((Finset.univ.image t).restrict) ∘
+        (fun ω t ↦ brownian t ω) := by ext; simp [EuclideanSpace.measurableEquiv]
+    rw [this, ← Function.comp_assoc, ← Measure.map_map]
+    · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) :=
+        { toFun := (fun x ↦ toLp 2 fun (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
+            (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩)
+          map_add' x y := by ext; simp; ring
+          map_smul' m x := by ext; simp; ring
+          cont := by fun_prop }
+      have : (fun x ↦ toLp 2 fun (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
+          (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩) = ⇑L := rfl
+      rw [this]
+      refine @isGaussian_map _ _ _ _ _ _ _ _ _ _ _ ?_ L
+      exact isGaussianProcess_brownian (Finset.univ.image t)
+    · fun_prop
+    · fun_prop
+  intro i j hij
+  rw [covariance_sub_left, covariance_sub_right, covariance_sub_right]
+  · simp_rw [cov_brownian]
+    obtain h | h := Fin.lt_or_lt_of_ne hij
+    · have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
+      have h2 : i.succ ≤ j.castSucc := h
+      have h3 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
+      have h4 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
+      rw [min_eq_left (ht h1), min_eq_left (ht h2), min_eq_left (ht h3), min_eq_left (ht h4)]
+      simp
+    · have h1 : j.succ ≤ i.succ := Fin.succ_le_succ_iff.mpr h.le
+      have h2 : j.succ ≤ i.castSucc := h
+      have h3 : j.castSucc ≤ i.succ := Fin.le_of_lt h1
+      have h4 : j.castSucc ≤ i.castSucc := Fin.le_castSucc_iff.mpr h1
+      rw [min_eq_right (ht h1), min_eq_right (ht h2), min_eq_right (ht h3), min_eq_right (ht h4)]
+      simp
+  rotate_right
+  · exact
+      (isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num)).sub
+      (isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num))
+  all_goals
+    exact isGaussianProcess_brownian.memLp_eval (measurable_brownian _).aemeasurable (by norm_num)
 
 section Measure
 
