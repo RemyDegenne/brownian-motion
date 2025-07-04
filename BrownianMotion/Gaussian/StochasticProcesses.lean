@@ -19,7 +19,7 @@ lemma finite_distributions_eq {I : Finset T} (h : ∀ t, X t =ᵐ[P] Y t) :
     rw [MeasureTheory.ae_all_iff]
     exact fun i ↦ h i
   refine Measure.map_congr ?_
-  filter_upwards [h'] with ω h using funext fun i ↦ h i
+  filter_upwards [h'] with ω h using funext h
 
 theorem AEMeasurable.eval {α δ : Type*} {X : δ → Type*} {mX : ∀ a, MeasurableSpace (X a)}
     [MeasurableSpace α] {μ : Measure α} {g : α → Π a, X a} (hg : AEMeasurable g μ) (a : δ) :
@@ -30,14 +30,14 @@ lemma isProjectiveMeasureFamily_map_restrict (hX : AEMeasurable (fun ω t ↦ X 
     IsProjectiveMeasureFamily (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
   intro I J hJI
   rw [AEMeasurable.map_map_of_aemeasurable (Finset.measurable_restrict₂ _).aemeasurable]
-  · congr
+  · rfl
   · exact (Finset.measurable_restrict _).comp_aemeasurable hX
 
 lemma isProjectiveLimit_map (hX : AEMeasurable (fun ω t ↦ X t ω) P) :
     IsProjectiveLimit (P.map (fun ω t ↦ X t ω)) (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
   rintro I
   rw [AEMeasurable.map_map_of_aemeasurable (Finset.measurable_restrict _).aemeasurable hX]
-  congr
+  rfl
 
 lemma finite_distributions_eq_iff_same_law (hX : AEMeasurable (fun t ω ↦ X ω t) P)
     (hY : AEMeasurable (fun t ω ↦ Y ω t) P) [IsProbabilityMeasure P] :
@@ -46,7 +46,7 @@ lemma finite_distributions_eq_iff_same_law (hX : AEMeasurable (fun t ω ↦ X ω
   refine ⟨fun h ↦ ?_, fun h I ↦ ?_⟩
   · have hX' := isProjectiveLimit_map hX
     simp_rw [h] at hX'
-    refine hX'.unique (isProjectiveLimit_map hY)
+    exact hX'.unique (isProjectiveLimit_map hY)
   · have x : P.map (fun ω ↦ I.restrict (X · ω)) = (P.map (fun ω t ↦ X t ω)).map I.restrict := by
       rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX]
       rfl
@@ -66,5 +66,5 @@ lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T
   have eq (ht : ∀ t ∈ D, X t =ᵐ[P] Y t) : ∀ᵐ ω ∂P, ∀ t ∈ D, X t ω = Y t ω :=
     (ae_ball_iff D_countable).mpr ht
   filter_upwards [hX, hY, eq (fun t ht ↦ h t)] with ω hX hY h t
-  show (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
+  change (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
   rw [Continuous.ext_on D_dense hX hY h]
