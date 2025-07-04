@@ -92,7 +92,7 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rwa [ae_iff_measure_eq] at h
   exact ht
 
-theorem Asymptotics.IsEquivalent.add_const_of_tendsto_atTop {α β : Type*}
+theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
     [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
     (u · + c) ~[l] v := by
@@ -100,12 +100,12 @@ theorem Asymptotics.IsEquivalent.add_const_of_tendsto_atTop {α β : Type*}
   rw [Asymptotics.isLittleO_const_left]
   exact Or.inr hv
 
-theorem Asymptotics.IsEquivalent.const_add_of_tendsto_atTop {α β : Type*}
+theorem Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop {α β : Type*}
     [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
     (c + u ·) ~[l] v := by
   conv => enter [2, _]; rw [add_comm]
-  exact Asymptotics.IsEquivalent.add_const_of_tendsto_atTop huv hv
+  exact Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop huv hv
 
 theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
     {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
@@ -350,24 +350,24 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   apply Asymptotics.IsEquivalent.congr_left; swap
   · filter_upwards [h 1] with n h_nonneg
     rw [← Nat.cast_one, ENNReal.toReal_ofReal h_nonneg]
-  apply Asymptotics.IsEquivalent.const_add_of_tendsto_atTop; swap
+  apply Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop; swap
   · apply Tendsto.comp tendsto_norm_atTop_atTop
     apply tendsto_atTop_add_const_left
     rw [tendsto_mul_const_atTop_of_pos hd_pos]
     repeat apply tendsto_atTop_add_const_right
     exact tendsto_natCast_atTop_iff.mpr tendsto_id
-  refine (Asymptotics.IsEquivalent.const_add_of_tendsto_atTop ?_ ?_).symm; swap
+  refine (Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop ?_ ?_).symm; swap
   · apply Tendsto.comp tendsto_norm_atTop_atTop
     rw [tendsto_mul_const_atTop_of_pos hd_pos]
     repeat apply tendsto_atTop_add_const_right
     exact tendsto_natCast_atTop_iff.mpr tendsto_id
   refine Asymptotics.IsEquivalent.mul ?_ .refl
   simp only [add_assoc]
-  apply Asymptotics.IsEquivalent.add_const_of_tendsto_atTop; swap
+  apply Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop; swap
   · apply Tendsto.comp tendsto_norm_atTop_atTop
     apply tendsto_atTop_add_const_right
     exact tendsto_natCast_atTop_iff.mpr tendsto_id
-  refine (Asymptotics.IsEquivalent.add_const_of_tendsto_atTop .refl ?_).symm
+  refine (Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop .refl ?_).symm
   exact Tendsto.comp tendsto_norm_atTop_atTop (tendsto_natCast_atTop_iff.mpr tendsto_id)
 
 theorem finite_kolmogorov_chentsov
