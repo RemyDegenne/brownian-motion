@@ -113,8 +113,7 @@ theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
   simp only [IsEquivalent, add_sub_add_comm]
   change (fun x ↦ (t - u) x + (v - w) x) =o[l] (fun x ↦ u x + w x)
   conv => enter [3, x]; rw [← (abs_eq_self).mpr (hu x), ← (abs_eq_self).mpr (hw x)]
-  simp only [← Real.norm_eq_abs]
-  apply Asymptotics.IsLittleO.add_add htu hvw
+  simpa only [← Real.norm_eq_abs] using Asymptotics.IsLittleO.add_add htu hvw
 
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
     {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
