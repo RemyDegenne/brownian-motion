@@ -27,30 +27,33 @@ lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
   unfold preBrownian
   fun_prop
 
+lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit where
+  aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
+  map_eq := Measure.map_id
+
+lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
+    HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) gaussianLimit (gaussianProjectiveFamily I) :=
+  hasLaw_restrict_gaussianLimit.comp hasLaw_preBrownian
+
+lemma hasLaw_preBrownian_eval (t : ℝ≥0) :
+    HasLaw (preBrownian t) gaussianLimit (gaussianReal 0 t) :=
+  (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp
+    (hasLaw_restrict_preBrownian ({t} : Finset ℝ≥0))
+
 lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit := by
   intro I
-  simp only [preBrownian]
-  rw [isProjectiveLimit_gaussianLimit]
+  rw [(hasLaw_restrict_preBrownian I).map_eq]
   exact isGaussian_gaussianProjectiveFamily I
 
-lemma measurePreserving_preBrownian_eval (t : ℝ≥0) :
-    MeasurePreserving (preBrownian t) gaussianLimit (gaussianReal 0 t) where
-  measurable := by fun_prop
-  map_eq := by
-    have : preBrownian t = (fun x ↦ x ⟨t, by simp⟩) ∘ ({t} : Finset ℝ≥0).restrict := by
-      ext; simp [preBrownian]
-    rw [this,
-      (measurePreserving_eval_gaussianProjectiveFamily.comp measurePreserving_gaussianLimit).map_eq]
-
-lemma map_sub_preBrownian (s t : ℝ≥0) :
-    MeasurePreserving (preBrownian s - preBrownian t) gaussianLimit
+lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
+    HasLaw (preBrownian s - preBrownian t) gaussianLimit
       (gaussianReal 0 (max (s - t) (t - s))) := by
   have : preBrownian s - preBrownian t =
       ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
     ext; simp [preBrownian]
   rw [this]
-  exact measurePreserving_eval_sub_eval_gaussianProjectiveFamily.comp
-    measurePreserving_gaussianLimit
+  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp
+    hasLaw_restrict_gaussianLimit
 
 lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
     IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
@@ -64,7 +67,7 @@ lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
   simp_rw [edist_dist, Real.dist_eq]
   change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     ((preBrownian s - preBrownian t) ω) ∂_ = _
-  rw [(map_sub_preBrownian s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+  rw [(hasLaw_preBrownian_sub s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     (by fun_prop)]
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
@@ -122,20 +125,28 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
-lemma measurePreserving_brownian_apply {t : ℝ≥0} :
-    MeasurePreserving (brownian t) gaussianLimit (gaussianReal 0 t) where
-  measurable := by fun_prop
-  map_eq := by
-    rw [Measure.map_congr (brownian_ae_eq_preBrownian t),
-      (measurePreserving_preBrownian_eval t).map_eq]
+lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
+    HasLaw (fun ω ↦ I.restrict (brownian · ω)) gaussianLimit (gaussianProjectiveFamily I) := by
+  refine (hasLaw_restrict_preBrownian I).congr ?_
+  filter_upwards [ae_all_iff.2 fun i : I ↦ brownian_ae_eq_preBrownian i.1] with ω hω
+  ext; simp [hω]
 
-lemma measurePreserving_brownian_sub {s t : ℝ≥0} :
-    MeasurePreserving (brownian s - brownian t) gaussianLimit
-      (gaussianReal 0 (max (s - t) (t - s))) where
-  measurable := by fun_prop
+lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit where
+  aemeasurable := (measurable_pi_lambda _ measurable_brownian).aemeasurable
   map_eq := by
-    rw [Measure.map_congr ((brownian_ae_eq_preBrownian s).sub' (brownian_ae_eq_preBrownian t)),
-      (map_sub_preBrownian s t).map_eq]
+    symm
+    refine isProjectiveLimit_gaussianLimit.unique fun I ↦ ?_
+    rw [Measure.map_map (by fun_prop) (measurable_pi_lambda _ measurable_brownian)]
+    exact hasLaw_restrict_brownian.map_eq
+
+lemma hasLaw_brownian_eval {t : ℝ≥0} :
+    HasLaw (brownian t) gaussianLimit (gaussianReal 0 t) :=
+  (hasLaw_preBrownian_eval t).congr (brownian_ae_eq_preBrownian t)
+
+lemma hasLaw_brownian_sub {s t : ℝ≥0} :
+    HasLaw (brownian s - brownian t) gaussianLimit (gaussianReal 0 (max (s - t) (t - s))) :=
+    (hasLaw_preBrownian_sub s t).congr
+      ((brownian_ae_eq_preBrownian s).sub (brownian_ae_eq_preBrownian t))
 
 open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
@@ -251,7 +262,7 @@ lemma cov_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] 
     obtain hr | hr := mem_pair_iff.1 r.2
     all_goals simp [hr, hω₁, hω₂]
   rw [h1, h2, ← covariance_map, Measure.map_congr this]
-  · simp_rw [preBrownian, measurePreserving_gaussianLimit.map_eq]
+  · simp_rw [preBrownian, hasLaw_restrict_gaussianLimit.map_eq]
     rw [covariance_eval_gaussianProjectiveFamily]
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)

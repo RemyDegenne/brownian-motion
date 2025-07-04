@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.WithLp
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.Gaussian
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
@@ -268,10 +269,9 @@ lemma variance_eval_multivariateGaussian (i : ι) :
   rw [← covariance_self, covariance_eval_multivariateGaussian]
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma measurePreserving_multivariateGaussian {i : ι} :
-    MeasurePreserving (fun x ↦ x i) (multivariateGaussian μ S hS)
-      (gaussianReal (μ i) (S i i).toNNReal) where
-  measurable := by fun_prop
+lemma hasLaw_eval_multivariateGaussian {i : ι} :
+    HasLaw (fun x ↦ x i) (multivariateGaussian μ S hS) (gaussianReal (μ i) (S i i).toNNReal) where
+  aemeasurable := Measurable.aemeasurable (by fun_prop)
   map_eq := by
     rw [← EuclideanSpace.coe_proj ℝ, IsGaussian.map_eq_gaussianReal,
       ContinuousLinearMap.integral_comp_id_comm, integral_id_multivariateGaussian,

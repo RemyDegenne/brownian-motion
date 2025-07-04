@@ -66,7 +66,12 @@ lemma measurePreserving_eval (i : ι) :
   rw [this]
   exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [hj])
 
-variable {𝒳 : ι → Type*} {m𝒳 : ∀ i, MeasurableSpace (𝒳 i)} {X : Π i, Ω i → 𝒳 i}
+lemma AEMeasurable.eval {𝒳 ι : Type*} {𝒴 : ι → Type*} {m𝒳 : MeasurableSpace 𝒳} {μ : Measure 𝒳}
+    [∀ i, MeasurableSpace (𝒴 i)] {i : ι} {f : 𝒳 → (i : ι) → 𝒴 i} (hf : AEMeasurable f μ) :
+    AEMeasurable (f · i) μ :=
+  ⟨(hf.mk f · i), hf.measurable_mk.eval, hf.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
+
+variable {𝒳 : ι → Type*} [∀ i, MeasurableSpace (𝒳 i)] {X : Π i, Ω i → 𝒳 i}
 
 lemma iIndepFun_pi (mX : ∀ i, Measurable (X i)) :
     iIndepFun (fun i ω ↦ X i (ω i)) (Measure.pi μ) := by
