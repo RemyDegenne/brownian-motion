@@ -325,7 +325,7 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   conv => enter [1, _, 1]; rw [mul_div_cancel_left₀ _ (by positivity)]
   conv => enter [3, 1]; rw [← mul_one (_ ^ _)]
   apply Tendsto.const_mul
-  conv => enter [1]; change ((fun n ↦ _) + _) / ((fun n ↦ _) + _)
+  conv => enter [1]; change (fun n ↦ _) / (fun n ↦ _)
   rw [← Asymptotics.isEquivalent_iff_tendsto_one]; swap
   · filter_upwards with _
     apply ne_of_gt
