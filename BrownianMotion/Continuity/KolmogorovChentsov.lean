@@ -91,20 +91,11 @@ lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_ae
   rw [Measure.measure_inter_eq_of_measure_eq hs _ (Set.subset_univ _) ht_ne_top, Set.univ_inter]
   rwa [ae_iff_measure_eq] at h
   exact ht
--- variable {α β : Type*} [NormedField β] [LinearOrder β] [IsStrictOrderedRing β]
---   {u v : α → β} {l : Filter α}
-
--- theorem IsEquivalent.tendsto_atTop [OrderTopology β] (huv : u ~[l] v) (hu : Tendsto u l atTop) :
---     Tendsto v l atTop :=
---   let ⟨φ, hφ, h⟩ := huv.symm.exists_eq_mul
---   Tendsto.congr' h.symm (mul_comm u φ ▸ hu.atTop_mul_pos zero_lt_one hφ)
-#check Asymptotics.isLittleO_of_tendsto'
-#check Asymptotics.isLittleO_const_left
 
 theorem Asymptotics.IsEquivalent.add_const_of_tendsto_atTop {α β : Type*}
     [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (fun x ↦ u x + c) ~[l] (fun x ↦ v x) := by
+    (u · + c) ~[l] v := by
   apply Asymptotics.IsEquivalent.add_isLittleO huv
   rw [Asymptotics.isLittleO_const_left]
   exact Or.inr hv
@@ -112,8 +103,9 @@ theorem Asymptotics.IsEquivalent.add_const_of_tendsto_atTop {α β : Type*}
 theorem Asymptotics.IsEquivalent.const_add_of_tendsto_atTop {α β : Type*}
     [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (fun x ↦ c + u x) ~[l] (fun x ↦ v x) := by
-  sorry
+    (c + u ·) ~[l] v := by
+  conv => enter [2, _]; rw [add_comm]
+  exact Asymptotics.IsEquivalent.add_const_of_tendsto_atTop huv hv
 
 theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
     {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
@@ -126,12 +118,12 @@ theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
 
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
     {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
-    (fun x ↦ t x ^ r) ~[l] (fun x ↦ u x ^ r) := by
+    t ^ r ~[l] u ^ r := by
   obtain ⟨φ, hφ, htφu⟩ := IsEquivalent.exists_eq_mul h
   rw [isEquivalent_iff_exists_eq_mul]
   have hφr : Tendsto ((fun x ↦ x ^ r) ∘ φ) l (𝓝 1) := by
     rw [← Real.one_rpow r]
-    refine Filter.Tendsto.comp ?_ hφ
+    refine Tendsto.comp ?_ hφ
     exact ContinuousAt.tendsto (Real.continuousAt_rpow_const _ _ (by left; norm_num))
   use (· ^ r) ∘ φ, hφr
   conv => enter [3]; change fun x ↦ φ x ^ r * u x ^ r
@@ -297,8 +289,7 @@ def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) 
         + Cp d p q)
 
 lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β < ∞ := by
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   have hC : Cp d p q ≠ ⊤ := by
@@ -346,7 +337,13 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   apply Asymptotics.IsEquivalent.mul .refl
   apply Asymptotics.IsEquivalent.rpow_of_nonneg (by intro _; positivity)
   have h (k : ℕ) : ∀ᶠ (n : ℕ) in atTop, 0 ≤ Real.logb 2 c.toReal + (n + k + 2) * d := by
-      sorry
+    obtain ⟨n₀, hn₀⟩ := exists_nat_gt (- Real.logb 2 c.toReal / d)
+    rw [eventually_atTop]
+    use n₀
+    intro n hn
+    grw [hn, add_mul, add_mul, ← le_of_lt ((div_lt_iff₀ hd_pos).mp hn₀), add_assoc, ← add_assoc]
+    simp
+    positivity
   apply Asymptotics.IsEquivalent.congr_right; swap
   · filter_upwards [h 0] with n h_nonneg
     rw [← add_zero (n : ℝ), ← Nat.cast_zero, ENNReal.toReal_ofReal h_nonneg]
@@ -354,15 +351,24 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
   · filter_upwards [h 1] with n h_nonneg
     rw [← Nat.cast_one, ENNReal.toReal_ofReal h_nonneg]
   apply Asymptotics.IsEquivalent.const_add_of_tendsto_atTop; swap
-  · sorry
+  · apply Tendsto.comp tendsto_norm_atTop_atTop
+    apply tendsto_atTop_add_const_left
+    rw [tendsto_mul_const_atTop_of_pos hd_pos]
+    repeat apply tendsto_atTop_add_const_right
+    exact tendsto_natCast_atTop_iff.mpr tendsto_id
   refine (Asymptotics.IsEquivalent.const_add_of_tendsto_atTop ?_ ?_).symm; swap
-  · sorry
+  · apply Tendsto.comp tendsto_norm_atTop_atTop
+    rw [tendsto_mul_const_atTop_of_pos hd_pos]
+    repeat apply tendsto_atTop_add_const_right
+    exact tendsto_natCast_atTop_iff.mpr tendsto_id
   refine Asymptotics.IsEquivalent.mul ?_ .refl
   simp only [add_assoc]
   apply Asymptotics.IsEquivalent.add_const_of_tendsto_atTop; swap
-  · sorry
+  · apply Tendsto.comp tendsto_norm_atTop_atTop
+    apply tendsto_atTop_add_const_right
+    exact tendsto_natCast_atTop_iff.mpr tendsto_id
   refine (Asymptotics.IsEquivalent.add_const_of_tendsto_atTop .refl ?_).symm
-  · sorry
+  exact Tendsto.comp tendsto_norm_atTop_atTop (tendsto_natCast_atTop_iff.mpr tendsto_id)
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -494,7 +500,7 @@ lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     hdq_lt hβ_pos T').trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
     exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
-  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt)
+  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hp_pos hdq_lt hβ_lt)
 
 omit [MeasurableSpace E] [BorelSpace E] in
 def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
