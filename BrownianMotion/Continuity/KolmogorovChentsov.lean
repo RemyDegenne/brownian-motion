@@ -129,9 +129,6 @@ protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
   filter_upwards [Filter.Tendsto.eventually_const_lt (zero_lt_one) hφ, htφu] with x hφ_pos htu'
   simp [← Real.mul_rpow (le_of_lt hφ_pos) (hu x), htu']
 
-theorem biSup_prod' {α β γ : Type*} [CompleteLattice α] {f : β → γ → α} {s : Set β} {t : Set γ} :
-  ⨆ x ∈ s ×ˢ t, f x.1 x.2 = ⨆ a ∈ s, ⨆ b ∈ t, f a b := biSup_prod
-
 theorem Set.iUnion_le_nat : ⋃ n : ℕ, {i | i ≤ n} = Set.univ :=
  subset_antisymm (Set.subset_univ _)
   (fun i _ ↦ Set.mem_iUnion_of_mem i (Set.mem_setOf.mpr (le_refl _)))
