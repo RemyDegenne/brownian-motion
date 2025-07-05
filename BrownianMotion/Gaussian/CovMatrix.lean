@@ -80,6 +80,17 @@ lemma covInnerBilin_apply_eq [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp i
   rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_apply'' h]
   congr
 
+lemma covInnerBilin_real {μ : Measure ℝ} [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : ℝ) :
+    covInnerBilin μ x y = x * y * Var[id; μ] := by
+  simp only [covInnerBilin_apply_eq h, RCLike.inner_apply, conj_trivial, mul_comm]
+  rw [covariance_mul_left, covariance_mul_right, ← mul_assoc, covariance_self]
+  · rfl
+  exact aemeasurable_id
+
+lemma covInnerBilin_real_self {μ : Measure ℝ} [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x : ℝ) :
+    covInnerBilin μ x x = x ^ 2 * Var[id; μ] := by
+  rw [covInnerBilin_real h, pow_two]
+
 lemma covInnerBilin_self_nonneg [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x : E) :
     0 ≤ covInnerBilin μ x x := by
   rw [covInnerBilin_self h]
@@ -121,21 +132,38 @@ lemma covInnerBilin_map_const_add [CompleteSpace E] [IsProbabilityMeasure μ]
 
 lemma covInnerBilin_apply_basisFun {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
     {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
-    (mX : AEMeasurable X μ) (hX : MemLp id 2 (μ.map X)) (i j : ι) :
+    (mX : AEMeasurable X μ) (hX : MemLp X 2 μ) (i j : ι) :
     covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) =
     cov[(X · i), (X · j); μ] := by
-  rw [covInnerBilin_apply_eq hX, covariance_map]
+  rw [covInnerBilin_apply_eq, covariance_map]
   · simp only [basisFun_inner]; rfl
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact mX
+  · exact (memLp_map_measure_iff aestronglyMeasurable_id mX).2 hX
 
 lemma covInnerBilin_apply_basisFun_self {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
     {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
-    (mX : AEMeasurable X μ) (hX : MemLp id 2 (μ.map X)) (i : ι) :
+    (mX : AEMeasurable X μ) (hX : MemLp X 2 μ) (i : ι) :
     covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ i) =
     Var[(X · i); μ] := by
   rw [covInnerBilin_apply_basisFun mX hX, covariance_self (by fun_prop)]
+
+lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
+    (hX : MemLp X 2 μ) (x y : EuclideanSpace ℝ ι) :
+    covInnerBilin (μ.map X) x y = ∑ i, ∑ j, x i * y j * cov[(X · i), (X · j); μ] := by
+  nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' x,
+    ← (EuclideanSpace.basisFun ι ℝ).sum_repr' y]
+  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner]
+    rw [covariance_fun_sum_fun_sum]
+    · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
+      rw [covariance_mul_left, covariance_mul_right]
+      ring
+    all_goals exact fun i _ ↦ (hX.eval_piLp i).const_mul _
+  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+  · exact hX.aemeasurable
+  · exact (memLp_map_measure_iff aestronglyMeasurable_id hX.aemeasurable).2 hX
 
 variable [FiniteDimensional ℝ E]
 

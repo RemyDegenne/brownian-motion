@@ -261,6 +261,8 @@ lemma inner_apply (x y : E) : ContinuousBilinForm.inner E x y = ⟪x, y⟫_ℝ :
 
 lemma inner_apply' (x : E) : ContinuousBilinForm.inner E x = fun y ↦ ⟪x, y⟫_ℝ := rfl
 
+lemma inner_apply'' (x : E) : ContinuousBilinForm.inner E x = inner ℝ x := rfl
+
 lemma isPosSemidef_inner : IsPosSemidef (ContinuousBilinForm.inner E) where
   map_symm := by simp [real_inner_comm]
   nonneg_re_apply_self x := real_inner_self_nonneg

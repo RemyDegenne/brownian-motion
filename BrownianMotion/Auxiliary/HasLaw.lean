@@ -4,8 +4,11 @@ open MeasureTheory ENNReal
 
 namespace ProbabilityTheory
 
-variable {Ω 𝒳 : Type*} {mΩ : MeasurableSpace Ω} {m𝒳 : MeasurableSpace 𝒳} (X : Ω → 𝒳)
-    (P : Measure Ω) (μ : Measure 𝒳)
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
+
+section HasLaw
+
+variable {𝓧} {m𝓧 : MeasurableSpace 𝓧} (X : Ω → 𝓧) (P : Measure Ω) (μ : Measure 𝓧)
 
 /-- The predicate `HasLaw X P μ` registers the fact that the random variable `X` has law `μ` under
 the measure `P`, in other words that `P.map X = μ`. We also require `X` to be `AEMeasurable`,
@@ -17,7 +20,7 @@ structure HasLaw : Prop where
 
 variable {X P μ}
 
-lemma HasLaw.congr {Y : Ω → 𝒳} (hX : HasLaw X P μ) (hY : Y =ᵐ[P] X) : HasLaw Y P μ where
+lemma HasLaw.congr {Y : Ω → 𝓧} (hX : HasLaw X P μ) (hY : Y =ᵐ[P] X) : HasLaw Y P μ where
   aemeasurable := hX.aemeasurable.congr hY.symm
   map_eq := by rw [Measure.map_congr hY, hX.map_eq]
 
@@ -30,14 +33,14 @@ lemma HasLaw.measurePreserving (h₁ : HasLaw X P μ) (h₂ : Measurable X) :
   measurable := h₂
   map_eq := h₁.map_eq
 
-lemma HasLaw.comp {𝒴 : Type*} {m𝒴 : MeasurableSpace 𝒴} {ν : Measure 𝒴} {Y : 𝒳 → 𝒴}
+lemma HasLaw.comp {𝒴 : Type*} {m𝒴 : MeasurableSpace 𝒴} {ν : Measure 𝒴} {Y : 𝓧 → 𝒴}
     (hY : HasLaw Y μ ν) (hX : HasLaw X P μ) : HasLaw (Y ∘ X) P ν where
   aemeasurable := (hX.map_eq ▸ hY.aemeasurable).comp_aemeasurable hX.aemeasurable
   map_eq := by
     rw [← AEMeasurable.map_map_of_aemeasurable _ hX.aemeasurable, hX.map_eq, hY.map_eq]
     rw [hX.map_eq]; exact hY.aemeasurable
 
-lemma HasLaw.fun_comp {𝒴 : Type*} {m𝒴 : MeasurableSpace 𝒴} {ν : Measure 𝒴} {Y : 𝒳 → 𝒴}
+lemma HasLaw.fun_comp {𝒴 : Type*} {m𝒴 : MeasurableSpace 𝒴} {ν : Measure 𝒴} {Y : 𝓧 → 𝒴}
     (hY : HasLaw Y μ ν) (hX : HasLaw X P μ) : HasLaw (fun ω ↦ Y (X ω)) P ν :=
   hY.comp hX
 
@@ -57,13 +60,13 @@ lemma IndepFun.hasLaw_fun_mul [IsFiniteMeasure P] {M : Type*} [Monoid M] {mM : M
     HasLaw (fun ω ↦ X ω * Y ω) P (μ ∗ₘ ν) := hXY.hasLaw_mul hX hY
 
 lemma HasLaw.integral_comp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {X : Ω → 𝒳} (hX : HasLaw X P μ) {f : 𝒳 → E} (hf : AEStronglyMeasurable f μ) :
+    {X : Ω → 𝓧} (hX : HasLaw X P μ) {f : 𝓧 → E} (hf : AEStronglyMeasurable f μ) :
     P[f ∘ X] = ∫ x, f x ∂μ := by
   rw [← hX.map_eq, integral_map hX.aemeasurable]
   · rfl
   · rwa [hX.map_eq]
 
-lemma HasLaw.lintegral_comp {X : Ω → 𝒳} (hX : HasLaw X P μ) {f : 𝒳 → ℝ≥0∞}
+lemma HasLaw.lintegral_comp {X : Ω → 𝓧} (hX : HasLaw X P μ) {f : 𝓧 → ℝ≥0∞}
     (hf : AEMeasurable f μ) : ∫⁻ ω, f (X ω) ∂P = ∫⁻ x, f x ∂μ := by
   rw [← hX.map_eq, lintegral_map' _ hX.aemeasurable]
   rwa [hX.map_eq]
@@ -77,5 +80,73 @@ lemma HasLaw.integral_eq {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 lemma HasLaw.variance_eq {μ : Measure ℝ} {X : Ω → ℝ} (hX : HasLaw X P μ) :
     Var[X; P] = Var[id; μ] := by
   rw [← hX.map_eq, variance_map aemeasurable_id hX.aemeasurable, Function.id_comp]
+
+end HasLaw
+
+section HasGaussianLaw
+
+variable {E : Type*} (X : Ω → E) (P : Measure Ω)
+
+section Basic
+
+variable [TopologicalSpace E] [AddCommMonoid E] [Module ℝ E] [mE : MeasurableSpace E]
+
+class HasGaussianLaw :
+    Prop where
+  isGaussian_map' : IsGaussian (P.map X)
+
+variable {X P}
+
+variable {mE} in
+instance IsGaussian.hasGaussianLaw_id {μ : Measure E} [IsGaussian μ] :
+    HasGaussianLaw id μ where
+  isGaussian_map' := by rwa [Measure.map_id]
+
+instance HasGaussianLaw.isGaussian_map [hX : HasGaussianLaw X P] : IsGaussian (P.map X) :=
+  hX.isGaussian_map'
+
+@[fun_prop, measurability]
+lemma HasGaussianLaw.aemeasurable [hX : HasGaussianLaw X P] : AEMeasurable X P := by
+  by_contra! h
+  have := hX.isGaussian_map
+  rw [Measure.map_of_not_aemeasurable h] at this
+  exact this.toIsProbabilityMeasure.ne_zero _ rfl
+
+variable {mE} in
+lemma HasLaw.hasGaussianLaw {μ : Measure E} (hX : HasLaw X P μ) [IsGaussian μ] :
+    HasGaussianLaw X P where
+  isGaussian_map' := by rwa [hX.map_eq]
+
+end Basic
+
+section NormedSpace
+
+variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] [BorelSpace F]
+    (L : E →L[ℝ] F) {X P}
+
+instance HasGaussianLaw.map [HasGaussianLaw X P] : HasGaussianLaw (L ∘ X) P where
+  isGaussian_map' := by
+    rw [← AEMeasurable.map_map_of_aemeasurable]
+    · infer_instance
+    all_goals fun_prop
+
+instance HasGaussianLaw.map_fun [hX : HasGaussianLaw X P] : HasGaussianLaw (fun ω ↦ L (X ω)) P :=
+  hX.map L
+
+variable (L : E ≃L[ℝ] F)
+
+instance HasGaussianLaw.map_equiv [HasGaussianLaw X P] : HasGaussianLaw (L ∘ X) P where
+  isGaussian_map' := by
+    rw [← AEMeasurable.map_map_of_aemeasurable]
+    · infer_instance
+    all_goals fun_prop
+
+instance HasGaussianLaw.map_equiv_fun [hX : HasGaussianLaw X P] :
+    HasGaussianLaw (fun ω ↦ L (X ω)) P := hX.map_equiv L
+
+end NormedSpace
+
+end HasGaussianLaw
 
 end ProbabilityTheory

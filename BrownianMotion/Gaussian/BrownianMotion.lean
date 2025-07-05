@@ -172,74 +172,73 @@ lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*
       charFun (μ.map fun ω ↦ toLp 2 (X · ω)) t = ∏ i, charFun (μ.map (X i)) (t i) := sorry
 -- PR #26269 in Mathlib
 
+instance IsGaussian.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsProbabilityMeasure P] [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
+    [h : IsGaussian (P.map (fun ω ↦ (X · ω)))] (i : ι) :
+    IsGaussian (P.map (X i)) := by
+  have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+  rw [this, ← AEMeasurable.map_map_of_aemeasurable]
+  · infer_instance
+  · fun_prop
+  by_contra!
+  rw [Measure.map_of_not_aemeasurable] at h
+  · exact h.toIsProbabilityMeasure.ne_zero _ rfl
+  · exact this
+
+instance HasGaussianLaw.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsProbabilityMeasure P] [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
+    [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
+    HasGaussianLaw (X i) P where
+  isGaussian_map' := IsGaussian.eval i
+
 lemma test {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
-    [h1 : IsGaussian (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)))]
+    [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P]
     (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
     iIndepFun X P := by
-  have mX : ∀ i, AEMeasurable (X i) P := by
-    rw [← aemeasurable_pi_iff, ← Function.id_comp (fun ω i ↦ X i ω),
-      ← (EuclideanSpace.measurableEquiv ι).self_comp_symm, Function.comp_assoc,
-      (EuclideanSpace.measurableEquiv ι).measurableEmbedding.aemeasurable_comp_iff]
-    by_contra!
-    rw [Measure.map_of_not_aemeasurable] at h1
-    · exact h1.toIsProbabilityMeasure.ne_zero _ rfl
-    · exact this
-  rw [iIndepFun_iff_charFun_eq_pi]
-  · intro ξ
-    rw [← EuclideanSpace.coe_measurableEquiv_symm, IsGaussian.charFun_eq]
-    nth_rw 1 2 3 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' ξ]
-    simp_rw [sum_inner, map_sum, Complex.ofReal_sum, basisFun_inner, ContinuousLinearMap.sum_apply,
-      map_smul, ContinuousLinearMap.smul_apply, ← Finset.smul_sum]
-    have (i : ι) : ∑ j, ξ j •
-        covInnerBilin (P.map (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)))
-          (EuclideanSpace.basisFun ι ℝ j) (EuclideanSpace.basisFun ι ℝ i) =
-          ξ i • Var[X i; P] := by
-      rw [Finset.sum_eq_single_of_mem i, covInnerBilin_apply_basisFun_self]; rfl
-      · fun_prop
-      · exact IsGaussian.memLp_two_id
-      · simp
-      · rintro j - hj
-        rw [covInnerBilin_apply_basisFun, ← smul_zero (ξ j), ← h2 j i hj]; rfl
-        · fun_prop
-        · exact IsGaussian.memLp_two_id
-    simp_rw [this]
-    rw [sum_mul, sum_div, ← sum_sub_distrib, Complex.exp_sum]
+  have mX : ∀ i, AEMeasurable (X i) P := aemeasurable_pi_iff.1 h1.aemeasurable
+  have (i : ι) : (inner ℝ ((EuclideanSpace.basisFun ι ℝ) i) ∘ ⇑(EuclideanSpace.equiv ι ℝ).symm ∘
+      fun ω x ↦ X x ω) = X i := by ext; simp [-PiLp.inner_apply]
+  refine iIndepFun_iff_charFun_eq_pi mX |>.2 fun ξ ↦ ?_
+  change charFun (P.map ((EuclideanSpace.equiv ι ℝ).symm ∘ _)) _ = _
+  rw [IsGaussian.charFun_eq, covInnerBilin_self IsGaussian.memLp_two_id]
+  nth_rw 1 2 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' ξ]
+  simp_rw [sum_inner, basisFun_inner]
+  rw [variance_fun_sum]
+  · simp_rw [Complex.ofReal_sum, sum_mul, sum_div, ← sum_sub_distrib, Complex.exp_sum]
     congr with i
-    have : X i = (ContinuousBilinForm.inner (EuclideanSpace ℝ ι) (EuclideanSpace.basisFun ι ℝ i)) ∘
-        (fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm (X · ω)) := by
-      ext; simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
-    nth_rw 2 [this]
-    rw [← AEMeasurable.map_map_of_aemeasurable, IsGaussian.charFun_eq]
-    · congr
-      rw [integral_map, integral_map]
-      simp_rw [id]
-      rw [(ContinuousBilinForm.inner (EuclideanSpace ℝ ι) (EuclideanSpace.basisFun ι ℝ i)).integral_comp_id_comm, real_inner_smul_left, mul_comm, integral_map]
-      · simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner]
-      · fun_prop
-      · exact aestronglyMeasurable_id
-      · exact h1.integrable_id
-      · exact (ContinuousLinearMap.continuous _).aemeasurable
-      · exact aestronglyMeasurable_id
-      · fun_prop
-      · exact aestronglyMeasurable_id
-      rw [covInnerBilin_self, variance_map, variance_map]
-      · have : (((fun u ↦ inner ℝ (ξ i) u) ∘
-        ⇑((ContinuousBilinForm.inner (EuclideanSpace ℝ ι)) ((EuclideanSpace.basisFun ι ℝ) i))) ∘
-            fun ω ↦ (EuclideanSpace.measurableEquiv ι).symm fun x ↦ X x ω) =
-            fun ω ↦ (ξ i) * (X i ω) := by
-          ext; simp [EuclideanSpace.measurableEquiv, -PiLp.inner_apply, basisFun_inner, mul_comm]
-        rw [this]
-        simp [variance_mul, ← mul_assoc]
-        exact Or.inl ((by rw [pow_two]))
-      · fun_prop
-      · fun_prop
-      · fun_prop
-      · fun_prop
-      · exact IsGaussian.memLp_two_id
+    rw [real_inner_smul_left, ← integral_inner, Finset.sum_eq_single_of_mem i, covariance_self]
+    · simp_rw [real_inner_smul_left, variance_mul]
+      conv =>
+        enter [1, 1, 1, 1, 1, 2, 2, x]
+        change id (inner ℝ (EuclideanSpace.basisFun ι ℝ i) x)
+      conv =>
+        enter [1, 1, 2, 1, 1, 2, 1]
+        change id ∘ (inner ℝ (EuclideanSpace.basisFun ι ℝ i))
+      rw [← integral_map, ← variance_map, AEMeasurable.map_map_of_aemeasurable]
+      · rw [this, IsGaussian.charFun_eq, covInnerBilin_real_self]
+        · simp [mul_comm]
+        exact IsGaussian.memLp_two_id
+      any_goals fun_prop
     · fun_prop
-    · fun_prop
-  · exact mX
+    · simp
+    · rintro j - hj
+      simp_rw [real_inner_smul_left, covariance_mul_left, covariance_mul_right]
+      rw [covariance_map, this, this, h2 i j hj.symm]
+      · simp
+      any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+      fun_prop
+    · exact IsGaussian.integrable_id
+  intro i
+  rw [← ContinuousBilinForm.inner_apply'', ← Function.id_comp ⇑(ContinuousBilinForm.inner _ _),
+    ← memLp_map_measure_iff]
+  · exact IsGaussian.memLp_two_id
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+  · fun_prop
 
 def indep_incr {Ω T E : Type*} {mΩ : MeasurableSpace Ω} (P : Measure Ω) [Sub E] [Preorder T]
     [MeasurableSpace E] (X : T → Ω → E) : Prop :=

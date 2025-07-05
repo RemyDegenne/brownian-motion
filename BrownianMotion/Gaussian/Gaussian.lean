@@ -1,3 +1,4 @@
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.CovMatrix
 
 /-!
@@ -127,5 +128,20 @@ protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian 
     μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilin μ = covarianceBilin ν where
   mp h := by simp [h]
   mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
+
+lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) [IsGaussian μ] :
+    μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
+  nth_rw 1 [← Measure.map_id (μ := μ), ← ContinuousLinearMap.coe_id' (R₁ := ℝ),
+    map_eq_gaussianReal]
+  rfl
+
+lemma HasGaussianLaw.charFun_map_real {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X : Ω → ℝ} [HasGaussianLaw X P] (t : ℝ) :
+    charFun (P.map X) t = exp (t * P[X] * I - t ^ 2 * Var[X; P] / 2) := by
+  rw [IsGaussian.eq_gaussianReal (P.map X), variance_map, integral_map,
+    IsGaussian.charFun_eq, covInnerBilin_real_self]
+  · simp [variance_nonneg, integral_complex_ofReal, mul_comm]
+  any_goals fun_prop
+  exact IsGaussian.memLp_two_id
 
 end ProbabilityTheory
