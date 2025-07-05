@@ -211,6 +211,33 @@ end prod
 
 end FiniteExhaustion
 
+lemma measure_add_ge_le_add_measure_ge {Ω : Type*} {_ : MeasurableSpace Ω} {P : Measure Ω}
+    {f g : Ω → ℝ≥0∞} {x u : ℝ≥0∞} (hu : u ≤ x) :
+    P {ω | x ≤ f ω + g ω} ≤ P {ω | u ≤ f ω} + P {ω | x - u ≤ g ω} := by
+  calc P {ω | x ≤ f ω + g ω}
+  _ = P {ω | u + (x - u) ≤ f ω + g ω} := by
+    congr with ω
+    congr!
+    exact (add_tsub_cancel_of_le hu).symm
+  _ ≤ P ({ω | u ≤ f ω} ∪ {ω | (x - u) ≤ g ω}) := by
+    refine measure_mono fun ω ↦ ?_
+    simp only [Set.mem_setOf_eq, Set.mem_union]
+    contrapose!
+    rintro ⟨h₁, h₂⟩
+    gcongr
+  _ ≤ P {ω | u ≤ f ω} + P {ω | x - u ≤ g ω} := measure_union_le _ _
+
+lemma measure_add_ge_le_add_measure_ge_half {Ω : Type*} {_ : MeasurableSpace Ω} {P : Measure Ω}
+    {f g : Ω → ℝ≥0∞} {x : ℝ≥0∞} :
+    P {ω | x ≤ f ω + g ω} ≤ P {ω | x / 2 ≤ f ω} + P {ω | x / 2 ≤ g ω} := by
+  by_cases hx : x = ∞
+  · simp only [hx, top_le_iff, ENNReal.add_eq_top]
+    rw [ENNReal.top_div_of_ne_top (by finiteness)]
+    simp only [top_le_iff]
+    exact measure_union_le {ω | f ω = ∞} {ω | g ω = ∞}
+  convert measure_add_ge_le_add_measure_ge ENNReal.half_le_self using 2
+  rw [ENNReal.sub_half hx]
+
 end aux
 
 namespace ProbabilityTheory
@@ -261,7 +288,7 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     match hk : Nat.find hη_dist with
     | 0 =>
         apply le_trans (EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _))
-        simp [η]
+        simp only [pow_zero, one_mul, η]
         exact le_mul_of_one_le_of_le (by norm_num) (le_add_right (le_refl _))
     | k + 1 =>
         rw [hη_succ k, ← mul_assoc, ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
@@ -281,8 +308,7 @@ noncomputable
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) : ℝ≥0∞ :=
   2 ^ (2 * p + 5 * q + 1) * c * (EMetric.diam (.univ : Set T) + 1) ^ (q - d)
   * ∑' (k : ℕ), 2 ^ (k * (β * p - (q - d)))
-      * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q
-        + Cp d p q)
+      * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q + Cp d p q)
 
 lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_lt : β < (q - d) / p) :
@@ -697,23 +723,12 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
         simp only [Set.mem_inter_iff, Set.mem_setOf_eq, and_imp]
         refine fun hε_le hω ↦ ⟨(hε_le.trans (h_le n hω)).trans_eq ?_, hω⟩
         rw [edist_comm]
-      _ = P {ω | ε / 2 + ε / 2 ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by
-        simp only [ENNReal.add_halves]
+      _ = P {ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by
         rw [hPA]
         refine measurableSet_le (by fun_prop) ?_
         exact ((hY (u n)).edist (hY t)).add ((hX.measurable (u n)).edist (hX.measurable t))
-      _ ≤ P ({ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
-          ∪ {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)}) := by
-          gcongr
-          intro ω
-          simp only [ENNReal.add_halves, Set.mem_setOf_eq, Set.mem_union]
-          contrapose!
-          intro ⟨h1, h2⟩
-          calc _
-          _ < ε / 2 + ε / 2 := by gcongr
-          _ = ε := by simp
       _ ≤ P {ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
-          + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_union_le _ _
+          + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_add_ge_le_add_measure_ge_half
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') hP_le
     rw [← add_zero (0 : ℝ≥0∞)]
     exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
