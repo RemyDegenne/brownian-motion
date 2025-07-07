@@ -1,4 +1,4 @@
-import Mathlib
+import Mathlib.Probability.Distributions.Gaussian.Basic
 
 open MeasureTheory ENNReal
 
@@ -15,7 +15,7 @@ the measure `P`, in other words that `P.map X = μ`. We also require `X` to be `
 to allow for nice interactions with operations on the codomain of `X`. See for instance
 `HasLaw.comp`, `IndepFun.hasLaw_mul` and `IndepFun.hasLaw_add`. -/
 structure HasLaw : Prop where
-  protected aemeasurable : AEMeasurable X P
+  protected aemeasurable : AEMeasurable X P := by fun_prop
   protected map_eq : P.map X = μ
 
 variable {X P μ}
@@ -91,6 +91,8 @@ section Basic
 
 variable [TopologicalSpace E] [AddCommMonoid E] [Module ℝ E] [mE : MeasurableSpace E]
 
+/-- The predicate `HasGaussianLaw X P` means that under the measure `P`,
+`X` has a Gaussian distribution -/
 class HasGaussianLaw :
     Prop where
   protected isGaussian_map : IsGaussian (P.map X)
@@ -118,6 +120,11 @@ lemma HasGaussianLaw.aemeasurable [hX : HasGaussianLaw X P] : AEMeasurable X P :
   have := hX.isGaussian_map
   rw [Measure.map_of_not_aemeasurable h] at this
   exact this.toIsProbabilityMeasure.ne_zero _ rfl
+
+lemma HasGaussianLaw.isProbabilityMeasure [HasGaussianLaw X P] : IsProbabilityMeasure P where
+  measure_univ := by
+    rw [← Set.preimage_univ (f := X), ← Measure.map_apply_of_aemeasurable (by fun_prop) .univ,
+      measure_univ]
 
 variable {mE} in
 lemma HasLaw.hasGaussianLaw {μ : Measure E} (hX : HasLaw X P μ) [IsGaussian μ] :
