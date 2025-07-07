@@ -6,8 +6,6 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Gaussian.StochasticProcesses
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.MeasureTheory.Function.AEEqOfLIntegral
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.Separation.CompletelyRegular
 
