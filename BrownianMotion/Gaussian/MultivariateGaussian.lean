@@ -41,36 +41,25 @@ variable [BorelSpace E]
 instance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) :=
     isProbabilityMeasure_map (Measurable.aemeasurable (by fun_prop))
 
--- TODO: generalize to `f` taking values in a Banach space
-lemma integrable_eval_pi {ι 𝕜 : Type*} [Fintype ι] [NormedCommRing 𝕜] {X : ι → Type*} {i : ι}
+lemma integrable_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E] {X : ι → Type*} {i : ι}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : (i : ι) → Measure (X i)}
-    [∀ i, IsFiniteMeasure (μ i)] {f : X i → 𝕜} (hf : Integrable f (μ i)) :
+    [∀ i, IsFiniteMeasure (μ i)] {f : X i → E} (hf : Integrable f (μ i)) :
     Integrable (fun x ↦ f (x i)) (Measure.pi μ) := by
+  simp_rw [← Function.eval_apply (x := i)]
+  refine Integrable.comp_measurable ?_ (by fun_prop)
   classical
-  let g : Π i, X i → 𝕜 := fun j ↦ if h : j = i then h ▸ f else 1
-  have : (fun x ↦ ∏ j, g j (x j)) = fun (x : Π i, X i) ↦ f (x i) := by
-    ext x
-    rw [show f (x i) = g i (x i) by simp [g]]
-    exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [g, hj])
-  rw [← this]
-  refine Integrable.fintype_prod_dep fun j ↦ ?_
-  by_cases h : j = i
-  · cases h; simpa [g]
-  · simpa [g, h] using integrable_const 1
+  rw [Measure.pi_map_eval]
+  exact hf.smul_measure <| ENNReal.prod_ne_top (fun _ _ ↦ measure_ne_top _ _)
 
--- TODO: generalize to `f` taking values in a Banach space
-lemma integral_eval_pi {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] {X : ι → Type*} {i : ι}
+lemma integral_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [CompleteSpace E] {X : ι → Type*}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : (i : ι) → Measure (X i)}
-    [∀ i, IsProbabilityMeasure (μ i)] {f : X i → 𝕜} :
+    [∀ i, IsProbabilityMeasure (μ i)] {i : ι} {f : X i → E} (hf : AEStronglyMeasurable f (μ i)) :
     ∫ (x : Π i, X i), f (x i) ∂Measure.pi μ = ∫ x, f x ∂μ i := by
-  classical
-  let g : Π i, X i → 𝕜 := fun j ↦ if h : j = i then h ▸ f else 1
-  have : (fun x ↦ ∏ j, g j (x j)) = fun (x : Π i, X i) ↦ f (x i) := by
-    ext x
-    rw [show f (x i) = g i (x i) by simp [g]]
-    exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [g, hj])
-  rw [← this, integral_fintype_prod_eq_prod, show ∫ x, f x ∂μ i = ∫ x, g i x ∂μ i by simp [g]]
-  exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [g, hj])
+  simp_rw [← Function.eval_apply (β := X) (x := i)]
+  rw [← integral_map, (measurePreserving_eval i).map_eq]
+  · exact Measurable.aemeasurable (by fun_prop)
+  · rwa [(measurePreserving_eval i).map_eq]
 
 @[simp]
 lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
@@ -86,9 +75,8 @@ lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
   refine Finset.sum_eq_zero fun i _ ↦ ?_
   have : (∫ (a : Fin (Module.finrank ℝ E) → ℝ), a i ∂Measure.pi fun x ↦ gaussianReal 0 1)
       = ∫ x, x ∂gaussianReal 0 1 := by
-    convert integral_eval_pi (i := i)
-    · rfl
-    · infer_instance
+    convert integral_eval_pi (i := i) aestronglyMeasurable_id
+    all_goals infer_instance
   simp [integral_smul_const, this]
 
 lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by

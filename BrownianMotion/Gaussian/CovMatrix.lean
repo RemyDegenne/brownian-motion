@@ -163,7 +163,7 @@ lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace
     · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
       rw [covariance_mul_left, covariance_mul_right]
       ring
-    all_goals exact fun i _ ↦ (hX i).const_mul _
+    all_goals exact fun i ↦ (hX i).const_mul _
   any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
   · fun_prop
   · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2 (MemLp.of_eval_piLp hX)

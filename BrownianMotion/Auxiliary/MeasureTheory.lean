@@ -4,7 +4,6 @@ import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
 import Mathlib.Probability.Moments.Covariance
-
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
@@ -60,17 +59,28 @@ lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥
 section iIndepFun
 
 variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
-  {μ : (i : ι) → Measure (Ω i)} [∀ i, IsProbabilityMeasure (μ i)]
+  {μ : (i : ι) → Measure (Ω i)}
+
+lemma _root_.MeasureTheory.Measure.pi_map_eval [∀ i, IsFiniteMeasure (μ i)] [DecidableEq ι]
+    (i : ι) :
+    (Measure.pi μ).map (Function.eval i) = (∏ j ∈ Finset.univ.erase i, μ j Set.univ) • (μ i) := by
+  ext s hs
+  classical
+  rw [Measure.map_apply (measurable_pi_apply i) hs, ← Set.univ_pi_update_univ, Measure.pi_pi,
+    Measure.smul_apply, smul_eq_mul, ← Finset.prod_erase_mul _ _ (a := i) (by simp)]
+  congrm ?_ * ?_
+  swap; · simp
+  refine Finset.prod_congr rfl fun j hj ↦ ?_
+  simp [Function.update, Finset.ne_of_mem_erase hj]
+
+variable [∀ i, IsProbabilityMeasure (μ i)]
 
 lemma measurePreserving_eval (i : ι) :
     MeasurePreserving (Function.eval i) (Measure.pi μ) (μ i) := by
   refine ⟨measurable_pi_apply i, ?_⟩
-  ext s hs
   classical
-  rw [Measure.map_apply (measurable_pi_apply i) hs, ← Set.univ_pi_update_univ, Measure.pi_pi]
-  have : μ i s = (μ i) (Function.update (fun j ↦ Set.univ) i s i) := by simp
-  rw [this]
-  exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [hj])
+  rw [Measure.pi_map_eval, Finset.prod_eq_one, one_smul]
+  exact fun _ _ ↦ measure_univ
 
 variable {𝒳 : ι → Type*} [∀ i, MeasurableSpace (𝒳 i)] {X : Π i, Ω i → 𝒳 i}
 
@@ -447,33 +457,45 @@ namespace MeasureTheory
 open Finset
 
 variable {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] {p : ℝ≥0∞}
+    [∀ i, NormedAddCommGroup (E i)] {p : ℝ≥0∞}
 
 section Pi
 
 variable {X : (i : ι) → Ω → E i}
 
+lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricSpace (E i)]
+    [∀ i, Zero (E i)] (i : ι) : Isometry (Pi.single (M := E) i) := by
+  intro x y
+  rw [edist_pi_def, Finset.sup_univ_eq_ciSup]
+  refine le_antisymm ?_ ?_
+  · refine iSup_le fun j ↦ ?_
+    by_cases h : i = j
+    · cases h
+      simp
+    · simp [h]
+  · apply le_iSup_of_le i
+    simp
+
 lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
   mp hX i := by
-    have : X i = (ContinuousLinearMap.proj (R := ℝ) i) ∘ (fun ω ↦ (X · ω)):= by ext; simp
+    have : X i = (Function.eval i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
     rw [this]
-    exact ContinuousLinearMap.comp_memLp' _ hX
+    exact (LipschitzWith.eval i).comp_memLp (by simp) hX
   mpr hX := by
     classical
-    have : (fun ω ↦ (X · ω)) = fun ω ↦ ∑ i, ContinuousLinearMap.single ℝ E i (X i ω) := by ext; simp
+    have : (fun ω ↦ (X · ω)) = ∑ i, (Pi.single i) ∘ (X i) := by ext; simp
     rw [this]
-    refine memLp_finset_sum _ fun i _ ↦ ?_
-    exact ContinuousLinearMap.comp_memLp' _ (hX i)
+    refine memLp_finset_sum' _ fun i _ ↦ ?_
+    exact (Isometry.single i).lipschitz.comp_memLp (by simp) (hX i)
 
 alias ⟨MemLp.eval, MemLp.of_eval⟩ := memLp_pi_iff
 
-lemma integrable_pi_iff : Integrable (fun ω ↦ (X · ω)) P ↔ ∀ i, Integrable (X i) P :=
-  ⟨fun hX i ↦ memLp_one_iff_integrable.1 ((memLp_one_iff_integrable.2 hX).eval i),
-    fun hX ↦ memLp_one_iff_integrable.1 (MemLp.of_eval fun i ↦ memLp_one_iff_integrable.2 (hX i))⟩
+lemma integrable_pi_iff : Integrable (fun ω ↦ (X · ω)) P ↔ ∀ i, Integrable (X i) P := by
+  simp_rw [← memLp_one_iff_integrable, memLp_pi_iff]
 
 alias ⟨Integrable.eval, Integrable.of_eval⟩ := integrable_pi_iff
 
-variable [∀ i, CompleteSpace (E i)]
+variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
 
 lemma integral_eval (hX : ∀ i, Integrable (X i) P) (i : ι) :
     (∫ ω, (X · ω) ∂P) i = ∫ ω, X i ω ∂P := by
@@ -488,29 +510,19 @@ section PiLp
 
 variable {q : ℝ≥0∞} [Fact (1 ≤ q)] {X : Ω → PiLp q E}
 
-lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P where
-  mp hX i := by
-    have : (X · i) = (PiLp.proj q (𝕜 := ℝ) E i) ∘ X := by ext; simp
-    rw [this]
-    exact ContinuousLinearMap.comp_memLp' _ hX
-  mpr hX := by
-    classical
-    have : X = fun ω ↦ ∑ i, (PiLp.single q ℝ).toContinuousLinearMap (X ω i) := by
-      ext; simp [-PiLp.single_apply, PiLp.sum_single']
-    rw [this]
-    refine memLp_finset_sum _ fun i _ ↦ ?_
-    exact ContinuousLinearMap.comp_memLp' _ (hX i)
+lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P := by
+  simp_rw [← memLp_pi_iff, ← PiLp.ofLp_apply, ← Function.comp_apply (f := WithLp.ofLp)]
+  exact (PiLp.lipschitzWith_ofLp q E).memLp_comp_iff_of_antilipschitz
+    (PiLp.antilipschitzWith_ofLp q E) (by simp) |>.symm
 
 alias ⟨MemLp.eval_piLp, MemLp.of_eval_piLp⟩ := memLp_piLp_iff
 
-lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P :=
-  ⟨fun hX i ↦ memLp_one_iff_integrable.1 ((memLp_one_iff_integrable.2 hX).eval_piLp i),
-    fun hX ↦ memLp_one_iff_integrable.1
-      (MemLp.of_eval_piLp fun i ↦ memLp_one_iff_integrable.2 (hX i))⟩
+lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P := by
+  simp_rw [← memLp_one_iff_integrable, memLp_piLp_iff]
 
 alias ⟨Integrable.eval_piLp, Integrable.of_eval_piLp⟩ := integrable_piLp_iff
 
-variable [∀ i, CompleteSpace (E i)]
+variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
 
 lemma _root_.PiLp.integral_eval (hX : ∀ i, Integrable (X · i) P) (i : ι) :
     (∫ ω, X ω ∂P) i = ∫ ω, X ω i ∂P := by
