@@ -3,8 +3,6 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.WithLp
-import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.Gaussian
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
@@ -14,6 +12,7 @@ import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.Separation.CompletelyRegular
+
 
 
 /-!

@@ -46,9 +46,7 @@ lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : Measurable
     (ξ : EuclideanSpace ℝ ι) :
     charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
       exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
-  simp_rw [← PiLp.continuousLinearEquiv_symm_apply 2 ℝ, IsGaussian.charFun_eq,
-      PiLp.continuousLinearEquiv_symm_apply]
-  nth_rw 1 [covInnerBilin_apply_pi, EuclideanSpace.real_inner_eq]
+  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_pi, EuclideanSpace.real_inner_eq]
   · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
       integral_complex_ofReal, ← ofReal_mul]
     congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)

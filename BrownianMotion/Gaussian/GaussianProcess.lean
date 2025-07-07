@@ -3,7 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Gaussian.Fernique
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.StochasticProcesses
 
 /-!
@@ -12,12 +12,12 @@ import BrownianMotion.Gaussian.StochasticProcesses
 -/
 
 open MeasureTheory
+
 open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-  {X Y : T → Ω → E}
+variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : T → Ω → E}
 
 section Basic
 

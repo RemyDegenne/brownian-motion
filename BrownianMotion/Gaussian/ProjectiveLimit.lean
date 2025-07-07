@@ -188,3 +188,4 @@ lemma hasLaw_restrict_gaussianLimit {I : Finset ℝ≥0} :
   isProjectiveLimit_gaussianLimit.hasLaw_restrict
 
 end ProbabilityTheory
+#min_imports

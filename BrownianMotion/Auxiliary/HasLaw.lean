@@ -1,6 +1,7 @@
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Probability.Distributions.Gaussian.Basic
 
-open MeasureTheory ENNReal
+open MeasureTheory ENNReal WithLp
 
 namespace ProbabilityTheory
 
@@ -159,32 +160,39 @@ instance HasGaussianLaw.map_equiv [HasGaussianLaw X P] : HasGaussianLaw (L ∘ X
 instance HasGaussianLaw.map_equiv_fun [hX : HasGaussianLaw X P] :
     HasGaussianLaw (fun ω ↦ L (X ω)) P := hX.map_equiv L
 
-instance IsGaussian.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+instance HasGaussianLaw.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [∀ i, NormedAddCommGroup (E i)]
     [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
     [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
-    [h : IsGaussian (P.map (fun ω ↦ (X · ω)))] (i : ι) :
-    IsGaussian (P.map (X i)) := by
-  have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
-  rw [this, ← AEMeasurable.map_map_of_aemeasurable]
-  · infer_instance
-  · fun_prop
-  by_contra!
-  rw [Measure.map_of_not_aemeasurable] at h
-  · exact h.toIsProbabilityMeasure.ne_zero _ rfl
-  · exact this
+    [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
+    HasGaussianLaw (X i) P where
+  isGaussian_map := by
+    have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+    rw [this, ← AEMeasurable.map_map_of_aemeasurable]
+    · infer_instance
+    · fun_prop
+    · exact h.aemeasurable
 
-instance HasGaussianLaw.eval {ι : Type*} [Fintype ι] {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)]
-    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
-    [∀ i, SecondCountableTopology (E i)]
-    {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
-    HasGaussianLaw (X i) P := inferInstance
-
-instance HasGaussianLaw.fun_eval {ι : Type*} [Fintype ι] {E : ι → Type*}
+instance HasGaussianLaw.toLp_comp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι : Type*} [Fintype ι] {E : ι → Type*}
     [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
     [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
-    {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
-    HasGaussianLaw (fun ω ↦ X i ω) P := inferInstance
+    {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] :
+    HasGaussianLaw (fun ω ↦ toLp p (X · ω)) P := by
+  rw [← PiLp.continuousLinearEquiv_symm_apply p ℝ]
+  infer_instance
+
+instance IsGaussian.map_eval {ι : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] {mE : ∀ i, MeasurableSpace (E i)}
+    [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
+    {μ : Measure (Π i, E i)} [IsGaussian μ] (i : ι) : HasGaussianLaw (fun x ↦ x i) μ := by
+  refine HasGaussianLaw.eval (Ω := Π j, E j) (X := fun i x ↦ x i) (h := ?_) i
+  exact IsGaussian.hasGaussianLaw_id
+
+instance IsGaussian.map_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] {mE : ∀ i, MeasurableSpace (E i)}
+    [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
+    {μ : Measure (PiLp p E)} [IsGaussian μ] (i : ι) : HasGaussianLaw (fun x ↦ x i) μ :=
+  IsGaussian.map_eval i
 
 end NormedSpace
 
