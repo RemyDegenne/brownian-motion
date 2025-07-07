@@ -25,24 +25,27 @@ variable [MeasurableSpace E] [TopologicalSpace E] [AddCommMonoid E] [Module ℝ 
 
 /-- A stochastic process is a Gaussian process if all its finite dimensional distributions are
 Gaussian. -/
-def IsGaussianProcess (X : T → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
-  ∀ I : Finset T, IsGaussian (P.map (fun ω ↦ I.restrict (X · ω)))
+class IsGaussianProcess (X : T → Ω → E) (P : Measure Ω := by volume_tac) : Prop where
+  hasGaussianLaw : ∀ I : Finset T, HasGaussianLaw (fun ω ↦ I.restrict (X · ω)) P
 
-lemma IsGaussianProcess.aemeasurable (hX : IsGaussianProcess X P) (t : T) :
+attribute [instance] IsGaussianProcess.hasGaussianLaw
+
+lemma IsGaussianProcess.aemeasurable [hX : IsGaussianProcess X P] (t : T) :
     AEMeasurable (X t) P := by
   by_contra h
-  have := hX {t}
+  have := (hX.hasGaussianLaw {t}).isGaussian_map
   rw [Measure.map_of_not_aemeasurable] at this
   · exact this.toIsProbabilityMeasure.ne_zero _ rfl
   · rw [aemeasurable_pi_iff]
     push_neg
     exact ⟨⟨t, by simp⟩, h⟩
 
-lemma IsGaussianProcess.modification (hX : IsGaussianProcess X P) (hXY : ∀ t, X t =ᵐ[P] Y t) :
-    IsGaussianProcess Y P := by
-  intro I
-  rw [finite_distributions_eq fun t ↦ (hXY t).symm]
-  exact hX I
+lemma IsGaussianProcess.modification [IsGaussianProcess X P] (hXY : ∀ t, X t =ᵐ[P] Y t) :
+    IsGaussianProcess Y P where
+  hasGaussianLaw I := by
+    constructor
+    rw [finite_distributions_eq fun t ↦ (hXY t).symm]
+    infer_instance
 
 end Basic
 
@@ -63,20 +66,12 @@ instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] 
   obtain ⟨t, ht, rfl⟩ := hs
   exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
 
-instance IsGaussianProcess.isGaussian_eval (hX : IsGaussianProcess X P) {t : T} :
-    IsGaussian (P.map (X t)) := by
-  let L : (({t} : Finset T) → E) →L[ℝ] E := ContinuousLinearMap.proj ⟨t, by simp⟩
-  have : X t = L ∘ (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp [L]
-  rw [this, ← AEMeasurable.map_map_of_aemeasurable]
-  · have := hX {t}
-    exact isGaussian_map L
-  · exact L.continuous.aemeasurable
-  rw [aemeasurable_pi_iff]
-  simpa using hX.aemeasurable t
-
-lemma IsGaussianProcess.memLp_eval [SecondCountableTopology E] [CompleteSpace E]
-    (hX : IsGaussianProcess X P) {t : T} {p : ℝ≥0∞} (hp : p ≠ ∞) : MemLp (X t) p P := by
-  rw [← Function.id_comp (X t)]
-  exact MemLp.comp_of_map (hX.isGaussian_eval |>.memLp_id _ p hp) (hX.aemeasurable t)
+instance IsGaussianProcess.hasGaussianLaw_eval [IsGaussianProcess X P] {t : T} :
+    HasGaussianLaw (X t) P where
+  isGaussian_map := by
+    have : X t = (ContinuousLinearMap.proj (R := ℝ) ⟨t, by simp⟩) ∘
+      (fun ω ↦ ({t} : Finset T).restrict (X · ω)) := by ext; simp
+    rw [this]
+    infer_instance
 
 end ProbabilityTheory

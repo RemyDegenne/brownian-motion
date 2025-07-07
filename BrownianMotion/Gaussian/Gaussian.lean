@@ -5,7 +5,7 @@ import BrownianMotion.Gaussian.CovMatrix
 # Facts about Gaussian characteristic function
 -/
 
-open Complex MeasureTheory
+open Complex MeasureTheory WithLp
 
 open scoped Matrix NNReal Real InnerProductSpace ProbabilityTheory
 
@@ -41,6 +41,28 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
   congr
   · simp_rw [integral_complex_ofReal, ← integral_inner IsGaussian.integrable_id, id]
   · rw [covInnerBilin_self IsGaussian.memLp_two_id]
+
+lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsFiniteMeasure P] {X : ι → Ω → ℝ} [hX : HasGaussianLaw (fun ω ↦ (X · ω)) P]
+    (ξ : EuclideanSpace ℝ ι) :
+    charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
+      exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
+  simp_rw [← PiLp.continuousLinearEquiv_symm_apply 2 ℝ,
+      ← Function.comp_apply (g := fun ω i ↦ X i ω), IsGaussian.charFun_eq,
+      PiLp.continuousLinearEquiv_symm_apply, Function.comp_apply]
+  nth_rw 1 [covInnerBilin_apply_pi, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' ξ]
+  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner, ofReal_sum, Finset.sum_mul,
+      ← mul_div_assoc, Finset.sum_div]
+    norm_cast
+    congr with i
+    rw [integral_map, PiLp.integral_eval, integral_complex_ofReal]
+    · simp
+    · simp only [id_eq, PiLp.toLp_apply]
+      exact fun i ↦ HasGaussianLaw.integrable
+    · have  := hX.aemeasurable
+      fun_prop
+    · exact aestronglyMeasurable_id
+  · exact fun i ↦ HasGaussianLaw.memLp_two
 
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔

@@ -93,17 +93,24 @@ variable [TopologicalSpace E] [AddCommMonoid E] [Module ℝ E] [mE : MeasurableS
 
 class HasGaussianLaw :
     Prop where
-  isGaussian_map' : IsGaussian (P.map X)
+  protected isGaussian_map : IsGaussian (P.map X)
+
+attribute [instance] HasGaussianLaw.isGaussian_map
 
 variable {X P}
+
+instance IsGaussian.hasGaussianLaw [IsGaussian (P.map X)] :
+    HasGaussianLaw X P where
+  isGaussian_map := inferInstance
+
+instance IsGaussian.hasGaussianLaw_fun [IsGaussian (P.map X)] :
+    HasGaussianLaw (fun ω ↦ X ω) P where
+  isGaussian_map := inferInstance
 
 variable {mE} in
 instance IsGaussian.hasGaussianLaw_id {μ : Measure E} [IsGaussian μ] :
     HasGaussianLaw id μ where
-  isGaussian_map' := by rwa [Measure.map_id]
-
-instance HasGaussianLaw.isGaussian_map [hX : HasGaussianLaw X P] : IsGaussian (P.map X) :=
-  hX.isGaussian_map'
+  isGaussian_map := by rwa [Measure.map_id]
 
 @[fun_prop, measurability]
 lemma HasGaussianLaw.aemeasurable [hX : HasGaussianLaw X P] : AEMeasurable X P := by
@@ -115,7 +122,7 @@ lemma HasGaussianLaw.aemeasurable [hX : HasGaussianLaw X P] : AEMeasurable X P :
 variable {mE} in
 lemma HasLaw.hasGaussianLaw {μ : Measure E} (hX : HasLaw X P μ) [IsGaussian μ] :
     HasGaussianLaw X P where
-  isGaussian_map' := by rwa [hX.map_eq]
+  isGaussian_map := by rwa [hX.map_eq]
 
 end Basic
 
@@ -126,7 +133,7 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSp
     (L : E →L[ℝ] F) {X P}
 
 instance HasGaussianLaw.map [HasGaussianLaw X P] : HasGaussianLaw (L ∘ X) P where
-  isGaussian_map' := by
+  isGaussian_map := by
     rw [← AEMeasurable.map_map_of_aemeasurable]
     · infer_instance
     all_goals fun_prop
@@ -137,13 +144,40 @@ instance HasGaussianLaw.map_fun [hX : HasGaussianLaw X P] : HasGaussianLaw (fun 
 variable (L : E ≃L[ℝ] F)
 
 instance HasGaussianLaw.map_equiv [HasGaussianLaw X P] : HasGaussianLaw (L ∘ X) P where
-  isGaussian_map' := by
+  isGaussian_map := by
     rw [← AEMeasurable.map_map_of_aemeasurable]
     · infer_instance
     all_goals fun_prop
 
 instance HasGaussianLaw.map_equiv_fun [hX : HasGaussianLaw X P] :
     HasGaussianLaw (fun ω ↦ L (X ω)) P := hX.map_equiv L
+
+instance IsGaussian.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
+    [h : IsGaussian (P.map (fun ω ↦ (X · ω)))] (i : ι) :
+    IsGaussian (P.map (X i)) := by
+  have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+  rw [this, ← AEMeasurable.map_map_of_aemeasurable]
+  · infer_instance
+  · fun_prop
+  by_contra!
+  rw [Measure.map_of_not_aemeasurable] at h
+  · exact h.toIsProbabilityMeasure.ne_zero _ rfl
+  · exact this
+
+instance HasGaussianLaw.eval {ι : Type*} [Fintype ι] {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)]
+    {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
+    HasGaussianLaw (X i) P := inferInstance
+
+instance HasGaussianLaw.fun_eval {ι : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
+    [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
+    {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
+    HasGaussianLaw (fun ω ↦ X i ω) P := inferInstance
 
 end NormedSpace
 

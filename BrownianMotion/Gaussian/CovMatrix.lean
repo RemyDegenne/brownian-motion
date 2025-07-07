@@ -13,7 +13,7 @@ import BrownianMotion.Gaussian.Fernique
 
 -/
 
-open MeasureTheory InnerProductSpace NormedSpace
+open MeasureTheory InnerProductSpace NormedSpace WithLp
 open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
@@ -131,39 +131,42 @@ lemma covInnerBilin_map_const_add [CompleteSpace E] [IsProbabilityMeasure μ]
   · exact h.integrable (by simp)
 
 lemma covInnerBilin_apply_basisFun {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
-    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
-    (mX : AEMeasurable X μ) (hX : MemLp X 2 μ) (i j : ι) :
-    covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) =
-    cov[(X · i), (X · j); μ] := by
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ} (hX : ∀ i, MemLp (X i) 2 μ) (i j : ι) :
+    covInnerBilin (μ.map (fun ω ↦ toLp 2 (X · ω)))
+      (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) = cov[X i, X j; μ] := by
+  have (i : ι) := (hX i).aemeasurable
   rw [covInnerBilin_apply_eq, covariance_map]
   · simp only [basisFun_inner]; rfl
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
-  · exact mX
-  · exact (memLp_map_measure_iff aestronglyMeasurable_id mX).2 hX
+  · fun_prop
+  · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2 (MemLp.of_eval_piLp hX)
 
 lemma covInnerBilin_apply_basisFun_self {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
-    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
-    (mX : AEMeasurable X μ) (hX : MemLp X 2 μ) (i : ι) :
-    covInnerBilin (μ.map X) (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ i) =
-    Var[(X · i); μ] := by
-  rw [covInnerBilin_apply_basisFun mX hX, covariance_self (by fun_prop)]
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ} (hX : ∀ i, MemLp (X i) 2 μ) (i : ι) :
+    covInnerBilin (μ.map (fun ω ↦ toLp 2 (X · ω)))
+      (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ i) = Var[X i; μ] := by
+  rw [covInnerBilin_apply_basisFun hX, covariance_self]
+  have (i : ι) := (hX i).aemeasurable
+  fun_prop
 
 lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
-    {μ : Measure Ω} [IsFiniteMeasure μ] {X : Ω → EuclideanSpace ℝ ι}
-    (hX : MemLp X 2 μ) (x y : EuclideanSpace ℝ ι) :
-    covInnerBilin (μ.map X) x y = ∑ i, ∑ j, x i * y j * cov[(X · i), (X · j); μ] := by
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ}
+    (hX : ∀ i, MemLp (X i) 2 μ) (x y : EuclideanSpace ℝ ι) :
+    covInnerBilin (μ.map (fun ω ↦ toLp 2 (X · ω))) x y =
+      ∑ i, ∑ j, x i * y j * cov[X i, X j; μ] := by
+  have (i : ι) := (hX i).aemeasurable
   nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' x,
     ← (EuclideanSpace.basisFun ι ℝ).sum_repr' y]
-  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner]
+  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner, PiLp.toLp_apply]
     rw [covariance_fun_sum_fun_sum]
     · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
       rw [covariance_mul_left, covariance_mul_right]
       ring
-    all_goals exact fun i _ ↦ (hX.eval_piLp i).const_mul _
+    all_goals exact fun i _ ↦ (hX i).const_mul _
   any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
-  · exact hX.aemeasurable
-  · exact (memLp_map_measure_iff aestronglyMeasurable_id hX.aemeasurable).2 hX
+  · fun_prop
+  · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2 (MemLp.of_eval_piLp hX)
 
 variable [FiniteDimensional ℝ E]
 
