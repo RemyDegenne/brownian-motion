@@ -28,26 +28,6 @@ def covInnerBilin (μ : Measure E) : ContinuousBilinForm ℝ E :=
     (toDualMap ℝ E).toContinuousLinearMap (toDualMap ℝ E).toContinuousLinearMap
 
 @[simp]
-lemma _root_.ContinuousLinearMap.flip_zero {𝕜 𝕜₂ 𝕜₃ E F G : Type*} [SeminormedAddCommGroup E]
-    [SeminormedAddCommGroup F] [SeminormedAddCommGroup G] [NontriviallyNormedField 𝕜]
-    [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃] [NormedSpace 𝕜 E]
-    [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃] :
-    ContinuousLinearMap.flip (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) = 0 := rfl
-
-@[simp]
-lemma _root_.ContinuousLinearMap.bilinearComp_zero {𝕜 𝕜₂ 𝕜₃ 𝕜₁' 𝕜₂' E F G E' F' : Type*}
-    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup G]
-    [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
-    [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [SeminormedAddCommGroup E'] [SeminormedAddCommGroup F'] [NontriviallyNormedField 𝕜₁']
-    [NontriviallyNormedField 𝕜₂'] [NormedSpace 𝕜₁' E'] [NormedSpace 𝕜₂' F'] {σ₁' : 𝕜₁' →+* 𝕜}
-    {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃} [RingHomCompTriple σ₁' σ₁₃ σ₁₃']
-    [RingHomCompTriple σ₂' σ₂₃ σ₂₃'] [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃']
-    [RingHomIsometric σ₂₃'] {gE : E' →SL[σ₁'] E} {gF : F' →SL[σ₂'] F} :
-    ContinuousLinearMap.bilinearComp (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) gE gF = 0 := rfl
-
-@[simp]
 lemma covInnerBilin_zero : covInnerBilin (0 : Measure E) = 0 := by
   rw [covInnerBilin]
   simp
@@ -82,7 +62,7 @@ lemma covInnerBilin_apply_eq [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp i
 
 lemma covInnerBilin_real {μ : Measure ℝ} [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : ℝ) :
     covInnerBilin μ x y = x * y * Var[id; μ] := by
-  simp only [covInnerBilin_apply_eq h, RCLike.inner_apply, conj_trivial, mul_comm]
+  simp [covInnerBilin_apply_eq h, RCLike.inner_apply, conj_trivial, mul_comm]
   rw [covariance_mul_left, covariance_mul_right, ← mul_assoc, covariance_self]
   · rfl
   exact aemeasurable_id

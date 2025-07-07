@@ -73,6 +73,11 @@ theorem basisFun_inner {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] (x : Euclide
     ⟪EuclideanSpace.basisFun ι 𝕜 i, x⟫_𝕜 = x i := by
   simp [← OrthonormalBasis.repr_apply_apply]
 
+lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpace ℝ ι) :
+    ⟪x, y⟫_ℝ = ∑ i, x i * y i := by
+  nth_rw 1 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' x, sum_inner]
+  simp_rw [real_inner_smul_left, basisFun_inner]
+
 theorem inner_basisFun_real {ι : Type*} [Fintype ι] (x : EuclideanSpace ℝ ι) (i : ι) :
     inner ℝ x (EuclideanSpace.basisFun ι ℝ i) = x i := by
   rw [real_inner_comm, basisFun_inner]
@@ -121,3 +126,31 @@ lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [Norme
     ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace
+
+section zero
+
+namespace ContinuousLinearMap
+
+@[simp]
+lemma flip_zero {𝕜 𝕜₂ 𝕜₃ E F G : Type*} [SeminormedAddCommGroup E]
+    [SeminormedAddCommGroup F] [SeminormedAddCommGroup G] [NontriviallyNormedField 𝕜]
+    [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃] [NormedSpace 𝕜 E]
+    [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+    [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃] :
+    ContinuousLinearMap.flip (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) = 0 := rfl
+
+@[simp]
+lemma bilinearComp_zero {𝕜 𝕜₂ 𝕜₃ 𝕜₁' 𝕜₂' E F G E' F' : Type*}
+    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup G]
+    [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
+    [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
+    [SeminormedAddCommGroup E'] [SeminormedAddCommGroup F'] [NontriviallyNormedField 𝕜₁']
+    [NontriviallyNormedField 𝕜₂'] [NormedSpace 𝕜₁' E'] [NormedSpace 𝕜₂' F'] {σ₁' : 𝕜₁' →+* 𝕜}
+    {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃} [RingHomCompTriple σ₁' σ₁₃ σ₁₃']
+    [RingHomCompTriple σ₂' σ₂₃ σ₂₃'] [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃']
+    [RingHomIsometric σ₂₃'] {gE : E' →SL[σ₁'] E} {gF : F' →SL[σ₂'] F} :
+    ContinuousLinearMap.bilinearComp (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) gE gF = 0 := rfl
+
+end ContinuousLinearMap
+
+end zero

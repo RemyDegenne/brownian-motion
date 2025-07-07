@@ -45,10 +45,8 @@ lemma covarianceBilin_apply'' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp 
 lemma covarianceBilin_zero : covarianceBilin (0 : Measure E) = 0 := by
   ext
   rw [covarianceBilin, uncenteredCovarianceBilin, Measure.map_zero]
-  have : Subsingleton (Lp ℝ 2 (0 : Measure E)) := by
-    constructor
-    intro x y
-    exact Lp.ext_iff.mpr rfl
+  have : Subsingleton (Lp ℝ 2 (0 : Measure E)) :=
+    ⟨fun x y ↦ Lp.ext_iff.2 rfl⟩
   rw [Subsingleton.eq_zero (Dual.toLp 0 2)]
   simp
 
