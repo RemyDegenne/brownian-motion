@@ -1,5 +1,5 @@
-import BrownianMotion.Auxiliary.MeasureTheory
 import Mathlib.MeasureTheory.Constructions.Projective
+import Mathlib.MeasureTheory.Measure.AEMeasurable
 
 open MeasureTheory
 
@@ -20,33 +20,6 @@ lemma finite_distributions_eq {I : Finset T} (h : ∀ t, X t =ᵐ[P] Y t) :
     exact fun i ↦ h i
   refine Measure.map_congr ?_
   filter_upwards [h'] with ω h using funext h
-
-lemma coincide_on_cylinders (hX : AEMeasurable (fun ω t ↦ X t ω) P)
-    (hY : AEMeasurable (fun ω t ↦ Y t ω) P)
-    (h : ∀ I : Finset T, P.map (fun ω ↦ I.restrict (X · ω)) = P.map (fun ω ↦ I.restrict (Y · ω)))
-    (c : Set (T → E)) (hc : c ∈ measurableCylinders fun _ ↦ E) :
-    P.map (fun ω t ↦ X t ω) c = P.map (fun ω t ↦ Y t ω) c := by
-  rw [mem_measurableCylinders] at hc
-  obtain ⟨s, S, hS, rfl⟩ := hc
-  have hXtn : AEMeasurable (fun ω ↦ s.restrict (X · ω)) P :=
-    aemeasurable_pi_lambda _ fun i ↦ hX.eval
-  have hYtn : AEMeasurable (fun ω ↦ s.restrict (Y · ω)) P :=
-    aemeasurable_pi_lambda _ fun i ↦ hY.eval
-  have set1 : @MeasurableSet (T → E) MeasurableSpace.pi (s.restrict ⁻¹' S) :=
-    Finset.measurable_restrict s hS
-  have mappings_eq (XY : T → Ω → E) :
-      (fun ω t ↦ XY t ω) ⁻¹' (s.restrict ⁻¹' S) = (fun ω ↦ s.restrict (XY · ω)) ⁻¹' S := by
-    rw [← Set.preimage_comp]
-    rfl
-  have X_on_cyl : P.map (fun ω t ↦ X t ω) (s.restrict ⁻¹' S)
-      = P.map (fun ω ↦ s.restrict (X · ω)) S := by
-    rw [Measure.map_apply_of_aemeasurable hX set1, Measure.map_apply_of_aemeasurable hXtn hS,
-      mappings_eq X]
-  have Y_on_cyl : P.map (fun ω t ↦ Y t ω) (s.restrict ⁻¹' S)
-      = P.map (fun ω ↦ s.restrict (Y · ω)) S := by
-    rw [Measure.map_apply_of_aemeasurable hY set1, Measure.map_apply_of_aemeasurable hYtn hS,
-      mappings_eq Y]
-  rw [cylinder, X_on_cyl, Y_on_cyl, h]
 
 lemma isProjectiveMeasureFamily_map_restrict (hX : AEMeasurable (fun ω t ↦ X t ω) P) :
     IsProjectiveMeasureFamily (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
@@ -90,4 +63,3 @@ lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T
   filter_upwards [hX, hY, eq (fun t ht ↦ h t)] with ω hX hY h t
   change (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
   rw [Continuous.ext_on D_dense hX hY h]
-#min_imports
