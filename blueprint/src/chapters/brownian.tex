@@ -152,17 +152,17 @@ The Brownian motion $B$ is a modification of the pre-Brownian process, and there
 \end{proof}
 
 
-\begin{definition}\label{def:HasIndependentIncrements}
+\begin{definition}\label{def:HasIndepIncrements}
   \leanok
-  \lean{ProbabilityTheory.HasIndependentIncrements}
+  \lean{ProbabilityTheory.HasIndepIncrements}
 We say that a stochastic process $X : T \to \Omega \to E$ has independent increments if for all $t_1, \ldots, t_n \in T$ with $t_1 \le t_2 \le \cdots \le t_n$, the random variables $X_{t_2} - X_{t_1}, X_{t_3} - X_{t_2}, \ldots, X_{t_n} - X_{t_{n-1}}$ are independent.
 \end{definition}
 
 
-\begin{lemma}\label{lem:hasIndependentIncrements_brownian}
+\begin{lemma}\label{lem:hasIndepIncrements_brownian}
   \uses{def:brownian, def:HasIndependentIncrements}
   \leanok
-  \lean{ProbabilityTheory.hasIndependentIncrements_brownian}
+  \lean{ProbabilityTheory.hasIndepIncrements_brownian}
 The Brownian motion has independent increments.
 \end{lemma}
 
