@@ -117,7 +117,7 @@ lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   exact Measurable.aemeasurable <| by fun_prop
 
 lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
-    HasLaw (fun x ↦ x s) (gaussianProjectiveFamily I) (gaussianReal 0 s) where
+    HasLaw (fun x ↦ x s) (gaussianReal 0 s) (gaussianProjectiveFamily I) where
   aemeasurable := Measurable.aemeasurable <| by fun_prop
   map_eq := by
     rw [HasGaussianLaw.map_eq_gaussianReal, variance_eval_gaussianProjectiveFamily,
@@ -128,8 +128,8 @@ lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
 
 open ContinuousLinearMap in
 lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s t : I} :
-    HasLaw ((fun x ↦ x s - x t)) (gaussianProjectiveFamily I)
-      (gaussianReal 0 (max (s - t) (t - s))) where
+    HasLaw ((fun x ↦ x s - x t)) (gaussianReal 0 (max (s - t) (t - s)))
+      (gaussianProjectiveFamily I) where
   map_eq := by
     rw [HasGaussianLaw.map_eq_gaussianReal, variance_fun_sub,
       variance_eval_gaussianProjectiveFamily, variance_eval_gaussianProjectiveFamily,
@@ -180,11 +180,11 @@ lemma isProjectiveLimit_gaussianLimit :
 lemma _root_.MeasureTheory.IsProjectiveLimit.hasLaw_restrict {ι : Type*} {X : ι → Type*}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : Measure (Π i, X i)}
     {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) {I : Finset ι} :
-    HasLaw I.restrict μ (P I) where
+    HasLaw I.restrict (P I) μ where
   map_eq := h I
 
 lemma hasLaw_restrict_gaussianLimit {I : Finset ℝ≥0} :
-    HasLaw I.restrict gaussianLimit (gaussianProjectiveFamily I) :=
+    HasLaw I.restrict (gaussianProjectiveFamily I) gaussianLimit :=
   isProjectiveLimit_gaussianLimit.hasLaw_restrict
 
 end ProbabilityTheory

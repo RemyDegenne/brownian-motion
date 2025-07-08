@@ -257,7 +257,7 @@ lemma variance_eval_multivariateGaussian (i : ι) :
   exact Measurable.aemeasurable <| by fun_prop
 
 lemma hasLaw_eval_multivariateGaussian {i : ι} :
-    HasLaw (fun x ↦ x i) (multivariateGaussian μ S hS) (gaussianReal (μ i) (S i i).toNNReal) where
+    HasLaw (fun x ↦ x i) (gaussianReal (μ i) (S i i).toNNReal) (multivariateGaussian μ S hS) where
   aemeasurable := Measurable.aemeasurable (by fun_prop)
   map_eq := by
     rw [← EuclideanSpace.coe_proj ℝ, IsGaussian.map_eq_gaussianReal,

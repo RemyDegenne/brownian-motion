@@ -31,11 +31,11 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
   map_eq := Measure.map_id
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
-    HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) gaussianLimit (gaussianProjectiveFamily I) :=
+    HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
   hasLaw_restrict_gaussianLimit.comp hasLaw_preBrownian
 
 lemma hasLaw_preBrownian_eval (t : ℝ≥0) :
-    HasLaw (preBrownian t) gaussianLimit (gaussianReal 0 t) :=
+    HasLaw (preBrownian t) (gaussianReal 0 t) gaussianLimit :=
   (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp
     (hasLaw_restrict_preBrownian ({t} : Finset ℝ≥0))
 
@@ -43,8 +43,8 @@ instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianL
   hasGaussianLaw I := (hasLaw_restrict_preBrownian I).hasGaussianLaw
 
 lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
-    HasLaw (preBrownian s - preBrownian t) gaussianLimit
-      (gaussianReal 0 (max (s - t) (t - s))) := by
+    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (max (s - t) (t - s)))
+      gaussianLimit := by
   have : preBrownian s - preBrownian t =
       ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
     ext; simp [preBrownian]
@@ -122,7 +122,7 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
 lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
-    HasLaw (fun ω ↦ I.restrict (brownian · ω)) gaussianLimit (gaussianProjectiveFamily I) := by
+    HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit := by
   refine (hasLaw_restrict_preBrownian I).congr ?_
   filter_upwards [ae_all_iff.2 fun i : I ↦ brownian_ae_eq_preBrownian i.1] with ω hω
   ext; simp [hω]
@@ -136,11 +136,11 @@ lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gauss
     exact hasLaw_restrict_brownian.map_eq
 
 lemma hasLaw_brownian_eval {t : ℝ≥0} :
-    HasLaw (brownian t) gaussianLimit (gaussianReal 0 t) :=
+    HasLaw (brownian t) (gaussianReal 0 t) gaussianLimit :=
   (hasLaw_preBrownian_eval t).congr (brownian_ae_eq_preBrownian t)
 
 lemma hasLaw_brownian_sub {s t : ℝ≥0} :
-    HasLaw (brownian s - brownian t) gaussianLimit (gaussianReal 0 (max (s - t) (t - s))) :=
+    HasLaw (brownian s - brownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
   (hasLaw_preBrownian_sub s t).congr
     ((brownian_ae_eq_preBrownian s).sub (brownian_ae_eq_preBrownian t))
 
