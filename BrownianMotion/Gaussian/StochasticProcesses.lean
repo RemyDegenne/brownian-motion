@@ -1,6 +1,5 @@
+import BrownianMotion.Auxiliary.MeasureTheory
 import Mathlib.MeasureTheory.Constructions.Cylinders
-import Mathlib.MeasureTheory.Measure.AEMeasurable
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
 
 open MeasureTheory
 
@@ -22,12 +21,6 @@ lemma finite_distributions_eq {I : Finset T} (h : ∀ t, X t =ᵐ[P] Y t) :
   refine Measure.map_congr ?_
   filter_upwards [h'] with ω h using funext fun i ↦ h i
 
-theorem aemeasurable_proj {α δ : Type*} {X : δ → Type*} {mX : ∀ a, MeasurableSpace (X a)}
-    [MeasurableSpace α] {μ : Measure α} {g : α → Π a, X a} (hg : AEMeasurable g μ) (a : δ) :
-    AEMeasurable (fun x ↦ g x a) μ := by
-  use fun x ↦ hg.mk g x a, hg.measurable_mk.eval
-  exact hg.ae_eq_mk.mono fun _ h ↦ congrFun h _
-
 lemma coincide_on_cylinders (hX : AEMeasurable (fun ω t ↦ X t ω) P)
     (hY : AEMeasurable (fun ω t ↦ Y t ω) P)
     (h : ∀ I : Finset T, P.map (fun ω ↦ I.restrict (X · ω)) = P.map (fun ω ↦ I.restrict (Y · ω)))
@@ -36,9 +29,9 @@ lemma coincide_on_cylinders (hX : AEMeasurable (fun ω t ↦ X t ω) P)
   rw [mem_measurableCylinders] at hc
   obtain ⟨s, S, hS, rfl⟩ := hc
   have hXtn : AEMeasurable (fun ω ↦ s.restrict (X · ω)) P :=
-    aemeasurable_pi_lambda _ fun i ↦ (aemeasurable_proj hX) i
+    aemeasurable_pi_lambda _ fun i ↦ hX.eval
   have hYtn : AEMeasurable (fun ω ↦ s.restrict (Y · ω)) P :=
-    aemeasurable_pi_lambda _ fun i ↦ (aemeasurable_proj hY) i
+    aemeasurable_pi_lambda _ fun i ↦ hY.eval
   have set1 : @MeasurableSet (T → E) MeasurableSpace.pi (s.restrict ⁻¹' S) :=
     Finset.measurable_restrict s hS
   have mappings_eq (XY : T → Ω → E) :
