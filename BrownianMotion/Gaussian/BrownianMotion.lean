@@ -7,7 +7,6 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
@@ -50,8 +49,7 @@ lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
       ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
     ext; simp [preBrownian]
   rw [this]
-  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp
-    hasLaw_restrict_gaussianLimit
+  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp hasLaw_restrict_gaussianLimit
 
 lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
     IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
@@ -146,16 +144,12 @@ lemma hasLaw_brownian_sub {s t : ℝ≥0} :
   (hasLaw_preBrownian_sub s t).congr
     ((brownian_ae_eq_preBrownian s).sub (brownian_ae_eq_preBrownian t))
 
-instance hasGaussianLaw_brownian_sub {s t : ℝ≥0} :
-    HasGaussianLaw (brownian s - brownian t) gaussianLimit :=
-  hasLaw_brownian_sub.hasGaussianLaw
+instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
+  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
 
 open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
-
-instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
 
 lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
     IsMeasurableKolmogorovProcess brownian gaussianLimit (2 * n) n
@@ -186,6 +180,8 @@ lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι
   · simp [covariance_self, h1.aemeasurable.eval, pow_two, mul_div_assoc]
   · exact fun j hj ↦ by simp [h2 i j hj.symm]
 
+/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
 def HasIndependentIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
     [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
   ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
@@ -224,10 +220,9 @@ lemma hasIndependentIncrements_brownian : HasIndependentIncrements brownian gaus
     · simp_rw [← this n t ht j i hij.symm (by omega), min_comm]
       ring
     have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
-    have h2 : i.succ ≤ j.castSucc := h
-    have h3 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
-    have h4 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
-    rw [min_eq_left (ht h1), min_eq_left (ht h2), min_eq_left (ht h3), min_eq_left (ht h4)]
+    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
+    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
+    rw [min_eq_left (ht h1), min_eq_left (ht h), min_eq_left (ht h2), min_eq_left (ht h3)]
     simp
   all_goals exact HasGaussianLaw.memLp_two
 

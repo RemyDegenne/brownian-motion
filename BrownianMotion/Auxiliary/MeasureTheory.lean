@@ -140,6 +140,11 @@ lemma variance_sub [IsFiniteMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) 
   · exact hX.aemeasurable
   · exact hX.aemeasurable.sub hY.aemeasurable
 
+lemma variance_fun_sub [IsFiniteMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
+    Var[fun ω ↦ X ω - Y ω; μ] = Var[fun ω ↦ X ω; μ] -
+      2 * cov[fun ω ↦ X ω, fun ω ↦ Y ω; μ] + Var[fun ω ↦ Y ω; μ] :=
+  variance_sub hX hY
+
 lemma covariance_mul_left (c : ℝ) :
   cov[fun ω ↦ c * X ω, Y; μ] = c * cov[X, Y; μ] := covariance_smul_left c
 

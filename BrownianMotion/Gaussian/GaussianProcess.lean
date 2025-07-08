@@ -74,4 +74,17 @@ instance IsGaussianProcess.hasGaussianLaw_eval [IsGaussianProcess X P] {t : T} :
     rw [this]
     infer_instance
 
+instance IsGaussianProcess.hasGaussianLaw_sub [SecondCountableTopology E] [IsGaussianProcess X P]
+    {s t : T} : HasGaussianLaw (X s - X t) P where
+  isGaussian_map := by
+    classical
+    have : X s - X t =
+        (ContinuousLinearMap.proj (R := ℝ) (ι := ({s, t} : Finset T))
+          (φ := fun _ ↦ E) ⟨s, by simp⟩ -
+        ContinuousLinearMap.proj (R := ℝ) (ι := ({s, t} : Finset T))
+          (φ := fun _ ↦ E) ⟨t, by simp⟩) ∘
+      (fun ω ↦ ({s, t} : Finset T).restrict (X · ω)) := by ext; simp
+    rw [this]
+    infer_instance
+
 end ProbabilityTheory

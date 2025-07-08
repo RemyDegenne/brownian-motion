@@ -194,6 +194,33 @@ instance IsGaussian.map_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι : Type*}
     {μ : Measure (PiLp p E)} [IsGaussian μ] (i : ι) : HasGaussianLaw (fun x ↦ x i) μ :=
   IsGaussian.map_eval i
 
+instance HasGaussianLaw.sub {ι Ω E : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {X : ι → Ω → E}
+    [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i j : ι) :
+    HasGaussianLaw (X i - X j) P where
+  isGaussian_map := by
+    have : X i - X j = (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) i -
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) j) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+    rw [this, ← AEMeasurable.map_map_of_aemeasurable]
+    · infer_instance
+    · fun_prop
+    · exact h.aemeasurable
+
+instance IsGaussian.map_eval_sub_eval {ι E : Type*} [Fintype ι]
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {μ : Measure (ι → E)} [IsGaussian μ] (i j : ι) :
+    HasGaussianLaw (fun x ↦ x i - x j) μ := by
+  refine HasGaussianLaw.sub (Ω := ι → E) (X := fun i x ↦ x i) (h := ?_) i j
+  exact IsGaussian.hasGaussianLaw_id
+
+instance IsGaussian.map_eval_sub_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι E : Type*} [Fintype ι]
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E]
+    {μ : Measure (PiLp p (fun _ ↦ E))} [IsGaussian μ] (i j : ι) :
+    HasGaussianLaw (fun x ↦ x i - x j) μ :=
+  IsGaussian.map_eval_sub_eval i j
+
 end NormedSpace
 
 end HasGaussianLaw

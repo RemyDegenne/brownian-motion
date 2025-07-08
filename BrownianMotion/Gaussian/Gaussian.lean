@@ -152,13 +152,18 @@ lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) [IsGaussian μ] :
     map_eq_gaussianReal]
   rfl
 
+lemma HasGaussianLaw.map_eq_gaussianReal {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X : Ω → ℝ} [HasGaussianLaw X P] :
+    P.map X = gaussianReal P[X] Var[X; P].toNNReal := by
+  rw [IsGaussian.eq_gaussianReal (.map _ _), integral_map, variance_map]
+  · rfl
+  any_goals fun_prop
+
 lemma HasGaussianLaw.charFun_map_real {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {X : Ω → ℝ} [HasGaussianLaw X P] (t : ℝ) :
     charFun (P.map X) t = exp (t * P[X] * I - t ^ 2 * Var[X; P] / 2) := by
-  rw [IsGaussian.eq_gaussianReal (P.map X), variance_map, integral_map,
-    IsGaussian.charFun_eq, covInnerBilin_real_self]
+  rw [HasGaussianLaw.map_eq_gaussianReal, IsGaussian.charFun_eq, covInnerBilin_real_self]
   · simp [variance_nonneg, integral_complex_ofReal, mul_comm]
-  any_goals fun_prop
   exact IsGaussian.memLp_two_id
 
 end ProbabilityTheory
