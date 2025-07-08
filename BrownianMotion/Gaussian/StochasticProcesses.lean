@@ -1,5 +1,5 @@
 import BrownianMotion.Auxiliary.MeasureTheory
-import Mathlib.MeasureTheory.Constructions.Cylinders
+import Mathlib.MeasureTheory.Constructions.Projective
 
 open MeasureTheory
 
@@ -90,3 +90,4 @@ lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T
   filter_upwards [hX, hY, eq (fun t ht ↦ h t)] with ω hX hY h t
   change (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
   rw [Continuous.ext_on D_dense hX hY h]
+#min_imports
