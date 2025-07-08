@@ -62,7 +62,7 @@ lemma covInnerBilin_apply_eq [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp i
 
 lemma covInnerBilin_real {μ : Measure ℝ} [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : ℝ) :
     covInnerBilin μ x y = x * y * Var[id; μ] := by
-  simp [covInnerBilin_apply_eq h, RCLike.inner_apply, conj_trivial, mul_comm]
+  simp only [covInnerBilin_apply_eq h, RCLike.inner_apply, conj_trivial, mul_comm]
   rw [covariance_mul_left, covariance_mul_right, ← mul_assoc, covariance_self]
   · rfl
   exact aemeasurable_id
