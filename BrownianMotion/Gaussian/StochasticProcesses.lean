@@ -19,7 +19,7 @@ lemma finite_distributions_eq {I : Finset T} (h : ∀ t, X t =ᵐ[P] Y t) :
     rw [MeasureTheory.ae_all_iff]
     exact fun i ↦ h i
   refine Measure.map_congr ?_
-  filter_upwards [h'] with ω h using funext fun i ↦ h i
+  filter_upwards [h'] with ω h using funext h
 
 lemma coincide_on_cylinders (hX : AEMeasurable (fun ω t ↦ X t ω) P)
     (hY : AEMeasurable (fun ω t ↦ Y t ω) P)
@@ -48,35 +48,33 @@ lemma coincide_on_cylinders (hX : AEMeasurable (fun ω t ↦ X t ω) P)
       mappings_eq Y]
   rw [cylinder, X_on_cyl, Y_on_cyl, h]
 
+lemma isProjectiveMeasureFamily_map_restrict (hX : AEMeasurable (fun ω t ↦ X t ω) P) :
+    IsProjectiveMeasureFamily (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
+  intro I J hJI
+  rw [AEMeasurable.map_map_of_aemeasurable (Finset.measurable_restrict₂ _).aemeasurable]
+  · rfl
+  · exact (Finset.measurable_restrict _).comp_aemeasurable hX
+
+lemma isProjectiveLimit_map (hX : AEMeasurable (fun ω t ↦ X t ω) P) :
+    IsProjectiveLimit (P.map (fun ω t ↦ X t ω)) (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
+  rintro I
+  rw [AEMeasurable.map_map_of_aemeasurable (Finset.measurable_restrict _).aemeasurable hX]
+  rfl
+
 lemma finite_distributions_eq_iff_same_law (hX : AEMeasurable (fun t ω ↦ X ω t) P)
     (hY : AEMeasurable (fun t ω ↦ Y ω t) P) [IsProbabilityMeasure P] :
     (∀ I : Finset T, P.map (fun ω ↦ I.restrict (X · ω)) = P.map (fun ω ↦ I.restrict (Y · ω)))
-    ↔ (P.map (fun ω t ↦ X t ω) = P.map (fun ω t ↦ Y t ω)) := by
-  constructor
-  · intro h
-    apply Measure.ext
-    have pX : IsProbabilityMeasure (Measure.map (fun ω t ↦ X t ω) P) := isProbabilityMeasure_map hX
-    have pY : IsProbabilityMeasure (Measure.map (fun ω t ↦ Y t ω) P) := isProbabilityMeasure_map hY
-    apply MeasurableSpace.induction_on_inter
-      (C := fun S hS ↦ ((P.map (fun ω t ↦ X t ω)) S = (P.map (fun ω t ↦ Y t ω)) S))
-      (h_eq := by rw [generateFrom_measurableCylinders])
-      (h_inter := isPiSystem_measurableCylinders)
-      (empty := by simp) (basic := coincide_on_cylinders hX hY h)
-    · intro t ht hXY
-      repeat rw [MeasureTheory.prob_compl_eq_one_sub ht]
-      simp [hXY]
-    · intro f disj hf map
-      repeat rw [measure_iUnion disj hf]
-      simp [map]
-  · intro h I
-    have x : P.map (fun ω ↦ I.restrict (X · ω)) = (P.map (fun ω t ↦ X t ω)).map I.restrict := by
-      rw [AEMeasurable.map_map_of_aemeasurable]; rfl
-      · fun_prop
-      · exact hX
+    ↔ P.map (fun ω t ↦ X t ω) = P.map (fun ω t ↦ Y t ω) := by
+  refine ⟨fun h ↦ ?_, fun h I ↦ ?_⟩
+  · have hX' := isProjectiveLimit_map hX
+    simp_rw [h] at hX'
+    exact hX'.unique (isProjectiveLimit_map hY)
+  · have x : P.map (fun ω ↦ I.restrict (X · ω)) = (P.map (fun ω t ↦ X t ω)).map I.restrict := by
+      rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX]
+      rfl
     have y : P.map (fun ω ↦ I.restrict (Y · ω)) = (P.map (fun ω t ↦ Y t ω)).map I.restrict := by
-      rw [AEMeasurable.map_map_of_aemeasurable]; rfl
-      · fun_prop
-      · exact hY
+      rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hY]
+      rfl
     rw [x, y, h]
 
 open TopologicalSpace in
@@ -90,5 +88,5 @@ lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T
   have eq (ht : ∀ t ∈ D, X t =ᵐ[P] Y t) : ∀ᵐ ω ∂P, ∀ t ∈ D, X t ω = Y t ω :=
     (ae_ball_iff D_countable).mpr ht
   filter_upwards [hX, hY, eq (fun t ht ↦ h t)] with ω hX hY h t
-  show (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
+  change (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
   rw [Continuous.ext_on D_dense hX hY h]

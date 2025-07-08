@@ -23,7 +23,7 @@ ProbabilityTheory.centralMoment_two_mul_gaussianReal
 ProbabilityTheory.IsGaussian
 ProbabilityTheory.isGaussian_iff_charFunDual_eq
 ProbabilityTheory.isGaussian_map
-ProbabilityTheory.IsGaussian.exists_integrable_exp_sq
+ProbabilityTheory.isGaussian_conv
 ProbabilityTheory.IsGaussian.memLp_id
 ProbabilityTheory.isGaussian_iff_charFun_eq
 ProbabilityTheory.IsGaussian.charFun_eq
