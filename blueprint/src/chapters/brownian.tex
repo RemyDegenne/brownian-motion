@@ -218,7 +218,7 @@ $$f(K) \subseteq \bigcup_{n \in \hat{f}} V_n \subseteq \bigcup_{n \in \hat{f}} \
 Conversely, if there exists a finite set $\hat{f}$ such that for any $n \in \hat{f}$, $\overline{V_n} \subseteq U$, and
 $$f(K) \subseteq \bigcup_{n \in \hat{f}} \overline{V_n},$$
 then $f(K) \subseteq U$. We can therefore write that
-$$M(K, U) = \bigcup_{\substack{I \subseteq \mathbb{N} \\ I \text{ finite} \\ \forall n \in I, \overline{V_n} \subseteq U}} \bigcup_{i \in I} \overline{V_i}.$$
+$$M(K, U) = \bigcup_{\substack{I \subseteq \mathbb{N} \\ I \text{ finite} \\ \forall n \in I, \overline{V_n} \subseteq U}} M\left(K, \bigcup_{i \in I} \overline{V_i}\right).$$
 This is a countable union, so we just have to prove that each term is measurable.
 
 We now fix a finite set $I$ as in the union above. Because $X$ is second countable, there exists $Q$ a countable dense subset of $K$. For any $f$ continuous, because $Q$ is dense and $\bigcup_{i \in I} \overline{V_i}$ is closed, we have
