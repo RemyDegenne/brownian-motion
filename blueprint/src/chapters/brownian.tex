@@ -27,10 +27,10 @@ For any $t_1, \ldots, t_n \in \mathbb{R}_+$, the distribution of $(X_{t_1}, \ldo
 \end{proof}
 
 
-\begin{lemma}\label{lem:map_sub_preBrownian}
+\begin{lemma}\label{lem:hasLaw_preBrownian_sub}
   \uses{def:preBrownian}
   \leanok
-  \lean{ProbabilityTheory.map_sub_preBrownian}
+  \lean{ProbabilityTheory.hasLaw_preBrownian_sub}
 Let $X$ be the pre-Brownian process of Definition~\ref{def:preBrownian}.
 Then, for all $s, t \in \mathbb{R}_+$, the random variable $X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$.
 \end{lemma}
@@ -63,8 +63,8 @@ That is, for all $s, t \in \mathbb{R}_+$, we have
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:centralMoment_two_mul_gaussianReal, lem:map_sub_preBrownian}
-$X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$ (Lemma~\ref{lem:map_sub_preBrownian}).
+  \uses{lem:centralMoment_two_mul_gaussianReal, lem:hasLaw_preBrownian_sub}
+$X_t - X_s$ is a Gaussian random variable with mean $0$ and variance $|t - s|$ (Lemma~\ref{lem:hasLaw_preBrownian_sub}).
 Thus, by Lemma~\ref{lem:centralMoment_two_mul_gaussianReal}, we have
 \begin{align*}
   \mathbb{E} \left[ |X_t - X_s|^{2n} \right]
@@ -126,10 +126,10 @@ The paths are $1/4$-Hölder continuous by Lemma~\ref{lem:isHolderWith_brownian} 
 \end{proof}
 
 
-\begin{lemma}\label{lem:measurePreserving_brownian_apply}
+\begin{lemma}\label{lem:hasLaw_brownian_eval}
   \uses{def:brownian}
   \leanok
-  \lean{ProbabilityTheory.measurePreserving_brownian_apply}
+  \lean{ProbabilityTheory.hasLaw_brownian_eval}
 For $t \in \mathbb{R}_+$, the law of $B_t$ (the Brownian motion at time $t$) is the real Gaussian measure $\mathcal{N}(0,t)$.
 \end{lemma}
 
@@ -139,16 +139,16 @@ The Brownian motion $B$ is a modification of the pre-Brownian process, and there
 \end{proof}
 
 
-\begin{lemma}\label{lem:measurePreserving_brownian_sub}
+\begin{lemma}\label{lem:hasLaw_brownian_sub}
   \uses{def:brownian}
   \leanok
-  \lean{ProbabilityTheory.measurePreserving_brownian_sub}
+  \lean{ProbabilityTheory.hasLaw_brownian_sub}
 For $s, t \in \mathbb{R}_+$, the law of $B_t - B_s$ is the real Gaussian measure $\mathcal{N}(0,\vert t - s \vert)$.
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:map_sub_preBrownian}
-The Brownian motion $B$ is a modification of the pre-Brownian process, and therefore has same finite dimensional distributions. By Lemma~\ref{lem:map_sub_preBrownian}, $B_t - B_s$ has law $\mathcal{N}(0,\vert t - s \vert)$.
+  \uses{lem:hasLaw_preBrownian_sub}
+The Brownian motion $B$ is a modification of the pre-Brownian process, and therefore has same finite dimensional distributions. By Lemma~\ref{lem:hasLaw_preBrownian_sub}, $B_t - B_s$ has law $\mathcal{N}(0,\vert t - s \vert)$.
 \end{proof}
 
 
