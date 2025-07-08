@@ -116,34 +116,35 @@ lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   rw [← covariance_self, covariance_eval_gaussianProjectiveFamily, min_self]
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma measurePreserving_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s : I} :
-    MeasurePreserving (fun x ↦ x s) (gaussianProjectiveFamily I) (gaussianReal 0 s) where
-  measurable := by fun_prop
+lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
+    HasLaw (fun x ↦ x s) (gaussianReal 0 s) (gaussianProjectiveFamily I) where
+  aemeasurable := Measurable.aemeasurable <| by fun_prop
   map_eq := by
-    rw [← ContinuousLinearMap.coe_proj' ℝ, IsGaussian.map_eq_gaussianReal,
-      ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
-      map_zero, ContinuousLinearMap.coe_proj', variance_eval_gaussianProjectiveFamily,
+    rw [HasGaussianLaw.map_eq_gaussianReal, variance_eval_gaussianProjectiveFamily,
       Real.toNNReal_coe]
+    conv => enter [1, 1, 2]; change fun x ↦ ContinuousLinearMap.proj (R := ℝ) s x
+    rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero]
     exact IsGaussian.integrable_id
 
 open ContinuousLinearMap in
-lemma measurePreserving_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s t : I} :
-    MeasurePreserving ((fun x ↦ x s) - (fun x ↦ x t)) (gaussianProjectiveFamily I)
-      (gaussianReal 0 (max (s - t) (t - s))) where
-  measurable := by fun_prop
+lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s t : I} :
+    HasLaw ((fun x ↦ x s - x t)) (gaussianReal 0 (max (s - t) (t - s)))
+      (gaussianProjectiveFamily I) where
   map_eq := by
-    rw [← coe_proj' ℝ, ← coe_proj' ℝ, ← coe_sub', IsGaussian.map_eq_gaussianReal,
-      integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero, coe_sub', coe_proj',
-      coe_proj', variance_sub, variance_eval_gaussianProjectiveFamily,
-      variance_eval_gaussianProjectiveFamily, covariance_eval_gaussianProjectiveFamily]
-    · norm_cast
-      rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
-        NNReal.add_sub_two_mul_min_eq_max]
-      nth_grw 1 [two_mul, min_le_left, min_le_right]
-    any_goals
-      rw [← ContinuousLinearMap.coe_proj' ℝ]
-      exact ContinuousLinearMap.comp_memLp' _ <| IsGaussian.memLp_two_id
-    exact IsGaussian.integrable_id
+    rw [HasGaussianLaw.map_eq_gaussianReal, variance_fun_sub,
+      variance_eval_gaussianProjectiveFamily, variance_eval_gaussianProjectiveFamily,
+      covariance_eval_gaussianProjectiveFamily]
+    · conv =>
+        enter [1, 1, 2];
+        change fun x ↦ (proj (R := ℝ) (φ := fun i : I ↦ ℝ) s -
+          proj (R := ℝ) (φ := fun i : I ↦ ℝ) t) x
+      rw [integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero]
+      · norm_cast
+        rw [sub_add_eq_add_sub, ← NNReal.coe_add, ← NNReal.coe_sub, Real.toNNReal_coe,
+          NNReal.add_sub_two_mul_min_eq_max]
+        nth_grw 1 [two_mul, min_le_left, min_le_right]
+      · exact IsGaussian.integrable_id
+    any_goals exact HasGaussianLaw.memLp_two
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by
@@ -176,15 +177,14 @@ lemma isProjectiveLimit_gaussianLimit :
     IsProjectiveLimit gaussianLimit gaussianProjectiveFamily :=
   isProjectiveLimit_projectiveLimit isProjectiveMeasureFamily_gaussianProjectiveFamily
 
-lemma _root_.MeasureTheory.IsProjectiveLimit.measurePreserving_restrict {ι : Type*} {X : ι → Type*}
+lemma _root_.MeasureTheory.IsProjectiveLimit.hasLaw_restrict {ι : Type*} {X : ι → Type*}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : Measure (Π i, X i)}
     {P : (I : Finset ι) → Measure (Π i : I, X i)} (h : IsProjectiveLimit μ P) {I : Finset ι} :
-    MeasurePreserving I.restrict μ (P I) where
-  measurable := by fun_prop
+    HasLaw I.restrict (P I) μ where
   map_eq := h I
 
-lemma measurePreserving_gaussianLimit {I : Finset ℝ≥0} :
-    MeasurePreserving I.restrict gaussianLimit (gaussianProjectiveFamily I) :=
-  isProjectiveLimit_gaussianLimit.measurePreserving_restrict
+lemma hasLaw_restrict_gaussianLimit {I : Finset ℝ≥0} :
+    HasLaw I.restrict (gaussianProjectiveFamily I) gaussianLimit :=
+  isProjectiveLimit_gaussianLimit.hasLaw_restrict
 
 end ProbabilityTheory

@@ -4,7 +4,7 @@ import BrownianMotion.Gaussian.CovMatrix
 # Facts about Gaussian characteristic function
 -/
 
-open Complex MeasureTheory
+open Complex MeasureTheory WithLp
 
 open scoped Matrix NNReal Real InnerProductSpace ProbabilityTheory
 
@@ -40,6 +40,24 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
   congr
   · simp_rw [integral_complex_ofReal, ← integral_inner IsGaussian.integrable_id, id]
   · rw [covInnerBilin_self IsGaussian.memLp_two_id]
+
+lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsFiniteMeasure P] {X : ι → Ω → ℝ} [hX : HasGaussianLaw (fun ω ↦ (X · ω)) P]
+    (ξ : EuclideanSpace ℝ ι) :
+    charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
+      exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
+  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_pi, EuclideanSpace.real_inner_eq]
+  · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
+      integral_complex_ofReal, ← ofReal_mul]
+    congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)
+    rw [integral_map, PiLp.integral_eval]
+    · simp
+    · simp only [id_eq, PiLp.toLp_apply]
+      exact fun i ↦ HasGaussianLaw.integrable
+    · have := hX.aemeasurable
+      fun_prop
+    · exact aestronglyMeasurable_id
+  · exact fun i ↦ HasGaussianLaw.memLp_two
 
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔
@@ -127,5 +145,25 @@ protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian 
     μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilin μ = covarianceBilin ν where
   mp h := by simp [h]
   mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
+
+lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) [IsGaussian μ] :
+    μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
+  nth_rw 1 [← Measure.map_id (μ := μ), ← ContinuousLinearMap.coe_id' (R₁ := ℝ),
+    map_eq_gaussianReal]
+  rfl
+
+lemma HasGaussianLaw.map_eq_gaussianReal {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X : Ω → ℝ} [HasGaussianLaw X P] :
+    P.map X = gaussianReal P[X] Var[X; P].toNNReal := by
+  rw [IsGaussian.eq_gaussianReal (.map _ _), integral_map, variance_map]
+  · rfl
+  any_goals fun_prop
+
+lemma HasGaussianLaw.charFun_map_real {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X : Ω → ℝ} [HasGaussianLaw X P] (t : ℝ) :
+    charFun (P.map X) t = exp (t * P[X] * I - t ^ 2 * Var[X; P] / 2) := by
+  rw [HasGaussianLaw.map_eq_gaussianReal, IsGaussian.charFun_eq, covInnerBilin_real_self]
+  · simp [variance_nonneg, integral_complex_ofReal, mul_comm]
+  exact IsGaussian.memLp_two_id
 
 end ProbabilityTheory

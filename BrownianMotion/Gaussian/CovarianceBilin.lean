@@ -41,6 +41,15 @@ lemma covarianceBilin_apply'' [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp 
     covarianceBilin μ L₁ L₂ = cov[L₁, L₂; μ] := by
   rw [covarianceBilin_apply h, covariance]
 
+@[simp]
+lemma covarianceBilin_zero : covarianceBilin (0 : Measure E) = 0 := by
+  ext
+  rw [covarianceBilin, uncenteredCovarianceBilin, Measure.map_zero]
+  have : Subsingleton (Lp ℝ 2 (0 : Measure E)) :=
+    ⟨fun x y ↦ Lp.ext_iff.2 rfl⟩
+  rw [Subsingleton.eq_zero (Dual.toLp 0 2)]
+  simp
+
 end NormedSpace
 
 end ProbabilityTheory

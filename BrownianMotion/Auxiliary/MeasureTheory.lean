@@ -1,9 +1,9 @@
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.Metric
+import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
 import Mathlib.Probability.Moments.Covariance
-
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
@@ -12,7 +12,12 @@ open MeasureTheory
 
 open scoped ENNReal NNReal ProbabilityTheory
 
+attribute [fun_prop] aemeasurable_id'
 
+lemma _root_.AEMeasurable.eval {X ι : Type*} {Y : ι → Type*} {mX : MeasurableSpace X}
+    {μ : Measure X} [∀ i, MeasurableSpace (Y i)] {i : ι} {f : X → Π i, Y i}
+    (hf : AEMeasurable f μ) : AEMeasurable (f · i) μ :=
+  ⟨(hf.mk f · i), hf.measurable_mk.eval, hf.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
 
 @[to_additive]
 theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β} {l : Filter α}
@@ -54,19 +59,30 @@ lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥
 section iIndepFun
 
 variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
-  {μ : (i : ι) → Measure (Ω i)} [∀ i, IsProbabilityMeasure (μ i)]
+  {μ : (i : ι) → Measure (Ω i)}
+
+lemma _root_.MeasureTheory.Measure.pi_map_eval [∀ i, IsFiniteMeasure (μ i)] [DecidableEq ι]
+    (i : ι) :
+    (Measure.pi μ).map (Function.eval i) = (∏ j ∈ Finset.univ.erase i, μ j Set.univ) • (μ i) := by
+  ext s hs
+  classical
+  rw [Measure.map_apply (measurable_pi_apply i) hs, ← Set.univ_pi_update_univ, Measure.pi_pi,
+    Measure.smul_apply, smul_eq_mul, ← Finset.prod_erase_mul _ _ (a := i) (by simp)]
+  congrm ?_ * ?_
+  swap; · simp
+  refine Finset.prod_congr rfl fun j hj ↦ ?_
+  simp [Function.update, Finset.ne_of_mem_erase hj]
+
+variable [∀ i, IsProbabilityMeasure (μ i)]
 
 lemma measurePreserving_eval (i : ι) :
     MeasurePreserving (Function.eval i) (Measure.pi μ) (μ i) := by
   refine ⟨measurable_pi_apply i, ?_⟩
-  ext s hs
   classical
-  rw [Measure.map_apply (measurable_pi_apply i) hs, ← Set.univ_pi_update_univ, Measure.pi_pi]
-  have : μ i s = (μ i) (Function.update (fun j ↦ Set.univ) i s i) := by simp
-  rw [this]
-  exact Finset.prod_eq_single_of_mem i (by simp) (fun j _ hj ↦ by simp [hj])
+  rw [Measure.pi_map_eval, Finset.prod_eq_one, one_smul]
+  exact fun _ _ ↦ measure_univ
 
-variable {𝒳 : ι → Type*} {m𝒳 : ∀ i, MeasurableSpace (𝒳 i)} {X : Π i, Ω i → 𝒳 i}
+variable {𝒳 : ι → Type*} [∀ i, MeasurableSpace (𝒳 i)] {X : Π i, Ω i → 𝒳 i}
 
 lemma iIndepFun_pi (mX : ∀ i, Measurable (X i)) :
     iIndepFun (fun i ω ↦ X i (ω i)) (Measure.pi μ) := by
@@ -109,8 +125,13 @@ lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
   · exact fun i _ j _ hij ↦
       (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
 
-lemma variance_sub {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ]
-    {X Y : Ω → ℝ} (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
+end iIndepFun
+
+section covariance
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y : Ω → ℝ}
+
+lemma variance_sub [IsFiniteMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
     Var[X - Y; μ] = Var[X; μ] - 2 * cov[X, Y; μ] + Var[Y; μ] := by
   rw [← covariance_self, covariance_sub_left hX hY (hX.sub hY), covariance_sub_right hX hX hY,
     covariance_sub_right hY hX hY, covariance_self, covariance_self, covariance_comm]
@@ -118,6 +139,115 @@ lemma variance_sub {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [Is
   · exact hY.aemeasurable
   · exact hX.aemeasurable
   · exact hX.aemeasurable.sub hY.aemeasurable
+
+lemma variance_fun_sub [IsFiniteMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
+    Var[fun ω ↦ X ω - Y ω; μ] = Var[fun ω ↦ X ω; μ] -
+      2 * cov[fun ω ↦ X ω, fun ω ↦ Y ω; μ] + Var[fun ω ↦ Y ω; μ] :=
+  variance_sub hX hY
+
+lemma covariance_mul_left (c : ℝ) :
+  cov[fun ω ↦ c * X ω, Y; μ] = c * cov[X, Y; μ] := covariance_smul_left c
+
+lemma covariance_mul_right (c : ℝ) :
+  cov[X, fun ω ↦ c * Y ω; μ] = c * cov[X, Y; μ] := covariance_smul_right c
+
+variable {ι : Type*} {X : ι → Ω → ℝ} {s : Finset ι} [IsFiniteMeasure μ]
+
+lemma covariance_sum_left' (hX : ∀ i ∈ s, MemLp (X i) 2 μ) (hY : MemLp Y 2 μ) :
+    cov[∑ i ∈ s, X i, Y; μ] = ∑ i ∈ s, cov[X i, Y; μ] := by
+  classical
+  revert hX
+  apply Finset.induction (motive := fun s ↦
+    (∀ i ∈ s, MemLp (X i) 2 μ) → cov[∑ i ∈ s, X i, Y; μ] = ∑ i ∈ s, cov[X i, Y; μ])
+  · simp
+  intro i s hi h_ind hX
+  simp_rw [Finset.sum_insert hi]
+  rw [covariance_add_left, h_ind]
+  · exact fun j hj ↦ hX j (by simp [hj])
+  · exact hX i (by simp)
+  · exact memLp_finset_sum' s (fun j hj ↦ hX j (by simp [hj]))
+  · exact hY
+
+lemma covariance_sum_left [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ)
+    (hY : MemLp Y 2 μ) : cov[∑ i, X i, Y; μ] = ∑ i, cov[X i, Y; μ] :=
+  covariance_sum_left' (fun _ _ ↦ hX _) hY
+
+lemma covariance_fun_sum_left' (hX : ∀ i ∈ s, MemLp (X i) 2 μ)
+    (hY : MemLp Y 2 μ) :
+    cov[fun ω ↦ ∑ i ∈ s, X i ω, Y; μ] = ∑ i ∈ s, cov[fun ω ↦ X i ω, Y; μ] := by
+  convert covariance_sum_left' hX hY
+  simp
+
+lemma covariance_fun_sum_left [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ)
+    (hY : MemLp Y 2 μ) :
+    cov[fun ω ↦ ∑ i, X i ω, Y; μ] = ∑ i, cov[fun ω ↦ X i ω, Y; μ] := by
+  convert covariance_sum_left hX hY
+  simp
+
+lemma covariance_sum_right' (hX : ∀ i ∈ s, MemLp (X i) 2 μ) (hY : MemLp Y 2 μ) :
+    cov[Y, ∑ i ∈ s, X i; μ] = ∑ i ∈ s, cov[Y, X i; μ] := by
+  rw [covariance_comm, covariance_sum_left' hX hY]
+  simp_rw [covariance_comm]
+
+lemma covariance_sum_right [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ) (hY : MemLp Y 2 μ) :
+    cov[Y, ∑ i, X i; μ] = ∑ i, cov[Y, X i; μ] :=
+  covariance_sum_right' (fun _ _ ↦ hX _) hY
+
+lemma covariance_fun_sum_right' (hX : ∀ i ∈ s, MemLp (X i) 2 μ) (hY : MemLp Y 2 μ) :
+    cov[Y, fun ω ↦ ∑ i ∈ s, X i ω; μ] = ∑ i ∈ s, cov[Y, fun ω ↦ X i ω; μ] := by
+  convert covariance_sum_right' hX hY
+  simp
+
+lemma covariance_fun_sum_right [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ) (hY : MemLp Y 2 μ) :
+    cov[Y, fun ω ↦ ∑ i, X i ω; μ] = ∑ i, cov[Y, fun ω ↦ X i ω; μ] :=
+  covariance_fun_sum_right' (fun _ _ ↦ hX _) hY
+
+lemma covariance_sum_sum' {ι' : Type*} {Y : ι' → Ω → ℝ} {t : Finset ι'}
+    (hX : ∀ i ∈ s, MemLp (X i) 2 μ) (hY : ∀ i ∈ t, MemLp (Y i) 2 μ) :
+    cov[∑ i ∈ s, X i, ∑ j ∈ t, Y j; μ] = ∑ i ∈ s, ∑ j ∈ t, cov[X i, Y j; μ] := by
+  rw [covariance_sum_left' hX]
+  · exact Finset.sum_congr rfl fun i hi ↦ by rw [covariance_sum_right' hY (hX i hi)]
+  exact memLp_finset_sum' t hY
+
+lemma covariance_sum_sum [Fintype ι] {ι' : Type*} [Fintype ι'] {Y : ι' → Ω → ℝ}
+    (hX : ∀ i, MemLp (X i) 2 μ) (hY : ∀ i, MemLp (Y i) 2 μ) :
+    cov[∑ i, X i, ∑ j, Y j; μ] = ∑ i, ∑ j, cov[X i, Y j; μ] :=
+  covariance_sum_sum' (fun _ _ ↦ hX _) (fun _ _ ↦ hY _)
+
+lemma covariance_fun_sum_fun_sum' {ι' : Type*} {Y : ι' → Ω → ℝ} {t : Finset ι'}
+    (hX : ∀ i ∈ s, MemLp (X i) 2 μ) (hY : ∀ i ∈ t, MemLp (Y i) 2 μ) :
+    cov[fun ω ↦ ∑ i ∈ s, X i ω, fun ω ↦ ∑ j ∈ t, Y j ω; μ] =
+    ∑ i ∈ s, ∑ j ∈ t, cov[fun ω ↦ X i ω, fun ω ↦ Y j ω; μ] := by
+  convert covariance_sum_sum' hX hY
+  all_goals simp
+
+lemma covariance_fun_sum_fun_sum [Fintype ι] {ι' : Type*} [Fintype ι'] {Y : ι' → Ω → ℝ}
+    (hX : ∀ i, MemLp (X i) 2 μ) (hY : ∀ i, MemLp (Y i) 2 μ) :
+    cov[fun ω ↦ ∑ i, X i ω, fun ω ↦ ∑ j, Y j ω; μ] =
+    ∑ i, ∑ j, cov[fun ω ↦ X i ω, fun ω ↦ Y j ω; μ] :=
+  covariance_fun_sum_fun_sum' (fun _ _ ↦ hX _) (fun _ _ ↦ hY _)
+
+lemma variance_sum' (hX : ∀ i ∈ s, MemLp (X i) 2 μ) :
+    Var[∑ i ∈ s, X i; μ] = ∑ i ∈ s, ∑ j ∈ s, cov[X i, X j; μ] := by
+  rw [← covariance_self, covariance_sum_left' (by simpa)]
+  · refine Finset.sum_congr rfl fun i hi ↦ ?_
+    rw [covariance_sum_right' (by simpa) (hX i hi)]
+  · exact memLp_finset_sum' _ (by simpa)
+  · exact (memLp_finset_sum' _ (by simpa)).aemeasurable
+
+lemma variance_sum [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ) :
+    Var[∑ i, X i; μ] = ∑ i, ∑ j, cov[X i, X j; μ] :=
+  variance_sum' (fun _ _ ↦ hX _)
+
+lemma variance_fun_sum' (hX : ∀ i ∈ s, MemLp (X i) 2 μ) :
+    Var[fun ω ↦ ∑ i ∈ s, X i ω; μ] = ∑ i ∈ s, ∑ j ∈ s, cov[fun ω ↦ X i ω, fun ω ↦ X j ω; μ] := by
+  convert variance_sum' hX
+  simp
+
+lemma variance_fun_sum [Fintype ι] (hX : ∀ i, MemLp (X i) 2 μ) :
+    Var[fun ω ↦ ∑ i, X i ω; μ] = ∑ i, ∑ j, cov[fun ω ↦ X i ω, fun ω ↦ X j ω; μ] := by
+  convert variance_sum hX
+  simp
 
 lemma covariance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
     {μ : Measure Ω'} (X Y : Ω → ℝ) (Z : Ω' ≃ᵐ Ω) :
@@ -135,6 +265,12 @@ lemma covariance_map {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : Measura
   any_goals assumption
   exact (hX.sub aestronglyMeasurable_const).mul (hY.sub aestronglyMeasurable_const)
 
+lemma covariance_map_fun {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
+    {μ : Measure Ω'} {X Y : Ω → ℝ} {Z : Ω' → Ω} (hX : AEStronglyMeasurable X (μ.map Z))
+    (hY : AEStronglyMeasurable Y (μ.map Z)) (hZ : AEMeasurable Z μ) :
+    cov[X, Y; μ.map Z] = cov[fun ω ↦ X (Z ω), fun ω ↦ Y (Z ω); μ] :=
+  covariance_map hX hY hZ
+
 lemma variance_map_equiv {Ω Ω' : Type*} {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω'}
     {μ : Measure Ω'} (X : Ω → ℝ) (Y : Ω' ≃ᵐ Ω) :
     Var[X; μ.map Y] = Var[X ∘ Y; μ] := by
@@ -147,7 +283,7 @@ lemma centralMoment_of_integral_id_eq_zero {Ω : Type*} {mΩ : MeasurableSpace �
   rw [centralMoment]
   simp [hX]
 
-end iIndepFun
+end covariance
 
 end ProbabilityTheory
 
@@ -318,3 +454,89 @@ lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E
     rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
     · simp
     all_goals simp_all
+
+section eval
+
+namespace MeasureTheory
+
+open Finset
+
+variable {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [∀ i, NormedAddCommGroup (E i)] {p : ℝ≥0∞}
+
+section Pi
+
+variable {X : (i : ι) → Ω → E i}
+
+lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricSpace (E i)]
+    [∀ i, Zero (E i)] (i : ι) : Isometry (Pi.single (M := E) i) := by
+  intro x y
+  rw [edist_pi_def, Finset.sup_univ_eq_ciSup]
+  refine le_antisymm ?_ ?_
+  · refine iSup_le fun j ↦ ?_
+    by_cases h : i = j
+    · cases h
+      simp
+    · simp [h]
+  · apply le_iSup_of_le i
+    simp
+
+lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
+  mp hX i := by
+    have : X i = (Function.eval i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+    rw [this]
+    exact (LipschitzWith.eval i).comp_memLp (by simp) hX
+  mpr hX := by
+    classical
+    have : (fun ω ↦ (X · ω)) = ∑ i, (Pi.single i) ∘ (X i) := by ext; simp
+    rw [this]
+    refine memLp_finset_sum' _ fun i _ ↦ ?_
+    exact (Isometry.single i).lipschitz.comp_memLp (by simp) (hX i)
+
+alias ⟨MemLp.eval, MemLp.of_eval⟩ := memLp_pi_iff
+
+lemma integrable_pi_iff : Integrable (fun ω ↦ (X · ω)) P ↔ ∀ i, Integrable (X i) P := by
+  simp_rw [← memLp_one_iff_integrable, memLp_pi_iff]
+
+alias ⟨Integrable.eval, Integrable.of_eval⟩ := integrable_pi_iff
+
+variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
+
+lemma integral_eval (hX : ∀ i, Integrable (X i) P) (i : ι) :
+    (∫ ω, (X · ω) ∂P) i = ∫ ω, X i ω ∂P := by
+  rw [← ContinuousLinearMap.proj_apply (R := ℝ) i (∫ ω, (X · ω) ∂P),
+    ← ContinuousLinearMap.integral_comp_comm]
+  · simp
+  exact Integrable.of_eval hX
+
+end Pi
+
+section PiLp
+
+variable {q : ℝ≥0∞} [Fact (1 ≤ q)] {X : Ω → PiLp q E}
+
+lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P := by
+  simp_rw [← memLp_pi_iff, ← PiLp.ofLp_apply, ← Function.comp_apply (f := WithLp.ofLp)]
+  exact (PiLp.lipschitzWith_ofLp q E).memLp_comp_iff_of_antilipschitz
+    (PiLp.antilipschitzWith_ofLp q E) (by simp) |>.symm
+
+alias ⟨MemLp.eval_piLp, MemLp.of_eval_piLp⟩ := memLp_piLp_iff
+
+lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P := by
+  simp_rw [← memLp_one_iff_integrable, memLp_piLp_iff]
+
+alias ⟨Integrable.eval_piLp, Integrable.of_eval_piLp⟩ := integrable_piLp_iff
+
+variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
+
+lemma _root_.PiLp.integral_eval (hX : ∀ i, Integrable (X · i) P) (i : ι) :
+    (∫ ω, X ω ∂P) i = ∫ ω, X ω i ∂P := by
+  rw [← PiLp.proj_apply (𝕜 := ℝ) q E i (∫ ω, X ω ∂P), ← ContinuousLinearMap.integral_comp_comm]
+  · simp
+  exact Integrable.of_eval_piLp hX
+
+end PiLp
+
+end MeasureTheory
+
+end eval

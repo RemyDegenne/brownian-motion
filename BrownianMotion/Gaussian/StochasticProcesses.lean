@@ -21,11 +21,6 @@ lemma finite_distributions_eq {I : Finset T} (h : ∀ t, X t =ᵐ[P] Y t) :
   refine Measure.map_congr ?_
   filter_upwards [h'] with ω h using funext h
 
-theorem AEMeasurable.eval {α δ : Type*} {X : δ → Type*} {mX : ∀ a, MeasurableSpace (X a)}
-    [MeasurableSpace α] {μ : Measure α} {g : α → Π a, X a} (hg : AEMeasurable g μ) (a : δ) :
-    AEMeasurable (fun x ↦ g x a) μ :=
-  ⟨fun x ↦ hg.mk g x a, hg.measurable_mk.eval, hg.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
-
 lemma isProjectiveMeasureFamily_map_restrict (hX : AEMeasurable (fun ω t ↦ X t ω) P) :
     IsProjectiveMeasureFamily (fun I ↦ P.map (fun ω ↦ I.restrict (X · ω))) := by
   intro I J hJI
