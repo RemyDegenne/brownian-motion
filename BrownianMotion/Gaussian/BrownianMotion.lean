@@ -182,7 +182,7 @@ lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι
 
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndependentIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
     [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
   ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
     iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
@@ -201,7 +201,7 @@ lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussian
   any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
   exact Measurable.aemeasurable <| by fun_prop
 
-lemma hasIndependentIncrements_brownian : HasIndependentIncrements brownian gaussianLimit := by
+lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
   refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
   · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin (n + 1) → ℝ :=
       { toFun := (fun x (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
