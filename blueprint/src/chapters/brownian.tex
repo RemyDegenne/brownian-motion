@@ -224,7 +224,7 @@ This is a countable union, so we just have to prove that each term is measurable
 We now fix a finite set $I$ as in the union above. Because $X$ is second countable, there exists $Q$ a countable dense subset of $K$. For any $f$ continuous, because $Q$ is dense and $\bigcup_{i \in I} \overline{V_i}$ is closed, we have
 $$f(K) \subset \bigcup_{i \in I} \overline{V_i} \Longleftrightarrow f(Q) \subset \bigcup_{i \in I} \overline{V_i}.$$
 In other words, $M\left(K, \bigcup_{i \in I} \overline{V_i}\right) = M\left(Q, \bigcup_{i \in I} \overline{V_i}\right)$. We can write
-$$M\left(Q, \bigcup_{i \in I} \overline{V_i}\right) = \bigcap_{q \in Q} (f \mapsto f q)^{-1} \bigcup_{i \in I} \overline{V_i},$$
+$$M\left(Q, \bigcup_{i \in I} \overline{V_i}\right) = \bigcap_{q \in Q} (f \mapsto f(q))^{-1} \bigcup_{i \in I} \overline{V_i},$$
 and it is enough to show that each term in the intersection is measurable. Because $\bigcup_{i \in I} \overline{V_i}$ is closed, it is measurable. It therefore remains to prove that $f \mapsto f q$ is measurable for all $q \in Q$, but this is obvious from the definition of $\mathcal{T}_2$. This concludes the proof.
 \end{proof}
 
