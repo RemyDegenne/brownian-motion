@@ -129,7 +129,27 @@ end iIndepFun
 
 section covariance
 
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y : Ω → ℝ}
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y Z : Ω → ℝ}
+
+lemma covariance_fun_add_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω + Y ω, Z; μ] = cov[fun ω ↦ X ω, Z; μ] + cov[fun ω ↦ Y ω, Z; μ] :=
+  covariance_add_left hX hY hZ
+
+lemma covariance_fun_add_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω + Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] + cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_add_right hX hY hZ
+
+lemma covariance_fun_sub_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[fun ω ↦ X ω, Z; μ] - cov[fun ω ↦ Y ω, Z; μ] :=
+  covariance_sub_left hX hY hZ
+
+lemma covariance_fun_sub_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω - Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] - cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_sub_right hX hY hZ
 
 lemma variance_sub [IsFiniteMeasure μ] (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) :
     Var[X - Y; μ] = Var[X; μ] - 2 * cov[X, Y; μ] + Var[Y; μ] := by
@@ -481,6 +501,18 @@ lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricS
   · apply le_iSup_of_le i
     simp
 
+lemma Isometry.inl {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inl E F) := by
+  intro x y
+  rw [Prod.edist_eq]
+  simp
+
+lemma Isometry.inr {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inr E F) := by
+  intro x y
+  rw [Prod.edist_eq]
+  simp
+
 lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
   mp hX i := by
     have : X i = (Function.eval i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
@@ -492,6 +524,22 @@ lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P
     rw [this]
     refine memLp_finset_sum' _ fun i _ ↦ ?_
     exact (Isometry.single i).lipschitz.comp_memLp (by simp) (hX i)
+
+lemma memLp_prod_iff {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F]
+    {X : Ω → E} {Y : Ω → F} :
+    MemLp (fun ω ↦ (X ω, Y ω)) p P ↔ MemLp X p P ∧ MemLp Y p P where
+  mp h := by
+    have h1 : X = Prod.fst ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
+    have h2 : Y = Prod.snd ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
+    rw [h1, h2]
+    exact ⟨LipschitzWith.prod_fst.comp_memLp (by simp) h,
+      LipschitzWith.prod_snd.comp_memLp (by simp) h⟩
+  mpr h := by
+    have : (fun ω ↦ (X ω, Y ω)) = (AddMonoidHom.inl E F) ∘ X + (AddMonoidHom.inr E F) ∘ Y := by
+      ext; all_goals simp
+    rw [this]
+    exact MemLp.add (Isometry.inl.lipschitz.comp_memLp (by simp) h.1)
+      (Isometry.inr.lipschitz.comp_memLp (by simp) h.2)
 
 alias ⟨MemLp.eval, MemLp.of_eval⟩ := memLp_pi_iff
 
@@ -522,6 +570,18 @@ lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P := by
 
 alias ⟨MemLp.eval_piLp, MemLp.of_eval_piLp⟩ := memLp_piLp_iff
 
+lemma memLp_prodLp_iff {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F]
+    {X : Ω → WithLp q (E × F)} :
+      MemLp X p P ↔
+      MemLp (fun ω ↦ (X ω).fst) p P ∧
+      MemLp (fun ω ↦ (X ω).snd) p P := by
+  simp_rw [← memLp_prod_iff, ← WithLp.ofLp_fst, ← WithLp.ofLp_snd,
+    ← Function.comp_apply (f := WithLp.ofLp)]
+  exact (WithLp.prod_lipschitzWith_ofLp q E F).memLp_comp_iff_of_antilipschitz
+    (WithLp.prod_antilipschitzWith_ofLp q E F) (by simp) |>.symm
+
+alias ⟨MemLp.eval_prodLp, MemLp.of_eval_prodLp⟩ := memLp_prodLp_iff
+
 lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P := by
   simp_rw [← memLp_one_iff_integrable, memLp_piLp_iff]
 
@@ -536,6 +596,26 @@ lemma _root_.PiLp.integral_eval (hX : ∀ i, Integrable (X · i) P) (i : ι) :
   exact Integrable.of_eval_piLp hX
 
 end PiLp
+
+theorem fst_integral_withLp [Fact (1 ≤ p)] {X E F : Type*} [MeasurableSpace X] {μ : Measure X}
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    [CompleteSpace F] {f : X → WithLp p (E × F)} (hf : Integrable f μ) :
+    (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ := by
+  rw [← WithLp.ofLp_fst]
+  conv => enter [1, 1]; change WithLp.prodContinuousLinearEquiv p ℝ E F _
+  rw [← ContinuousLinearEquiv.integral_comp_comm, fst_integral]
+  · rfl
+  · simpa
+
+theorem snd_integral_withLp [Fact (1 ≤ p)] {X E F : Type*} [MeasurableSpace X] {μ : Measure X}
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    [CompleteSpace E] {f : X → WithLp p (E × F)} (hf : Integrable f μ) :
+    (∫ x, f x ∂μ).2 = ∫ x, (f x).2 ∂μ := by
+  rw [← WithLp.ofLp_snd]
+  conv => enter [1, 1]; change WithLp.prodContinuousLinearEquiv p ℝ E F _
+  rw [← ContinuousLinearEquiv.integral_comp_comm, snd_integral]
+  · rfl
+  · simpa
 
 end MeasureTheory
 

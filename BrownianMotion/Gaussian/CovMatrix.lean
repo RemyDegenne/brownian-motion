@@ -7,6 +7,7 @@ import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Gaussian.CovarianceBilin
 import BrownianMotion.Gaussian.Fernique
+import Mathlib.Analysis.InnerProductSpace.ProdL2
 
 /-!
 # Covariance matrix
@@ -147,6 +148,29 @@ lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace
   any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
   · fun_prop
   · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2 (MemLp.of_eval_piLp hX)
+
+lemma covInnerBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X Y : Ω → ℝ}
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (x y : WithLp 2 (ℝ × ℝ)) :
+    covInnerBilin (μ.map (fun ω ↦ toLp 2 (X ω, Y ω))) x y =
+      x.1 * y.1 * Var[X; μ] + (x.1 * y.2 + x.2 * y.1) * cov[X, Y; μ] + x.2 * y.2 * Var[Y; μ] := by
+  have := hX.aemeasurable
+  have := hY.aemeasurable
+  nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun]
+  · simp only [prod_inner_apply, ofLp_fst, ofLp_toLp, RCLike.inner_apply, conj_trivial, ofLp_snd,
+      mul_comm]
+    rw [covariance_fun_add_left, covariance_fun_add_right, covariance_fun_add_right]
+    · simp_rw [covariance_mul_left, covariance_mul_right]
+      rw [covariance_comm X Y, covariance_self, covariance_self]
+      · ring
+      · exact hY.aemeasurable
+      · exact hX.aemeasurable
+    any_goals exact MemLp.const_mul (by assumption) _
+    exact hX.const_mul _ |>.add <| hY.const_mul _
+  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+  · fun_prop
+  · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2
+      (MemLp.of_eval_prodLp ⟨hX, hY⟩)
 
 variable [FiniteDimensional ℝ E]
 

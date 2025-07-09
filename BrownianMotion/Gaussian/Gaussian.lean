@@ -59,6 +59,30 @@ lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : Measurable
     · exact aestronglyMeasurable_id
   · exact fun i ↦ HasGaussianLaw.memLp_two
 
+lemma HasGaussianLaw.charFun_toLp' {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsFiniteMeasure P] {X Y : Ω → ℝ} [hX : HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P]
+    (ξ : WithLp 2 (ℝ × ℝ)) :
+    charFun (P.map (fun ω ↦ toLp 2 (X ω, Y ω))) ξ =
+      exp ((ξ.1 * P[X] + ξ.2 * P[Y]) * I -
+        (ξ.1 ^ 2 * Var[X; P] + 2 * ξ.1 * ξ.2 * cov[X, Y; P] + ξ.2 ^ 2 * Var[Y; P]) / 2) := by
+  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_prod]
+  · simp only [id_eq, prod_inner_apply, ofLp_fst, RCLike.inner_apply, conj_trivial, ofLp_snd,
+      ofReal_add, ofReal_mul, add_mul, add_div, integral_complex_ofReal, pow_two, mul_comm]
+    congrm exp (I * (_ * ?_ + _ * ?_) - ?_)
+    · rw [integral_map, fst_integral_withLp]
+      · simp
+      · exact HasGaussianLaw.integrable
+      · fun_prop
+      · exact aestronglyMeasurable_id
+    · rw [integral_map, snd_integral_withLp]
+      · simp
+      · exact HasGaussianLaw.integrable
+      · fun_prop
+      · exact aestronglyMeasurable_id
+    · ring
+  · exact hX.fst.memLp_two
+  · exact hX.snd.memLp_two
+
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔
     ∃ (m : E) (f : ContinuousBilinForm ℝ E),

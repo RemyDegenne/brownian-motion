@@ -127,7 +127,7 @@ lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
     exact IsGaussian.integrable_id
 
 open ContinuousLinearMap in
-lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} {s t : I} :
+lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
     HasLaw ((fun x ↦ x s - x t)) (gaussianReal 0 (max (s - t) (t - s)))
       (gaussianProjectiveFamily I) where
   map_eq := by
@@ -186,5 +186,20 @@ lemma _root_.MeasureTheory.IsProjectiveLimit.hasLaw_restrict {ι : Type*} {X : �
 lemma hasLaw_restrict_gaussianLimit {I : Finset ℝ≥0} :
     HasLaw I.restrict (gaussianProjectiveFamily I) gaussianLimit :=
   isProjectiveLimit_gaussianLimit.hasLaw_restrict
+
+lemma hasLaw_eval_gaussianLimit {t : ℝ≥0} :
+    HasLaw (fun x ↦ x t) (gaussianReal 0 t) gaussianLimit :=
+  hasLaw_eval_gaussianProjectiveFamily (⟨t, by simp⟩ : ({t} : Finset ℝ≥0)) |>.comp
+    hasLaw_restrict_gaussianLimit
+
+lemma covariance_eval_gaussianLimit {s t : ℝ≥0} :
+    cov[fun x ↦ x s, fun x ↦ x t; gaussianLimit] = min s t := by
+  change _ = ((min (⟨s, by simp⟩ : ({s, t} : Finset ℝ≥0)).1
+    (⟨t, by simp⟩ : ({s, t} : Finset ℝ≥0)).1 : ℝ≥0) : ℝ)
+  rw [← covariance_eval_gaussianProjectiveFamily]
+  convert hasLaw_restrict_gaussianLimit.covariance_fun_comp
+    (f := Function.eval _) (g := Function.eval _) ?_ ?_ with x
+  any_goals simp
+  any_goals exact Measurable.aemeasurable (by fun_prop)
 
 end ProbabilityTheory
