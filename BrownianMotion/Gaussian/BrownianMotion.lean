@@ -178,6 +178,42 @@ lemma indepFun_iff_charFun_eq_mul {Ω E F : Type*} {mΩ : MeasurableSpace Ω} [N
       charFun (P.map X) t.fst * charFun (P.map Y) t.snd := sorry
 -- PR #26269 in Mathlib
 
+lemma IndepFun.integral_mul_eq_mul_integral {Ω 𝓧 𝓨 𝕜 : Type*} {mΩ : MeasurableSpace Ω}
+    [MeasurableSpace 𝓧] [MeasurableSpace 𝓨] [RCLike 𝕜] {P : Measure Ω} [IsProbabilityMeasure P]
+    {X : Ω → 𝓧} {Y : Ω → 𝓨} {f : 𝓧 → 𝕜} {g : 𝓨 → 𝕜} (hXY : IndepFun X Y P)
+    (hX : AEMeasurable X P) (hY : AEMeasurable Y P) (hf : AEStronglyMeasurable f (P.map X))
+    (hg : AEStronglyMeasurable g (P.map Y)) :
+    ∫ ω, f (X ω) * g (Y ω) ∂P = (∫ ω, f (X ω) ∂P) * ∫ ω, g (Y ω) ∂P := by
+  change ∫ ω, (fun x ↦ f x.1 * g x.2) (X ω, Y ω) ∂P = _
+  rw [← integral_map (f := fun x ↦ f x.1 * g x.2) (φ := fun ω ↦ (X ω, Y ω)),
+    (indepFun_iff_map_prod_eq_prod_map_map hX hY).1 hXY, integral_prod_mul, integral_map,
+    integral_map]
+  any_goals fun_prop
+  rw [(indepFun_iff_map_prod_eq_prod_map_map hX hY).1 hXY]
+  refine AEStronglyMeasurable.mul ?_ ?_
+  · exact hf.comp_fst
+  · exact hg.comp_snd
+
+lemma IndepFun.charFun_add_eq_mul {Ω E : Type*} {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {P : Measure Ω} [IsProbabilityMeasure P] {X Y : Ω → E}
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
+    charFun (P.map (X + Y)) = charFun (P.map X) * charFun (P.map Y) := by
+  ext t
+  rw [charFun, integral_map]
+  · simp only [Pi.add_apply, inner_add_left, Complex.ofReal_add, add_mul, Complex.exp_add,
+      Pi.mul_apply]
+    rw [hXY.integral_mul_eq_mul_integral
+        (f := fun x ↦ Complex.exp ((inner ℝ x t) * Complex.I))
+        (g := fun y ↦ Complex.exp ((inner ℝ y t) * Complex.I)), charFun, charFun, integral_map,
+      integral_map]
+    any_goals assumption
+    any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+  · exact mX.add mY
+  · exact Measurable.aestronglyMeasurable (by fun_prop)
+
+-- PR #26269 in Mathlib
+
 lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
     [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
@@ -199,6 +235,53 @@ lemma HasGaussianLaw.indepFun_of_covariance_eq_zero {Ω : Type*} {mΩ : Measurab
     h1.snd.charFun_map_real, ← Complex.exp_add, h2, Complex.ofReal_zero, mul_zero]
   congr
   ring
+
+lemma iIndepFun.hasGaussianLaw {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, InnerProductSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
+    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] [∀ i, HasGaussianLaw (X i) μ] ( hX : iIndepFun X μ) :
+    HasGaussianLaw (fun ω ↦ (X · ω)) μ := by
+  constructor
+  rw [← isGaussian_map_equiv_iff (PiLp.continuousLinearEquiv 2 ℝ E).symm,
+    isGaussian_iff_gaussian_charFun]
+  let f : ContinuousBilinForm ℝ (PiLp 2 E) :=
+    letI g : LinearMap.BilinForm ℝ (PiLp 2 E) := LinearMap.mk₂ ℝ
+      (fun x y : PiLp 2 E ↦ ∑ i, covInnerBilin (μ.map (X i)) (x i) (y i))
+      (fun x y z ↦ by simp [Finset.sum_add_distrib])
+      (fun c m n ↦ by simp [Finset.mul_sum])
+      (fun x y z ↦ by simp [Finset.sum_add_distrib])
+      (fun c m n ↦ by simp [Finset.mul_sum])
+    g.mkContinuous₂ (∑ i, ‖covInnerBilin (μ.map (X i))‖) <| by
+      intro x y
+      simp only [LinearMap.mk₂_apply, Real.norm_eq_abs, g]
+      grw [Finset.abs_sum_le_sum_abs, Finset.sum_mul, Finset.sum_mul]
+      gcongr with i _
+      grw [← Real.norm_eq_abs, ContinuousLinearMap.le_opNorm₂, PiLp.norm_apply_le x,
+        PiLp.norm_apply_le y]
+  refine ⟨toLp 2 fun i ↦ (μ.map (X i))[id], f, ⟨⟨fun x y ↦ ?_⟩, ⟨fun x ↦ ?_⟩⟩, ?_⟩
+  · simp only [LinearMap.mkContinuous₂_apply, LinearMap.mk₂_apply, f]
+    congr with i
+    rw [covInnerBilin_comm]
+    exact HasGaussianLaw.memLp_two
+  · simp only [LinearMap.mkContinuous₂_apply, LinearMap.mk₂_apply, map_sum, RCLike.re_to_real, f]
+    refine Fintype.sum_nonneg fun i ↦ ?_
+    convert covInnerBilin_self_nonneg _ (x i)
+    · infer_instance
+    · exact HasGaussianLaw.memLp_two
+  intro t
+  rw [PiLp.continuousLinearEquiv_symm_apply, AEMeasurable.map_map_of_aemeasurable]
+  · change charFun (μ.map fun ω ↦ toLp 2 (X · ω)) t = _
+    rw [(iIndepFun_iff_charFun_eq_pi _).1 hX]
+    · simp only [PiLp.inner_apply, PiLp.toLp_apply, Complex.ofReal_sum, sum_mul,
+        LinearMap.mkContinuous₂_apply, LinearMap.mk₂_apply, sum_div, ← sum_sub_distrib,
+        Complex.exp_sum, f]
+      congr with i
+      rw [IsGaussian.charFun_eq]
+    · exact fun i ↦ HasGaussianLaw.aemeasurable
+  · fun_prop
+  · exact aemeasurable_pi_lambda _ fun _ ↦ HasGaussianLaw.aemeasurable
 
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
@@ -458,29 +541,90 @@ lemma aux (h : ∀ᵐ ω ∂P, X 0 ω = 0) {I : Finset ℝ≥0} (hI : I.Nonempty
           Nat.mod_eq_of_lt, Nat.add_sub_cancel]
         omega
 
+-- lemma IndepFun.hasLaw_sub_of_gaussian {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
+--     (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw Y (gaussianReal μY vY) P)
+--     (h : IndepFun X Y P) :
+--     HasLaw (X - Y) (gaussianReal (μX - μY) (vX + vY)) P where
+--   aemeasurable := hX.aemeasurable.sub hY.aemeasurable
+--   map_eq := by
+--     have : IsProbabilityMeasure P := hX.hasGaussianLaw.isProbabilityMeasure
+--     apply Measure.ext_of_charFun
+--     ext t
+--     rw [charFun, integral_map]
+--     · simp only [Pi.sub_apply, sub_eq_add_neg, RCLike.inner_apply, conj_trivial, mul_add, mul_neg,
+--         Complex.ofReal_add, Complex.ofReal_mul, Complex.ofReal_neg, add_mul, neg_mul,
+--         Complex.exp_add]
+--       have : ∫ ω, Complex.exp (t * X ω * Complex.I) * Complex.exp (-(t * Y ω * Complex.I)) ∂P
+--        = ∫ ω, (fun x ↦ Complex.exp (t * x.1 * Complex.I) * Complex.exp (-(t * x.2 * Complex.I)))
+--           (X ω, Y ω) ∂P := by congr
+--       rw [this, ← integral_map
+--           (f := (fun x ↦ Complex.exp (t * x.1 * Complex.I) * Complex.exp (-(t * x.2 * Complex.I))))
+--           (φ := (fun ω ↦ (X ω, Y ω))), (indepFun_iff_map_prod_eq_prod_map_map _ _).1,
+--         integral_prod_mul (μ := P.map X) (ν := P.map Y) (fun x ↦ Complex.exp (t * x * Complex.I))
+--           (fun x ↦ Complex.exp (-(t * x * Complex.I))), hX.map_eq, hY.map_eq]
+--       · simp_rw [← neg_mul]
+--         have h1 : ∫ (x : ℝ), Complex.exp (↑t * ↑x * Complex.I) ∂gaussianReal μX vX =
+--             charFun (gaussianReal μX vX) t := by
+--           rw [charFun]
+--           simp
+--         have h2 : ∫ (x : ℝ), Complex.exp (-↑t * ↑x * Complex.I) ∂gaussianReal μY vY =
+--             charFun (gaussianReal μY vY) (-t) := by
+--           rw [charFun]
+--           simp
+--         simp_rw [h1, h2, charFun_gaussianReal, ← Complex.exp_add]
+--         congr
+--         push_cast
+--         ring
+--       · exact h
+--       · exact hX.aemeasurable
+--       · exact hY.aemeasurable
+--       · exact hX.aemeasurable.prodMk hY.aemeasurable
+--       · fun_prop
+--     · exact hX.aemeasurable.sub hY.aemeasurable
+--     · fun_prop
+
 lemma IndepFun.hasLaw_sub_of_gaussian {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
-    (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw Y (gaussianReal μY vY) P)
-    (h : cov[X, Y; P] = 0) :
-    HasLaw (X - Y) (gaussianReal (μX - μY) (max (vX - vY) (vY - vX))) P where
-  aemeasurable := hX.aemeasurable.sub hY.aemeasurable
+    (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw (X + Y) (gaussianReal μY vY) P)
+    (h : IndepFun X Y P) :
+    HasLaw Y (gaussianReal (μY - μX) (vY - vX)) P where
+  aemeasurable := by
+    rw [show Y = X + Y - X by simp]
+    exact hY.aemeasurable.sub hX.aemeasurable
   map_eq := by
     have : IsProbabilityMeasure P := hX.hasGaussianLaw.isProbabilityMeasure
     apply Measure.ext_of_charFun
     ext t
-    rw [charFun, integral_map]
-    · simp only [Pi.sub_apply, sub_eq_add_neg, RCLike.inner_apply, conj_trivial, mul_add, mul_neg,
-        Complex.ofReal_add, Complex.ofReal_mul, Complex.ofReal_neg, add_mul, neg_mul,
-        Complex.exp_add]
-      have : ∫ ω, Complex.exp (t * X ω * Complex.I) * Complex.exp (-(t * Y ω * Complex.I)) ∂P
-       = ∫ ω, (fun x ↦ Complex.exp (t * x.1 * Complex.I) * Complex.exp (-(t * x.2 * Complex.I)))
-          (X ω, Y ω) ∂P := by congr
-      rw [this, ← integral_map
-          (f := (fun x ↦ Complex.exp (t * x.1 * Complex.I) * Complex.exp (-(t * x.2 * Complex.I))))
-          (φ := (fun ω ↦ (X ω, Y ω))), (indepFun_iff_map_prod_eq_prod_map_map _ _).1,
-        integral_prod_mul (μ := P.map X) (ν := P.map Y) (fun x ↦ Complex.exp (t * x * Complex.I))
-          (fun x ↦ Complex.exp (-(t * x * Complex.I))), hX.map_eq, hY.map_eq]
-      · simp_rw [← neg_mul]
+    apply mul_left_cancel₀ (a := charFun (P.map X) t)
+    · rw [hX.map_eq, charFun_gaussianReal]
+      exact Complex.exp_ne_zero _
+    · rw [← Pi.mul_apply, ← h.charFun_add_eq_mul, hY.map_eq, hX.map_eq, charFun_gaussianReal,
+        charFun_gaussianReal, charFun_gaussianReal, ← Complex.exp_add, NNReal.coe_sub,
+        Complex.ofReal_sub]
+      · congr
+        field_simp
+        ring
+      · rw [← @Real.toNNReal_coe vY, ← @variance_id_gaussianReal μY vY, ← hY.variance_eq,
+          h.variance_add, hX.variance_eq, variance_id_gaussianReal, Real.toNNReal_add,
+          Real.toNNReal_coe]
+        · simp
+        · simp
+        · exact variance_nonneg _ _
+        · exact hX.hasGaussianLaw.memLp_two
+        · rw [show Y = X + Y - X  by simp]
+          exact hY.hasGaussianLaw.memLp_two.sub hX.hasGaussianLaw.memLp_two
+      · exact hX.aemeasurable
+      · rw [show Y = X + Y - X by simp]
+        exact hY.aemeasurable.sub hX.aemeasurable
 
+lemma IndepFun.hasGaussianLaw_sub {X Y : Ω → ℝ}
+    (hX : HasGaussianLaw X P) (hY : HasGaussianLaw (X + Y) P)
+    (h : IndepFun X Y P) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    have h1 : HasLaw X (gaussianReal _ _) P := ⟨hX.aemeasurable, hX.map_eq_gaussianReal⟩
+    have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
+    have := h.hasLaw_sub_of_gaussian h1 h2
+    exact this.hasGaussianLaw.isGaussian_map
 
 open Fin.NatCast in
 lemma isBrownian_of_hasLaw_of_hasIndepIncrements (cont : ∀ᵐ ω ∂P, Continuous (X · ω))
@@ -505,6 +649,13 @@ lemma isBrownian_of_hasLaw_of_hasIndepIncrements (cont : ∀ᵐ ω ∂P, Continu
       · exact (law 0).aemeasurable
     have := aux this hI
     rw [Measure.map_congr this]
+    have : HasGaussianLaw
+        (fun ω (i : Fin (#I - 1 + 2)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+      have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
+      have (i : Fin (#I - 1 + 2)) :
+          HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P :=
+        have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
+        exact (ind.indepFun this)
 
 end IsBrownian
 
