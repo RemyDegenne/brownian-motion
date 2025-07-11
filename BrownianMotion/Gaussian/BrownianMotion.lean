@@ -7,6 +7,7 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
+import Mathlib.Probability.Independence.Integrable
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
@@ -626,6 +627,77 @@ lemma IndepFun.hasGaussianLaw_sub {X Y : Ω → ℝ}
     have := h.hasLaw_sub_of_gaussian h1 h2
     exact this.hasGaussianLaw.isGaussian_map
 
+lemma HasIndepIncrements.indepFun_incr {Ω T E : Type*} {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E]
+    [Preorder T] {X : T → Ω → E} {P : Measure Ω} (h : HasIndepIncrements X P)
+    {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) (hX : ∀ᵐ ω ∂P, X r ω = 0) :
+    IndepFun (X s) (X t - X s) P := by
+  let τ : Fin (1 + 2) → T := ![r, s, t]
+  have hτ : Monotone τ := by
+    intro i j hij
+    fin_cases i <;> fin_cases j
+    any_goals simp [τ]
+    any_goals assumption
+    any_goals contradiction
+    exact hrs.trans hst
+  have := h 1 τ hτ
+  have h' : (0 : Fin (1 + 1)) ≠ (1 : Fin (1 + 1)) := by simp
+  have := this.indepFun h'
+  simp only [Nat.reduceAdd, Fin.isValue, Fin.succ_zero_eq_one, Matrix.cons_val_one,
+    Matrix.cons_val_zero, Fin.castSucc_zero, Fin.succ_one_eq_two, Matrix.cons_val, Fin.castSucc_one,
+    τ] at this
+  have h' : X s =ᵐ[P] X s - X r := by
+    filter_upwards [hX] with ω hω
+    simp [hω]
+  refine IndepFun.congr ?_ h'.symm ae_eq_rfl
+  exact this
+
+lemma covariance_eq {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [IsProbabilityMeasure P] {X Y : Ω → ℝ} (hX : MemLp X 2 P) (hY : MemLp Y 2 P) :
+    cov[X, Y; P] = P[X * Y] - P[X] * P[Y] := by
+  simp_rw [covariance, sub_mul, mul_sub]
+  rw [integral_sub, integral_sub, integral_sub]
+  · simp_rw [integral_mul_const, integral_const_mul, integral_const, Measure.real, measure_univ,
+      ENNReal.toReal_one, one_smul]
+    simp
+  · exact hY.const_mul _ |>.integrable (by norm_num)
+  · exact integrable_const _
+  · exact hX.integrable_mul hY
+  · conv => enter [1, a]; rw [mul_comm]
+    exact hX.const_mul _ |>.integrable (by norm_num)
+  · apply Integrable.sub
+    · exact hX.integrable_mul hY
+    · conv => enter [1, a]; rw [mul_comm]
+      exact hX.const_mul _ |>.integrable (by norm_num)
+  · apply Integrable.sub
+    · exact hY.const_mul _ |>.integrable (by norm_num)
+    · exact integrable_const _
+
+lemma IndepFun.covariance_eq_zero {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X Y : Ω → ℝ} (h : IndepFun X Y P) (hX : MemLp X 2 P) (hY : MemLp Y 2 P) :
+    cov[X, Y; P] = 0 := by
+  by_cases h' : ∀ᵐ ω ∂P, X ω = 0
+  · rw [covariance]
+    have : ∀ᵐ ω ∂P, (X ω - ∫ (x : Ω), X x ∂P) * (Y ω - ∫ (x : Ω), Y x ∂P) = 0 := by
+      filter_upwards [h'] with ω hω
+      simp only [hω, zero_sub, neg_mul, neg_eq_zero, mul_eq_zero]
+      left
+      rw [integral_congr_ae h']
+      simp
+    rw [integral_congr_ae this]
+    simp
+  have := hX.isProbabilityMeasure_of_indepFun X Y (by norm_num) (by norm_num) h' h
+  rw [covariance_eq hX hY]
+  simp only [Pi.mul_apply]
+  change ∫ ω, (id (X ω)) * (id (Y ω)) ∂P - _ = _
+  rw [h.integral_mul_eq_mul_integral]
+  · simp
+  · exact hX.aemeasurable
+  · exact hY.aemeasurable
+  · exact aestronglyMeasurable_id
+  · exact aestronglyMeasurable_id
+
 open Fin.NatCast in
 lemma isBrownian_of_hasLaw_of_hasIndepIncrements (cont : ∀ᵐ ω ∂P, Continuous (X · ω))
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
@@ -642,20 +714,88 @@ lemma isBrownian_of_hasLaw_of_hasIndepIncrements (cont : ∀ᵐ ω ∂P, Continu
     · ext s -
       apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
       all_goals simp
-    have : ∀ᵐ ω ∂P, X 0 ω = 0 := by
+    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
       apply ae_of_ae_map (p := fun x ↦ x = 0)
       · rw [(law 0).map_eq, gaussianReal_zero_var, ae_dirac_iff]
         simp
       · exact (law 0).aemeasurable
-    have := aux this hI
-    rw [Measure.map_congr this]
-    have : HasGaussianLaw
-        (fun ω (i : Fin (#I - 1 + 2)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
-      have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
-      have (i : Fin (#I - 1 + 2)) :
-          HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P :=
-        have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
-        exact (ind.indepFun this)
+    have : IsGaussian (P.map (fun ω ↦ I.restrict fun x ↦ X x ω)) := by
+      have := aux aeeq hI
+      rw [Measure.map_congr this]
+      have : HasGaussianLaw
+          (fun ω (i : Fin (#I - 1 + 1)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+        have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
+        have (i : Fin (#I - 1 + 1)) :
+            HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+          have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
+          apply IndepFun.hasGaussianLaw_sub (X := X (toFin hI i.castSucc))
+            (Y := X (toFin hI i.succ) - X (toFin hI i.castSucc))
+          · exact (law _).hasGaussianLaw
+          · simpa using (law _).hasGaussianLaw
+          apply incr.indepFun_incr (r := 0)
+          · simp
+          · apply monotone_toFin hI
+            exact Fin.castSucc_lt_succ i |>.le
+          · exact aeeq
+        exact ind.hasGaussianLaw
+      infer_instance
+    apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
+    rw [MeasurableEquiv.coe_toLp, ← PiLp.continuousLinearEquiv_symm_apply 2 ℝ]
+    apply IsGaussian.ext
+    · rw [integral_map, integral_map, integral_map]
+      · simp only [PiLp.continuousLinearEquiv_symm_apply, id_eq]
+        simp_rw [← PiLp.continuousLinearEquiv_symm_apply 2 ℝ, ← ContinuousLinearEquiv.coe_coe]
+        rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
+          ContinuousLinearMap.integral_comp_comm]
+        · simp only [ContinuousLinearEquiv.coe_coe, PiLp.continuousLinearEquiv_symm_apply,
+            toLp_zero]
+          convert toLp_zero 2
+          ext i
+          rw [integral_eval]
+          · simp only [restrict, Pi.zero_apply]
+            rw [(law _).integral_eq, integral_id_gaussianReal]
+          · exact fun _ ↦ (law _).hasGaussianLaw.integrable
+        · apply Integrable.of_eval
+          exact fun _ ↦ (law _).hasGaussianLaw.integrable
+        · exact IsGaussian.integrable_id
+      · fun_prop
+      · exact aestronglyMeasurable_id
+      · exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
+      · exact Measurable.aestronglyMeasurable (by fun_prop)
+      · fun_prop
+      · exact aestronglyMeasurable_id
+    · refine ContinuousBilinForm.ext_of_isSymm (isPosSemidef_covInnerBilin ?_).isSymm
+        (isPosSemidef_covInnerBilin ?_).isSymm fun x ↦ ?_
+      · exact IsGaussian.memLp_two_id
+      · exact IsGaussian.memLp_two_id
+      rw [PiLp.continuousLinearEquiv_symm_apply, covInnerBilin_apply_pi, covInnerBilin_apply_pi]
+      · congr with i
+        congr with j
+        congr 1
+        rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
+        · change cov[X i, X j; P] = _
+          wlog hij : i ≤ j generalizing i j
+          · rw [covariance_comm, this j i (le_of_not_ge hij), min_comm]
+          rw [show X j = X j - X i + X i  by simp, covariance_add_right,
+            IndepFun.covariance_eq_zero, covariance_self, (law _).variance_eq,
+            variance_id_gaussianReal]
+          · simpa
+          · exact (law _).aemeasurable
+          · apply incr.indepFun_incr (r := 0)
+            · simp
+            · simpa
+            · exact aeeq
+          · exact (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two
+        · exact Measurable.aestronglyMeasurable (by fun_prop)
+        · exact Measurable.aestronglyMeasurable (by fun_prop)
+        · exact aemeasurable_pi_lambda _ (fun _ ↦ (law _).aemeasurable)
+      · exact fun _ ↦ HasGaussianLaw.memLp_two
+      · exact fun _ ↦ HasGaussianLaw.memLp_two
+
 
 end IsBrownian
 
