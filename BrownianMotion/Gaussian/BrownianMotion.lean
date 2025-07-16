@@ -51,13 +51,16 @@ lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
   rw [this]
   exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp hasLaw_restrict_gaussianLimit
 
-lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
-    IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
+lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
+    IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n
       (Nat.doubleFactorial (2 * n - 1)) := by
   constructor
   · intro s t
     rw [← BorelSpace.measurable_eq]
     fun_prop
+  rotate_left
+  · positivity
+  · positivity
   refine fun s t ↦ Eq.le ?_
   norm_cast
   simp_rw [edist_dist, Real.dist_eq]
@@ -83,8 +86,8 @@ lemma exists_brownian :
       ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
           ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+    (fun n ↦ (isKolmogorovProcess_preBrownian (by positivity : 0 < n + 2)).IsAEKolmogorovProcess)
+    (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
@@ -151,12 +154,14 @@ open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
-lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
-    IsMeasurableKolmogorovProcess brownian gaussianLimit (2 * n) n
+lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
+    IsKolmogorovProcess brownian gaussianLimit (2 * n) n
       (Nat.doubleFactorial (2 * n - 1)) where
   measurablePair := measurable_pair_of_measurable measurable_brownian
-  kolmogorovCondition := (isMeasurableKolmogorovProcess_preBrownian n).isKolmogorovProcess.congr
+  kolmogorovCondition := (isKolmogorovProcess_preBrownian hn).IsAEKolmogorovProcess.congr
     (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
+  p_pos := by positivity
+  q_pos := by positivity
 
 lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
     [∀ i, NormedAddCommGroup (E i)]

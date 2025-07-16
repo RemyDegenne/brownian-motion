@@ -248,14 +248,16 @@ section PseudoEMetricSpace
 variable [PseudoEMetricSpace T] [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
 lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ : Set T) < ∞)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hβ : 0 < β) (hp : 0 < p) (hq : 0 < q) {J : Set T} [Countable J] :
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hβ : 0 < β) {J : Set T} [Countable J] :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s : J)
               (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam (.univ : Set T) + 1)}),
                 edist (X s ω) (X t ω) ^p ∂P := by
   let η k := 2⁻¹ ^ k * (EMetric.diam (Set.univ : Set T) + 1)
+  have hp_pos := hX.p_pos
+  have hq_pos := hX.q_pos
   have hη_ge (k : ℕ) : 2⁻¹ ^ (k : ℝ) ≤ η k := by simp [η, mul_add]
   have hη_succ (k : ℕ) : η (k + 1) = 2⁻¹ * η k := by simp [η, pow_add, mul_assoc, mul_comm]
   have hη_lim : Filter.Tendsto η Filter.atTop (nhds 0) := by
@@ -264,12 +266,15 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
     apply ENNReal.Tendsto.mul_const (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num))
     simp [← lt_top_iff_ne_top, hT]
   conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
-  rw [← lintegral_tsum (by fun_prop (disch := exact hX))]
+  rw [← lintegral_tsum fun i ↦ ?_]
+  swap
+  · have h_ae s t := hX.aemeasurable_edist (s := s) (t := t)
+    fun_prop
   have h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : J), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
     rw [eventually_countable_forall]; intro s
     rw [eventually_countable_forall]; intro t
     by_cases h_dist : edist s t = 0
-    · apply Filter.Eventually.mp (IsKolmogorovProcess.edist_eq_zero hX hp hq h_dist)
+    · apply Filter.Eventually.mp (IsAEKolmogorovProcess.edist_eq_zero hX h_dist)
       filter_upwards with _ h _ using h
     filter_upwards with _ using by simp [h_dist]
   refine lintegral_mono_ae (Filter.Eventually.mp h_ae ?_)
@@ -278,7 +283,7 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam (Set.univ 
   rw [iSup_le_iff]; intro ⟨t, ht⟩
   wlog hst : 0 < edist s t
   · simp [(h ⟨s, hs⟩ ⟨t, ht⟩) <| nonpos_iff_eq_zero.mp (le_of_not_gt hst),
-      ENNReal.zero_rpow_of_pos (by positivity)]
+      ENNReal.zero_rpow_of_pos hX.p_pos]
   obtain ⟨k, lb, ub⟩ : ∃ k, (η k ≤ edist s t) ∧ (edist s t ≤ 2 * η k) := by
     have hη_dist : ∃ k, η k ≤ edist s t :=
       (Filter.Eventually.exists (Filter.Tendsto.eventually_le_const hst hη_lim))
@@ -392,8 +397,8 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
 
 theorem finite_kolmogorov_chentsov
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
@@ -407,24 +412,24 @@ theorem finite_kolmogorov_chentsov
     rw [Pi.zero_apply]
     rw [ENNReal.iSup_eq_zero]; rintro ⟨s, hs⟩
     rw [ENNReal.iSup_eq_zero]; rintro ⟨t, ht⟩
-    simp [h ⟨s, hs⟩ ⟨t, ht⟩, hp_pos]
+    simp [h ⟨s, hs⟩ ⟨t, ht⟩, hX.p_pos]
   have hM : (M : ℝ≥0∞) ≠ 0 := by
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
     rw_mod_cast [h_ae] at hX
-    exact hX.edist_eq_zero_of_M_eq_zero hp_pos
+    exact hX.edist_eq_zero_of_const_eq_zero _ _
   have h_diam_zero : 0 < EMetric.diam (.univ : Set T) := by
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
-    apply hX.edist_eq_zero hp_pos hq_pos
+    apply hX.edist_eq_zero
     rw [← le_zero_iff]
     exact le_trans (EMetric.edist_le_diam_of_mem (Set.mem_univ _) (Set.mem_univ _)) h_ae
   have h_diam_real : 0 < (EMetric.diam (.univ : Set T)).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
   apply le_trans
-    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hp_pos hq_pos)
+    (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos)
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
@@ -437,7 +442,7 @@ theorem finite_kolmogorov_chentsov
     · simp [le_of_lt hdq_lt]
   apply le_trans
   · apply mul_le_mul_left'
-    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hp_pos hdq_lt ?_
+    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hdq_lt ?_
     · exact hT.subset (Set.subset_univ _) hd_pos.le
     · finiteness
     · simp
@@ -482,8 +487,8 @@ theorem finite_kolmogorov_chentsov
   · norm_num
 
 theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_pos : 0 < β)
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β)
     (T' : Set T) [Countable T'] :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β := by
@@ -493,9 +498,10 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber (Se
   simp only [biSup_prod]
   simp only [← iSup_subtype'']
   rw [MeasureTheory.lintegral_iSup', iSup_le_iff]
-  · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hp_pos hdq_lt hβ_pos (K n)
+  · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hdq_lt hβ_pos (K n)
   · intro n
-    fun_prop (disch := exact hX)
+    have h_ae s t := hX.aemeasurable_edist (s := s) (t := t)
+    fun_prop
   · filter_upwards with ω
     intro _ _ h
     simp only [iSup_subtype, ← biSup_prod']
@@ -507,20 +513,20 @@ section EMetricSpace
 
 variable [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
-lemma IsMeasurableKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
+lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsMeasurableKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     {T' : Set T} (hT' : T'.Countable) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
   have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
-  refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.isKolmogorovProcess hd_pos hp_pos
+  refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsAEKolmogorovProcess hd_pos
     hdq_lt hβ_pos T').trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
     exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
-  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hp_pos hdq_lt hβ_lt)
+  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hX.p_pos hdq_lt hβ_lt)
 
 omit [MeasurableSpace E] [BorelSpace E] in
 def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
@@ -528,8 +534,8 @@ def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
       ∧ ∀ (s t : T'), edist s t = 0 → edist (X s ω) (X t ω) = 0}
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma IsMeasurableKolmogorovProcess.measurableSet_holderSet
-    (hX : IsMeasurableKolmogorovProcess X P p q M) {T' : Set T} (hT' : T'.Countable) :
+lemma IsKolmogorovProcess.measurableSet_holderSet
+    (hX : IsKolmogorovProcess X P p q M) {T' : Set T} (hT' : T'.Countable) :
     MeasurableSet (holderSet X T' p β) := by
   have : Countable T' := hT'
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
@@ -588,9 +594,9 @@ lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.un
   (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
 
 omit [MeasurableSpace E] [BorelSpace E] in
-lemma IsMeasurableKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
-    (hX : IsMeasurableKolmogorovProcess X P p q M)
-    (hp_pos : 0 < p) (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
+lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
+    (hX : IsKolmogorovProcess X P p q M)
+    (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) {ε : ℝ≥0∞} (hε : 0 < ε) :
     Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) := by
   suffices h_of_ne_top :
@@ -620,14 +626,14 @@ lemma IsMeasurableKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     convert this using 3 with n
     ext ω
     simp only [Set.mem_setOf_eq]
-    rw [ENNReal.rpow_le_rpow_iff hp_pos]
+    rw [ENNReal.rpow_le_rpow_iff hX.p_pos]
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') ?_
     (h := fun n ↦ (ε ^ p)⁻¹ * ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P)
   · rw [← mul_zero (ε ^ p)⁻¹]
     exact ENNReal.Tendsto.const_mul h_tendsto (by simp [hε_top, hε.ne'])
   · refine fun n ↦ (meas_ge_le_lintegral_div ?_ ?_ ?_).trans_eq ?_
     · exact (hX.measurable_edist.pow_const _).aemeasurable
-    · simp [hε.ne', hp_pos.le]
+    · simp [hε.ne', hX.p_pos.le]
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
 
@@ -638,8 +644,8 @@ variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCount
 -- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
 -- `dist`, we can't use the existing definition `TendstoInMeasure`.
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsMeasurableKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω, ∃ C : ℝ≥0, HolderWith C β (Y · ω) := by
@@ -648,11 +654,11 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   have : Countable T' := hT'_countable
   have h_ae_zero : ∀ᵐ ω ∂P, ∀ (s t : T'), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
     simp_rw [ae_all_iff]
-    exact fun s t hst ↦ hX.isKolmogorovProcess.edist_eq_zero hp_pos (hd_pos.trans hdq_lt) hst
+    exact fun s t hst ↦ hX.IsAEKolmogorovProcess.edist_eq_zero hst
   -- For each `ω`, `C ω < ∞` is a bound on `edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)`
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
   have hC_lt_top : ∀ᵐ ω ∂P, C ω < ∞ :=
-    hX.ae_iSup_rpow_edist_div_lt_top hT hc hd_pos hp_pos hdq_lt hβ_pos hβ_lt hT'_countable
+    hX.ae_iSup_rpow_edist_div_lt_top hT hc hd_pos hdq_lt hβ_pos hβ_lt hT'_countable
   -- Let `A` be the event that `C ω < ∞` and `X s ω = X t ω` for `edist s t = 0`.
   -- This is an event of probability 1.
   let A := holderSet X T' p β
@@ -673,12 +679,12 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     exact measurable_limUnder (f := fun (t : T') ω ↦ X t ω) fun t ↦ hX.measurable t
   have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
     simp only [hω, ↓reduceIte, Y]
-    exact hT'_dense.extend_eq (continuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω) t
+    exact hT'_dense.extend_eq (continuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω) t
   have hY_unif ω : UniformContinuous (fun t ↦ Y t ω) := by
     by_cases hω : ω ∈ A
     · simp only [hω, ↓reduceIte, Y]
       refine hT'_dense.uniformContinuous_extend ?_
-      exact uniformContinuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω
+      exact uniformContinuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
     · simp only [hω, ↓reduceIte, Y]
       exact uniformContinuous_const
   have hY_cont ω : Continuous (fun t ↦ Y t ω) := (hY_unif ω).continuous
@@ -697,7 +703,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     -- `X (u n)` converges in measure to `X t`
     have h_tendsto_X (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      hX.tendstoInMeasure_of_mem_holderSet hp_pos (hd_pos.trans hdq_lt) hu hε
+      hX.tendstoInMeasure_of_mem_holderSet (hd_pos.trans hdq_lt) hu hε
     -- `Y (u n)` converges in measure to `Y t`
     have h_tendsto_Y (ε : ℝ≥0∞) (hε : 0 < ε) :
         Tendsto (fun n ↦ P {ω | ε ≤ edist (Y (u n) ω) (Y t ω)}) atTop (𝓝 0) := by
@@ -735,17 +741,17 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
     simp only [hω, ↓reduceIte, Y, A]
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω)
+    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω)
       hβ_pos
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q)
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω, MemHolder β (Y · ω) := by
   obtain ⟨Y, hY_meas, hY_eq, hY_holder⟩ :=
-    exists_modification_holder_aux' hT hX.isMeasurableKolmogorovProcess_mk hc hd_pos hp_pos hdq_lt
+    exists_modification_holder_aux' hT hX.IsKolmogorovProcess_mk hc hd_pos hdq_lt
       hβ_pos hβ_lt
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
@@ -772,17 +778,18 @@ lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
   exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p) ω, MemHolder β (Y · ω) := by
+  have hp_pos : 0 < p := hX.p_pos
   have h_ratio_pos : 0 < (q - d) / p := by
     have : 0 < q - d := by bound
     positivity
   obtain ⟨β', hβ'_mono, hβ'_mem, hβ'_tendsto⟩ := exists_seq_strictMono_tendsto' h_ratio_pos
   let β : ℕ → ℝ≥0 := fun n ↦ ⟨β' n, (hβ'_mem n).1.le⟩
   have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast (hβ'_mem n).1
-  have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hp_pos hdq_lt (β := β n)
+  have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hdq_lt (β := β n)
     (hβ_pos n) (mod_cast (hβ'_mem n).2)
   choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
@@ -830,11 +837,12 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : IsKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
-    (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) :
+    (hX : IsAEKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p),
         ∃ C, HolderOnWith C β (Y · ω) U := by
+  have hp_pos : 0 < p := hX.p_pos
   have h_div_pos : 0 < (q - d) / p := by
     have : 0 < q - d := by bound
     positivity
@@ -843,11 +851,13 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
   have hβ₀_pos : 0 < β₀ := mod_cast hβ₀_pos'
   have hβ₀_lt : β₀ < (q - d) / p := mod_cast hβ₀_lt'
   let Xn : (n : ℕ) → (C n) → Ω → E := fun n t ω ↦ X t ω
-  have hXn n : IsKolmogorovProcess (Xn n) P p q M := by
+  have hXn n : IsAEKolmogorovProcess (Xn n) P p q M := by
     refine ⟨fun t ω ↦ hX.mk X t ω, ?_, fun t ↦ by filter_upwards [hX.ae_eq_mk t] with ω hω using hω⟩
     constructor
-    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.measurablePair s t
-    · exact fun s t ↦ hX.isMeasurableKolmogorovProcess_mk.kolmogorovCondition s t
+    · exact fun s t ↦ hX.IsKolmogorovProcess_mk.measurablePair s t
+    · exact fun s t ↦ hX.IsKolmogorovProcess_mk.kolmogorovCondition s t
+    · exact hp_pos
+    · exact hX.q_pos
   have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
     have h := hC.hasBoundedCoveringNumber n
     refine fun ε hε ↦ ?_
@@ -876,7 +886,7 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
         exact ⟨c, by simpa using hc_mem, hc⟩
       · exact mod_cast Finset.card_image_le
   choose Z hZ hZ_eq hZ_holder
-    using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hp_pos hdq_lt
+    using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hdq_lt
   have hZ_ae_eq : ∀ᵐ ω ∂P,
       ∀ n t (ht : t ∈ C n), Z n ⟨t, ht⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) ht⟩ ω := by
     rw [ae_all_iff]
@@ -948,14 +958,15 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
-    (hX : ∀ n, IsKolmogorovProcess X P (p n) (q n) (M n)) (hc : ∀ n, c n ≠ ∞)
-    (hd_pos : 0 < d) (hp_pos : ∀ n, 0 < p n) (hdq_lt : ∀ n, d < q n) :
+    (hX : ∀ n, IsAEKolmogorovProcess X P (p n) (q n) (M n)) (hc : ∀ n, c n ≠ ∞)
+    (hd_pos : 0 < d) (hdq_lt : ∀ n, d < q n) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (q n - d) / (p n)),
         ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U := by
+  have hp_pos : ∀ n, 0 < p n := fun n ↦ (hX n).p_pos
   by_cases h_bdd : BddAbove (Set.range fun n ↦ (q n - d) / p n)
   swap
-  · refine ⟨(hX 0).mk X, (hX 0).isMeasurableKolmogorovProcess_mk.measurable,
+  · refine ⟨(hX 0).mk X, (hX 0).IsKolmogorovProcess_mk.measurable,
         fun t ↦ ((hX 0).ae_eq_mk t).symm, fun ω t β hβ_pos hβ_lt ↦ ?_⟩
     simp only [ciSup_of_not_bddAbove h_bdd, Real.sSup_empty] at hβ_lt
     norm_cast at hβ_lt
@@ -966,7 +977,7 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     positivity
   let β : ℕ → ℝ≥0 := fun n ↦ ⟨(q n - d) / p n, (h_ratio_pos n).le⟩
   have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast h_ratio_pos n
-  have h_exists := fun n ↦ exists_modification_holder' hC (hX n) hc hd_pos (hp_pos n) (hdq_lt n)
+  have h_exists := fun n ↦ exists_modification_holder' hC (hX n) hc hd_pos (hdq_lt n)
   choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
   have hZ_cont n ω : Continuous fun t ↦ Z n t ω := by
     refine continuous_iff_continuousAt.mpr fun t ↦ ?_

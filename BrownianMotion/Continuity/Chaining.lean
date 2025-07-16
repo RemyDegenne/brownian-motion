@@ -264,11 +264,11 @@ lemma scale_change_rpow {F : Type*} [PseudoEMetricSpace F] (hC : ∀ i, IsCover 
     ≤ 2 ^ p * (⨆ (s : C k) (t : { t : C k // edist s t ≤ δ }),
         edist (X (chainingSequence hC s.2 m)) (X (chainingSequence hC t.1.2 m)) ^ p)
       + 4 ^ p * (⨆ (s : C k), edist (X s) (X (chainingSequence hC s.2 m)) ^ p) := by
-  refine hp.gt_or_eq.elim (fun hp' => ?_) (by rintro rfl; simp)
+  refine hp.lt_or_eq'.elim (fun hp' => ?_) (by rintro rfl; simp)
   simp only [← (ENNReal.monotone_rpow_of_nonneg hp).map_iSup_of_continuousAt
     ENNReal.continuous_rpow_const.continuousAt (by simp [hp'])]
   refine ((ENNReal.monotone_rpow_of_nonneg hp (scale_change hC m X δ))).trans ?_
-  refine (ENNReal.rpow_add_le_two_rpow_mul_add_rpow _ _ hp).trans ?_
+  refine (ENNReal.add_rpow_le_two_rpow_mul_rpow_add_rpow _ _ hp).trans ?_
   rw [ENNReal.mul_rpow_of_nonneg _ _ hp, mul_add, ← mul_assoc, ← ENNReal.mul_rpow_of_nonneg _ 2 hp,
     (by norm_num : (2 : ℝ≥0∞) * 2 = 4)]
 
