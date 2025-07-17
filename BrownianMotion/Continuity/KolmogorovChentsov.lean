@@ -19,40 +19,6 @@ open scoped ENNReal NNReal Topology Asymptotics
 
 section aux
 
-section EDistTendstoInMeasure
-
-variable {α ι κ E : Type*} {m : MeasurableSpace α} {μ : Measure α}
-variable [EMetricSpace E]
-variable {f : ℕ → α → E} {g : α → E}
-
--- copy of a Mathlib lemma, but with `edist` instead of `dist`
-theorem tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable' [IsFiniteMeasure μ]
-    (hf : ∀ n, StronglyMeasurable (f n)) (hg : StronglyMeasurable g)
-    (hfg : ∀ᵐ x ∂μ, Tendsto (fun n => f n x) atTop (𝓝 (g x))) :
-      ∀ ε, 0 < ε → Tendsto (fun i => μ { x | ε ≤ edist (f i x) (g x) }) atTop (𝓝 0) := by
-  refine fun ε hε => ENNReal.tendsto_atTop_zero.mpr fun δ hδ => ?_
-  by_cases hδi : δ = ∞
-  · simp only [hδi, imp_true_iff, le_top, exists_const]
-  lift δ to ℝ≥0 using hδi
-  rw [gt_iff_lt, ENNReal.coe_pos, ← NNReal.coe_pos] at hδ
-  obtain ⟨t, _, ht, hunif⟩ := tendstoUniformlyOn_of_ae_tendsto' hf hg hfg hδ
-  rw [ENNReal.ofReal_coe_nnreal] at ht
-  rw [EMetric.tendstoUniformlyOn_iff] at hunif
-  obtain ⟨N, hN⟩ := eventually_atTop.1 (hunif ε hε)
-  refine ⟨N, fun n hn => ?_⟩
-  suffices { x : α | ε ≤ edist (f n x) (g x) } ⊆ t from (measure_mono this).trans ht
-  rw [← Set.compl_subset_compl]
-  intro x hx
-  rw [Set.mem_compl_iff, Set.notMem_setOf_iff, edist_comm, not_le]
-  exact hN n hn x hx
-
-end EDistTendstoInMeasure
-
-theorem lintegral_eq_zero_of_zero_ae {α : Type*} [MeasurableSpace α] {μ : Measure α}
-    {f : α → ℝ≥0∞} : f =ᵐ[μ] 0 →  ∫⁻ a, f a ∂μ = 0 :=
-  fun h ↦ (lintegral_congr_ae h).trans lintegral_zero
-
--- copied from Etienne's fork
 theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
     [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
     [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
@@ -407,7 +373,7 @@ theorem finite_kolmogorov_chentsov
   simp [constL, ← ENNReal.tsum_mul_left]
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
   · convert zero_le'
-    apply lintegral_eq_zero_of_zero_ae
+    apply lintegral_eq_zero_of_ae_eq_zero
     filter_upwards [h_ae] with ω h
     rw [Pi.zero_apply]
     rw [ENNReal.iSup_eq_zero]; rintro ⟨s, hs⟩
@@ -597,8 +563,10 @@ omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     (hX : IsKolmogorovProcess X P p q M)
     (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
-    (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) {ε : ℝ≥0∞} (hε : 0 < ε) :
-    Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) := by
+    (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) :
+    TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) := by
+  intro ε hε
+  -- todo: change tendstoInMeasure_of_ne_top to work in a PseudoEMetricSpace, or change the def
   suffices h_of_ne_top :
       ∀ ε, 0 < ε → ε ≠ ∞ → Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) by
     by_cases hε_top : ε = ∞
@@ -701,15 +669,13 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
       refine (edist_triangle4 (Y t ω) (Y (u n) ω) (X (u n) ω) (X t ω)).trans_eq ?_
       simp [hY_eq hω (u n)]
     -- `X (u n)` converges in measure to `X t`
-    have h_tendsto_X (ε : ℝ≥0∞) (hε : 0 < ε) :
-        Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      hX.tendstoInMeasure_of_mem_holderSet (hd_pos.trans hdq_lt) hu hε
+    have h_tendsto_X : TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) :=
+      hX.tendstoInMeasure_of_mem_holderSet (hd_pos.trans hdq_lt) hu
     -- `Y (u n)` converges in measure to `Y t`
-    have h_tendsto_Y (ε : ℝ≥0∞) (hε : 0 < ε) :
-        Tendsto (fun n ↦ P {ω | ε ≤ edist (Y (u n) ω) (Y t ω)}) atTop (𝓝 0) := by
+    have h_tendsto_Y : TendstoInMeasure P (fun n ↦ Y (u n)) atTop (Y t) := by
       have h_ae ω : Tendsto (fun n ↦ Y (u n) ω) atTop (𝓝 (Y t ω)) :=
         ((hY_cont ω).tendsto t).comp hu
-      refine tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable' ?_ ?_ ?_ ε hε
+      refine tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable ?_ ?_ ?_
       · exact fun n ↦ (hY (u n)).stronglyMeasurable
       · exact (hY t).stronglyMeasurable
       · exact ae_of_all _ h_ae
