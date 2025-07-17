@@ -87,4 +87,8 @@ instance IsGaussianProcess.hasGaussianLaw_sub [SecondCountableTopology E] [IsGau
     rw [this]
     infer_instance
 
+instance IsGaussianProcess.hasGaussianLaw_fun_sub [SecondCountableTopology E]
+    [IsGaussianProcess X P] {s t : T} : HasGaussianLaw (fun ω ↦ X s ω - X t ω) P :=
+  IsGaussianProcess.hasGaussianLaw_sub
+
 end ProbabilityTheory
