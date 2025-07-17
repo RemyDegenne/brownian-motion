@@ -10,12 +10,6 @@ open scoped Matrix NNReal Real InnerProductSpace ProbabilityTheory
 
 namespace ProbabilityTheory
 
-/-- A Gaussian measure is a probability measure. -/
-instance IsGaussian.isProbabilityMeasure {E : Type*} [TopologicalSpace E] [AddCommMonoid E]
-    [Module ℝ E] {mE : MeasurableSpace E} (μ : Measure E) [IsGaussian μ] :
-    IsProbabilityMeasure μ where
-  measure_univ := by simp
-
 section InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]

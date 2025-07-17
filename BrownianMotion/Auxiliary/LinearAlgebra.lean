@@ -126,31 +126,3 @@ lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [Norme
     ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace
-
-section zero
-
-namespace ContinuousLinearMap
-
-@[simp]
-lemma flip_zero {𝕜 𝕜₂ 𝕜₃ E F G : Type*} [SeminormedAddCommGroup E]
-    [SeminormedAddCommGroup F] [SeminormedAddCommGroup G] [NontriviallyNormedField 𝕜]
-    [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃] [NormedSpace 𝕜 E]
-    [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃] :
-    ContinuousLinearMap.flip (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) = 0 := rfl
-
-@[simp]
-lemma bilinearComp_zero {𝕜 𝕜₂ 𝕜₃ 𝕜₁' 𝕜₂' E F G E' F' : Type*}
-    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup G]
-    [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
-    [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [SeminormedAddCommGroup E'] [SeminormedAddCommGroup F'] [NontriviallyNormedField 𝕜₁']
-    [NontriviallyNormedField 𝕜₂'] [NormedSpace 𝕜₁' E'] [NormedSpace 𝕜₂' F'] {σ₁' : 𝕜₁' →+* 𝕜}
-    {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃} [RingHomCompTriple σ₁' σ₁₃ σ₁₃']
-    [RingHomCompTriple σ₂' σ₂₃ σ₂₃'] [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃']
-    [RingHomIsometric σ₂₃'] {gE : E' →SL[σ₁'] E} {gF : F' →SL[σ₂'] F} :
-    ContinuousLinearMap.bilinearComp (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) gE gF = 0 := rfl
-
-end ContinuousLinearMap
-
-end zero

@@ -713,8 +713,8 @@ Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_
 \subsection{Kolmogorov condition}
 
 \begin{definition}[Kolmogorov condition]\label{def:IsKolmogorovProcess}
-  \leanok
-  \lean{ProbabilityTheory.IsKolmogorovProcess}
+  \mathlibok
+  \lean{ProbabilityTheory.IsAEKolmogorovProcess}
 Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mathbb{P})$ is a measure space.
 Let $p, q > 0$.
 We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ if for all $s, t \in T$, $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$ and
@@ -730,8 +730,8 @@ We follow \cite{kratschmer2023kolmogorov} and do not require separability.
 
 \begin{lemma}\label{lem:IsKolmogorovProcess.edist_eq_zero}
   \uses{def:IsKolmogorovProcess}
-  \leanok
-  \lean{ProbabilityTheory.IsKolmogorovProcess.edist_eq_zero}
+  \mathlibok
+  \lean{ProbabilityTheory.IsAEKolmogorovProcess.edist_eq_zero}
 If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and $s, t \in T$ are such that $d_T(s, t) = 0$, then $\mathbb{P}$-a.e. $d_E(X_s, X_t) = 0$.
 \end{lemma}
 
@@ -743,7 +743,7 @@ It suffices to show that $d_E(X_s, X_t)^p = 0$ almost everywhere, which is in tu
 \begin{lemma}\label{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
   \uses{def:IsKolmogorovProcess}
   \leanok
-  \lean{ProbabilityTheory.IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+  \lean{ProbabilityTheory.IsAEKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
 Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
 Let $T'$ be a countable subset of $T$ such that for all $s, t \in T'$, $d_T(s, t) = 0$.
 Then
@@ -765,8 +765,8 @@ In particular the expectation of the supremum is $0$.
 
 \begin{lemma}\label{lem:IsKolmogorovProcess.aemeasurable}
   \uses{def:IsKolmogorovProcess}
-  \leanok
-  \lean{ProbabilityTheory.IsKolmogorovProcess.aemeasurable}
+  \mathlibok
+  \lean{ProbabilityTheory.IsAEKolmogorovProcess.aemeasurable}
 If $X : T \to \Omega \to E$ is a function that satisfies the Kolmogorov condition, then for all $t \in T$, $X_t$ is $\mathbb{P}$-a.e. measurable.
 \end{lemma}
 
@@ -788,8 +788,8 @@ If $E$ is separable and $X : T \to \Omega \to E$ is a process such that $X_t$ is
 
 \begin{lemma}\label{lem:IsKolmogorovProcess.aemeasurable_edist}
   \uses{def:IsKolmogorovProcess}
-  \leanok
-  \lean{ProbabilityTheory.IsKolmogorovProcess.aemeasurable_edist}
+  \mathlibok
+  \lean{ProbabilityTheory.IsAEKolmogorovProcess.aemeasurable_edist}
 If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition, then for all $s,t \in T$ the function $\omega \mapsto d_E(X_s(\omega), X_t(\omega))$ is $\mathbb{P}$-a.e. measurable.
 \end{lemma}
 
