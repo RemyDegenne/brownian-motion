@@ -5,8 +5,8 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Gaussian.CovarianceBilin
 import BrownianMotion.Gaussian.Fernique
+import Mathlib.Probability.Moments.CovarianceBilin
 
 /-!
 # Covariance matrix
