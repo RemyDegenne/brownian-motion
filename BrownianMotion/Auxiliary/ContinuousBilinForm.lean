@@ -6,6 +6,8 @@ import Mathlib.LinearAlgebra.Matrix.SchurComplement
 # Continuous bilinear forms
 -/
 
+open Module
+
 open scoped Matrix
 
 namespace ContinuousBilinForm

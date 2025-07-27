@@ -106,7 +106,7 @@ lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
   rw [gaussianProjectiveFamily, covariance_map_equiv]
   change cov[fun x : EuclideanSpace ℝ I ↦ x s, fun x ↦ x t; _] = _
   have (u : I) : (fun x : EuclideanSpace ℝ I ↦ x u) =
-      fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp
+      fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp [-EuclideanSpace.basisFun_apply]
   rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
     ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
   exact IsGaussian.memLp_two_id
