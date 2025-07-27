@@ -68,19 +68,10 @@ theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpa
   rw [PiLp.norm_sq_eq_of_L2]
   congr with i; simp
 
-@[simp]
-theorem basisFun_inner {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] (x : EuclideanSpace 𝕜 ι) (i : ι) :
-    ⟪EuclideanSpace.basisFun ι 𝕜 i, x⟫_𝕜 = x i := by
-  simp [← OrthonormalBasis.repr_apply_apply]
-
 lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpace ℝ ι) :
     ⟪x, y⟫_ℝ = ∑ i, x i * y i := by
   nth_rw 1 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' x, sum_inner]
   simp_rw [real_inner_smul_left, basisFun_inner]
-
-theorem inner_basisFun_real {ι : Type*} [Fintype ι] (x : EuclideanSpace ℝ ι) (i : ι) :
-    inner ℝ x (EuclideanSpace.basisFun ι ℝ i) = x i := by
-  rw [real_inner_comm, basisFun_inner]
 
 @[simp]
 lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
