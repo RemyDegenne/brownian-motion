@@ -24,6 +24,10 @@ structure HasLaw : Prop where
 
 variable {X μ} {P : Measure Ω}
 
+lemma hasLaw_map (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
+  aemeasurable := hX
+  map_eq := rfl
+
 lemma HasLaw.congr {Y : Ω → 𝓧} (hX : HasLaw X μ P) (hY : Y =ᵐ[P] X) : HasLaw Y μ P where
   aemeasurable := hX.aemeasurable.congr hY.symm
   map_eq := by rw [Measure.map_congr hY, hX.map_eq]

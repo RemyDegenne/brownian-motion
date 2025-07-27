@@ -1,3 +1,4 @@
+import Mathlib.Analysis.NormedSpace.OperatorNorm.NormedSpace
 import Mathlib.Topology.MetricSpace.HolderNorm
 
 open Bornology Filter
@@ -119,3 +120,49 @@ lemma HolderOnWith.holderOnWith_of_le_of_le {X Y : Type*} [PseudoEMetricSpace X]
     (hrs : r ≤ s) (hst : s ≤ t) : HolderOnWith (max C₁ C₂) s f u := by
   simp_rw [← HolderWith.restrict_iff] at *
   exact hf₁.HolderWith_of_le_of_le hf₂ hrs hst
+
+variable {ι : Type*} [Fintype ι]
+
+lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricSpace (E i)]
+    [∀ i, Zero (E i)] (i : ι) : Isometry (Pi.single (M := E) i) := by
+  intro x y
+  rw [edist_pi_def, Finset.sup_univ_eq_ciSup]
+  refine le_antisymm ?_ ?_
+  · refine iSup_le fun j ↦ ?_
+    by_cases h : i = j
+    · cases h
+      simp
+    · simp [h]
+  · apply le_iSup_of_le i
+    simp
+
+lemma ContinuousLinearMap.norm_single_le {𝕜 : Type*} [NontriviallyNormedField 𝕜] [DecidableEq ι]
+    {E : ι → Type*} [∀ i, SeminormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)] (i : ι) :
+    ‖ContinuousLinearMap.single 𝕜 E i‖ ≤ 1 := by
+  have : Isometry (ContinuousLinearMap.single 𝕜 E i).toLinearMap := Isometry.single i
+  change
+    ‖((ContinuousLinearMap.single 𝕜 E i).toLinearMap.toLinearIsometry
+      this).toContinuousLinearMap‖ ≤ 1
+  exact LinearIsometry.norm_toContinuousLinearMap_le _
+
+lemma ContinuousLinearMap.norm_single {𝕜 : Type*} [NontriviallyNormedField 𝕜] [DecidableEq ι]
+    {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace 𝕜 (E i)] (i : ι)
+    [Nontrivial (E i)] :
+    ‖ContinuousLinearMap.single 𝕜 E i‖ = 1 := by
+  have : Isometry (ContinuousLinearMap.single 𝕜 E i).toLinearMap := Isometry.single i
+  change
+    ‖((ContinuousLinearMap.single 𝕜 E i).toLinearMap.toLinearIsometry
+      this).toContinuousLinearMap‖ = 1
+  exact LinearIsometry.norm_toContinuousLinearMap _
+
+lemma Isometry.inl {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inl E F) := by
+  intro x y
+  rw [Prod.edist_eq]
+  simp
+
+lemma Isometry.inr {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
+    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inr E F) := by
+  intro x y
+  rw [Prod.edist_eq]
+  simp

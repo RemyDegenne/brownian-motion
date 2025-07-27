@@ -1,5 +1,6 @@
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.Metric
+import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
@@ -143,7 +144,7 @@ lemma covariance_fun_add_right [IsFiniteMeasure μ]
 
 lemma covariance_fun_sub_left [IsFiniteMeasure μ]
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
-    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[fun ω ↦ X ω, Z; μ] - cov[fun ω ↦ Y ω, Z; μ] :=
+    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[X, Z; μ] - cov[Y, Z; μ] :=
   covariance_sub_left hX hY hZ
 
 lemma covariance_fun_sub_right [IsFiniteMeasure μ]
@@ -487,31 +488,6 @@ variable {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace 
 section Pi
 
 variable {X : (i : ι) → Ω → E i}
-
-lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricSpace (E i)]
-    [∀ i, Zero (E i)] (i : ι) : Isometry (Pi.single (M := E) i) := by
-  intro x y
-  rw [edist_pi_def, Finset.sup_univ_eq_ciSup]
-  refine le_antisymm ?_ ?_
-  · refine iSup_le fun j ↦ ?_
-    by_cases h : i = j
-    · cases h
-      simp
-    · simp [h]
-  · apply le_iSup_of_le i
-    simp
-
-lemma Isometry.inl {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
-    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inl E F) := by
-  intro x y
-  rw [Prod.edist_eq]
-  simp
-
-lemma Isometry.inr {E F : Type*} [PseudoEMetricSpace E] [PseudoEMetricSpace F]
-    [AddZeroClass E] [AddZeroClass F] : Isometry (AddMonoidHom.inr E F) := by
-  intro x y
-  rw [Prod.edist_eq]
-  simp
 
 lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
   mp hX i := by

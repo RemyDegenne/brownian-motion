@@ -1,10 +1,13 @@
 import BrownianMotion.Auxiliary.LinearAlgebra
+import BrownianMotion.Auxiliary.Topology
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.SchurComplement
 
 /-!
 # Continuous bilinear forms
 -/
+
+open NormedSpace (Dual)
 
 open scoped Matrix
 
@@ -240,13 +243,13 @@ section InnerProductSpace
 
 variable [InnerProductSpace ℝ E]
 
-open scoped InnerProductSpace
+open scoped RealInnerProductSpace
 
 variable (E) in
 /-- The inner product as continuous bilinear form. -/
 protected noncomputable def inner : ContinuousBilinForm ℝ E :=
   letI f : LinearMap.BilinForm ℝ E := LinearMap.mk₂ ℝ
-    (fun x y ↦ ⟪x, y⟫_ℝ)
+    (fun x y ↦ ⟪x, y⟫)
     inner_add_left
     (fun c m n ↦ real_inner_smul_left m n c)
     inner_add_right
@@ -257,9 +260,9 @@ protected noncomputable def inner : ContinuousBilinForm ℝ E :=
     exact abs_real_inner_le_norm x y
 
 @[simp]
-lemma inner_apply (x y : E) : ContinuousBilinForm.inner E x y = ⟪x, y⟫_ℝ := rfl
+lemma inner_apply (x y : E) : ContinuousBilinForm.inner E x y = ⟪x, y⟫ := rfl
 
-lemma inner_apply' (x : E) : ContinuousBilinForm.inner E x = fun y ↦ ⟪x, y⟫_ℝ := rfl
+lemma inner_apply' (x : E) : ContinuousBilinForm.inner E x = fun y ↦ ⟪x, y⟫ := rfl
 
 lemma inner_apply'' (x : E) : ContinuousBilinForm.inner E x = inner ℝ x := rfl
 
@@ -276,5 +279,52 @@ lemma inner_toMatrix_eq_one : (ContinuousBilinForm.inner E).toMatrix b.toBasis =
 end InnerProductSpace
 
 end Real
+
+section Diagonal
+
+variable {ι : Type*} [DecidableEq ι] [Fintype ι] {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)]
+
+section RCLike
+
+variable [RCLike 𝕜] [∀ i, NormedSpace 𝕜 (E i)]
+    (L : (i : ι) → ContinuousBilinForm 𝕜 (Dual 𝕜 (E i)))
+
+open ContinuousLinearMap in
+noncomputable
+def diagonalDual : ContinuousBilinForm 𝕜 (Dual 𝕜 (Π i, E i)) :=
+  letI g : LinearMap.BilinForm 𝕜 (Dual 𝕜 (Π i, E i)) := LinearMap.mk₂ 𝕜
+    (fun x y ↦ ∑ i, L i (x ∘L (single 𝕜 E i)) (y ∘L (single 𝕜 E i)))
+    (fun x y z ↦ by simp [Finset.sum_add_distrib])
+    (fun c m n ↦ by simp [Finset.mul_sum])
+    (fun x y z ↦ by simp [Finset.sum_add_distrib])
+    (fun c m n ↦ by simp [Finset.mul_sum])
+  g.mkContinuous₂ (∑ i, ‖L i‖) <| by
+    intro x y
+    simp only [LinearMap.mk₂_apply, g]
+    grw [norm_sum_le, Finset.sum_mul, Finset.sum_mul]
+    gcongr with i _
+    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le]
+    simp
+
+lemma diagonalDual_apply (x y : Dual 𝕜 (Π i, E i)) :
+    diagonalDual L x y = ∑ i, L i (x ∘L (.single 𝕜 E i)) (y ∘L (.single 𝕜 E i)) := rfl
+
+end RCLike
+
+section Real
+
+variable [∀ i, NormedSpace ℝ (E i)] {L : (i : ι) → ContinuousBilinForm ℝ (Dual ℝ (E i))}
+
+lemma isPosSemidef_diagonalDual (hL : ∀ i, (L i).IsPosSemidef) :
+    (diagonalDual L).IsPosSemidef where
+  map_symm x y := by
+    simp_rw [diagonalDual_apply, fun i ↦ (hL i).map_symm]
+  nonneg_re_apply_self x := by
+    simp only [diagonalDual_apply, map_sum, RCLike.re_to_real]
+    exact Finset.sum_nonneg fun i _ ↦ (hL i).nonneg_apply_self _
+
+end Real
+
+end Diagonal
 
 end ContinuousBilinForm
