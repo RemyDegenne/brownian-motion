@@ -5,8 +5,8 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
-import Mathlib.Probability.Moments.CovarianceBilin
 import BrownianMotion.Gaussian.Fernique
+import Mathlib.Probability.Moments.CovarianceBilin
 
 /-!
 # Covariance matrix
@@ -116,7 +116,7 @@ lemma covInnerBilin_apply_basisFun {ι Ω : Type*} [Fintype ι] {mΩ : Measurabl
       (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) = cov[X i, X j; μ] := by
   have (i : ι) := (hX i).aemeasurable
   rw [covInnerBilin_apply_eq, covariance_map]
-  · simp only [basisFun_inner]; rfl
+  · simp only [EuclideanSpace.basisFun_inner]; rfl
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · fun_prop
@@ -138,7 +138,7 @@ lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace
   have (i : ι) := (hX i).aemeasurable
   nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' x,
     ← (EuclideanSpace.basisFun ι ℝ).sum_repr' y]
-  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner, PiLp.toLp_apply]
+  · simp_rw [sum_inner, real_inner_smul_left, EuclideanSpace.basisFun_inner, PiLp.toLp_apply]
     rw [covariance_fun_sum_fun_sum]
     · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
       rw [covariance_mul_left, covariance_mul_right]

@@ -14,11 +14,6 @@ open scoped ENNReal NNReal ProbabilityTheory
 
 attribute [fun_prop] aemeasurable_id'
 
-lemma _root_.AEMeasurable.eval {X ι : Type*} {Y : ι → Type*} {mX : MeasurableSpace X}
-    {μ : Measure X} [∀ i, MeasurableSpace (Y i)] {i : ι} {f : X → Π i, Y i}
-    (hf : AEMeasurable f μ) : AEMeasurable (f · i) μ :=
-  ⟨(hf.mk f · i), hf.measurable_mk.eval, hf.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
-
 @[to_additive]
 theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β} {l : Filter α}
     (h : f =ᶠ[l] g) (h' : f' =ᶠ[l] g') : f / f' =ᶠ[l] g / g' :=

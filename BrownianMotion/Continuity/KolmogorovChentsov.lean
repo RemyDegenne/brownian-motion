@@ -42,12 +42,6 @@ theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpa
       (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
   rwa [hc.limUnder_eq]
 
-lemma _root_.MeasureTheory.Measure.measure_inter_eq_of_measure_eq_measure_univ
-    {α : Type*} {_ : MeasurableSpace α} {μ : Measure α}
-    {s t : Set α} (hs : MeasurableSet s) (h : μ t = μ .univ)
-    (ht_ne_top : μ t ≠ ∞) : μ (t ∩ s) = μ s := by
-  rw [Measure.measure_inter_eq_of_measure_eq hs h (Set.subset_univ _) ht_ne_top, Set.univ_inter]
-
 theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
     [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
@@ -626,8 +620,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := by
     filter_upwards [hC_lt_top, h_ae_zero] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
   have hPA {s : Set Ω} (hs : MeasurableSet s) : P (s ∩ A) = P s := by
-    rw [Set.inter_comm,
-      Measure.measure_inter_eq_of_ae hA_ae]
+    rw [Set.inter_comm, Measure.measure_inter_eq_of_ae hA_ae]
   -- We build a modification `Y` of `X`, by using `Dense.extend` on `X · ω` if `ω ∈ A` and by taking
   -- an arbitrary constant value if `ω ∉ A`.
   let x₀ : E := Nonempty.some inferInstance
