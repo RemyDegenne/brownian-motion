@@ -5,8 +5,8 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Gaussian.CovarianceBilin
 import BrownianMotion.Gaussian.Fernique
+import Mathlib.Probability.Moments.CovarianceBilin
 
 /-!
 # Covariance matrix
@@ -46,18 +46,18 @@ lemma IsGaussian.covInnerBilin_apply [IsGaussian μ] [SecondCountableTopology E]
     covInnerBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ :=
   covInnerBilin_apply IsGaussian.memLp_two_id x y
 
-lemma covInnerBilin_comm [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
+lemma covInnerBilin_comm [IsFiniteMeasure μ] (x y : E) :
     covInnerBilin μ x y = covInnerBilin μ y x := by
-  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_comm h, covInnerBilin_eq_covarianceBilin]
+  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_comm, covInnerBilin_eq_covarianceBilin]
 
 lemma covInnerBilin_self [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x : E) :
     covInnerBilin μ x x = Var[fun u ↦ ⟪x, u⟫_ℝ; μ] := by
-  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_same_eq_variance h]
+  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_self_eq_variance h]
   congr
 
 lemma covInnerBilin_apply_eq [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
     covInnerBilin μ x y = cov[fun u ↦ ⟪x, u⟫_ℝ, fun u ↦ ⟪y, u⟫_ℝ ; μ] := by
-  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_apply'' h]
+  rw [covInnerBilin_eq_covarianceBilin, covarianceBilin_eq_covariance h]
   congr
 
 lemma covInnerBilin_real {μ : Measure ℝ} [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : ℝ) :
@@ -78,7 +78,7 @@ lemma covInnerBilin_self_nonneg [CompleteSpace E] [IsFiniteMeasure μ] (h : MemL
 
 lemma isPosSemidef_covInnerBilin [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) :
     (covInnerBilin μ).IsPosSemidef where
-  map_symm := covInnerBilin_comm h
+  map_symm := covInnerBilin_comm
   nonneg_re_apply_self := covInnerBilin_self_nonneg h
 
 nonrec lemma IsGaussian.isPosSemidef_covInnerBilin [SecondCountableTopology E] [CompleteSpace E]
@@ -116,7 +116,7 @@ lemma covInnerBilin_apply_basisFun {ι Ω : Type*} [Fintype ι] {mΩ : Measurabl
       (EuclideanSpace.basisFun ι ℝ i) (EuclideanSpace.basisFun ι ℝ j) = cov[X i, X j; μ] := by
   have (i : ι) := (hX i).aemeasurable
   rw [covInnerBilin_apply_eq, covariance_map]
-  · simp only [basisFun_inner]; rfl
+  · simp only [EuclideanSpace.basisFun_inner]; rfl
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · exact Measurable.aestronglyMeasurable (by fun_prop)
   · fun_prop
@@ -138,7 +138,7 @@ lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace
   have (i : ι) := (hX i).aemeasurable
   nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' x,
     ← (EuclideanSpace.basisFun ι ℝ).sum_repr' y]
-  · simp_rw [sum_inner, real_inner_smul_left, basisFun_inner, PiLp.toLp_apply]
+  · simp_rw [sum_inner, real_inner_smul_left, EuclideanSpace.basisFun_inner, PiLp.toLp_apply]
     rw [covariance_fun_sum_fun_sum]
     · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
       rw [covariance_mul_left, covariance_mul_right]
@@ -170,7 +170,7 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
       covInnerBilin μ (∑ j, x j • stdOrthonormalBasis ℝ E j)
         (∑ j, y j • stdOrthonormalBasis ℝ E j) := by
   simp_rw [covMatrix, ContinuousBilinForm.dotProduct_toMatrix_mulVec,
-    Basis.equivFun_symm_apply, OrthonormalBasis.coe_toBasis]
+    Module.Basis.equivFun_symm_apply, OrthonormalBasis.coe_toBasis]
 
 lemma covInnerBilin_eq_dotProduct_covMatrix_mulVec (x y : E) :
     covInnerBilin μ x y =

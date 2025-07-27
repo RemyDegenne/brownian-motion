@@ -17,6 +17,13 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 open MeasureTheory NNReal WithLp Finset
 open scoped ENNReal NNReal Topology
 
+@[measurability]
+protected theorem AEMeasurable.eval {α δ : Type*} {X : δ → Type*} {mX : ∀ a, MeasurableSpace (X a)}
+    {_ : MeasurableSpace α} {μ : Measure α} {g : α → Π a, X a}
+    (hg : AEMeasurable g μ) (a : δ) :
+    AEMeasurable (fun x ↦ g x a) μ :=
+  ⟨fun x ↦ hg.mk g x a, hg.measurable_mk.eval, hg.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
+
 namespace ProbabilityTheory
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
@@ -177,7 +184,7 @@ lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
     [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
     iIndepFun X P := by
-  refine iIndepFun_iff_charFun_eq_pi (fun _ ↦ h1.aemeasurable.eval) |>.2 fun ξ ↦ ?_
+  refine iIndepFun_iff_charFun_eq_pi (fun _ ↦ h1.aemeasurable.eval _) |>.2 fun ξ ↦ ?_
   simp_rw [HasGaussianLaw.charFun_toLp, ← sum_sub_distrib, Complex.exp_sum,
     HasGaussianLaw.charFun_map_real]
   congrm ∏ i, Complex.exp (_ - ?_)
