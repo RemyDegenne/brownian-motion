@@ -82,32 +82,6 @@ theorem inner_basisFun_real {ι : Type*} [Fintype ι] (x : EuclideanSpace ℝ ι
     inner ℝ x (EuclideanSpace.basisFun ι ℝ i) = x i := by
   rw [real_inner_comm, basisFun_inner]
 
-namespace OrthonormalBasis
-
-variable {ι ι' 𝕜 E E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
-    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (b : OrthonormalBasis ι 𝕜 E)
-    (b' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι')
-
-/-- The `LinearIsometryEquiv` which maps an orthonormal basis to another. This is a convenience
-wrapper around `Orthonormal.equiv`. -/
-protected noncomputable def equiv : E ≃ₗᵢ[𝕜] E' :=
-  Orthonormal.equiv (v := b.toBasis) (v' := b'.toBasis) b.orthonormal b'.orthonormal e
-
-lemma equiv_apply_basis (i : ι) : b.equiv b' e (b i) = b' (e i) := by
-  simp only [OrthonormalBasis.equiv, Orthonormal.equiv, LinearEquiv.coe_isometryOfOrthonormal]
-  rw [← b.coe_toBasis, Basis.equiv_apply, b'.coe_toBasis]
-
-lemma equiv_apply (x : E) : b.equiv b' e x = ∑ i, b.repr x i • b' (e i) := by
-  nth_rw 1 [← b.sum_repr x, map_sum]
-  simp_rw [map_smul, equiv_apply_basis]
-
-lemma equiv_apply_euclideanSpace (x : EuclideanSpace 𝕜 ι) :
-    (EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι) x = ∑ i, x i • b i := by
-  simp_rw [equiv_apply, EuclideanSpace.basisFun_repr, Equiv.refl_apply]
-
-end OrthonormalBasis
-
 @[simp]
 lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
     [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : NormedSpace.Dual 𝕜 E) :

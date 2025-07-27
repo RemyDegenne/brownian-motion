@@ -246,7 +246,7 @@ lemma covInnerBilin_multivariateGaussian :
 lemma covariance_eval_multivariateGaussian (i j : ι) :
     cov[fun x ↦ x i, fun x ↦ x j; multivariateGaussian μ S hS] = S i j := by
   have (i : ι) : (fun x : EuclideanSpace ℝ ι ↦ x i) =
-      fun x ↦ ⟪EuclideanSpace.basisFun ι ℝ i, x⟫ := by ext; simp
+      fun x ↦ ⟪EuclideanSpace.basisFun ι ℝ i, x⟫ := by ext; simp [PiLp.inner_apply]
   rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
     ContinuousBilinForm.ofMatrix_orthonormalBasis]
   exact IsGaussian.memLp_two_id
@@ -329,7 +329,7 @@ lemma measurePreserving_restrict_multivariateGaussian (hJI : J ⊆ I) :
     intro i j
     rw [covInnerBilin_apply_eq, covariance_map]
     · have (i : J) : (fun u ↦ ⟪(EuclideanSpace.basisFun J ℝ).toBasis i, u⟫) ∘
-          EuclideanSpace.restrict₂ hJI = fun u ↦ u ⟨i.1, hJI i.2⟩ := by ext; simp
+          EuclideanSpace.restrict₂ hJI = fun u ↦ u ⟨i.1, hJI i.2⟩ := by ext; simp [PiLp.inner_apply]
       simp_rw [this, covariance_eval_multivariateGaussian, covInnerBilin_multivariateGaussian,
         ContinuousBilinForm.ofMatrix_basis, S.submatrix_apply]
     any_goals exact Measurable.aestronglyMeasurable (by fun_prop)

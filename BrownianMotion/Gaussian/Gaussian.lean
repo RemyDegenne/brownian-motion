@@ -132,7 +132,7 @@ protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] 
   ext L
   simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
     L.integral_comp_id_comm' IsGaussian.integrable_id, hm,
-    ← covarianceBilin_same_eq_variance IsGaussian.memLp_two_id, hv]
+    ← covarianceBilin_self_eq_variance IsGaussian.memLp_two_id, hv]
 
 /-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
