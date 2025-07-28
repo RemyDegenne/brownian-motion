@@ -5,6 +5,8 @@ import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
 import Mathlib.Probability.Moments.Covariance
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import Mathlib.Analysis.InnerProductSpace.ProdL2
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
@@ -35,6 +37,39 @@ lemma MemLp.aemeasurable {X Y : Type*} {mX : MeasurableSpace X} {μ : Measure X}
 end MeasureTheory
 
 namespace ProbabilityTheory
+
+open WithLp
+
+lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, InnerProductSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
+    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] (mX : ∀ i, AEMeasurable (X i) μ) :
+    iIndepFun X μ ↔ ∀ t,
+      charFun (μ.map fun ω ↦ toLp 2 (X · ω)) t = ∏ i, charFun (μ.map (X i)) (t i) := sorry
+-- PR #26269 in Mathlib
+
+lemma indepFun_iff_charFun_eq_mul {Ω E F : Type*} {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [NormedAddCommGroup F] [InnerProductSpace ℝ E] [InnerProductSpace ℝ F] [MeasurableSpace E]
+    [MeasurableSpace F] [CompleteSpace E] [CompleteSpace F] [BorelSpace E] [BorelSpace F]
+    [SecondCountableTopology E] [SecondCountableTopology F] {P : Measure Ω} [IsProbabilityMeasure P]
+    {X : Ω → E} {Y : Ω → F} (mX : AEMeasurable X P) (mY : AEMeasurable Y P) :
+    IndepFun X Y P ↔ ∀ t,
+      charFun (P.map fun ω ↦ toLp 2 (X ω, Y ω)) t =
+      charFun (P.map X) t.fst * charFun (P.map Y) t.snd := sorry
+-- PR #26269 in Mathlib
+
+lemma iIndepFun_iff_charFunDual_eq_pi {ι Ω : Type*} [Fintype ι] [DecidableEq ι] {E : ι → Type*}
+    [∀ i, NormedAddCommGroup (E i)]
+    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
+    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
+    [∀ i, SecondCountableTopology (E i)] (mX : ∀ i, AEMeasurable (X i) μ) :
+    iIndepFun X μ ↔ ∀ L,
+      charFunDual (μ.map fun ω i ↦ X i ω) L =
+        ∏ i, charFunDual (μ.map (X i)) (L.comp (.single ℝ E i)) := sorry
+-- PR #26269 in Mathlib
 
 open scoped InnerProductSpace in
 lemma charFun_pi {ι : Type*} [Fintype ι] {E : ι → Type*} {mE : ∀ i, MeasurableSpace (E i)}
