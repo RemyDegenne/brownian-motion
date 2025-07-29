@@ -1,7 +1,5 @@
 import BrownianMotion.Auxiliary.MeasureTheory
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Probability.Distributions.Gaussian.Basic
-import Mathlib.Probability.Moments.Covariance
 
 open MeasureTheory ENNReal WithLp
 
@@ -19,17 +17,26 @@ the measure `P`, in other words that `P.map X = μ`. We also require `X` to be `
 to allow for nice interactions with operations on the codomain of `X`. See for instance
 `HasLaw.comp`, `IndepFun.hasLaw_mul` and `IndepFun.hasLaw_add`. -/
 structure HasLaw : Prop where
-  protected aemeasurable : AEMeasurable X P := by fun_prop
+  protected isProbabilityMeasure : IsProbabilityMeasure μ := by infer_instance
   protected map_eq : P.map X = μ
 
 variable {X μ} {P : Measure Ω}
 
-lemma hasLaw_map (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
-  aemeasurable := hX
+lemma HasLaw.aemeasurable (h : HasLaw X μ P) : AEMeasurable X P :=
+  haveI := h.isProbabilityMeasure
+  aemeasurable_of_map_neZero (h.map_eq ▸ inferInstance)
+
+lemma HasLaw.isProbabilityMeasure₂ (h : HasLaw X μ P) : IsProbabilityMeasure P where
+  measure_univ := by
+    have := h.isProbabilityMeasure
+    rw [← Set.preimage_univ (f := X), ← Measure.map_apply_of_aemeasurable h.aemeasurable .univ,
+      h.map_eq, measure_univ]
+
+lemma hasLaw_map [IsProbabilityMeasure P] (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
+  isProbabilityMeasure := isProbabilityMeasure_map hX
   map_eq := rfl
 
 lemma HasLaw.congr {Y : Ω → 𝓧} (hX : HasLaw X μ P) (hY : Y =ᵐ[P] X) : HasLaw Y μ P where
-  aemeasurable := hX.aemeasurable.congr hY.symm
   map_eq := by rw [Measure.map_congr hY, hX.map_eq]
 
 lemma _root_.MeasureTheory.MeasurePreserving.hasLaw (h : MeasurePreserving X P μ) :
