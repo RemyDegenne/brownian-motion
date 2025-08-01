@@ -1,12 +1,17 @@
 \chapter{Stochastic integral}
 
-The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} are a good reference for this chapter.
+The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
 
 \section{Total variation and Lebesgue-Stieltjes integral}
 
 TODO: in Mathlib, we can integrate with respect to the measure given by a right-continuous monotone function (\texttt{StieltjesFunction.measure}). This will be useful to integrate against the quadratic variation of a local martingale.
 However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
-We need new definitions for that one, starting with the definition of the total variation of a function.
+We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
+
+
+
+\section{Square integrable martingales}
+
 
 
 \section{Local martingales}
@@ -74,6 +79,16 @@ For any continuous local martingales $M$ and $N$, there exists a continuous proc
 \end{definition}
 
 
+\begin{definition}\label{def:continuousSemiMartingale}
+  \uses{def:localMartingale}
+A continuous semi-martingale is a process that can be decomposed into a local martingale and a finite variation process.
+More formally, a process $X : \mathbb{R}_+ \to \Omega \to E$ is a continuous semi-martingale if there exists a continuous local martingale $M$ and a continuous adapted process $A$ with locally finite variation and $A_0 = 0$ such that
+\begin{align*}
+  X_t = M_t + A_t
+\end{align*}
+for all $t \ge 0$.
+The decomposition is a.s. unique.
+\end{definition}
 
 
 \section{Stochastic integral}
@@ -101,3 +116,41 @@ The \emph{elementary stochastic integral} process $V \cdot X : \mathbb{R}_+ \to 
   \: .
 \end{align*}
 \end{definition}
+
+
+
+\section{Itô formula}
+
+
+\begin{theorem}[Integration by parts]\label{thm:integration_by_parts}
+  \uses{def:continuousSemiMartingale}
+Let $X$ and $Y$ be two continuous semi-martingales. Then we have almost surely
+\begin{align*}
+  X_t Y_t - X_0 Y_0
+  = (X \cdot Y)_t + (Y \cdot X)_t + [X,Y]_t
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:Ito_formula}
+  \uses{def:continuousSemiMartingale}
+Let $X^1, \ldots, X^d$ be continuous semi-martingales and let $f : \mathbb{R}^d \to \mathbb{R}$ be a twice continuously differentiable function.
+Then, writing $X = (X^1, \ldots, X^d)$, the process $f(X)$ is a semi-martingale and we have
+\begin{align*}
+  f(X_t)
+  &= f(X_0)
+  + \sum_{i=1}^d \int_0^t \frac{\partial f}{\partial x_i}(X_s) \: dX^i_s
+  + \frac{1}{2} \sum_{i,j=1}^d \int_0^t \frac{\partial^2 f}{\partial x_i \partial x_j}(X_s) \: d[X^i, X^j]_s
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{thm:integration_by_parts}
+
+\end{proof}
