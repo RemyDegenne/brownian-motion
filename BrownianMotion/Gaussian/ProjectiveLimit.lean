@@ -187,4 +187,8 @@ lemma hasLaw_restrict_gaussianLimit {I : Finset ℝ≥0} :
     HasLaw I.restrict (gaussianProjectiveFamily I) gaussianLimit :=
   isProjectiveLimit_gaussianLimit.hasLaw_restrict
 
+instance : IsGaussian gaussianLimit where
+  map_eq_gaussianReal L := by
+    sorry
+
 end ProbabilityTheory

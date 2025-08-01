@@ -26,16 +26,28 @@ protected theorem AEMeasurable.eval {α δ : Type*} {X : δ → Type*} {mX : ∀
 
 namespace ProbabilityTheory
 
-def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
+def canonicalProcess (T E : Type*) : T → (T → E) → E := fun t ω ↦ ω t
 
 @[fun_prop]
-lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
-  unfold preBrownian
+lemma measurable_canonicalProcess {T E : Type*} {_ : MeasurableSpace E} (t : T) :
+    Measurable (canonicalProcess T E t) := by
+  unfold canonicalProcess
   fun_prop
 
-lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit where
-  aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
+lemma hasLaw_canonicalProcess {T E : Type*} {_ : MeasurableSpace E}
+    (μ : Measure (T → E)) :
+    HasLaw (fun ω ↦ (canonicalProcess T E · ω)) μ μ where
+  aemeasurable := (measurable_pi_lambda _ measurable_canonicalProcess).aemeasurable
   map_eq := Measure.map_id
+
+def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := canonicalProcess ℝ≥0 ℝ
+
+@[fun_prop]
+lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) :=
+  measurable_canonicalProcess t
+
+lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit :=
+  hasLaw_canonicalProcess gaussianLimit
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
@@ -54,7 +66,7 @@ lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
       gaussianLimit := by
   have : preBrownian s - preBrownian t =
       ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
-    ext; simp [preBrownian]
+    ext; simp [preBrownian, canonicalProcess]
   rw [this]
   exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp hasLaw_restrict_gaussianLimit
 
