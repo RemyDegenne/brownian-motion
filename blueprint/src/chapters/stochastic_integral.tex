@@ -1,0 +1,335 @@
+\chapter{Stochastic integral}
+
+The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
+
+\section{Total variation and Lebesgue-Stieltjes integral}
+
+TODO: in Mathlib, we can integrate with respect to the measure given by a right-continuous monotone function (\texttt{StieltjesFunction.measure}). This will be useful to integrate against the quadratic variation of a local martingale.
+However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
+We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
+
+
+
+\section{Square integrable martingales}
+
+In this section, $E$ denotes a complete normed space.
+
+First, recall the definitions of a martingale, a stopping time and a stopped process, which are already in Mathlib.
+
+
+\begin{definition}[Martingale]\label{def:Martingale}
+  \mathlibok
+  \lean{MeasureTheory.Martingale}
+Let $\mathcal{F}$ be a filtration on a measurable space $\Omega$ with measure $P$ indexed by $T$.
+A family of functions $M : T \to \Omega \to E$ is a martingale with respect to a filtration $\mathcal{F}$ if $M$ is adapted with respect to $\mathcal{F}$ and for all $i \le j$, $P[M_j \mid \mathcal{F}_i] = M_i$ almost surely.
+\end{definition}
+
+
+\begin{definition}[Stopping time]\label{def:IsStoppingTime}
+  \mathlibok
+  \lean{MeasureTheory.IsStoppingTime}
+A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is a function $\tau : \Omega \to T$ such that for all $i$, the preimage of $\{j \mid j \le i\}$ along $\tau$ is measurable with respect to $\mathcal{F}_i$.
+\end{definition}
+
+
+\begin{definition}[Stopped process]\label{def:stoppedProcess}
+  \mathlibok
+  \lean{MeasureTheory.stoppedProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process and let $\tau : \Omega \to T$.
+The stopped process with respect to $\tau$ is defined by
+\begin{align*}
+  (X^{\tau})_t = \begin{cases}
+    X_t & \text{if } t \le \tau \\
+    X_{\tau} & \text{otherwise}
+  \end{cases}
+\end{align*}
+\end{definition}
+
+
+\begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
+  \uses{def:Martingale}
+Let $M : T \to \Omega \to \mathbb{R}$ be a martingale indexed by a countable index set $T$ and let $p, q > 1$ such that $\frac{1}{p} + \frac{1}{q} = 1$.
+Then for all $t \in T$,
+\begin{align*}
+  \Vert \sup_{s \le t} \vert M_s \vert \Vert_p
+  \le q \Vert M_t \Vert_p
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
+
+
+\begin{definition}[Square integrable martingales]\label{def:squareIntegrableMartingales}
+  \uses{def:Martingale}
+Let $\mathcal{M}^2$ be the set of square integrable continuous martingales with respect to a filtration $\mathcal{F}$ indexed by $\mathbb{R}_+$,
+\begin{align*}
+  \mathcal{M}^2
+  = \{ M : \mathbb{R}_+ \to \Omega \to \mathbb{R} \mid M \text{ continuous martingale with } \sup_{t}\mathbb{E}[M_t^2] < \infty \}
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:hilbertSpace_squareIntegrableMartingales}
+  \uses{def:squareIntegrableMartingales}
+The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
+\begin{align*}
+  \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{thm:doob_lp}
+
+\end{proof}
+
+
+\section{Local martingales}
+
+TODO: filtrations should be assumed right-continuous and complete whenever needed.
+
+\begin{definition}[Local martingale]\label{def:IsLocalMartingale}
+  \uses{def:Martingale, def:IsStoppingTime, def:stoppedProcess}
+Let $\mathcal{F} = (\mathcal{F}_t)_{t \in \mathbb{R}_+}$ be a filtration on a measurable space $\Omega$.
+A local martingale with respect to $\mathcal{F}$ is a stochastic process $M : \mathbb{R}_+ \to \Omega \to E$ adapted to $\mathcal{F}$ such that there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that the following conditions hold:
+\begin{itemize}
+  \item $\tau_n$ is a stopping time for every $n \in \mathbb{N}$,
+  \item $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.),
+  \item for all $n \in \mathbb{N}$, the stopped and centered process $M^{\tau_n} - M_0$ is a martingale with respect to $\mathcal{F}$.
+\end{itemize}
+\end{definition}
+
+
+\begin{lemma}\label{lem:Martingale.IsLocalMartingale}
+  \uses{def:IsLocalMartingale}
+Every martingale is a local martingale.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:IsLocalMartingale.eq_zero_of_finiteVariation}
+  \uses{def:IsLocalMartingale}
+Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite variation process, then $M_t = 0$ for all $t$.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Quadratic variation]\label{def:quadraticVariation}
+  \uses{def:IsLocalMartingale}
+For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $M^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
+\end{definition}
+
+
+\begin{definition}[Covariation]\label{def:covariation}
+  \uses{def:IsLocalMartingale}
+For any continuous local martingales $M$ and $N$, there exists a continuous process $[M,N]$ with $[M,N]_0 = 0$ such that $MN - [M,N]$ is a local martingale. That process is a.s. unique and is called the \emph{covariation} of $M$ and $N$.
+
+It can be defined by $[M, N]_t = \frac{1}{4}\left([M+N]_t - [M-N]_t \right)$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:covariation_eq_inner}
+  \uses{def:covariation, def:squareIntegrableMartingales}
+Let $M$ and $N$ be continuous square integrable martingales. Then
+\begin{align*}
+  \mathbb{E}\left[[M,N]_\infty\right] = \langle M - M_0, N - N_0 \rangle_{\mathcal{M}^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:quadraticVariation_brownian}
+  \uses{def:brownian, def:quadraticVariation}
+Let $B$ be a standard Brownian motion. Then the quadratic variation of $B$ is given by $[B]_t = t$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Continuous semi-martingale]\label{def:continuousSemiMartingale}
+  \uses{def:IsLocalMartingale}
+A continuous semi-martingale is a process that can be decomposed into a local martingale and a finite variation process.
+More formally, a process $X : \mathbb{R}_+ \to \Omega \to E$ is a continuous semi-martingale if there exists a continuous local martingale $M$ and a continuous adapted process $A$ with locally finite variation and $A_0 = 0$ such that
+\begin{align*}
+  X_t = M_t + A_t
+\end{align*}
+for all $t \ge 0$.
+The decomposition is a.s. unique.
+\end{definition}
+
+
+\section{Stochastic integral}
+
+
+\begin{definition}[Simple process]\label{def:simpleProcess}
+Let $0 \le t_0 \le t_1 \le \ldots \le t_n$ in $\mathbb{R}_+$.
+Let $(\eta_k)_{0 \le k \le n-1}$ be $\mathcal{F}_{t_k}$-measurable random variables.
+Then the simple process for that sequence is the process $V : \mathbb{R}_+ \to \Omega \to E$ defined by
+\begin{align*}
+  V_t = \sum_{k=0}^{n-1} \eta_k \mathbb{1}_{(t_k, t_{k+1}]}(t)
+  \: .
+\end{align*}
+Let $\mathcal{E}$ be the set of simple processes.
+\end{definition}
+
+
+\begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
+  \uses{def:simpleProcess}
+Let $V \in \mathcal{E}$ be a simple process and let $X$ be a stochastic process.
+The \emph{elementary stochastic integral} process $V \cdot X : \mathbb{R}_+ \to \Omega \to E$ is defined by
+\begin{align*}
+  (V \cdot X)_t
+  &= \sum_{k=0}^{n-1} \eta_k (X^t_{t_{k+1}} - X^t_{t_k})
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:sq_norm_elemStochIntegral}
+  \uses{def:elemStochIntegral}
+For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \cdot M \in \mathcal{M}^2$ and
+\begin{align*}
+  \Vert V \cdot M \Vert_{\mathcal{M}^2}^2
+  &= \mathbb{E}\left[ \int_0^{\infty} V_t^2 \: d[M]_t \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\subsection{Itô isometry}
+
+\begin{definition}\label{def:L2M}
+  \uses{def:squareIntegrableMartingales}
+Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
+\begin{align*}
+  L^2(M) = L^2(\Omega \times \mathbb{R}_+, \mathcal{P}, \mathbb{P} \times d[M])
+\end{align*}
+in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d[M]$ is the measure induced by the quadratic variation of $M$.
+The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\infty} X_t^2 \: d[M]_t \right]$~.
+\end{definition}
+
+TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
+
+
+\begin{lemma}\label{lem:dense_simpleProcess}
+  \uses{def:L2M, def:simpleProcess}
+Let $M \in \mathcal{M}^2$. Then the set of simple processes is dense in $L^2(M)$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Itô isometry]\label{def:itoIsometry}
+  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_squareIntegrableMartingales}
+Let $M \in \mathcal{M}^2$. Then the elementary stochastic integral map $\mathcal{E} \to \mathcal{M}^2$ defined by $V \mapsto V \cdot M$ extends to an isometry $L^2(M) \to \mathcal{M}^2$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:inner_itoIsometry}
+  \uses{def:itoIsometry}
+$\langle X \cdot M, Y \cdot M \rangle_{\mathcal{M}^2} = (XY) \cdot \langle M, N \rangle_{\mathcal{M}^2}$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\subsection{Local martingales}
+
+\begin{definition}[$L^2_{loc}(M)$]\label{def:L2locM}
+  \uses{def:L2M}
+Let $M$ be a continuous local martingale.
+We define $L^2_{loc}(M)$ as the space of predictable processes $X$ such that for all $t \ge 0$, $\mathbb{E}\left[ \int_0^t X_s^2 \: d[M]_s \right] < \infty$.
+\end{definition}
+
+
+\begin{definition}[Stochastic integral for continuous local martingales]\label{def:locStochIntegral}
+  \uses{def:L2locM, def:itoIsometry}
+Let $M$ be a continuous local martingale and let $X \in L^2_{loc}(M)$.
+We define the local stochastic integral $X \cdot M$ as the unique continuous local martingale with $(X \cdot M)_0 = 0$ such that for any continuous local martingale $N$, almost surely,
+\begin{align*}
+  [X \cdot M, N] = X \cdot [M, N]
+  \: .
+\end{align*}
+\end{definition}
+
+
+\subsection{Semi-martingales}
+
+\begin{definition}\label{def:stochIntegral}
+  \uses{def:continuousSemiMartingale, def:locStochIntegral}
+For a continuous semi-martingale $X = M + A$ and $V \in L^2_{semi}(X)$ (to be defined) we define the stochastic integral as
+\begin{align*}
+  V \cdot X = V \cdot M + V \cdot A
+  \: ,
+\end{align*}
+in which $V \cdot M$ is the local stochastic integral defined in \ref{def:locStochIntegral} and $V \cdot A$ is the Lebesgue-Stieltjes integral with respect to the locally finite variation process $A$.
+\end{definition}
+
+
+For $X = M + A$ and $Y = N + B$, we define the covariation as
+\begin{align*}
+  [X, Y] = [M, N]
+  \: .
+\end{align*}
+
+\section{Itô formula}
+
+
+\begin{theorem}[Integration by parts]\label{thm:integration_by_parts}
+  \uses{def:continuousSemiMartingale, def:stochIntegral}
+Let $X$ and $Y$ be two continuous semi-martingales. Then we have almost surely
+\begin{align*}
+  X_t Y_t - X_0 Y_0
+  = (X \cdot Y)_t + (Y \cdot X)_t + [X,Y]_t
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}[Itô's formula]\label{thm:Ito_formula}
+  \uses{def:continuousSemiMartingale}
+Let $X^1, \ldots, X^d$ be continuous semi-martingales and let $f : \mathbb{R}^d \to \mathbb{R}$ be a twice continuously differentiable function.
+Then, writing $X = (X^1, \ldots, X^d)$, the process $f(X)$ is a semi-martingale and we have
+\begin{align*}
+  f(X_t)
+  &= f(X_0)
+  + \sum_{i=1}^d \int_0^t \frac{\partial f}{\partial x_i}(X_s) \: dX^i_s
+  + \frac{1}{2} \sum_{i,j=1}^d \int_0^t \frac{\partial^2 f}{\partial x_i \partial x_j}(X_s) \: d[X^i, X^j]_s
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{thm:integration_by_parts}
+
+\end{proof}

@@ -23,3 +23,4 @@ import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Gaussian.StochasticProcesses
+import BrownianMotion.StochasticIntegral.MathlibImports
