@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Formalization of the Brownian motion in Lean"
+authors:
+  - family-names: Degenne
+    given-names: Rémy
+  - family-names: Himmel
+    given-names: Markus
+  - family-names: Ledvinka
+    given-names: David
+  - family-names: Marion
+    given-names: Etienne
+  - family-names: Pfaffelhuber
+    given-names: Peter
+url: https://github.com/RemyDegenne/brownian-motion
+version: 1.0.0
+date-released: 2025-08-01
