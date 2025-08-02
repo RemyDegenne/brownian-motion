@@ -48,10 +48,10 @@ The stopped process with respect to $\tau$ is defined by
 
 \begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
   \uses{def:Martingale}
-Let $M : T \to \Omega \to \mathbb{R}$ be a martingale indexed by a countable index set $T$ and let $p, q > 1$ such that $\frac{1}{p} + \frac{1}{q} = 1$.
+Let $M : T \to \Omega \to \mathbb{R}$ be a non-negative submartingale indexed by a countable index set $T$ and let $p, q > 1$ such that $\frac{1}{p} + \frac{1}{q} = 1$.
 Then for all $t \in T$,
 \begin{align*}
-  \Vert \sup_{s \le t} \vert M_s \vert \Vert_p
+  \Vert \sup_{s \le t} M_s \Vert_p
   \le q \Vert M_t \Vert_p
   \: .
 \end{align*}
@@ -62,6 +62,16 @@ Then for all $t \in T$,
 \end{proof}
 
 TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
+
+
+\begin{lemma}\label{lem:Martingale.submartingale_norm}
+  \uses{def:Martingale}
+The norm of a martingale is a non-negative submartingale.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
 
 
 \begin{definition}[Square integrable martingales]\label{def:squareIntegrableMartingales}
