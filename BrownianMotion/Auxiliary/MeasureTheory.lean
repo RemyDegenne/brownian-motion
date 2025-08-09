@@ -155,11 +155,11 @@ lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
     change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
     rw [← variance_map, (measurePreserving_eval i).map_eq]
     · rw [(measurePreserving_eval i).map_eq]
-      exact (h i).aestronglyMeasurable.aemeasurable
+      exact (h i).aemeasurable
     · exact Measurable.aemeasurable (by fun_prop)
   · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval i)
   · exact fun i _ j _ hij ↦
-      (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
+      (iIndepFun_pi₀ fun i ↦ (h i).aemeasurable).indepFun hij
 
 end iIndepFun
 
