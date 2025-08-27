@@ -1,6 +1,7 @@
 \chapter{Stochastic integral}
 
 The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
+Some of the proofs are taken from \cite{pascucci2024}.
 
 \section{Total variation and Lebesgue-Stieltjes integral}
 
@@ -8,6 +9,113 @@ TODO: in Mathlib, we can integrate with respect to the measure given by a right-
 However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
 We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
 
+
+\section{Doob's Lp inequality}
+
+In this section, we prove Doob's Lp inequality.
+
+\begin{lemma}\label{lem:convex_of_mg_is_submg}
+  Let $X:T\times\Omega\rightarrow \mathbb{R}^d$ a martingale.
+  Let $\phi:\mathbb{R^d}\rightarrow \mathbb{R}$ convex such that
+  $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+\begin{proof}
+  % See 1.4.12 Pascucci
+  By Jensen
+  $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+\begin{lemma}\label{lem:convex_of_submg_is_submg}
+  Let $X:T\times\Omega\rightarrow \mathbb{R}^d$ a sub-martingale.
+  Let $\phi:\mathbb{R^d}\rightarrow \mathbb{R}$ convex increasing such that
+  $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+\begin{proof}
+  By Jensen and the fact that $\phi$ is increasing
+  $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+\begin{lemma}[Doob Inequality for countable]\label{lem:doob_countable}
+  Let $X:I\times\Omega\rightarrow \mathbb{R}$ be a non-negative sub-martingale.  Let $I$ be countable.
+  For every $M\in I,\lambda > 0$ and $p>1$ we have
+  $$
+  P\left( \sup_{i\in I, i\leq M}X_i\geq\lambda \right)\leq \frac{\mathbb{E}[X_M]}{\lambda}.
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg}
+  See 8.1.1 Pascucci.
+\end{proof}
+
+\begin{lemma}[Doob Inequality Corollary for countable]\label{lem:doob_countable_cor}
+  Let $X:I\times\Omega\rightarrow \mathbb{R}$ be a sub-martingale. Let $I$ be countable.
+  For every $M\in I,\lambda > 0$ and $p>1$ we have
+  $$
+  \mathbb{E}\left[ \sup_{i\in I, i\leq M}X_i^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_M^p].
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg,lem:doob_countable}
+  8.1.1 Pascucci.
+\end{proof}
+
+\begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T, \lambda>0$ and $p>1$ we have
+  $$
+  P\left( \sup_{t\in[0,T]}X_t\geq\lambda \right)\leq \frac{\mathbb{E}[X_T]}{\lambda}.
+  $$
+\end{theorem}
+\begin{proof}
+  \uses{lem:doob_countable}
+  8.1.2 Pascucci.
+\end{proof}
+
+\begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T, \lambda>0$ and $p>1$ we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,T]}X_t^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_T^p].
+  $$
+\end{theorem}
+\begin{proof}
+  \uses{lem:doob_countable_cor}
+  8.1.2 Pascucci.
+\end{proof}
+
+\begin{lemma}[Stopped Martingale]\label{lem:stop_of_mg_is_mg}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a cadlag martingale and $\tau_0$ a stopping time. Then $(X_{t\wedge\tau_0})_{t\geq 0}$ is a martingale.
+\end{lemma}
+
+\begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}|X_t|\geq\lambda \right)\leq \frac{\mathbb{E}[|X_\tau|]}{\lambda}.
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{thm:doob_ineq, lem:stop_of_mg_is_mg}
+  Almost already in mathlib MeasureTheory.Submartingale.stoppedProcess.
+\end{proof}
+
+\begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}|X_t|^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[|X_\tau|^p].
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{lem:doob_ineq_stop, lem:stop_of_mg_is_mg}
+  8.1.3 Pascucci.
+\end{proof}
+
+\begin{proof}
+
+\end{proof}
+
+TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
 
 
 \section{Square integrable martingales}
@@ -44,24 +152,6 @@ The stopped process with respect to $\tau$ is defined by
   \end{cases}
 \end{align*}
 \end{definition}
-
-
-\begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
-  \uses{def:Martingale}
-Let $M : T \to \Omega \to \mathbb{R}$ be a martingale indexed by a countable index set $T$ and let $p, q > 1$ such that $\frac{1}{p} + \frac{1}{q} = 1$.
-Then for all $t \in T$,
-\begin{align*}
-  \Vert \sup_{s \le t} \vert M_s \vert \Vert_p
-  \le q \Vert M_t \Vert_p
-  \: .
-\end{align*}
-\end{theorem}
-
-\begin{proof}
-
-\end{proof}
-
-TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
 
 
 \begin{definition}[Square integrable martingales]\label{def:squareIntegrableMartingales}
