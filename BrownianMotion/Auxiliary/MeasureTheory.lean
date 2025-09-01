@@ -279,9 +279,10 @@ lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E
       (r / s) ^ (Module.finrank ℝ E) := by
   nontriviality E
   obtain rfl | hr := eq_top_or_lt_top r <;> obtain rfl | hs := eq_top_or_lt_top s
-  any_goals simp
+  · simp
   · lift s to ℝ≥0 using hs.ne
     simp [ENNReal.top_div, emetric_closedBall_nnreal, (isCompact_closedBall _ _).measure_ne_top]
+  · simp
   · obtain rfl | hr' := eq_zero_or_pos r <;> obtain rfl | hs' := eq_zero_or_pos s
     · simp
     · simp

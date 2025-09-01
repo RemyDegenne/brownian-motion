@@ -79,7 +79,7 @@ lemma IsAEKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero (hX : IsAEKolmogoro
 
 lemma IsAEKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero' (hX : IsAEKolmogorovProcess X P p q M)
     {J : Set T} (hJ : J.Countable) {δ : ℝ≥0∞}
-    (h : ∀(s : J) (t : { t : J // edist s t ≤ δ }), edist s t = 0) :
+    (h : ∀ (s : J) (t : { t : J // edist s t ≤ δ }), edist s t = 0) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0 := by
   have : Countable J := by simp [hJ]
   refine (lintegral_eq_zero_iff' ?_).mpr ?_
