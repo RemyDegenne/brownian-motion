@@ -43,7 +43,7 @@ theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpa
   rwa [hc.limUnder_eq]
 
 theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
+    [NormedField β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
     (u · + c) ~[l] v := by
   apply Asymptotics.IsEquivalent.add_isLittleO huv
@@ -51,7 +51,7 @@ theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
   exact Or.inr hv
 
 theorem Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
+    [NormedField β] {u v : α → β} {l : Filter α} {c : β}
     (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
     (c + u ·) ~[l] v := by
   conv => enter [2, _]; rw [add_comm]
