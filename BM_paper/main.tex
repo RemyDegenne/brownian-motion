@@ -53,20 +53,20 @@ Concise abstract.
 
 \section{Introduction}
 
-text
-
+Some useful commands:
 \mathlib{}
 \Lean{}
-
 \leanlink{url}{this is a link to Lean code}
-
-Citation: \cite{kratschmer2023kolmogorov}
+\cite{kratschmer2023kolmogorov}
 
 Example of Lean code:
 \begin{lstlisting}
-    /-- A natural number `n` is regular if `n` is coprime with the cardinal of the class group -/
-    def IsRegularNumber (n : ℕ) [hn : Fact (0 < n)] : Prop :=
-      n.Coprime <| Fintype.card <| ClassGroup (OO <| CyclotomicField ⟨n, hn.1⟩ ℚ)
+    /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+    the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
+    def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+        [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+      ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+        iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
 \end{lstlisting}
 
 \printbibliography
