@@ -57,17 +57,52 @@ Some useful commands:
 \mathlib{}
 \Lean{}
 \leanlink{url}{this is a link to Lean code}
-\cite{kratschmer2023kolmogorov}
 
 Example of Lean code:
 \begin{lstlisting}
-    /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
-    the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
-    def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
-        [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-      ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-        iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
+def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
 \end{lstlisting}
+
+Inline code: \lstinline|sorry|
+
+\subsection{Mathematical background}
+
+
+\subsection{Our contributions}
+
+TODO:
+\begin{itemize}
+  \item A theory of Gaussian distributions
+  \item The Kolmogorov extension theorem
+  \item A recent and general version of the Kolmogorov-Chentsov theorem, following \cite{kratschmer2023kolmogorov}
+  \item A construction of a Brownian motion and a Wiener measure on $\R_+$
+\end{itemize}
+
+\subsection{Related work}
+
+There is an Isabelle/HOL formalization of a Kolmogorov-Chentsov theorem (for the index set $\R_+$ with the dyadics proof, not in a more general metric space) \cite{Kolmogorov_Chentsov-AFP}.
+
+Brownian motion in Isabelle/HOL: \cite{laursen2024brownian}.
+Code at \href{https://github.com/cplaursen/Brownian_Motion}{https://github.com/cplaursen/Brownian\_Motion}. There are several \lstinline|sorry| in the code? The paper looks done but the code seems to be a work in progress.
+
+There is a Kolmogorov extension theorem in Isabelle/HOL \cite{Immler2012}. See also \cite{holzl2017markov} ?
+
+
+
+\subsection{Acknowledgements}
+
+Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
+
+Blueprint: Patrick Massot (citation?)
+
+Project template \cite{Monticone_LeanProject_2025} and technical support: Pietro Monticone
+
+Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
 
 \printbibliography
 
