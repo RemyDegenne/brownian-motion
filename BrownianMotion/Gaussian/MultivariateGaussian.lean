@@ -78,7 +78,7 @@ lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
     all_goals infer_instance
   simp [integral_smul_const, this]
 
-lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
+lemma isCentered_stdGaussian : ∀ L : StrongDual ℝ E, (stdGaussian E)[L] = 0 := by
   intro L
   rw [L.integral_comp_id_comm, integral_id_stdGaussian, map_zero]
   rw [stdGaussian, integrable_map_measure]
@@ -88,7 +88,7 @@ lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
-lemma variance_dual_stdGaussian (L : Dual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
+lemma variance_dual_stdGaussian (L : StrongDual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
   rw [stdGaussian, variance_map]
   · have : L ∘ (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i) =
         ∑ i, (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ L (stdOrthonormalBasis ℝ E i) * x i) := by
@@ -120,7 +120,7 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
-lemma charFunDual_stdGaussian (L : Dual ℝ E) :
+lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
   rw [IsGaussian.charFunDual_eq, integral_complex_ofReal, isCentered_stdGaussian,
     variance_dual_stdGaussian]

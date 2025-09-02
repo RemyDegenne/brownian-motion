@@ -25,7 +25,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
       exists x^2 / (2 * σ ^ 2)
       simp only [Nat.ofNat_nonneg, Real.sqrt_mul, Nat.ofNat_pos,
         mul_nonneg_iff_of_pos_left, NNReal.zero_le_coe, pow_nonneg, Real.sqrt_div', Real.sqrt_sq]
-      exact ⟨by positivity, by field_simp; group⟩
+      exact ⟨by positivity, by field_simp; rw [Real.sqrt_sq hx.le]⟩
     · simp only [Nat.ofNat_nonneg, Real.sqrt_mul, Set.image_subset_iff]
       intros x hx
       simp only [Set.mem_Ioi, Set.mem_preimage] at hx ⊢
@@ -47,6 +47,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     simp only [mul_inv_rev, mul_eq_mul_left_iff, inv_eq_zero, (Real.sqrt_pos_of_pos hx).ne',
       or_false]
     field_simp
+    rw [Real.sq_sqrt (by simp)]
   have hφ_pow {x} (hx : 0 < x) : φ x ^ (2 * n) = σ ^ (2 * n) * (2 * x) ^ n := by
     simp only [φ, Nat.ofNat_nonneg, Real.sqrt_mul]
     ring_nf
@@ -104,7 +105,7 @@ lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     simp only [Nat.ofNat_nonneg, Real.sqrt_mul, φ]
     ring_nf
     field_simp
-    ring
+    rw [Real.sq_sqrt (by positivity), Real.sq_sqrt (by positivity)]
   -- 7. ... = σ^(2n) 2^n / √π Γ(n + 1/2)
   _ = σ ^ (2 * n) * 2 ^ n / √Real.pi * Real.Gamma (n + 1/2) := by
     rw [Real.Gamma_eq_integral (by positivity)]
