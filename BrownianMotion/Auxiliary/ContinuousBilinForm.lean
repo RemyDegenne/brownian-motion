@@ -85,7 +85,8 @@ lemma isSymm_iff_basis : f.IsSymm ↔ ∀ i j, f (b i) (b j) = f (b j) (b i) whe
     obtain ⟨fy, ty, iy, -, hy⟩ := Submodule.mem_span_iff_exists_finset_subset.1
       (by simp : y ∈ Submodule.span 𝕜 (Set.range b))
     rw [← hx, ← hy]
-    simp [Finset.mul_sum]
+    simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+      Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
     rw [Finset.sum_comm]
     refine Finset.sum_congr rfl (fun b₁ h₁ ↦ Finset.sum_congr rfl fun b₂ h₂ ↦ ?_)
     rw [mul_left_comm]
@@ -121,7 +122,9 @@ lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
 lemma apply_eq_dotProduct_toMatrix_mulVec (x y : E) :
     f x y = (b.repr x) ⬝ᵥ (f.toMatrix b) *ᵥ (b.repr y) := by
   nth_rw 1 [← b.sum_repr x, ← b.sum_repr y]
-  simp [dotProduct, Matrix.mulVec_eq_sum, Finset.mul_sum]
+  simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+    Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum, dotProduct, Matrix.mulVec_eq_sum,
+    op_smul_eq_smul, Matrix.transpose_apply, toMatrix_apply]
   rw [Finset.sum_comm]
   refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
   ring
@@ -244,7 +247,7 @@ variable [InnerProductSpace ℝ E]
 open scoped InnerProductSpace
 
 variable (E) in
-/-- The inner product as continuous bilinear form. -/
+/-- The inner product as continuous bilinear form. -/
 protected noncomputable def inner : ContinuousBilinForm ℝ E :=
   letI f : LinearMap.BilinForm ℝ E := LinearMap.mk₂ ℝ
     (fun x y ↦ ⟪x, y⟫_ℝ)
