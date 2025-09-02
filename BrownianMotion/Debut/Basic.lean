@@ -53,7 +53,7 @@ lemma empty : Debut (∅ : Set (ι × Ω)) n m = fun _ ↦ m := by
   simp
 
 @[simp]
-lemma univ [Nonempty Ω] : Debut (Set.univ : Set (ι × Ω)) n m = fun _ ↦ if n ≤ m then n else m := by
+lemma univ : Debut (Set.univ : Set (ι × Ω)) n m = fun _ ↦ if n ≤ m then n else m := by
   unfold Debut
   split_ifs with h
   · ext ω
@@ -79,13 +79,11 @@ lemma prod (I : Set ι) (A : Set Ω) :
     exact fun i hni him hiI _ ↦ Set.notMem_empty i (hI ▸ ⟨⟨hni, him⟩, hiI⟩)
 
 open scoped Classical in
-@[simp]
 lemma prod_univ (I : Set ι) :
     Debut (I ×ˢ (.univ : Set Ω)) n m = fun _ ↦ if Set.Icc n m ∩ I ≠ ∅ then
       sInf (Set.Icc n m ∩ I) else m := by
   simp
 
-@[simp]
 lemma univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
     Debut ((.univ : Set ι) ×ˢ A) n m = fun ω ↦ if n ≤ m then
         if ω ∈ A then n else m

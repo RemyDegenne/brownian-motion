@@ -97,6 +97,7 @@ lemma measurableSet_snd_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
   snd of the union (`Set.image_union`) and then the fact that union of measurable is measurable -/
   sorry
 
+/-- `𝓚δ(t)` is the collection of countable intersections of sets in `𝓚(t)`. -/
 inductive 𝓚δ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
   | iInter {ℬ : Set (Set (T × Ω))} (h_nonempty : ℬ.Nonempty) (h_subs : ℬ ⊆ 𝓚 f t)
     (h_count : Countable ℬ) : 𝓚δ f t (⋂ B ∈ ℬ, B)
@@ -208,6 +209,7 @@ change it. -/
 such that `B ε ∈ 𝓚δ f t`, and the projection of `B ε` on `Ω` approximates `A` in measure
 as `ε` tends to `0`. -/
 structure Approximation (f : Filtration T mΩ) (P : Measure Ω) (t : T) (A : Set (T × Ω)) where
+  /-- The approximating sets. -/
   B : ℝ≥0∞ → Set (T × Ω)
   A_subset : A ⊆ Set.Iic t ×ˢ .univ
   B_mem : ∀ ε > 0, B ε ∈ 𝓚δ f t
