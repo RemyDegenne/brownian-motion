@@ -37,7 +37,7 @@ clean, for now I am keeping that one. -/
 means that a ∈ s. However I think this notation should be mostly hidden from the user, so is it ok
 to leave the definitions mentioning this explicitely? -/
 
-/--  `𝓚₀(t)` is the collection of subsets of `[0, t] × Ω` of the form `A × C`, where `A` is
+/-- `𝓚₀(t)` is the collection of subsets of `[0, t] × Ω` of the form `A × C`, where `A` is
 compact and `C` is (f t)-measurable. -/
 inductive 𝓚₀ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
   | prod {K C} (hA_subs : K ⊆ Set.Iic t) (hA : IsCompact K) (hM : MeasurableSet[f t] C) :

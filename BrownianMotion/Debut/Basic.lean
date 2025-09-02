@@ -39,7 +39,8 @@ lemma debut_def [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n m : ι) :
     Debut E n m = fun ω ↦ if ∃ t ∈ Set.Icc n m, (t, ω) ∈ E then
       sInf {t ∈ Set.Icc n m | (t, ω) ∈ E} else m := rfl
 
--- TODO: prove that this def is equiv to the hitting time of an indicator function of E, when it hits [1,∞]
+/- TODO: prove that this def is equiv to the hitting time of an indicator function of E,
+when it hits [1,∞] -/
 
 namespace Debut
 
@@ -190,18 +191,32 @@ lemma mono_right (E : Set (ι × Ω)) (n : ι) (ω : Ω) : Monotone (Debut E n �
 end Inequalities
 
 -- TODO: this may be put in a separate file, maybe in the file where ProgMeasurable is?
-/- TODO: can we find some condition equivalent to this definition that is easier to state, maybe something that does not involde the indicator function and only uses E as a set? Maybe there is a σ algebra over `ι × Ω` such that ProgMeasurableSet is equivalent to being measurable with respect to that σ-algebra?
-maybe something like (mι : MeasurableSpace ι) [BorelSpace ι] `∀ t, MeasurableSet[mι.prod (f t)] (E ∩ Set.Iic t ×ˢ Ω)`? I'm not completely sure this is actually equivalent, but if I stated the lemma `MeasureTheory.Approximation.of_mem_prod_borel` correctly this should be enough to prove the theorem below.
-before changing this definition it may be worth it to begin the proof of `Debut.isStoppingTime` to identify exactly what is needed, maybe in the end we do not even need to define the concpet of progressively measurable set, but we can just add the necessary hypothesis manually. -/
+/- TODO: can we find some condition equivalent to this definition that is easier to state, maybe
+something that does not involde the indicator function and only uses E as a set? Maybe there is a
+σ algebra over `ι × Ω` such that ProgMeasurableSet is equivalent to being measurable with respect
+to that σ-algebra?
+maybe something like (mι : MeasurableSpace ι) [BorelSpace ι]
+`∀ t, MeasurableSet[mι.prod (f t)] (E ∩ Set.Iic t ×ˢ Ω)`? I'm not completely sure this is actually
+equivalent, but if I stated the lemma `MeasureTheory.Approximation.of_mem_prod_borel` correctly
+this should be enough to prove the theorem below.
+before changing this definition it may be worth it to begin the proof of `Debut.isStoppingTime`
+to identify exactly what is needed, maybe in the end we do not even need to define the concpet of
+progressively measurable set, but we can just add the necessary hypothesis manually. -/
 
-/-- A set `E : Set ι × Ω` is *Progressively measurable* with respect to a filtration `f` if the indicator function of `E` is a progressively measurable process with respect to `f`. -/
-def _root_.MeasureTheory.ProgMeasurableSet [MeasurableSpace ι] (E : Set (ι × Ω)) (f : Filtration ι mΩ) := ProgMeasurable f (E.indicator fun _ ↦ 1).curry
+/-- A set `E : Set ι × Ω` is *Progressively measurable* with respect to a filtration `f` if the
+indicator function of `E` is a progressively measurable process with respect to `f`. -/
+def _root_.MeasureTheory.ProgMeasurableSet
+    [MeasurableSpace ι] (E : Set (ι × Ω)) (f : Filtration ι mΩ) :=
+  ProgMeasurable f (E.indicator fun _ ↦ 1).curry
 
 /-- **Debùt Therorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime [MeasurableSpace ι]
     {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) :
     IsStoppingTime f (Debut E n m) := by
-  -- see the proof in the blueprint, we will probably need some more hypotheses, for example the usual hypotheses on the filtration (in particular the right continuity of the filtration, find if it is defined anywhere in mathlib, or if we need to define it ourselves or just state it as a hypothesis)
+  /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
+  usual hypotheses on the filtration (in particular the right continuity of the filtration, find if
+  it is defined anywhere in mathlib, or if we need to define it ourselves or just state it as
+  a hypothesis) -/
   sorry
 
 end Debut
@@ -209,10 +224,13 @@ end Debut
 section HittingTime
 
 -- This may be placed in `Mathlib.Probability.Process.HittingTime` in Mathlib.
--- We may need to add some hypotheses, like the filtration being right continuous. After proving the theorem consider if this completely subsumes `hitting_isStoppingTime`, in that case we can remove the latter. Also, consider if the fact that `β` is a borel space is actually needed.
+/- We may need to add some hypotheses, like the filtration being right continuous. After proving
+the theorem consider if this completely subsumes `hitting_isStoppingTime`, in that case we can
+remove the latter. Also, consider if the fact that `β` is a borel space is actually needed. -/
 theorem hitting_isStoppingTime' [ConditionallyCompleteLinearOrder ι] [MeasurableSpace ι]
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
-    {f : Filtration ι mΩ} {X : ι → Ω → β} {s : Set β} {n m : ι} (hX : ProgMeasurable f X) (hs : MeasurableSet s) :
+    {f : Filtration ι mΩ} {X : ι → Ω → β} (hX : ProgMeasurable f X)
+    {s : Set β} {n m : ι} (hs : MeasurableSet s) :
     IsStoppingTime f (hitting X s n m) := by
   sorry
 
