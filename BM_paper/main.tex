@@ -1,0 +1,74 @@
+\documentclass[lean]{DraftAFM}
+
+\input{preamble}
+
+\makeatletter
+\newcommand\leanlink{\begingroup\catcode`\#=12\relax\@leanlink}
+\newcommand\@leanlink[2]{\endgroup
+\href{#1}
+{\texttt{\detokenize{#2}}}}
+
+\title[Formalization of a Brownian motion in Lean]{Formalization of a Brownian motion in Lean}
+\author[R. Degenne, M. Himmel, D. Ledvinka, E. Marion, P. Pfaffelhuber]{
+  Rémy Degenne, Markus Himmel, David Ledvinka, Etienne Marion, Peter Pfaffelhuber}
+
+
+\authorinfo[R. Degenne]{Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189-CRIStAL, F-59000 Lille, France}{remy.degenne@inria.fr}
+
+\authorinfo[M. Himmel]{University of XYZ, Country}{markus.himmel@example.com}
+
+\authorinfo[D. Ledvinka]{University of XYZ, Country}{david.ledvinka@example.com}
+
+\authorinfo[E. Marion]{University of XYZ, Country}{etienne.marion@example.com}
+
+\authorinfo[P. Pfaffelhuber]{University of XYZ, Country}{peter.pfaffelhuber@example.com}
+
+
+\VOLUME{Todo}
+\YEAR{Todo}
+\NUMBER{Todo}
+\firstpage{1}
+\DOI{Todo}
+\receiveddate{Todo}
+\finaldate{Todo}
+\accepteddate{Todo}
+
+\begin{abstract}
+Concise abstract.
+\end{abstract}
+
+% please fill in
+\msc{}
+
+% please fill in
+\keywords{Formalization, Mathlib, Lean, Brownian motion}
+
+\addbibresource{biblio.bib}
+
+\renewcommand{\lean}[1]{\lstinline[language=lean]{#1}}
+
+\begin{document}
+
+
+
+\section{Introduction}
+
+text
+
+\mathlib{}
+\Lean{}
+
+\leanlink{url}{this is a link to Lean code}
+
+Citation: \cite{kratschmer2023kolmogorov}
+
+Example of Lean code:
+\begin{lstlisting}
+    /-- A natural number `n` is regular if `n` is coprime with the cardinal of the class group -/
+    def IsRegularNumber (n : ℕ) [hn : Fact (0 < n)] : Prop :=
+      n.Coprime <| Fintype.card <| ClassGroup (OO <| CyclotomicField ⟨n, hn.1⟩ ℚ)
+\end{lstlisting}
+
+\printbibliography
+
+\end{document}
