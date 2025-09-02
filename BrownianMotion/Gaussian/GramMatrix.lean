@@ -58,7 +58,7 @@ theorem gram_posSemidef [Fintype n] {v : n → E} :
   refine ⟨gram_isHermitian, fun x ↦ ?_⟩
   let y := ∑ (i : n), x i • v i
   have h : ⟪y, y⟫ = star x ⬝ᵥ (gram 𝕜 v) *ᵥ x := by
-    simp [y]
+    simp only [y]
     calc
       ⟪y, y⟫ = (∑ (i : n), ∑ (j : n), (starRingEnd 𝕜) (x i) * (x j) * ⟪v i, v j⟫) := by
           simp_rw [y, sum_inner, inner_sum, inner_smul_left, inner_smul_right, mul_assoc]

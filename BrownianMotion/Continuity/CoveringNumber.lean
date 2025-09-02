@@ -354,7 +354,8 @@ lemma isCover_maximalSeparatedSet [PseudoEMetricSpace E] (h : packingNumber r A 
       have ha' : a ∈ maximalSeparatedSet r A := by simpa [C, hab] using ha
       have h := h_dist a ha'
       rwa [edist_comm] at h
-    simp [hax, hbx, C] at ha hb
+    simp only [Finset.coe_union, Finset.coe_singleton, Set.singleton_union, Set.mem_insert_iff, hax,
+      Finset.mem_coe, false_or, hbx, C] at ha hb
     exact isSeparated_maximalSeparatedSet ha hb hab
   refine absurd (card_le_of_isSeparated hC_subset hC_separated h) ?_
   simp only [Finset.disjoint_singleton_left, hx_not_mem, not_false_eq_true,

@@ -2,11 +2,16 @@ import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.FiniteInf
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Auxiliary.LinearAlgebra
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Auxiliary.MeasureTheory
+import BrownianMotion.Auxiliary.Metric
+import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Auxiliary.Nat
 import BrownianMotion.Auxiliary.Real
+import BrownianMotion.Auxiliary.Topology
+import BrownianMotion.Auxiliary.WithLp
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
