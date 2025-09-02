@@ -51,7 +51,7 @@ lemma integrable_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E] {X :
   exact hf.smul_measure <| ENNReal.prod_ne_top (fun _ _ ↦ measure_ne_top _ _)
 
 lemma integral_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [CompleteSpace E] {X : ι → Type*}
+    [NormedSpace ℝ E] {X : ι → Type*}
     {mX : ∀ i, MeasurableSpace (X i)} {μ : (i : ι) → Measure (X i)}
     [∀ i, IsProbabilityMeasure (μ i)] {i : ι} {f : X i → E} (hf : AEStronglyMeasurable f (μ i)) :
     ∫ (x : Π i, X i), f (x i) ∂Measure.pi μ = ∫ x, f x ∂μ i := by
@@ -164,6 +164,8 @@ lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : Orth
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
+/-- Multivariate Gaussian measure on `EuclideanSpace ℝ ι` with mean `μ` and covariance
+matrix `S`. -/
 noncomputable
 def multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ)
     (hS : S.PosSemidef) :
@@ -302,8 +304,9 @@ def _root_.EuclideanSpace.restrict₂ {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Fin
     (Finset.restrict₂CLM 𝕜 (M := fun _ ↦ 𝕜) hIJ) ∘L
       (EuclideanSpace.equiv J 𝕜).toContinuousLinearMap
 
-lemma _root_.EuclideanSpace.coe_restrict₂ {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι} (hIJ : I ⊆ J) :
-    ⇑(@EuclideanSpace.restrict₂ ι 𝕜 _ I J hIJ) = EuclideanSpace.restrict₂ hIJ := rfl
+-- lemma _root_.EuclideanSpace.coe_restrict₂
+--     {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι} (hIJ : I ⊆ J) :
+--     ⇑(@EuclideanSpace.restrict₂ ι 𝕜 _ I J hIJ) = EuclideanSpace.restrict₂ hIJ := rfl
 
 @[simp]
 lemma _root_.EuclideanSpace.restrict₂_apply {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι}
