@@ -49,38 +49,18 @@ variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableS
 
 variable [∀ i, IsProbabilityMeasure (μ i)]
 
-lemma measurePreserving_eval (i : ι) :
-    MeasurePreserving (Function.eval i) (Measure.pi μ) (μ i) := by
-  refine ⟨measurable_pi_apply i, ?_⟩
-  classical
-  rw [Measure.pi_map_eval, Finset.prod_eq_one, one_smul]
-  exact fun _ _ ↦ measure_univ
-
-variable {𝒳 : ι → Type*} [∀ i, MeasurableSpace (𝒳 i)] {X : Π i, Ω i → 𝒳 i}
-
-lemma iIndepFun_pi₀ (mX : ∀ i, AEMeasurable (X i) (μ i)) :
-    iIndepFun (fun i ω ↦ X i (ω i)) (Measure.pi μ) := by
-  have : iIndepFun (fun i ω ↦ (mX i).mk (X i) (ω i)) (Measure.pi μ) :=
-    iIndepFun_pi fun i ↦ (mX i).measurable_mk.aemeasurable
-  refine this.congr fun i ↦ ?_
-  change ((mX i).mk (X i)) ∘ Function.eval i =ᶠ[_] (X i) ∘ Function.eval i
-  apply ae_eq_comp
-  · exact (measurable_pi_apply i).aemeasurable
-  · rw [(measurePreserving_eval i).map_eq]
-    exact (AEMeasurable.ae_eq_mk (mX i)).symm
-
 lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
     Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
   rw [IndepFun.variance_sum]
   · congr with i
     change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
-    rw [← variance_map, (measurePreserving_eval i).map_eq]
-    · rw [(measurePreserving_eval i).map_eq]
+    rw [← variance_map, (measurePreserving_eval _ i).map_eq]
+    · rw [(measurePreserving_eval _ i).map_eq]
       exact (h i).aestronglyMeasurable.aemeasurable
     · exact Measurable.aemeasurable (by fun_prop)
-  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval i)
+  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval _ i)
   · exact fun i _ j _ hij ↦
-      (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
+      (iIndepFun_pi fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
 
 end iIndepFun
 
