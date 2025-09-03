@@ -39,23 +39,15 @@ to leave the definitions mentioning this explicitely? -/
 
 /-- `𝓚₀(t)` is the collection of subsets of `[0, t] × Ω` of the form `A × C`, where `A` is
 compact and `C` is (f t)-measurable. -/
-inductive 𝓚₀ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
-  | prod {K C} (hA_subs : K ⊆ Set.Iic t) (hA : IsCompact K) (hM : MeasurableSet[f t] C) :
-    𝓚₀ f t (K ×ˢ C)
+def 𝓚₀ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) :=
+  {B | ∃ K C, B = K ×ˢ C ∧ K ⊆ Set.Iic t ∧ IsCompact K ∧ MeasurableSet[f t] C}
 
 @[simp]
-lemma empty_mem_𝓚₀ (f : Filtration T mΩ) (t : T) : ∅ ∈ 𝓚₀ f t := by
-  convert 𝓚₀.prod (Set.empty_subset _) isCompact_empty (@MeasurableSet.empty _ (f t))
-  exact Set.prod_empty.symm
-
-lemma mem_𝓚₀_iff (f : Filtration T mΩ) (t : T) (B : Set (T × Ω)) :
-    B ∈ 𝓚₀ f t ↔ ∃ K C, B = K ×ˢ C ∧ K ⊆ Set.Iic t ∧ IsCompact K ∧ MeasurableSet[f t] C := by
-  -- easy, just unfold the definition correctly (how do you unfold an inductive definition?)
-  sorry
+lemma empty_mem_𝓚₀ (f : Filtration T mΩ) (t : T) : ∅ ∈ 𝓚₀ f t := ⟨∅, ∅, by simp⟩
 
 lemma subset_Iic_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) :
     B ⊆ Set.Iic t ×ˢ .univ := by
-  have ⟨A, C, hB_eq, hA_subs, hA, hC⟩ := (mem_𝓚₀_iff ..).mp hB
+  have ⟨A, C, hB_eq, hA_subs, hA, hC⟩ := hB
   exact hB_eq ▸ Set.prod_mono hA_subs (Set.subset_univ _)
 
 /-- If `B ∈ 𝓚₀(t)`, then its projetion over `Ω` is (f t)-measurable. -/
