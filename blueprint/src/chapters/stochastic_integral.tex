@@ -15,13 +15,13 @@ We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.E
 In this section, we prove Doob's Lp inequality.
 
 \begin{lemma}\label{lem:convex_of_mg_is_submg}
-  Let $X:T\times\Omega\rightarrow \mathbb{R}^d$ a martingale.
-  Let $\phi:\mathbb{R^d}\rightarrow \mathbb{R}$ convex such that
+  Let $X:T\times\Omega\rightarrow E$ a martingale with values in a normed space $E$.
+  Let $\phi : E \rightarrow \mathbb{R}$ convex such that
   $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 \begin{proof}
   % See 1.4.12 Pascucci
-  By Jensen
+  By the conditional Jensen's inequality (see \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953})
   $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
 \end{proof}
 
@@ -44,6 +44,7 @@ In this section, we prove Doob's Lp inequality.
 \end{lemma}
 \begin{proof}
   \uses{lem:convex_of_mg_is_submg}
+  % TODO: put a sketch of the proof here
   See 8.1.1 Pascucci.
 \end{proof}
 
@@ -56,6 +57,7 @@ In this section, we prove Doob's Lp inequality.
 \end{lemma}
 \begin{proof}
   \uses{lem:convex_of_mg_is_submg,lem:doob_countable}
+  % TODO: put a sketch of the proof here
   8.1.1 Pascucci.
 \end{proof}
 
@@ -68,7 +70,21 @@ In this section, we prove Doob's Lp inequality.
 \end{theorem}
 \begin{proof}
   \uses{lem:doob_countable}
+  % TODO: put a sketch of the proof here
   8.1.2 Pascucci.
+\end{proof}
+
+\begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  For every $T, \lambda>0$ and $p>1$ we have
+  $$
+  P\left( \sup_{t\in[0,T]} \lVert X_t \rVert \geq \lambda \right) \leq \frac{\mathbb{E}[\lVert X_T \rVert]}{\lambda}.
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, thm:doob_ineq}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_ineq}.
 \end{proof}
 
 \begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
@@ -80,7 +96,21 @@ In this section, we prove Doob's Lp inequality.
 \end{theorem}
 \begin{proof}
   \uses{lem:doob_countable_cor}
+  % TODO: put a sketch of the proof here
   8.1.2 Pascucci.
+\end{proof}
+
+\begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp}
+  Let $X : \mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  For every $T, \lambda>0$ and $p>1$ we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,T]} \lVert X_t \rVert ^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_T \rVert ^p].
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, thm:doob_lp}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_lp}.
 \end{proof}
 
 \begin{lemma}[Stopped Martingale]\label{lem:stop_of_mg_is_mg}
@@ -91,7 +121,7 @@ In this section, we prove Doob's Lp inequality.
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
-  P\left( \sup_{t\in[0,\tau]}|X_t|\geq\lambda \right)\leq \frac{\mathbb{E}[|X_\tau|]}{\lambda}.
+  P\left( \sup_{t\in[0,\tau]}X_t\geq\lambda \right)\leq \frac{\mathbb{E}[X_\tau]}{\lambda}.
   $$
 \end{lemma}
 \begin{proof}
@@ -99,11 +129,24 @@ In this section, we prove Doob's Lp inequality.
   Almost already in mathlib MeasureTheory.Submartingale.stoppedProcess.
 \end{proof}
 
-\begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+\begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}\lVert X_t \rVert \geq\lambda \right)\leq \frac{\mathbb{E}[\lVert X_\tau \rVert]}{\lambda}.
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop}.
+\end{proof}
+
+\begin{lemma}[Doob's Lp Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
-  \mathbb{E}\left[ \sup_{t\in[0,\tau]}|X_t|^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[|X_\tau|^p].
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}X_t^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_\tau^p].
   $$
 \end{lemma}
 \begin{proof}
@@ -111,12 +154,18 @@ In this section, we prove Doob's Lp inequality.
   8.1.3 Pascucci.
 \end{proof}
 
+\begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}\lVert X_t \rVert^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_\tau \rVert^p].
+  $$
+\end{corollary}
 \begin{proof}
-
+  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop_exp_val}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop_exp_val}.
 \end{proof}
-
-TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
-
 
 \section{Square integrable martingales}
 
