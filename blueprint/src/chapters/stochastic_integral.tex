@@ -75,7 +75,7 @@ In this section, we prove Doob's Lp inequality.
 \end{proof}
 
 \begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq}
-  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $T, \lambda>0$ and $p>1$ we have
   $$
   P\left( \sup_{t\in[0,T]} \lVert X_t \rVert \geq \lambda \right) \leq \frac{\mathbb{E}[\lVert X_T \rVert]}{\lambda}.
@@ -101,7 +101,7 @@ In this section, we prove Doob's Lp inequality.
 \end{proof}
 
 \begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp}
-  Let $X : \mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  Let $X : \mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $T, \lambda>0$ and $p>1$ we have
   $$
   \mathbb{E}\left[ \sup_{t\in[0,T]} \lVert X_t \rVert ^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_T \rVert ^p].
@@ -130,7 +130,7 @@ In this section, we prove Doob's Lp inequality.
 \end{proof}
 
 \begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
-  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
   P\left( \sup_{t\in[0,\tau]}\lVert X_t \rVert \geq\lambda \right)\leq \frac{\mathbb{E}[\lVert X_\tau \rVert]}{\lambda}.
@@ -155,7 +155,7 @@ In this section, we prove Doob's Lp inequality.
 \end{proof}
 
 \begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
-  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous non-negative sub-martingale with values in a normed space $E$.
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
   \mathbb{E}\left[ \sup_{t\in[0,\tau]}\lVert X_t \rVert^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_\tau \rVert^p].
