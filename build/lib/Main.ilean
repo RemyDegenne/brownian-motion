@@ -1,0 +1,1 @@
+{"version":1,"references":{"c:main":{"usages":[],"definition":[2,4,2,8]},"c:hello":{"usages":[[3,24,3,29]],"definition":null},"c:Unit":{"usages":[[2,14,2,18]],"definition":null},"c:IO.println":{"usages":[[3,2,3,12]],"definition":null},"c:IO":{"usages":[[2,11,2,13]],"definition":null}},"module":"Main"}
