@@ -19,6 +19,19 @@ open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
 
+section hasLaw
+
+lemma hasLaw_id {Ω : Type*} {hΩ : MeasurableSpace Ω} {P : Measure Ω} : HasLaw id P P where
+  aemeasurable := aemeasurable_id
+  map_eq := Measure.map_id
+
+lemma hasLaw_self {Ω α : Type*} {hΩ : MeasurableSpace Ω} {P : Measure Ω} (X : Ω → α)
+    {hα : MeasurableSpace α} (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
+  aemeasurable := hX
+  map_eq := rfl
+
+end hasLaw
+
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
 @[fun_prop]
@@ -28,15 +41,9 @@ lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
 
 def canonicalProcess : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
-lemma hasLaw_canonicalProcess {P : Measure (ℝ≥0 → ℝ)} : HasLaw id P P where
-  aemeasurable := aemeasurable_id
-  map_eq := Measure.map_id
-
 example : (fun ω ↦ (preBrownian · ω)) = id := rfl
 
-lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit where
-  aemeasurable := aemeasurable_id
-  map_eq := Measure.map_id
+lemma hasLaw_preBrownian : HasLaw id gaussianLimit gaussianLimit := hasLaw_id
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
