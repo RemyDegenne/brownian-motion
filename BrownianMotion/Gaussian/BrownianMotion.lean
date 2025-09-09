@@ -44,6 +44,15 @@ def canonicalProcess : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω 
 example : (fun ω ↦ (preBrownian · ω)) = id := rfl
 
 lemma hasLaw_preBrownian : HasLaw id gaussianLimit gaussianLimit := hasLaw_id
+lemma hasLaw_canonicalProcess {P : Measure (ℝ≥0 → ℝ)} : HasLaw id P P where
+  aemeasurable := aemeasurable_id
+  map_eq := Measure.map_id
+
+example : (fun ω ↦ (preBrownian · ω)) = id := rfl
+
+lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit where
+  aemeasurable := aemeasurable_id
+  map_eq := Measure.map_id
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
