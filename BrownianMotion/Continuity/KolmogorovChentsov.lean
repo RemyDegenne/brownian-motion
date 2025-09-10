@@ -42,29 +42,6 @@ theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpa
       (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
   rwa [hc.limUnder_eq]
 
-theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
-    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (u · + c) ~[l] v := by
-  apply Asymptotics.IsEquivalent.add_isLittleO huv
-  rw [Asymptotics.isLittleO_const_left]
-  exact Or.inr hv
-
-theorem Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] [LinearOrder β] [IsStrictOrderedRing β] {u v : α → β} {l : Filter α} {c : β}
-    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (c + u ·) ~[l] v := by
-  conv => enter [2, _]; rw [add_comm]
-  exact Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop huv hv
-
-theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
-    {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
-    (htu : t ~[l] u) (hvw : v ~[l] w) : t + v ~[l] u + w := by
-  simp only [IsEquivalent, add_sub_add_comm]
-  change (fun x ↦ (t - u) x + (v - w) x) =o[l] (fun x ↦ u x + w x)
-  conv => enter [3, x]; rw [← (abs_eq_self).mpr (hu x), ← (abs_eq_self).mpr (hw x)]
-  simpa only [← Real.norm_eq_abs] using Asymptotics.IsLittleO.add_add htu hvw
-
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
     {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
     t ^ r ~[l] u ^ r := by
@@ -96,7 +73,7 @@ instance {α : Type*} {s : Set α} : FunLike (FiniteExhaustion s) ℕ (Set α) w
   coe := toFun
   coe_injective' | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
 
-instance  {α : Type*} {s : Set α} : RelHomClass (FiniteExhaustion s) LE.le HasSubset.Subset where
+instance {α : Type*} {s : Set α} : RelHomClass (FiniteExhaustion s) LE.le HasSubset.Subset where
   map_rel K _ _ h := monotone_nat_of_le_succ (fun n ↦ K.subset_succ' n) h
 
 instance {α : Type*} {s : Set α} {K : FiniteExhaustion s} {n : ℕ} : Finite (K n) :=
@@ -126,8 +103,7 @@ noncomputable def choice {α : Type*} (s : Set α) [Countable s] : FiniteExhaust
       · exact fun n ↦ Set.Finite.image _ (Set.finite_le_nat n)
       · intro n
         simp only [Function.comp_apply]
-        apply Set.image_subset
-        intro _ h
+        refine Set.image_mono fun _ h ↦ ?_
         simp [le_trans h (Nat.le_succ _)]
       · simp [← Set.image_image, ← Set.image_iUnion, Set.iUnion_le_nat, Set.range_eq_univ.mpr hf]
     · refine ⟨fun _ ↦ ∅, by simp [Set.Finite.to_subtype], fun n ↦ by simp, ?_⟩
@@ -319,7 +295,7 @@ lemma constL_lt_top (hT : EMetric.diam (Set.univ : Set T) < ∞)
     use n₀
     intro n hn
     grw [hn, add_mul, add_mul, ← le_of_lt ((div_lt_iff₀ hd_pos).mp hn₀), add_assoc, ← add_assoc]
-    simp
+    simp only [add_neg_cancel, zero_add]
     positivity
   apply Asymptotics.IsEquivalent.congr_right; swap
   · filter_upwards [h 0] with n h_nonneg
@@ -356,7 +332,7 @@ theorem finite_kolmogorov_chentsov
       ≤ M * constL T c d p q β := by
   have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
-  simp [constL, ← ENNReal.tsum_mul_left]
+  simp only [constL, ← ENNReal.tsum_mul_left, ge_iff_le] at *
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
   · convert zero_le'
     apply lintegral_eq_zero_of_ae_eq_zero
@@ -385,7 +361,9 @@ theorem finite_kolmogorov_chentsov
   apply ENNReal.tsum_le_tsum
   intro k
   wlog hc : c ≠ ∞
-  · simp [not_ne_iff.mp hc]
+  · simp only [not_ne_iff.mp hc, ne_eq, ENNReal.rpow_eq_zero_iff, OfNat.ofNat_ne_zero, false_and,
+      ENNReal.ofNat_ne_top, or_self, not_false_eq_true, ENNReal.mul_top, ENNReal.toReal_top,
+      Real.logb_zero, zero_add]
     repeat rw [ENNReal.top_mul]
     · rw [ENNReal.mul_top hM]
       exact le_top
@@ -421,7 +399,11 @@ theorem finite_kolmogorov_chentsov
         ring_nf
     _ = _ := by ring
   by_cases hc_zero : c.toReal = 0
-  · simp [hc_zero]; gcongr; exact zero_le _
+  · simp only [ENNReal.toReal_mul, hc_zero, mul_zero, zero_mul, ENNReal.toReal_ofNat,
+      ENNReal.toReal_pow, ENNReal.toReal_inv, inv_pow, mul_inv_rev, inv_inv, Real.logb_zero,
+      ENNReal.ofReal_zero, zero_add]
+    gcongr
+    exact zero_le _
   gcongr with k
   simp only [← ENNReal.rpow_natCast, ENNReal.toReal_mul, ← ENNReal.toReal_rpow, ENNReal.toReal_inv,
     ENNReal.toReal_ofNat, mul_inv_rev]
@@ -595,8 +577,6 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
 variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
   [IsFiniteMeasure P]
 
--- TODO: in this lemma we use the notion of convergence in measure, but since we use `edist` and not
--- `dist`, we can't use the existing definition `TendstoInMeasure`.
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)

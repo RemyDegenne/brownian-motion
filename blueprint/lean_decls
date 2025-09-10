@@ -32,7 +32,7 @@ ProbabilityTheory.gaussian_charFun_congr
 ProbabilityTheory.IsGaussian.ext
 ProbabilityTheory.IsGaussian.ext_iff
 ProbabilityTheory.stdGaussian
-ProbabilityTheory.integral_eval_pi
+MeasureTheory.integral_comp_eval
 ProbabilityTheory.isCentered_stdGaussian
 ProbabilityTheory.isProbabilityMeasure_stdGaussian
 ProbabilityTheory.charFun_stdGaussian

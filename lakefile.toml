@@ -2,37 +2,12 @@ name = "BrownianMotion"
 defaultTargets = ["BrownianMotion"]
 
 [leanOptions]
-weak.linter.docPrime = false
-weak.linter.hashCommand = true
-weak.linter.oldObtain = true
-weak.linter.style.refine = true
-weak.linter.style.cdot = true
-weak.linter.style.dollarSyntax = true
-weak.linter.style.header = true
-weak.linter.style.lambdaSyntax = true
-weak.linter.style.longLine = true
-weak.linter.style.longFile = 1500
-weak.linter.style.missingEnd = true
-weak.linter.style.multiGoal = true
-weak.linter.style.setOption = true
 pp.unicode.fun = true
 autoImplicit = false
 relaxedAutoImplicit = false
-
-[moreServerOptions]
-linter.docPrime = false
-linter.hashCommand = true
-linter.oldObtain = true
-linter.style.refine = true
-linter.style.cdot = true
-linter.style.dollarSyntax = true
-linter.style.header = true
-linter.style.lambdaSyntax = true
-linter.style.longLine = true
-linter.style.longFile = 1500
-linter.style.missingEnd = true
-linter.style.multiGoal = true
-linter.style.setOption = true
+weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible tactic (e.g. `simp`)
+# Enable all mathlib linters: automatically matches what mathlib uses.
+weak.linter.mathlibStandardSet = true
 
 [[require]]
 name = "mathlib"
