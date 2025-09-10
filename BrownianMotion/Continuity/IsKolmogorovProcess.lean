@@ -200,7 +200,7 @@ lemma lintegral_sup_rpow_edist_cover_rescale (hX : IsAEKolmogorovProcess X P p q
     fun p => ⟨⟨chainingSequence C p.1 k m, chainingSequence_mem hC hJ' p.1.2 _ hmk⟩,
       ⟨⟨chainingSequence C p.2 k m, chainingSequence_mem hC hJ' p.2.1.2 _ hmk⟩, hf _⟩⟩
 
-  refine (lintegral_mono_fn
+  refine (lintegral_mono
     (fun ω => iSup_comp_le (fun st => edist (X st.1 ω) (X st.2 ω) ^ p) f)).trans ?_
   simp only [iSup_sigma]
 
@@ -251,7 +251,7 @@ lemma lintegral_sup_rpow_edist_succ (hX : IsAEKolmogorovProcess X P p q M)
   let g (ω : Ω) : { x : T // x ∈ C k } → { x : T × T // x ∈ C' } :=
     fun x => ⟨f₀ ⟨chainingSequence C x k (j + 1),
       chainingSequence_mem hC hJ x.2 (j + 1) (by omega)⟩, by simp [C']⟩
-  have hle := lintegral_mono_fn (μ := P) (fun ω => iSup_comp_le (f ω) (g ω))
+  have hle := lintegral_mono (μ := P) (fun ω => iSup_comp_le (f ω) (g ω))
   simp only [f, g, f₀] at hle
   conv_lhs at hle =>
     right; ext ω; congr; ext x;
@@ -307,6 +307,7 @@ lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsAEKolmogorovProcess
     simp_rw [mul_assoc]
     rw [← Finset.mul_sum, ENNReal.mul_rpow_of_nonneg _ _ (by positivity), ← ENNReal.rpow_mul]
     field_simp
+    simp
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     (hX : IsAEKolmogorovProcess X P p q M)
@@ -331,7 +332,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     exact h_cov (ε (m + x + 1)) (hε _)
   _ = c₁ * (∑ x ∈ Finset.range (k - m), ((ε (m + x + 1))⁻¹ ^ (d / p))
       * ε (m + x) ^ (q / p)) ^ p := by
-    have : c₁= (c₁ ^ (1 / p)) ^ p := by rw [← ENNReal.rpow_mul]; field_simp
+    have : c₁= (c₁ ^ (1 / p)) ^ p := by rw [← ENNReal.rpow_mul]; field_simp; simp
     conv_rhs => rw [this]
     rw [← ENNReal.mul_rpow_of_nonneg _ _ (by positivity), Finset.mul_sum]
     congr with i
@@ -775,7 +776,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedInternalCoveringNu
     simp only [ne_eq, ENNReal.div_eq_zero_iff, hδ, false_or]
     finiteness
   have h_logb_nonneg : 0 ≤ Real.logb 2⁻¹ (δ / (ε₀ * 4)).toReal := by
-    refine Real.logb_nonneg_of_base_lt_one (by simp) (by field_simp) hδ_div_pos ?_
+    refine Real.logb_nonneg_of_base_lt_one (by simp) (by field_simp; norm_num) hδ_div_pos ?_
     refine ENNReal.toReal_le_of_le_ofReal (by positivity) ?_
     simp only [ENNReal.ofReal_one]
     refine ENNReal.div_le_of_le_mul ?_

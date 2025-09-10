@@ -42,29 +42,6 @@ theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpa
       (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
   rwa [hc.limUnder_eq]
 
-theorem Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] {u v : α → β} {l : Filter α} {c : β}
-    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (u · + c) ~[l] v := by
-  apply Asymptotics.IsEquivalent.add_isLittleO huv
-  rw [Asymptotics.isLittleO_const_left]
-  exact Or.inr hv
-
-theorem Asymptotics.IsEquivalent.const_add_of_norm_tendsto_atTop {α β : Type*}
-    [NormedField β] {u v : α → β} {l : Filter α} {c : β}
-    (huv : u ~[l] v) (hv : Tendsto (norm ∘ v) l atTop) :
-    (c + u ·) ~[l] v := by
-  conv => enter [2, _]; rw [add_comm]
-  exact Asymptotics.IsEquivalent.add_const_of_norm_tendsto_atTop huv hv
-
-theorem Asymptotics.IsEquivalent.add_add_of_nonneg {α : Type*}
-    {t u v w : α → ℝ} (hu : 0 ≤ u) (hw : 0 ≤ w) {l : Filter α}
-    (htu : t ~[l] u) (hvw : v ~[l] w) : t + v ~[l] u + w := by
-  simp only [IsEquivalent, add_sub_add_comm]
-  change (fun x ↦ (t - u) x + (v - w) x) =o[l] (fun x ↦ u x + w x)
-  conv => enter [3, x]; rw [← (abs_eq_self).mpr (hu x), ← (abs_eq_self).mpr (hw x)]
-  simpa only [← Real.norm_eq_abs] using Asymptotics.IsLittleO.add_add htu hvw
-
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
     {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
     t ^ r ~[l] u ^ r := by
@@ -126,8 +103,7 @@ noncomputable def choice {α : Type*} (s : Set α) [Countable s] : FiniteExhaust
       · exact fun n ↦ Set.Finite.image _ (Set.finite_le_nat n)
       · intro n
         simp only [Function.comp_apply]
-        apply Set.image_subset
-        intro _ h
+        refine Set.image_mono fun _ h ↦ ?_
         simp [le_trans h (Nat.le_succ _)]
       · simp [← Set.image_image, ← Set.image_iUnion, Set.iUnion_le_nat, Set.range_eq_univ.mpr hf]
     · refine ⟨fun _ ↦ ∅, by simp [Set.Finite.to_subtype], fun n ↦ by simp, ?_⟩
