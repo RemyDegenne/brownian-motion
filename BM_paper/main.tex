@@ -67,12 +67,10 @@ Concise abstract.
 
 \begin{document}
 
-
-
 \section{Introduction}
 
 \subsection{Mathematical background}
-\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
+\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theory, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
 Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and if $X_0=0$):
 \begin{itemize}
@@ -82,7 +80,7 @@ Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several
 \item It describes a fair game (usually denoted a martingale), i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; interestingly, it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are martingales;
 \item It has continuous paths (almost surely); more precisely, it has Hölder-continuous paths for any coefficient $\beta < \tfrac 12$; as a consequence, its paths are nowhere differentiable, almost surely;
 \end{itemize}
-The goal of the present paper is to describe a formalization project of Brownian Motion using Lean, building on its mathematical library. Since Mathlib has a decent amount of measure theory already included, but is still lacking some fundamentals, we describe our way to a full formalization using the following steps:
+The goal of the present paper is to describe a formalization project of Brownian Motion using Lean \cite{lean}, building on its mathematical library. Since Mathlib \cite{mathlib} has a decent amount of measure theory already included, but is still lacking some fundamentals, we describe our way to a full formalization using the following steps:
 \begin{itemize}
 \item {\em The Carathéodory and Kolmogorov Extension Theorems:} Constructing a probability measure on an uncountable infinite product (i.e.\ the distribution of a stochastic process) is not straight-forward, since the corresponding product of $\sigma$-algebras is too large. Rather, one uses the $\sigma$-algebra defined by all finite (or countably infinite) projections, and constructs a probability measure by extension from all finite dimensional possibilities, which is the content of the Kolmogorov Extension Theorem. This result is in fact an application of a more general result, the Carathèodory Extension Theorem. In this step, we need that the family of finite dimensional distirbutions has a consistency property (i.e.\ it forms a projective family).
 \item {\em Gaussian Measures and characteristic functions:} Defining a one-dimensional normal distribution is straight-forward using its density with respect to Lebesgue measure, and concrete calulations are often possible using the density. In the multi-dimensional case, which we have to work with extensively, it is often much more convenient to use characteristic functions, which are known to characterize probability measures uniquely. In particular, they can be used to show that linear maps (e.g.\ projections) of Gaussian measures are Gaussian. This approach is fundamental to show that finite dimensional distirbutions of Brownian Motion indeed form a projective family.
@@ -91,62 +89,41 @@ The goal of the present paper is to describe a formalization project of Brownian
 \end{itemize}
 It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths). We account for this duality in our code by introducing in the assumptions that a certain law is required.
 
-
 \subsection{Related work}
+In the literature, there are some formalizations of stochastic processes. Within Isabelle/HOL, the Kolmogorov extension theorem has been previously formalized \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where the state spaces for all times are identical. As for the Kolmogorov-Chentson-Theorem (showing continuity of paths), there is an Isabelle/HOL formalization as well \cite{Kolmogorov_Chentsov-AFP}. It uses the index set  $\R_+$ (rather than a more general type) with the usual dyadics proof, as e.g. outlined in \cite{kallenberg2021}. Last,
+Brownian motion in implemented in Isabelle/HOL at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github}). As the authors say, dependent type theory would have facilitated their work in places.
 
-There is an Isabelle/HOL formalization of a Kolmogorov-Chentsov theorem (for the index set $\R_+$ with the dyadics proof, not in a more general metric space) \cite{Kolmogorov_Chentsov-AFP}.
+For the Lean theorem prover, \cite{ying2023formalization} formalized martingales (see e.g.\ \cite{kallenberg2021}) and was the first implementation of stochastic processes. In our work, however, we do not touch martingales, and rather build on implementations of measure theory, as implemented in \cite{mathlib}. We benefitted from recent efforts to write code and a description of the proofs using the blueprint tool \cite{Monticone_LeanProject_2025}.
 
-Brownian motion in Isabelle/HOL: \cite{laursen2024brownian}.
-Code at \href{https://github.com/cplaursen/Brownian_Motion}{https://github.com/cplaursen/Brownian\_Motion}. There are several \lstinline|sorry| in the code? The paper looks done but the code seems to be a work in progress.
+\section{The formalization}
+Let us start with our notation. Any stochastic process has an index set $\iota$ (usually denoted {\em time}, usually uncountably infinite), and a state space. Since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $\alpha t$. Probability measures are denoted $P_.$.
 
-There is a Kolmogorov extension theorem in Isabelle/HOL \cite{Immler2012}. See also \cite{holzl2017markov} ?
-
-
-
-\nocite{durrett2019probability}
-\nocite{wiener1923differential}
-\nocite{Kolmogorov_Chentsov-AFP}
-\nocite{Monticone_LeanProject_2025}
-\nocite{}
-\nocite{}
-
-
-
-lean
-mathlib
-hairer2009introduction
-kratschmer2023kolmogorov
-talagrand2022upper
-kallenberg2021
-laursen2024brownian
-Immler2012
-ying2023formalization
-kolmogoroff1933grundbegriffe
-einstein1906theory
-
-
-\subsection{Our contributions}
-
-TODO:
-\begin{itemize}
-  \item A theory of Gaussian distributions
-  \item The Kolmogorov extension theorem
-  \item A recent and general version of the Kolmogorov-Chentsov theorem, following \cite{kratschmer2023kolmogorov}
-  \item A construction of a Brownian motion and a Wiener measure on $\R_+$
-\end{itemize}
+All references to results in \lstinline|mathlib| are accurate for commit {\tt xxx}, August 22, 2025.
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
+The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq \iota$.
+The resulting family of probability measures $(P_J)_{J \subseteq \iota \text{ finite}}$ has to be {\em projective} in the sense that the projection of $P_J$ to $H\subseteq J$ has to be equal to $P_H$. In other words, when describing the distribution of the stochastic process at all times in $J$, and then forgetting all properties for times in $J\setminus H$, results in the description of properties at times in $H$. One may then ask if this already gives a complete description of the process for all times.
+
+It is the achievement of Kolmogorov that these finite-dimensional distributions in fact provide a unique description of the distribution of a stochastic process, even if $\iota$ is uncountable, as long as the underlying family of state spaces $(\alpha_t)_{t\in\iota}$ is nice enough (Polish, i.e.\ a separable topological space which can be metrized by a complete metric, for example) \cite{kolmogoroff1933grundbegriffe}.
+The resulting measure is defined on the product-$\sigma$-field $\mathcal F :=\bigotimes_{t\in\iota} \mathcal B(\alpha_t)$ (where $\mathcal B(\alpha_t)$ is the Borel $\sigma$-algebra on $\alpha_t$). Here, $\mathcal F$ is generated by finite projections and hence any element of $\mathcal F$ may only depend on at most countably many $t\in \iota$, making this a rather coarse $\sigma$-algebra. (In particular, note that this is not the Borel $\sigma$-algebra of the product topology for infinite $\iota$.)
+
+The Kolmogorov extension theorem is on the interface between measure theory and probability theory. Here, we rely on a decent amount of formalized mathematics in the measure-theory part of {\tt mathlib} (outer measures, above all), while not requiring any specific previous formalization of probability theory. (In fact, most of our results are formulated in terms of finite rather than probability measures.)
+
+We start by stating the exact result. We are going to formulate the main result in a modern fashion, as e.g.\ found in Theorem 2.2 of \cite{rao1971projective}, Theorem 7.7.1 of Volume~2 of \cite{bogachev2007measure}, Theorem 15.26 of \cite{guide2006infinite}, or \cite{border1998expository}. Note that these formulations split general assumptions on the underlying space(s) (e.g.\ a metric property) from the property which is needed in the proof (inner regularity with respect to compact sets). Other -- highly readable -- references such as \cite{Billingsley1995} state the extension theorem only in special cases such as $\alpha_t = \mathbb R$ for all $t$.
+
 
 \subsection{Gaussian Measures and characteristic functions}
+\cite{hairer2009introduction}
 
 \subsection{The Kolmogorov-Chentsov Theorem}
+\cite{kratschmer2023kolmogorov}
+\cite{talagrand2022upper}
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 
 
 
-\subsection{Acknowledgements}
-
+\section{Acknowledgements}
 Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
 
 Blueprint: Patrick Massot (citation?)
@@ -159,13 +136,22 @@ Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
 
 \end{document}
 
-One of the main building blocks of modern probability theory are stochastic processes, which are usually defined as any collection of random variables -- $(X_t)_{t\in \iota}$ with $X_t$ taking values in some $\alpha_t$ for all $t\in\iota$ -- defined on some joint probability space $(\Omega, \mathcal A, \mathbf P)$.  (As usual, we will refer to $\iota$ as the index set of times.) In order to study such processes, it is fundamental to talk about their joint distribution, i.e.\ a probability distribution on the product set $\prod_{t\in\iota} \alpha_t$. The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq \iota$.
-The resulting family of probability measures $(P_J)_{J \subseteq \iota \text{ finite}}$ has to be {\em projective} in the sense that the projection of $P_J$ to $H\subseteq J$ has to be equal to $P_H$. In other words, when describing the distribution of the stochastic process at all times in $J$, and then forgetting all properties for times in $J\setminus H$, results in the description of properties at times in $H$. One may then ask if this already gives a complete description of the process for all times.
-For uncountable $\iota$, e.g. $\iota = [0,\infty)$, one is tempted to be pessimistic at first sight since measures -- which describe the distribution of the stochastic process -- usually only deal well with a countable number of measurable events. However, it is the achievement of Kolmogorov that the finite-dimensional distributions in fact provide a unique description of the distribution of a stochastic process, as long as the underlying family of state spaces $(\alpha_t)_{t\in\iota}$ is nice enough (Polish, i.e.\ a separable topological space which can be metrized by a complete metric, for example).
-Assuming a family of topological spaces $(\alpha_t)_{t\in\iota}$, this distribution is a measure on the product-$\sigma$-field $\mathcal F :=\bigotimes_{t\in\iota} \mathcal B(\alpha_t)$ (where $\mathcal B(\alpha_t)$ is the Borel $\sigma$-algebra on $\alpha_t$). Here, $\mathcal F$ is generated by finite projections and hence any element of $\mathcal F$ may only depend on at most countably many $t\in \iota$, making this a rather coarse $\sigma$-algebra. (In particular, note that this is not the Borel $\sigma$-algebra of the product topology for infinite $\iota$.) The result responsible for this insight is usually denoted the {\em Kolmogorov extension theorem}, formulated in \cite{kolmogoroff1933grundbegriffe}. We note that a version of the extension result was proved by Daniell in the 1930s, but this paper was not acknowledged by the probabilists of that time \cite{aldrich2007but}. Due to his contribution, the theorem is often called the {\em Daniell-Kolmogorov extension}.
+One of the main building blocks of modern probability theory are stochastic processes, which are usually defined as any collection of random variables -- $(X_t)_{t\in \iota}$ with $X_t$ taking values in some $\alpha_t$ for all $t\in\iota$ -- defined on some joint probability space $(\Omega, \mathcal A, \mathbf P)$.  (As usual, we will refer to $\iota$ as the index set of times.) In order to study such processes, it is fundamental to talk about their joint distribution, i.e.\ a probability distribution on the product set $\prod_{t\in\iota} \alpha_t$.
 
-The goal of our contribution is a formalization of the proof of that theorem in {\tt Lean}. We are using \leanline{Lean4}\cite{moura2021lean} and its mathematical library \leanline{mathlib} \cite{mathlib2020lean}\footnote{All references to results in \leanline{mathlib} are accurate for commit {\tt 537e7f030d6df737d728c7c002fb1928f4615afa}, August 22, 2023.}.
-The Kolmogorov extension theorem is on the interface between measure theory and probability theory. Here, we rely on a decent amount of formalized mathematics in the measure-theory part of {\tt mathlib} (outer measures, above all), while not requiring any specific previous formalization of probability theory. (In fact, most of our results are formulated in terms of finite rather than probability measures.)
+
+
+
+
+
+
+
+
+We note that a version of the extension result was proved by Daniell in the 1930s, but this paper was not acknowledged by the probabilists of that time \cite{aldrich2007but}. Due to his contribution, the theorem is often called the {\em Daniell-Kolmogorov extension}.
+
+The goal of our contribution is a formalization of the proof of that theorem in {\tt Lean}. We are using \leanline{Lean4}\cite{moura2021lean} and its mathematical library \leanline{mathlib} \cite{mathlib2020lean}
+
+
+
 
 The main steps in our construction, which were previously missing in {\tt mathlib}, are (more mathematical details are below, and in standard textbooks on Probability Theory, e.g.\ \cite{Klenke2013, Kallenberg2020}):
 \begin{enumerate}
@@ -178,7 +164,6 @@ The main steps in our construction, which were previously missing in {\tt mathli
 \end{enumerate}
 The Kolmogorov extension theorem has been previously formalized in Isabelle/HOL \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where all $\alpha_i$'s are identical. %In addition, Isabelle/HOL works with simple type theory, while Lean is an implementation of dependent type theory.
 
-We start by stating the exact result. We are going to formulate the main result in a modern fashion, as e.g.\ found in Theorem 2.2 of \cite{rao1971projective}, Theorem 7.7.1 of Volume~2 of \cite{bogachev2007measure}, Theorem 15.26 of \cite{guide2006infinite}, or \cite{border1998expository}. Note that these formulations split general assumptions on the underlying space(s) (e.g.\ a metric property) from the property which is needed in the proof (inner regularity with respect to compact sets). Other -- highly readable -- references such as \cite{Billingsley1995} state the extension theorem only in special cases such as $\alpha_t = \mathbb R$ for all $t$.
 %In addition, there are still new proofs found for the general extension theorem \cite{chin2019new}, but they require some results not yet formalized in mathlib (Borel isomorphism of $\mathbb R$ to $\{0,1\}^{\mathbb N}$), so we do not follow this route.
 
 
