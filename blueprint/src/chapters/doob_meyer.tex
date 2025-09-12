@@ -196,7 +196,7 @@ A^n_t
 
 \begin{definition}[M]\label{def:M}
   \uses{def:A}
-For $t\in\mathcal{D}_n^T$, define $M^N_t = S_t-A^n_t$~.
+For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{definition}
 
 
@@ -231,26 +231,50 @@ For $t\in\mathcal{D}_n^T$, define $M^N_t = S_t-A^n_t$~.
 \end{proof}
 
 
+\begin{definition}\label{def:hittingAGT}
+  \uses{def:A}
+Let $c>0$. Define the hitting time on $\mathcal{D}^T_n$
+\begin{align*}
+  \tau_n(c)
+  &= \inf\{t \in \mathcal{D}^T_n \mid A^n_{t + 2^{-n}T} > c\} \wedge T
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsStoppingTime_hittingAGT}
+  \uses{def:IsStoppingTime,def:hittingAGT}
+  $\tau_n(c)$ is a stopping time.
+\end{lemma}
+
+\begin{proof}
+Since $A^n_{t}$ is predictable, $A^n_{t + 2^{-n}T}$ is adapted.
+The stopping time of an adapted process is a stopping time.
+\end{proof}
+
+
 \begin{lemma}\label{lem:A_uniform_integrable}
-  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale, def:A}
+  \uses{def:A}
   The sequence $(A^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale,lem:IsStoppingTime_hittingAGT}
   WLOG $S_T=0$ and $S_t\leq 0$ (else consider $S_t-\mathbb{E}\left[S_T\vert\mathcal{F}_{t}\right]$).
 
   We have that $0=S_T=M^n_T+A^n_T$. Thus
   \begin{equation}\label{equation_DM_e1}
   M^n_T=-A^n_T.
   \end{equation}
-  Since $M^n$ is a martingale it follows by optimal sampling that for any $(\mathcal{F}_t)_{t\in\mathcal{D}_n}$ stopping time $\tau$
+  Since $M^n$ is a martingale it follows by optional sampling that for any $(\mathcal{F}_t)_{t\in\mathcal{D}_n}$ stopping time $\tau$
   \begin{equation}\label{equation_DM_e2}
   S_\tau=M^n_\tau+A^n_\tau = \mathbb{E}[M^n_T\vert\mathcal{F}_\tau]+A^n_\tau\stackrel{\eqref{equation_DM_e1}}{=} -\mathbb{E}[A^n_T\vert\mathcal{F}_\tau]+A^n_\tau.
   \end{equation}
-  Let $c>0$. Define the last time when $A^n$ has always been inside $[0,c]$, by the Début Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
-  $$
-  \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
-  $$
+  Let $c>0$. By Lemma~\ref{lem:IsStoppingTime_hittingAGT}, $\tau_n(c)$ (Definition~\ref{def:hittingAGT}) is a stopping time.
+  % Define the last time when $A^n$ has always been inside $[0,c]$, by the Début Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
+  % $$
+  % \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
+  % $$
   By construction $A^n_{\tau_n(c)}\leq c$. It follows that
   \begin{equation}\label{equation_DM_e3}
   S_{\tau_n(c)}\stackrel{\eqref{equation_DM_e2}}{=}-\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+A^n_{\tau_n(c)}\leq -\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+c.
@@ -279,18 +303,22 @@ For $t\in\mathcal{D}_n^T$, define $M^N_t = S_t-A^n_t$~.
   This implies that $\int_{(A^n_T>c)}A^n_TdP$ is uniformly bounded in $n$ due to the fact that $S$ is of class $D$. And so also the $L^1$ norm is uniformly bounded.
 \end{proof}
 
-\begin{lemma}\label{lem:M_uniform_integrabl}
+
+\begin{lemma}\label{lem:M_uniform_integrable}
   The sequence $(M^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
+
 \begin{proof}
   \uses{lem:A_uniform_integrable}
   $M^n_T=S_T-A^n_T$, also $S$ is of class $D$ and $A^n_T$ is uniformly integrable.
 \end{proof}
 
+
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_limsup_ineq}
   If $f_n, f : [0, 1] \rightarrow \mathbb{R}$ are increasing functions such that $f$ is right continuous and
   $\lim_n f_n(t) = f (t)$ for $t \in\mathcal{D}^T$, then  $\limsup_n  f_n(t) \leq f (t)$ for all $t \in [0, T]$.
 \end{lemma}
+
 \begin{proof}
   Let $t\in[0,T]$ and $s\in\mathcal{D}^T$ such that $t<s$. We have
   $$
@@ -302,10 +330,12 @@ For $t\in\mathcal{D}_n^T$, define $M^N_t = S_t-A^n_t$~.
   $$
 \end{proof}
 
+
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_lim_eq}
   If $f_n, f : [0, 1] \rightarrow \mathbb{R}$ are increasing functions such that $f$ is right continuous and
   $\lim_n f_n(t) = f (t)$ for $t \in\mathcal{D^T}$, if $f$ is continuous in $t\in[0,T]$ then $\lim_n  f_n(t) = f (t)$.
 \end{lemma}
+
 \begin{proof}
   \uses{lem:incr_fun_lim_right_cont_limsup_ineq}
   By lemma \ref{lem:incr_fun_lim_right_cont_limsup_ineq} it is enough to show that $\liminf_n f_n(t)\geq f(t)$.
@@ -324,19 +354,21 @@ Define $M^n_t$ on $[0,T]$ using $M^n_t=\mathbb{E}[M^n_T\vert\mathcal{F}_t]$.
 \begin{lemma}\label{lem:M_n_cadlag_mg}
   $M^n_t$ admits a modification which is a cadlag martingale.
 \end{lemma}
+
 \begin{proof}
   \uses{lem:mg_is_cadlag}
   By theorem \ref{lem:mg_is_cadlag}
 \end{proof}
 
 From this point onwards $M^n_t$ will be redefined as the modification from lemma \ref{lem:M_n_cadlag_mg}.
+
 \begin{lemma}\label{lem:M_cal_converges_L1}
   There are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
   $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_uniform_integrabl,lem:komlos}
-  By lemma \ref{lem:M_uniform_integrabl} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
+  \uses{lem:M_uniform_integrable,lem:komlos}
+  By lemma \ref{lem:M_uniform_integrable} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
   $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
 \end{proof}
 
