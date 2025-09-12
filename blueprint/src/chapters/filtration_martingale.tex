@@ -1,10 +1,26 @@
 \chapter{{Filtrations, processes and martingales}}\label{chap:filtration_martingale}
 
 
-First, recall the definitions of a (sub)martingale, a stopping time and a stopped process, which are already in Mathlib.
+First, recall the definitions of a filtration, an adapted process, a (sub)martingale, a stopping time and a stopped process, which are already in Mathlib.
+
+
+\begin{definition}[Filtration]\label{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.Filtration}
+A filtration on a measurable space $(\Omega, \mathcal{A})$ with measure $P$ indexed by a preordered set $T$ is a family of sigma-algebras $\mathcal{F} = (\mathcal{F}_t)_{t \in T}$ such that for all $i \le j$, $\mathcal{F}_i \subseteq \mathcal{F}_j$ and for all $t \in T$, $\mathcal{F}_t \subseteq \mathcal{A}$.
+\end{definition}
+
+
+\begin{definition}\label{def:adapted}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.Adapted}
+A process $X : T \to \Omega \to E$ is said to be adapted with respect to a filtration $\mathcal{F}$ if for all $t \in T$, $X_t$ is $\mathcal{F}_t$-measurable.
+\end{definition}
 
 
 \begin{definition}[Martingale]\label{def:Martingale}
+  \uses{def:adapted}
   \mathlibok
   \lean{MeasureTheory.Martingale}
 Let $\mathcal{F}$ be a filtration on a measurable space $\Omega$ with measure $P$ indexed by $T$.
@@ -13,6 +29,7 @@ A family of functions $M : T \to \Omega \to E$ is a martingale with respect to a
 
 
 \begin{definition}[Submartingale]\label{def:Submartingale}
+  \uses{def:adapted}
   \mathlibok
   \lean{MeasureTheory.Submartingale}
 Let $\mathcal{F}$ be a filtration on a measurable space $\Omega$ with measure $P$ indexed by $T$.
@@ -21,6 +38,7 @@ A family of functions $M : T \to \Omega \to E$ is a submartingale with respect t
 
 
 \begin{definition}[Stopping time]\label{def:IsStoppingTime}
+  \uses{def:filtration}
   \mathlibok
   \lean{MeasureTheory.IsStoppingTime}
 A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is a function $\tau : \Omega \to T$ such that for all $i$, the preimage of $\{j \mid j \le i\}$ along $\tau$ is measurable with respect to $\mathcal{F}_i$.
@@ -45,6 +63,7 @@ We now give the definition of a filtered probability space satisfying the usual 
 
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
+  \uses{def:filtration}
 For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define $\mathcal{F}^+_t = \bigcap_{s > t} \mathcal{F}_s$.
 We say that the filtration is right-continuous if for all $t \in T$, $\mathcal{F}_t = \mathcal{F}^+_t$.
 \end{definition}
@@ -57,5 +76,6 @@ We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies th
 
 
 \begin{definition}[Predictable process]\label{def:predictable}
+  \uses{def:filtration}
 TODO
 \end{definition}
