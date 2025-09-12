@@ -37,7 +37,7 @@ $D$ is the class of all adapted processes $(S_t )_{0\leq t\leq T}$ such that $S_
   Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
 \end{lemma}
 \begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,em:martingale_exists_dyadic_limit_left}
+  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
   See 8.2.3 of Pascucci.
 \end{proof}
 
@@ -46,7 +46,7 @@ $D$ is the class of all adapted processes $(S_t )_{0\leq t\leq T}$ such that $S_
   Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
 \end{lemma}
 \begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,em:martingale_exists_dyadic_limit_left}
+  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
   See 8.2.3 of Pascucci.
 \end{proof}
 
@@ -174,7 +174,7 @@ M^N_t&=S_t-A^n_t.
   \begin{equation}\label{equation_DM_e2}
   S_\tau=M^n_\tau+A^n_\tau = \mathbb{E}[M^n_T\vert\mathcal{F}_\tau]+A^n_\tau\stackrel{\eqref{equation_DM_e1}}{=} -\mathbb{E}[A^n_T\vert\mathcal{F}_\tau]+A^n_\tau.
   \end{equation}
-  Let $c>0$. Define the last time when $A^n$ has always been inside $[0,c]$, by the Debùt Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
+  Let $c>0$. Define the last time when $A^n$ has always been inside $[0,c]$, by the Début Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
   $$
   \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
   $$
