@@ -227,11 +227,16 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 
 \begin{proof}
   \uses{def:Submartingale}
-  $S$ is a submartingale.
+$S$ is a submartingale:
+\begin{align*}
+  A^n_{t+T2^{-n}} - A^n_t
+  &= \mathbb{E}\left[ S_{t+T2^{-n}}-S_t|\mathcal{F}_t\right] \ge 0
+  \: .
+\end{align*}
 \end{proof}
 
 
-\begin{definition}\label{def:hittingAGT}
+\begin{definition}[Hitting time for $A$]\label{def:hittingAGT}
   \uses{def:A}
 Let $c>0$. Define the hitting time on $\mathcal{D}^T_n$
 \begin{align*}
@@ -249,7 +254,28 @@ Let $c>0$. Define the hitting time on $\mathcal{D}^T_n$
 
 \begin{proof}
 Since $A^n_{t}$ is predictable, $A^n_{t + 2^{-n}T}$ is adapted.
-The stopping time of an adapted process is a stopping time.
+The hitting time of an adapted process is a stopping time (we use the discrete time version of that result here, not the full Début theorem).
+\end{proof}
+
+
+\begin{lemma}\label{lem:A_hittingAGT_le}
+  \uses{def:hittingAGT}
+$A^n_{\tau_n(c)} \le c$ and if $\tau_n(c) < T$ then $A^n_{\tau_n(c)+T2^{-n}} > c$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:A_hittingAGT_sub_ge}
+  \uses{def:hittingAGT}
+Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} - A^n_{\tau_n(a)} \ge b - a$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:A_hittingAGT_le}
+
 \end{proof}
 
 
@@ -259,7 +285,7 @@ The stopping time of an adapted process is a stopping time.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale,lem:IsStoppingTime_hittingAGT}
+  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale,lem:IsStoppingTime_hittingAGT,lem:A_hittingAGT_sub_ge}
   WLOG $S_T=0$ and $S_t\leq 0$ (else consider $S_t-\mathbb{E}\left[S_T\vert\mathcal{F}_{t}\right]$).
 
   We have that $0=S_T=M^n_T+A^n_T$. Thus
@@ -286,8 +312,13 @@ The stopping time of an adapted process is a stopping time.
   \end{align}
   Now we notice that $(\tau_n(c)<T)\subseteq (\tau_n(c/2)<T)$, thus
   \begin{align}\nonumber
-  \int_{\tau_n(c/2)<T}-S_{\tau_n(c/2)}dP&\stackrel{\eqref{equation_DM_e2}}{=}\int_{(\tau_n(c/2))<T}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c/2)}]-A^n_{\tau_n(c/2)}dP\\
-  &\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c/2)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\geq \int_{(\tau_n(c)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber\\
+  \int_{\tau_n(c/2)<T}-S_{\tau_n(c/2)}dP
+  &\stackrel{\eqref{equation_DM_e2}}{=}\int_{(\tau_n(c/2))<T}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c/2)}]-A^n_{\tau_n(c/2)}dP \nonumber
+  \\
+  &\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c/2)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
+  \\
+  &\geq \int_{(\tau_n(c)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
+  \\
   \intertext{(over the event $(\tau_n(c)<T)$ $A^n_T\geq c$ and $A^n_{\tau_n(c/2)}\leq c/2$, thus $A^n_T-A^n_{\tau_n(c/2)}\geq c/2$)}
   &\geq \frac{c}{2}P(\tau_n(c)<T).\label{equation_DM_e5}
   \end{align}
