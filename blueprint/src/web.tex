@@ -10,6 +10,7 @@
 \usepackage{hyperref}
 \usepackage[showmore, dep_graph]{blueprint}
 
+\newcommand{\putbib}{} % we are using bibunits in print.tex, but not here
 
 \input{macros/common}
 \input{macros/web}
@@ -26,4 +27,8 @@
 \begin{document}
 \maketitle
 \input{content}
+
+\bibliographystyle{amsalpha}
+\bibliography{bib}
+
 \end{document}
