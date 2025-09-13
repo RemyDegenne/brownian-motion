@@ -70,7 +70,7 @@ Concise abstract.
 \section{Introduction}
 
 \subsection{Mathematical background}
-\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theory, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
+\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
 Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and if $X_0=0$):
 \begin{itemize}
@@ -109,10 +109,20 @@ The resulting measure is defined on the product-$\sigma$-field $\mathcal F :=\bi
 
 The Kolmogorov extension theorem is on the interface between measure theory and probability theory. Here, we rely on a decent amount of formalized mathematics in the measure-theory part of {\tt mathlib} (outer measures, above all), while not requiring any specific previous formalization of probability theory. (In fact, most of our results are formulated in terms of finite rather than probability measures.)
 
-We start by stating the exact result. We are going to formulate the main result in a modern fashion, as e.g.\ found in Theorem 2.2 of \cite{rao1971projective}, Theorem 7.7.1 of Volume~2 of \cite{bogachev2007measure}, Theorem 15.26 of \cite{guide2006infinite}, or \cite{border1998expository}. Note that these formulations split general assumptions on the underlying space(s) (e.g.\ a metric property) from the property which is needed in the proof (inner regularity with respect to compact sets). Other -- highly readable -- references such as \cite{Billingsley1995} state the extension theorem only in special cases such as $\alpha_t = \mathbb R$ for all $t$.
+We are going to formulate the main result in a modern fashion, as e.g.\ found in Theorem 2.2 of \cite{rao1971projective}, Theorem 7.7.1 of Volume~2 of \cite{bogachev2007measure}, Theorem 15.26 of \cite{guide2006infinite}, or \cite{border1998expository}. Note that these formulations split general assumptions on the underlying space(s) (e.g.\ a metric property) from the property which is needed in the proof (inner regularity with respect to compact sets). Other -- highly readable -- references such as \cite{Billingsley1995} state the extension theorem only in special cases such as $\alpha_t = \mathbb R$ for all $t$.
 
 
 \subsection{Gaussian Measures and characteristic functions}
+Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $C_{ij} = t_i \wedge t_j$. In order to do so, we rely on (i) the implementation of the one-dimensional normal distribution (xxx ref to mathlib) and characteristic functions of probability (or finite) measures.
+
+For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (xxx ref to mathlib). For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$. Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$. In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ (xxx ref to mathlib) and there is the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the caracteristic function $$\psi_{f_\ast N(0,I_n)}(t) = \int e^{it^\top x} f_\ast N(0,I_n) dx = \int e^{it^\top A x} N(0,I_n) dx = \exp\big( - \tfrac 12 t^\top C t\big).$$ Using the same transformation, we can show that Gaussian measures are closed under linear maps.
+
+So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite. For this, we rely on Gram matrices, which are based on inner product spaces. In such a space $E$ (with scalar product $\langle .,. \rangle$), and $v_i,...,v_n \in E$, define $C_{ij} := \langle v_i, v_j\rangle$. Then, for $t :=(t_1,...,t_n) \in \R^n$,
+$$ t^\top C t = \sum_{i,j} t_i \langle v_i, v_j\rangle t_j = \Big\langle \sum_i t_i v_i, \sum_j t_j v_j\Big\rangle \geq 0.$$
+Let $v_i = 1_{[0,t_i]}$ in the space of $L^2$ integrable functions with respect to Lebesgue integral. Then,
+$$ \langle v_i, v_j \rangle = \int 1_{[0,t_i]}(x) 1_{[0,t_j]}(x) dx = \int 1_{[0,t_i \wedge t_j]}(x) dx = t_i \wedge t_j.$$
+So, $C$ from above is a Gram matrix, which is non-negative definite by general theory, and we have constructed the finite dimensional distributions for Brownian motion.
+
 \cite{hairer2009introduction}
 
 \subsection{The Kolmogorov-Chentsov Theorem}
@@ -120,7 +130,7 @@ We start by stating the exact result. We are going to formulate the main result 
 \cite{talagrand2022upper}
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
-
+projective property of fdds and an application of Chentsov.
 
 
 \section{Acknowledgements}
