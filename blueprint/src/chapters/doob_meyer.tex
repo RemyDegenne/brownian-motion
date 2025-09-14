@@ -533,22 +533,26 @@ Define
 
 
 
-\begin{lemma}\label{lem:IsLocalMartingale.local_doobMeyerClass}
-  \uses{def:IsLocalMartingale, def:Doob_Meyer_class}
-Every local martingale is locally of class D.
+\begin{lemma}\label{lem:IsLocalSubmartingale.local_doobMeyerClass}
+  \uses{def:IsLocalSubmartingale, def:Doob_Meyer_class}
+Every local submartingale $X$ with $X_0 = 0$ is locally of class D.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:local_induction}
+By Lemma~\ref{lem:local_induction}, it suffices to show that if $X$ is a submartingale with $X_0=0$ then it is locally of class D.
+
+TODO
 \end{proof}
 
 
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
+  \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
 An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
 The processes $M$ and $A$ are uniquely determined by $X$ a.s.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:IsLocalMartingale.local_doobMeyerClass, thm:Doob_Meyer}
+  \uses{lem:IsLocalSubmartingale.local_doobMeyerClass, thm:Doob_Meyer}
 
 \end{proof}

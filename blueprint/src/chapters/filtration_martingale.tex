@@ -122,32 +122,117 @@ Then $X$ is predictable if and only if $X_0$ is $\mathcal{F}_0$-measurable and f
 
 
 
-\begin{definition}[Localizing Sequence]\label{def:localizingSequence}
+\begin{definition}[Localizing sequence]\label{def:localizingSequence}
   \uses{def:IsStoppingTime}
 A localizing sequence is a sequence of stopping times $(\tau_n)_{n \in \mathbb{N}}$ such that $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.).
 \end{definition}
 
 
-We say that a stochastic process $X : \mathbb{R}_+ \to \Omega \to E$ satisfies a property locally if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $X^{\tau_n}$ satisfies that property.
-
-
-\begin{lemma}[Local implication from global implication]\label{lem:local_induction}
+\begin{lemma}\label{lem:localizingSequence_min}
   \uses{def:localizingSequence}
-Let $p, q : (\mathbb{R}_+ \to \Omega \to E) \to Prop$ be two predicates on stochastic processes such that for all $Y$, $p(Y)$ implies $q(Y)$.
-Let $X : \mathbb{R}_+ \to \Omega \to E$ be a stochastic process that satisfies $p$ locally.
-Then $X$ satisfies $q$ locally.
-In short, if $p$ implies $q$, then $p$ locally implies $q$ locally.
+Let $(\sigma_n), (\tau_n)$ be localizing sequences.
+Then $(\sigma_n \wedge \tau_n)$ is a localizing sequence.
 \end{lemma}
 
 \begin{proof}
-  \uses{def:stoppedProcess}
-By assumption there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $p(X^{\tau_n})$ holds. Since $p(X^{\tau_n})$ implies $q(X^{\tau_n})$, we conclude that $q(X^{\tau_n})$ holds for all $n \in \mathbb{N}$.
+
+\end{proof}
+
+
+\begin{definition}[Local property]\label{def:localProperty}
+  \uses{def:localizingSequence, def:stoppedProcess}
+Let $P$ be a class of stochastic processes (or equivalently a predicate on stochastic processes).
+We say that a stochastic process $X : \mathbb{R}_+ \to \Omega \to E$ is locally in $P$ (or satisfies $P$ locally) if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $X^{\tau_n}$ is in $P$.
+We denote the class of processes that are locally in $P$ by $P_{\mathrm{loc}}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:implies_localProperty}
+  \uses{def:localProperty}
+For any class of processes $P$, we have $P \subseteq P_{\mathrm{loc}}$.
+\end{lemma}
+
+\begin{proof}
+Take $\tau_n = \infty$ for all $n$.
+\end{proof}
+
+
+\begin{definition}\label{def:stable}
+  \uses{def:localProperty}
+A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then for any stopping time $\tau$, the stopped process $X^{\tau}$ is also in $P$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:localProperty_inter}
+  \uses{def:localProperty, def:stable}
+If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\mathrm{loc}}\cap Q_{\mathrm{loc}}$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:localProperty_mono}
+  \uses{def:localProperty}
+If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
+\end{lemma}
+
+\begin{proof}
+Let $X \in P_{\mathrm{loc}}$.
+Then there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n} \in P$.
+Since $P \subseteq Q$, for all $n \in \mathbb{N}$, $X^{\tau_n} \in Q$.
+Thus $X \in Q_{\mathrm{loc}}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:localProperty_localProperty}
+  \uses{def:localProperty, def:stable}
+For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}} = P_{\mathrm{loc}}$.
+\end{lemma}
+
+\begin{proof}
+Let $X$ be a process in $(P_{\mathrm{loc}})_{\mathrm{loc}}$.
+By definition there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}$ is in $P_{\mathrm{loc}}$.
+By definition of $P_{\mathrm{loc}}$, for each $n$ there exists a localizing sequence $(\sigma_{n,k})_{k \in \mathbb{N}}$ such that for all $k \in \mathbb{N}$, $(X^{\tau_n})^{\sigma_{n,k}}$ is in $P$.
+
+For each $n$, since $\sigma_{n,k} \to \infty$ a.s. as $k \to \infty$, we may choose $k_n \in \mathbb{N}$ such that $P(\sigma_{n,k_n} < \tau_n \wedge n) \le 2^{-n}$.
+Let $\tau'_n = \tau_n \wedge \sigma_{n,k_n}$. $\tau_n' \to \infty$ by the Borel-Cantelli lemma.
+Let $\tau''_n = \inf_{m \ge n} \tau'_m$.
+Then $(\tau''_n)_{n \in \mathbb{N}}$ is a localizing sequence.
+
+It remains to argue that by stability of $P$, $X^{\tau''_n}$ is in $P$ for all $n$.
+Indeed, $X^{\tau''_n} = ((X^{\tau_n})^{\sigma_{n,k_n}})^{\tau''_n}$. $(X^{\tau_n})^{\sigma_{n,k_n}}$ is in $P$ by construction and $P$ is stable.
+\end{proof}
+
+
+\begin{lemma}[Local implication from global implication]\label{lem:local_induction}
+  \uses{def:localProperty, def:stable}
+Let $P, Q$ be two classes of stochastic processes such that $P \subseteq Q_{\mathrm{loc}}$ and $Q$ is stable.
+Let $X$ be a stochastic process that satisfies $P$ locally.
+Then $X$ satisfies $Q$ locally.
+In short, if $P$ implies $Q$ locally, then $P$ locally implies $Q$ locally.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:localProperty_localProperty, lem:localProperty_mono}
+Since $X \in P_{\mathrm{loc}}$, then $X \in (Q_{\mathrm{loc}})_{\mathrm{loc}}$ by assumption and Lemma~\ref{lem:localProperty_mono}.
+By Lemma \ref{lem:localProperty_localProperty}, $(Q_{\mathrm{loc}})_{\mathrm{loc}} = Q_{\mathrm{loc}}$.
+Thus $X \in Q_{\mathrm{loc}}$.
 \end{proof}
 
 
 \begin{definition}[Local martingale]\label{def:IsLocalMartingale}
-  \uses{def:Martingale, def:localizingSequence, def:stoppedProcess}
-A local martingale with respect to a filtration $\mathcal{F}$ on $\Omega$ is a stochastic process $M : \mathbb{R}_+ \to \Omega \to E$ adapted to $\mathcal{F}$ such that there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $M^{\tau_n}$ is a martingale with respect to $\mathcal{F}$.
+  \uses{def:Martingale, def:localProperty}
+A stochastic process is a local martingale if it is locally a martingale in the sense of Definition~\ref{def:localProperty}.
+That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $M^{\tau_n}$ is a martingale.
+\end{definition}
+
+
+\begin{definition}\label{def:IsLocalSubmartingale}
+  \uses{def:Submartingale, def:localizingSequence, def:stoppedProcess}
+A stochastic process is a local submartingale if it is locally a submartingale in the sense of Definition~\ref{def:localProperty}.
+That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $M^{\tau_n}$ is a submartingale.
 \end{definition}
 
 
@@ -157,7 +242,18 @@ Every martingale is a local martingale.
 \end{lemma}
 
 \begin{proof}
-Take $\tau_n = n$.
+  \uses{lem:implies_localProperty}
+This follows from Lemma \ref{lem:implies_localProperty}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:stable_IsMartingale}
+  \uses{def:Martingale, def:stable}
+The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}$ is also a martingale.
+\end{lemma}
+
+\begin{proof}
+TODO: this should already be in Mathlib? I'm sure we have it for submartingales at least.
 \end{proof}
 
 
