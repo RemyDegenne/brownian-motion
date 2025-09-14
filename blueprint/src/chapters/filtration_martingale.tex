@@ -115,3 +115,57 @@ Then $X$ is predictable if and only if $X_0$ is $\mathcal{F}_0$-measurable and f
 \begin{proof}
 
 \end{proof}
+
+
+
+\section{Local martingales}
+
+
+
+\begin{definition}[Localizing Sequence]\label{def:localizingSequence}
+  \uses{def:IsStoppingTime}
+A localizing sequence is a sequence of stopping times $(\tau_n)_{n \in \mathbb{N}}$ such that $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.).
+\end{definition}
+
+
+We say that a stochastic process $X : \mathbb{R}_+ \to \Omega \to E$ satisfies a property locally if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $X^{\tau_n}$ satisfies that property.
+
+
+\begin{lemma}[Local implication from global implication]\label{lem:local_induction}
+  \uses{def:localizingSequence}
+Let $p, q : (\mathbb{R}_+ \to \Omega \to E) \to Prop$ be two predicates on stochastic processes such that for all $Y$, $p(Y)$ implies $q(Y)$.
+Let $X : \mathbb{R}_+ \to \Omega \to E$ be a stochastic process that satisfies $p$ locally.
+Then $X$ satisfies $q$ locally.
+In short, if $p$ implies $q$, then $p$ locally implies $q$ locally.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:stoppedProcess}
+By assumption there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $p(X^{\tau_n})$ holds. Since $p(X^{\tau_n})$ implies $q(X^{\tau_n})$, we conclude that $q(X^{\tau_n})$ holds for all $n \in \mathbb{N}$.
+\end{proof}
+
+
+\begin{definition}[Local martingale]\label{def:IsLocalMartingale}
+  \uses{def:Martingale, def:localizingSequence, def:stoppedProcess}
+A local martingale with respect to a filtration $\mathcal{F}$ on $\Omega$ is a stochastic process $M : \mathbb{R}_+ \to \Omega \to E$ adapted to $\mathcal{F}$ such that there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the stopped process $M^{\tau_n}$ is a martingale with respect to $\mathcal{F}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:Martingale.IsLocalMartingale}
+  \uses{def:IsLocalMartingale}
+Every martingale is a local martingale.
+\end{lemma}
+
+\begin{proof}
+Take $\tau_n = n$.
+\end{proof}
+
+
+\begin{theorem}\label{thm:IsLocalMartingale.eq_zero_of_finiteVariation}
+  \uses{def:IsLocalMartingale}
+Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite variation process, then $M_t = 0$ for all $t$.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
