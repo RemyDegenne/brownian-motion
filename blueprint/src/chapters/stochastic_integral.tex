@@ -201,37 +201,6 @@ The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
 
-\begin{definition}[Local martingale]\label{def:IsLocalMartingale}
-  \uses{def:Martingale, def:IsStoppingTime, def:stoppedProcess}
-Let $\mathcal{F} = (\mathcal{F}_t)_{t \in \mathbb{R}_+}$ be a filtration on a measurable space $\Omega$.
-A local martingale with respect to $\mathcal{F}$ is a stochastic process $M : \mathbb{R}_+ \to \Omega \to E$ adapted to $\mathcal{F}$ such that there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that the following conditions hold:
-\begin{itemize}
-  \item $\tau_n$ is a stopping time for every $n \in \mathbb{N}$,
-  \item $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.),
-  \item for all $n \in \mathbb{N}$, the stopped and centered process $M^{\tau_n} - M_0$ is a martingale with respect to $\mathcal{F}$.
-\end{itemize}
-\end{definition}
-
-
-\begin{lemma}\label{lem:Martingale.IsLocalMartingale}
-  \uses{def:IsLocalMartingale}
-Every martingale is a local martingale.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{theorem}\label{thm:IsLocalMartingale.eq_zero_of_finiteVariation}
-  \uses{def:IsLocalMartingale}
-Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite variation process, then $M_t = 0$ for all $t$.
-\end{theorem}
-
-\begin{proof}
-
-\end{proof}
-
 
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
   \uses{def:IsLocalMartingale}
