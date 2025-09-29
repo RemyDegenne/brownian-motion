@@ -1,5 +1,6 @@
 Manuscript/proof_outline.pdf
 Manuscript/_minted/*
+Manuscript/_minted-proof-outline/*
 BM_paper/main.pdf
 
 ## macOS
@@ -39,3 +40,4 @@ BM_paper/main.pdf
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+*.pygtex

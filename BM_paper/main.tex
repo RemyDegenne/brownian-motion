@@ -126,8 +126,18 @@ So, $C$ from above is a Gram matrix, which is non-negative definite by general t
 \cite{hairer2009introduction}
 
 \subsection{The Kolmogorov-Chentsov Theorem}
-\cite{kratschmer2023kolmogorov}
-\cite{talagrand2022upper}
+Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections. The result states that for a stochastic process $X$ (with $\iota = [0,1])$, assume we find $\alpha, \beta, C > 0$ satisfying
+\begin{align}
+\label{eq:cs}
+  \mathbf E[r(X_s, X_t)^\alpha] \leq C|t-s|^{\beta + 1}, \qquad 0\leq s,t\leq 1.
+\end{align}
+Then there exists $Y = (Y_t)_{t\in [0,1]}$ with $\mathbf P(X_t = Y_t) = 1$ for all $t\in [0,1]$ and $Y$ has almost surely Hölder continuous paths with coefficient $\gamma$ for any $\gamma < \tfrac \beta \alpha$.
+
+In order to see this, set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\in\mathbb N} D_n$. Start by showing summability of $\mathbf P\Big( \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t) \geq 2^{-\gamma n} \Big)$ using \eqref{eq:cs}. By the Borel-Cantelli Lemma, this shows that $\sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t) \leq 2^{-\gamma n}$ holds for $n$ large enough. From this, we see that $X$ is locally Hölder-$\gamma$ continuous on $D$. From here, define some Hölder continuous $Y$ coinciding with $X$ on $D$. Finally, fix $t \in [0,1]$ and $t_1, t_2,...\in D$ with $t_n \xrightarrow{n\to\infty} t$. Using \eqref{eq:cs}, we see that $X_{t_n} \xrightarrow{n\to\infty} X_t$ in probability, as well as $Y_{t_n} \xrightarrow{n\to\infty} Y_t$ almost surely due to continuity of $Y$. Therefore, $X_t = Y_t$ almost surely.
+
+We will use a more general version of this statement, replacing $\iota = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $\iota$. This is based on recent work of \cite{talagrand2022upper} and \cite{kratschmer2023kolmogorov}.
+
+
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 projective property of fdds and an application of Chentsov.
