@@ -6,6 +6,11 @@
 \def\lstlanguagefiles{lstlean.sty}
 \lstset{language=lean}
 
+% \lstset{literate+={α}{{\alpha}}1}
+\lstset{literate+={Ω}{{\Omega}}1}
+\newunicodechar{⋃}{\cup}
+\lstset{literate+={⋃}{{\cup}}1}
+
 %%%Mathematical abbreviations
 \newcommand*{\N}{\mathbb{N}}
 \newcommand*{\Z}{\mathbb{Z}}

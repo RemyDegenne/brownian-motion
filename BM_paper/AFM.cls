@@ -96,7 +96,7 @@
 %%%How to activate the right language
 
 % Minted and listings are incompatible, by default the class used listings. If you need the package minted, you must add the option [minted] when you declare the AFM class like this : \documentclass[minted]{AFM}.
-%  Else, the article will run on listings. If you are using rocq and/or lean, put the name of your language in the option of the class like minted, separated by a comma.
+%  Else, the article will run on listings. If you are using rocq and/or lean, put the name of your language in the option of the class like minted, separated by a comma. 
 
 %%% Characters
 
@@ -158,7 +158,7 @@
 
 %\newtheorem{environment label}[environment you depend on to do the section count]{name of your environment}
 
-%  For example, if you want an environment Subsublemma, called by the command \begin{sslmma}) you need to modify the definition so that it reads
+%  For example, if you want an environment Subsublemma, called by the command \begin{sslmma}) you need to modify the definition so that it reads 
 
 %\newtheorem{sslmma}[lemma]{Subsublemma}
 
@@ -208,10 +208,10 @@
 
 %%%Loading Packages
 \RequirePackage[
-    margin=1.07in,
-    top=1in,
+    margin=1.07in, 
+    top=1in, 
     % topmargin=.6in,
-    bottom=1.33in,
+    bottom=1.33in, 
     headheight=170pt,
     footskip=.5in,
     headsep=.15in
@@ -237,7 +237,7 @@
 \renewcommand{\headrule}{\color{secondaire}\oldheadrule}% Add colour to \headrule
 \renewcommand{\headrulewidth}{.5pt}
 %	\ifnum\thepage=\thefirstpage@AFM 0pt 0.5pt%
-%	\fi}
+%	\fi} 
 \def\footnoterule{\kern-3\p@ \hrule \@width1in \kern2.6\p@}
 
 \fancyhead[COH]{\footnotesize \theshort@title }
@@ -247,7 +247,7 @@
 
 %%% bottom left
 \lfoot{\footnotesize
-        %\includegraphics[height=6.5mm,clip=true,trim=150 160 150 150]{AFMfooter}
+        \includegraphics[height=6.5mm,clip=true,trim=150 160 150 150]{AFMfooter}
     }
 
 
@@ -272,12 +272,12 @@
 
 %%% hyperref %%%
 \RequirePackage[%
-colorlinks = true,
-citecolor = primaire,
+colorlinks = true, 
+citecolor = primaire, 
 linkcolor = secondaire,
 urlcolor = blue]{hyperref}
 %%%% end hyperref %%%
-
+               
 
 
 
@@ -290,7 +290,7 @@ urlcolor = blue]{hyperref}
 
 \RequirePackage[utf8]{inputenc}
 
-\RequirePackage{amsmath, amssymb, amsthm}
+\RequirePackage{amsmath, amssymb, amsthm} 
 
 \RequirePackage[scaled]{beramono}
 
@@ -307,7 +307,7 @@ urlcolor = blue]{hyperref}
 %%%%Bibliography management
 
 \RequirePackage[
-  backend=bibtex,
+  backend=bibtex,        
   style=alphabetic,
   sorting=nty,
   giveninits=true,
@@ -321,7 +321,7 @@ urlcolor = blue]{hyperref}
 ]{biblatex}
 
 %%%Definition of the electronic identifiers for the articles
-\DeclareFieldFormat{eid}{Art. \addnbspace #1}
+\DeclareFieldFormat{eid}{Art. \addnbspace #1} 
 
 
 %%%Definition of the electronic for the quantity of pages for the articles
@@ -333,8 +333,8 @@ urlcolor = blue]{hyperref}
   \setunit{\bibpagespunct}%
   \printfield{pagetotal}%
   \newunit}
-
-
+  
+  
 \RequirePackage{csquotes}
 
 %%% end bibliography management %%%
@@ -450,7 +450,7 @@ urlcolor = blue]{hyperref}
     {î}{{\^{i}}}1
     {Î}{{\^{I}}}1
     {í}{{\'{i}}}1
-    {=}{$\leftarrow$}{1}
+    {=}{$\leftarrow$}{1} 
     {==}{$={}$}{1},
     basicstyle=\small,
     stringstyle=\ttfamily,
@@ -467,7 +467,7 @@ urlcolor = blue]{hyperref}
 
 %%%lists
 \RequirePackage[inline]{enumitem}
-\setlist[enumerate,1]{label=(\arabic*), ref =(\arabic*)}
+\setlist[enumerate,1]{label=(\arabic*), ref =(\arabic*)} 
 \setlist[enumerate,2]{label=(\emph{\roman*}), ref =(\emph{\roman*})}
 \setlist[enumerate,2]{label=(\emph{\alph*}), ref =(\emph{\alph*})}
 \setlist{noitemsep}
@@ -535,7 +535,7 @@ urlcolor = blue]{hyperref}
 	\makepapertitle@AFM
     \mynewp@ge
     }
-
+    
 \let\mynewp@ge\newpage
 
 \AtEndDocument{%
@@ -614,15 +614,14 @@ urlcolor = blue]{hyperref}
 \raggedright
     \raggedright
     \footnotesize
-    \textbf{Preprint}
-    % \the@JournalName \\
-    % Volume \textbf{\the@VOLUME}\ (\the@YEAR), \thefirstpage@AFM--\lastpage@AFM \\
-    % \the@DOIName:~\url{\the@DOI}
+    \the@JournalName \\
+    Volume \textbf{\the@VOLUME}\ (\the@YEAR), \thefirstpage@AFM--\lastpage@AFM \\
+    \the@DOIName:~\url{\the@DOI}
             %
 \end{minipage}
 &
 \begin{minipage}[c][2cm][c]{\linewidth}
-%\includegraphics[width=\linewidth, clip=true, trim = 290 160 290 150]{AFM.jpg}
+\includegraphics[width=\linewidth, clip=true, trim = 290 160 290 150]{AFM.jpg}
 \end{minipage}
 \end{tabularx}
 
@@ -657,18 +656,18 @@ urlcolor = blue]{hyperref}
 
 \vfill
 
-% \footnote@AFMsp{}{\textcopyright~\the@YEAR\ \theshort@author }
-% \footnote@AFMsp{}{This is an open access article licensed under the CC BY 4.0.}
-% \footnote@AFMsp{}{To view a copy of the license, visit \url{https://creativecommons.org/licenses/by/4.0/}.}%
-%     \footnote@AFM{\the@MscName}{\the@msc}
-     \footnote@AFM{\the@KeywordsName}{\the@keywords}
-%     \footnote@AFMsp{}{ }
-     \footnote@AFM{\the@AffiliationName}{\the@contactinfo}
+\footnote@AFMsp{}{\textcopyright~\the@YEAR\ \theshort@author }
+\footnote@AFMsp{}{This is an open access article licensed under the CC BY 4.0.} 
+\footnote@AFMsp{}{To view a copy of the license, visit \url{https://creativecommons.org/licenses/by/4.0/}.}%
+    \footnote@AFM{\the@MscName}{\the@msc}
+    \footnote@AFM{\the@KeywordsName}{\the@keywords}
+    \footnote@AFMsp{}{ }
+    \footnote@AFM{\the@AffiliationName}{\the@contactinfo}
 
-%     \footnote@AFMsp{}{\the@support}
-%     \footnote@AFMsp{}{\emph{Received:} \the@receiveddate}
-%     \footnote@AFMsp{}{\emph{Final form:} \the@finaldate}
-%     \footnote@AFMsp{}{\emph{Accepted:} \the@accepteddate}
+    \footnote@AFMsp{}{\the@support}
+    \footnote@AFMsp{}{\emph{Received:} \the@receiveddate} 
+    \footnote@AFMsp{}{\emph{Final form:} \the@finaldate} 
+    \footnote@AFMsp{}{\emph{Accepted:} \the@accepteddate}
     }
 %%% End metadata %%%
 
@@ -681,7 +680,7 @@ urlcolor = blue]{hyperref}
 % addresses, otherwise (when there is only one author).
 \def \authorinfo{\@ifnextchar[{\authorsname}{\addresses}}
 
-% Each time that this macro is called, it adds the info entered (author's
+% Each time that this macro is called, it adds the info entered (author's 
 % name (#1), address (#2) and email (#3)) to \the@contactinfo.
 \def \authorsname[#1]#2#3{%
     \g@addto@macro\the@contactinfo{%
@@ -693,15 +692,15 @@ urlcolor = blue]{hyperref}
             \rightskip 2em plus 8em%
             #1:
             \ifx\relax#2\relax
-                \texttt{\href{mailto:#3}{#3}} \par
+                \url{#3} \par
             \else
-                #2. \texttt{\href{mailto:#3}{#3}}\par
+                #2. \url{#3}\par
             \fi
         \endgroup
         }
     }
 
-% Each time that this macro is called, it adds the info entered (author's
+% Each time that this macro is called, it adds the info entered (author's 
 % address (#1) and email (#2)) to \the@contactinfo.
 \def \addresses#1#2{%
     \g@addto@macro\the@contactinfo{%
@@ -801,11 +800,11 @@ urlcolor = blue]{hyperref}
 \newtheorem{examples}[definition]{\the@ExamplesName}
 %%%%% End theorem and proof %%%
 
-%%% widows and orphans horizontal overruns management
+%%% widows and orphans horizontal overruns management 
 \widowpenalty1000000
 \clubpenalty1000000
 \overfullrule=6pt
-%%% end widows and orphans horizontal overruns management
+%%% end widows and orphans horizontal overruns management 
 
 
 

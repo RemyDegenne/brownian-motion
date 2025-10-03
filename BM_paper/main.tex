@@ -1,12 +1,28 @@
-\documentclass[lean]{DraftAFM}
+\documentclass[lean]{AFM}
 
 \input{preamble}
 
-\makeatletter
-\newcommand\leanlink{\begingroup\catcode`\#=12\relax\@leanlink}
-\newcommand\@leanlink[2]{\endgroup
-\href{#1}
-{\texttt{\detokenize{#2}}}}
+\addbibresource{biblio.bib}
+\usepackage{tikz}
+\usetikzlibrary{arrows, arrows.meta}
+% \newcommand{\mathlib}{\lstinline{mathlib}\xspace}
+\definecolor{ghpurple}{rgb}{0.4, 0.22, 0.73}
+
+% \hypersetup{
+%   colorlinks = true,
+%   citecolor = teal,
+%   linkcolor = teal,
+%   urlcolor = ghpurple
+% }
+
+\newcommand{\changeurlcolor}[1]{\hypersetup{urlcolor=#1}}
+\newcommand{\lsthref}[2]{\changeurlcolor{ghpurple}{\ttfamily\href{#1}{#2}}}
+\newcommand{\leanok}{\qed}
+\newcommand{\uses}[1]{Uses #1}
+\newcommand{\mathlibok}{}
+\renewcommand{\lean}[1]{\verb| #1|}
+
+\lstset{escapeinside={(*}{*)}, language=lean}
 
 \title[Formalization of Brownian motion in Lean]{Formalization of Brownian motion in Lean}
 \author[R. Degenne, M. Himmel, D. Ledvinka, E. Marion, P. Pfaffelhuber]{
@@ -14,58 +30,43 @@
 
 
 \authorinfo[R. Degenne]{Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189-CRIStAL, F-59000 Lille, France}{remy.degenne@inria.fr}
-
 \authorinfo[M. Himmel]{University of XYZ, Country}{markus.himmel@example.com}
-
 \authorinfo[D. Ledvinka]{University of XYZ, Country}{david.ledvinka@example.com}
-
 \authorinfo[E. Marion]{University of XYZ, Country}{etienne.marion@example.com}
-
 \authorinfo[P. Pfaffelhuber]{University of Freiburg, Germany}{p.p@stochastik.uni-freiburg.de}
 
-
-\VOLUME{Todo}
-\YEAR{Todo}
-\NUMBER{Todo}
-\firstpage{1}
-\DOI{Todo}
-\receiveddate{Todo}
-\finaldate{Todo}
-\accepteddate{Todo}
-
-
-%Some useful commands:
-%\mathlib{}
-%\Lean{}
-%\leanlink{url}{this is a link to Lean code}
-
-%Example of Lean code:
-%\begin{lstlisting}
-%/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
-%the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
-%def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
-%    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-%  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-%    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
-%\end{lstlisting}
-
-%Inline code: \lstinline|sorry|
-
-\begin{abstract}
-Concise abstract.
-\end{abstract}
-
 % please fill in
-\msc{}
-
-% please fill in
+\msc{TODO}
 \keywords{Formalization, Mathlib, Lean, Brownian motion}
 
-\addbibresource{biblio.bib}
+%update
+\VOLUME{TODO}
+\YEAR{TODO}
+\NUMBER{TODO}
+\firstpage{1}
+\DOI{TODO}
+\receiveddate{TODO}
+\finaldate{TODO}
+\accepteddate{TODO}
 
-\renewcommand{\lean}[1]{\lstinline[language=lean]{#1}}
+
+\begin{abstract}
+Brownian motion is a building block in modern probability theory. In this paper, we describe a formalization of Brownian motion using the Lean theorem prover. We build on the existing measure-theoretic foundations in Lean's mathematical library, Mathlib, and we develop several key components needed for the construction of Brownian motion, including the Carathéodory and Kolmogorov extension theorems, Gaussian measures in Banach spaces, and the Kolmogorov-Chentsov theorem for path continuity.
+\end{abstract}
 
 \begin{document}
+
+\href{https://github.com/RemyDegenne/brownian-motion}{github}
+
+% Example of Lean code:
+% \begin{lean}
+% /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+% the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
+% def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+%     [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+%   ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+%     iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+% \end{lean}
 
 \section{Introduction}
 
@@ -113,9 +114,14 @@ We are going to formulate the main result in a modern fashion, as e.g.\ found in
 
 
 \subsection{Gaussian Measures and characteristic functions}
+\label{ss:char}
 Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $C_{ij} = t_i \wedge t_j$. In order to do so, we rely on (i) the implementation of the one-dimensional normal distribution (xxx ref to mathlib) and characteristic functions of probability (or finite) measures.
 
-For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (xxx ref to mathlib). For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$. Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$. In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ (xxx ref to mathlib) and there is the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the caracteristic function $$\psi_{f_\ast N(0,I_n)}(t) = \int e^{it^\top x} f_\ast N(0,I_n) dx = \int e^{it^\top A x} N(0,I_n) dx = \exp\big( - \tfrac 12 t^\top C t\big).$$ Using the same transformation, we can show that Gaussian measures are closed under linear maps.
+For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (xxx ref to mathlib). For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$. Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$. In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ (xxx ref to mathlib) and there is the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the caracteristic function
+\begin{align} \label{eq:gausslin}
+\psi_{f_\ast N(0,I_n)}(t) = \int e^{it^\top x} f_\ast N(0,I_n) dx = \int e^{it^\top A x} N(0,I_n) dx = \exp\big( - \tfrac 12 t^\top C t\big).
+\end{align}
+Using the same transformation, we can show that Gaussian measures are closed under linear maps.
 
 So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite. For this, we rely on Gram matrices, which are based on inner product spaces. In such a space $E$ (with scalar product $\langle .,. \rangle$), and $v_i,...,v_n \in E$, define $C_{ij} := \langle v_i, v_j\rangle$. Then, for $t :=(t_1,...,t_n) \in \R^n$,
 $$ t^\top C t = \sum_{i,j} t_i \langle v_i, v_j\rangle t_j = \Big\langle \sum_i t_i v_i, \sum_j t_j v_j\Big\rangle \geq 0.$$
@@ -137,398 +143,45 @@ In order to see this, set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\i
 
 We will use a more general version of this statement, replacing $\iota = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $\iota$. This is based on recent work of \cite{talagrand2022upper} and \cite{kratschmer2023kolmogorov}.
 
-
-
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
-projective property of fdds and an application of Chentsov.
+In order to finally construct Brownian Motion, we need to put everything together. First, the projectivity property of the finite-dimensional distributions as defined in Section~\ref{ss:char} follows from the fact that Gaussian measures are closed under linear maps, and -- as in \eqref{eq:gausslin} -- the characteristic function of the image of $N(0,C)$ under the linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity. Therefore, we have constructed a probability measure on $\mathbb R_+^{\mathbb R}$, the law of Brownian motion.\\
+Finally, the assumption in the Kolmogorov-Chentsov Theorem can e.g.\ be verified by using that
+\[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
+So, we have constructed a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion. Since this also gives a distribution on $\mathcal C(\mathbb R_+, \mathbb R)$, we call this distribution Wiener measure.
+
+\section{The Carathéodory and Kolmogorov Extension Theorems}
+\label{S:extension}
+We describe our implementation of the Kolmogorov Extension Theorem, and rely on basic notions from topology, such as a metric space, and teh Borel $\sigma$-algebra. Recall, however, that a pseudo-metric $r(.,.)$ can have $r(x,y) = 0$ for $x\neq y$.
 
 
-\section{Acknowledgements}
-Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
-
-Blueprint: Patrick Massot (citation?)
-
-Project template \cite{Monticone_LeanProject_2025} and technical support: Pietro Monticone
-
-Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
-
-\printbibliography
-
-\end{document}
-
-One of the main building blocks of modern probability theory are stochastic processes, which are usually defined as any collection of random variables -- $(X_t)_{t\in \iota}$ with $X_t$ taking values in some $\alpha_t$ for all $t\in\iota$ -- defined on some joint probability space $(\Omega, \mathcal A, \mathbf P)$.  (As usual, we will refer to $\iota$ as the index set of times.) In order to study such processes, it is fundamental to talk about their joint distribution, i.e.\ a probability distribution on the product set $\prod_{t\in\iota} \alpha_t$.
-
-
-
-
-
-
-
-
-
-We note that a version of the extension result was proved by Daniell in the 1930s, but this paper was not acknowledged by the probabilists of that time \cite{aldrich2007but}. Due to his contribution, the theorem is often called the {\em Daniell-Kolmogorov extension}.
-
-The goal of our contribution is a formalization of the proof of that theorem in {\tt Lean}. We are using \leanline{Lean4}\cite{moura2021lean} and its mathematical library \leanline{mathlib} \cite{mathlib2020lean}
-
-
-
-
-The main steps in our construction, which were previously missing in {\tt mathlib}, are (more mathematical details are below, and in standard textbooks on Probability Theory, e.g.\ \cite{Klenke2013, Kallenberg2020}):
-\begin{enumerate}
-\item a formalization of (the set-system of) semi-rings (see
-  Definition~\ref{def:semi});
-\item a definition of additive contents over semi-rings (see Definition~\ref{def:content});
-\item a proof that a single probability measure on a Polish space is inner regular with respect to compact sets (see Definition~\ref{def:innerreg}; in fact, we proved a slight generalization using pseudo-metric spaces, found in Lemma~\ref{L:relcoPol} below);
-\item the classical Carathéodory extension theorem, providing us with a candidate for the measure which we want to construct (see Theorem~\ref{T:masseind});
-\item the Kolmogorov extension theorem, as based on the previous steps (See Theorem~\ref{T1}).
-\end{enumerate}
-The Kolmogorov extension theorem has been previously formalized in Isabelle/HOL \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where all $\alpha_i$'s are identical. %In addition, Isabelle/HOL works with simple type theory, while Lean is an implementation of dependent type theory.
-
-%In addition, there are still new proofs found for the general extension theorem \cite{chin2019new}, but they require some results not yet formalized in mathlib (Borel isomorphism of $\mathbb R$ to $\{0,1\}^{\mathbb N}$), so we do not follow this route.
-
-
-\begin{definition}[Metric and topological spaces]
-  \begin{enumerate}
-  \item \sloppy A pseudo-metric on $\alpha$ is a symmetric map $r : \alpha
-    \times \alpha \to [0,\infty)$ satisfying the triangle inequality,
-      i.e.\ $r(x,z) \leq r(x,y) + r(y,z)$ for all $x,y,z\in\alpha$.
-      \\ If $r$ also satisfies $r(x,y) = 0$ iff $x=y$, we call it a
-      metric.  \\ If $r : \alpha \times \alpha \to [0,\infty]$
-      (i.e.\ $r(x,y) = \infty$ is allowed), we call $r$ an extended
-      (pseudo-)metric.
-    \item Let $r$ be an (extended pseudo-)metric. A sequence $x_1,
-      x_2,... \in \alpha$ is called Cauchy if for all $\varepsilon>0$
-      there is $N\in\mathbb N$ such that $r(x_n, x_m) < \varepsilon$
-      for all $m,n > N$. The (extended pseudo-) metric is called
-      complete if every Cauchy-sequence has a limit in
-      $\alpha$.
-    \item Some\footnote{We denote by $2^\alpha$ the power set of
-      $\alpha$, i.e.\ the set of all subsets of $\alpha$.} $\mathcal O
-      \subseteq 2^\alpha$ is called a topology, if it satisfies (i)
-      $\emptyset, \alpha \in \mathcal O$, (ii) $\mathcal O$ is a
-      $\pi$-system, i.e.\ it is stable under finite intersections,
-      i.e.\ if $A, B \in \mathcal O$, then $A \cap B \in \mathcal O$,
-      and (iii) $\mathcal O$ is stable under arbitrary unions,
-      i.e.\ if $A_i \in \mathcal O$ for all $i\in\iota$ and $\iota$ is
-      arbitrary, then $\bigcup_{i\in \iota} A_i \in \mathcal O$.
-  \end{enumerate}
-\end{definition}
-
-\begin{remark}[Metric and topological spaces in {\tt mathlib}] \label{rem:uniform}\mbox{}
-  \begin{enumerate}
-    \item \sloppy \leanline{mathlib} provides the class \leanline{PseudoEMetricSpace α},
-      which comes with an extended pseudo-distance
-      \leanline{edist: α → α → ℝ≥0∞} (the notation \leanline{ℝ≥0∞}
-      stands for $[0, \infty]$), and the properties
-      \leanline{edist_self} (distance to self is zero),
-      \leanline{edist_comm} (commutativity) and
-      \leanline{edist_triangle} (triangle inequality).
-      That class also comes with \leanline{toUniformSpace} and
-      \leanline{uniformity_edist}, defining a uniform space from the
-      extended pseudo-metric.
-    \item A uniform space (\leanline{UniformSpace α}) does not come with a
-      metric, but with a filter on $\alpha \times \alpha$, which
-      describes which points in $\alpha$ are near. For example, the
-      diagonal of $\alpha \times \alpha$ is a subset of all sets in
-      the uniformity; see \cite{james2013topologies} for details. We
-      note that a uniform space with a countably generated uniformity
-      filter is pseudometrizable, i.e.\ there exists a
-      pseudo-metric-space structure that generates the same
-      uniformity; see \leanline{UniformSpace.pseudoMetrizableSpace},
-      which formalizes a result stated in
-      \cite{melikhov2011metrizable}.
-    \item \sloppy A topological space is defined in \leanline{mathlib} as \leanline{TopologicalSpace α},
-      which comes with a predicate \leanline{IsOpen}, and properties \leanline{isOpen_univ : IsOpen Set.univ}, \leanline{isOpen_inter} and
-      \leanline{isOpen_sUnion}, which are exactly the properties of a
-      topological space described above.
-      A uniform space defines a topology, given by
-      \leanline{∀ (s : Set α), IsOpen s ↔ ∀ (x : α), x ∈ s → {p | p.fst = x → p.snd ∈ s} ∈ uniformity}.
-%    \item Any (extended pseudo-)metric on $\alpha$ defines a topology,
-%      namely the topology generated by $\mathcal H := \{\{y:
-%      r(x,y)<\varepsilon\}: x \in \alpha, \varepsilon \in
-%      (0,\infty)\}$. Actually, in \leanline{mathlib}, as we have seen
-%      above, every extended pseudo-metric defines a uniform space, and
-%      a uniform space is a \leanline{class UniformSpace(α : Type u) extends TopologicalSpace, UniformSpace.Core} (where the
-%      uniformity is defined in \leanline{UniformSpace.Core}), which
-%      connects the \leanline{uniformity} with the topology using
-%      \leanline{∀ (s : Set α), IsOpen s ↔ ∀ (x : α), x ∈ s → {p | p.fst = x → p.snd ∈ s} ∈ uniformity}. In particular, a
-%      uniform space defines a topological space, which can be used by
-%      the typeclass system.
-  \end{enumerate}
-\end{remark}
-
-\begin{remark}[Generated topology]
-  \begin{enumerate}
-  \item The intersection of any number of topologies is again a
-    topology. For this reason, if $\mathcal H \subseteq 2^\alpha$, we
-    define the topology $\mathcal O := \bigcap_{\mathcal F \supseteq
-      \mathcal H \text{ topology}} \mathcal F$; see
-    \leanline{TopologicalSpace.generateFrom}. This is called the
-    topology generated by $\mathcal H$. If $\mathcal H$ is closed
-    under finite intersections, we call $\mathcal H$ a basis for
-    $\mathcal O$; see \leanline{TopologicalSpace.IsTopologicalBasis}.
-  \item \sloppy We call the topology (generated from an extended
-    pseudo-metric) separable (see
-    \leanline{TopologicalSpace.SeparableSpace}) if there is a
-    countable $s \subseteq \iota$ such that $\inf\{r(x,y) : y \in s\}
-    = 0$ for all $x\in\alpha$. (More generally, a
-    \leanline{TopologicalSpace α} is a \leanline{SeparableSpace} iff
-    \leanline{∃ s, Set.Countable s ∧ Dense s}, where the latter means
-    \leanline{∀ (x : α), x ∈ closure s}, i.e.\ the space equals its
-    own closure.) \\ If there is a countable basis of the topology, it
-    is separable; see
-    \leanline{TopologicalSpace.SecondCountableTopology.to_separableSpace}.
-  \end{enumerate}
-\end{remark}
-
-\noindent
-Finally, we can introduce measures. A measure is defined on a
-$\sigma$-algebra, which we introduce next.
-
-\begin{definition}[$\sigma$-algebras and measures]\label{def:sigma}
-  \begin{enumerate}
-  \item
-    We call $\mathcal F \subseteq 2^\alpha$ a $\sigma$-algebra (on
-    $\alpha$) if (i) $\emptyset \in \mathcal F$, (ii) $\mathcal F$ is
-    stable under complements, i.e.\ $A \in \mathcal F \Rightarrow A^c
-    \in \mathcal F$, (iii) $\mathcal F$ is stable under countable
-    unions, i.e.\ $A_1, A_2,... \in \mathcal F \Rightarrow
-    \bigcup_{n=1}^\infty A_n \in \mathcal F$. We call $(\alpha,
-    \mathcal F)$ a measurable space.
-  \item For some $\sigma$-algebra $\mathcal F$ on $\alpha$, a function
-    $\mu : \mathcal F \to [0, \infty]$ is called a measure, if (i)
-    $\mu(\emptyset) = 0$, (ii) $\mu$ is countably additive, i.e.\ for
-    $A_1, A_2,... \in \mathcal F$ pairwise disjoint, we have $\mu\Big(
-    \bigcup_{n=1}^\infty A_n\Big) = \sum_{n=1}^\infty \mu(A_n)$. We
-    call $(\alpha, \mathcal F, \mu)$ a measure space. \\ In addition,
-    $\mu$ is called finite if $\mu(\alpha) < \infty$ and a probability
-    measure if $\mu(\alpha)=1$.
-  \end{enumerate}
-\end{definition}
-
-\begin{remark}[Measur(abl)e spaces in \leanline{mathlib}]
-  \begin{enumerate}
-  \item \sloppy The class \leanline{MeasurableSpace α} is very similar
-    to a topological space in \leanline{mathlib}, since it comes with
-    \leanline{MeasurableSet' : Set α → Prop},
-    \leanline{measurableSet_empty : MeasurableSet' ∅},
-    \leanline{measurableSet_compl : (s : Set α) → MeasurableSet' s → MeasurableSet' sᶜ}, and \leanline{measurableSet_iUnion},
-    i.e.\ properties (i)-(iii) from Definition~\ref{def:sigma}.1.
-  \item We are using outer measures in our construction. In
-    \leanline{mathlib}, this is \leanline{MeasureTheory.OuterMeasure α} which is a structure with a function
-    \leanline{measureOf : Set α → ℝ≥0∞} such that \leanline{measureOf ∅ = 0} (i.e.\ the empty set has measure~$0$),
-    \leanline{∀ {s₁ s₂ : Set α}, s₁ ⊆ s₂ → measureOf s₁ ≤ measureOf s₂}
-    (i.e.\ monotonicity) and \leanline{∀ (s : ℕ → Set α), measureOf (⋃ (i : ℕ), s i) ≤ ∑' (i : ℕ), measureOf (s i)} (which we call
-    $\sigma$-subadditivity). \\ Note that an outer measure is defined
-    on $2^\alpha$, whereas a measure is only defined on a subset (the
-    $\sigma$-algebra of measurable sets).
-  \item A measure defined on a type \leanline{α} on which we have a \leanline{MeasurableSpace α} is denoted by the type \leanline{MeasureTheory.Measure α}
-    %More precisely\todo{I don't understand why all these details are here. We never use MeasureSpace}: A
-    %\leanline{MeasureSpace α} extends a \leanline{MeasurableSpace α}
-    %by a \leanline{Measure α} (which is usually called
-    %\leanline{volume}). For the measure, we have: \leanline{structure MeasureTheory.Measure α [MeasurableSpace α] extends MeasureTheory.OuterMeasure}.
-    %Here $\sigma$-additivity of a
-    %\leanline{Measure α} reads
-%\begin{minted}[mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-%  m_iUnion : ∀ ⦃f : ℕ → Set α⦄,
-%    (∀ (i : ℕ), MeasurableSet (f i)) →
-%    Pairwise (Disjoint on f) →
-%    ↑toOuterMeasure (⋃ (i : ℕ), f i) =
-%    ∑' (i : ℕ), ↑toOuterMeasure (f i)
-%\end{minted}
-  \end{enumerate}
-\end{remark}
-
-\noindent
-
-
-\begin{remark}[Generated $\sigma$-algebra, image measure]
-  We will frequently need two basic results:
-  \begin{enumerate}
-  \item The intersection of any number of $\sigma$-algebras is again a
-    $\sigma$-algebra. For this reason, if $\mathcal H \subseteq
-    2^\alpha$, we define the $\sigma$-algebra $\sigma(\mathcal H) :=
-    \bigcap_{\mathcal F \supseteq \mathcal H \text{ $\sigma$-algebra}}
-    \mathcal F$. This is called the $\sigma$-algebra generated from
-    $\mathcal H$; see \leanline{MeasurableSpace.generateFrom}.  \\ In
-    particular, if $\mathcal O$ is a topology on $\alpha$, we call
-    $\mathcal B := \sigma(\mathcal O)$ the Borel $\sigma$-algebra on
-    $\alpha$. In \leanline{mathlib}, this is
-\begin{minted}[mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def borel (α : Type u) [TopologicalSpace α] :
-    MeasurableSpace α :=
-  generateFrom { s : Set α | IsOpen s }
-\end{minted}
-    In addition, \leanline{mathlib} provides a similar notion, which is
-\begin{minted}[mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-class OpensMeasurableSpace (α : Type*)
-    [TopologicalSpace α] [h : MeasurableSpace α] :
-    Prop where borel_le : borel α ≤ h
-\end{minted}
-    Here, all open sets are measurable, so the $\sigma$-algebra defining
-    \leanline{h} might be larger than the Borel $\sigma$-algebra. We will
-    need both notions in our proofs.
-  \item Let $(\alpha, \mathcal F)$ and $(\beta, \mathcal G)$ be
-    measurable spaces. Some $f : \alpha \to \beta$ is called
-    measurable (with respect to $\mathcal F$ and $\mathcal G$) if
-    $f^{-1} \mathcal G \subseteq \mathcal F$. In \leanline{mathlib},
-    see \leanline{Measurable}.
-    %and note that this notion usually comes
-    %with some \leanline{m : Measure α} and $f$ is almost everywhere
-    %measurable (\leanline{AEMeasurable}) if it coincices with some
-    %\leanline{Measurable g}, \leanline{m}-almost everywhere\todo{do we need aemeasurable? could it be omitted for simplicity?}.
-    \\ In this
-    case, if $\mu$ is a measure on $\mathcal F$, the measure $\nu:
-    \mathcal G \to [0, \infty], \nu(B) := \mu (f^{-1}(B))$ is called
-    the image (or push-forward) measure of $\mu$ under $f$. We write
-    $\nu := f_\ast \mu$; see \leanline{MeasureTheory.Measure.map}.
-  \end{enumerate}
-\end{remark}
-
-We now come to our contribution.
-The extension theorem is a statement about extending a
-set-function on a product space to a (finite) measure, where the
-product space can come with an arbitrary index set.  The next
-definition covers the important concept of a projective family of
-measures. In short, we define measures on any finite subset of indices
-in a consistent way. Finite sets (of some type \leanline{ι}) are
-formalized with \leanline{Finset ι}. % Such a \leanline{Finset} is
-defined as a \leanline{Multiset}.
-%(a quotient type of the \leanline{List}-type with respect to
-%permutations of the list) together with a proof that it contains no
-%duplicates\todo{remove this implementation detail?}.
-
-\begin{definition}[Projective family and projective limit] \mbox{}
-  \begin{enumerate}
-  \item For some set $\iota$, we will write $J\subseteq_f \iota$ if
-    $J\subseteq \iota$ and $J$ is finite.
-    %We will write $J\subseteq_c \iota$ if $J\subseteq \iota$ and $J$
-    %is countable.
-  \item Let $\iota$ be some (index) set and $(\alpha_i)_{i\in\iota}$ a
-    family of sets. For $J\subseteq \iota$, we denote $\alpha_J :=
-    \prod_{j \in J} \alpha_j$ and $\pi_J : \alpha_\iota \to \alpha_J$
-    the projection. For $H\subseteq J \subseteq \iota$, we write
-    $\pi_H^J$ for the projection $\alpha_J \to \alpha_H$.
-  \item Let $\mathcal F_i$ be a $\sigma$-algebra in $\alpha_i$,
-    $i\in\iota$. For $J\subseteq_f \iota$, let $\mathcal F_J$ be the
-    product-$\sigma$-algebra on $\alpha_J$, and $\mathcal F_\iota$ be
-    the $\sigma$-algebra generated by cylinder sets
-    $\{\pi_J^{-1}\prod_{j\in J} A_j: J \subseteq_f \iota, A_j \in
-    \sigma(E_j), j\in J\}$.
-  \item A family $(P_J)_{J\subseteq_f I}$, where $P_J$ is a finite
-    measure on $\mathcal F_J$, is called projective if
-    $$P_H = (\pi_H^{J})_\ast P_J$$ for all
-    $H\subseteq J \subseteq_f I$. (Recall that $A \mapsto
-    (\pi_H^{J})_\ast P_J(A) := P_J((\pi_H^{J})^{-1}A)$
-    is called the image measure of $P_J$ under $\pi_H^{J}$.)
-  \item If, for some projective family $(P_J)_{J\subseteq_f \iota}$,
-    there is a finite measure $P_\iota$ on $\mathcal F_\iota$ with
-    $P_J = (\pi_J)_\ast P_\iota$ for all $J\subseteq_f \iota$, then we
-    call $P_\iota$ projective limit of $(P_J)_{J\subseteq_f \iota}$.
-  \end{enumerate}
-\end{definition}
-
-In contrast to statements already part of \leanline{mathlib}, in the
-sequel we \leanlinecolor{highlight} definitions and statements which
-are part of our own code. In the formalization of the above, we use
-\leanline{variable {ι : Type*} {α: ι → Type*}}, which fixes the
-index set $\iota$ and all spaces $\alpha_t, t\in\iota$ as global
-variables.  In Lean, the product space is then \leanline{∀ j : ι, α j}
-and the product over a finite subset \leanline{J} of \leanline{ι} is \leanline{∀ j : J, α
-  j}.
-
-We formalize the projective property as follows. This definition is not specific to measures but works as long as we have a preorder
-(which is the subset relation on \leanline{Finset ι} below).
-
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def IsProjective [Preorder ι]
-    (P : ∀ j : ι, α j) (π : ∀ {i j : ι}, j ≤ i → α i → α j) : Prop :=
-    ∀ (i j) (hji : j ≤ i), P j = π hji (P i)
-\end{minted}
-
-\noindent
-With this, we can define the projective family as follows. The typeclass inference system of
-\leanline{Lean} automatically uses the subset relation to generate
-\leanline{[Preorder (Finset ι)]} when \leanline{isProjective} is
-called.
-
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def IsProjectiveMeasureFamily
-    [∀ i, MeasurableSpace (α i)]
-    (P : ∀ J : Finset ι, Measure (∀ j : J, α j)) :
-    Prop :=
-  IsProjective P (fun I _ hJI μ => μ.map
-    fun x : ∀ i : I, α i => fun j => x ⟨j, hJI j.2⟩ :
-    ∀ (I J : Finset ι) (_ : J ⊆ I), Measure (∀ i : I, α i)
-    → Measure (∀ j : J, α j))
-\end{minted}
-
-\noindent
-It is worth understanding the precise connection of
-\leanlinecolor{isProjective} and
-\leanlinecolor{isProjectiveMeasureFamily}. In the latter, the first
-variable of \leanlinecolor{isProjective} is the family \leanline{P} of
-finite measures for all finite subsets of \leanline{ι}. The second
-variable is the functions which maps two sets \leanline{I J : Finset
-  ι} and a proof \leanline{hJI} of \leanline{J ⊆ I} together with
-\leanline{P I} (which is \leanline{μ} in the statement) to the image
-measure on \leanline{J}, which is \leanline{μ.map (fun x : ∀ i : I, α
-  i => fun j => x ⟨j, hJI j.2⟩)}.  The function used in that image
-measure maps every $(x_i)_{i\in I}$ to $(x_i)_{i\in J}$.
-%map defined by the
-%\leanline{=>}-notation maps every $(x_i)_{i\in I}$ to a function of
-%\leanline{j}, whose type is the subtype {\color{blue}\leanline{j} of}
-%\leanline{I}, consisting of a value and a proof of \leanline{J ⊆
-%  I}. In other words, this is $(x_j)_{j\in J}$.
-
-\noindent
-Now we are ready to formulate the Kolmogorov extension theorem:
-
-\begin{theorem}[Kolmogorov extension]\label{T1}
-  For all $t\in\iota$, let $\alpha_t$ be a separable, complete
-  pseudo-extended-metric space and $\mathcal F_t$ the Borel
-  $\sigma$-algebra generated by its topology. Let $(P_J)_{J\subseteq_f
-    \iota}$ be a projective family of finite measures and $P$ be
-  defined on $\mathcal A := \bigcup_{J \subseteq_f \iota} \mathcal
-  F_J$ given by $P(A) = P_J(\pi_J A)$ for $A\in\mathcal F_J$. Then,
-  there is a unique extension of $P$ to $\sigma(\mathcal A)$.
+\begin{theorem}[\boldmath $\mu$-measurable sets are a
+    $\sigma$-algebra]\label{T:cara} Let $\mu$ be an outer measure on
+  $E$ and $\mathcal F$ the set of $\mu$-measurable sets,
+  i.e.\ the set of sets $A$ satisfying
+  \begin{align*}
+    \mu(B) = \mu(B\cap A) + \mu(B\cap A^c), \qquad B \subseteq E.
+  \end{align*}
+  Then, $\mathcal F$ is a $\sigma$-Algebra and $\mu|_{\mathcal F}$ is
+  a measure. In addition, $\{N\subseteq \Omega:
+  \mu(N)=0\}\subseteq \mathcal F$, i.e.\ $\mathcal F$ is complete.
 \end{theorem}
 
-Rather than giving the formalization of this theorem, we give the
-definition of the resulting measure (which is the projective
-limit). We give the formalized proof at the end of this section, since
-we first have to provide a formalization of all tools needed in the
-proof.
-
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def projectiveLimitWithWeakestHypotheses
-    [∀ i, PseudoEMetricSpace (α i)]
-    [∀ i, BorelSpace (α i)]
-    [∀ i, SecondCountableTopology (α i)]
-    [∀ i, CompleteSpace (α i)] [∀ i, Nonempty (α i)]
-    (P : ∀ J : Finset ι, Measure (∀ j : J, α j))
-    [∀ i, IsFiniteMeasure (P i)]
-    (hP : IsProjectiveMeasureFamily P) :
-    Measure (∀ i, α i)
-\end{minted}
-
-\noindent
 Note that we extend the standard assumption that all $\alpha_t$ are
 separable, complete metric spaces (or Polish, i.e.\ separable and
 metrizable through a complete metric) to cover the case of extended
 pseudo-metric spaces. Such spaces do not satisfy the frequently used
 Hausdorff (or t2) property, i.e.\ there can be $x\neq y$ such that all
 open balls around $x$ and $y$ overlap.  This generalization was only
-possible since underlying results in \leanline{mathlib} were already
+possible since underlying results in \leaninline{mathlib} were already
 provided on the same level of generality.  More precisely,
-\leanline{isCompact_iff_totallyBounded_isComplete}, which shows that a
+\leaninline{isCompact_iff_totallyBounded_isComplete}, which shows that a
 set $A \subseteq \alpha$ is compact iff it is complete and totally
 bounded (see note~\ref{note:tot}), requires $\alpha$ to be a uniform
 space (Remark~\ref{rem:uniform}, recall that every metric space is
 uniform).  We also require the underlying space(s) to be
 second-countable (used in the proof of Lemma~\ref{L:relcoPol}).  A
 second-countable uniform space can be made into an (extended)
-pseudo-metric space (\leanline{UniformSpace.pseudoMetrizableSpace});
+pseudo-metric space (\leaninline{UniformSpace.pseudoMetrizableSpace});
 see also Remark~\ref{rem:uniform} for some more details.
 
 \subsection{Extending a set function}
@@ -559,94 +212,83 @@ e.g.\ \cite[Definition~1.9]{Klenke2013}.
 \noindent
 Any ring is a semi-ring since $A\cap B = A \setminus (A \setminus B)$,
 i.e.\ every ring is a $\pi$-system.
-We define a semi-ring on a type \leanline{α} as follows:
+We define a semi-ring on a type \leaninline{α} as follows:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-structure SetSemiring (C : Set (Set α))
-    : Prop where
-  empty_mem : ∅ ∈ C
-  inter_mem : ∀ (s) (_ : s ∈ C) (t) (_ : t ∈ C), s ∩ t ∈ C
-  diff_eq_Union' :
-    ∀ (s) (_ : s ∈ C) (t) (_ : t ∈ C),
-    ∃ (I : Finset (Set α)) (_h_ss : ↑I ⊆ C)
-    (_h_dis : PairwiseDisjoint (I : Set (Set α)) id),
-      t \ s = ⋃₀ I
-\end{minted}
-
-Let us remark that (i) \leanline{Lean} indicates a coercion by
-\leanline{↑}, which in this case is from \leanline{Finset} to
-\leanline{Set} and (ii) we have \leanline{PairwiseDisjoint (s : Set ι) (f : ι → α)}
-iff the images of any distinct elements of \leanline{ι}
-under \leanline{f} are different. (Hence, if \leanline{f = id}, the
-usual definition of pairwise disjoint sets unfolds.)
+% Let us remark that (i) \leaninline{Lean} indicates a coercion by
+% \leaninline{↑}, which in this case is from \leaninline{Finset} to
+% \leaninline{Set} and (ii) we have \leaninline{PairwiseDisjoint (s : Set ι) (f : ι → α)}
+% iff the images of any distinct elements of \leaninline{ι}
+% under \leaninline{f} are different. (Hence, if \leaninline{f = id}, the
+% usual definition of pairwise disjoint sets unfolds.)
 
 \noindent
 We do not show the formalization of rings here.
 The important ring of sets in our formalization is the ring of measurable cylinders on a product space.
 A cylinder is defined as follows:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def cylinder
-    (s : Finset ι) (S : Set (∀ i : s, α i)) :
-    Set (∀ i : ι, α i) :=
-  (fun (f : ∀ j : ι, α j) => fun i : s => f i) ⁻¹' S
-\end{minted}
+%\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+%def cylinder
+%    (s : Finset ι) (S : Set (∀ i : s, α i)) :
+%    Set (∀ i : ι, α i) :=
+%  (fun (f : ∀ j : ι, α j) => fun i : s => f i) ⁻¹' S
+%\end{minted}
 
 \noindent
-In this definition, \leanline{s} is a finite subset of the index set
-\leanline{ι}, and for some $S$ in the finite product $\prod_{i \in s}
+In this definition, \leaninline{s} is a finite subset of the index set
+\leaninline{ι}, and for some $S$ in the finite product $\prod_{i \in s}
 \alpha_i$, consider the projection $\pi_s : \prod_{i \in \iota}
 \alpha_i \to \prod_{i \in s} \alpha_i$, and consider the preimage of
 $S$ (This is what the last line in previous definition gives.).
-We can define \leanlinecolor{cylinders α}, the set of all measurable cylinders.
+We can define \leaninline{cylinders α}, the set of all measurable cylinders.
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def cylinders : Set (Set (∀ i : ι, α i)) :=
-  ⋃ (s) (S) (_ : MeasurableSet S), {cylinder s S}
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def cylinders : Set (Set (∀ i : ι, α i)) :=
+%   ⋃ (s) (S) (_ : MeasurableSet S), {cylinder s S}
+% \end{minted}
 
 \noindent
 Membership of that set is characterized as follows:
-\begin{minted}[highlightlines={1}, framesep = 0pt, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem mem_cylinders
-    (t : Set (∀ i : ι, α i)) :
-    t ∈ cylinders α ↔
-      ∃ (s S : _) (_ : MeasurableSet S), t = cylinder s S
-\end{minted}
+% \begin{minted}[highlightlines={1}, framesep = 0pt, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem mem_cylinders
+%     (t : Set (∀ i : ι, α i)) :
+%     t ∈ cylinders α ↔
+%       ∃ (s S : _) (_ : MeasurableSet S), t = cylinder s S
+% \end{minted}
 \noindent
-The finite set \leanline{s} of the potential coordinates where
+The finite set \leaninline{s} of the potential coordinates where
 the cylinder deviates from the whole set need not be unique.
-From the $\exists$-statement of \leanline{mem_cylinders}, we however choose an
-arbitrary such \leanline{Finset ι}, called \leanlinecolor{cylinders.finset}.
+From the $\exists$-statement of \leaninline{mem_cylinders}, we however choose an
+arbitrary such \leaninline{Finset ι}, called \leaninline{cylinders.finset}.
 
 
 The set-system of cylinders is in fact a field, hence a ring and
 a semi-ring. This means we can prove the following:
 
-\begin{minted}[highlightlines={1-4}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem setField_cylinders : SetField (cylinders α)
-theorem setRing_cylinders :  SetRing (cylinders α)
-theorem setSemiringCylinders
-  : SetSemiring (cylinders α)
-\end{minted}
+% \begin{minted}[highlightlines={1-4}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem setField_cylinders : SetField (cylinders α)
+% theorem setRing_cylinders :  SetRing (cylinders α)
+% theorem setSemiringCylinders
+%   : SetSemiring (cylinders α)
+% \end{minted}
 
 From the field/ring/semi-ring of cylinders, we have to define the
 generated $\sigma$-algebra. This uses the following:
-\begin{minted}[highlightlines={1}, framesep = 0pt, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem generateFrom_cylinders :
-    MeasurableSpace.generateFrom (cylinders α)
-    = MeasurableSpace.pi
+% \begin{minted}[highlightlines={1}, framesep = 0pt, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem generateFrom_cylinders :
+%     MeasurableSpace.generateFrom (cylinders α)
+%     = MeasurableSpace.pi
 
-instance MeasurableSpace.pi
-    [m : ∀ a, MeasurableSpace (π a)] :
-    MeasurableSpace (∀ a, π a) :=
-  iSup a, (m a).comap fun b => b a
-\end{minted}
-Here, \leanline{comap {β : Type} (f : α → β) (m : MeasurableSpace β)}
+% instance MeasurableSpace.pi
+%     [m : ∀ a, MeasurableSpace (π a)] :
+%     MeasurableSpace (∀ a, π a) :=
+%   iSup a, (m a).comap fun b => b a
+% \end{minted}
+
+%Here, \leaninline{comap {β : Type} (f : α → β) (m : MeasurableSpace β)}
 is the measurable space consisting of pre-images of measurable subsets
-of \leanline{β}, and the set of $\sigma$-algebras on the product
+of \leaninline{β}, and the set of $\sigma$-algebras on the product
 $\prod_{i\in\iota} \alpha_i$ (or on any other space) is a complete
-lattice, i.e.\ the subset defined by the \leanline{comap}s has a
+lattice, i.e.\ the subset defined by the \leaninline{comap}s has a
 supremum, which defines the $\sigma$-algebra generated by the
 cylinders.
 
@@ -683,32 +325,31 @@ Let us state an important lemma on semi-rings:
 The proof as well as its formalization is somewhat straight-forward,
 but requires induction over finite sets.
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem exists_disjoint_finset_diff_eq
-    (hC : SetSemiring C) (hs : s ∈ C)
-    (I : Finset (Set α)) (hI : ↑I ⊆ C) :
-    ∃ (J : Finset (Set α)) (_h_ss : ↑J ⊆ C)
-    (_h_dis : PairwiseDisjoint (J : Set (Set α)) id),
-    s \ ⋃₀ I = ⋃₀ J
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem exists_disjoint_finset_diff_eq
+%     (hC : SetSemiring C) (hs : s ∈ C)
+%     (I : Finset (Set α)) (hI : ↑I ⊆ C) :
+%     ∃ (J : Finset (Set α)) (_h_ss : ↑J ⊆ C)
+%     (_h_dis : PairwiseDisjoint (J : Set (Set α)) id),
+%     s \ ⋃₀ I = ⋃₀ J
+% \end{minted}
 
 \noindent
 The existence-statement of the above lemma actually gives rise to a
-definition. Here, we use \leanline{Exists.choose} in order to extract
+definition. Here, we use \leaninline{Exists.choose} in order to extract
 an element from an $\exists$-statement. In addition, we do not allow
 $\emptyset \in \mathcal K$ without loss of generality:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def diff₀ (hC : SetSemiring C)
-    (hs : s ∈ C) (I : Finset (Set α)) (hI : ↑I ⊆ C)
-    [DecidableEq (Set α)] : Finset (Set α) :=
-  (hC.exists_disjoint_finset_diff_eq hs I hI).choose \ {∅}
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def diff₀ (hC : SetSemiring C)
+%     (hs : s ∈ C) (I : Finset (Set α)) (hI : ↑I ⊆ C)
+%     [DecidableEq (Set α)] : Finset (Set α) :=
+%   (hC.exists_disjoint_finset_diff_eq hs I hI).choose \ {∅}
+% \end{minted}
 
 \noindent
 Extending Lemma~\ref{l1}, we would like to write a finite union of
 members of a semi-ring as a finite union of disjoint sets.
-
 
 \begin{lemma}\label{l2}
   Let $\mathcal H$ be a semi-ring and $A_1,...,A_m \in \mathcal
@@ -724,28 +365,6 @@ members of a semi-ring as a finite union of disjoint sets.
   follows by applying Lemma~\ref{l1} to $A_n \setminus
   \bigcup_{i=1}^{n-1}A_i$, $n=1,...,m$.
 \end{proof}
-
-%% \noindent
-%% The formalized version again gives rise to a definition:
-
-%% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-%% def indexedDiff₀ (hC : SetSemiring C)
-%%     (J : Finset (Set α)) (hJ : ↑J ⊆ C)
-%%     (n : Fin J.card) : Finset (Set α) :=
-%%   hC.diff₀ (ordered_mem' hJ n) (finsetLT J n)
-%%     (finsetLT_subset' J hJ n)
-%% \end{minted}
-
-%% Here, recall that \leanline{Fin n} is the subtype of \leanline{Nat}
-%% consisting of all numbers \leanline{<n}. In addition,
-%% \leanline{ordered_mem' (hJ : ↑J ⊆ C) (n : Fin (card J)) : ↑(ordered J)
-%%   n ∈ C} gives a proof that the \leanline{n}th element of \leanline{J}
-%% is in \leanline{C}, \leanline{finsetLT (J : Finset (Set α)) (n : Fin (card J)) : Finset (Set α)} is the set consisting of the
-%% \leanline{n} sets in \leanline{J} numbered $0,...,n-1$, and
-%% \leanlinecolor{finsetLT_subset'} gives a proof that
-%% \leanline{↑(finsetLT J n) ⊆ C}.  So, in terms of Lemma~\ref{l2}, this
-%% gives, for $n=1,...,m$, a construction for $\mathcal K_n \subseteq_f
-%% \mathcal H$.
 
 \noindent
 \subsection{Carathéodory's extension theorem}
@@ -805,58 +424,58 @@ basic concepts.
 
 \noindent
 For additive contents, we need two definitions.
-The structure \leanlinecolor{AddContent} defines
-an additive set-function on \leanline{Set α}.
-The definition \leanlinecolor{extendContent} takes an additive function defined only on a semi-ring of sets, and extends it to an additive content on all sets by choosing the value infinity outside of the semi-ring. We use this because total functions are easier to use in subsequent code.
+The structure \leaninline{AddContent} defines
+an additive set-function on \leaninline{Set α}.
+The definition \leaninline{extendContent} takes an additive function defined only on a semi-ring of sets, and extends it to an additive content on all sets by choosing the value infinity outside of the semi-ring. We use this because total functions are easier to use in subsequent code.
 
-\begin{minted}[highlightlines={1, 10}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-structure AddContent (C : Set (Set α)) where
-  toFun : Set α → ℝ≥0∞
-  empty' : toFun ∅ = 0
-  add' : ∀ (I : Finset (Set α))
-    (_h_ss : ↑I ⊆ C) (_h_dis : PairwiseDisjoint
-      (I : Set (Set α)) id)
-    (_h_mem : ⋃₀ ↑I ∈ C),
-    toFun (⋃₀ I) = ∑ u in I, toFun u
+% \begin{minted}[highlightlines={1, 10}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% structure AddContent (C : Set (Set α)) where
+%   toFun : Set α → ℝ≥0∞
+%   empty' : toFun ∅ = 0
+%   add' : ∀ (I : Finset (Set α))
+%     (_h_ss : ↑I ⊆ C) (_h_dis : PairwiseDisjoint
+%       (I : Set (Set α)) id)
+%     (_h_mem : ⋃₀ ↑I ∈ C),
+%     toFun (⋃₀ I) = ∑ u in I, toFun u
 
-def extendContent
-    (hC : SetSemiring C)
-    (m : ∀ s : Set α, s ∈ C → ℝ≥0∞)
-    (m_empty : m ∅ hC.empty_mem = 0)
-    (m_add :
-      ∀ (I : Finset (Set α)) (h_ss : ↑I ⊆ C)
-      (_h_dis : PairwiseDisjoint (I : Set (Set α)) id)
-      (h_mem : ⋃₀ ↑I ∈ C),
-      m (⋃₀ I) h_mem = ∑ u : I, m u (h_ss u.prop)) :
-    AddContent C
-\end{minted}
+% def extendContent
+%     (hC : SetSemiring C)
+%     (m : ∀ s : Set α, s ∈ C → ℝ≥0∞)
+%     (m_empty : m ∅ hC.empty_mem = 0)
+%     (m_add :
+%       ∀ (I : Finset (Set α)) (h_ss : ↑I ⊆ C)
+%       (_h_dis : PairwiseDisjoint (I : Set (Set α)) id)
+%       (h_mem : ⋃₀ ↑I ∈ C),
+%       m (⋃₀ I) h_mem = ∑ u : I, m u (h_ss u.prop)) :
+%     AddContent C
+% \end{minted}
 
 For the concrete application we have in mind, we introduce a
 definition which uses a specific semi-ring, the measurable cylinders,
 based on a projective family of measures.  That is the goal of the two
-definitions \leanlinecolor{kolmogorovFun} and
-\leanlinecolor{kolContent} below:
+definitions \leaninline{kolmogorovFun} and
+\leaninline{kolContent} below:
 
-\begin{minted}[highlightlines={1,7}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def kolmogorovFun
-    (P : ∀ J : Finset ι, Measure (∀ j : J, α j))
-    (s : Set (∀ i, α i))
-    (hs : s ∈ cylinders α) : ℝ≥0∞ :=
-  P (cylinders.finset hs) (cylinders.set hs)
+% \begin{minted}[highlightlines={1,7}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def kolmogorovFun
+%     (P : ∀ J : Finset ι, Measure (∀ j : J, α j))
+%     (s : Set (∀ i, α i))
+%     (hs : s ∈ cylinders α) : ℝ≥0∞ :=
+%   P (cylinders.finset hs) (cylinders.set hs)
 
-def kolContent
-    (hP : IsProjectiveMeasureFamily P) :
-    AddContent (cylinders α) :=
-  extendContent setSemiringCylinders
-    (kolmogorovFun P) (kolmogorovFun_empty hP)
-    (kolmogorovFun_additive hP)
-\end{minted}
+% def kolContent
+%     (hP : IsProjectiveMeasureFamily P) :
+%     AddContent (cylinders α) :=
+%   extendContent setSemiringCylinders
+%     (kolmogorovFun P) (kolmogorovFun_empty hP)
+%     (kolmogorovFun_additive hP)
+% \end{minted}
 
-Here, \leanlinecolor{kolmogorovFun_empty} and
-\leanlinecolor{kolmogorovFun_⌋} \leanlinecolor{additive} give proofs for
-\leanline{m_empty} and \leanline{m_add} in
-\leanlinecolor{extendContent} as applied to a
-\leanlinecolor{kolmogorovFun}.
+Here, \leaninline{kolmogorovFun_empty} and
+\leaninline{kolmogorovFun_⌋} \leaninline{additive} give proofs for
+\leaninline{m_empty} and \leaninline{m_add} in
+\leaninline{extendContent} as applied to a
+\leaninline{kolmogorovFun}.
 
 \noindent
 From the next lemma, we will need monotonicity and sub-additivity, as
@@ -939,8 +558,8 @@ The next result extends a set function on a semi-ring to an outer measure.
 
 \sloppy Let us now formulate the classical results by
 Carathéodory. The first leads to the definition of the measurable
-space \leanline{OuterMeasure.caratheodory}, covered in
-\leanline{mathlib}. See e.g.\ \cite[Theorem 2.1]{Kallenberg2020}
+space \leaninline{OuterMeasure.caratheodory}, covered in
+\leaninline{mathlib}. See e.g.\ \cite[Theorem 2.1]{Kallenberg2020}
 
 \begin{theorem}[\boldmath $\mu$-measurable sets are a
     $\sigma$-algebra]\label{T:cara} Let $\mu$ be an outer measure on
@@ -960,11 +579,11 @@ an additive content on a semi-ring, we have $\sigma(\mathcal H)
 \subseteq \mathcal F$. In particular, we then have defined a measure
 on $\sigma(\mathcal H)$. This result is not yet covered in {\tt
   mathlib}. However, for product spaces, in
-\leanline{MeasureTheory.Constructions.Pi}, there is
-\leanline{pi_caratheodory}, which shows that $\sigma(\mathcal H)
+\leaninline{MeasureTheory.Constructions.Pi}, there is
+\leaninline{pi_caratheodory}, which shows that $\sigma(\mathcal H)
 \subseteq \mathcal F$ in the construction of a product
   measure for a finite index set. In addition, there is
-\leanline{pi_pi_aux}, which shows that $\mu$ extends $m$ on $\mathcal
+\leaninline{pi_pi_aux}, which shows that $\mu$ extends $m$ on $\mathcal
 H$ in the same special case. See also \cite[Theorem
   2.5]{Kallenberg2020}.
 
@@ -1020,47 +639,16 @@ H$ in the same special case. See also \cite[Theorem
 Here is a formalization of the measure resulting from
 Theorem~\ref{T:masseind}:
 
-%% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-%% def ofAddSubaddCaratheodory
-%%     (hC : SetSemiring C)
-%%     (m : ∀ s : Set α, s ∈ C → ℝ≥0∞)
-%%     (m_empty : m ∅ hC.empty_mem = 0)
-%%     (m_add : ∀ (I : Finset (Set α)) (h_ss : ↑I ⊆ C)
-%%       (_h_dis : PairwiseDisjoint (I : Set (Set α)) id)
-%%       (h_mem : ⋃₀ ↑I ∈ C),
-%%       m (⋃₀ I) h_mem = ∑ u : I, m u (h_ss u.prop))
-%%     (m_sigma_subadd : ∀ ⦃f : ℕ → Set α⦄
-%%       (hf : ∀ i, f i ∈ C) (hf_Union : (⋃ i, f i) ∈ C),
-%%       m (⋃ i, f i) hf_Union ≤ ∑' i, m (f i) (hf i)) :
-%%     @Measure α (inducedOuterMeasure m
-%%       hC.empty_mem m_empty).caratheodory
-%% \end{minted}
-
-
-%% \noindent
-%% Here, \leanline{MeasureTheory.OuterMeasure.caratheodory}\todo{used in
-%%   dot notation... but we don't want to explain this} is already
-%% implemented and gives the assertion that $\mathcal F$ from
-%% Theorem~\ref{T:cara} is a $\sigma$-algebra. Note that
-%% \leanline{@Measure} is the same as \leanline{Measure}, but all
-%% variables have to be given explicitely. The second argument is a proof
-%% that measurable sets form a $\sigma$-algebra which cannot be inferred
-%% by the type class system of \leanline{Lean}.
-
-%% \noindent
-%% In the proof of Kolmogorov's extension theorem, we use a closely
-%% related definition\todo{should we present only this one and omit the lemma above?}:
-
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def Measure.ofAddContent
-    [mα : MeasurableSpace α] (hC : SetSemiring C)
-    (hC_gen : MeasurableSpace.generateFrom C = mα)
-    (m : AddContent C)
-    (m_sigma_subadd : ∀ ⦃f : ℕ → Set α⦄
-      (hf : ∀ i, f i ∈ C) (hf_Union : (⋃ i, f i) ∈ C),
-      m (⋃ i, f i) hf_Union ≤ ∑' i, m (f i) (hf i)) :
-    Measure α
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def Measure.ofAddContent
+%     [mα : MeasurableSpace α] (hC : SetSemiring C)
+%     (hC_gen : MeasurableSpace.generateFrom C = mα)
+%     (m : AddContent C)
+%     (m_sigma_subadd : ∀ ⦃f : ℕ → Set α⦄
+%       (hf : ∀ i, f i ∈ C) (hf_Union : (⋃ i, f i) ∈ C),
+%       m (⋃ i, f i) hf_Union ≤ ∑' i, m (f i) (hf i)) :
+%     Measure α
+% \end{minted}
 
 \subsection{$\sigma$-additivity of set functions}
 For the proof of Kolmogorov's extension Theorem, note that $P$ as
@@ -1133,18 +721,18 @@ topological structure of the underlying space.
 \noindent
 As an example, we give the formalization of $4.\Rightarrow 1.$:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem sigma_additive_addContent_of_tendsto_zero
-    (hC : SetRing C)
-    (m : AddContent C)
-    (hm_ne_top : ∀ {s} (_ : s ∈ C), m s ≠ ∞)
-    (hm : ∀ ⦃s : ℕ → Set α⦄ (_ : ∀ n, s n ∈ C),
-      Antitone s → (⋂ n, s n) = ∅ →
-      Tendsto (fun n => m (s n)) atTop (nhds 0))
-      ⦃f : ℕ → Set α⦄ (hf : ∀ i, f i ∈ C) (hUf : (⋃ i, f i) ∈ C)
-      (h_disj : Pairwise (Disjoint on f)) :
-    m (⋃ i, f i) = ∑' i, m (f i)
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem sigma_additive_addContent_of_tendsto_zero
+%     (hC : SetRing C)
+%     (m : AddContent C)
+%     (hm_ne_top : ∀ {s} (_ : s ∈ C), m s ≠ ∞)
+%     (hm : ∀ ⦃s : ℕ → Set α⦄ (_ : ∀ n, s n ∈ C),
+%       Antitone s → (⋂ n, s n) = ∅ →
+%       Tendsto (fun n => m (s n)) atTop (nhds 0))
+%       ⦃f : ℕ → Set α⦄ (hf : ∀ i, f i ∈ C) (hUf : (⋃ i, f i) ∈ C)
+%       (h_disj : Pairwise (Disjoint on f)) :
+%     m (⋃ i, f i) = ∑' i, m (f i)
+% \end{minted}
 
 \noindent
 Next, we will be extending our analysis to the case of a topological
@@ -1167,14 +755,14 @@ space. We define inner (and outer) regularity of set functions.
 
 \noindent
 The above definition closely resembles its formalization in
-\leanline{mathlib}:
+\leaninline{mathlib}:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def MeasureTheory.Measure.InnerRegular
-    {α : Type u_1}  {_ : MeasurableSpace α}
-    (μ : Measure α) (p q : Set α → Prop) :=
-  ∀ ⦃U⦄, q U → ∀ r < μ U, ∃ K, K ⊆ U ∧ p K ∧ r < μ K
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def MeasureTheory.Measure.InnerRegular
+%     {α : Type u_1}  {_ : MeasurableSpace α}
+%     (μ : Measure α) (p q : Set α → Prop) :=
+%   ∀ ⦃U⦄, q U → ∀ r < μ U, ∃ K, K ⊆ U ∧ p K ∧ r < μ K
+% \end{minted}
 
 For the next result, recall that for compact sets $C_1, C_2,...$ with
 $\bigcap_{n=1}^\infty C_n = \emptyset$, there is some $N$ with
@@ -1191,11 +779,11 @@ compact system, which is defined as follows:
 \noindent
 Here is the formalization:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def IsCompactSystem (p : Set α → Prop) : Prop :=
-    ∀ C : ℕ → Set α, (∀ i, p (C i)) → ⋂ i, C i = ∅ →
-    ∃ (s : Finset ℕ), ⋂ i ∈ s, C i = ∅
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def IsCompactSystem (p : Set α → Prop) : Prop :=
+%     ∀ C : ℕ → Set α, (∀ i, p (C i)) → ⋂ i, C i = ∅ →
+%     ∃ (s : Finset ℕ), ⋂ i ∈ s, C i = ∅
+% \end{minted}
 
 \noindent
 Such compact systems are important since they allow a
@@ -1229,84 +817,50 @@ the Kolmogorov extension theorem.
   This concludes the proof.
 \end{proof}
 
-%% def closedCompactCylinders :
-%%   Set (Set ((i : ι) → α i)) :=
-%%   ⋃ (s) (S) (_ : IsClosed S) (_ : IsCompact S), {cylinder s S}
-
-%%     theorem isCompactSystem_cylinders :
-%% IsCompactSystem (fun t ↦ t ∈ closedCompactCylinders α)
-
-%% lemma AddContent.sigma_additive_of_regular [Nonempty α] (hR : SetRing R) (m : AddContent R)
-%%     (hm_ne_top : ∀ {s} (_ : s ∈ R), m s ≠ ∞)
-%%     (hC : IsCompactSystem C) (hCR : C ⊆ R)
-%%     (h_reg : ∀ A (_ : A ∈ R) (ε : ℝ≥0∞) (_ : 0 < ε), ∃ K ∈ C, K ⊆ A ∧ m (A \ K) ≤ ε)
-%%     ⦃f : ℕ → Set α⦄ (hf : ∀ i, f i ∈ R) (hUf : (⋃ i, f i) ∈ R) (h_disj : Pairwise (Disjoint on f)) :
-%%     m (⋃ i, f i) = ∑' i, m (f i)
-
-%In our formalization, we are less general and use a direct argument
-%for a \leanlinecolor{kolContent}. More precisely, we show that a
-%\leanlinecolor{kolContent}, which is based on a projective family
-%which is inner regular with respect to compact and closed sets is
-%$\sigma$-additive.
-
 In order to apply this result and show the extension theorem, we need
 to show that
-%$\{\pi_J^{-1} C: C \in \prod_{j\in J} \alpha_j \text{ compact}\}$ as
-%  well as
 $\{\pi_J^{-1} C: C \in \prod_{j\in J} \alpha_j \text{ compact and
   closed}\}$ is a compact systems. Note that compact sets are closed
 in Hausdorff spaces, but we do not have this property since we are
 working with pseudo-metric spaces. Since Lemma~\ref{l:stetigcompact}
-gives the $\sigma$-additivity of a \leanlinecolor{kolContent}, which
-is defined through the projective family \leanline{P}, we have:
+gives the $\sigma$-additivity of a \leaninline{kolContent}, which
+is defined through the projective family \leaninline{P}, we have:
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem kolContent_sigma_additive_of_innerRegular
-    (hP : IsProjectiveMeasureFamily P)
-    (hP_inner : ∀ J,
-      (P J).InnerRegular (fun s => IsCompact s ∧ IsClosed s)
-      MeasurableSet)
-    ⦃f : ℕ → Set (∀ i, α i)⦄ (hf : ∀ i, f i ∈ cylinders α)
-    (hf_Union : (⋃ i, f i) ∈ cylinders α)
-    (h_disj : Pairwise (Disjoint on f)) :
-    kolContent hP (⋃ i, f i) = ∑' i, kolContent hP (f i)
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem kolContent_sigma_additive_of_innerRegular
+%     (hP : IsProjectiveMeasureFamily P)
+%     (hP_inner : ∀ J,
+%       (P J).InnerRegular (fun s => IsCompact s ∧ IsClosed s)
+%       MeasurableSet)
+%     ⦃f : ℕ → Set (∀ i, α i)⦄ (hf : ∀ i, f i ∈ cylinders α)
+%     (hf_Union : (⋃ i, f i) ∈ cylinders α)
+%     (h_disj : Pairwise (Disjoint on f)) :
+%     kolContent hP (⋃ i, f i) = ∑' i, kolContent hP (f i)
+% \end{minted}
 
-Note that the assumption \leanline{hP_inner} from above translates
-directly to inner regularity of the \leanlinecolor{kolContent}, which
-is defined through the projective family \leanline{P}. Moreover, since
+Note that the assumption \leaninline{hP_inner} from above translates
+directly to inner regularity of the \leaninline{kolContent}, which
+is defined through the projective family \leaninline{P}. Moreover, since
 the Carathéodory extension theorem requires $\sigma$-subadditivity
 (rather than $\sigma$-additivity), we can use
-\leanlinecolor{sigma_subadditive_of_sigma_additive} (see
+\leaninline{sigma_subadditive_of_sigma_additive} (see
   Lemma~\ref{P:stetigmass}, 1.$\Rightarrow$2.) in order to show that
 the assumptions of the last result also imply $\sigma$-subadditivity;
 this gives
-\leanlinecolor{kolContent_sigma_subadditive_of_innerRegular}.
-
-%  theorem kolContent_sigma_subadditive_of_innerRegular
-%    (hP : IsProjectiveMeasureFamily P)
-%    (hP_inner : ∀ J,
-%      (P J).InnerRegular (fun s => IsCompact s ∧ IsClosed s)
-%      MeasurableSet)
-%    ⦃f : ℕ → Set (∀ i, α i)⦄
-%    (hf : ∀ i, f i ∈ cylinders α)
-%    (hf_Union : (⋃ i, f i) ∈ cylinders α) :
-%    kolContent hP (⋃ i, f i) ≤ ∑' i, kolContent hP (f i)
-
-
+\leaninline{kolContent_sigma_subadditive_of_innerRegular}.
 
 What remains to be done is to show conditions under which the
 projective family is inner regular with respect to compact (and
 closed) sets. For this, we need some assumption on the underlying
 spaces.
 
-The next result is already implemented in \leanline{mathlib}: Use
-\leanline{Measure.InnerRegular.of_pseudoEMetricSpace} in order to show
+The next result is already implemented in \leaninline{mathlib}: Use
+\leaninline{Measure.InnerRegular.of_pseudoEMetricSpace} in order to show
 that every open set is inner regular with respect to closed sets, and
-\leanline{Measure.InnerRegular.measurableSet_of_open} to show that
+\leaninline{Measure.InnerRegular.measurableSet_of_open} to show that
 every measurable set is inner regular with respect to closed sets.
 The claimed outer regularity is part of
-\leanline{MeasureTheory.Measure.InnerRegular.weaklyRegular_of_finite}.
+\leaninline{MeasureTheory.Measure.InnerRegular.weaklyRegular_of_finite}.
 
 \begin{lemma}\label{l:pseude1}
   Let $r$ be an extended pseudo-metric on $\alpha$, and the topology
@@ -1364,18 +918,8 @@ The claimed outer regularity is part of
   and we have shown that $A \in \mathcal A$.
 \end{proof}
 
-%xxx From Remy: For \leanline{inner_regular_etc} we already do it in
-%three parts: our result shows \leanline{P.inner_regular (λ s,
-%is_compact s ∧ is_closed s) is_closed}, then we go from closed to
-%open sets thanks to
-%\leanline{docs3#measure_theory.measure.inner_regular.of_pseudo_emetric_space},
-%and finally to measurable sets with
-%\leanline{docs3#measure_theory.measure.inner_regular.measurable_set_of_open}. That
-%last step uses the borel space assumption in the typeclass inference
-%process to get its \leanline{outer_regular} argument.
-
 In the next lemma, we will need that a closed subset of a compact set
-is compact. (See \leanline{isCompact_of_isClosed_subset}.) We describe
+is compact. (See \leaninline{isCompact_of_isClosed_subset}.) We describe
 the formalization of the next lemma only in conjunction with
 Lemma~\ref{L:relcoPol}. We omit the proof, since the
   only interesting part is an application of inner regularity from
@@ -1394,8 +938,6 @@ Lemma~\ref{L:relcoPol}. We omit the proof, since the
       < \varepsilon$.
   \end{enumerate}
 \end{lemma}
-
-%% \todo{too much detail? omit the proof?}
 
 %% \begin{proof}
 %%   2. $\Rightarrow$ 1.: This is clear since $\alpha \in \mathcal B$.
@@ -1416,7 +958,7 @@ space is compact iff it is complete and totally
 bounded\footnote{\label{note:tot}A subset of a pseudo-metric space is
   totally bounded iff, for all $\varepsilon>0$, it can be covered by
   finitely many balls of radius $\epsilon$.} (see
-\leanline{isCompact_iff_totallyBounded_isComplete} in {\tt
+\leaninline{isCompact_iff_totallyBounded_isComplete} in {\tt
   mathlib}). Since closed subsets of a complete space are complete,
 the closure of a totally bounded set is (still totally bounded, hence)
 compact. (This fact is used in the proof below.)
@@ -1466,36 +1008,15 @@ Combining the last two results, we obtain the desired statement that a measure o
 complete extended pseudo-metric space is inner regular with respect to
 closed compact sets.
 
-\begin{minted}[highlightlines={1-2}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-theorem innerRegular_isCompact_isClosed_
-    measurableSet_of_complete_countable
-    [PseudoEMetricSpace α] [CompleteSpace α]
-    [SecondCountableTopology α]
-    [BorelSpace α] (P : Measure α) [IsFiniteMeasure P] :
-    P.InnerRegular (fun s => IsCompact s ∧ IsClosed s)
-      MeasurableSet
-\end{minted}
-
-%\begin{lemma}\label{l:totalBoundcompact}
-%  Let $E$ be a uniform topologocal space\footnote{This is more general
-%    than a metric space, i.e.\ every metric space is uniform.} Then,
-%  $A\subseteq E$ is compact iff it is totally bounded\footnote{In a
-%    metric space, this means that forall $\varepsilon>0$ you find a
-%    finite number of balls covering the set} and
-%  complete\footnote{i.e.,\ Cauchy filters converge.}.
-%\end{lemma}
-
-%\noindent
-%The usual way to apply this result is in a Polish space. Here, $A$ is
-%relatively compact iff it is totally bounded.
-
-%\noindent
-%Although, regularity of measures is covered in {\tt mathlib}, the next
-%statement is not yet part of the library. Similar constructions will
-%be important for Prohorov's theorem in the theory of weak convergence.
-%In Lean, we can use \verb+ measure_theory.measure.inner_regular+ for
-%the statement of this result. In the proof of the lemma, we will be
-%using the last fact
+% \begin{minted}[highlightlines={1-2}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% theorem innerRegular_isCompact_isClosed_
+%     measurableSet_of_complete_countable
+%     [PseudoEMetricSpace α] [CompleteSpace α]
+%     [SecondCountableTopology α]
+%     [BorelSpace α] (P : Measure α) [IsFiniteMeasure P] :
+%     P.InnerRegular (fun s => IsCompact s ∧ IsClosed s)
+%       MeasurableSet
+% \end{minted}
 
 \subsection{Proof of Kolmogorov's extension theorem}
 We now describe the proof of Kolmogorov's extension theorem as well as
@@ -1523,23 +1044,2607 @@ The formalization of this proof resembles these arguments. We leave
 out all instances in the reformulation of the result and its proof
 (see below Theorem~\ref{T1} for a full formulation):
 
-\begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
-def projectiveLimitWithWeakestHypotheses
-    (P : ∀ J : Finset ι, Measure (∀ j : J, α j))
-    (hP : IsProjectiveMeasureFamily P) :
-    Measure (∀ i, α i) :=
-  Measure.ofAddContent setSemiringCylinders
-    generateFrom_cylinders (kolContent hP)
-    (kolContent_sigma_subadditive_of_innerRegular hP
-      fun J => innerRegular_isCompact_isClosed_
-      measurableSet_of_complete_countable (P J))
-\end{minted}
+% \begin{minted}[highlightlines={1}, mathescape, numbersep=5pt, framesep=5mm, bgcolor=mygray]{Lean}
+% def projectiveLimitWithWeakestHypotheses
+%     (P : ∀ J : Finset ι, Measure (∀ j : J, α j))
+%     (hP : IsProjectiveMeasureFamily P) :
+%     Measure (∀ i, α i) :=
+%   Measure.ofAddContent setSemiringCylinders
+%     generateFrom_cylinders (kolContent hP)
+%     (kolContent_sigma_subadditive_of_innerRegular hP
+%       fun J => innerRegular_isCompact_isClosed_
+%       measurableSet_of_complete_countable (P J))
+% \end{minted}
 \sloppy Let us look closer at the formalized proof:
-\leanlinecolor{kolContent_sigma_subadditive_of_innerRegular} has the
+\leaninline{kolContent_sigma_subadditive_of_innerRegular} has the
 same hypotheses as
-\leanlinecolor{kolContent_sigma_additive_of_innerRegular},
-except \leanline{h_disj}. So, the lemma in the last brackets shows
+\leaninline{kolContent_sigma_additive_of_innerRegular},
+except \leaninline{h_disj}. So, the lemma in the last brackets shows
 $\sigma$-sub-additivity of the content $P$ from
-Theorem~\ref{T1}. Then, \leanlinecolor{generateFrom_cylinders} gives
-the \leanline{MeasurableSpace} on which we define the
-\leanlinecolor{addContent}.
+Theorem~\ref{T1}. Then, \leaninline{generateFrom_cylinders} gives
+the \leaninline{MeasurableSpace} on which we define the
+\leaninline{addContent}.
+
+
+\section{Gaussian Measures and characteristic functions}
+
+\color{blue}
+
+\subsection{Real Gaussian measures}
+
+\begin{definition}[Real Gaussian measure]\label{def:gaussianReal}
+  % \mathlibok
+  % %  \lean{ProbabilityTheory.gaussianReal}
+  The real Gaussian measure with mean $\mu \in \mathbb{R}$ and variance $\sigma^2 > 0$ is the measure on $\mathbb{R}$ with density $\frac{1}{\sqrt{2 \pi \sigma^2}} \exp\left(-\frac{(x - \mu)^2}{2 \sigma^2}\right)$ with respect to the Lebesgue measure.
+  The real Gaussian measure with mean $\mu \in \mathbb{R}$ and variance $0$ is the Dirac measure $\delta_\mu$.
+  We denote this measure by $\mathcal{N}(\mu, \sigma^2)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:charFun_gaussianReal}
+  % %  \uses{def:gaussianReal, def:charFun}
+  % \mathlibok
+  % %  \lean{ProbabilityTheory.charFun_gaussianReal}
+The characteristic function of a real Gaussian measure with mean $\mu$ and variance $\sigma^2$ is given by
+$x \mapsto \exp\left(i \mu x - \frac{\sigma^2 x^2}{2}\right)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:centralMoment_two_mul_gaussianReal}
+  %  \uses{def:gaussianReal}
+  \leanok
+%  %  \lean{ProbabilityTheory.centralMoment_two_mul_gaussianReal}
+The central moment of order $2n$ of a real Gaussian measure $\mathcal{N}(\mu, \sigma^2)$ is given by
+\begin{align*}
+  \mathbb{E}[(X - \mu)^{2n}] = \sigma^{2n} (2n - 1)!! \: ,
+\end{align*}
+in which $(2n - 1)!! = (2n - 1)(2n - 3) \cdots 3 \cdot 1$ is the double factorial of $2n - 1$.
+\end{lemma}
+
+\begin{proof}\leanok
+\begin{align*}
+	\mathbb{E}[(X - \mu)^{2n}] &= \int_{-\infty}^\infty (x - \mu)^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{(x - \mu)^2}{2 \sigma^2}} \mathrm dx \\
+	&= \int_{-\infty}^\infty x^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{x^2}{2 \sigma^2}} \mathrm dx \\
+	&= 2 \int_{0}^\infty x^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-\frac{x^2}{2 \sigma^2}} \mathrm dx \\
+	&= 2 \int_{0}^\infty {\sqrt{2 \sigma^2 x}}^{2n} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-x)} \frac{\sigma^2}{\sqrt{2 \sigma^2 x'}} \mathrm dx \\
+	&= \frac{\sigma^{2n} 2^n}{\sqrt{\pi}} \int_{0}^\infty x^{n - 1/2} e{-x} \mathrm dx \\
+	&= \frac{\sigma^{2n} 2^n}{\sqrt{\pi}} \Gamma(n + 1/2) \\
+	&= \frac{\sigma^{2n} 2^n}{\Gamma(1/2)} \left( \prod_{k=0}^{n-1} (k + 1/2) \right) \Gamma(1/2) \\
+	&= \sigma^{2n} \prod_{k=0}^{n-1} (2k + 1) \\
+	&= \sigma^{2n} (2n - 1)!!
+\end{align*}
+\end{proof}
+
+
+\subsection{Gaussian measures on a Banach space}
+
+That kind of generality is not needed for this project, but we happen to have results about Gaussian measures on a Banach space in Mathlib, so we will use them.
+The main reference for this section is \cite{hairer2009introduction}.
+
+Let $F$ be a separable Banach space.
+
+\begin{definition}[Gaussian measure]\label{def:IsGaussian}
+  % %  \uses{def:gaussianReal}
+  % \mathlibok
+  % %  \lean{ProbabilityTheory.IsGaussian}
+A measure $\mu$ on $F$ is Gaussian if for every continuous linear form $L \in F^*$, the pushforward measure $L_* \mu$ is a Gaussian measure on $\mathbb{R}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsGaussian.IsProbabilityMeasure}
+  % %  \uses{def:IsGaussian}
+  % \mathlibok
+A Gaussian measure is a probability measure.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:isGaussian_iff_charFunDual_eq}
+  % %  \uses{def:IsGaussian, def:charFunDual}
+  % \mathlibok
+  % %  \lean{ProbabilityTheory.isGaussian_iff_charFunDual_eq}
+A finite measure $\mu$ on $F$ is Gaussian if and only if for every continuous linear form $L \in F^*$, the characteristic function of $\mu$ at $L$ is
+\begin{align*}
+  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: ,
+\end{align*}
+in which $\mathbb{V}_\mu[L]$ is the variance of $L$ with respect to $\mu$.
+\end{theorem}
+
+\begin{proof}
+  %%  \uses{thm:ext_of_charFunDual, lem:charFun_gaussianReal}\leanok
+
+\end{proof}
+
+
+
+\paragraph{Transformations of Gaussian measures}
+
+\begin{lemma}\label{lem:isGaussian_map}
+  %  \uses{def:IsGaussian}
+  \mathlibok
+%  %  \lean{ProbabilityTheory.isGaussian_map}
+Let $F, G$ be two Banach spaces, let $\mu$ be a Gaussian measure on $F$ and let $T : F \to G$ be a continuous linear map.
+Then $T_*\mu$ is a Gaussian measure on $G$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_add_const}
+%  %  \uses{def:IsGaussian}
+  \leanok
+  % This is an instance without name in the code, hence we don't give a %  \lean{...}.
+Let $\mu$ be a Gaussian measure on $F$ and let $c \in F$.
+Then the measure $\mu$ translated by $c$ (the map of $\mu$ by $x \mapsto x + c$) is a Gaussian measure on $F$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_conv}
+ % %  \uses{def:IsGaussian}
+  %\mathlibok
+  %%  \lean{ProbabilityTheory.isGaussian_conv}
+The convolution of two Gaussian measures is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+
+\paragraph{Fernique's theorem}
+
+
+\begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
+  %\leanok
+  % In Mathlib PR #26291
+Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
+Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
+\end{theorem}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsGaussian.map_rotation_eq_self}
+  %%  \uses{def:IsGaussian}
+  \leanok
+  % In Mathlib PR #26291
+For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_conv}
+
+\end{proof}
+
+
+\begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
+  %  \uses{def:IsGaussian}
+  \leanok
+  % In Mathlib PR #26291
+For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{thm:isGaussian_iff_charFunDual_eq, lem:IsGaussian.IsProbabilityMeasure, thm:exists_integrable_exp_sq_of_map_rotation_eq_self, lem:IsGaussian.map_rotation_eq_self}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsGaussian.memLp_id}
+  %  \uses{def:IsGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.IsGaussian.memLp_id}
+A Gaussian measure $\mu$ has finite moments of all orders.
+In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{thm:IsGaussian.exists_integrable_exp_sq}
+
+\end{proof}
+
+A Gaussian measure has finite second moment by Lemma~\ref{lem:IsGaussian.memLp_id}, hence its covariance bilinear form is well defined.
+
+
+\subsection{Gaussian measures on a finite dimensional Hilbert space}
+
+We specialize directly from Banach space to finite dimensional Hilbert space since that's what we need in this project, although there are results for Gaussian measures on infinite dimensional Hilbert spaces that would worth stating.
+
+\begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
+  %  \uses{def:IsGaussian, def:charFunDual, def:charFun}
+  \leanok
+  %  \lean{ProbabilityTheory.isGaussian_iff_charFun_eq}
+A finite measure $\mu$ on a Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
+\begin{align*}
+  \hat{\mu}(t) =  \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{thm:isGaussian_iff_charFunDual_eq}
+By Theorem~\ref{thm:isGaussian_iff_charFunDual_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
+\begin{align*}
+  \hat{\mu}(L) = \exp\left(i \mu[L] - \mathbb{V}_\mu[L] / 2\right) \: .
+\end{align*}
+Every continuous linear form $L \in E^*$ can be written as $L(x) = \langle t, x \rangle$ for some $t \in E$, hence we have that $\mu$ is Gaussian iff for every $t \in E$,
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
+\end{align*}
+\end{proof}
+
+Let $E$ be a separable Hilbert space. We denote by $\langle \cdot, \cdot \rangle$ the inner product on $E$ and by $\Vert \cdot \Vert$ the associated norm.
+
+\begin{lemma}\label{lem:IsGaussian.charFun_eq}
+  %  \uses{def:IsGaussian, def:charFun, def:covInnerBilin}
+  \leanok
+  %  \lean{ProbabilityTheory.IsGaussian.charFun_eq}
+The characteristic function of a Gaussian measure $\mu$ on $E$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t)\right) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_iff_charFun_eq, lem:IsGaussian.memLp_id, lem:covarianceBilin_same_eq_variance}
+By Lemma~\ref{lem:isGaussian_iff_charFun_eq}, for every $t \in E$,
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \mu[\langle t, \cdot \rangle] - \mathbb{V}_\mu[\langle t, \cdot \rangle] / 2\right) \: .
+\end{align*}
+By Lemma~\ref{lem:IsGaussian.memLp_id}, $\mu$ has finite first moment and $\mu[\langle t, \cdot \rangle] = \langle t, m_\mu \rangle$. By the same lemma, $\mu$ has finite second moment and for any $t$ we have $\mathbb{V}_\mu[\langle t, \cdot\rangle] = C'_\mu(t, t)$.
+\end{proof}
+
+\begin{lemma}\label{lem:isGaussian_iff_gaussian_charFun}
+  %  \uses{def:IsGaussian, def:charFun, def:covMatrix}
+  \leanok
+  %  \lean{ProbabilityTheory.isGaussian_iff_gaussian_charFun, ProbabilityTheory.gaussian_charFun_congr}
+A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $C$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} C(t, t)\right) \: ,
+\end{align*}
+If that's the case, then $m = m_\mu$ and $C = C'_\mu$.
+\end{lemma}
+
+Note that this lemma does not say that there exists a Gaussian measure for any such $m$ and $C$.
+We will prove that later.
+
+\begin{proof}\leanok
+  %  \uses{lem:IsGaussian.charFun_eq, lem:charFun_map_eq_charFunDual_smul, thm:ext_of_charFun}
+Lemma~\ref{lem:IsGaussian.charFun_eq} states that the characteristic function of a Gaussian measure has the wanted form.
+
+Suppose now that there exists $m \in E$ and $C$ positive semidefinite such that for all $t \in E$, $\hat{\mu}(t) = \exp\left(i \langle t, m \rangle - \frac{1}{2} C(t, t)\right)$.
+
+We need to show that for all $L \in E^*$, $L_*\mu$ is a Gaussian measure on $\mathbb{R}$.
+Such an $L$ can be written as $\langle u, \cdot \rangle$ for some $u \in E$.
+Let then $u \in E$. We compute the characteristic function of $\langle u, \cdot\rangle_*\mu$ at $x \in \mathbb{R}$ with Lemma~\ref{lem:charFun_map_eq_charFunDual_smul}:
+\begin{align*}
+  \widehat{\langle u, \cdot\rangle_*\mu}(x)
+  &= \hat{\mu}(x \cdot u)
+  \\
+  &= \exp\left(i x \langle u, m \rangle - \frac{1}{2} x^2 C(u, u)\right)
+  \: .
+\end{align*}
+This is the characteristic function of a Gaussian measure on $\mathbb{R}$ with mean $\langle u, m \rangle$ and variance $C(u, u)$.
+By Theorem~\ref{thm:ext_of_charFun}, $\langle u, \cdot\rangle_*\mu$ is Gaussian, hence $\mu$ is Gaussian.
+
+By Lemma~\ref{lem:IsGaussian.charFun_eq}, we deduce that for any $t \in E$ we have
+$$\exp\left(i\langle t, m \rangle - \frac{1}{2} C(t, t)\right) = \exp\left(i\langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t)\right).$$
+In particular, for any $t$ there exists $n_t \in \mathbb{Z}$ such that
+$$i\langle t, m \rangle - \frac{1}{2} C(t, t) = i\langle t, m_\mu \rangle - \frac{1}{2} C'_\mu(t, t) + 2i\pi n_t.$$
+We deduce that $n$ is a continuous map from $E$ to $\mathbb{Z}$, and thus must be constant because $E$ is connected. By looking at the value at $t = 0$, we deduce that for any $t$, $n_t = 0$. Looking at real and imaginary parts we obtain that for any $t$,
+$$\langle t, m \rangle = \langle t, m_\mu \rangle \quad \text{and} \quad C(t, t) = C'_\mu(t, t).$$
+We immediately deduce that $m = m_\mu$. Moreover, because $C$ and $C'_\mu$ are symmetric, they are characterized by their values on the diagonal. Indeed, for any $x, y$,
+$$C(x, y) = \frac{1}{2} (C(x + y, x + y) - C(x, x) - C(y, y)).$$
+We deduce that $C = C'_\mu$.
+\end{proof}
+
+\begin{lemma}\label{lem:IsGaussian.ext_iff}
+  %  \uses{def:IsGaussian, def:covInnerBilin}
+  \leanok
+  %  \lean{ProbabilityTheory.IsGaussian.ext, ProbabilityTheory.IsGaussian.ext_iff}
+Two Gaussian measures $\mu$ and $\nu$ on a separable Hilbert space are equal if and only if they have same mean and same covariance.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{thm:ext_of_charFun, lem:IsGaussian.charFun_eq}
+The forward direction is immediate.
+
+For the converse direction, it is enough to show that $\mu$ and $\nu$ have the same characteristic function by Theorem~\ref{thm:ext_of_charFun}. As they are both Gaussian, their characteristic functions only depend on their mean and covariance by Lemma~\ref{lem:IsGaussian.charFun_eq}. Thus they are equal.
+\end{proof}
+
+
+\begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
+  %  \uses{def:gaussianReal}
+  \leanok
+  %  \lean{ProbabilityTheory.stdGaussian}
+Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu$ be the standard Gaussian measure on $\mathbb{R}$.
+The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu \times \ldots \times \mu$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
+\end{definition}
+
+The fact that this definition does not depend on the choice of basis will be a consequence of the fact that its characteristic function does not depend on the basis.
+
+
+\begin{lemma}\label{lem:integral_eval_pi}
+  \leanok
+  %  \lean{ProbabilityTheory.integral_eval_pi}
+For $\mu_1, \ldots, \mu_d$ probability measures on $\mathbb{R}$ and $f : \mathbb{R} \to \mathbb{R}$ integrable with respect to $\mu_i$, we have
+\begin{align*}
+  \int_x f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x)
+  = \int_x f(x) \, d\mu_i
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+As $f$ is integrable, we can use Fubini theorem to obtain that
+$$\int f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x) = \int f(x) \, d\mu_i(x) \times \prod_{j \ne i} \int 1 \, d\mu_j(x) = \int f(x) \, d\mu_i(x)$$
+because the $\mu_j$s are probability measures.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isCentered_stdGaussian}
+  %  \uses{def:stdGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.isCentered_stdGaussian}
+The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_eval_pi}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isProbabilityMeasure_stdGaussian}
+  %  \uses{def:stdGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.isProbabilityMeasure_stdGaussian}
+The standard Gaussian measure is a probability measure.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:charFun_stdGaussian}
+  %  \uses{def:stdGaussian, def:charFun}
+  \leanok
+  %  \lean{ProbabilityTheory.charFun_stdGaussian}
+The characteristic function of the standard Gaussian measure on $E$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(-\frac{1}{2} \Vert t \Vert^2 \right) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:charFun_gaussianReal}
+Denote by $\nu$ the standard Gaussian measure on $\mathbb{R}$. This is a straightforward computation:
+\begin{align*}
+  \hat{\mu}(t) = \int \exp\left(i\langle t, \sum_{j=1}^d x_j \cdot e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) &= \int \exp\left(\sum_{j=1}^d ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
+  &= \int \prod_{j=1}^d \exp\left(ix_j\langle t, e_j \rangle\right) d(\nu \times \ldots \times \nu)(dx) \\
+  &= \prod_{j=1}^d \int \exp\left(ix\langle t, e_j \rangle\right) d\nu(x) \\
+  &= \prod_{j=1}^d \exp\left(-\frac{\langle t, e_j \rangle^2}{2}\right) \\
+  &= \exp\left(-\frac{1}{2} \Vert t \Vert^2 \right).
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_stdGaussian}
+  %  \uses{def:stdGaussian, def:IsGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.isGaussian_stdGaussian}
+The standard Gaussian measure on $E$ is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
+Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that states that it suffices to show that the characteristic function has a particular form.
+That form is given by Lemma~\ref{lem:charFun_stdGaussian}, taking $m=0$ and $C = \langle\cdot, \cdot\rangle$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_id_stdGaussian}
+  %  \uses{def:stdGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.integral_id_stdGaussian}
+The mean of the standard Gaussian measure is $0$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_eval_pi}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covMatrix_stdGaussian}
+  %  \uses{def:stdGaussian, def:covMatrix}
+  \leanok
+  %  \lean{ProbabilityTheory.covMatrix_stdGaussian}
+The covariance matrix of the standard Gaussian measure is the identity matrix.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian}
+From Lemma~\ref{lem:charFun_stdGaussian}, we know that for all $t \in \mathbb{R}$,
+$$\hat{\mu}(t) = \exp\left(-\frac{\|t\|^2}{2}\right) = \exp\left(-\frac{\langle t, \mathrm{I}t\rangle}{2}\right).$$
+As the identity is positive semidefinite, we deduce from Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that $\Sigma_\mu$ is the identity matrix.
+\end{proof}
+
+
+\begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
+  %  \uses{def:stdGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.multivariateGaussian}
+The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $m \in \mathbb{R}^d$ and covariance matrix $\Sigma \in \mathbb{R}^{d \times d}$, with $\Sigma$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto m + \Sigma^{1/2} x$.
+We denote this measure by $\mathcal{N}(m, \Sigma)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:integral_id_multivariateGaussian}
+  %  \uses{def:multivariateGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.integral_id_multivariateGaussian}
+The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_id_stdGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covMatrix_multivariateGaussian}
+  %  \uses{def:multivariateGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.covInnerBilin_multivariateGaussian}
+The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $\Sigma$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:covMatrix_stdGaussian}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isGaussian_multivariateGaussian}
+  %  \uses{def:multivariateGaussian, def:IsGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.isGaussian_multivariateGaussian}
+A multivariate Gaussian measure is a Gaussian measure.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_stdGaussian, lem:isGaussian_add_const, lem:isGaussian_map}
+The multivariate Gaussian measure is the pushforward of the standard Gaussian measure by an affine map, and is thus Gaussian by Lemma~\ref{lem:isGaussian_add_const} and Lemma~\ref{lem:isGaussian_map}.
+\end{proof}
+
+
+\begin{theorem}\label{thm:charFun_multivariateGaussian}
+  %  \uses{def:multivariateGaussian, def:charFun}
+  \leanok
+  %  \lean{ProbabilityTheory.charFun_multivariateGaussian}
+The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is given by
+\begin{align*}
+  \hat{\mu}(t) = \exp\left(i \langle m, t \rangle - \frac{1}{2} \langle t, \Sigma t \rangle\right)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq, lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
+Since the multivariate Gaussian measure is a Gaussian measure, we can apply Lemma~\ref{lem:IsGaussian.charFun_eq} to it.
+It suffices then to show that the mean and the covariance matrix of the multivariate Gaussian measure are equal to $m$ and $\Sigma$, respectively.
+This is given by Lemma~\ref{lem:integral_id_multivariateGaussian} and Lemma~\ref{lem:covMatrix_multivariateGaussian}.
+\end{proof}
+
+
+\subsection{Gaussian processes}
+\label{sec:gaussian_processes}
+
+\begin{definition}[Gaussian process]\label{def:IsGaussianProcess}
+  %  \uses{def:IsGaussian}
+  \leanok
+  %  \lean{ProbabilityTheory.IsGaussianProcess}
+A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has a Gaussian distribution.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isGaussianProcess_of_modification}
+  %  \uses{def:IsGaussianProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.IsGaussianProcess.modification}
+Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other (that is, for all $t \in T$, $X_t =_{a.e.} Y_t$).
+If $X$ is a Gaussian process, then $Y$ is a Gaussian process as well.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:map_eq_of_modification}
+Being a Gaussian process is defined in terms of the distribution of finite-dimensional random vectors.
+By Lemma~\ref{lem:map_eq_of_modification}, the random vector $(Y_{t_1}, \ldots, Y_{t_n})$ has the same distribution as the random vector $(X_{t_1}, \ldots, X_{t_n})$ for all $t_1, \ldots, t_n \in T$.
+\end{proof}
+
+\color{black}
+
+\section{The Kolmogorov-Chentsov Theorem}
+\label{S:continuity}
+
+We follow the proof of the Kolmogorov-Chentsov theorem from \cite{kratschmer2023kolmogorov}.
+That proof notably uses the chaining technique developed by Talagrand \cite{talagrand2022upper}.
+
+That theorem is about stochastic processes $X : T \to \Omega \to E$, where $\Omega$ is a measurable space with a probability measure $\mathbb{P}$, the index set $T$ is a metric space with distance $d_T$, and $E$ is also a metric space with distance $d_E$, on which we put the Borel $\sigma$-algebra.
+
+The main result is Theorem~\ref{thm:countable_set_bound}.
+Under an assumption on the covering number of $T$, for a process $X$ that satisfies the Kolmogorov condition $\mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q$ (see Definition~\ref{def:IsKolmogorovProcess}),the theorem gives a finite bound on the expectation of the supremum of the ratio
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \: ,
+\end{align*}
+for $T'$ a countable subset of $T$.
+As a corollary, we obtain that there exists a modification of $X$ with Hölder continuous paths.
+
+In Lean, we will use the typeclass \texttt{PseudoEMetricSpace} for both $T$ and $E$ as long as possible, and then specialize to \texttt{EMetricSpace} (or perhaps even \texttt{MetricSpace}) when we need the stronger properties of a metric space.
+For example, to prove the existence of a modification of a stochastic process, we will eventually use the fact that $d_E(x, y) = 0$ implies $x = y$, which does not hold in a pseudo-metric space.
+All distances will be expressed with \texttt{edist}, which takes values in \texttt{ENNReal}, and the integrals refer to Lebesgue integrals.
+
+\subsection{Covers and covering numbers}
+
+Let $(E, d_E)$ be a pseudo-metric space.
+
+\begin{definition}[$\varepsilon$-cover]\label{def:IsCover}
+  \leanok
+  %  \lean{IsCover}
+  A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) \le \varepsilon$.
+\end{definition}
+
+
+\begin{definition}[External covering number]\label{def:externalCoveringNumber}
+  %  \uses{def:IsCover}
+  \leanok
+  %  \lean{externalCoveringNumber}
+  The external covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$.
+  Denote it by $N^{ext}_\varepsilon(A)$.
+\end{definition}
+
+
+\begin{definition}[Internal covering number]\label{def:internalCoveringNumber}
+  %  \uses{def:IsCover}
+  \leanok
+  %  \lean{internalCoveringNumber}
+  The internal covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$ which is a subset of $A$.
+  Denote it by $N^{int}_\varepsilon(A)$.
+\end{definition}
+
+
+\begin{definition}[Separated set]\label{def:IsSeparated}
+  \mathlibok
+  %  \lean{Metric.IsSeparated}
+A set $c \subseteq E$ is $\varepsilon$-separated if for all $x, y \in c$, $d_E(x, y) > \varepsilon$.
+\end{definition}
+
+
+\begin{definition}[Packing number]\label{def:packingNumber}
+  %  \uses{def:IsSeparated}
+  \leanok
+  %  \lean{packingNumber}
+The packing number of a set $A \subseteq E$ for $\varepsilon > 0$ is the largest cardinality of an $\varepsilon$-separated subset of $A$.
+Denote it by $P_\varepsilon(A)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:externalCoveringNumber_le_internalCoveringNumber}
+  %  \uses{def:externalCoveringNumber, def:internalCoveringNumber}
+  \leanok
+  %  \lean{externalCoveringNumber_le_internalCoveringNumber}
+$N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_le_packingNumber}
+  %  \uses{def:internalCoveringNumber, def:packingNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_le_packingNumber}
+$N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:packingNumber_two_le_externalCoveringNumber}
+  %  \uses{def:packingNumber, def:externalCoveringNumber}
+  \leanok
+  %  \lean{packingNumber_two_le_externalCoveringNumber}
+$P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_eq_one_of_diam_le}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_eq_one_of_diam_le}
+If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\varepsilon(A) = 1$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:externalCoveringNumber_mono}
+  %  \uses{def:externalCoveringNumber}
+  \leanok
+  %  \lean{externalCoveringNumber_mono_set}
+For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_subset_le}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_subset_le}
+For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:internalCoveringNumber_le_packingNumber, lem:packingNumber_two_le_externalCoveringNumber, lem:externalCoveringNumber_mono, lem:externalCoveringNumber_le_internalCoveringNumber}
+\begin{align*}
+  N^{int}_\varepsilon(B)
+  &\le P_{\varepsilon}(B)
+  \le N^{ext}_{\varepsilon/2}(B)
+  \le N^{ext}_{\varepsilon/2}(A)
+  \le N^{int}_{\varepsilon/2}(A)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Covering number and volume}
+
+In this section $E$ is a finite dimensional inner product space, with dimension $d$.
+
+\begin{lemma}\label{lem:volume_le_of_isCover}
+  %  \uses{def:IsCover}
+  \leanok
+  %  \lean{volume_le_of_isCover}
+Let $A \subseteq E$ and $C \subseteq E$ be a finite $\varepsilon$-cover of $A$. Denote by $V(A)$ the volume of $A$.
+Then $V(A) \le \vert C \vert V(B_\varepsilon)$, in which $B_\varepsilon$ is the closed ball of radius $\varepsilon$ in $E$.
+\end{lemma}
+
+\begin{proof}\leanok
+Since $C$ is a cover of $A$, $A$ is a subset of the union of the closed balls $B_\varepsilon(c)$ for $c \in C$. Then
+\begin{align*}
+  V(A) \le V(\bigcup_{c \in C} B_\varepsilon(c))
+  &\le \sum_{c \in C} V(B_\varepsilon(c))
+  = \vert C \vert V(B_\varepsilon)
+  \: .
+\end{align*}
+\end{proof}
+
+The volume of $B_\varepsilon$ is given by the following formula (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/VolumeOfBalls.html#InnerProductSpace.volume_closedBall}{InnerProductSpace.volume\_closedBall}).
+\begin{align*}
+  V(B_\varepsilon) = \frac{\pi^{d/2}}{\Gamma(d/2 + 1)} \varepsilon^d
+  \: .
+\end{align*}
+
+
+\begin{lemma}\label{lem:volume_le_externalCoveringNumber_mul}
+  %  \uses{def:externalCoveringNumber}
+  \leanok
+  %  \lean{volume_le_externalCoveringNumber_mul}
+If $0 < \varepsilon$ then $V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:volume_le_of_isCover}
+If $A$ has no $\varepsilon$-cover, then $N^{ext}_\varepsilon(A) = \infty$, and because $0 < \varepsilon$, we have that $0 < V(B_\varepsilon)$, so the right-hand side is infinite and the inequality follows.
+
+Otherwise there exists an $\varepsilon$-cover which realizes $N^{ext}_\varepsilon(A)$. We can conclude by Lemma~\ref{lem:volume_le_of_isCover}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:le_volume_of_isSeparated}
+  %  \uses{def:IsSeparated}
+  \leanok
+  %  \lean{le_volume_of_isSeparated}
+Let $A \subseteq E$ and let $S \subseteq A$ be an $\varepsilon$-separated set.
+Then $\vert S \vert V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
+\end{lemma}
+
+\begin{proof}\leanok
+Since $S$ is $\varepsilon$-separated, the closed balls $B_{\varepsilon/2}(s)$ for $s \in S$ are pairwise disjoint.
+Furthermore, these balls are contained in $A + B_{\varepsilon/2}$.
+Thus, we have
+\begin{align*}
+  \vert S \vert V(B_{\varepsilon/2})
+  &= \sum_{s \in S} V(B_{\varepsilon/2}(s))
+  = V(\bigcup_{s \in S} B_{\varepsilon/2}(s))
+  \le V(A + B_{\varepsilon/2})
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:packingNumber_mul_le_volume}
+  %  \uses{def:packingNumber}
+  \leanok
+  %  \lean{packingNumber_mul_le_volume}
+$P_\varepsilon(A) V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:le_volume_of_isSeparated}
+Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated set of maximal cardinality.
+\end{proof}
+
+
+\begin{lemma}\label{lem:volume_div_le_internalCoveringNumber}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{volume_div_le_internalCoveringNumber}
+If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:volume_le_externalCoveringNumber_mul, lem:externalCoveringNumber_le_internalCoveringNumber}
+We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref{lem:volume_le_externalCoveringNumber_mul} and $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$ by Lemma~\ref{lem:externalCoveringNumber_le_internalCoveringNumber}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_le_volume_div}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_le_volume_div}
+If $0 < \varepsilon < \infty$ then $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:packingNumber_mul_le_volume, lem:internalCoveringNumber_le_packingNumber}
+We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internalCoveringNumber_le_packingNumber} and $P_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$ by Lemma~\ref{lem:packingNumber_mul_le_volume}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_closedBall_ge}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_closedBall_ge}
+$N_\varepsilon^{int}(B_1) \ge \frac{1}{\varepsilon^d}$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:volume_div_le_internalCoveringNumber}
+By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
+\begin{align*}
+  N^{int}_\varepsilon(B_1)
+  &\ge \frac{V(B_1)}{V(B_\varepsilon)}
+  = \frac{1}{\varepsilon^d}
+  \: .
+\end{align*}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:internalCoveringNumber_closedBall_le}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_closedBall_le}
+$N_\varepsilon^{int}(B_1) \le \left(\frac{2}{\varepsilon} + 1\right)^d$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:internalCoveringNumber_le_volume_div}
+By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
+\begin{align*}
+  N^{int}_\varepsilon(B_1)
+  &\le \frac{V(B_1 + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}
+  = \frac{V(B_{1 + \varepsilon/2})}{V(B_{\varepsilon/2})}
+  = \frac{(1 + \varepsilon/2)^d}{(\varepsilon/2)^d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Bounded internal covering number}
+
+\begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
+  %  \uses{def:internalCoveringNumber}
+  \leanok
+  %  \lean{HasBoundedInternalCoveringNumber}
+  Let $\mathrm{diam}(A)$ be the diameter of $A \subseteq E$, i.e. $\mathrm{diam}(A) = \sup_{x,y \in A} d_E(x, y)$.
+  A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A)]$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_unitInterval}
+  %  \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{internalCoveringNumber_Icc_zero_one_le_one_div}
+The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal covering number with constant $1$ and exponent $1$: for $\varepsilon \le 1$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_subset}
+  %  \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{HasBoundedInternalCoveringNumber.subset}
+If $A$ has bounded internal covering number with constant $c>0$ and exponent $d>0$, then for all $B \subseteq A$, $B$ has bounded internal covering number with constant $2^d c$ and exponent $d$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:internalCoveringNumber_subset_le}
+\begin{align*}
+  N^{int}_\varepsilon(B)
+  &\le N^{int}_{\varepsilon/2}(A)
+  \le c (\varepsilon/2)^{-d}
+  = 2^d c \varepsilon^{-d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Chaining}
+
+\subsection{Chaining sequence}
+
+
+\begin{definition}\label{def:nearestPt}
+  \leanok
+  %  \lean{nearestPt}
+Let $S$ be a finite set of $E$ and $x \in E$.
+We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point such that $d_E(x, S) = \min_{y \in S} d_E(x, y)$ (chosen arbitrarily among the minima if there are several).
+\end{definition}
+
+
+\begin{lemma}\label{lem:dist_nearestPt_le}
+  %  \uses{def:nearestPt}
+  \leanok
+  %  \lean{edist_nearestPt_le}
+Let $S$ be a finite set of $E$ and $x \in E$.
+Then for all $y \in S$, $d_E(x, \pi(x, S)) \le d_E(x, y)$.
+\end{lemma}
+
+\begin{proof}\leanok
+By definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_nearestPt_of_isCover}
+  %  \uses{def:nearestPt, def:IsCover}
+  \leanok
+  %  \lean{edist_nearestPt_of_isCover}
+Let $C_\varepsilon$ be a finite $\varepsilon$-cover of $A \subseteq E$ (assuming such a finite cover exists).
+Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{definition}[Chaining sequence]\label{def:chainingSequence}
+  %  \uses{def:nearestPt, def:IsCover}
+  \leanok
+  %  \lean{chainingSequence}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:chainingSequence_mem}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{chainingSequence_mem}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for all $i \le k$, $\bar{x}_i\in C_i$.
+\end{lemma}
+
+\begin{proof}\leanok
+By definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_add_one}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{edist_chainingSequence_add_one}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:dist_nearestPt_of_isCover, lem:chainingSequence_mem}
+Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_{i+1}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_le_sum}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{edist_chainingSequence_le_sum}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:dist_chainingSequence_add_one}
+By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
+\begin{align*}
+  d_E(\bar{x}_m, x)
+  \le \sum_{i=m}^{k-1} d_E(\bar{x}_i, \bar{x}_{i+1})
+  \le \sum_{i=m}^{k-1} \varepsilon_i
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_chainingSequence_le}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{edist_chainingSequence_le}
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$.
+Let $m, k, \ell \in \mathbb{N}$ with $m \le k$ and $m \le \ell$ and let $x \in C_k$ and $y \in C_\ell$.
+Then
+\begin{align*}
+  d_E(\bar{x}_m, \bar{y}_m)
+  &\le d_E(x, y) + \sum_{i=m}^{k-1} \varepsilon_i + \sum_{j=m}^{\ell-1} \varepsilon_j
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:dist_chainingSequence_le_sum}
+Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:dist_chainingSequence_pow_two_le}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{edist_chainingSequence_pow_two_le}
+For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
+\begin{align*}
+  d_E(\bar{x}_m, \bar{y}_m)
+  &\le d_E(x, y) + \varepsilon_0 2^{-m+2}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+  %  \uses{lem:dist_chainingSequence_le}
+
+\end{proof}
+
+
+\subsection{A subset of pairs}
+
+We will be interested in bounding expressions of the form $\sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))$ for a finite set $J$ and some function $f : T \to E$.
+This is a supremum over pairs in $J$ and there could be $\vert J \vert^2$ such pairs.
+We will build a subset $K$ of $J^2$ which is much smaller, of size linear in $\vert J \vert$, such that its points are not too far apart and
+\begin{align*}
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: .
+\end{align*}
+The pairs $(s, t) \in K$ will still be close together, in the sense that $d_T(s, t) \le c n$ for some $n$ that is logarithmic in the size of $J$.
+
+For $t \in V \subseteq T$ and $u\ge 0$, we denote by $B_V(t, u)$ the closed ball with center $t$ and radius $u$ in $V$.
+That is, $B_V(t, u) = \{s \in V \mid d_T(s, t) \le u\}$.
+
+We want to cover $J$ with balls that have radius logarithmic in the number of points of the ball.
+
+\begin{definition}\label{def:logSizeRadius}
+  \leanok
+  %  \lean{logSizeRadius}
+Let $V$ be a finite subset of a metric space and let $t \in V$ and $a > 1$, $c > 0$.
+Let the \emph{log-size radius} of $t$ in $V$, denoted by $r_{V,t}$, be the smallest positive integer $r$ such that $\vert B_V(t, r c) \vert \le a^{r}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:card_logSizeRadius_ge}
+  %  \uses{def:logSizeRadius}
+  \leanok
+  %  \lean{card_le_logSizeRadius_ge}
+$a^{r_{V,t}-1} \le \vert B_V(t, (r_{V,t}-1)c) \vert$~.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:card_logSizeRadius_le}
+  %  \uses{def:logSizeRadius}
+  \leanok
+  %  \lean{card_le_logSizeRadius_le}
+$\vert B_V(t, r_{V,t}c) \vert \le a^{r_{V,t}}$~.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{definition}[Log-size ball sequence]\label{def:logSizeBallSequence}
+  %  \uses{def:logSizeRadius}
+  \leanok
+  %  \lean{logSizeBallSeq}
+Let $(T,d_T)$ be a metric space and let $J \subseteq T$ be finite, $a,c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
+An log-size ball sequence for $(J, a, c, n)$ is a sequence of $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ such that
+\begin{itemize}
+  \item $V_0 = J$, $t_0$ is an arbitrary point in $J$,
+  \item for all $i$, $r_i$ is the log-size radius of $t_i$ in $V_i$,
+  \item $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$, $t_{i+1}$ is arbitrarily chosen in $V_{i+1}$.
+\end{itemize}
+\end{definition}
+
+A log-size ball sequence gives a partition of $J$ into sets which are contained in balls of radius $(r_i - 1)c$ around $t_i$, and satisfy cardinality constraints.
+
+
+\begin{lemma}\label{lem:logSizeRadius_logSizeBallSequence_le}
+  %  \uses{def:logSizeBallSequence}
+  \leanok
+  %  \lean{radius_logSizeBallSeq_le}
+The radius of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$ satisfies $r_i \le n$ for all $i \in \mathbb{N}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Since $|J| \le a^n$, we have $\vert B_{V_i}(t_i, n c) \vert \le \vert J \vert \le a^{n}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:logSizeBallSequence_V_anti}
+  %  \uses{def:logSizeBallSequence}
+  \leanok
+  %  \lean{finset_logSizeBallSeq_add_one_subset}
+The sets $V_i$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are a decreasing sequence of sets. That is, $V_{i+1} \subseteq V_i$ for all $i \in \mathbb{N}$.
+\end{lemma}
+
+\begin{proof}
+\leanok
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ hence $V_{i+1} \subseteq V_i$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:logSizeBallSequence_eq_zero}
+  %  \uses{def:logSizeBallSequence}
+  \leanok
+  %  \lean{card_finset_logSizeBallSeq_card_eq_zero}
+For any log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$, for all $k \ge \vert J \vert$, $V_k = \emptyset$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  %  \uses{lem:logSizeBallSequence_V_anti}
+$V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i - 1)c)$ and since $t_i \in B_{V_i}(t_i, (r_i - 1)c)$, we have $\vert V_{i+1} \vert < \vert V_i \vert$ and the cardinal eventually reaches $0$, in at most $\vert J \vert$ steps.
+\end{proof}
+
+
+\begin{lemma}\label{lem:logSizeBallSequence_disjoint_B}
+  %  \uses{def:logSizeBallSequence}
+  \leanok
+  %  \lean{disjoint_smallBall_logSizeBallSeq}
+For $i \ne j$, the balls $B_{V_i}(t, (r_i-1)c)$ and $B_{V_j}(t_j, (r_j-1)c)$ of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ are disjoint.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  %  \uses{lem:logSizeBallSequence_V_anti}
+Assume w.l.o.g. that $i < j$.
+Then $B_{V_j}(t_j, (r_j-1)c) \subseteq V_j \subseteq V_{i+1}$.
+It suffices to show that $B_{V_i}(t_i, (r_i-1)c)$ and $V_{i+1}$ are disjoint.
+This follows from the definition of $V_{i+1} = V_i \setminus B_{V_i}(t_i, (r_i-1)c)$.
+\end{proof}
+
+
+\begin{definition}\label{def:pairSet}
+  %  \uses{def:logSizeBallSequence}
+  \leanok
+  %  \lean{pairSet}
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$.
+For $i \in \mathbb{N}$, let $K_i = \{t_i\} \times B_{V_i}(t_i, r_i c)$ be the set of pairs $(t_i, s)$ for $s$ in the ball $B_{V_i}(t_i, r_i c)$.
+We define $K = \bigcup_{i=0}^{\vert J \vert-1} K_i$, set of all pairs from the log-size ball sequence.
+\end{definition}
+
+
+\begin{lemma}\label{lem:card_pairSet_le}
+  %  \uses{def:pairSet}
+  \leanok
+  %  \lean{card_pairSet_le}
+The cardinal of the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$ satisfies $|K| \le a |J|$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  %  \uses{lem:card_logSizeRadius_ge, lem:card_logSizeRadius_le, lem:logSizeBallSequence_disjoint_B}
+Using Lemma~\ref{lem:card_logSizeRadius_le}, the cardinal of $K$ is bounded by
+\begin{align*}
+  \vert K \vert
+  &\le \sum_{i=0}^{m-1} \vert K_i \vert
+  \le \sum_{i=0}^{m-1} a^{r_i}
+  \: .
+\end{align*}
+Since the sets $B_{V_i}(t_i, (r_i-1)c)$ are disjoint by Lemma~\ref{lem:logSizeBallSequence_disjoint_B}, we can use Lemma~\ref{lem:card_logSizeRadius_ge} to get
+\begin{align*}
+  \sum_{i=0}^{m-1} a^{r_i - 1}
+  \le \sum_{i=0}^{m-1} \vert B_{V_i}(t_i, (r_i-1)c) \vert
+  = \left\vert \bigcup_{i=0}^{m-1} B_{V_i}(t_i, (r_i-1)c) \right\vert
+  \le \vert J \vert
+  \: .
+\end{align*}
+We obtained the inequality $\vert K \vert \le a \vert J \vert$
+\end{proof}
+
+
+\begin{lemma}\label{lem:dist_le_of_mem_pairSet}
+  %  \uses{def:pairSet}
+  \leanok
+  %  \lean{edist_le_of_mem_pairSet}
+Let $(s, t)$ be a pair in the pair set $K$ of a log-size ball sequence for $(J, a, c, n)$.
+Then $d_T(s, t) \le c n$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  %  \uses{lem:logSizeRadius_logSizeBallSequence_le}
+A pair $(t, s) \in K$ is of the form $(t_i, s)$ for $s \in B_V(t_i, r_i c)$ and satisfies
+\begin{align*}
+  d_T(t_i, s) \le c r_i \le c n \: .
+\end{align*}
+The last inequality is from Lemma~\ref{lem:logSizeRadius_logSizeBallSequence_le}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:sup_dist_le_two_mul_sup_dist_pairSet}
+  %  \uses{def:pairSet}
+  \leanok
+  %  \lean{iSup_edist_pairSet}
+Let $K$ be the pair set of a log-size ball sequence $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ for $(J, a, c, n)$.
+Then for any function $f : T \to E$ with $(E,d_E)$ a metric space,
+\begin{align*}
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Let $(s, t) \in J^2$ such that $d_T(s, t) \le c$.
+Then there exists a largest $\ell \in \mathbb{N}$ such that $s, t \in V_\ell$.
+Assume w.l.o.g. that $s \notin V_{\ell + 1}$. Then $s \in B_{V_\ell}(t_\ell, (r_\ell-1)c)$ (since $V_{\ell + 1} = V_\ell \setminus B_{V_\ell}(t_\ell, (r_\ell-1)c)$), which implies $d_T(s, t_\ell) \le (r_\ell - 1)c$.
+
+Since $d_T(s, t) \le c$, $d_T(t, t_\ell) \le d_T(t, s) + d_T(s, t_\ell) \le r_\ell c$, hence $t \in B_{V_\ell}(t_\ell, r_\ell c)$ and we have that both $s$ and $t$ are in $B_{V_\ell}(t_\ell, r_\ell c)$.
+Thus both $(t_\ell, s)$ and $(t_\ell, t)$ are in $K_\ell \subseteq K$.
+Finally
+\begin{align*}
+  d_E(f(s), f(t))
+  &\le d_E(f(s), f(t_\ell)) + d_E(f(t_\ell), f(t))
+  \\
+  &\le 2\sup_{(s',t') \in K} d_E(f(s'), f(t'))
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:pair_reduction}
+  %  \uses{def:pairSet}
+  \leanok
+  %  \lean{pair_reduction}
+Let $(T,d_T)$ be a metric space.
+Let $J \subseteq T$ be finite, $a > 1$, $c>0$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
+Then, there is $K \subseteq J^2$ such that for any function $f : T \to E$ with $(E,d_E)$ a metric space,
+\begin{align}
+  |K|
+  & \le a |J|
+  \:, \label{eq:chain1} \\
+  \forall (s,t) \in K,
+  &\:  d_T(s,t) \le c n
+  \:, \label{eq:chain2} \\
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(f(s), f(t))
+  & \le 2 \sup_{(s,t) \in K} d_E(f(s), f(t))
+  \: . \label{eq:chain3}
+\end{align}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:card_pairSet_le, lem:dist_le_of_mem_pairSet, lem:sup_dist_le_two_mul_sup_dist_pairSet}
+Let $(V_i, t_i, r_i)_{i \in \mathbb{N}}$ be a log-size ball sequence for $(J, a, c, n)$. We show that its pair set satisfies the conditions of the lemma.
+
+Equation~\eqref{eq:chain1} is given by Lemma~\ref{lem:card_pairSet_le}.
+The second property~\eqref{eq:chain2} is Lemma~\ref{lem:dist_le_of_mem_pairSet}.
+Equation~\eqref{eq:chain3} was proved in Lemma~\ref{lem:sup_dist_le_two_mul_sup_dist_pairSet}.
+\end{proof}
+
+
+
+
+
+\subsection{Chaining for stochastic processes under Kolmogorov conditions}
+
+\subsection{Kolmogorov condition}
+
+\begin{definition}[Kolmogorov condition]\label{def:IsKolmogorovProcess}
+  \mathlibok
+  %  \lean{ProbabilityTheory.IsAEKolmogorovProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process, where $(T, d_T)$ and $(E, d_E)$ are pseudo-metric spaces and $(\Omega, \mathbb{P})$ is a measure space.
+Let $p, q > 0$.
+We say that $X$ satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ if for all $s, t \in T$, $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$ and
+\begin{align*}
+  \mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
+  \: .
+\end{align*}
+\end{definition}
+
+Remark: the measurability condition on the pair would be implied by the measurability of $X_t$ for all $t \in T$ if we assumed that $E$ is separable (\texttt{SecondCountableTopology} in Lean), which implies that the Borel $\sigma$-algebra on the product is equal to the product of the Borel $\sigma$-algebras.
+We follow \cite{kratschmer2023kolmogorov} and do not require separability.
+
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.edist_eq_zero}
+  %  \uses{def:IsKolmogorovProcess}
+  \mathlibok
+  %  \lean{ProbabilityTheory.IsAEKolmogorovProcess.edist_eq_zero}
+If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and $s, t \in T$ are such that $d_T(s, t) = 0$, then $\mathbb{P}$-a.e. $d_E(X_s, X_t) = 0$.
+\end{lemma}
+
+\begin{proof}\leanok
+It suffices to show that $d_E(X_s, X_t)^p = 0$ almost everywhere, which is in turn implied by $\mathbb{E}[d_E(X_s, X_t)^p] \le M d_t(s, t)^q = 0$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.IsAEKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $T'$ be a countable subset of $T$ such that for all $s, t \in T'$, $d_T(s, t) = 0$.
+Then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T'} d_E(X_s, X_t)^p \right]
+  &= 0
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:IsKolmogorovProcess.edist_eq_zero}
+Since $T'$ is countable, we get from Lemma~\ref{lem:IsKolmogorovProcess.edist_eq_zero} that almost surely, for all $s, t \in T'$, $d_E(X_s, X_t)^p = 0$.
+In particular the expectation of the supremum is $0$.
+\end{proof}
+
+
+\paragraph{Measurability}
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.aemeasurable}
+  %  \uses{def:IsKolmogorovProcess}
+  \mathlibok
+  %  \lean{ProbabilityTheory.IsAEKolmogorovProcess.aemeasurable}
+If $X : T \to \Omega \to E$ is a function that satisfies the Kolmogorov condition, then for all $t \in T$, $X_t$ is $\mathbb{P}$-a.e. measurable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:aemeasurable_pair_of_aemeasurable}
+  \leanok
+  %  \lean{ProbabilityTheory.aemeasurable_pair_of_aemeasurable}
+If $E$ is separable and $X : T \to \Omega \to E$ is a process such that $X_t$ is $\mathbb{P}$-a.e. measurable for all $t \in T$, then for all $s, t \in T$, the pair $(X_s, X_t)$ is $\mathbb{P}$-a.e. measurable for the Borel $\sigma$-algebra on $E^2$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsKolmogorovProcess.aemeasurable_edist}
+  %  \uses{def:IsKolmogorovProcess}
+  \mathlibok
+  %  \lean{ProbabilityTheory.IsAEKolmogorovProcess.aemeasurable_edist}
+If $X : T \to \Omega \to E$ is a process that satisfies the Kolmogorov condition, then for all $s,t \in T$ the function $\omega \mapsto d_E(X_s(\omega), X_t(\omega))$ is $\mathbb{P}$-a.e. measurable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+\paragraph{Distance bounds}
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_card_mul_rpow}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_card_mul_rpow}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $\varepsilon > 0$ and $C \subseteq T^2$ be a finite set such that for all $(s, t) \in C$, $d_T(s, t) \le \varepsilon$.
+Then
+\begin{align*}
+  \mathbb{E}\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  &\le \vert C \vert M \varepsilon^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{def:IsKolmogorovProcess}
+\begin{align*}
+  \mathbb{E}\left[\sup_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  &\le \mathbb{E}\left[\sum_{(s,t) \in C} d_E(X_s, X_t)^p \right]
+  \\
+  &\le M \sum_{(s,t) \in C} d_T(s, t)^q
+  \\
+  &\le \vert C \vert M \varepsilon^q
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_of_dist_le}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $J \subseteq T$ be finite, $a, c \in \mathbb R_+$ with $a \ge 1$ and $n \in \{1, 2, ...\}$ such that $|J| \le a^n$.
+Then
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^p a |J| M (cn)^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:pair_reduction, lem:integral_sup_rpow_dist_le_card_mul_rpow}
+By Lemma~\ref{lem:pair_reduction}, there exists $K \subseteq J^2$ such that
+\begin{align*}
+  |K|
+  & \le a |J|
+  \:, \\
+  \forall (s,t) \in K,
+  & \ d_T(s,t) \le c n
+  \:, \\
+  \sup_{s,t\in J, d_T(s,t) \le c} d_E(X_s, X_t)
+  & \le 2 \sup_{(s,t) \in K} d_E(X_s, X_t)
+  \: .
+\end{align*}
+Hence for such a set $K$,
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in J; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^p \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+Then by Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow},
+\begin{align*}
+  \mathbb{E} \left[ \sup_{(s, t) \in K} d_E(X_s, X_t)^p \right]
+  &\le |K| M (cn)^q
+  \le a |J| M (cn)^q
+  \: .
+\end{align*}
+\end{proof}
+
+
+\subsection{Bound for a set of points that are close together}
+
+For a finite index set $T$, we want to obtain a bound on
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right] \: .
+\end{align*}
+Note the condition that the supremum is taken over pairs $(s, t)$ such that $d_T(s, t) \le \delta$.
+
+We consider covers of $T$ at different scales. $C_n$ is a finite $\varepsilon_n$-cover of $T$ with $\varepsilon_n = \varepsilon_0 2^{-n}$.
+$T$ is equal to $C_k$ for some $k$ large enough, so the supremum over $T$ is a supremum at that scale $k$.
+We will change scale to some $m \le k$ that depends on the distance bound $\delta$ ($m$ is of order $\log_2 \delta$) and consider the supremum over $C_m$ (plus a term due to the scale change).
+Then for the supremum over a set in $C_m$, we use the reduction in the number of pairs of Lemma~\ref{lem:pair_reduction}.
+
+\begin{lemma}\label{lem:scale_change}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{scale_change}
+Let $X : T \to E$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
+For $m \le k$,
+\begin{align*}
+  \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)
+  &\le \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})
+    + 2 \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+By the triangle inequality,
+\begin{align*}
+  d_E(X_s, X_t)
+  &\le d_E(X_s, X_{\bar{s}_m}) + d(X_{\bar{s}_m}, X_{\bar{t}_m}) + d_E(X_{\bar{t}_m}, X_t)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:scale_change_rpow}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{scale_change_rpow}
+Let $X : T \to E$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
+For $m \le k$,
+\begin{align*}
+  \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p
+  &\le 2^p \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p
+    + 4^p \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+  %  \uses{lem:scale_change}
+This is Lemma~\ref{lem:scale_change}, together with the fact that for $a, b \ge 0$,
+\begin{align*}
+  (a + b)^p \le (2\max(a,b))^p = 2^p \max(a^p,b^p) \le 2^p (a^p + b^p)
+  \: .
+\end{align*}
+\end{proof}
+
+
+
+\subsubsection{First term}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_cover_of_dist_le}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_of_dist_le}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $C$ be a finite $\varepsilon$-cover of $J \subseteq T$ with $C \subseteq J$, with minimal cardinal.
+Then for $c \ge 0$,
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+1} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  \: .
+\end{align*}
+Note the logarithm has base $2$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_of_dist_le}
+Let $\bar{r} = 1 + \log_2 N^{int}_{\varepsilon}(J)$. Then
+\begin{align*}
+  \vert C \vert
+  = N^{int}_{\varepsilon}(J)
+  \le 2^{\bar{r}}
+  \: .
+\end{align*}
+By Lemma~\ref{lem:integral_sup_rpow_dist_of_dist_le} with $J = C$, $a = 2$, $c = c$, $n = \bar{r}$,
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+1} |C| M (c \bar{r})^q
+  = 2^{p+1} M (c \bar{r})^q N^{int}_{\varepsilon}(J)
+  \: .
+\end{align*}
+
+Suppose $N^{int}_{\varepsilon}(J) \ge 2$ (if it equals one the result is trivial).
+Then $\bar{r} \le 2 \log_2 N^{int}_{\varepsilon}(J)$.
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C; d_T(s, t) \le c} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+1} M \left(2 c \log_2 N^{int}_{\varepsilon}(J) \right)^q  N^{int}_{\varepsilon}(J)
+  \: .
+\end{align*}
+\end{proof}
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_cover_rescale}
+  %  \uses{def:IsKolmogorovProcess, def:chainingSequence}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_cover_rescale}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+Suppose $\varepsilon_0 < \infty$, let $\delta \in (0, 4 \varepsilon_0]$ and let $m$ be a natural number such that $\varepsilon_0 2^{-m} \le \delta$ and $\delta \le \varepsilon_0 2^{-m+2}$.
+Then for $k \ge m$,
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(J) \right)^q  N^{int}_{\delta/4}(J)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_cover_of_dist_le, cor:dist_chainingSequence_pow_two_le}
+By definition of $m$, $\delta \le \varepsilon_0 2^{-m+2}$.
+For $s, t \in C_k$ with $d_T(s, t) \le \delta$, $d_T(\bar{s}_m, \bar{t}_m) \le \delta + \varepsilon_0 2^{-m+2} \le \varepsilon_0 2^{-m+3}$ (Corollary~\ref{cor:dist_chainingSequence_pow_two_le}).
+It thus suffices to get a bound on $\mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]$.
+
+We can apply Lemma~\ref{lem:integral_sup_rpow_dist_cover_of_dist_le} with $\varepsilon = \varepsilon_m$, $c = \varepsilon_0 2^{-m+3}$. We obtain
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C_m; d_T(s, t) \le \varepsilon_0 2^{-m+3}} d_E(X_s, X_t)^p \right]
+  &\le 2^{p+1} M \left(16 \varepsilon_0 2^{-m} \log_2 N^{int}_{\varepsilon_m}(J) \right)^q  N^{int}_{\varepsilon_m}(J)
+  \: .
+\end{align*}
+By definition of $m$, $\varepsilon_m = \varepsilon_0 2^{-m} \ge \delta/4$,
+hence $N^{int}_{\varepsilon_m}(J) \le N^{int}_{\delta / 4}(J)$.
+
+Finally, by definition of $m$ we have $\varepsilon_0 2^{-m} \le \delta$.
+\end{proof}
+
+
+
+\subsubsection{Second term}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_succ}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_succ}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+Then for $j < k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \vert C_{j+1} \vert M \varepsilon_j^q
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:dist_chainingSequence_add_one, lem:integral_sup_rpow_dist_le_card_mul_rpow}
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_j}, X_{\bar{t}_{j+1}})^p \right]
+  &\le \mathbb{E}\left[\sup_{u \in C_{j+1}} d_E(X_{\bar{u}_j}, X_{u})^p \right]
+  \: .
+\end{align*}
+We then apply Lemma~\ref{lem:integral_sup_rpow_dist_le_card_mul_rpow} to the set $C = \{(\bar{u}_j, u) \mid u \in C_{j+1}\}$, which satisfies the condition $d_T(\bar{u}_j, u) \le \varepsilon_j$ and has cardinal $\vert C_{j+1} \vert$.
+\end{proof}
+
+
+
+\paragraph{Case $p \ge 1$}
+
+
+\begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow}
+Let $X : T \to \Omega \to E$ be a stochastic process.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $p \ge 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \left(\sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right] \right)^{1/p}\right)^p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+By the triangle inequality,
+\begin{align*}
+  \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
+  &\le \sup_{t \in C_k} \left( \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
+  \\
+  &\le \left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p
+  \: .
+\end{align*}
+We thus have
+\begin{align*}
+  \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
+  &\le \left(\mathbb{E} \left[\left( \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}}) \right)^p\right]\right)^{1/p}
+  \: .
+\end{align*}
+And then, by Minkowski's inequality, since $p \ge 1$,
+\begin{align*}
+  \left(\mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]\right)^{1/p}
+  &\le \sum_{i=m}^{k-1} \left( \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p \right] \right)^{1/p}
+  \: .
+\end{align*}
+Finally, we raise to the $p$-th power to obtain the result.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum}
+  %  \uses{def:IsKolmogorovProcess}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+Then for $p \ge 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_succ, lem:integral_sup_dist_le_sum_rpow}
+Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:integral_sup_dist_le_sum_rpow}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T))$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $p \ge 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \left( \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_le_sum, def:HasBoundedInternalCoveringNumber}
+By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum}, we have
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \left( \sum_{j=m}^{k-1} \vert C_{j+1} \vert^{1/p} \varepsilon_j^{q/p} \right)^p
+  \: .
+\end{align*}
+Then by the minimality of the cardinality of $C_n$ and the bounded internal covering number hypothesis, we have
+\begin{align*}
+  \vert C_{j+1} \vert
+  &\le N^{int}_{\varepsilon_{j+1}}(T)
+  \le c_1 \varepsilon_{j+1}^{-d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_two}
+Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} \frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover}
+Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover}, we get
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 \varepsilon_0^{q - d} \left( \sum_{j=m}^{k-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{k-m-1} 2^{- j(q - d)/p} \right)^p
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \left( \sum_{j=0}^{\infty} 2^{- j(q - d)/p} \right)^p
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q - d} \frac{1}{(1 - 2^{-(q-d)/p})^p}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} \frac{1}{(2^{(q-d)/p} - 1)^p}
+  \: .
+\end{align*}
+\end{proof}
+
+
+
+\paragraph{Case $p \le 1$}
+
+
+\begin{lemma}\label{lem:integral_sup_dist_le_sum_rpow_of_le_one}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_rpow_of_le_one}
+Let $X : T \to \Omega \to E$ be a stochastic process.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le \sum_{i=m}^{k-1} \mathbb{E}\left[\sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p\right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+For $0 < p \le 1$, the power function is sub-additive, i.e. for $a, b \ge 0$,
+\begin{align*}
+  (a + b)^p \le a^p + b^p
+  \: .
+\end{align*}
+We can thus apply the triangle inequality to obtain
+\begin{align*}
+  \sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p
+  &\le \sup_{t \in C_k} \left(\sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})\right)^p
+  \\
+  &\le \sup_{t \in C_k} \sum_{i=m}^{k-1} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p
+  \\
+  &\le \sum_{i=m}^{k-1} \sup_{t \in C_k} d_E(X_{\bar{t}_i}, X_{\bar{t}_{i+1}})^p
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_sum_of_le_one}
+  %  \uses{def:chainingSequence}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_sum_of_le_one}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$.
+For $0 < p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \sum_{i=m}^{k-1} \vert C_{j+1} \vert \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_succ, lem:integral_sup_dist_le_sum_rpow_of_le_one}
+Put together Lemma~\ref{lem:integral_sup_rpow_dist_succ} and Lemma~\ref{lem:integral_sup_dist_le_sum_rpow_of_le_one}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers in $(0, \mathrm{diam}(T)]$ and $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $p \le 1$ and $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M c_1 \sum_{j=m}^{k-1} \varepsilon_{j+1}^{-d} \varepsilon_j^{q}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_le_sum_of_le_one, def:HasBoundedInternalCoveringNumber}
+By Lemma~\ref{lem:integral_sup_rpow_dist_le_sum_of_le_one}, we have
+\begin{align*}
+  \mathbb{E}\left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le M \sum_{i=m}^{k-1} \vert C_{j+1} \vert \varepsilon_j^{q}
+  \: .
+\end{align*}
+Then by the minimality of the cardinality of $C_n$ and the bounded internal covering number hypothesis, we have
+\begin{align*}
+  \vert C_{j+1} \vert
+  &= N^{int}_{\varepsilon_{j+1}}(T)
+  \le c_1 \varepsilon_{j+1}^{-d}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:integral_sup_rpow_dist_le_of_minimal_cover_two_of_le_one}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one}
+Under the assumptions of Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}, for $\varepsilon_n = \varepsilon_0 2^{-n}$, then for $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} \frac{1}{\left( 2^{(q -d)} - 1\right)}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+  %  \uses{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}
+Applying first Lemma~\ref{lem:integral_sup_rpow_dist_le_of_minimal_cover_of_le_one}, we get
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d}\sum_{j=0}^{k-m-1} 2^{- j (q - d)}
+  \\
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d}\sum_{j=0}^{+\infty} 2^{- j (q - d)}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m})^{q-d} \frac{1}{1 - 2^{-(q - d)}}
+  \\
+  &= 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q-d} \frac{1}{2^{(q - d)} - 1}
+  \: .
+\end{align*}
+\end{proof}
+
+
+\paragraph{Any $p>0$}
+
+
+\begin{definition}\label{def:Cp}
+  \leanok
+  %  \lean{ProbabilityTheory.Cp}
+\begin{align*}
+  C_p = \max\left\{\frac{1}{\left( 2^{(q -d)/p} - 1\right)^p}, \frac{1}{\left( 2^{(q -d)} - 1\right)} \right\}
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:second_term_bound}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  %  \lean{ProbabilityTheory.second_term_bound}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$.
+Let $C_n$ a finite $(\varepsilon_0 2^{-n})$-cover of $T$ for $\varepsilon_0 \le \mathrm{diam}(T)$ with $C_n \subseteq T$, and with minimal cardinality.
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Then for $m \le k$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m + 1})^{q - d} C_p
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{cor:integral_sup_rpow_dist_le_of_minimal_cover_two_of_le_one,cor:integral_sup_rpow_dist_le_of_minimal_cover_two}
+This is the max of the two bounds obtained $p \ge 1$ and $p \le 1$.
+\end{proof}
+
+
+
+\subsubsection{Putting it all together}
+
+
+\begin{lemma}\label{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
+  %  \uses{def:IsKolmogorovProcess, def:IsCover}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_sup_cover_eq_of_lt_iInf_dist}
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$ and let $J$ be a finite subset of $T$.
+Let $C$ be an $\varepsilon$-cover of $J$ with $C \subseteq J$.
+If $\varepsilon < \inf_{s, t \in J; d_T(s, t)>0} d_T(s, t)$ then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in C; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &= \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:IsKolmogorovProcess.edist_eq_zero}
+First, remark that $C$ is actually a $0$-cover of $J$.
+For $s, t \in J$, let $s', t' \in C$ be such that $d_T(s, s') = 0$ and $d_T(t, t') = 0$.
+Then by the triangle inequality,
+\begin{align*}
+  d_E(X_s, X_t)
+  &\le d_E(X_s, X_{s'}) + d_E(X_{s'}, X_{t'}) + d_E(X_t, X_{t'})
+\end{align*}
+and by Lemma~\ref{lem:IsKolmogorovProcess.edist_eq_zero}, we have $d_E(X_s, X_{s'}) = 0$ and $d_E(X_t, X_{t'}) = 0$ almost surely, hence $d_E(X_s, X_t) \le d_E(X_{s'}, X_{t'})$.
+Since $J$ is finite, almost surely we have that inequality for all pairs $(s, t) \in J$ and their corresponding $(s', t') \in C$.
+Note that $d_T(s', t') = d_T(s, t)$, hence $d_T(s, t) \le \delta$ is equivalent to $d_T(s', t') \le \delta$.
+We obtain
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le \mathbb{E}\left[ \sup_{s, t \in J; d_T(s, t) \le \delta} d_E(X_{s'}, X_{t'})^p \right]
+  \\
+  &= \mathbb{E}\left[ \sup_{s, t \in J; d_T(s', t') \le \delta} d_E(X_{s'}, X_{t'})^p \right]
+  \\
+  &\le \mathbb{E}\left[ \sup_{s, t \in C; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+The reverse inequality holds because $C$ is a subset of $J$.
+\end{proof}
+
+
+\begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_diam_le}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  %  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta \ge 4\mathrm{diam}(T)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \le 4^p 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{lem:second_term_bound, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist}
+Let $\varepsilon_0 = \mathrm{diam}(T)$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+
+Let $k$ be a natural number such that $\varepsilon_0 2^{-k} < \inf_{s, t \in T; d_T(s,t)>0} d_T(s, t)$, which exists since $T$ is finite.
+By Lemma~\ref{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}, the supremum over $T$ can be replaced by a supremum over $C_k$.
+
+By Corollary~\ref{cor:scale_change_rpow},
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_0}, X_{\bar{t}_0})^p \right]
+    + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_0})^p \right]
+  \: .
+\end{align*}
+
+Since $\varepsilon_0 = \mathrm{diam}(T)$, $C_0$ is a singleton and $d_E(X_{\bar{s}_0}, X_{\bar{t}_0}) = 0$ for all $s, t$.
+We thus have
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_0}, X_{\bar{t}_0})^p \right]
+  &= 0
+  \: .
+\end{align*}
+
+By Lemma~\ref{lem:second_term_bound},
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_0})^p \right]
+  &\le 2^q M c_1 \varepsilon_0^{q - d} C_p
+  \le 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{theorem}\label{thm:finite_set_bound_of_dist_le_of_le_diam}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:Cp}
+  \leanok
+  %  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta \in (0, 4\mathrm{diam}(T)]$,
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^{2p+4q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + c_1 C_p\right)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{lem:second_term_bound, lem:integral_sup_rpow_dist_cover_rescale, cor:scale_change_rpow, lem:lintegral_sup_cover_eq_of_lt_iInf_dist, lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}
+Let $\varepsilon_0 = \mathrm{diam}(T)$.
+For all $n \in \mathbb{N}$, let $C_n$ a finite $\varepsilon_n$-cover of $T$ with $C_n \subseteq T$ for $\varepsilon_n = \varepsilon_0 2^{-n}$, with minimal cardinal.
+
+Let $k$ be a natural number such that $\varepsilon_0 2^{-k} < \inf_{s, t \in T; d_T(s,t)>0} d_T(s, t)$, which exists since $T$ is finite.
+If $\delta \le \varepsilon_0 2^{-k}$, then $\{(s, t) \in C_k; d_T(s, t) \le \delta\} = \{(s, t) \mid s,t \in C_k, d_T(s,t) = 0\}$ and the inequality holds trivially (by Lemma~\ref{lem:IsKolmogorovProcess.lintegral_sup_rpow_edist_eq_zero}).
+We can thus assume $\delta > \varepsilon_0 2^{-k}$.
+
+By Lemma~\ref{lem:lintegral_sup_cover_eq_of_lt_iInf_dist}, the supremum over $T$ can be replaced by a supremum over $C_k$.
+
+By Corollary~\ref{cor:scale_change_rpow}, for any $m \le k$,
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+    + 4^p \mathbb{E}\left[ \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})^p \right]
+  \: .
+\end{align*}
+
+\emph{First term}
+
+We have $\delta \le 4\varepsilon_0$ by assumption.
+Let $n_2 = \lfloor \log_2(4\varepsilon_0/\delta) \rfloor$ and $m = \min\{n_2, k\}$.
+If $m = n_2$ then $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-n_2} < \delta/2$.
+Otherwise, $m = k$ and $\varepsilon_0 2^{-m} = \varepsilon_0 2^{-k} < \delta$ as argued at the start of the proof.
+We thus get $\varepsilon_0 2^{-m} \le \delta$.
+We can also verify that $\delta \le \varepsilon_0 2^{-n_2+2} \le \varepsilon_0 2^{-m+2}$.
+By Lemma~\ref{lem:integral_sup_rpow_dist_cover_rescale},
+\begin{align*}
+  \mathbb{E} \left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p \right]
+  &\le 2^{p+1} M \left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+  \: .
+\end{align*}
+
+\emph{Second term}
+
+By Lemma~\ref{lem:second_term_bound} and then the inequality $\varepsilon_0 2^{-m} \le \delta$,
+\begin{align*}
+  \mathbb{E} \left[\sup_{t \in C_k} d_E(X_t, X_{\bar{t}_m})^p \right]
+  &\le 2^d M c_1 (\varepsilon_0 2^{-m+1})^{q - d} C_p
+  \\
+  &\le 2^q M c_1 \delta^{q - d} C_p
+  \: .
+\end{align*}
+
+Putting the two terms together, we obtain
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in C_k; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 4^p M \left(4\left(16 \delta \log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + 2^q c_1 \delta^{q - d} C_p\right)
+  \\
+  &\le 2^{2p+4q+1} M \delta^{q-d} \left(\delta^d \left(\log_2 N^{int}_{\delta/4}(T) \right)^q  N^{int}_{\delta/4}(T)
+    + c_1 C_p\right)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le_of_le_diam_bis}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.finite_set_bound_of_edist_le_of_le_diam'}
+With the same assumptions and notations as in Theorem~\ref{thm:finite_set_bound_of_dist_le_of_le_diam}, for all $\delta \in (0, 4\mathrm{diam}(T)]$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le 2^{2p+4q+1} M c_1 \delta^{q-d} \left(4^d \left(\log_2 \left(c_1 \delta^{-d} 4^d \right) \right)^q
+    + C_p\right)
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+  %  \uses{thm:finite_set_bound_of_dist_le_of_le_diam}
+We apply Theorem~\ref{thm:finite_set_bound_of_dist_le_of_le_diam} and then remark that for $\delta \le 4\mathrm{diam}(T)$, we can use the bounded internal covering number hypothesis to bound $N^{int}_{\delta/4}(T)$~:
+\begin{align*}
+  N^{int}_{\delta/4}(T) \le c_1 \left(\frac{\delta}{4}\right)^{-d} \: .
+\end{align*}
+\end{proof}
+
+
+\begin{corollary}\label{cor:finite_set_bound_of_dist_le}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.finite_set_bound_of_edist_le}
+Suppose that $T$ is a finite set with bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+For all $\delta > 0$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T; d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  &\le 2^{2p+4q+1} M c_1 \delta^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 \delta^{-d} 4^d\right) \right\} \right)^q
+    + C_p\right)
+  \: .
+\end{align*}
+\end{corollary}
+
+
+\begin{proof}\leanok
+  %  \uses{cor:finite_set_bound_of_dist_le_of_le_diam_bis, thm:finite_set_bound_of_dist_le_of_diam_le}
+We combine Corollary~\ref{cor:finite_set_bound_of_dist_le_of_le_diam_bis} and Theorem~\ref{thm:finite_set_bound_of_dist_le_of_diam_le}.
+\end{proof}
+
+
+
+
+\subsection{Kolmogorov-Chentsov Theorem}
+
+
+\subsection{Sets with bounded internal covering number}
+
+TODO: change the proofs here to avoid $s \ne t$ and use instead properties of processes satisfying the Kolmogorov condition for exponents $(p,q)$.
+
+\begin{lemma}\label{lem:integral_div_dist_le_sum_integral_dist_le}
+  \leanok
+  %  \lean{ProbabilityTheory.lintegral_div_edist_le_sum_integral_edist_le}
+Let $J \subseteq T$ be a finite set and suppose that $T$ has finite diameter.
+For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$.
+For $X : T \to \Omega \to E$ a stochastic process and $\beta \in(0, (q - d)/p)$,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+We introduce for each $k \in \mathbb{N}$ the set of pairs $(s, t)$ such that $\eta_k < d_T(s, t) \le 2 \eta_k$.
+Note that $\eta_k \ge 2^{-k}$.
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: \eta_k < d_T(s, t) \le 2 \eta_k} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \\
+  &\le \sum_{k=0}^\infty \eta_k^{-\beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}\label{def:L}
+  %  \uses{def:Cp}
+  \leanok
+  %  \lean{ProbabilityTheory.constL}
+We introduce the constant
+\begin{align*}
+  L(T, c_1, d, p, q, \beta)
+  &= 2^{2p+5q+1} c_1 (\mathrm{diam}(T)+1)^{q-d}
+  \\&\quad \times \sum_{k=0}^\infty 2^{k (\beta p - (q-d))}\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q
+    + C_p\right)
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:L_lt_top}
+  %  \uses{def:L}
+  \leanok
+  %  \lean{ProbabilityTheory.constL_lt_top}
+For $\mathrm{diam}(T) < \infty$, $p> 0$, $q > d > 0$ and $\beta \in (0, (q-d)/p)$, the constant $L(T, c_1, d, p, q, \beta)$ is finite.
+\end{lemma}
+
+\begin{proof}
+\leanok
+Let $a_k = 2^{2p+5q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{k (\beta p - (q-d))} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q
+    + C_p\right)$.
+Then $L(T, c_1, d, p, q, \beta) = \sum_{k=0}^\infty a_k$.
+To show that the sum is finite, we can use the ratio test.
+\begin{align*}
+  \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
+  &= 2^{\beta p - (q - d)}
+    \frac{\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 3)d \right\}\right)^q + C_p\right)}
+    {\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q + C_p\right)}
+\end{align*}
+The limit at infinity of that ratio is $2^{\beta p - (q - d)} < 1$, hence the series $\sum_{k=0}^\infty a_k$ converges.
+\end{proof}
+
+
+\begin{lemma}\label{lem:finite_set_bound}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber, def:L}
+  \leanok
+  %  \lean{ProbabilityTheory.finite_kolmogorov_chentsov}
+Suppose that $J \subseteq T$ is a finite set and that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $\beta \in(0, (q - d)/p)$.
+Then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \le M L(T, c_1, d, p, q, \beta)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  %  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:hasBoundedInternalCoveringNumber_subset}
+
+Since $J \subseteq T$, $J$ has bounded internal covering number with constant $2^d c_1$ and exponent $d$ (Lemma~\ref{lem:hasBoundedInternalCoveringNumber_subset}).
+
+Let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1)$ for $k \in \mathbb{N}$.
+By Lemma~\ref{lem:integral_div_dist_le_sum_integral_dist_le}, we have
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+We apply Corollary~\ref{cor:finite_set_bound_of_dist_le} to bound each expectation in the sum.
+\begin{align*}
+  &\mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t, \: d_T(s, t) \le 2 \eta_k} d_E(X_s, X_t)^p \right]
+  \\
+  &\le 2^{2p+4q+1} M 2^d c_1 (2 \eta_k)^{q-d} \left(4^d \left(\max\left\{0, \log_2 \left(2^d c_1 (2 \eta_k)^{-d} 4^d \right) \right\} \right)^q
+    + C_p\right)
+  \\
+  &\le 2^{2p+5q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{-k(q-d)} \left(4^d \left(\max\left\{0, \log_2 \left(c_1 2^{(k + 2)d} \right) \right\} \right)^q
+    + C_p\right)
+  \\
+  &= 2^{2p+5q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{-k(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\} \right)^q
+    + C_p\right)
+  \: .
+\end{align*}
+The sum is then less than $M$ times $L(T, c_1, d, p, q, \beta)$.
+\end{proof}
+
+
+\begin{theorem}\label{thm:countable_set_bound}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.countable_kolmogorov_chentsov}
+Suppose that $T$ has bounded internal covering number with constant $c_1>0$ and exponent $d > 0$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
+Let $\beta \in(0, (q - d)/p)$.
+Then for every countable subset $T' \subseteq T$ with positive diameter,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \le M L(T, c_1, d, p, q, \beta)
+  \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{lem:finite_set_bound}
+Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:finite_set_bound} to obtain a bound for each $T_n$ that does not depend on $T_n$, and then use monotone convergence.
+\end{proof}
+
+
+\begin{corollary}\label{cor:countable_set_bound_of_le}
+Under the same assumptions as in Theorem~\ref{thm:countable_set_bound}, for every countable subset $T' \subseteq T$ with positive diameter, for $L(T, c_1, d, p, q, \beta) < \infty$ the same constant,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in T';\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \le M L(T, c_1, d, p, q, \beta) \delta^{\beta p}
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  %  \uses{thm:countable_set_bound}
+Immediately follows from Theorem~\ref{thm:countable_set_bound}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:holder_modification_single}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.exists_modification_holder_aux}
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space and $\beta \in (0, (q - d)/p)$, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of order $\beta$.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{thm:countable_set_bound, lem:L_lt_top}
+Let $T'$ be a countable dense subset of $T$.
+Let $A$ be the event
+\begin{align*}
+  \left\{\sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} < \infty \right\}
+  \: .
+\end{align*}
+As a consequence of Theorem~\ref{thm:countable_set_bound}, we have $\mathbb{P}(A) = 1$.
+
+On the event $A$, $(X_t)_{t \in T'}$ has Hölder continuous paths of order $\beta$.
+Let $x_0 \in E$ be arbitrary and let $Y: T \to \Omega \to E$ be the process defined by
+\begin{align*}
+  Y_t(\omega)
+  &= \begin{cases}
+    \lim_{s \to t, s \in T'} X_s(\omega) & \text{if } \omega \in A \\
+    x_0 & \text{otherwise}
+  \end{cases}
+  \: .
+\end{align*}
+Then $Y$ has Hölder continuous paths of order $\beta$ almost surely.
+
+We can show that $(Y_s, Y_t)$ is $\mathbb{P}$-a.e. measurable for all $s, t \in T$.
+
+It remains to show that $Y$ is a modification of $X$.
+Let then $t \in T$ and let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T'$ that converges to $t$.
+We want to show that $\mathbb{P}(Y_t \ne X_t) = 0$.
+It suffices to show that $\mathbb{P}(d_E(Y_t, X_t) > 0) = 0$, which itself would follow from $\mathbb{P}(d_E(Y_t, X_t) > \varepsilon) = 0$ for all $\varepsilon > 0$.
+
+\begin{align*}
+  \mathbb{P}(d_E(Y_t, X_t) > \varepsilon)
+  &\le \mathbb{P}(d_E(Y_t, X_{t_n}) + d_E(X_{t_n}, X_t) > \varepsilon)
+  \\
+  &\le \mathbb{P}(d_E(Y_t, X_{t_n}) > \varepsilon/2) + \mathbb{P}(d_E(X_{t_n}, X_t) > \varepsilon/2)
+  \: .
+\end{align*}
+
+TODO
+\end{proof}
+
+
+\begin{theorem}\label{thm:holder_modification}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{ProbabilityTheory.exists_modification_holder}
+Under the assumptions of Theorem~\ref{thm:countable_set_bound}, for $E$ a complete space, there exists a modification $Y$ of $X$ (i.e., a process $Y$ with $\mathbb{P}(Y_t \ne X_t) = 0$ for all $t$) such that the paths of $Y$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{lem:holder_modification_single, lem:indistinguishable_of_modification_of_continuous}
+Let $(\beta_n)$ be an increasing sequence of numbers in $(0, (q - d)/p)$ such that $\beta_n \to (q - d)/p$.
+For each $n$, let $Y^n$ be the modification of $X$ given by Lemma~\ref{lem:holder_modification_single} for $\beta = \beta_n$.
+Then by Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, the processes $Y^0$ and $Y^n$ are indistinguishable for all $n$.
+That is, there exists an event $A_n$ such that $\mathbb{P}(A_n) = 1$ and such that for all $\omega \in A_n$, $Y^0_t(\omega) = Y^n_t(\omega)$ for all $t \in T$.
+
+Let $A = \bigcap_{n \in \mathbb{N}} A_n$ and let $x_0 \in E$ be arbitrary.
+Then $\mathbb{P}(A) = 1$ and the process $Y(\omega) = Y^0(\omega)$ for $\omega \in A$ and $Y(\omega) = x_0$ for $\omega \notin A$ has paths that are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+\end{proof}
+
+
+
+\subsection{Localized Kolmogorov-Chentsov theorem}
+
+\begin{definition}[Cover with bounded covering numbers]\label{def:HasBoundedCoveringNumberCover}
+  %  \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  %  \lean{IsCoverWithBoundedCoveringNumber}
+A set $T$ is said to have a cover with bounded covering numbers if there exists a monotone sequence of totally bounded subsets $(T_n)_{n \in \mathbb{N}}$ of $T$ such that for all $n$, $T_n$ has bounded internal covering number with constant $c_n$ and exponent $d_n > 0$, and such that $T \subseteq \bigcup_{n \in \mathbb{N}} T_n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:hasBoundedCoveringNumberCover_nnreal}
+  %  \uses{def:HasBoundedCoveringNumberCover}
+  \leanok
+  %  \lean{isCoverWithBoundedCoveringNumber_Ico_nnreal}
+$\mathbb{R}_+$ has a cover with bounded covering numbers for the sets $T_n = [0,n)$, constants $c_n = n$ and exponents $d_n = 1$.
+\end{lemma}
+
+Note: in the Lean code, we proved this result for weaker constants: $c_n = 3n$.
+
+\begin{proof}\leanok
+  %  \uses{lem:hasBoundedInternalCoveringNumber_unitInterval}
+
+\end{proof}
+
+We say that a function is \emph{locally} Hölder continuous of order $\gamma$ if for any point $x$ in its domain there is a neighborhood of $x$ on which the function is Hölder continuous of order $\gamma$.
+
+\begin{theorem}\label{thm:localized_holder_modification}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \leanok
+  %  \lean{ProbabilityTheory.exists_modification_holder'}
+Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p, q)$ with $q > d$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are locally Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{thm:holder_modification, lem:indistinguishable_of_modification_of_continuous}
+For each $n$, by Theorem~\ref{thm:holder_modification} there is a modification $Y_n$ of $X$ seen as a process on $T_n$ such that the paths of $Y_n$ are Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$.
+By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, $Y_n$ and $Y_{n+1}$ are indistinguishable on $T_n$.
+That is, almost surely $Y_n = Y_{n+1}$ on $T_n$.
+Since there are countably many such almost sure equalities, we get that almost surely there is equality for all $n$.
+Let $A$ be the event that this happens, let $x_0 \in E$ be arbitrary and define a process $Y : T \to \Omega \to E$ by
+\begin{align*}
+  Y(t, \omega)
+  &= \begin{cases}
+    Y_n(t, \omega) & \text{if } \omega \in A \: , \: t \in T_n \setminus T_{n-1} \: ,
+    \\
+    x_0 & \text{if } \omega \notin A \: .
+  \end{cases}
+\end{align*}
+Then $Y$ is a modification of $X$ and has paths that are locally Hölder continuous of all orders $\gamma \in (0, (q - d)/p)$ almost surely.
+\end{proof}
+
+
+\begin{theorem}\label{thm:localized_holder_modification_sup}
+  %  \uses{def:IsKolmogorovProcess, def:HasBoundedCoveringNumberCover}
+  \leanok
+  %  \lean{ProbabilityTheory.exists_modification_holder_iSup}
+Let $T$ be a metric space with a cover $(T_n)$ with bounded covering numbers with constants $c_n$ and the same exponent $d$.
+Let $(p_n, q_n)_{n \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_n > d$ for all $n \in \mathbb{N}$.
+Let $X : T \to \Omega \to E$ be a process that satisfies the Kolmogorov condition with exponents $(p_n, q_n)$ for all $n \in \mathbb{N}$.
+Then $X$ has a modification $Y$ such that almost surely the paths of $Y$ are locally Hölder continuous of all orders $\gamma \in (0, \sup_n (q_n - d)/p_n)$.
+\end{theorem}
+
+\begin{proof}\leanok
+  %  \uses{thm:localized_holder_modification}
+For each $n$, by Theorem~\ref{thm:localized_holder_modification} there is a modification $Y_n$ of $X$ such that the paths of $Y_n$ are locally Hölder continuous of all orders $\gamma \in (0, (q_n - d)/p_n)$.
+By Lemma~\ref{lem:indistinguishable_of_modification_of_continuous}, any two processes $Y_n, Y_m$ are indistinguishable.
+That is, almost surely $Y_n = Y_m$.
+Since there are countably many such almost sure equalities, we get that almost surely there is equality for all $n, m$.
+Let then $Y$ be the process equal to $Y_0$ on the event that the equalities hold, and equal to an arbitrary point $x_0 \in E$ otherwise.
+Then first, $Y$ is a modification of $X$.
+Then for any $\gamma < \sup_n (q_n - d)/p_n$ there is $n$ such that $\gamma < (q_n - d)/p_n$ and thus since $Y = Y_n$ the paths of $Y$ are locally Hölder continuous of order $\gamma$ almost surely.
+\end{proof}
+
+\color{blue}
+
+\section{Construction of Brownian motion}
+\label{S:BM}
+\subsection{Projective family of Gaussian measures}
+
+We build a projective family of Gaussian measures indexed by $\mathbb{R}_+$.
+In order to do so, we need to define specific Gaussian measures on finite index sets $\{t_1, \ldots, t_n\}$.
+We want to build a multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+
+% \paragraph{First method: Gaussian increments}
+
+% In this method, we build the Gaussian measure by adding independent Gaussian increments.
+
+% \begin{definition}(Gaussian increment)\label{def:gaussianIncrement}
+% For $v \ge 0$, the map from $\mathbb{R}$ to the probability measures on $\mathbb{R}$ defined by $x \mapsto \mathcal{N}(x, v)$ is a Markov kernel.
+% We call that kernel the \emph{Gaussian increment} with variance $v$ and denote it by $\kappa^G_v$.
+% \end{definition}
+
+% TODO: perhaps the equality $\mathcal{N}(x, v) = \delta_x \ast \mathcal{N}(0, v)$ is useful to show that it is a kernel?
+
+% \begin{definition}\label{def:gaussianFromIncrements}
+%   %  \uses{def:gaussianIncrement}
+% Let $0 \le t_1 \le \ldots \le t_n$ be non-negative reals.
+% Let $\mu_0$ be the real Gaussian distribution $\mathcal{N}(0, t_1)$.
+% For $i \in \{1, \ldots, n-1\}$, let $\kappa_i$ be the Markov kernel from $\mathbb{R}$ to $\mathbb{R}$ defined by $\kappa_i(x) = \mathcal{N}(x, t_{i+1} - t_i)$ (the Gaussian increment $\kappa^G_{t_{i+1} - t_i}$).
+% Let $P_{t_1, \ldots, t_n}$ be the measure on $\mathbb{R}^n$ defined by $\mu_0 \otimes \kappa_1 \otimes \ldots \otimes \kappa_{n-1}$.
+% \end{definition}
+
+% TODO: explain the notation $\otimes$ in the lemma above: $\kappa_{n-1}$ takes the value at $n-1$ only to produce the distribution at $n$.
+
+% \begin{lemma}\label{lem:isGaussian_gaussianFromIncrements}
+%   %  \uses{def:gaussianFromIncrements, def:IsGaussian}
+% $P_{t_1, \ldots, t_n}$ is a Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+% \end{lemma}
+
+% \begin{proof}
+
+% \end{proof}
+
+
+% \paragraph{Second method: covariance matrix}
+
+We prove that the matrix $C_{ij} = \min(t_i, t_j)$ is positive semidefinite, which means that there exists a Gaussian distribution with mean 0 and covariance matrix $C$.
+
+\begin{definition}[Gram matrix]\label{def:gramMatrix}
+  \leanok
+  %  \lean{Matrix.gram}
+Let $v_1, \ldots, v_n$ be vectors in an inner product space $E$.
+The Gram matrix of $v_1, \ldots, v_n$ is the matrix in $\mathbb{R}^{n \times n}$ with entries $G_{ij} = \langle v_i, v_j \rangle$ for $1 \leq i,j \leq n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:posSemidef_gramMatrix}
+  %  \uses{def:gramMatrix}
+  \leanok
+  %  \lean{Matrix.gram_posSemidef}
+A gram matrix is positive semidefinite.
+\end{lemma}
+
+\begin{proof}\leanok
+Symmetry is obvious from the definition.
+Let $x \in E$. Then
+\begin{align*}
+  \langle x, G x \rangle
+  &= \sum_{i,j} x_i x_j \langle v_i, v_j \rangle
+  \\
+  &= \langle \sum_i x_i v_i, \sum_j x_j v_j \rangle
+  \\
+  &= \left\Vert \sum_i x_i v_i \right\Vert^2
+  \\
+  &\ge 0
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:C_eq_gramMatrix}
+  %  \uses{def:gramMatrix}
+  \leanok
+Let $I = \{t_1, \ldots, t_n\}$ be a finite subset of $\mathbb{R}_+$.
+For $i \le n$, let $v_i = \mathbb{I}_{[0, t_i]}$ be the indicator function of the interval $[0, t_i]$, as an element of $L^2(\mathbb{R})$.
+Then the Gram matrix of $v_1, \ldots, v_n$ is equal to the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+\end{lemma}
+
+\begin{proof}\leanok
+By definition of the inner product in $L^2(\mathbb{R})$,
+\begin{align*}
+  \langle v_i, v_j \rangle
+  &= \int_{\mathbb{R}} \mathbb{I}_{[0, t_i]}(x) \mathbb{I}_{[0, t_j]}(x) \: dx
+  = \min(t_i, t_j)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:posSemidef_brownianCov}
+  \leanok
+  %  \lean{ProbabilityTheory.posSemidef_brownianCovMatrix}
+For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $C \in \mathbb{R}^{n \times n}$ be the matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+Then $C$ is positive semidefinite.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:C_eq_gramMatrix, lem:posSemidef_gramMatrix}
+$C$ is a Gram matrix by Lemma~\ref{lem:C_eq_gramMatrix}.
+By Lemma~\ref{lem:posSemidef_gramMatrix}, it is positive semidefinite.
+\end{proof}
+
+
+\paragraph{Definition of the projective family and extension}
+
+\begin{definition}[Projective family of the Brownian motion]\label{def:gaussianProjectiveFamily}
+  %  \uses{def:multivariateGaussian, lem:posSemidef_brownianCov}
+  \leanok
+  %  \lean{ProbabilityTheory.gaussianProjectiveFamily}
+For $I = \{t_1, \ldots, t_n\}$ a finite subset of $\mathbb{R}_+$, let $P^B_I$ be the multivariate Gaussian measure on $\mathbb{R}^n$ with mean $0$ and covariance matrix $C_{ij} = \min(t_i, t_j)$ for $1 \leq i,j \leq n$.
+We call the family of measures $P^B_I$ the \emph{projective family of the Brownian motion}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
+  %  \uses{def:gaussianProjectiveFamily, def:IsProjectiveMeasureFamily}
+  \leanok
+  %  \lean{ProbabilityTheory.isProjectiveMeasureFamily_gaussianProjectiveFamily}
+The projective family of the Brownian motion is a projective family of measures.
+\end{lemma}
+
+\begin{proof}\leanok
+  %  \uses{lem:isGaussian_multivariateGaussian, lem:covMatrix_map,lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian, lem:IsGaussian.ext_iff}
+Let $J \subseteq I$ be finite subsets of $\mathbb{R}_+$.
+We need to show that the restriction from $\mathbb{R}^I$ to $\mathbb{R}^J$ (denote it by $\pi_{IJ}$) maps $P^B_I$ to $P^B_J$.
+
+The restriction is a continuous linear map from $\mathbb{R}^I$ to $\mathbb{R}^J$.
+The map of a Gaussian measure by a continuous linear map is Gaussian (Lemma~\ref{lem:isGaussian_map}).
+It thus suffices to show that the mean and covariance matrix of the map are equal to the ones of $P^B_J$ by Lemma~\ref{lem:IsGaussian.ext_iff}.
+
+The mean of the map is $0$, since the mean of $P^B_I$ is $0$ and the map is linear.
+
+Let us turn to the covariance matrix. For any $i \in J$, the map $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) i$ is equal to $x : \mathbb{R}^I \mapsto x i$. Let $i, j \in J$. The covariance of $x : \mathbb{R}^J \mapsto x i$ and $x : \mathbb{R}^J \mapsto x j$ with respect to ${\pi_{IJ}}_*P^B_J$ is equal to the covariance of $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) i$ and $x : \mathbb{R}^I \mapsto \pi_{IJ}(x) j$ with respect to $P^B_I$, which is equal to the covariance of $x : \mathbb{R}^I \mapsto x i$ and $x : \mathbb{R}^I \mapsto x i$ with respect to $P^B_I$, which is equal to $t_i \land t_j$. But this is also the covariance of $x : \mathbb{R}^J \mapsto x i$ and $x : \mathbb{R}^J \mapsto x j$ with respect to $P^B_J$, so we are done.
+\end{proof}
+
+
+\begin{definition}\label{def:gaussianLimit}
+  %  \uses{thm:kolmogorovExtension, lem:isProjectiveMeasureFamily_gaussianProjectiveFamily}
+  \leanok
+  %  \lean{ProbabilityTheory.gaussianLimit}
+We denote by $P_B$ the projective limit of the projective family of the Brownian motion given by Theorem~\ref{thm:kolmogorovExtension}.
+This is a probability measure on $\mathbb{R}^{\mathbb{R}_+}$.
+\end{definition}
+
+\color{black}
+
+
+
+\section*{Acknowledgments}
+
+Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
+
+Blueprint: Patrick Massot (citation?)
+
+Project template \cite{Monticone_LeanProject_2025} and technical support: Pietro Monticone
+
+Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
+
+%%
+%% Bibliography
+%%
+
+\printbibliography
+
+\end{document}
+
+
+
+
+
+
+
+
+%Some useful commands:
+%\mathlib{}
+%\leaninline{}
+%\leanlink{url}{this is a link to Lean code}
+
+%Example of Lean code:
+%\begin{lstlisting}
+%/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+%the random variables `X t₂ - X t₁, X t₃ - X t₂, ...` are independent. -/
+%def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+%    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+%  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+%    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+%\end{lstlisting}
+
+%Inline code: \lstinline|sorry|
+
+\begin{abstract}
+Concise abstract.
+\end{abstract}
+
+% please fill in
+\msc{}
+
+% please fill in
+\keywords{Formalization, Mathlib, Lean, Brownian motion}
+
+\addbibresource{biblio.bib}
+
+\renewcommand{\lean}[1]{\lstinline[language=lean]{#1}}
+
+\begin{document}
+
+
+\section{Introduction}
+
+\subsection{Mathematical background}
+\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
+
+\section{Acknowledgements}
+Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
+
+Blueprint: Patrick Massot (citation?)
+
+Project template \cite{Monticone_LeanProject_2025} and technical support: Pietro Monticone
+
+Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
+
+\printbibliography
+
+\end{document}
