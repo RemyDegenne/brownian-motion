@@ -572,7 +572,7 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     · rwa [Nat.one_le_floor_iff, ← div_le_iff₀ (by positivity)]
     · rw [← Nat.lt_succ, Nat.floor_lt (by positivity)]
       calc
-      x * (k + 1) < 1 * (k + 1) := (_root_.mul_lt_mul_right (by positivity)).2 h1
+      x * (k + 1) < 1 * (k + 1) := (mul_lt_mul_iff_left₀ (by positivity)).2 h1
       _ = k.succ := by simp
     rw [abs_of_nonneg]
     · calc

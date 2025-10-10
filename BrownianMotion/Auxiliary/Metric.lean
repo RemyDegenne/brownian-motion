@@ -1,4 +1,4 @@
-import Mathlib.Analysis.NormedSpace.Pointwise
+import Mathlib.Analysis.Normed.Module.Ball.Pointwise
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.Topology.MetricSpace.MetricSeparated
 
