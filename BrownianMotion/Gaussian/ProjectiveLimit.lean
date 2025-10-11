@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Gaussian.MultivariateGaussian
 import KolmogorovExtension4.KolmogorovExtension
+import Mathlib.Analysis.InnerProductSpace.GramMatrix
 
 /-!
 # Pre-Brownian motion as a projective limit
@@ -24,10 +25,9 @@ variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
 theorem posSemidef_interMatrix {μ : Measure α} {v : ι → (Set α)}
     (hv₁ : ∀ j, MeasurableSet (v j)) (hv₂ : ∀ j, μ (v j) ≠ ∞ := by finiteness) :
     Matrix.PosSemidef (Matrix.of fun i j : ι ↦ μ.real (v i ∩ v j)) := by
-  -- simp only [hv₁, ne_eq, hv₂, not_false_eq_true,
-      -- ← inner_indicatorConstLp_one_indicatorConstLp_one']
-  -- exact gram_posSemidef
-  sorry -- include once Mathlib PR #25883 is available
+  simp only [hv₁, ne_eq, hv₂, not_false_eq_true,
+    ← L2.real_inner_indicatorConstLp_one_indicatorConstLp_one]
+  exact Matrix.posSemidef_gram ℝ _
 
 end L2
 

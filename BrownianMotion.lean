@@ -23,7 +23,6 @@ import BrownianMotion.Gaussian.CovMatrix
 import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.Gaussian
 import BrownianMotion.Gaussian.GaussianProcess
-import BrownianMotion.Gaussian.GramMatrix
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
