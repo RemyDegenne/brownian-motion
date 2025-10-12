@@ -95,8 +95,8 @@
 
 %%%How to activate the right language
 
-% Minted and listings are incompatible, by default the class used listings. If you need the package minted, you must add the option [minted] when you declare the AFM class like this : \documentclass[minted]{AFM}.
-%  Else, the article will run on listings. If you are using rocq and/or lean, put the name of your language in the option of the class like minted, separated by a comma. 
+% Minted and listings are incompatible, by default the class used listings. If you need the package minted, you must add the option [minted] when you declare the Draft class like this : \documentclass[minted]{Draft}.
+%  Else, the article will run on listings. If you are using rocq and/or lean, put the name of your language in the option of the class like minted, separated by a comma.
 
 %%% Characters
 
@@ -158,7 +158,7 @@
 
 %\newtheorem{environment label}[environment you depend on to do the section count]{name of your environment}
 
-%  For example, if you want an environment Subsublemma, called by the command \begin{sslmma}) you need to modify the definition so that it reads 
+%  For example, if you want an environment Subsublemma, called by the command \begin{sslmma}) you need to modify the definition so that it reads
 
 %\newtheorem{sslmma}[lemma]{Subsublemma}
 
@@ -168,8 +168,8 @@
 
 
 \NeedsTeXFormat{LaTeX2e}
-\def\ClassName@AFM{AFM}
-\ProvidesClass{AFM}[2024/04/02 v1]
+\def\ClassName@Draft{Draft}
+\ProvidesClass{Draft}[2024/04/02 v1]
 
 
 
@@ -208,10 +208,10 @@
 
 %%%Loading Packages
 \RequirePackage[
-    margin=1.07in, 
-    top=1in, 
+    margin=1.07in,
+    top=1in,
     % topmargin=.6in,
-    bottom=1.33in, 
+    bottom=1.33in,
     headheight=170pt,
     footskip=.5in,
     headsep=.15in
@@ -223,8 +223,8 @@
 
 %%% Colors
 \RequirePackage[dvipsnames]{xcolor}
-\definecolor{primaire}{HTML}{f05f28}
-\definecolor{secondaire}{HTML}{ab2311}
+\definecolor{primaire}{HTML}{42AD2D}
+\definecolor{secondaire}{HTML}{1814A3}
 \definecolor{tertiaire}{HTML}{454545}
 
 
@@ -236,8 +236,8 @@
 \let\oldheadrule\headrule% Copy \headrule into \oldheadrule
 \renewcommand{\headrule}{\color{secondaire}\oldheadrule}% Add colour to \headrule
 \renewcommand{\headrulewidth}{.5pt}
-%	\ifnum\thepage=\thefirstpage@AFM 0pt 0.5pt%
-%	\fi} 
+%	\ifnum\thepage=\thefirstpage@Draft 0pt 0.5pt%
+%	\fi}
 \def\footnoterule{\kern-3\p@ \hrule \@width1in \kern2.6\p@}
 
 \fancyhead[COH]{\footnotesize \theshort@title }
@@ -247,13 +247,13 @@
 
 %%% bottom left
 \lfoot{\footnotesize
-        \includegraphics[height=6.5mm,clip=true,trim=150 160 150 150]{AFMfooter}
+        %\includegraphics[height=6.5mm,clip=true,trim=150 160 150 150]{Draftfooter}
     }
 
 
 %%% bottom right
 \rfoot{\footnotesize
-    \ifnum\thepage=\thefirstpage@AFM
+    \ifnum\thepage=\thefirstpage@Draft
         \relax
     \else
             \thepage
@@ -272,12 +272,12 @@
 
 %%% hyperref %%%
 \RequirePackage[%
-colorlinks = true, 
-citecolor = primaire, 
+colorlinks = true,
+citecolor = primaire,
 linkcolor = secondaire,
 urlcolor = blue]{hyperref}
 %%%% end hyperref %%%
-               
+
 
 
 
@@ -290,7 +290,7 @@ urlcolor = blue]{hyperref}
 
 \RequirePackage[utf8]{inputenc}
 
-\RequirePackage{amsmath, amssymb, amsthm} 
+\RequirePackage{amsmath, amssymb, amsthm}
 
 \RequirePackage[scaled]{beramono}
 
@@ -307,7 +307,7 @@ urlcolor = blue]{hyperref}
 %%%%Bibliography management
 
 \RequirePackage[
-  backend=bibtex,        
+  backend=bibtex,
   style=alphabetic,
   sorting=nty,
   giveninits=true,
@@ -321,7 +321,7 @@ urlcolor = blue]{hyperref}
 ]{biblatex}
 
 %%%Definition of the electronic identifiers for the articles
-\DeclareFieldFormat{eid}{Art. \addnbspace #1} 
+\DeclareFieldFormat{eid}{Art. \addnbspace #1}
 
 
 %%%Definition of the electronic for the quantity of pages for the articles
@@ -333,15 +333,15 @@ urlcolor = blue]{hyperref}
   \setunit{\bibpagespunct}%
   \printfield{pagetotal}%
   \newunit}
-  
-  
+
+
 \RequirePackage{csquotes}
 
 %%% end bibliography management %%%
 
 
 %%%%%% Code environment management %%%%
-\ifdefined\AFM@minted
+\ifdefined\Draft@minted
     \RequirePackage{minted} % Use minted if activated
 
 \else
@@ -450,7 +450,7 @@ urlcolor = blue]{hyperref}
     {î}{{\^{i}}}1
     {Î}{{\^{I}}}1
     {í}{{\'{i}}}1
-    {=}{$\leftarrow$}{1} 
+    {=}{$\leftarrow$}{1}
     {==}{$={}$}{1},
     basicstyle=\small,
     stringstyle=\ttfamily,
@@ -467,7 +467,7 @@ urlcolor = blue]{hyperref}
 
 %%%lists
 \RequirePackage[inline]{enumitem}
-\setlist[enumerate,1]{label=(\arabic*), ref =(\arabic*)} 
+\setlist[enumerate,1]{label=(\arabic*), ref =(\arabic*)}
 \setlist[enumerate,2]{label=(\emph{\roman*}), ref =(\emph{\roman*})}
 \setlist[enumerate,2]{label=(\emph{\alph*}), ref =(\emph{\alph*})}
 \setlist{noitemsep}
@@ -479,11 +479,11 @@ urlcolor = blue]{hyperref}
 %%% AUXILIARY MACROS %%%
 
 % Definitions of 'newfield's macros.
-\def\newfield@AFM{\@ifnextchar*\newfieldB@AFM\newfieldA@AFM}
+\def\newfield@Draft{\@ifnextchar*\newfieldB@Draft\newfieldA@Draft}
 
-% If \newfield@AFM is not followed by a *, then:
-% newfield@AFM defines a macro called '\#1' which defines a macro '\the@#1'
-\def \newfieldA@AFM #1{%
+% If \newfield@Draft is not followed by a *, then:
+% newfield@Draft defines a macro called '\#1' which defines a macro '\the@#1'
+\def \newfieldA@Draft #1{%
     \def#1##1{%
         \escapechar`\@ \relax
         \long\@namedef{the\string#1}{##1}
@@ -491,11 +491,11 @@ urlcolor = blue]{hyperref}
         }
     }
 
-% If \newfield@AFM is followed by a *, then:
-% newfield@AFM defines a macro called '\#1', which has one or two arguments.
+% If \newfield@Draft is followed by a *, then:
+% newfield@Draft defines a macro called '\#1', which has one or two arguments.
 % The first argument is optional and defines a macro called '\theshort@#1';
 % the second argument is mandatory and defines a macro called '\the@#1'.
-\def\newfieldB@AFM*#1{%
+\def\newfieldB@Draft*#1{%
     \def#1{\@ifnextchar[{\@nameuse{\string#1@B}}{\@nameuse{\string#1@A}}}
     \@namedef{\string#1@A}##1{\@nameuse{\string#1@B}[##1]{##1}}
     \@namedef{\string#1@B}[##1]##2{%
@@ -506,8 +506,8 @@ urlcolor = blue]{hyperref}
         }
     }
 
-% \newlongfield@AFM defines a long-macro also called '\#1', which also defines a long-macro called '\the@#1'.
-\def\newlongfield@AFM#1{%
+% \newlongfield@Draft defines a long-macro also called '\#1', which also defines a long-macro called '\the@#1'.
+\def\newlongfield@Draft#1{%
     \long\def#1##1{%
         \escapechar`\@ \relax
     	\long\@namedef{the\string#1}{##1}
@@ -520,22 +520,22 @@ urlcolor = blue]{hyperref}
 
 
 %%%%% FIRST AND LAST PAGES %%%
-\newcounter{firstpage@AFM}
-\setcounter{firstpage@AFM}{0}
+\newcounter{firstpage@Draft}
+\setcounter{firstpage@Draft}{0}
 
-\def\firstpage #1{\setcounter{firstpage@AFM}{#1}\relax}
-\setcounter{page}{\thefirstpage@AFM\relax}
+\def\firstpage #1{\setcounter{firstpage@Draft}{#1}\relax}
+\setcounter{page}{\thefirstpage@Draft\relax}
 
-\def \lastpage@AFM{\pageref*{LastPage}}
+\def \lastpage@Draft{\pageref*{LastPage}}
 
 \AtBeginDocument{%
     % Print first page info
-	\setcounter{page}{\thefirstpage@AFM\relax}
+	\setcounter{page}{\thefirstpage@Draft\relax}
 	\thispagestyle{first}
-	\makepapertitle@AFM
+	\makepapertitle@Draft
     \mynewp@ge
     }
-    
+
 \let\mynewp@ge\newpage
 
 \AtEndDocument{%
@@ -549,7 +549,7 @@ urlcolor = blue]{hyperref}
 %%% End FIRST AND LAST PAGES %%%
 
 %%%%% TITLE PAGE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\narrowpar@AFM#1#2{%
+\def\narrowpar@Draft#1#2{%
     \begingroup
         \parindent1cm \narrower%
         \small \noindent%
@@ -560,7 +560,7 @@ urlcolor = blue]{hyperref}
     \vskip24pt
    }
 
-\def\footnote@AFMsp#1#2{%
+\def\footnote@Draftsp#1#2{%
     \def\@thefnmark{}%
     \ifx\relax#2\relax
         \relax%
@@ -571,7 +571,7 @@ urlcolor = blue]{hyperref}
     \fi
     }
 
-\def\footnote@AFM#1#2{%
+\def\footnote@Draft#1#2{%
     \def\@thefnmark{}%
     \ifx\relax#2\relax
         \relax%
@@ -584,29 +584,29 @@ urlcolor = blue]{hyperref}
 
 
 %%% Metadata %%%
-\newfield@AFM\JournalName  \JournalName{Annals of Formalized Mathematics}
-\newfield@AFM\YEAR  \YEAR{\the\year{}}
-\newfield@AFM\NUMBER  \NUMBER{{\color{red}n}}
-\newfield@AFM\VOLUME  \VOLUME{{\color{red}v}}
-\newfield@AFM\ISSNprint  \ISSNprint{1804-1388}
-\newfield@AFM\ISSNonline  \ISSNonline{2336-1298}
-\newfield@AFM\DOIName  \DOIName{DOI}
-\newfield@AFM\DOI  \DOI{{\color{red}\url{https://doi.org/XXX}}}
-\newfield@AFM*\author  \author{\firstname \middlename \lastname}
-\newfield@AFM*\title  \title{Title of the paper}
-\newfield@AFM\AbstractName  \AbstractName{Abstract}
+\newfield@Draft\JournalName  \JournalName{Annals of Formalized Mathematics}
+\newfield@Draft\YEAR  \YEAR{\the\year{}}
+\newfield@Draft\NUMBER  \NUMBER{{\color{red}n}}
+\newfield@Draft\VOLUME  \VOLUME{{\color{red}v}}
+\newfield@Draft\ISSNprint  \ISSNprint{1804-1388}
+\newfield@Draft\ISSNonline  \ISSNonline{2336-1298}
+\newfield@Draft\DOIName  \DOIName{DOI}
+\newfield@Draft\DOI  \DOI{{\color{red}\url{https://doi.org/XXX}}}
+\newfield@Draft*\author  \author{\firstname \middlename \lastname}
+\newfield@Draft*\title  \title{Title of the paper}
+\newfield@Draft\AbstractName  \AbstractName{Abstract}
 \RenewDocumentEnvironment{abstract}{+b}{\gdef\theabstract{#1}}{}
-\newfield@AFM\MscName  \MscName{MSC 2020}
-\newfield@AFM\msc  \msc{AMS classification}
-\newfield@AFM\KeywordsName  \KeywordsName{Keywords}
-\newfield@AFM\keywords  \keywords{key words and phrases}
-\newlongfield@AFM\contactinfo  \contactinfo{}
-% \newfield@AFM\ContactInfoName  \ContactInfoName{Contact information}
-\newfield@AFM\AffiliationName  \AffiliationName{Contact information}
-\newfield@AFM\EmailName  \EmailName{Email}
+\newfield@Draft\MscName  \MscName{MSC 2020}
+\newfield@Draft\msc  \msc{AMS classification}
+\newfield@Draft\KeywordsName  \KeywordsName{Keywords}
+\newfield@Draft\keywords  \keywords{key words and phrases}
+\newlongfield@Draft\contactinfo  \contactinfo{}
+% \newfield@Draft\ContactInfoName  \ContactInfoName{Contact information}
+\newfield@Draft\AffiliationName  \AffiliationName{Contact information}
+\newfield@Draft\EmailName  \EmailName{Email}
 
 
-\def\makepapertitle@AFM{
+\def\makepapertitle@Draft{
 \noindent\begin{minipage}{\linewidth}
 \noindent
 \begin{tabularx}{\textwidth}{X X}
@@ -614,14 +614,15 @@ urlcolor = blue]{hyperref}
 \raggedright
     \raggedright
     \footnotesize
-    \the@JournalName \\
-    Volume \textbf{\the@VOLUME}\ (\the@YEAR), \thefirstpage@AFM--\lastpage@AFM \\
-    \the@DOIName:~\url{\the@DOI}
+    \textbf{Preprint}
+    % \the@JournalName \\
+    % Volume \textbf{\the@VOLUME}\ (\the@YEAR), \thefirstpage@Draft--\lastpage@Draft \\
+    % \the@DOIName:~\url{\the@DOI}
             %
 \end{minipage}
 &
 \begin{minipage}[c][2cm][c]{\linewidth}
-\includegraphics[width=\linewidth, clip=true, trim = 290 160 290 150]{AFM.jpg}
+%\includegraphics[width=\linewidth, clip=true, trim = 290 160 290 150]{Draft.jpg}
 \end{minipage}
 \end{tabularx}
 
@@ -651,23 +652,23 @@ urlcolor = blue]{hyperref}
         \endgroup
     \fi
     % Abstract
-\narrowpar@AFM{\color{tertiaire}\the@AbstractName}\theabstract
+\narrowpar@Draft{\color{tertiaire}\the@AbstractName}\theabstract
 \end{minipage}
 
 \vfill
 
-\footnote@AFMsp{}{\textcopyright~\the@YEAR\ \theshort@author }
-\footnote@AFMsp{}{This is an open access article licensed under the CC BY 4.0.} 
-\footnote@AFMsp{}{To view a copy of the license, visit \url{https://creativecommons.org/licenses/by/4.0/}.}%
-    \footnote@AFM{\the@MscName}{\the@msc}
-    \footnote@AFM{\the@KeywordsName}{\the@keywords}
-    \footnote@AFMsp{}{ }
-    \footnote@AFM{\the@AffiliationName}{\the@contactinfo}
+% \footnote@Draftsp{}{\textcopyright~\the@YEAR\ \theshort@author }
+% \footnote@Draftsp{}{This is an open access article licensed under the CC BY 4.0.}
+% \footnote@Draftsp{}{To view a copy of the license, visit \url{https://creativecommons.org/licenses/by/4.0/}.}%
+%     \footnote@Draft{\the@MscName}{\the@msc}
+     \footnote@Draft{\the@KeywordsName}{\the@keywords}
+%     \footnote@Draftsp{}{ }
+     \footnote@Draft{\the@AffiliationName}{\the@contactinfo}
 
-    \footnote@AFMsp{}{\the@support}
-    \footnote@AFMsp{}{\emph{Received:} \the@receiveddate} 
-    \footnote@AFMsp{}{\emph{Final form:} \the@finaldate} 
-    \footnote@AFMsp{}{\emph{Accepted:} \the@accepteddate}
+%     \footnote@Draftsp{}{\the@support}
+%     \footnote@Draftsp{}{\emph{Received:} \the@receiveddate}
+%     \footnote@Draftsp{}{\emph{Final form:} \the@finaldate}
+%     \footnote@Draftsp{}{\emph{Accepted:} \the@accepteddate}
     }
 %%% End metadata %%%
 
@@ -680,7 +681,7 @@ urlcolor = blue]{hyperref}
 % addresses, otherwise (when there is only one author).
 \def \authorinfo{\@ifnextchar[{\authorsname}{\addresses}}
 
-% Each time that this macro is called, it adds the info entered (author's 
+% Each time that this macro is called, it adds the info entered (author's
 % name (#1), address (#2) and email (#3)) to \the@contactinfo.
 \def \authorsname[#1]#2#3{%
     \g@addto@macro\the@contactinfo{%
@@ -692,15 +693,15 @@ urlcolor = blue]{hyperref}
             \rightskip 2em plus 8em%
             #1:
             \ifx\relax#2\relax
-                \url{#3} \par
+                \texttt{\href{mailto:#3}{#3}} \par
             \else
-                #2. \url{#3}\par
+                #2. \texttt{\href{mailto:#3}{#3}}\par
             \fi
         \endgroup
         }
     }
 
-% Each time that this macro is called, it adds the info entered (author's 
+% Each time that this macro is called, it adds the info entered (author's
 % address (#1) and email (#2)) to \the@contactinfo.
 \def \addresses#1#2{%
     \g@addto@macro\the@contactinfo{%
@@ -723,34 +724,34 @@ urlcolor = blue]{hyperref}
 
 
 %%%%% Theorem and proof %%%
-\newfield@AFM\support \support{\relax}
+\newfield@Draft\support \support{\relax}
 
 
 
-\newfield@AFM\ConjectureName  \ConjectureName{Conjecture}
-\newfield@AFM\CorollaryName  \CorollaryName{Corollary}
-\newfield@AFM\DefinitionName  \DefinitionName{Definition}
-\newfield@AFM\ExampleName  \ExampleName{Example}
-\newfield@AFM\LemmaName  \LemmaName{Lemma}
-\newfield@AFM\SubLemmaName  \SubLemmaName{Sublemma}
-\newfield@AFM\ProblemName  \ProblemName{Problem}
-\newfield@AFM\ProofName  \ProofName{Proof}
-\newfield@AFM\PropositionName  \PropositionName{Proposition}
-\newfield@AFM\RemarkName  \RemarkName{Remark}
-\newfield@AFM\TheoremName  \TheoremName{Theorem}
-\newfield@AFM\NotationName  \NotationName{Notation}
+\newfield@Draft\ConjectureName  \ConjectureName{Conjecture}
+\newfield@Draft\CorollaryName  \CorollaryName{Corollary}
+\newfield@Draft\DefinitionName  \DefinitionName{Definition}
+\newfield@Draft\ExampleName  \ExampleName{Example}
+\newfield@Draft\LemmaName  \LemmaName{Lemma}
+\newfield@Draft\SubLemmaName  \SubLemmaName{Sublemma}
+\newfield@Draft\ProblemName  \ProblemName{Problem}
+\newfield@Draft\ProofName  \ProofName{Proof}
+\newfield@Draft\PropositionName  \PropositionName{Proposition}
+\newfield@Draft\RemarkName  \RemarkName{Remark}
+\newfield@Draft\TheoremName  \TheoremName{Theorem}
+\newfield@Draft\NotationName  \NotationName{Notation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newfield@AFM\ExamplesName  \ExamplesName{Examples}
-\newfield@AFM\RemarksName  \RemarksName{Remarks}
+\newfield@Draft\ExamplesName  \ExamplesName{Examples}
+\newfield@Draft\RemarksName  \RemarksName{Remarks}
 
 \def\equalenv#1#2{%
 \@ifundefined{#1}%
 {\newenvironment{#1}{\begin{#2}}{\end{#2}}}%
-{\ClassWarningNoLine{AFM}{%
+{\ClassWarningNoLine{Draft}{%
  #1 already defined: I won't redefine it!}}}
 
 
-\newtheoremstyle{AFMdefinition}
+\newtheoremstyle{Draftdefinition}
 	{1em} % space above the theorem
 	{1ex} % space below the theorem
 	{\itshape} % name of the body font
@@ -760,11 +761,11 @@ urlcolor = blue]{hyperref}
 	{ } % space after theorem head
 	{}
 
-\theoremstyle{AFMdefinition}
+\theoremstyle{Draftdefinition}
 \newtheorem{definition}{\the@DefinitionName}[section]
 \newtheorem{notation}[definition]{\the@NotationName}
 
-\newtheoremstyle{AFM}
+\newtheoremstyle{Draftplain}
 	{1em} % space above the theorem
 	{1ex} % space below the theorem
 	{\itshape} % name of the body font
@@ -774,7 +775,7 @@ urlcolor = blue]{hyperref}
 	{ } % space after theorem head
 	{}
 
-\theoremstyle{AFMplain}
+\theoremstyle{Draftplain}
 \newtheorem{theorem}[definition]{\the@TheoremName}
 \newtheorem{lemma}[definition]{\the@LemmaName}
 \newtheorem{sublemma}[definition]{\the@SubLemmaName}
@@ -783,7 +784,7 @@ urlcolor = blue]{hyperref}
 \newtheorem{conjecture}[definition]{\the@ConjectureName}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newtheoremstyle{AFMremark}
+\newtheoremstyle{Draftremark}
 	{1em} % space above the theorem
 	{1ex} % space below the theorem
 	{} % name of the body font
@@ -793,18 +794,18 @@ urlcolor = blue]{hyperref}
 	{ } % space after theorem head
 	{}
 
-\theoremstyle{AFMremark}
+\theoremstyle{Draftremark}
 \newtheorem{remark}[definition]{\the@RemarkName}
 \newtheorem{example}[definition]{\the@ExampleName}
 \newtheorem{remarks}[definition]{\the@RemarksName}
 \newtheorem{examples}[definition]{\the@ExamplesName}
 %%%%% End theorem and proof %%%
 
-%%% widows and orphans horizontal overruns management 
+%%% widows and orphans horizontal overruns management
 \widowpenalty1000000
 \clubpenalty1000000
 \overfullrule=6pt
-%%% end widows and orphans horizontal overruns management 
+%%% end widows and orphans horizontal overruns management
 
 
 
@@ -842,9 +843,9 @@ urlcolor = blue]{hyperref}
 
 
 %%%%% EDITORIAL INFO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newfield@AFM\receiveddate    \receiveddate{{\color{red}Received date}}
-\newfield@AFM\finaldate    \finaldate{{\color{red}Final date}}
-\newfield@AFM\accepteddate    \accepteddate{{\color{red}Accepted date}}
+\newfield@Draft\receiveddate    \receiveddate{{\color{red}Received date}}
+\newfield@Draft\finaldate    \finaldate{{\color{red}Final date}}
+\newfield@Draft\accepteddate    \accepteddate{{\color{red}Accepted date}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
