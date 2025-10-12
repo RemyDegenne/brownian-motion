@@ -175,6 +175,8 @@ A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then fo
 
 \begin{lemma}\label{lem:locally_inter}
   \uses{def:locally, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.locally_and}
 If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\mathrm{loc}}\cap Q_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -185,6 +187,8 @@ If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\m
 
 \begin{lemma}\label{lem:locally_mono}
   \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.Locally.mono}
 If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -198,6 +202,8 @@ Thus $X \in Q_{\mathrm{loc}}$.
 
 \begin{lemma}\label{lem:locally_locally}
   \uses{def:locally, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.locally_locally}
 For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}} = P_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -218,6 +224,8 @@ Indeed, $X^{\tau''_n} = ((X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\ma
 
 \begin{lemma}[Local implication from global implication]\label{lem:local_induction}
   \uses{def:locally, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.locally_induction}
 Let $P, Q$ be two classes of stochastic processes such that $P \subseteq Q_{\mathrm{loc}}$ and $Q$ is stable.
 Let $X$ be a stochastic process that satisfies $P$ locally.
 Then $X$ satisfies $Q$ locally.
@@ -234,6 +242,8 @@ Thus $X \in Q_{\mathrm{loc}}$.
 
 \begin{definition}[Local martingale]\label{def:IsLocalMartingale}
   \uses{def:Martingale, def:locally}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalMartingale}
 A stochastic process is a local martingale if it is locally a martingale in the sense of Definition~\ref{def:locally}.
 That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a martingale.
 \end{definition}
@@ -241,6 +251,8 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
 
 \begin{definition}\label{def:IsLocalSubmartingale}
   \uses{def:Submartingale, def:localizingSequence, def:stoppedProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalSubmartingale}
 A stochastic process is a local submartingale if it is locally a submartingale in the sense of Definition~\ref{def:locally}.
 That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a submartingale.
 \end{definition}
@@ -248,10 +260,12 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
 
 \begin{lemma}\label{lem:Martingale.IsLocalMartingale}
   \uses{def:IsLocalMartingale}
+  \leanok
+  \lean{ProbabilityTheory.Martingale.IsLocalMartingale}
 Every martingale is a local martingale.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:implies_locally}
 This follows from Lemma \ref{lem:implies_locally}.
 \end{proof}
@@ -259,6 +273,8 @@ This follows from Lemma \ref{lem:implies_locally}.
 
 \begin{lemma}\label{lem:stable_IsMartingale}
   \uses{def:Martingale, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_martingale}
 The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a martingale.
 \end{lemma}
 
