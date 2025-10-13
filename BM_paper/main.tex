@@ -520,6 +520,8 @@ The hypothesis on $T$ is satisfied for $T = \mathbb{R}_+$, with $T_n = [0,n)$ (w
 
 \todor{discussion: \cite{kratschmer2023kolmogorov} also apply it to manifolds}
 
+\todor{omit the proof of the localized theorem?}
+
 \subsection{Covers and chaining}
 
 
@@ -545,6 +547,7 @@ Since $J \subseteq T$, it also has bounded covering number with the same exponen
 \subsection{Building a Hölder continuous process}
 
 We discuss the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov}, which states that under additional assumptions on $E$ and $T$, the process $X$ has a modification with Hölder continuous paths.
+We first prove the result for a fixed $\beta \in (0, (q - d)/p)$, and will then deduce it for all $\beta$ in that interval simultaneously.
 An advantage of the formal proof is that it is easy to inspect the code to see which assumptions are used where.
 This part of the theorem requires $T$ to be second-countable because we first take a countable dense subset $T'$ of $T$, on which we apply the main inequality of Theorem~\ref{thm:kolmogorov_chentsov}.
 We obtain that an expectation is finite, hence that the quantity inside the expectation is almost surely finite:
@@ -569,7 +572,16 @@ That is why that part of the theorem requires $E$ to be metric and not pseudo-me
 
 \todor{explain the last part of the proof? refer to the paper? It caused us to refactor convergence in probability in Mathlib to allow extended metric spaces.}
 
-\todor{this is the proof for a particular $\beta$, not for all $\beta$}
+Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
+Note that since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$\todorm{add ref?}.
+
+Let $\beta_n$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
+For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
+Those $Y^n$ are all modifications of each other and are continuous, hence indistinguishable.
+Thus almost surely, for all $t \in T$, $Y^n_t = Y^1_t$ for all $n$.
+We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is in the event where all $Y^n$ are equal, and $Z_t(\omega) = x_0$ otherwise.
+Then $Z$ is a modification of $X$ and has Hölder continuous paths of order $\beta_n$ for all $n$.
+It thus has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$.
 
 \section{Construction of a Brownian motion and a Wiener measure}
 \label{S:BM}
