@@ -17,13 +17,6 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 open MeasureTheory NNReal WithLp Finset
 open scoped ENNReal NNReal Topology
 
-@[measurability]
-protected theorem AEMeasurable.eval {α δ : Type*} {X : δ → Type*} {mX : ∀ a, MeasurableSpace (X a)}
-    {_ : MeasurableSpace α} {μ : Measure α} {g : α → Π a, X a}
-    (hg : AEMeasurable g μ) (a : δ) :
-    AEMeasurable (fun x ↦ g x a) μ :=
-  ⟨fun x ↦ hg.mk g x a, hg.measurable_mk.eval, hg.ae_eq_mk.mono fun _ h ↦ congrFun h _⟩
-
 namespace ProbabilityTheory
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
@@ -114,11 +107,16 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (h�
   suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
   refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
-    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by field_simp; ring
+    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by
+      simp only [Nat.cast_add, Nat.cast_ofNat]; field_simp; ring
     _ ≤ 2⁻¹ * 1 := by grw [mul_div_assoc, (div_le_one₀ (by positivity)).2]; linarith
     _ = 2⁻¹ := mul_one _
   · have : (fun n : ℕ ↦ ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2))) =
-        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by ext n; field_simp; ring
+        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by
+      ext n
+      simp only [Nat.cast_add, Nat.cast_ofNat, Function.comp_apply, Nat.cast_one]
+      field_simp
+      ring
     rw [this]
     refine Filter.Tendsto.comp ?_ (Filter.tendsto_add_atTop_nat 1)
     nth_rw 2 [← mul_one 2⁻¹]
@@ -310,7 +308,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
   -- `f '' K ⊆ ⋃ v ∈ J, v`. We thus have `f '' K ⊆ ⋃ v ∈ J, closure v`. This is equivalent to
   -- having `I` a finite subset of `W` such that `f '' K ⊆ ⋃ v ∈ I, v`.
   have (f : C(X, Y)) (hf : K.MapsTo f U) : ∃ I, I.Finite ∧ I ⊆ W ∧ K.MapsTo f (⋃₀ I) := by
-    simp_rw [Set.mapsTo'] at hf ⊢
+    simp_rw [Set.mapsTo_iff_image_subset] at hf ⊢
     rw [U_eq_sUnion_W₁, Set.sUnion_eq_biUnion] at hf
     have : ∀ i ∈ {v | v ∈ V ∧ closure v ⊆ U}, IsOpen i :=
       fun x ⟨hx, _⟩ ↦ hV.isOpen hx
@@ -330,7 +328,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
     · obtain ⟨I, hI1, hI2, hI3⟩ := this f h
       exact ⟨{f : C(X, Y) | K.MapsTo f (⋃₀ I)}, ⟨I, hI1, hI2, rfl⟩, hI3⟩
     · rintro ⟨-, ⟨I, hI1, hI2, rfl⟩, h⟩
-      simp only [Set.mapsTo'] at h ⊢
+      simp only [Set.mapsTo_iff_image_subset] at h ⊢
       rw [U_eq_sUnion_W]
       exact h.trans <| Set.sUnion_subset_sUnion hI2
   simp only

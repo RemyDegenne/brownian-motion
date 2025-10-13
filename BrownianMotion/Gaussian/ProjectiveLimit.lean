@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Gaussian.MultivariateGaussian
 import KolmogorovExtension4.KolmogorovExtension
+import Mathlib.Analysis.InnerProductSpace.GramMatrix
 
 /-!
 # Pre-Brownian motion as a projective limit
@@ -24,10 +25,9 @@ variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
 theorem posSemidef_interMatrix {μ : Measure α} {v : ι → (Set α)}
     (hv₁ : ∀ j, MeasurableSet (v j)) (hv₂ : ∀ j, μ (v j) ≠ ∞ := by finiteness) :
     Matrix.PosSemidef (Matrix.of fun i j : ι ↦ μ.real (v i ∩ v j)) := by
-  -- simp only [hv₁, ne_eq, hv₂, not_false_eq_true,
-      -- ← inner_indicatorConstLp_one_indicatorConstLp_one']
-  -- exact gram_posSemidef
-  sorry -- include once Mathlib PR #25883 is available
+  simp only [hv₁, ne_eq, hv₂, not_false_eq_true,
+    ← L2.real_inner_indicatorConstLp_one_indicatorConstLp_one]
+  exact Matrix.posSemidef_gram ℝ _
 
 end L2
 
@@ -58,19 +58,17 @@ variable [DecidableEq ι]
 
 noncomputable
 def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
-  multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) |>.map
-    (EuclideanSpace.measurableEquiv I)
+  multivariateGaussian 0 (brownianCovMatrix I) |>.map (EuclideanSpace.measurableEquiv I)
 
 lemma measurePreserving_equiv_multivariateGaussian (I : Finset ℝ≥0) :
     MeasurePreserving (EuclideanSpace.measurableEquiv I)
-      (multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I))
-      (gaussianProjectiveFamily I) where
+      (multivariateGaussian 0 (brownianCovMatrix I)) (gaussianProjectiveFamily I) where
   measurable := by fun_prop
   map_eq := rfl
 
 lemma measurePreserving_equiv_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     MeasurePreserving (EuclideanSpace.measurableEquiv I).symm (gaussianProjectiveFamily I)
-      (multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I)) where
+      (multivariateGaussian 0 (brownianCovMatrix I)) where
   measurable := by fun_prop
   map_eq := by
     rw [gaussianProjectiveFamily, Measure.map_map, MeasurableEquiv.symm_comp_self,
@@ -81,7 +79,7 @@ lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [Norm
     (I : Finset ℝ≥0) (f : (I → ℝ) → E) :
     ∫ x, f x ∂gaussianProjectiveFamily I =
       ∫ x, f (EuclideanSpace.equiv I ℝ x)
-        ∂multivariateGaussian 0 (brownianCovMatrix I) (posSemidef_brownianCovMatrix I) := by
+        ∂multivariateGaussian 0 (brownianCovMatrix I) := by
   rw [gaussianProjectiveFamily, integral_map_equiv, EuclideanSpace.coe_measurableEquiv']
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
@@ -107,7 +105,8 @@ lemma covariance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s t : I) :
   change cov[fun x : EuclideanSpace ℝ I ↦ x s, fun x ↦ x t; _] = _
   have (u : I) : (fun x : EuclideanSpace ℝ I ↦ x u) =
       fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp [PiLp.inner_apply]
-  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian,
+  rw [this, this, ← covInnerBilin_apply_eq,
+    covInnerBilin_multivariateGaussian (posSemidef_brownianCovMatrix I),
     ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
   exact IsGaussian.memLp_two_id
 
@@ -155,7 +154,8 @@ lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
         EuclideanSpace.measurableEquiv J ∘ (EuclideanSpace.restrict₂ hJI) := by
       ext; simp [EuclideanSpace.measurableEquiv]
     rw [this, ((measurePreserving_equiv_multivariateGaussian J).comp
-      (measurePreserving_restrict_multivariateGaussian hJI)).map_eq]
+      (measurePreserving_restrict_multivariateGaussian
+        (posSemidef_brownianCovMatrix I) hJI)).map_eq]
   · exact Finset.measurable_restrict₂ _ -- fun_prop fails
   · fun_prop
 

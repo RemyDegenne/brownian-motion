@@ -24,6 +24,9 @@ ProbabilityTheory.IsGaussian
 ProbabilityTheory.isGaussian_iff_charFunDual_eq
 ProbabilityTheory.isGaussian_map
 ProbabilityTheory.isGaussian_conv
+ProbabilityTheory.exists_integrable_exp_sq_of_map_rotation_eq_self
+ProbabilityTheory.IsGaussian.map_rotation_eq_self_of_forall_strongDual_eq_zero
+ProbabilityTheory.IsGaussian.exists_integrable_exp_sq
 ProbabilityTheory.IsGaussian.memLp_id
 ProbabilityTheory.isGaussian_iff_charFun_eq
 ProbabilityTheory.IsGaussian.charFun_eq
@@ -32,7 +35,7 @@ ProbabilityTheory.gaussian_charFun_congr
 ProbabilityTheory.IsGaussian.ext
 ProbabilityTheory.IsGaussian.ext_iff
 ProbabilityTheory.stdGaussian
-ProbabilityTheory.integral_eval_pi
+MeasureTheory.integral_comp_eval
 ProbabilityTheory.isCentered_stdGaussian
 ProbabilityTheory.isProbabilityMeasure_stdGaussian
 ProbabilityTheory.charFun_stdGaussian
@@ -54,7 +57,7 @@ MeasureTheory.isProjectiveLimit_projectiveLimit
 MeasureTheory.isFiniteMeasure_projectiveLimit
 MeasureTheory.isProbabilityMeasure_projectiveLimit
 Matrix.gram
-Matrix.gram_posSemidef
+Matrix.posSemidef_gram
 ProbabilityTheory.posSemidef_brownianCovMatrix
 ProbabilityTheory.gaussianProjectiveFamily
 ProbabilityTheory.isProjectiveMeasureFamily_gaussianProjectiveFamily
@@ -158,6 +161,10 @@ ProbabilityTheory.wienerMeasureAux
 ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval
 ProbabilityTheory.MeasurableEquiv.continuousMap
 ProbabilityTheory.wienerMeasure
+MeasureTheory.Filtration
+MeasureTheory.Adapted
 MeasureTheory.Martingale
+MeasureTheory.Submartingale
 MeasureTheory.IsStoppingTime
 MeasureTheory.stoppedProcess
+MeasureTheory.maximal_ineq

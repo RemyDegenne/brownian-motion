@@ -1,6 +1,7 @@
 \chapter{Stochastic integral}
 
 The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
+Some of the proofs are taken from \cite{pascucci2024}.
 
 \section{Total variation and Lebesgue-Stieltjes integral}
 
@@ -9,60 +10,273 @@ However, we will also want to integrate with respect to a signed measure given b
 We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
 
 
+\section{Doob's Lp inequality}
 
-\section{Square integrable martingales}
+In this section, we prove Doob's Lp inequality.
 
-In this section, $E$ denotes a complete normed space.
+\begin{lemma}\label{lem:convex_of_mg_is_submg}
+  \uses{def:Martingale, def:Submartingale}
+Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
+Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
 
-First, recall the definitions of a martingale, a stopping time and a stopped process, which are already in Mathlib.
+\begin{proof}
+  % See 1.4.12 Pascucci
+  By the conditional Jensen inequality (see \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953})
+  $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
 
 
-\begin{definition}[Martingale]\label{def:Martingale}
+\begin{corollary}\label{cor:Martingale.submartingale_norm}
+  \uses{def:Martingale, def:Submartingale}
+  Let $X : T \rightarrow \Omega \rightarrow E$ a martingale with values in a normed space $E$.
+  Then $\Vert X \Vert$ is a sub-martingale.
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg}
+It is a consequence of Lemma~\ref{lem:convex_of_mg_is_submg} with $\phi = \Vert \cdot \Vert$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:convex_of_submg_is_submg}
+  \uses{def:Submartingale}
+Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
+Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+
+\begin{proof}
+  By Jensen and the fact that $\phi$ is increasing
+  $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+
+\begin{lemma}[Doob's maximal inequality for $\mathbb{N}$]\label{lem:maximal_ineq}
+  \uses{def:Submartingale}
   \mathlibok
-  \lean{MeasureTheory.Martingale}
-Let $\mathcal{F}$ be a filtration on a measurable space $\Omega$ with measure $P$ indexed by $T$.
-A family of functions $M : T \to \Omega \to E$ is a martingale with respect to a filtration $\mathcal{F}$ if $M$ is adapted with respect to $\mathcal{F}$ and for all $i \le j$, $P[M_j \mid \mathcal{F}_i] = M_i$ almost surely.
-\end{definition}
-
-
-\begin{definition}[Stopping time]\label{def:IsStoppingTime}
-  \mathlibok
-  \lean{MeasureTheory.IsStoppingTime}
-A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is a function $\tau : \Omega \to T$ such that for all $i$, the preimage of $\{j \mid j \le i\}$ along $\tau$ is measurable with respect to $\mathcal{F}_i$.
-\end{definition}
-
-
-\begin{definition}[Stopped process]\label{def:stoppedProcess}
-  \mathlibok
-  \lean{MeasureTheory.stoppedProcess}
-Let $X : T \to \Omega \to E$ be a stochastic process and let $\tau : \Omega \to T$.
-The stopped process with respect to $\tau$ is defined by
+  \lean{MeasureTheory.maximal_ineq}
+Let $X : \mathbb{N} \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale.
+Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 \begin{align*}
-  (X^{\tau})_t = \begin{cases}
-    X_t & \text{if } t \le \tau \\
-    X_{\tau} & \text{otherwise}
-  \end{cases}
-\end{align*}
-\end{definition}
-
-
-\begin{theorem}[Doob's Lp inequality]\label{thm:doob_lp}
-  \uses{def:Martingale}
-Let $M : T \to \Omega \to \mathbb{R}$ be a martingale indexed by a countable index set $T$ and let $p, q > 1$ such that $\frac{1}{p} + \frac{1}{q} = 1$.
-Then for all $t \in T$,
-\begin{align*}
-  \Vert \sup_{s \le t} \vert M_s \vert \Vert_p
-  \le q \Vert M_t \Vert_p
+  \mathbb{P}\left(\sup_{i \le n}X_i\geq\lambda \right)
+  \le \frac{\mathbb{E}\left[X_n \mathbb{I}_{\sup_{i \le n}X_i \ge \lambda}\right]}{\lambda}
+  \le \frac{\mathbb{E}[X_n]}{\lambda}
   \: .
 \end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
+  \uses{def:Submartingale}
+  Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
+  Then for every $M \in I,\lambda > 0$ and $p>1$ we have
+  \begin{align*}
+    P\left( \sup_{i\in I, i\leq M}X_i\geq\lambda \right)
+    \le \frac{\mathbb{E}\left[X_M \mathbb{I}_{\sup_{i \le M}X_i \ge \lambda}\right]}{\lambda}
+    \le \frac{\mathbb{E}[X_M]}{\lambda}
+    \: .
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:maximal_ineq}
+For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
+\begin{align*}
+  P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)
+  \le \frac{\mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J, i \le M}X_i \ge \lambda}\right]}{\lambda}
+  \: .
+\end{align*}
+Then we build a countable increasing sequence of finite sets $J_n$ with $\sup_{i\in I, i\leq M}X_i = \sup_n\sup_{i\in J_n, i \le M}X_i$ and conclude by monotone convergence.
+%See 8.1.1 Pascucci.
+\end{proof}
+
+
+\begin{lemma}[Doob Lp Inequality for countable]\label{lem:doob_Lp_countable}
+  Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale. Let $I$ be countable.
+  For every $M\in I,\lambda > 0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{i\in I, i \leq M}X_i^p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_M^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{i \le M}  X_i  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_M \right\Vert_p
+    \: .$
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:doob_countable}
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  = p \int_0^\infty \mathbb{P}\left( \sup_{i \le M}X_i \geq \lambda \right) \lambda^{p-1} d\lambda
+\end{align*}
+By Theorem~\ref{lem:doob_countable} and then Fubini's theorem, we have then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  &\le p \int_0^\infty \mathbb{E}\left[X_M \mathbb{I}_{\sup_{i \le M}X_i \ge \lambda}\right] \lambda^{p-2} d\lambda
+  \\
+  &= p \mathbb{E}\left[X_M \int_0^{\sup_{i \le M}X_i} \lambda^{p-2} d\lambda\right]
+  \\
+  &= \frac{p}{p - 1} \mathbb{E}\left[X_M (\sup_{i \le M}X_i)^{p-1}\right]
+  \: .
+\end{align*}
+Then by Hölder's inequality,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  &\le \frac{p}{p - 1} \left(\mathbb{E}[X_M^p]\right)^{1/p} \left(\mathbb{E}\left[\sup_{i \le M}X_i^p \right]\right)^{(p-1)/p}
+  \: .
+\end{align*}
+We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \right]\right)^{(p-1)/p}$ and raise to the power $p$ to conclude.
+%  8.1.1 Pascucci.
+\end{proof}
+
+
+\begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T, \lambda>0$ and $p>1$ we have
+  \begin{align*}
+    P\left( \sup_{t\in[0,T]}X_t \geq \lambda \right)
+    \leq \frac{\mathbb{E}[X_T \mathbb{I}_{\sup_{i \le T}X_i \ge \lambda}]}{\lambda}
+    \leq \frac{\mathbb{E}[X_T]}{\lambda}
+    \: .
+  \end{align*}
 \end{theorem}
+
+\begin{proof}
+  \uses{lem:doob_countable}
+  % TODO: put a sketch of the proof here
+  8.1.2 Pascucci.
+\end{proof}
+
+
+\begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq_norm}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $T$ and $\lambda>0$ we have
+  $$
+  P\left( \sup_{t\in[0,T]} \lVert X_t \rVert \geq \lambda \right)
+  \leq \frac{\mathbb{E}[\lVert X_T \rVert]}{\lambda}.
+  $$
+\end{corollary}
+
+\begin{proof}
+  \uses{cor:Martingale.submartingale_norm, thm:doob_ineq}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_ineq}.
+\end{proof}
+
+
+\begin{theorem}[Doob's Lp inequality in $\mathbb{R}$]\label{thm:doob_lp}
+  Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T, \lambda>0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{t\in[0,T]}X_t^p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_T^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{t\in[0,T]}  X_t  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_T \right\Vert_p
+    \: .$
+\end{theorem}
+
+\begin{proof}
+  \uses{thm:doob_ineq}
+% TODO: put a sketch of the proof here
+8.1.2 Pascucci.
+\end{proof}
+
+
+\begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp_norm}
+  Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $T, \lambda>0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{t\in[0,T]} \lVert X_t \rVert ^ p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_T \rVert ^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{t\in[0,T]}  X_t  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_T \right\Vert_p
+    \: .$
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, thm:doob_lp}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_lp}.
+\end{proof}
+
+
+\begin{lemma}[Stopped Martingale]\label{lem:stop_of_mg_is_mg}
+  \uses{def:Martingale, def:stoppedProcess}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a cadlag martingale and $\tau_0$ a stopping time.
+  Then the stopped process $(X_{t\wedge\tau_0})_{t\geq 0}$ is a martingale.
+\end{lemma}
 
 \begin{proof}
 
 \end{proof}
 
-TODO: corollary: if $M$ is continuous we have the same inequality on $\mathbb{R}_+$.
+\begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}X_t\geq\lambda \right)\leq \frac{\mathbb{E}[X_\tau]}{\lambda}.
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{thm:doob_ineq, lem:stop_of_mg_is_mg}
+  Almost already in mathlib MeasureTheory.Submartingale.stoppedProcess.
+\end{proof}
 
+\begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}\lVert X_t \rVert \geq\lambda \right)\leq \frac{\mathbb{E}[\lVert X_\tau \rVert]}{\lambda}.
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop}.
+\end{proof}
+
+\begin{lemma}[Doob's Lp Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}X_t^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_\tau^p].
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{lem:doob_ineq_stop, lem:stop_of_mg_is_mg}
+  8.1.3 Pascucci.
+\end{proof}
+
+\begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}\lVert X_t \rVert^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_\tau \rVert^p].
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop_exp_val}
+  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop_exp_val}.
+\end{proof}
+
+\section{Square integrable martingales}
+
+In this section, $E$ denotes a complete normed space.
 
 \begin{definition}[Square integrable martingales]\label{def:squareIntegrableMartingales}
   \uses{def:Martingale}
@@ -85,7 +299,7 @@ The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 \end{theorem}
 
 \begin{proof}
-  \uses{thm:doob_lp}
+  \uses{cor:doob_lp_norm}
 
 \end{proof}
 
@@ -93,37 +307,6 @@ The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 \section{Local martingales}
 
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
-
-\begin{definition}[Local martingale]\label{def:IsLocalMartingale}
-  \uses{def:Martingale, def:IsStoppingTime, def:stoppedProcess}
-Let $\mathcal{F} = (\mathcal{F}_t)_{t \in \mathbb{R}_+}$ be a filtration on a measurable space $\Omega$.
-A local martingale with respect to $\mathcal{F}$ is a stochastic process $M : \mathbb{R}_+ \to \Omega \to E$ adapted to $\mathcal{F}$ such that there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that the following conditions hold:
-\begin{itemize}
-  \item $\tau_n$ is a stopping time for every $n \in \mathbb{N}$,
-  \item $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.),
-  \item for all $n \in \mathbb{N}$, the stopped and centered process $M^{\tau_n} - M_0$ is a martingale with respect to $\mathcal{F}$.
-\end{itemize}
-\end{definition}
-
-
-\begin{lemma}\label{lem:Martingale.IsLocalMartingale}
-  \uses{def:IsLocalMartingale}
-Every martingale is a local martingale.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{theorem}\label{thm:IsLocalMartingale.eq_zero_of_finiteVariation}
-  \uses{def:IsLocalMartingale}
-Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite variation process, then $M_t = 0$ for all $t$.
-\end{theorem}
-
-\begin{proof}
-
-\end{proof}
 
 
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}

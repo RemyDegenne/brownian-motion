@@ -561,7 +561,7 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     obtain rfl | h1 := eq_or_lt_of_le hx2
     · refine ⟨k / (k + 1), mem_C k one_le_k le_rfl rfl, edist_le ?_⟩
       field_simp
-      rwa [abs_of_nonneg (by positivity)]
+      rwa [add_sub_cancel_left, abs_of_nonneg (by positivity)]
     -- Now the case `x < 1 / (k + 1)`
     obtain h2 | h2 := lt_or_ge x (1 / (k + 1) : ℝ)
     · refine ⟨1 / (k + 1), mem_C 1 le_rfl one_le_k (by simp), edist_le ?_⟩
@@ -572,7 +572,7 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     · rwa [Nat.one_le_floor_iff, ← div_le_iff₀ (by positivity)]
     · rw [← Nat.lt_succ, Nat.floor_lt (by positivity)]
       calc
-      x * (k + 1) < 1 * (k + 1) := (_root_.mul_lt_mul_right (by positivity)).2 h1
+      x * (k + 1) < 1 * (k + 1) := (mul_lt_mul_iff_left₀ (by positivity)).2 h1
       _ = k.succ := by simp
     rw [abs_of_nonneg]
     · calc

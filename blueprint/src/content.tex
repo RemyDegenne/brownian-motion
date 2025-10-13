@@ -6,22 +6,23 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
-\paragraph{Abstract}
+\part{Brownian motion}
 
-Our goal is to formalize Brownian motions in Lean using \texttt{Mathlib}.
-There are two main parts to this formalization:
+\textbf{Overview}
+
+This part of the blueprint is a guide to the formalization of a standard Brownian motion in Lean using Mathlib. There are two main parts to this formalization:
 \begin{itemize}
-  \item develop the theory of Gaussian distributions and build a projective family of Gaussian distributions and define its projective limit by the Kolmogorov extension theorem,
-  \item prove the Kolmogorov-Chentsov continuity theorem.
+  \item a development of the theory of Gaussian distributions, the construction of a projective family of Gaussian distributions and its projective limit by the Kolmogorov extension theorem,
+  \item a proof of a Kolmogorov-Chentsov continuity theorem, following \cite{kratschmer2023kolmogorov}.
 \end{itemize}
 
-\paragraph{Notation}
+Putting the two sides together, we then build a stochastic process that fits the definition of a Brownian motion on the real line.
 
-$T$ denotes an index set (for a stochastic process).
+\textbf{Status} The formalization is complete.
 
-$\Omega$ is a measurable space. $\mathbb{P}$ is the probability measure on $\Omega$ and $\mathbb{E}$ is the expectation operator with respect to $\mathbb{P}$.
+\textbf{Formalization authors} Rémy Degenne, Markus Himmel, David Ledvinka, Etienne Marion, Peter Pfaffelhuber.
 
-$E, F$ are normed vector spaces. Most often $F$ is a Banach space and $E$ is a Hilbert space.
+With additional contributions from Jonas Bayer, Lorenzo Loccioli, Pietro Monticone, Alessio Rondelli and Jérémy Scanvic.
 
 \input{chapters/characteristic_function.tex}
 \input{chapters/process.tex}
@@ -29,7 +30,21 @@ $E, F$ are normed vector spaces. Most often $F$ is a Banach space and $E$ is a H
 \input{chapters/projective_family.tex}
 \input{chapters/kolmogorov_chentsov.tex}
 \input{chapters/brownian.tex}
+
+\putbib
+
+\part{Stochastic integral}
+
+\textbf{Overview}
+
+We describe the construction of a stochastic integral.
+
+\textbf{Status} The formalization is ongoing.
+
+\textbf{Formalization authors} Anyone is welcome to contribute!
+
+\input{chapters/filtration_martingale.tex}
+\input{chapters/doob_meyer.tex}
 \input{chapters/stochastic_integral.tex}
 
-\bibliographystyle{amsalpha}
-\bibliography{bib}
+\putbib

@@ -32,7 +32,7 @@ lemma charFun_pi {ι : Type*} [Fintype ι] {E : ι → Type*} {mE : ∀ i, Measu
 
 @[simp]
 lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
-    [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : NormedSpace.Dual ℝ E) :
+    [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : StrongDual ℝ E) :
     charFun μ ((InnerProductSpace.toDual ℝ E).symm L) = charFunDual μ L := by
   rw [charFun_eq_charFunDual_toDualMap]
   congr with x
@@ -47,69 +47,20 @@ section iIndepFun
 variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
   {μ : (i : ι) → Measure (Ω i)}
 
-lemma _root_.MeasureTheory.Measure.pi_map_eval [∀ i, IsFiniteMeasure (μ i)] [DecidableEq ι]
-    (i : ι) :
-    (Measure.pi μ).map (Function.eval i) = (∏ j ∈ Finset.univ.erase i, μ j Set.univ) • (μ i) := by
-  ext s hs
-  classical
-  rw [Measure.map_apply (measurable_pi_apply i) hs, ← Set.univ_pi_update_univ, Measure.pi_pi,
-    Measure.smul_apply, smul_eq_mul, ← Finset.prod_erase_mul _ _ (a := i) (by simp)]
-  congrm ?_ * ?_
-  swap; · simp
-  refine Finset.prod_congr rfl fun j hj ↦ ?_
-  simp [Function.update, Finset.ne_of_mem_erase hj]
-
 variable [∀ i, IsProbabilityMeasure (μ i)]
-
-lemma measurePreserving_eval (i : ι) :
-    MeasurePreserving (Function.eval i) (Measure.pi μ) (μ i) := by
-  refine ⟨measurable_pi_apply i, ?_⟩
-  classical
-  rw [Measure.pi_map_eval, Finset.prod_eq_one, one_smul]
-  exact fun _ _ ↦ measure_univ
-
-variable {𝒳 : ι → Type*} [∀ i, MeasurableSpace (𝒳 i)] {X : Π i, Ω i → 𝒳 i}
-
-lemma iIndepFun_pi (mX : ∀ i, Measurable (X i)) :
-    iIndepFun (fun i ω ↦ X i (ω i)) (Measure.pi μ) := by
-  refine @iIndepFun_iff_map_fun_eq_pi_map (Π i, Ω i) ι _ (Measure.pi μ) _ 𝒳 _
-    (fun i x ↦ X i (x i)) _ ?_ |>.2 ?_
-  · exact fun i ↦ Measurable.aemeasurable (by fun_prop)
-  · symm
-    refine Measure.pi_eq fun s hs ↦ ?_
-    rw [Measure.map_apply (by fun_prop) (MeasurableSet.univ_pi hs)]
-    have : (fun (ω : Π i, Ω i) i ↦ X i (ω i)) ⁻¹' (Set.univ.pi s) =
-        Set.univ.pi (fun i ↦ (X i) ⁻¹' (s i)) := by ext x; simp
-    rw [this, Measure.pi_pi]
-    congr with i
-    rw [Measure.map_apply (by fun_prop) (hs i)]
-    change _ = (Measure.pi μ) (((X i) ∘ (fun x ↦ x i)) ⁻¹' s i)
-    rw [Set.preimage_comp, ← Measure.map_apply (measurable_pi_apply i) (mX i (hs i)),
-      (measurePreserving_eval i).map_eq]
-
-lemma iIndepFun_pi₀ (mX : ∀ i, AEMeasurable (X i) (μ i)) :
-    iIndepFun (fun i ω ↦ X i (ω i)) (Measure.pi μ) := by
-  have : iIndepFun (fun i ω ↦ (mX i).mk (X i) (ω i)) (Measure.pi μ) :=
-    iIndepFun_pi fun i ↦ (mX i).measurable_mk
-  refine this.congr fun i ↦ ?_
-  change ((mX i).mk (X i)) ∘ Function.eval i =ᶠ[_] (X i) ∘ Function.eval i
-  apply ae_eq_comp
-  · exact (measurable_pi_apply i).aemeasurable
-  · rw [(measurePreserving_eval i).map_eq]
-    exact (AEMeasurable.ae_eq_mk (mX i)).symm
 
 lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
     Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
   rw [IndepFun.variance_sum]
   · congr with i
     change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
-    rw [← variance_map, (measurePreserving_eval i).map_eq]
-    · rw [(measurePreserving_eval i).map_eq]
+    rw [← variance_map, (measurePreserving_eval _ i).map_eq]
+    · rw [(measurePreserving_eval _ i).map_eq]
       exact (h i).aestronglyMeasurable.aemeasurable
     · exact Measurable.aemeasurable (by fun_prop)
-  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval i)
+  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval _ i)
   · exact fun i _ j _ hij ↦
-      (iIndepFun_pi₀ fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
+      (iIndepFun_pi fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
 
 end iIndepFun
 
