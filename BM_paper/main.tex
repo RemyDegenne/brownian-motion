@@ -467,7 +467,7 @@ Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d
   \le M L(T, c, d, p, q, \beta)
   \: .
 \end{align*}
-If furthermore $E$ is a nonempty extended metric space ($d_E(x,y) = 0$ implies $x = y$) and is complete, and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
+If furthermore $E$ is an extended metric space (not pseudo-metric: $d_E(x,y) = 0$ implies $x = y$) and is complete, and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
 \todor{In the code we also have $E$ second-countable, but we are trying to remove it.}
@@ -482,8 +482,7 @@ Therefore, from the beginning of the project we made the design choice to consid
 Our reference \cite{kratschmer2023kolmogorov} proves the theorem for $T$ and $E$ metric spaces.
 The most notable difference is that we allow $d_T(s, t)$ to be zero for $s \ne t$.
 In that case the Kolmogorov condition implies that $d_E(X_s, X_t) = 0$ almost surely, so with the convention that $0/0 = 0$ the theorem still holds.
-
-\todor{The Krätschmer paper also does not mention separability of $T$ for the second part of the theorem, but they take a countable dense subset of $T$ in the proof, which requires $T$ to be second-countable.}
+\todorm{The Krätschmer paper also does not mention separability of $T$ for the second part of the theorem, but they take a countable dense subset of $T$ in the proof, which requires $T$ to be second-countable.}
 
 \todor{For reference, if we want to mention it:
 \begin{align*}
@@ -503,9 +502,20 @@ Whenever the proof in \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{
 
 In order to obtain a Brownian motion, we will want to apply Theorem~\ref{thm:kolmogorov_chentsov} to a process defined on $T = \mathbb{R}_+$, which is not bounded and does not have bounded covering number.
 We thus need an extension of the theorem.
+The following localized version of the theorem fulfills this need, and also uses several sequences of exponents $(p_m, q_m)$ instead of a single pair $(p, q)$.
 
-TODO
+\todor{define locally Hölder}
 
+\begin{theorem}[Localized Kolmogorov-Chentsov]\label{thm:localized_holder_modification_sup}
+Suppose that $T$ can be covered by an increasing sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ such that each $T_n$ has bounded covering number with constant $c_n > 0$ and exponent $d > 0$ (the same exponent for all $n$).
+Let $(p_m, q_m)_{m \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_m > d$ for all $m \in \mathbb{N}$.
+Let $(X_t)_{t \in T}$ be a process that satisfies the Kolmogorov condition with exponents $(p_m, q_m)$ for all $m \in \mathbb{N}$.
+Then $X$ has a modification $Y$ such that the paths of $Y$ are locally Hölder continuous of all orders $\gamma \in \left(0, \sup_m \frac{q_m - d}{p_m}\right)$.
+\end{theorem}
+
+The hypothesis on $T$ is satisfied for $T = \mathbb{R}_+$, with $T_n = [0,n)$ (which is open in $\mathbb{R}_+$), for $d = 1$.
+
+\todor{discussion: \cite{kratschmer2023kolmogorov} also apply it to manifolds}
 
 \subsection{Covers and chaining}
 
@@ -517,8 +527,31 @@ TODO
 
 \subsection{Building a Hölder continuous process}
 
+We discuss the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov}, which states that under additional assumptions on $E$ and $T$, the process $X$ has a modification with Hölder continuous paths.
+This part of the theorem requires $T$ to be second-countable because we first take a countable dense subset $T'$ of $T$, on which we apply the main inequality of Theorem~\ref{thm:kolmogorov_chentsov}.
+We obtain that an expectation is finite, hence that the quantity inside the expectation is almost surely finite:
+\begin{align*}
+  \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} < +\infty
+  \quad \text{almost surely.}
+\end{align*}
 
+On the event $A$ that the supremum is finite, $(X_t)_{t \in T'}$ has Hölder continuous paths of order $\beta$.
+Let $x_0 \in E$ be arbitrary and let $Y$ be the process defined by
+\begin{align*}
+  Y_t(\omega)
+  &= \begin{cases}
+    \lim_{s \to t, s \in T'} X_s(\omega) & \text{if } \omega \in A \: , \\
+    x_0 & \text{otherwise .}
+  \end{cases}
+\end{align*}
+The limits in that definition are the reason for the completeness assumption on $E$.
+Then $Y$ has Hölder continuous paths of order $\beta$ almost surely.
+We finally need to show that $Y$ is a modification of $X$, which we do by showing that for all $t \in T$, $d_E(X_t, Y_t) = 0$ almost surely.
+That is why that part of the theorem requires $E$ to be metric and not pseudo-metric.
 
+\todor{explain the last part of the proof? refer to the paper? It caused us to refactor convergence in probability in Mathlib to allow extended metric spaces.}
+
+\todor{this is the proof for a particular $\beta$, not for all $\beta$}
 
 \section{Construction of a Brownian motion and a Wiener measure}
 \label{S:BM}
@@ -526,7 +559,7 @@ TODO
 
 \section*{Acknowledgments}
 
-Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Loccioli, Alessio Rondelli, Jérémy Scanvic
+Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Luccioli, Alessio Rondelli, Jérémy Scanvic
 
 Blueprint: Patrick Massot (citation?)
 
