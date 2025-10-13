@@ -3,6 +3,7 @@
 \usepackage{amsmath, amssymb}
 \usepackage{colonequals}
 \usepackage[colorlinks=true]{hyperref}
+\usepackage{todonotes}
 
 \def\lstlanguagefiles{lstlean.sty}
 \lstset{language=lean}
@@ -20,3 +21,7 @@
 \newcommand*{\Lean}{\textsc{Lean}\xspace}
 \newcommand*{\Leant}{\textsc{Lean3}\xspace}
 \newcommand*{\Leanf}{\textsc{Lean4}\xspace}
+
+\setlength{\marginparwidth}{2.5cm}
+\newcommand{\todor}[1]{\todo[color=red!40, inline]{\scriptsize RD: #1}}
+\newcommand{\todorm}[1]{\todo[color=red!40]{\begin{spacing}{1}\scriptsize RD: #1\end{spacing}}}

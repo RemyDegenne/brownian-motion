@@ -107,7 +107,7 @@ It is important to realize that probability theory comes with a duality between 
 
 \subsection{Related work}
 In the literature, there are some formalizations of stochastic processes. Within Isabelle/HOL, the Kolmogorov extension theorem has been previously formalized \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where the state spaces for all times are identical. As for the Kolmogorov-Chentson-Theorem (showing continuity of paths), there is an Isabelle/HOL formalization as well \cite{Kolmogorov_Chentsov-AFP}. It uses the index set  $\R_+$ (rather than a more general type) with the usual dyadics proof, as e.g. outlined in \cite{kallenberg2021}. Last,
-Brownian motion in implemented in Isabelle/HOL at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github}). As the authors say, dependent type theory would have facilitated their work in places.
+Brownian motion in implemented in Isabelle/HOL at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github})\todorm{the formalization does not look complete}. As the authors say, dependent type theory would have facilitated their work in places.
 
 For the Lean theorem prover, \cite{ying2023formalization} formalized martingales (see e.g.\ \cite{kallenberg2021}) and was the first implementation of stochastic processes. In our work, however, we do not touch martingales, and rather build on implementations of measure theory, as implemented in \cite{mathlib}. We benefitted from recent efforts to write code and a description of the proofs using the blueprint tool \cite{Monticone_LeanProject_2025}.
 
@@ -376,6 +376,9 @@ out all instances in the reformulation of the result and its proof
 
 \section{Gaussian Measures and characteristic functions}
 
+Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution (TODO LINK), but not more general Gaussian measures.
+
+\todor{ General Gaussian def, characteristic function, Fernique's theorem (not in detail), Hilbert spaces defs, stdGaussian and multivariateGaussian.}
 
 \section{The Kolmogorov-Chentsov Theorem}
 \label{S:continuity}
