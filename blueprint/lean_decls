@@ -167,4 +167,16 @@ MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.IsStoppingTime
 MeasureTheory.stoppedProcess
+ProbabilityTheory.IsLocalizingSequence
+ProbabilityTheory.Locally
+ProbabilityTheory.locally_of_prop
+ProbabilityTheory.IsStable
+ProbabilityTheory.locally_and
+ProbabilityTheory.Locally.mono
+ProbabilityTheory.locally_locally
+ProbabilityTheory.locally_induction
+ProbabilityTheory.IsLocalMartingale
+ProbabilityTheory.IsLocalSubmartingale
+ProbabilityTheory.Martingale.IsLocalMartingale
+ProbabilityTheory.isStable_martingale
 MeasureTheory.maximal_ineq
