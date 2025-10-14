@@ -126,6 +126,8 @@ M.H, D.L., and E.M. joined the project at that time and then contributed signifi
 The coordination of the project was done through discussions on Zulip: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
 
+\todor{remark on the blueprint bottleneck?}
+
 
 \section{The formalization}
 Let us start with our notation. Any stochastic process has an index set $\iota$ (usually denoted {\em time}, usually uncountably infinite), and a state space. Since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $\alpha t$. Probability measures are denoted $P_.$.
@@ -392,6 +394,7 @@ out all instances in the reformulation of the result and its proof
 
 
 \section{Gaussian Measures and characteristic functions}
+\label{S:gaussian}
 
 Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution (TODO LINK), but not more general Gaussian measures.
 
@@ -601,17 +604,52 @@ We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is
 Then $Z$ is a modification of $X$ and has Hölder continuous paths of order $\beta_n$ for all $n$.
 It thus has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$.
 
+
+
+
 \section{Construction of a Brownian motion and a Wiener measure}
 \label{S:BM}
 
+All the results presented so far can be used together to construct a Brownian motion indexed by $\mathbb{R}_+$ with values in $\mathbb{R}$.
+We build a stochastic process $(B_t)_{t \in \mathbb{R}_+}$ such that
+\begin{itemize}
+  \item $B$ has continuous paths,
+  \item $B_0 = 0$ almost surely,
+  \item for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(B_{t_1}, \ldots, B_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathrm{cov}(B_{t_i}, B_{t_j}) = t_i \wedge t_j$.
+\end{itemize}
+
+We build the finite-dimensional distributions of $B$ using the multivariate normal distribution defined in section~\ref{S:gaussian}: the prescribed covariance matrix is positive semi-definite since it can be written as a Gram matrix, which means that the multivariate normal distribution with mean 0 and that covariance matrix is well-defined.
+We then check that they form a projective family and apply the Kolmogorov extension theorem (Theorem~\ref{T1}) to obtain a measure $P_B$ on $\mathbb{R}^{\mathbb{R}_+}$ which is the projective limit of that family.
+
+Let $(C_t)_{t \in \mathbb{R}_+}$ be the canonical process on $\mathbb{R}^{\mathbb{R}_+}$, defined by $C_t(\omega) = \omega(t)$ for all $\omega \in \mathbb{R}^{\mathbb{R}_+}$.
+The process $C$ is measurable, and its finite-dimensional distributions in the measure space $(\mathbb{R}^{\mathbb{R}_+}, P_B)$ are the projective family we defined.
+
+Finally, we check that $C$ satisfies the Kolmogorov condition for exponents $(2n, n)$ for all $n \in \mathbb{N}$ with constant $M = (2n - 1)!!$ (the double factorial, product of all odd integers up to $2n - 1$).
+We can then apply Theorem~\ref{thm:localized_holder_modification_sup} to obtain a modification $B$ of $C$ with locally Hölder continuous paths of all orders $\gamma \in (0, 1/2)$.
+In particular, $B$ has continuous paths.
+The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\mathbb{R}$.
+
+
+\todor{We need to list properties about our Brownian motion to certify that it is indeed a Brownian motion. Independent increments, etc.
+
+It would be nice to finish the code the Brownian characterization and talk about it here.}
+
+
+\paragraph{Wiener measure}
+
+The Brownian motion $B$ can be seen as a random variable on the space $\mathbb{R}^{\mathbb{R}_+}$, with the product $\sigma$-algebra and the measure $P_B$.
+It also has continuous paths, and thus is a random variable on the subspace of continuous functions of $\mathbb{R}^{\mathbb{R}_+}$, with the subset $\sigma$-algebra coming from the product $\sigma$-algebra on $\mathbb{R}^{\mathbb{R}_+}$.
+
+We may want to consider instead the space of continuous functions $C(\mathbb{R}_+, \mathbb{R})$, equipped with the Borel $\sigma$-algebra generated the topology of uniform convergence on compact sets.
+
+We prove that those two $\sigma$-algebras on continuous functions from a topological space $X$ to another $Y$ are equal\todorm{ref} whenever $X$ is a second-countable, locally compact space and $Y$ is second-countable and regular, equipped with the Borel $\sigma$-algebra.
+These assumptions are satisfied for $X = \mathbb{R}_+$ and $Y = \mathbb{R}$.
+Thus $B$ is a random variable on $(C(\mathbb{R}_+, \mathbb{R}), \mathcal{B}(C(\mathbb{R}_+, \mathbb{R})))$.
+The law of $B$ in that space is called the Wiener measure.
 
 \section*{Acknowledgments}
 
 Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Luccioli, Alessio Rondelli, Jérémy Scanvic
-
-Blueprint: Patrick Massot (citation?)
-
-Project template \cite{Monticone_LeanProject_2025} and technical support: Pietro Monticone
 
 Lean/Mathlib community, Mathlib reviewers (Sébastien Gouëzel in particular?)
 
