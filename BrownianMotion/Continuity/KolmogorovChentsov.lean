@@ -533,20 +533,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) :
     TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) := by
-  intro ε hε
-  -- todo: change tendstoInMeasure_of_ne_top to work in a PseudoEMetricSpace, or change the def
-  suffices h_of_ne_top :
-      ∀ ε, 0 < ε → ε ≠ ∞ → Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) by
-    by_cases hε_top : ε = ∞
-    swap; · exact h_of_ne_top _ hε hε_top
-    have h1 : Tendsto (fun n ↦ P {ω | 1 ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      h_of_ne_top 1 (by simp) (by simp)
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h1 (fun _ ↦ zero_le') ?_
-    intro n
-    simp only [hε_top]
-    gcongr
-    simp
-  intro ε hε hε_top
+  refine tendstoInMeasure_of_ne_top fun ε hε hε_top ↦ ?_
   have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
       (fun n ↦ hX.kolmogorovCondition (u n) t)
