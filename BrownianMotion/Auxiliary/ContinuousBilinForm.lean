@@ -289,12 +289,12 @@ variable {ι : Type*} [DecidableEq ι] [Fintype ι] {E : ι → Type*} [∀ i, N
 section RCLike
 
 variable [RCLike 𝕜] [∀ i, NormedSpace 𝕜 (E i)]
-    (L : (i : ι) → ContinuousBilinForm 𝕜 (Dual 𝕜 (E i)))
+    (L : (i : ι) → ContinuousBilinForm 𝕜 (StrongDual 𝕜 (E i)))
 
 open ContinuousLinearMap in
 noncomputable
-def diagonalDual : ContinuousBilinForm 𝕜 (Dual 𝕜 (Π i, E i)) :=
-  letI g : LinearMap.BilinForm 𝕜 (Dual 𝕜 (Π i, E i)) := LinearMap.mk₂ 𝕜
+def diagonalStrongDual : ContinuousBilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) :=
+  letI g : LinearMap.BilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) := LinearMap.mk₂ 𝕜
     (fun x y ↦ ∑ i, L i (x ∘L (single 𝕜 E i)) (y ∘L (single 𝕜 E i)))
     (fun x y z ↦ by simp [Finset.sum_add_distrib])
     (fun c m n ↦ by simp [Finset.mul_sum])
@@ -305,24 +305,24 @@ def diagonalDual : ContinuousBilinForm 𝕜 (Dual 𝕜 (Π i, E i)) :=
     simp only [LinearMap.mk₂_apply, g]
     grw [norm_sum_le, Finset.sum_mul, Finset.sum_mul]
     gcongr with i _
-    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le]
+    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one]
     simp
 
-lemma diagonalDual_apply (x y : Dual 𝕜 (Π i, E i)) :
-    diagonalDual L x y = ∑ i, L i (x ∘L (.single 𝕜 E i)) (y ∘L (.single 𝕜 E i)) := rfl
+lemma diagonalStrongDual_apply (x y : StrongDual 𝕜 (Π i, E i)) :
+    diagonalStrongDual L x y = ∑ i, L i (x ∘L (.single 𝕜 E i)) (y ∘L (.single 𝕜 E i)) := rfl
 
 end RCLike
 
 section Real
 
-variable [∀ i, NormedSpace ℝ (E i)] {L : (i : ι) → ContinuousBilinForm ℝ (Dual ℝ (E i))}
+variable [∀ i, NormedSpace ℝ (E i)] {L : (i : ι) → ContinuousBilinForm ℝ (StrongDual ℝ (E i))}
 
-lemma isPosSemidef_diagonalDual (hL : ∀ i, (L i).IsPosSemidef) :
-    (diagonalDual L).IsPosSemidef where
+lemma isPosSemidef_diagonalStrongDual (hL : ∀ i, (L i).IsPosSemidef) :
+    (diagonalStrongDual L).IsPosSemidef where
   map_symm x y := by
-    simp_rw [diagonalDual_apply, fun i ↦ (hL i).map_symm]
+    simp_rw [diagonalStrongDual_apply, fun i ↦ (hL i).map_symm]
   nonneg_re_apply_self x := by
-    simp only [diagonalDual_apply, map_sum, RCLike.re_to_real]
+    simp only [diagonalStrongDual_apply, map_sum, RCLike.re_to_real]
     exact Finset.sum_nonneg fun i _ ↦ (hL i).nonneg_apply_self _
 
 end Real

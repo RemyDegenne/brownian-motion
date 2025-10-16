@@ -235,22 +235,6 @@ lemma aux (h : ∀ᵐ ω ∂P, X 0 ω = 0) {I : Finset ℝ≥0} (hI : I.Nonempty
       · simp only [ne_eq, Fin.natCast_eq_zero]
         exact mt (Nat.eq_zero_of_dvd_of_lt · (by omega)) this
 
-lemma IndepFun.integral_mul_eq_mul_integral {Ω 𝓧 𝓨 𝕜 : Type*} {mΩ : MeasurableSpace Ω}
-    [MeasurableSpace 𝓧] [MeasurableSpace 𝓨] [RCLike 𝕜] {P : Measure Ω} [IsProbabilityMeasure P]
-    {X : Ω → 𝓧} {Y : Ω → 𝓨} {f : 𝓧 → 𝕜} {g : 𝓨 → 𝕜} (hXY : IndepFun X Y P)
-    (hX : AEMeasurable X P) (hY : AEMeasurable Y P) (hf : AEStronglyMeasurable f (P.map X))
-    (hg : AEStronglyMeasurable g (P.map Y)) :
-    ∫ ω, f (X ω) * g (Y ω) ∂P = (∫ ω, f (X ω) ∂P) * ∫ ω, g (Y ω) ∂P := by
-  change ∫ ω, (fun x ↦ f x.1 * g x.2) (X ω, Y ω) ∂P = _
-  rw [← integral_map (f := fun x ↦ f x.1 * g x.2) (φ := fun ω ↦ (X ω, Y ω)),
-    (indepFun_iff_map_prod_eq_prod_map_map hX hY).1 hXY, integral_prod_mul, integral_map,
-    integral_map]
-  any_goals fun_prop
-  rw [(indepFun_iff_map_prod_eq_prod_map_map hX hY).1 hXY]
-  refine AEStronglyMeasurable.mul ?_ ?_
-  · exact hf.comp_fst
-  · exact hg.comp_snd
-
 lemma IndepFun.charFunDual_map_add_eq_mul {Ω E : Type*} {mΩ : MeasurableSpace Ω}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
     [SecondCountableTopology E] {P : Measure Ω} [IsProbabilityMeasure P] {X Y : Ω → E}
@@ -285,6 +269,7 @@ lemma IndepFun.hasLaw_sub_of_gaussian {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY 
         Complex.ofReal_sub]
       · congr
         field_simp
+        push_cast
         ring
       · rw [← @Real.toNNReal_coe vY, ← @variance_id_gaussianReal μY vY, ← hY.variance_eq,
           h.variance_add, hX.variance_eq, variance_id_gaussianReal, Real.toNNReal_add,
@@ -341,7 +326,7 @@ lemma HasIndepIncrements.indepFun_incr {Ω T E : Type*} {mΩ : MeasurableSpace �
   have hτ : Monotone τ := by
     intro i j hij
     fin_cases i <;> fin_cases j
-    any_goals simp [τ]
+    any_goals simp only [Nat.reduceAdd, Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, le_refl, τ]
     any_goals assumption
     any_goals contradiction
     exact hrs.trans hst
@@ -376,30 +361,6 @@ lemma covariance_eq {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     · exact hY.const_mul _ |>.integrable (by norm_num)
     · exact integrable_const _
 
-lemma IndepFun.covariance_eq_zero {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    {X Y : Ω → ℝ} (h : IndepFun X Y P) (hX : MemLp X 2 P) (hY : MemLp Y 2 P) :
-    cov[X, Y; P] = 0 := by
-  by_cases h' : ∀ᵐ ω ∂P, X ω = 0
-  · rw [covariance]
-    have : ∀ᵐ ω ∂P, (X ω - ∫ (x : Ω), X x ∂P) * (Y ω - ∫ (x : Ω), Y x ∂P) = 0 := by
-      filter_upwards [h'] with ω hω
-      simp only [hω, zero_sub, neg_mul, neg_eq_zero, mul_eq_zero]
-      left
-      rw [integral_congr_ae h']
-      simp
-    rw [integral_congr_ae this]
-    simp
-  have := hX.isProbabilityMeasure_of_indepFun X Y (by norm_num) (by norm_num) h' h
-  rw [covariance_eq hX hY]
-  simp only [Pi.mul_apply]
-  change ∫ ω, (id (X ω)) * (id (Y ω)) ∂P - _ = _
-  rw [h.integral_mul_eq_mul_integral]
-  · simp
-  · exact hX.aemeasurable
-  · exact hY.aemeasurable
-  · exact aestronglyMeasurable_id
-  · exact aestronglyMeasurable_id
-
 lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
     IsPreBrownian X P where
@@ -408,7 +369,7 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     have : IsProbabilityMeasure P := (law 0).hasGaussianLaw.isProbabilityMeasure
     refine fun I ↦ ⟨aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable, ?_⟩
     have : IsProbabilityMeasure (P.map fun ω ↦ I.restrict (X · ω)) := by
-      apply isProbabilityMeasure_map
+      apply Measure.isProbabilityMeasure_map
       exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
     obtain rfl | hI := I.eq_empty_or_nonempty
     · ext s -
@@ -451,7 +412,7 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
             toLp_zero]
           convert toLp_zero 2
           ext i
-          rw [integral_eval]
+          rw [eval_integral]
           · simp only [restrict, Pi.zero_apply]
             rw [(law _).integral_eq, integral_id_gaussianReal]
           · exact fun _ ↦ (law _).hasGaussianLaw.integrable
@@ -614,18 +575,6 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
     (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
   p_pos := by positivity
   q_pos := by positivity
-
-lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
-    [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
-    iIndepFun X P := by
-  refine iIndepFun_iff_charFun_pi (fun _ ↦ h1.aemeasurable.eval _) |>.2 fun ξ ↦ ?_
-  simp_rw [HasGaussianLaw.charFun_toLp, ← sum_sub_distrib, Complex.exp_sum,
-    HasGaussianLaw.charFun_map_real]
-  congrm ∏ i, Complex.exp (_ - ?_)
-  rw [Fintype.sum_eq_single i]
-  · simp [covariance_self, h1.aemeasurable.eval, pow_two, mul_div_assoc]
-  · exact fun j hj ↦ by simp [h2 i j hj.symm]
 
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/

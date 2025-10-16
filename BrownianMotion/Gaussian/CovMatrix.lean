@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Gaussian.Fernique
+import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 import Mathlib.Probability.Moments.CovarianceBilinDual
 
 /-!
@@ -17,6 +18,23 @@ open MeasureTheory InnerProductSpace NormedSpace WithLp
 open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
+
+@[simp]
+lemma covarianceBilinDual_self_nonneg {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
+    [IsFiniteMeasure μ]
+    (L : StrongDual ℝ E) :
+    0 ≤ covarianceBilinDual μ L L := by
+  by_cases h : MemLp id 2 μ
+  · rw [covarianceBilinDual_self_eq_variance h]
+    exact variance_nonneg ..
+  · simp [h]
+
+lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
+    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} [IsFiniteMeasure μ] :
+    ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
+  map_symm := covarianceBilinDual_comm
+  nonneg_re_apply_self := covarianceBilinDual_self_nonneg
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
@@ -169,7 +187,7 @@ lemma covInnerBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
   any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
   · fun_prop
   · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2
-      (MemLp.of_eval_prodLp ⟨hX, hY⟩)
+      (MemLp.of_fst_of_snd_prodLp ⟨hX, hY⟩)
 
 variable [FiniteDimensional ℝ E]
 

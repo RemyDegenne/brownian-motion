@@ -4,7 +4,7 @@ import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Probability.Moments.Covariance
+import Mathlib.Probability.Moments.Variance
 import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Analysis.InnerProductSpace.ProdL2
 /-!
@@ -26,37 +26,6 @@ namespace ProbabilityTheory
 
 open WithLp
 
-lemma iIndepFun_iff_charFun_eq_pi {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
-    [∀ i, NormedAddCommGroup (E i)]
-    [∀ i, InnerProductSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
-    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
-    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
-    [∀ i, SecondCountableTopology (E i)] (mX : ∀ i, AEMeasurable (X i) μ) :
-    iIndepFun X μ ↔ ∀ t,
-      charFun (μ.map fun ω ↦ toLp 2 (X · ω)) t = ∏ i, charFun (μ.map (X i)) (t i) := sorry
--- PR #26269 in Mathlib
-
-lemma indepFun_iff_charFun_eq_mul {Ω E F : Type*} {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
-    [NormedAddCommGroup F] [InnerProductSpace ℝ E] [InnerProductSpace ℝ F] [MeasurableSpace E]
-    [MeasurableSpace F] [CompleteSpace E] [CompleteSpace F] [BorelSpace E] [BorelSpace F]
-    [SecondCountableTopology E] [SecondCountableTopology F] {P : Measure Ω} [IsProbabilityMeasure P]
-    {X : Ω → E} {Y : Ω → F} (mX : AEMeasurable X P) (mY : AEMeasurable Y P) :
-    IndepFun X Y P ↔ ∀ t,
-      charFun (P.map fun ω ↦ toLp 2 (X ω, Y ω)) t =
-      charFun (P.map X) t.fst * charFun (P.map Y) t.snd := sorry
--- PR #26269 in Mathlib
-
-lemma iIndepFun_iff_charFunDual_eq_pi {ι Ω : Type*} [Fintype ι] [DecidableEq ι] {E : ι → Type*}
-    [∀ i, NormedAddCommGroup (E i)]
-    [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
-    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
-    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
-    [∀ i, SecondCountableTopology (E i)] (mX : ∀ i, AEMeasurable (X i) μ) :
-    iIndepFun X μ ↔ ∀ L,
-      charFunDual (μ.map fun ω i ↦ X i ω) L =
-        ∏ i, charFunDual (μ.map (X i)) (L.comp (.single ℝ E i)) := sorry
--- PR #26269 in Mathlib
-
 open scoped InnerProductSpace in
 lemma charFun_pi {ι : Type*} [Fintype ι] {E : ι → Type*} {mE : ∀ i, MeasurableSpace (E i)}
     [∀ i, NormedAddCommGroup (E i)] [∀ i, InnerProductSpace ℝ (E i)] (μ : (i : ι) → Measure (E i))
@@ -77,28 +46,6 @@ lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [Com
 lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥0}
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
   simp [h]
-
-section iIndepFun
-
-variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
-  {μ : (i : ι) → Measure (Ω i)}
-
-variable [∀ i, IsProbabilityMeasure (μ i)]
-
-lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
-    Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
-  rw [IndepFun.variance_sum]
-  · congr with i
-    change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
-    rw [← variance_map, (measurePreserving_eval i).map_eq]
-    · rw [(measurePreserving_eval i).map_eq]
-      exact (h i).aemeasurable
-    · exact Measurable.aemeasurable (by fun_prop)
-  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval _ i)
-  · exact fun i _ j _ hij ↦
-      (iIndepFun_pi₀ fun i ↦ (h i).aemeasurable).indepFun hij
-
-end iIndepFun
 
 section covariance
 
@@ -281,123 +228,52 @@ lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E
     · simp
     all_goals simp_all
 
-section eval
+open ProbabilityTheory
 
-namespace MeasureTheory
+section covariance
 
-open Finset
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y Z : Ω → ℝ}
 
-variable {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [∀ i, NormedAddCommGroup (E i)] {p : ℝ≥0∞}
+lemma covariance_fun_add_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω + Y ω, Z; μ] = cov[fun ω ↦ X ω, Z; μ] + cov[fun ω ↦ Y ω, Z; μ] :=
+  covariance_add_left hX hY hZ
 
-section Pi
+lemma covariance_fun_add_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω + Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] + cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_add_right hX hY hZ
 
-variable {X : (i : ι) → Ω → E i}
+lemma covariance_fun_sub_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[X, Z; μ] - cov[Y, Z; μ] :=
+  covariance_sub_left hX hY hZ
 
-lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
-  mp hX i := by
-    have : X i = (Function.eval i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
-    rw [this]
-    exact (LipschitzWith.eval i).comp_memLp (by simp) hX
-  mpr hX := by
-    classical
-    have : (fun ω ↦ (X · ω)) = ∑ i, (Pi.single i) ∘ (X i) := by ext; simp
-    rw [this]
-    refine memLp_finset_sum' _ fun i _ ↦ ?_
-    exact (Isometry.single i).lipschitz.comp_memLp (by simp) (hX i)
+lemma covariance_fun_sub_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω - Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] - cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_sub_right hX hY hZ
 
-lemma memLp_prod_iff {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F]
-    {X : Ω → E} {Y : Ω → F} :
-    MemLp (fun ω ↦ (X ω, Y ω)) p P ↔ MemLp X p P ∧ MemLp Y p P where
-  mp h := by
-    have h1 : X = Prod.fst ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
-    have h2 : Y = Prod.snd ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
-    rw [h1, h2]
-    exact ⟨LipschitzWith.prod_fst.comp_memLp (by simp) h,
-      LipschitzWith.prod_snd.comp_memLp (by simp) h⟩
-  mpr h := by
-    have : (fun ω ↦ (X ω, Y ω)) = (AddMonoidHom.inl E F) ∘ X + (AddMonoidHom.inr E F) ∘ Y := by
-      ext; all_goals simp
-    rw [this]
-    exact MemLp.add (Isometry.inl.lipschitz.comp_memLp (by simp) h.1)
-      (Isometry.inr.lipschitz.comp_memLp (by simp) h.2)
+end covariance
 
-alias ⟨MemLp.eval, MemLp.of_eval⟩ := memLp_pi_iff
+section iIndepFun
 
-lemma integrable_pi_iff : Integrable (fun ω ↦ (X · ω)) P ↔ ∀ i, Integrable (X i) P := by
-  simp_rw [← memLp_one_iff_integrable, memLp_pi_iff]
+variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
+  {μ : (i : ι) → Measure (Ω i)}
 
-alias ⟨Integrable.eval, Integrable.of_eval⟩ := integrable_pi_iff
+variable [∀ i, IsProbabilityMeasure (μ i)]
 
-variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
+lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
+    Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
+  rw [IndepFun.variance_sum]
+  · congr with i
+    change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
+    rw [← variance_map, (measurePreserving_eval _ i).map_eq]
+    · rw [(measurePreserving_eval _ i).map_eq]
+      exact (h i).aestronglyMeasurable.aemeasurable
+    · exact Measurable.aemeasurable (by fun_prop)
+  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval _ i)
+  · exact fun i _ j _ hij ↦
+      (iIndepFun_pi fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
 
-lemma integral_eval (hX : ∀ i, Integrable (X i) P) (i : ι) :
-    (∫ ω, (X · ω) ∂P) i = ∫ ω, X i ω ∂P := by
-  rw [← ContinuousLinearMap.proj_apply (R := ℝ) i (∫ ω, (X · ω) ∂P),
-    ← ContinuousLinearMap.integral_comp_comm]
-  · simp
-  exact Integrable.of_eval hX
-
-end Pi
-
-section PiLp
-
-variable {q : ℝ≥0∞} [Fact (1 ≤ q)] {X : Ω → PiLp q E}
-
-lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P := by
-  simp_rw [← memLp_pi_iff, ← PiLp.ofLp_apply, ← Function.comp_apply (f := WithLp.ofLp)]
-  exact (PiLp.lipschitzWith_ofLp q E).memLp_comp_iff_of_antilipschitz
-    (PiLp.antilipschitzWith_ofLp q E) (by simp) |>.symm
-
-alias ⟨MemLp.eval_piLp, MemLp.of_eval_piLp⟩ := memLp_piLp_iff
-
-lemma memLp_prodLp_iff {E F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F]
-    {X : Ω → WithLp q (E × F)} :
-      MemLp X p P ↔
-      MemLp (fun ω ↦ (X ω).fst) p P ∧
-      MemLp (fun ω ↦ (X ω).snd) p P := by
-  simp_rw [← memLp_prod_iff, ← WithLp.ofLp_fst, ← WithLp.ofLp_snd,
-    ← Function.comp_apply (f := WithLp.ofLp)]
-  exact (WithLp.prod_lipschitzWith_ofLp q E F).memLp_comp_iff_of_antilipschitz
-    (WithLp.prod_antilipschitzWith_ofLp q E F) (by simp) |>.symm
-
-alias ⟨MemLp.eval_prodLp, MemLp.of_eval_prodLp⟩ := memLp_prodLp_iff
-
-lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P := by
-  simp_rw [← memLp_one_iff_integrable, memLp_piLp_iff]
-
-alias ⟨Integrable.eval_piLp, Integrable.of_eval_piLp⟩ := integrable_piLp_iff
-
-variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
-
-lemma _root_.PiLp.integral_eval (hX : ∀ i, Integrable (X · i) P) (i : ι) :
-    (∫ ω, X ω ∂P) i = ∫ ω, X ω i ∂P := by
-  rw [← PiLp.proj_apply (𝕜 := ℝ) q E i (∫ ω, X ω ∂P), ← ContinuousLinearMap.integral_comp_comm]
-  · simp
-  exact Integrable.of_eval_piLp hX
-
-end PiLp
-
-theorem fst_integral_withLp [Fact (1 ≤ p)] {X E F : Type*} [MeasurableSpace X] {μ : Measure X}
-    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
-    [CompleteSpace F] {f : X → WithLp p (E × F)} (hf : Integrable f μ) :
-    (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ := by
-  rw [← WithLp.ofLp_fst]
-  conv => enter [1, 1]; change WithLp.prodContinuousLinearEquiv p ℝ E F _
-  rw [← ContinuousLinearEquiv.integral_comp_comm, fst_integral]
-  · rfl
-  · simpa
-
-theorem snd_integral_withLp [Fact (1 ≤ p)] {X E F : Type*} [MeasurableSpace X] {μ : Measure X}
-    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
-    [CompleteSpace E] {f : X → WithLp p (E × F)} (hf : Integrable f μ) :
-    (∫ x, f x ∂μ).2 = ∫ x, (f x).2 ∂μ := by
-  rw [← WithLp.ofLp_snd]
-  conv => enter [1, 1]; change WithLp.prodContinuousLinearEquiv p ℝ E F _
-  rw [← ContinuousLinearEquiv.integral_comp_comm, snd_integral]
-  · rfl
-  · simpa
-
-end MeasureTheory
-
-end eval
+end iIndepFun
