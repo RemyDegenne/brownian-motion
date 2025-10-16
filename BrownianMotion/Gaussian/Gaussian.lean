@@ -127,16 +127,16 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountable
 
 /-- Two Gaussian measures are equal if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
-    (hm : μ[id] = ν[id]) (hv : covarianceBilin μ = covarianceBilin ν) : μ = ν := by
+    (hm : μ[id] = ν[id]) (hv : covarianceBilinDual μ = covarianceBilinDual ν) : μ = ν := by
   apply Measure.ext_of_charFunDual
   ext L
   simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
     L.integral_comp_id_comm' IsGaussian.integrable_id, hm,
-    ← covarianceBilin_self_eq_variance IsGaussian.memLp_two_id, hv]
+    ← covarianceBilinDual_self_eq_variance IsGaussian.memLp_two_id, hv]
 
 /-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
-    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilin μ = covarianceBilin ν where
+    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilinDual μ = covarianceBilinDual ν where
   mp h := by simp [h]
   mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
 
