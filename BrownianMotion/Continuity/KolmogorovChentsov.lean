@@ -19,28 +19,68 @@ open scoped ENNReal NNReal Topology Asymptotics
 
 section aux
 
+lemma UniformContinuous.exists_tendsto {α β : Type*} [UniformSpace α] [FirstCountableTopology α]
+    [UniformSpace β] [CompleteSpace β] {s : Set α} (hs : Dense s)
+    {f : s → β} (hf : UniformContinuous f) (a : α) :
+    ∃ c, Tendsto f (comap Subtype.val (𝓝 a)) (𝓝 c) := by
+  have (u : ℕ → s) (hu : Tendsto (fun n ↦ (u n : α)) atTop (𝓝 a)) :
+      ∃ c, Tendsto (f ∘ u) atTop (𝓝 c) := by
+    refine cauchySeq_tendsto_of_complete ?_
+    refine hf.comp_cauchySeq ?_
+    have h_cauchy := hu.cauchySeq
+    rw [cauchySeq_iff] at h_cauchy
+    rw [cauchySeq_iff, uniformity_subtype]
+    simp only [mem_comap, ge_iff_le, forall_exists_index, and_imp] at h_cauchy ⊢
+    intro V s hs hsV
+    obtain ⟨N, hN⟩ := h_cauchy s hs
+    exact ⟨N, fun k hNk l hNl ↦ hsV (hN k hNk l hNl)⟩
+  choose c hc using this
+  obtain ⟨u, hu⟩ : ∃ u : ℕ → s, Tendsto (fun n ↦ (u n : α)) atTop (𝓝 a) := by
+    have ht_mem_closure : a ∈ closure s := by simp [hs.closure_eq]
+    rw [mem_closure_iff_seq_limit] at ht_mem_closure
+    obtain ⟨u, hu⟩ := ht_mem_closure
+    exact ⟨fun n ↦ ⟨u n, hu.1 n⟩, hu.2⟩
+  refine ⟨c u hu, ?_⟩
+  refine tendsto_of_seq_tendsto fun v hv' ↦ ?_
+  have hv : Tendsto (fun n ↦ (v n : α)) atTop (𝓝 a) := by rwa [tendsto_comap_iff] at hv'
+  refine (hc u hu).congr_uniformity ?_
+  change Tendsto ((fun p ↦ (f p.1, f p.2)) ∘ (fun n ↦ (u n, v n))) atTop (uniformity β)
+  rw [UniformContinuous] at hf
+  refine hf.comp ?_
+  have hu' : Tendsto u atTop (comap Subtype.val (𝓝 a)) := by rwa [tendsto_comap_iff]
+  have hv' : Tendsto v atTop (comap Subtype.val (𝓝 a)) := by rwa [tendsto_comap_iff]
+  refine Tendsto.mono_right (hu'.prodMk hv') ?_
+  rw [← Filter.comap_prodMap_prod, ← nhds_prod_eq, uniformity_subtype]
+  refine comap_mono ?_
+  exact nhds_le_uniformity a
+
+theorem measurable_limUnder_of_exists_tendsto {ι X E : Type*}
+    {mX : MeasurableSpace X} [TopologicalSpace E] [TopologicalSpace.PseudoMetrizableSpace E]
+    [MeasurableSpace E] [BorelSpace E] {l : Filter ι}
+    [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E]
+    (h_conv : ∀ x, ∃ c, Tendsto (f · x) l (𝓝 c)) (hf : ∀ i, Measurable (f i)) :
+    Measurable (fun x ↦ limUnder l (f · x)) := by
+  obtain rfl | hl := eq_or_neBot l
+  · simp [limUnder, Filter.map_bot]
+  refine measurable_of_tendsto_metrizable' l hf (tendsto_pi_nhds.mpr fun x ↦ ?_)
+  exact tendsto_nhds_limUnder (h_conv x)
+
 theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
     [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
     [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
     Measurable (fun x ↦ limUnder l (f · x)) := by
-  obtain rfl | hl := eq_or_neBot l
-  · simp [limUnder, Filter.map_bot]
-  letI := TopologicalSpace.upgradeIsCompletelyMetrizable
-  let e := Classical.choice hE
   let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
   have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
   have : (fun x ↦ _root_.limUnder l (f · x)) = ((↑) : conv → X).extend
-      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ e) := by
+      (fun x ↦ _root_.limUnder l (f · x)) (fun _ ↦ hE.some) := by
     ext x
     by_cases hx : x ∈ conv
     · rw [Function.extend_val_apply hx]
     · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
   rw [this]
-  refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend
-    (measurable_of_tendsto_metrizable' l
-      (fun i ↦ (hf i).comp measurable_subtype_coe)
-      (tendsto_pi_nhds.2 fun ⟨x, ⟨c, hc⟩⟩ ↦ ?_)) measurable_const
-  rwa [hc.limUnder_eq]
+  refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend ?_ measurable_const
+  exact measurable_limUnder_of_exists_tendsto (fun x ↦ x.2)
+    (fun i ↦ (hf i).comp measurable_subtype_coe)
 
 protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
     {t u : α → ℝ} (hu : 0 ≤ u) {l : Filter α} (h : t ~[l] u) {r : ℝ} :
@@ -561,8 +601,22 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     · rw [ENNReal.div_eq_inv_mul]
 
 -- TODO: I (Rémy) gave up on separability of `E`. The measurability checks are driving me crazy.
-variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E] [SecondCountableTopology E]
+variable [Nonempty E] [SecondCountableTopology T] [CompleteSpace E]
   [IsFiniteMeasure P]
+
+section FromPR
+
+variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace E]
+variable {f : ℕ → α → E} {g : α → E}
+
+theorem tendstoInMeasure_of_tendsto_ae_of_measurable_edist [IsFiniteMeasure μ]
+    (hf : ∀ n, Measurable (fun a ↦ edist (f n a) (g a)))
+    (hfg : ∀ᵐ x ∂μ, Tendsto (fun n => f n x) atTop (𝓝 (g x))) : TendstoInMeasure μ f atTop g :=
+  sorry -- in a Mathlib PR
+
+end FromPR
+
+open scoped Uniformity
 
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
@@ -590,23 +644,36 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     rw [Set.inter_comm, Measure.measure_inter_eq_of_ae hA_ae]
   -- We build a modification `Y` of `X`, by using `Dense.extend` on `X · ω` if `ω ∈ A` and by taking
   -- an arbitrary constant value if `ω ∉ A`.
+  have hX_tendsto (t : T) {ω : Ω} (hω : ω ∈ A) :
+      ∃ c, Tendsto (fun t' : T' ↦ X t' ω) (comap Subtype.val (𝓝 t)) (𝓝 c) := by
+    refine UniformContinuous.exists_tendsto hT'_dense ?_ t
+    exact uniformContinuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
   let x₀ : E := Nonempty.some inferInstance
   classical
-  let Y (t : T) (ω : Ω) : E := if ω ∈ A then hT'_dense.extend (fun t ↦ X t ω) t else x₀
-  have hY t : Measurable (Y t) := by
-    refine Measurable.ite hA ?_ (by fun_prop)
-    -- todo: extract lemma `measurable_extend`
-    exact measurable_limUnder (f := fun (t : T') ω ↦ X t ω) fun t ↦ hX.measurable t
-  have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
-    simp only [hω, ↓reduceIte, Y]
-    exact hT'_dense.extend_eq (continuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω) t
-  have hY_unif ω : UniformContinuous (fun t ↦ Y t ω) := by
+  let X' (t : T) (ω : Ω) : E := if ω ∈ A then X t ω else x₀
+  have hX'_eq (t : T) {ω : Ω} (hω : ω ∈ A) : X' t ω = X t ω := by simp [X', hω]
+  have hX' t : Measurable (X' t) := Measurable.ite hA (hX.measurable t) measurable_const
+  have hX'_tendsto (t : T) (ω : Ω) :
+      ∃ c, Tendsto (fun t' : T' ↦ X' t' ω) (comap Subtype.val (𝓝 t)) (𝓝 c) := by
     by_cases hω : ω ∈ A
-    · simp only [hω, ↓reduceIte, Y]
-      refine hT'_dense.uniformContinuous_extend ?_
+    · simp only [hω, ↓reduceIte, X']; exact hX_tendsto t hω
+    · simp only [hω, ↓reduceIte, X']; exact ⟨x₀, tendsto_const_nhds⟩
+  have hX'_unif (ω : Ω) : UniformContinuous (fun t : T' ↦ X' t ω) := by
+    by_cases hω : ω ∈ A
+    · simp only [hω, ↓reduceIte, X']
       exact uniformContinuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
-    · simp only [hω, ↓reduceIte, Y]
+    · simp only [hω, ↓reduceIte, X']
       exact uniformContinuous_const
+  let Y (t : T) (ω : Ω) : E := hT'_dense.extend (fun t' : T' ↦ X' t' ω) t
+  have hY t : Measurable (Y t) := by
+    refine measurable_limUnder_of_exists_tendsto (f := fun (t' : T') ω ↦ X' t' ω) ?_ (fun t ↦ hX' t)
+    intro ω
+    exact hX'_tendsto t ω
+  have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
+    rw [← hX'_eq t hω]
+    exact hT'_dense.extend_eq (hX'_unif ω).continuous t
+  have hY_unif ω : UniformContinuous (fun t ↦ Y t ω) :=
+    hT'_dense.uniformContinuous_extend (hX'_unif ω)
   have hY_cont ω : Continuous (fun t ↦ Y t ω) := (hY_unif ω).continuous
   refine ⟨Y, hY, fun t ↦ ?_, fun ω ↦ ?_⟩
   · suffices ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) ≤ 0 by
@@ -627,10 +694,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     have h_tendsto_Y : TendstoInMeasure P (fun n ↦ Y (u n)) atTop (Y t) := by
       have h_ae ω : Tendsto (fun n ↦ Y (u n) ω) atTop (𝓝 (Y t ω)) :=
         ((hY_cont ω).tendsto t).comp hu
-      refine tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable ?_ ?_ ?_
-      · exact fun n ↦ (hY (u n)).stronglyMeasurable
-      · exact (hY t).stronglyMeasurable
-      · exact ae_of_all _ h_ae
+      refine tendstoInMeasure_of_tendsto_ae_of_measurable_edist (fun n ↦ ?_) (ae_of_all _ h_ae)
+      sorry
     refine (ae_le_const_iff_forall_gt_measure_zero _ _).mpr fun ε hε ↦ ?_
     suffices Tendsto (fun n : ℕ ↦ P {ω | ε ≤ edist (Y t ω) (X t ω)}) atTop (𝓝 0) by
       simpa using this
@@ -651,11 +716,12 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
       (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
   · by_cases hω : ω ∈ A
-    swap; · simp only [hω, ↓reduceIte, Y]; exact ⟨0, by simp [HolderWith]⟩
-    simp only [hω, ↓reduceIte, Y, A]
-    refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω)
-      hβ_pos
+    · simp only [hω, ↓reduceIte, Y, A, X']
+      refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
+      exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω)
+        hβ_pos
+    · simp only [hω, ↓reduceIte, Y, X']
+      exact ⟨0, hT'_dense.holderWith_extend (by simp [HolderWith]) hβ_pos⟩
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsAEKolmogorovProcess X P p q M)
@@ -669,12 +735,11 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
-omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [SecondCountableTopology E]
-  [CompleteSpace E] in
+omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
 lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
     (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
     (hf_meas : ∀ t, StronglyMeasurable (f t)) (hg_meas : ∀ t, StronglyMeasurable (g t)) :
-    MeasurableSet  {ω | ∀ t, f t ω = g t ω} := by
+    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
   obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
   have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
     ext ω
@@ -689,6 +754,8 @@ lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
   have : Countable T' := hT'_countable
   refine MeasurableSet.iInter (fun t ↦ ?_)
   exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
+
+variable [SecondCountableTopology E]
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsAEKolmogorovProcess X P p q M)
