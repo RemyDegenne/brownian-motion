@@ -45,8 +45,8 @@ Obvious.
 
 \begin{lemma}\label{lem:map_eq_of_modification}
   \uses{def:modification}
-  \leanok
-  \lean{finite_distributions_eq}
+  \mathlibok
+  \lean{ProbabilityTheory.map_eq_of_forall_ae_eq}
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other.
 Then for all $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has the same distribution as the random vector $(Y_{t_1}, \ldots, Y_{t_n})$.
 That is, $X$ and $Y$ have same finite-dimensional distributions.
@@ -60,8 +60,8 @@ Thus the function $\omega \mapsto (X_{t_1}(\omega), \ldots, X_{t_n}(\omega))$ is
 
 \begin{lemma}\label{lem:map_eq_iff}
   \uses{def:processLaw}
-  \leanok
-  \lean{finite_distributions_eq_iff_same_law}
+  \mathlibok
+  \lean{ProbabilityTheory.map_eq_iff_forall_finset_map_restrict_eq}
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes.
 Then $X$ and $Y$ have same finite-dimensional distributions if and only if they have the same law.
 \end{lemma}

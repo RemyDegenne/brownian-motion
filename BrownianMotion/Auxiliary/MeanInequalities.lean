@@ -16,7 +16,7 @@ theorem lintegral_Lp_finsum_le {α : Type*} [MeasurableSpace α] {μ : Measure �
   | insert i I hi ih =>
     simp only [Finset.sum_insert hi]
     refine (ENNReal.lintegral_Lp_add_le (hf i (by simp))
-      (I.aemeasurable_sum' (fun j hj => hf j (by simp [hj]))) hp).trans ?_
+      (I.aemeasurable_sum (fun j hj => hf j (by simp [hj]))) hp).trans ?_
     gcongr
     exact ih (fun j hj => hf j (by simp [hj]))
 

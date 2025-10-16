@@ -10,6 +10,7 @@ import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import Mathlib.Probability.Independence.Integrable
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
+import Mathlib.Probability.Independence.CharacteristicFunction
 
 /-!
 # Brownian motion
@@ -520,13 +521,16 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
 instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
   isPreBrownian_of_hasLaw_gaussianLimit hasLaw_preBrownian
 
-lemma isMeasurableKolmogorovProcess_preBrownian (n : ℕ) :
-    IsMeasurableKolmogorovProcess preBrownian gaussianLimit (2 * n) n
+lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
+    IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n
       (Nat.doubleFactorial (2 * n - 1)) := by
   constructor
   · intro s t
     rw [← BorelSpace.measurable_eq]
     fun_prop
+  rotate_left
+  · positivity
+  · positivity
   refine fun s t ↦ Eq.le ?_
   norm_cast
   simp_rw [edist_dist, Real.dist_eq]
@@ -552,8 +556,8 @@ lemma exists_brownian :
       ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
           ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
   exists_modification_holder_iSup isCoverWithBoundedCoveringNumber_Ico_nnreal
-    (fun n ↦ (isMeasurableKolmogorovProcess_preBrownian (n + 2)).isKolmogorovProcess)
-    (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by positivity) (fun n ↦ by simp; norm_cast; omega)
+    (fun n ↦ (isKolmogorovProcess_preBrownian (by positivity : 0 < n + 2)).IsAEKolmogorovProcess)
+    (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by simp; norm_cast; omega)
 
 noncomputable
 def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ :=
@@ -573,11 +577,16 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (h�
   suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
   refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
-    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by field_simp; ring
+    ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2)) = 2⁻¹ * (n + 1) / (n + 2) := by
+      simp only [Nat.cast_add, Nat.cast_ofNat]; field_simp; ring
     _ ≤ 2⁻¹ * 1 := by grw [mul_div_assoc, (div_le_one₀ (by positivity)).2]; linarith
     _ = 2⁻¹ := mul_one _
   · have : (fun n : ℕ ↦ ((↑(n + 2) : ℝ) - 1) / (2 * ↑(n + 2))) =
-        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by ext n; field_simp; ring
+        (fun n : ℕ ↦ 2⁻¹ * ((n : ℝ) / (n + 1))) ∘ (fun n ↦ n + 1) := by
+      ext n
+      simp only [Nat.cast_add, Nat.cast_ofNat, Function.comp_apply, Nat.cast_one]
+      field_simp
+      ring
     rw [this]
     refine Filter.Tendsto.comp ?_ (Filter.tendsto_add_atTop_nat 1)
     nth_rw 2 [← mul_one 2⁻¹]
@@ -597,12 +606,72 @@ instance isBrownian_brownian : IsBrownian brownian gaussianLimit where
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
-lemma isMeasurableKolmogorovProcess_brownian (n : ℕ) :
-    IsMeasurableKolmogorovProcess brownian gaussianLimit (2 * n) n
+lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
+    IsKolmogorovProcess brownian gaussianLimit (2 * n) n
       (Nat.doubleFactorial (2 * n - 1)) where
   measurablePair := measurable_pair_of_measurable measurable_brownian
-  kolmogorovCondition := (isMeasurableKolmogorovProcess_preBrownian n).isKolmogorovProcess.congr
+  kolmogorovCondition := (isKolmogorovProcess_preBrownian hn).IsAEKolmogorovProcess.congr
     (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
+  p_pos := by positivity
+  q_pos := by positivity
+
+lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
+    [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
+    iIndepFun X P := by
+  refine iIndepFun_iff_charFun_pi (fun _ ↦ h1.aemeasurable.eval _) |>.2 fun ξ ↦ ?_
+  simp_rw [HasGaussianLaw.charFun_toLp, ← sum_sub_distrib, Complex.exp_sum,
+    HasGaussianLaw.charFun_map_real]
+  congrm ∏ i, Complex.exp (_ - ?_)
+  rw [Fintype.sum_eq_single i]
+  · simp [covariance_self, h1.aemeasurable.eval, pow_two, mul_div_assoc]
+  · exact fun j hj ↦ by simp [h2 i j hj.symm]
+
+/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
+def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+
+lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
+    x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by simp
+
+lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t := by
+  have h1 : brownian s = (fun x ↦ x ⟨s, by simp⟩) ∘
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
+  have h2 : brownian t = (fun x ↦ x ⟨t, by simp⟩) ∘
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
+  rw [h1, h2, ← covariance_map]
+  · simp_rw [hasLaw_restrict_brownian.map_eq]
+    rw [covariance_eval_gaussianProjectiveFamily]
+  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
+  exact Measurable.aemeasurable <| by fun_prop
+
+lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
+  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
+  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin (n + 1) → ℝ :=
+      { toFun := (fun x (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
+          (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩)
+        map_add' x y := by ext; simp; ring
+        map_smul' m x := by ext; simp; ring
+        cont := by fun_prop }
+    have : (fun ω i ↦ (brownian (t i.succ) - brownian (t i.castSucc)) ω) =
+        L ∘ fun ω ↦ (Finset.univ.image t).restrict (brownian · ω) := by ext; simp [L]
+    rw [this]
+    infer_instance
+  intro i j hij
+  rw [covariance_sub_left, covariance_sub_right, covariance_sub_right]
+  · simp_rw [covariance_brownian]
+    wlog h : i < j
+    · simp_rw [← this n t ht j i hij.symm (by omega), min_comm]
+      ring
+    have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
+    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
+    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
+    rw [min_eq_left (ht h1), min_eq_left (ht h), min_eq_left (ht h2), min_eq_left (ht h3)]
+    simp
+  all_goals exact HasGaussianLaw.memLp_two
 
 section Measure
 
@@ -676,7 +745,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
   -- `f '' K ⊆ ⋃ v ∈ J, v`. We thus have `f '' K ⊆ ⋃ v ∈ J, closure v`. This is equivalent to
   -- having `I` a finite subset of `W` such that `f '' K ⊆ ⋃ v ∈ I, v`.
   have (f : C(X, Y)) (hf : K.MapsTo f U) : ∃ I, I.Finite ∧ I ⊆ W ∧ K.MapsTo f (⋃₀ I) := by
-    simp_rw [Set.mapsTo'] at hf ⊢
+    simp_rw [Set.mapsTo_iff_image_subset] at hf ⊢
     rw [U_eq_sUnion_W₁, Set.sUnion_eq_biUnion] at hf
     have : ∀ i ∈ {v | v ∈ V ∧ closure v ⊆ U}, IsOpen i :=
       fun x ⟨hx, _⟩ ↦ hV.isOpen hx
@@ -696,7 +765,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
     · obtain ⟨I, hI1, hI2, hI3⟩ := this f h
       exact ⟨{f : C(X, Y) | K.MapsTo f (⋃₀ I)}, ⟨I, hI1, hI2, rfl⟩, hI3⟩
     · rintro ⟨-, ⟨I, hI1, hI2, rfl⟩, h⟩
-      simp only [Set.mapsTo'] at h ⊢
+      simp only [Set.mapsTo_iff_image_subset] at h ⊢
       rw [U_eq_sUnion_W]
       exact h.trans <| Set.sUnion_subset_sUnion hI2
   simp only

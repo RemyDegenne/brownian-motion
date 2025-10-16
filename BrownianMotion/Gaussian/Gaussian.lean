@@ -221,6 +221,24 @@ protected lemma IsGaussian.ext_iff {ν : Measure E} [IsGaussian μ] [IsGaussian 
 
 end InnerProductSpace
 
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
+  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
+
+/-- Two Gaussian measures are equal if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
+    (hm : μ[id] = ν[id]) (hv : covarianceBilinDual μ = covarianceBilinDual ν) : μ = ν := by
+  apply Measure.ext_of_charFunDual
+  ext L
+  simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
+    L.integral_comp_id_comm' IsGaussian.integrable_id, hm,
+    ← covarianceBilinDual_self_eq_variance IsGaussian.memLp_two_id, hv]
+
+/-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
+protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
+    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilinDual μ = covarianceBilinDual ν where
+  mp h := by simp [h]
+  mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
+
 lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) [IsGaussian μ] :
     μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
   nth_rw 1 [← Measure.map_id (μ := μ), ← ContinuousLinearMap.coe_id' (R₁ := ℝ),

@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.StochasticProcesses
+import Mathlib.Probability.Process.FiniteDimensionalLaws
 
 /-!
 # Gaussian processes
@@ -44,7 +45,7 @@ lemma IsGaussianProcess.modification [IsGaussianProcess X P] (hXY : ∀ t, X t =
     IsGaussianProcess Y P where
   hasGaussianLaw I := by
     constructor
-    rw [finite_distributions_eq fun t ↦ (hXY t).symm]
+    rw [map_restrict_eq_of_forall_ae_eq fun t ↦ (hXY t).symm]
     infer_instance
 
 end Basic

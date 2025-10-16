@@ -142,8 +142,8 @@ The convolution of two Gaussian measures is a Gaussian measure.
 
 
 \begin{theorem}\label{thm:exists_integrable_exp_sq_of_map_rotation_eq_self}
-  \leanok
-  % In Mathlib PR #26291
+  \mathlibok
+  \lean{ProbabilityTheory.exists_integrable_exp_sq_of_map_rotation_eq_self}
 Let $\mu$ be a finite measure on $F$ such that $\mu \times \mu$ is invariant under the rotation of angle $-\frac{\pi}{4}$.
 Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable with respect to $\mu$.
 \end{theorem}
@@ -155,9 +155,9 @@ Then there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Ver
 
 \begin{lemma}\label{lem:IsGaussian.map_rotation_eq_self}
   \uses{def:IsGaussian}
-  \leanok
-  % In Mathlib PR #26291
-For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
+  \mathlibok
+  \lean{ProbabilityTheory.IsGaussian.map_rotation_eq_self_of_forall_strongDual_eq_zero}
+For a centered Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -168,8 +168,8 @@ For a Gaussian measure $\mu$, $\mu \times \mu$ is invariant by rotation.
 
 \begin{theorem}[Fernique's theorem]\label{thm:IsGaussian.exists_integrable_exp_sq}
   \uses{def:IsGaussian}
-  \leanok
-  % In Mathlib PR #26291
+  \mathlibok
+  \lean{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}
 For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \exp (C \Vert x \Vert ^ 2)$ is integrable.
 \end{theorem}
 
@@ -181,7 +181,7 @@ For a Gaussian measure, there exists $C > 0$ such that the function $x \mapsto \
 
 \begin{lemma}\label{lem:IsGaussian.memLp_id}
   \uses{def:IsGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.IsGaussian.memLp_id}
 A Gaussian measure $\mu$ has finite moments of all orders.
 In particular, there is a well defined mean $m_\mu := \mu[\mathrm{id}]$, and for all $L \in F^*$, $\mu[L] = L(m_\mu)$.
@@ -313,8 +313,8 @@ The fact that this definition does not depend on the choice of basis will be a c
 
 
 \begin{lemma}\label{lem:integral_eval_pi}
-  \leanok
-  \lean{ProbabilityTheory.integral_eval_pi}
+  \mathlibok
+  \lean{MeasureTheory.integral_comp_eval}
 For $\mu_1, \ldots, \mu_d$ probability measures on $\mathbb{R}$ and $f : \mathbb{R} \to \mathbb{R}$ integrable with respect to $\mu_i$, we have
 \begin{align*}
   \int_x f(x_i) \, d(\mu_1 \times \ldots \times \mu_d)(x)

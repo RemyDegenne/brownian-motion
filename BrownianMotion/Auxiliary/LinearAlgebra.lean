@@ -74,49 +74,14 @@ theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpa
   rw [PiLp.norm_sq_eq_of_L2]
   congr with i; simp
 
-@[simp]
-theorem basisFun_inner {ι 𝕜 : Type*} [Fintype ι] [RCLike 𝕜] (x : EuclideanSpace 𝕜 ι) (i : ι) :
-    ⟪EuclideanSpace.basisFun ι 𝕜 i, x⟫_𝕜 = x i := by
-  simp [← OrthonormalBasis.repr_apply_apply]
-
 lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpace ℝ ι) :
     ⟪x, y⟫_ℝ = ∑ i, x i * y i := by
   nth_rw 1 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' x, sum_inner]
   simp_rw [real_inner_smul_left, basisFun_inner]
 
-theorem inner_basisFun_real {ι : Type*} [Fintype ι] (x : EuclideanSpace ℝ ι) (i : ι) :
-    inner ℝ x (EuclideanSpace.basisFun ι ℝ i) = x i := by
-  rw [real_inner_comm, basisFun_inner]
-
-namespace OrthonormalBasis
-
-variable {ι ι' 𝕜 E E' : Type*} [Fintype ι] [Fintype ι'] [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E]
-    [NormedAddCommGroup E'] [InnerProductSpace 𝕜 E'] (b : OrthonormalBasis ι 𝕜 E)
-    (b' : OrthonormalBasis ι' 𝕜 E') (e : ι ≃ ι')
-
-/-- The `LinearIsometryEquiv` which maps an orthonormal basis to another. This is a convenience
-wrapper around `Orthonormal.equiv`. -/
-protected noncomputable def equiv : E ≃ₗᵢ[𝕜] E' :=
-  Orthonormal.equiv (v := b.toBasis) (v' := b'.toBasis) b.orthonormal b'.orthonormal e
-
-lemma equiv_apply_basis (i : ι) : b.equiv b' e (b i) = b' (e i) := by
-  simp only [OrthonormalBasis.equiv, Orthonormal.equiv, LinearEquiv.coe_isometryOfOrthonormal]
-  rw [← b.coe_toBasis, Basis.equiv_apply, b'.coe_toBasis]
-
-lemma equiv_apply (x : E) : b.equiv b' e x = ∑ i, b.repr x i • b' (e i) := by
-  nth_rw 1 [← b.sum_repr x, map_sum]
-  simp_rw [map_smul, equiv_apply_basis]
-
-lemma equiv_apply_euclideanSpace (x : EuclideanSpace 𝕜 ι) :
-    (EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι) x = ∑ i, x i • b i := by
-  simp_rw [equiv_apply, EuclideanSpace.basisFun_repr, Equiv.refl_apply]
-
-end OrthonormalBasis
-
 @[simp]
 lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
-    [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : NormedSpace.Dual 𝕜 E) :
+    [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : StrongDual 𝕜 E) :
   inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
 
 lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike 𝕜]
@@ -124,7 +89,7 @@ lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike
   InnerProductSpace.toDual 𝕜 E x = InnerProductSpace.toDualMap 𝕜 E x := rfl
 
 theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : NormedSpace.Dual ℝ E) :
+    [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : StrongDual ℝ E) :
     ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
   have := FiniteDimensional.of_fintype_basis b.toBasis
   simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
@@ -136,31 +101,3 @@ lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [Norme
     ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace
-
-section zero
-
-namespace ContinuousLinearMap
-
-@[simp]
-lemma flip_zero {𝕜 𝕜₂ 𝕜₃ E F G : Type*} [SeminormedAddCommGroup E]
-    [SeminormedAddCommGroup F] [SeminormedAddCommGroup G] [NontriviallyNormedField 𝕜]
-    [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃] [NormedSpace 𝕜 E]
-    [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃] :
-    ContinuousLinearMap.flip (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) = 0 := rfl
-
-@[simp]
-lemma bilinearComp_zero {𝕜 𝕜₂ 𝕜₃ 𝕜₁' 𝕜₂' E F G E' F' : Type*}
-    [SeminormedAddCommGroup E] [SeminormedAddCommGroup F] [SeminormedAddCommGroup G]
-    [NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂] [NontriviallyNormedField 𝕜₃]
-    [NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] [NormedSpace 𝕜₃ G] {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
-    [SeminormedAddCommGroup E'] [SeminormedAddCommGroup F'] [NontriviallyNormedField 𝕜₁']
-    [NontriviallyNormedField 𝕜₂'] [NormedSpace 𝕜₁' E'] [NormedSpace 𝕜₂' F'] {σ₁' : 𝕜₁' →+* 𝕜}
-    {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃} [RingHomCompTriple σ₁' σ₁₃ σ₁₃']
-    [RingHomCompTriple σ₂' σ₂₃ σ₂₃'] [RingHomIsometric σ₂₃] [RingHomIsometric σ₁₃']
-    [RingHomIsometric σ₂₃'] {gE : E' →SL[σ₁'] E} {gF : F' →SL[σ₂'] F} :
-    ContinuousLinearMap.bilinearComp (0 : E →SL[σ₁₃] F →SL[σ₂₃] G) gE gF = 0 := rfl
-
-end ContinuousLinearMap
-
-end zero

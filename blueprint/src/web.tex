@@ -10,6 +10,7 @@
 \usepackage{hyperref}
 \usepackage[showmore, dep_graph]{blueprint}
 
+\newcommand{\putbib}{} % we are using bibunits in print.tex, but not here
 
 \input{macros/common}
 \input{macros/web}
@@ -20,10 +21,14 @@
 \github{https://github.com/RemyDegenne/brownian-motion}
 \dochome{https://RemyDegenne.github.io/brownian-motion/docs}
 
-\title{Brownian Motion}
+\title{Formalization of a Brownian motion and of stochastic integrals in Lean}
 \author{Rémy Degenne \and Peter Pfaffelhuber}
 
 \begin{document}
 \maketitle
 \input{content}
+
+\bibliographystyle{amsalpha}
+\bibliography{bib}
+
 \end{document}
