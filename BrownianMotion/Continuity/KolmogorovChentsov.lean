@@ -533,20 +533,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) :
     TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) := by
-  intro ε hε
-  -- todo: change tendstoInMeasure_of_ne_top to work in a PseudoEMetricSpace, or change the def
-  suffices h_of_ne_top :
-      ∀ ε, 0 < ε → ε ≠ ∞ → Tendsto (fun n ↦ P {ω | ε ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) by
-    by_cases hε_top : ε = ∞
-    swap; · exact h_of_ne_top _ hε hε_top
-    have h1 : Tendsto (fun n ↦ P {ω | 1 ≤ edist (X (u n) ω) (X t ω)}) atTop (𝓝 0) :=
-      h_of_ne_top 1 (by simp) (by simp)
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h1 (fun _ ↦ zero_le') ?_
-    intro n
-    simp only [hε_top]
-    gcongr
-    simp
-  intro ε hε hε_top
+  refine tendstoInMeasure_of_ne_top fun ε hε hε_top ↦ ?_
   have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
       (fun n ↦ hX.kolmogorovCondition (u n) t)
@@ -599,7 +586,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   have hA : MeasurableSet A := hX.measurableSet_holderSet hT'_countable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := by
     filter_upwards [hC_lt_top, h_ae_zero] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
-  have hPA {s : Set Ω} (hs : MeasurableSet s) : P (s ∩ A) = P s := by
+  have hPA {s : Set Ω} : P (s ∩ A) = P s := by
     rw [Set.inter_comm, Measure.measure_inter_eq_of_ae hA_ae]
   -- We build a modification `Y` of `X`, by using `Dense.extend` on `X · ω` if `ω ∈ A` and by taking
   -- an arbitrary constant value if `ω ∉ A`.
@@ -650,18 +637,13 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     have hP_le n : P {ω | ε ≤ edist (Y t ω) (X t ω)}
         ≤ P {ω | ε/2 ≤ edist (Y (u n) ω) (Y t ω)} + P {ω | ε/2 ≤ edist (X (u n) ω) (X t ω)} := by
       calc P {ω | ε ≤ edist (Y t ω) (X t ω)}
-      _ = P ({ω | ε ≤ edist (Y t ω) (X t ω)} ∩ A) := by
-        rw [hPA]
-        exact measurableSet_le (by fun_prop) (Measurable.edist (hY t) (hX.measurable t))
+      _ = P ({ω | ε ≤ edist (Y t ω) (X t ω)} ∩ A) := by rw [hPA]
       _ ≤ P ({ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} ∩ A) := by
         refine measure_mono fun ω ↦ ?_
         simp only [Set.mem_inter_iff, Set.mem_setOf_eq, and_imp]
         refine fun hε_le hω ↦ ⟨(hε_le.trans (h_le n hω)).trans_eq ?_, hω⟩
         rw [edist_comm]
-      _ = P {ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by
-        rw [hPA]
-        refine measurableSet_le (by fun_prop) ?_
-        exact ((hY (u n)).edist (hY t)).add ((hX.measurable (u n)).edist (hX.measurable t))
+      _ = P {ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by rw [hPA]
       _ ≤ P {ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
           + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_add_ge_le_add_measure_ge_half
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') hP_le
