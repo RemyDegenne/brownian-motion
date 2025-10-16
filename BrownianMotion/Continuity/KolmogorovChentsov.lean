@@ -669,6 +669,9 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     refine measurable_limUnder_of_exists_tendsto (f := fun (t' : T') ω ↦ X' t' ω) ?_ (fun t ↦ hX' t)
     intro ω
     exact hX'_tendsto t ω
+  have hY_pair s t : Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Y t ω)) := by
+    -- borelize (E × E)
+    sorry
   have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
     rw [← hX'_eq t hω]
     exact hT'_dense.extend_eq (hX'_unif ω).continuous t
@@ -695,7 +698,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
       have h_ae ω : Tendsto (fun n ↦ Y (u n) ω) atTop (𝓝 (Y t ω)) :=
         ((hY_cont ω).tendsto t).comp hu
       refine tendstoInMeasure_of_tendsto_ae_of_measurable_edist (fun n ↦ ?_) (ae_of_all _ h_ae)
-      sorry
+      borelize (E × E)
+      exact (continuous_edist.stronglyMeasurable.comp_measurable (hY_pair _ _)).measurable
     refine (ae_le_const_iff_forall_gt_measure_zero _ _).mpr fun ε hε ↦ ?_
     suffices Tendsto (fun n : ℕ ↦ P {ω | ε ≤ edist (Y t ω) (X t ω)}) atTop (𝓝 0) by
       simpa using this
@@ -755,7 +759,28 @@ lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
   refine MeasurableSet.iInter (fun t ↦ ?_)
   exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
 
-variable [SecondCountableTopology E]
+omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
+lemma Measurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
+    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
+    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
+    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    rw [← funext_iff]
+    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
+  rw [this]
+  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by
+    ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  suffices MeasurableSet {ω | edist (f t ω) (g t ω) = 0} by
+    convert this with ω
+    simp
+  exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsAEKolmogorovProcess X P p q M)
@@ -786,13 +811,12 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_
     · obtain ⟨_, h⟩ := hZ_holder n ω
       exact h.continuous (hβ_pos n)
     · obtain ⟨_, h⟩ := hZ_holder 0 ω
       exact h.continuous (hβ_pos 0)
-    · exact fun t ↦ (hZ_meas n t).stronglyMeasurable
-    · exact fun t ↦ (hZ_meas 0 t).stronglyMeasurable
+    · sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
@@ -900,14 +924,13 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       Z n ⟨t, t.2⟩ ω = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩ ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_
     · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
       exact h.continuous hβ₀_pos
     · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
       have h_cont := h.continuous hβ₀_pos
       fun_prop
-    · exact fun t ↦ (hZ n t).stronglyMeasurable
-    · exact fun t ↦ (hZ _ ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩).stronglyMeasurable
+    · sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq
   classical
   have h_mem t : ∃ n, t ∈ C n := by
@@ -979,11 +1002,10 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine StronglyMeasurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_ ?_
+    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_
     · exact hZ_cont n ω
     · exact hZ_cont 0 ω
-    · exact fun t ↦ (hZ_meas n t).stronglyMeasurable
-    · exact fun t ↦ (hZ_meas 0 t).stronglyMeasurable
+    · sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
