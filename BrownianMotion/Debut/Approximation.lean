@@ -53,28 +53,39 @@ lemma subset_Iic_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) :
 /-- If `B ∈ 𝓚₀(t)`, then its projetion over `Ω` is (f t)-measurable. -/
 lemma measurableSet_snd_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) :
     MeasurableSet[f t] (Prod.snd '' B) := by
-  -- easy, divide the case K = ∅
-  sorry
+  have ⟨K, C, hB_eq, hK_sub, hK, hC⟩ := hB
+  by_cases hK_empty : K = ∅
+  · simp [hK_empty, hB_eq]
+  rwa [hB_eq, Set.snd_image_prod (Set.nonempty_iff_ne_empty.mpr hK_empty)]
 
 /-- `𝓚(t)` is the collection of finite unions of sets in `𝓚₀(t)`. -/
 inductive 𝓚 (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
-  | base {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) : 𝓚 f t B
-  | union {B B' : Set (T × Ω)} (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) :
+  | base (B : Set (T × Ω)) (hB : B ∈ 𝓚₀ f t) : 𝓚 f t B
+  | union (B B' : Set (T × Ω)) (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) :
       𝓚 f t (B ∪ B')
 
-lemma 𝓚₀_subset_𝓚 (f : Filtration T mΩ) (t : T) : 𝓚₀ f t ⊆ 𝓚 f t := fun _ hB ↦ 𝓚.base hB
+lemma 𝓚₀_subset_𝓚 (f : Filtration T mΩ) (t : T) : 𝓚₀ f t ⊆ 𝓚 f t := fun _ hB ↦ 𝓚.base _ hB
 
 lemma mem_𝓚_iff (f : Filtration T mΩ) (t : T) (B : Set (T × Ω)) :
     B ∈ 𝓚 f t ↔ ∃ s : Finset (Set (T × Ω)),
       (s : Set _) ⊆ 𝓚₀ f t ∧ B = ⋃ x ∈ s, x := by
-  -- farily easy
-  sorry
+  refine ⟨fun hB ↦ ?_, fun ⟨s, hs, hB⟩ ↦ ?_⟩
+  · induction hB with
+    | base B hB => exact ⟨{B}, by simp [hB]⟩
+    | union B B' hB hB' ihB ihB' =>
+      have ⟨s, hs_subs, hs_eq⟩ := ihB
+      have ⟨s', hs'_subs, hs'_eq⟩ := ihB'
+      classical
+      refine ⟨s ∪ s', by simp [hs_subs, hs'_subs], ?_⟩
+      rw [Finset.set_biUnion_union, hs_eq, hs'_eq]
+  · -- fairly easy
+    sorry
 
 lemma subset_Iic_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
     B ⊆ Set.Iic t ×ˢ .univ := by
   induction hB with
-  | base hB => exact subset_Iic_of_mem_𝓚₀ hB
-  | union _ _ hB hB' => exact Set.union_subset hB hB'
+  | base _ hB => exact subset_Iic_of_mem_𝓚₀ hB
+  | union _ _ _ _ hB hB' => exact Set.union_subset hB hB'
 
 /-- `𝓚(t)` is closed under union. -/
 lemma union_mem_𝓚 {f : Filtration T mΩ} {t : T}
