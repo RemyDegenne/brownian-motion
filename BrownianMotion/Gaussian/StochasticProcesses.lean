@@ -5,13 +5,13 @@ open MeasureTheory
 variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {X Y : T → Ω → E}
 
-lemma modification_of_indistinduishable (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω) :
+lemma modification_of_indistinguishable (h : ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω) :
     ∀ t, X t =ᵐ[P] Y t := by
   intro t
   filter_upwards [h] with ω hω using hω t
 
 open TopologicalSpace in
-lemma indistinduishable_of_modification [TopologicalSpace E] [TopologicalSpace T]
+lemma indistinguishable_of_modification [TopologicalSpace E] [TopologicalSpace T]
     [SeparableSpace T] [T2Space E]
     (hX : ∀ᵐ ω ∂P, Continuous fun t ↦ X t ω) (hY : ∀ᵐ ω ∂P, Continuous fun t ↦ Y t ω)
     (h : ∀ t, X t =ᵐ[P] Y t) :

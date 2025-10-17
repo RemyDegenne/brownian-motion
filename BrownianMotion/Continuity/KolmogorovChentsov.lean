@@ -940,11 +940,8 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber (Set.u
       hc hd_pos hdq_lt (hβ_pos n) (mod_cast (hβ'_mem n).2) hT'_dense hT'_countable t
   have hZ_holder : ∀ (n : ℕ) (ω : Ω), MemHolder (β n) fun x ↦ Z n x ω :=
     fun n ω ↦ holderWith_holderModification hT hX hd_pos (hβ_pos n) hT'_dense ω
-  -- have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hdq_lt (β := β n)
-  --   (hβ_pos n) (mod_cast (hβ'_mem n).2)
-  -- choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
-    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    refine indistinguishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
     · exact continuous_holderModification hT hX hd_pos (hβ_pos n) hT'_dense ω
     · exact continuous_holderModification hT hX hd_pos (hβ_pos 0) hT'_dense ω
     · intro t
@@ -995,6 +992,38 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
+omit [SecondCountableTopology T] in
+lemma _root_.IsCoverWithBoundedCoveringNumber.hasBoundedInternalCoveringNumber_univ
+    {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
+    (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d)) (n : ℕ) :
+    HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
+  have h := hC.hasBoundedCoveringNumber n
+  refine fun ε hε ↦ ?_
+  specialize h ε (hε.trans_eq ?_)
+  · unfold EMetric.diam
+    simp [iSup_subtype]
+  refine le_of_eq_of_le ?_ h
+  simp only [ENat.toENNReal_inj]
+  unfold internalCoveringNumber
+  simp only [Set.subset_univ, iInf_pos]
+  classical
+  refine le_antisymm ?_ ?_
+  · simp only [le_iInf_iff]
+    intro A hA hA_cover
+    refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
+    · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
+      exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
+    · simp only [Finset.card_subtype, Nat.cast_le]
+      exact Finset.card_filter_le _ _
+  · simp only [le_iInf_iff]
+    intro A hA_cover
+    refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
+    refine (iInf_le _ ?_).trans ?_
+    · intro x hx_mem
+      obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
+      exact ⟨c, by simpa using hc_mem, hc⟩
+    · exact mod_cast Finset.card_image_le
+
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
     (hX : IsAEKolmogorovProcess X P p q M) (hc : ∀ n, c n ≠ ∞)
@@ -1018,33 +1047,8 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     · exact fun s t ↦ hX.IsKolmogorovProcess_mk.kolmogorovCondition s t
     · exact hp_pos
     · exact hX.q_pos
-  have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
-    have h := hC.hasBoundedCoveringNumber n
-    refine fun ε hε ↦ ?_
-    specialize h ε (hε.trans_eq ?_)
-    · unfold EMetric.diam
-      simp [iSup_subtype]
-    refine le_of_eq_of_le ?_ h
-    simp only [ENat.toENNReal_inj]
-    unfold internalCoveringNumber
-    simp only [Set.subset_univ, iInf_pos]
-    classical
-    refine le_antisymm ?_ ?_
-    · simp only [le_iInf_iff]
-      intro A hA hA_cover
-      refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
-      · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
-        exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
-      · simp only [Finset.card_subtype, Nat.cast_le]
-        exact Finset.card_filter_le _ _
-    · simp only [le_iInf_iff]
-      intro A hA_cover
-      refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
-      refine (iInf_le _ ?_).trans ?_
-      · intro x hx_mem
-        obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
-        exact ⟨c, by simpa using hc_mem, hc⟩
-      · exact mod_cast Finset.card_image_le
+  have hC' n : HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d :=
+    hC.hasBoundedInternalCoveringNumber_univ n
   choose Z hZ hZ_eq hZ_holder
     using fun n ↦ exists_modification_holder (hC' n) (hXn n) (hc n) hd_pos hdq_lt
   have hZ_ae_eq : ∀ᵐ ω ∂P,
@@ -1054,7 +1058,7 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     suffices ∀ᵐ ω ∂P, ∀ (t : C n), Z n ⟨t, t.2⟩ ω
         = Z (n + 1) ⟨t, hC.mono _ _ (Nat.le_succ _) t.2⟩ ω by
       filter_upwards [this] with ω hω t ht using hω ⟨t, ht⟩
-    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
+    refine indistinguishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
     · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
       exact h.continuous hβ₀_pos
     · obtain ⟨_, h⟩ :=  hZ_holder (n + 1) β₀ hβ₀_pos hβ₀_lt ω
@@ -1094,7 +1098,7 @@ lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     simpa using ht
   let nt t := Nat.find (h_mem t)
   have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
-  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else Nonempty.some inferInstance
+  let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z (nt t) ⟨t, hnt t⟩ ω else hE.some
   have hY_eq {ω} (hω : ω ∈ A) n (t : T) (ht : t ∈ C n) : Y t ω = Z n ⟨t, ht⟩ ω := by
     simp only [hω, ↓reduceIte, Y]
     exact hA_eq_le hω (Nat.find_le ht) ⟨t, hnt t⟩
@@ -1147,21 +1151,17 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     · obtain ⟨_, h⟩ := hU
       exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
-    refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
-    · exact hZ_cont n ω
-    · exact hZ_cont 0 ω
-    · intro t
-      filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+    refine indistinguishable_of_modification (ae_of_all _ (hZ_cont n)) (ae_of_all _ (hZ_cont 0)) ?_
+    intro t
+    filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
   rw [← ae_all_iff] at hZ_ae_eq'
   let A := {ω | ∀ n t, Z n t ω = Z 0 t ω}
   have hA : MeasurableSet A := by
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_
-    · exact hZ_cont n ω
-    · exact hZ_cont 0 ω
-    · sorry
+    refine Measurable.measurableSet_eq_of_continuous (hZ_cont n) (hZ_cont 0) ?_
+    sorry
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
