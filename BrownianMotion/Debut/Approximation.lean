@@ -60,8 +60,8 @@ lemma measurableSet_snd_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f
 
 /-- `𝓚(t)` is the collection of finite unions of sets in `𝓚₀(t)`. -/
 inductive 𝓚 (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
-  | base (B : Set (T × Ω)) (hB : B ∈ 𝓚₀ f t) : 𝓚 f t B
-  | union (B B' : Set (T × Ω)) (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) :
+  | base B (hB : B ∈ 𝓚₀ f t) : 𝓚 f t B
+  | union B B' (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) :
       𝓚 f t (B ∪ B')
 
 lemma 𝓚₀_subset_𝓚 (f : Filtration T mΩ) (t : T) : 𝓚₀ f t ⊆ 𝓚 f t := fun _ hB ↦ 𝓚.base _ hB
@@ -101,16 +101,13 @@ lemma measurableSet_snd_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
   sorry
 
 /-- `𝓚δ(t)` is the collection of countable intersections of sets in `𝓚(t)`. -/
-inductive 𝓚δ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
-  | iInter {ℬ : Set (Set (T × Ω))} (h_nonempty : ℬ.Nonempty) (h_subs : ℬ ⊆ 𝓚 f t)
-    (h_count : Countable ℬ) : 𝓚δ f t (⋂ B ∈ ℬ, B)
+def 𝓚δ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) :=
+  {B | ∃ ℬ ⊆ 𝓚 f t, ℬ.Nonempty ∧ Countable ℬ ∧ B = ⋂ b ∈ ℬ, b}
 
 lemma subset_Iic_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
     B ⊆ Set.Iic t ×ˢ .univ := by
-  induction hB with
-  | iInter h_nonempty h_subs h_count =>
-    have ⟨B, hB⟩ := h_nonempty
-    exact Set.iInter₂_subset_of_subset B hB (subset_Iic_of_mem_𝓚 (h_subs hB))
+  have ⟨ℬ, hℬ_sub, ⟨b, hb⟩, hℬ_count, hB_eq⟩ := hB
+  exact hB_eq ▸ Set.iInter₂_subset_of_subset b hb (subset_Iic_of_mem_𝓚 (hℬ_sub hb))
 
 /-- `𝓚δ(t)` is closed under union. -/
 lemma union_mem_𝓚δ {f : Filtration T mΩ} {t : T}
@@ -147,9 +144,8 @@ section 𝓛_sets
 
 /-- `𝓛₀(X)` is the collection of sets of the form `A ×ˢ B`, where `A : Set X` is compact and
 `B ∈ 𝓚 f t`. -/
-inductive 𝓛₀ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
-    Set (Set (X × (T × Ω))) where
-  | prod {A B} (hA : IsCompact A) (hB : B ∈ 𝓚 f t) : 𝓛₀ X f t (A ×ˢ B)
+def 𝓛₀ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) : Set (Set (X × (T × Ω))) :=
+  {X | ∃ A B, B ∈ 𝓚 f t ∧ A ×ˢ B = X}
 
 /-- `𝓛₁(X)` is the collection of finite unions of sets in `𝓛₀(X)`. -/
 inductive 𝓛₁ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
@@ -158,22 +154,16 @@ inductive 𝓛₁ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T
   | union {L L'} (hL : L ∈ 𝓛₁ X f t) (hL' : L' ∈ 𝓛₁ X f t) : 𝓛₁ X f t (L ∪ L')
 
 /-- `𝓛(X)` is the collection of intersections of countable decreasing sequences in `𝓛₁(X)`. -/
-inductive 𝓛 (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
-    Set (Set (X × (T × Ω))) where
-  | iInter {L : ℕ → Set (X × (T × Ω))} (h_anti : Antitone L) (hL : ∀ n, L n ∈ 𝓛₁ X f t) :
-      𝓛 X f t (⋂ n, L n)
+def 𝓛 (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) : Set (Set (X × (T × Ω))) :=
+  {B | ∃ L : ℕ → Set (X × (T × Ω)), Antitone L ∧ (∀ n, L n ∈ 𝓛₁ X f t) ∧ B = ⋂ n, L n}
 
 /-- `𝓛σ(X)` is the collection of unions of countable increasing sequences in `𝓛(X)`. -/
-inductive 𝓛σ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
-    Set (Set (X × (T × Ω))) where
-  | iUnion {L : ℕ → Set (X × (T × Ω))} (h_incr : Monotone L) (hL : ∀ n, L n ∈ 𝓛 X f t) :
-      𝓛σ X f t (⋃ n, L n)
+def 𝓛σ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) : Set (Set (X × (T × Ω))) :=
+  {B | ∃ L : ℕ → Set (X × (T × Ω)), Monotone L ∧ (∀ n, L n ∈ 𝓛 X f t) ∧ B = ⋃ n, L n}
 
 /-- `𝓛σδ(X)` is the collection of intersections of countable decreasing sequences in `𝓛σ(X)`. -/
-inductive 𝓛σδ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
-    Set (Set (X × (T × Ω))) where
-  | iInter {L : ℕ → Set (X × (T × Ω))} (h_anti : Antitone L) (hL : ∀ n, L n ∈ 𝓛σ X f t) :
-      𝓛σδ X f t (⋂ n, L n)
+def 𝓛σδ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) : Set (Set (X × (T × Ω))) :=
+  {B | ∃ L : ℕ → Set (X × (T × Ω)), Antitone L ∧ (∀ n, L n ∈ 𝓛σ X f t) ∧ B = ⋂ n, L n}
 
 /- is this the best way to state that there exists a compact T2 topological space `X`? is there a
 more compact way, without having to write `∃` 4 times? -/
