@@ -36,7 +36,7 @@ lemma IsGaussian.integrable_fun_id {μ : Measure E} [IsGaussian μ] :
     Integrable (fun x ↦ x) μ := IsGaussian.integrable_id
 
 -- Mathlib PR #26291
-lemma IsGaussian.integral_dual (L : Dual ℝ E) : μ[L] = L (∫ x, x ∂μ) :=
+lemma IsGaussian.integral_dual (L : StrongDual ℝ E) : μ[L] = L (∫ x, x ∂μ) :=
   L.integral_comp_comm IsGaussian.integrable_id
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : Ω → E}

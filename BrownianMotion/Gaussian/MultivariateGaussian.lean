@@ -40,26 +40,6 @@ variable [BorelSpace E]
 instance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) :=
     isProbabilityMeasure_map (Measurable.aemeasurable (by fun_prop))
 
-lemma integrable_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E] {X : ι → Type*} {i : ι}
-    {mX : ∀ i, MeasurableSpace (X i)} {μ : (i : ι) → Measure (X i)}
-    [∀ i, IsFiniteMeasure (μ i)] {f : X i → E} (hf : Integrable f (μ i)) :
-    Integrable (fun x ↦ f (x i)) (Measure.pi μ) := by
-  simp_rw [← Function.eval_apply (x := i)]
-  refine Integrable.comp_measurable ?_ (by fun_prop)
-  classical
-  rw [Measure.pi_map_eval]
-  exact hf.smul_measure <| ENNReal.prod_ne_top (fun _ _ ↦ measure_ne_top _ _)
-
-lemma integral_eval_pi {ι E : Type*} [Fintype ι] [NormedAddCommGroup E]
-    [NormedSpace ℝ E] {X : ι → Type*}
-    {mX : ∀ i, MeasurableSpace (X i)} {μ : (i : ι) → Measure (X i)}
-    [∀ i, IsProbabilityMeasure (μ i)] {i : ι} {f : X i → E} (hf : AEStronglyMeasurable f (μ i)) :
-    ∫ (x : Π i, X i), f (x i) ∂Measure.pi μ = ∫ x, f x ∂μ i := by
-  simp_rw [← Function.eval_apply (β := X) (x := i)]
-  rw [← integral_map, (measurePreserving_eval i).map_eq]
-  · exact Measurable.aemeasurable (by fun_prop)
-  · rwa [(measurePreserving_eval i).map_eq]
-
 @[simp]
 lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
   rw [stdGaussian, integral_map _ (by fun_prop)]
@@ -67,28 +47,28 @@ lemma integral_id_stdGaussian : ∫ x, x ∂(stdGaussian E) = 0 := by
   rw [integral_finset_sum]
   swap
   · refine fun i _ ↦ Integrable.smul_const ?_ _
-    convert integrable_eval_pi (i := i) (f := id) ?_
+    convert integrable_comp_eval (i := i) (f := id) ?_
     · infer_instance
     · rw [← memLp_one_iff_integrable]
       exact memLp_id_gaussianReal 1
   refine Finset.sum_eq_zero fun i _ ↦ ?_
   have : (∫ (a : Fin (Module.finrank ℝ E) → ℝ), a i ∂Measure.pi fun x ↦ gaussianReal 0 1)
       = ∫ x, x ∂gaussianReal 0 1 := by
-    convert integral_eval_pi (i := i) aestronglyMeasurable_id
+    convert integral_comp_eval (i := i) aestronglyMeasurable_id
     all_goals infer_instance
   simp [integral_smul_const, this]
 
-lemma isCentered_stdGaussian : ∀ L : Dual ℝ E, (stdGaussian E)[L] = 0 := by
+lemma isCentered_stdGaussian : ∀ L : StrongDual ℝ E, (stdGaussian E)[L] = 0 := by
   intro L
   rw [L.integral_comp_id_comm, integral_id_stdGaussian, map_zero]
   rw [stdGaussian, integrable_map_measure]
   · rw [Function.id_comp]
     exact integrable_finset_sum _ fun i _ ↦ Integrable.smul_const
-      (integrable_eval_pi (f := id) IsGaussian.integrable_id) _
+      (integrable_comp_eval (f := id) IsGaussian.integrable_id) _
   · exact aestronglyMeasurable_id
   · exact Measurable.aemeasurable (by fun_prop)
 
-lemma variance_dual_stdGaussian (L : Dual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
+lemma variance_dual_stdGaussian (L : StrongDual ℝ E) : Var[L; stdGaussian E] = ‖L‖ ^ 2 := by
   rw [stdGaussian, variance_map]
   · have : L ∘ (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ ∑ i, x i • stdOrthonormalBasis ℝ E i) =
         ∑ i, (fun x : Fin (Module.finrank ℝ E) → ℝ ↦ L (stdOrthonormalBasis ℝ E i) * x i) := by
@@ -120,7 +100,7 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
   simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
 
-lemma charFunDual_stdGaussian (L : Dual ℝ E) :
+lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
   rw [IsGaussian.charFunDual_eq, integral_complex_ofReal, isCentered_stdGaussian,
     variance_dual_stdGaussian]

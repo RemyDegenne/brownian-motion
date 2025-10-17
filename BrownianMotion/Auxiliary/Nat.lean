@@ -1,4 +1,5 @@
 import Mathlib.Algebra.Order.Floor.Semiring
+import Mathlib.Algebra.Order.Ring.Abs
 
 lemma Nat.self_sub_floor_lt_one {R : Type*} [Ring R] [LinearOrder R] [FloorSemiring R]
     [IsStrictOrderedRing R] (x : R) : x - ⌊x⌋₊ < 1 := by

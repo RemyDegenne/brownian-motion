@@ -32,7 +32,7 @@ ProbabilityTheory.gaussian_charFun_congr
 ProbabilityTheory.IsGaussian.ext
 ProbabilityTheory.IsGaussian.ext_iff
 ProbabilityTheory.stdGaussian
-ProbabilityTheory.integral_eval_pi
+MeasureTheory.integral_comp_eval
 ProbabilityTheory.isCentered_stdGaussian
 ProbabilityTheory.isProbabilityMeasure_stdGaussian
 ProbabilityTheory.charFun_stdGaussian
@@ -158,6 +158,9 @@ ProbabilityTheory.wienerMeasureAux
 ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval
 ProbabilityTheory.MeasurableEquiv.continuousMap
 ProbabilityTheory.wienerMeasure
+MeasureTheory.Filtration
+MeasureTheory.Adapted
 MeasureTheory.Martingale
+MeasureTheory.Submartingale
 MeasureTheory.IsStoppingTime
 MeasureTheory.stoppedProcess
