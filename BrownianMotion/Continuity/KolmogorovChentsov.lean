@@ -616,6 +616,17 @@ theorem tendstoInMeasure_of_tendsto_ae_of_measurable_edist [IsFiniteMeasure μ]
 
 end FromPR
 
+lemma limUnder_prod {α β X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    [Nonempty X] [Nonempty Y] [T2Space X] [T2Space Y] {f : Filter α} {f' : Filter β}
+    [NeBot f] [NeBot f'] {g : α → X} {g' : β → Y}
+    (h₁ : ∃ x, Tendsto g f (𝓝 x)) (h₂ : ∃ x', Tendsto g' f' (𝓝 x')) :
+    limUnder (f ×ˢ f') (fun x ↦ (g x.1, g' x.2)) = (limUnder f g, limUnder f' g') := by
+  rw [Filter.Tendsto.limUnder_eq]
+  rw [nhds_prod_eq]
+  apply Filter.Tendsto.prodMk
+  · exact (tendsto_nhds_limUnder h₁).comp tendsto_fst
+  · exact (tendsto_nhds_limUnder h₂).comp tendsto_snd
+
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
@@ -668,8 +679,36 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     intro ω
     exact hX'_tendsto t ω
   have hY_pair s t : Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Y t ω)) := by
-    -- borelize (E × E)
-    sorry
+    borelize (E × E)
+    simp only [Dense.extend, IsDenseInducing.extend, Y]
+    have : @NeBot (Subtype T') (comap Subtype.val (𝓝 s)) := by
+      apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
+    have : @NeBot (Subtype T') (comap Subtype.val (𝓝 t)) := by
+      apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
+    conv =>
+      enter [1, ω]
+      rw [← limUnder_prod]
+      rfl
+      tactic => exact hX'_tendsto s ω
+      tactic => exact hX'_tendsto t ω
+    let f (x : T' × T') (ω : Ω) := (X' x.1 ω, X' x.2 ω)
+    apply measurable_limUnder_of_exists_tendsto (f := f)
+    intro ω
+    obtain ⟨c₀, h₀⟩ := hX'_tendsto s ω
+    obtain ⟨c₁, h₁⟩ := hX'_tendsto t ω
+    use (c₀,c₁)
+    unfold f
+    rw [nhds_prod_eq]
+    apply Filter.Tendsto.prodMk
+    · exact h₀.comp tendsto_fst
+    · exact h₁.comp tendsto_snd
+    unfold f
+    intro i
+    have : (fun ω ↦ (X' (↑i.1) ω, X' (↑i.2) ω))
+        = fun ω ↦ if ω ∈ A then (X i.1 ω, X i.2 ω) else (x₀, x₀) := by
+      ext ω <;> by_cases hω : ω ∈ A <;> simp [X', hω]
+    rw [this]
+    exact Measurable.ite hA (hX.measurablePair i.1 i.2) measurable_const
   have hY_eq {ω : Ω} (hω : ω ∈ A) (t : T') : Y t ω = X t ω := by
     rw [← hX'_eq t hω]
     exact hT'_dense.extend_eq (hX'_unif ω).continuous t
