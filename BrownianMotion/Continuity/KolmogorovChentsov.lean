@@ -608,9 +608,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
 
--- TODO: I (Rémy) gave up on separability of `E`. The measurability checks are driving me crazy.
 variable [hE : Nonempty E] [SecondCountableTopology T] [CompleteSpace E]
-  [IsFiniteMeasure P]
 
 section FromPR
 
@@ -641,8 +639,7 @@ def holderModification (X : T → Ω → E) (β : ℝ≥0) (p : ℝ)
     T → Ω → E :=
   fun t ω ↦ hT'_dense.extend (fun t' : T' ↦ if ω ∈ holderSet X T' p β then X t' ω else hE.some) t
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [CompleteSpace E]
-  [IsFiniteMeasure P] in
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [CompleteSpace E] in
 lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     {T' : Set T} (hT'_dense : Dense T')
@@ -652,7 +649,7 @@ lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber (Set.univ : S
   refine hT'_dense.extend_eq ?_ _
   exact continuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [IsFiniteMeasure P] in
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
 lemma todo (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     {T' : Set T} (hT'_dense : Dense T')
@@ -664,7 +661,7 @@ lemma todo (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω t
   · simp only [hω, ↓reduceIte]; exact ⟨hE.some, tendsto_const_nhds⟩
 
-omit [SecondCountableTopology T] [IsFiniteMeasure P] in
+omit [SecondCountableTopology T] in
 lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hβ_pos : 0 < β)
@@ -677,15 +674,16 @@ lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber (Set.
   · exact Measurable.ite (hX.measurableSet_holderSet hT'_countable) (hX.measurable t)
       measurable_const
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [IsFiniteMeasure P] in
-lemma measurable_pair_holderModification
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
+lemma measurable_pair_holderModification {β₁ β₂ : ℝ≥0}
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ₁_pos : 0 < β₁) (hβ₂_pos : 0 < β₂)
     {T' : Set T} (hT'_dense : Dense T') (hT'_countable : T'.Countable)
-    [∀ ω, Decidable (ω ∈ holderSet X T' p β)] (s t : T) :
+    [∀ ω, Decidable (ω ∈ holderSet X T' p β₁)] [∀ ω, Decidable (ω ∈ holderSet X T' p β₂)]
+    (s t : T) :
     Measurable[_, borel (E × E)]
-      (fun ω ↦ (holderModification X β p T' hT'_dense s ω,
-        holderModification X β p T' hT'_dense t ω)) := by
+      (fun ω ↦ (holderModification X β₁ p T' hT'_dense s ω,
+        holderModification X β₂ p T' hT'_dense t ω)) := by
   borelize (E × E)
   simp only [Dense.extend, IsDenseInducing.extend, holderModification]
   have : @NeBot (Subtype T') (comap Subtype.val (𝓝 s)) := by
@@ -696,26 +694,44 @@ lemma measurable_pair_holderModification
     enter [1, ω]
     rw [← limUnder_prod]
     rfl
-    tactic => exact todo hT hX hd_pos hβ_pos hT'_dense s ω
-    tactic => exact todo hT hX hd_pos hβ_pos hT'_dense t ω
-  let X' (t : T) (ω : Ω) : E := if ω ∈ holderSet X T' p β then X t ω else hE.some
-  let f (x : T' × T') (ω : Ω) := (X' x.1 ω, X' x.2 ω)
+    tactic => exact todo hT hX hd_pos hβ₁_pos hT'_dense s ω
+    tactic => exact todo hT hX hd_pos hβ₂_pos hT'_dense t ω
+  let X₁' (t : T) (ω : Ω) : E := if ω ∈ holderSet X T' p β₁ then X t ω else hE.some
+  let X₂' (t : T) (ω : Ω) : E := if ω ∈ holderSet X T' p β₂ then X t ω else hE.some
+  let f (x : T' × T') (ω : Ω) := (X₁' x.1 ω, X₂' x.2 ω)
   refine measurable_limUnder_of_exists_tendsto (f := f) (fun ω ↦ ?_) (fun i ↦ ?_)
-  · obtain ⟨c₀, h₀⟩ := todo hT hX hd_pos hβ_pos hT'_dense s ω
-    obtain ⟨c₁, h₁⟩ := todo hT hX hd_pos hβ_pos hT'_dense t ω
+  · obtain ⟨c₀, h₀⟩ := todo hT hX hd_pos hβ₁_pos hT'_dense s ω
+    obtain ⟨c₁, h₁⟩ := todo hT hX hd_pos hβ₂_pos hT'_dense t ω
     use (c₀,c₁)
     rw [nhds_prod_eq]
     apply Filter.Tendsto.prodMk
     · exact h₀.comp tendsto_fst
     · exact h₁.comp tendsto_snd
   · have : f i =
-        fun ω ↦ if ω ∈ holderSet X T' p β then (X i.1 ω, X i.2 ω) else (hE.some, hE.some) := by
-      ext ω <;> by_cases hω : ω ∈ holderSet X T' p β <;> simp [f, X', hω]
+        fun ω ↦ if ω ∈ holderSet X T' p β₁ then
+          if ω ∈ holderSet X T' p β₂ then (X i.1 ω, X i.2 ω)
+          else (X i.1 ω, hE.some)
+        else if ω ∈ holderSet X T' p β₂ then (hE.some, X i.2 ω)
+          else (hE.some, hE.some) := by
+      ext ω <;> by_cases hω₁ : ω ∈ holderSet X T' p β₁ <;> by_cases hω₂ : ω ∈ holderSet X T' p β₂
+        <;> simp [f, X₁', X₂', hω₁, hω₂]
     rw [this]
-    exact Measurable.ite (hX.measurableSet_holderSet hT'_countable) (hX.measurablePair i.1 i.2)
-      measurable_const
+    refine Measurable.ite (hX.measurableSet_holderSet hT'_countable) ?_ ?_
+    · refine Measurable.ite (hX.measurableSet_holderSet hT'_countable) ?_ ?_
+      · exact hX.measurablePair i.1 i.2
+      · intro A hA
+        change MeasurableSet (((fun x : E ↦ (x, hE.some)) ∘ X i.1) ⁻¹' A)
+        rw [Set.preimage_comp]
+        borelize E
+        exact MeasurableSet.preimage (hA.preimage (by fun_prop)) (hX.measurable _)
+    · refine Measurable.ite (hX.measurableSet_holderSet hT'_countable) ?_ measurable_const
+      intro A hA
+      change MeasurableSet (((fun x : E ↦ (hE.some, x)) ∘ X i.2) ⁻¹' A)
+      rw [Set.preimage_comp]
+      borelize E
+      exact MeasurableSet.preimage (hA.preimage (by fun_prop)) (hX.measurable _)
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [IsFiniteMeasure P] in
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
 lemma uniformContinuous_holderModification
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
@@ -729,7 +745,16 @@ lemma uniformContinuous_holderModification
   · simp only [hω, ↓reduceIte]
     exact uniformContinuous_const
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [IsFiniteMeasure P] in
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
+lemma continuous_holderModification
+    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
+    {T' : Set T} (hT'_dense : Dense T')
+    [∀ ω, Decidable (ω ∈ holderSet X T' p β)] (ω : Ω) :
+    Continuous (fun t : T ↦ holderModification X β p T' hT'_dense t ω) :=
+  (uniformContinuous_holderModification hT hX hd_pos hβ_pos hT'_dense ω).continuous
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
 lemma holderWith_holderModification
     (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
@@ -744,6 +769,8 @@ lemma holderWith_holderModification
       hβ_pos
   · simp only [hω, ↓reduceIte, holderModification]
     exact ⟨0, hT'_dense.holderWith_extend (by simp [HolderWith]) hβ_pos⟩
+
+variable [IsFiniteMeasure P]
 
 omit [SecondCountableTopology T] in
 lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
@@ -776,7 +803,7 @@ lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber (Se
     uniformContinuous_holderModification hT hX hd_pos hβ_pos hT'_dense ω
   have hY_cont ω : Continuous (fun t ↦ Y t ω) := (hY_unif ω).continuous
   have hY_pair s t : Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Y t ω)) := by
-    exact measurable_pair_holderModification hT hX hd_pos hβ_pos hT'_dense hT'_countable s t
+    exact measurable_pair_holderModification hT hX hd_pos hβ_pos hβ_pos hT'_dense hT'_countable s t
   -- Main proof
   suffices ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) ≤ 0 by
     filter_upwards [this] with ω h using by simpa using h
@@ -830,11 +857,11 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   -- We build a modification `Y` of `X`, by using `Dense.extend` on `X · ω` if `ω ∈ A` and by taking
   -- an arbitrary constant value if `ω ∉ A`.
   classical
-  refine ⟨holderModification X β p T' hT'_dense, fun t ↦ ?_, fun t ↦ ?_, fun ω ↦ ?_⟩
-  · exact measurable_holderModification hT hX hd_pos hβ_pos hT'_dense hT'_countable t
+  refine ⟨holderModification X β p T' hT'_dense, ?_, ?_, ?_⟩
+  · exact measurable_holderModification hT hX hd_pos hβ_pos hT'_dense hT'_countable
   · exact modification_holderModification hT hX hc hd_pos hdq_lt hβ_pos hβ_lt
-      hT'_dense hT'_countable t
-  · exact holderWith_holderModification hT hX hd_pos hβ_pos hT'_dense ω
+      hT'_dense hT'_countable
+  · exact holderWith_holderModification hT hX hd_pos hβ_pos hT'_dense
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsAEKolmogorovProcess X P p q M)
@@ -891,8 +918,8 @@ lemma Measurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
     simp
   exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
 
-lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsAEKolmogorovProcess X P p q M)
+lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p) ω, MemHolder β (Y · ω) := by
@@ -903,15 +930,23 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
   obtain ⟨β', hβ'_mono, hβ'_mem, hβ'_tendsto⟩ := exists_seq_strictMono_tendsto' h_ratio_pos
   let β : ℕ → ℝ≥0 := fun n ↦ ⟨β' n, (hβ'_mem n).1.le⟩
   have hβ_pos : ∀ n, 0 < β n := fun n ↦ mod_cast (hβ'_mem n).1
-  have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hdq_lt (β := β n)
-    (hβ_pos n) (mod_cast (hβ'_mem n).2)
-  choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  classical
+  let Z := fun n ↦ holderModification X (β n) p T' hT'_dense
+  have hZ_meas : ∀ n t, Measurable (Z n t) :=
+    fun n t ↦ measurable_holderModification hT hX hd_pos (hβ_pos n) hT'_dense hT'_countable t
+  have hZ_ae_eq : ∀ n t, ∀ᵐ ω ∂P, Z n t ω = X t ω :=
+    fun n t ↦ modification_holderModification hT hX
+      hc hd_pos hdq_lt (hβ_pos n) (mod_cast (hβ'_mem n).2) hT'_dense hT'_countable t
+  have hZ_holder : ∀ (n : ℕ) (ω : Ω), MemHolder (β n) fun x ↦ Z n x ω :=
+    fun n ω ↦ holderWith_holderModification hT hX hd_pos (hβ_pos n) hT'_dense ω
+  -- have h_exists := fun n ↦ exists_modification_holder_aux hT hX hc hd_pos hdq_lt (β := β n)
+  --   (hβ_pos n) (mod_cast (hβ'_mem n).2)
+  -- choose Z hZ_meas hZ_ae_eq hZ_holder using h_exists
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
     refine indistinduishable_of_modification (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
-    · obtain ⟨C, hC⟩ := hZ_holder n ω
-      exact hC.continuous (hβ_pos n)
-    · obtain ⟨C, hC⟩ := hZ_holder 0 ω
-      exact hC.continuous (hβ_pos 0)
+    · exact continuous_holderModification hT hX hd_pos (hβ_pos n) hT'_dense ω
+    · exact continuous_holderModification hT hX hd_pos (hβ_pos 0) hT'_dense ω
     · intro t
       filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
   rw [← ae_all_iff] at hZ_ae_eq'
@@ -920,12 +955,14 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
     have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) ?_
-    · obtain ⟨_, h⟩ := hZ_holder n ω
-      exact h.continuous (hβ_pos n)
-    · obtain ⟨_, h⟩ := hZ_holder 0 ω
-      exact h.continuous (hβ_pos 0)
-    · sorry
+    refine Measurable.measurableSet_eq_of_continuous (fun ω ↦ ?_) (fun ω ↦ ?_) fun t ↦ ?_
+    · exact continuous_holderModification hT hX hd_pos (hβ_pos n) hT'_dense ω
+    · exact continuous_holderModification hT hX hd_pos (hβ_pos 0) hT'_dense ω
+    · suffices Measurable[_, borel (E × E)] (fun ω ↦ (Z n t ω, Z 0 t ω)) by
+        borelize (E × E)
+        exact (continuous_edist.stronglyMeasurable.comp_measurable this).measurable
+      exact measurable_pair_holderModification hT hX hd_pos (hβ_pos n) (hβ_pos 0)
+        hT'_dense hT'_countable t t
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
   classical
   let Y (t : T) (ω : Ω) : E := if ω ∈ A then Z 0 t ω else Nonempty.some inferInstance
@@ -947,6 +984,16 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.uni
       refine this.mono hn.le
     simp_rw [← hω n]
     exact hZ_holder n ω
+
+lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
+      ∧ ∀ (β : ℝ≥0) (_ : 0 < β) (_ : β < (q - d) / p) ω, MemHolder β (Y · ω) := by
+  obtain ⟨Y, hY_meas, hY_eq, hY_holder⟩ :=
+    exists_modification_holder'' hT hX.IsKolmogorovProcess_mk hc hd_pos hdq_lt
+  refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
+  filter_upwards [hX.ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
