@@ -77,38 +77,36 @@ theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpa
   refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend ?_ measurable_const
   exact measurable_limUnder_of_exists_tendsto (fun x ↦ x.2)
     (fun i ↦ (hf i).comp measurable_subtype_coe)
+
+lemma limUnder_prod {α β X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    [Nonempty X] [Nonempty Y] [T2Space X] [T2Space Y] {f : Filter α} {f' : Filter β}
+    [NeBot f] [NeBot f'] {g : α → X} {g' : β → Y}
+    (h₁ : ∃ x, Tendsto g f (𝓝 x)) (h₂ : ∃ x', Tendsto g' f' (𝓝 x')) :
+    limUnder (f ×ˢ f') (fun x ↦ (g x.1, g' x.2)) = (limUnder f g, limUnder f' g') := by
+  rw [Filter.Tendsto.limUnder_eq]
+  rw [nhds_prod_eq]
+  apply Filter.Tendsto.prodMk
+  · exact (tendsto_nhds_limUnder h₁).comp tendsto_fst
+  · exact (tendsto_nhds_limUnder h₂).comp tendsto_snd
+
 end aux
 
 namespace ProbabilityTheory
 
 variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
   {X : T → Ω → E} {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0} {P : Measure Ω}
+  {U : Set T}
 
 section EMetricSpace
 
-variable [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+variable [PseudoMetricSpace T] [EMetricSpace E]
 
-lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
-    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
-    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
-    {T' : Set T} (hT' : T'.Countable) :
-    ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
-  have : Countable T' := hT'
-  have h_diam : EMetric.diam .univ < ∞ := hT.diam_lt_top hd_pos
-  refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsAEKolmogorovProcess hd_pos
-    hdq_lt hβ_pos T').trans_lt ?_).ne
-  · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
-    exact AEMeasurable.div (hX.measurable_edist.aemeasurable.pow_const _) (by fun_prop)
-  · exact ENNReal.mul_lt_top (by simp) (constL_lt_top h_diam hc hd_pos hX.p_pos hdq_lt hβ_lt)
+section HolderSet
 
-omit [MeasurableSpace E] [BorelSpace E] in
 def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) : Set Ω :=
   {ω | ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞
       ∧ ∀ (s t : T'), edist s t = 0 → edist (X s ω) (X t ω) = 0}
 
-omit [MeasurableSpace E] [BorelSpace E] in
 lemma IsKolmogorovProcess.measurableSet_holderSet
     (hX : IsKolmogorovProcess X P p q M) {T' : Set T} (hT' : T'.Countable) :
     MeasurableSet (holderSet X T' p β) := by
@@ -129,16 +127,15 @@ lemma IsKolmogorovProcess.measurableSet_holderSet
     · exact MeasurableSet.preimage (measurableSet_singleton 0) hX.measurable_edist
     · exact (MeasurableSet.preimage (measurableSet_singleton 0) (by fun_prop)).compl
 
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma holderWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma holderWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
-    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
+    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) (hT'U : T' ⊆ U) :
     letI C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
     HolderWith (C ω ^ p⁻¹).toNNReal β fun (t : T') ↦ X t ω := by
   intro s t
   have h_edist_lt_top : edist s t < ∞ := by
-    calc edist s t ≤ EMetric.diam (Set.univ : Set T) :=
-      EMetric.edist_le_diam_of_mem (Set.mem_univ s) (Set.mem_univ t)
+    calc edist s t ≤ EMetric.diam U :=
+      EMetric.edist_le_diam_of_mem (hT'U s.2) (hT'U t.2)
     _ < ∞ := hT.diam_lt_top hd_pos
   have h_dist_top : edist s t ^ (β : ℝ) ≠ ∞
   · simp only [ne_eq, ENNReal.rpow_eq_top_iff, NNReal.coe_pos, not_or, not_and, not_lt,
@@ -153,31 +150,31 @@ lemma holderWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.un
     ← ENNReal.rpow_mul]
   exact le_iSup₂ s t (f := fun (s t : T') ↦ edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p))
 
-omit [MeasurableSpace E] [BorelSpace E] in
 lemma uniformContinuous_of_mem_holderSet
-    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hT : HasBoundedInternalCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
-    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
+    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) (hT'U : T' ⊆ U) :
     UniformContinuous fun (t : T') ↦ X t ω :=
-      (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).uniformContinuous hβ_pos
+      (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω hT'U).uniformContinuous hβ_pos
 
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+lemma continuous_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
-    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) :
+    {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β) (hT'U : T' ⊆ U) :
     Continuous fun (t : T') ↦ X t ω :=
-  (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuous hβ_pos
+  (holderWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω hT'U).continuous hβ_pos
 
-omit [MeasurableSpace E] [BorelSpace E] in
+-- todo: T' should only be dense in U and the conclusion should be for t in U
 lemma exists_tendsto_of_mem_holderSet [CompleteSpace E]
-    (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
+    (hT : HasBoundedInternalCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
-    {T' : Set T} (hT'_dense : Dense T') {ω : Ω} (hω : ω ∈ holderSet X T' p β) (t : T) :
+    {T' : Set T} (hT'_dense : Dense T') {ω : Ω} (hω : ω ∈ holderSet X T' p β) (hT'U : T' ⊆ U)
+    (t : T) :
     ∃ c, Tendsto (fun t' : T' ↦ X t' ω) (comap Subtype.val (𝓝 t)) (𝓝 c) :=
-  (uniformContinuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).exists_tendsto hT'_dense t
+  (uniformContinuous_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω hT'U).exists_tendsto hT'_dense t
 
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
+end HolderSet
+
+lemma IsKolmogorovProcess.tendstoInMeasure
     (hX : IsKolmogorovProcess X P p q M)
     (hq_pos : 0 < q) {T' : Set T} {u : ℕ → T'} {t : T}
     (hu : Tendsto (fun n ↦ (u n : T)) atTop (𝓝 t)) :
@@ -209,8 +206,6 @@ lemma IsKolmogorovProcess.tendstoInMeasure_of_mem_holderSet
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
 
-variable [hE : Nonempty E] [SecondCountableTopology T] [CompleteSpace E]
-
 section FromPR
 
 variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace E]
@@ -223,16 +218,7 @@ theorem tendstoInMeasure_of_tendsto_ae_of_measurable_edist [IsFiniteMeasure μ]
 
 end FromPR
 
-lemma limUnder_prod {α β X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-    [Nonempty X] [Nonempty Y] [T2Space X] [T2Space Y] {f : Filter α} {f' : Filter β}
-    [NeBot f] [NeBot f'] {g : α → X} {g' : β → Y}
-    (h₁ : ∃ x, Tendsto g f (𝓝 x)) (h₂ : ∃ x', Tendsto g' f' (𝓝 x')) :
-    limUnder (f ×ˢ f') (fun x ↦ (g x.1, g' x.2)) = (limUnder f g, limUnder f' g') := by
-  rw [Filter.Tendsto.limUnder_eq]
-  rw [nhds_prod_eq]
-  apply Filter.Tendsto.prodMk
-  · exact (tendsto_nhds_limUnder h₁).comp tendsto_fst
-  · exact (tendsto_nhds_limUnder h₂).comp tendsto_snd
+variable [hE : Nonempty E]
 
 section IndicatorProcess
 
@@ -243,21 +229,19 @@ def indicatorProcess (X : T → Ω → E) (A : Set Ω) : T → Ω → E :=
   haveI := Classical.decPred (· ∈ A)
   fun t ω ↦ if ω ∈ A then X t ω else hE.some
 
-omit [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
-  [SecondCountableTopology T] [CompleteSpace E] in
+omit [PseudoMetricSpace T] [EMetricSpace E] in
 @[simp]
 lemma indicatorProcess_apply (X : T → Ω → E) (A : Set Ω) (t : T) (ω : Ω) [Decidable (ω ∈ A)] :
     indicatorProcess X A t ω = if ω ∈ A then X t ω else hE.some := by
   simp [indicatorProcess]
 
-omit [PseudoMetricSpace T] [EMetricSpace E] [BorelSpace E] [SecondCountableTopology T]
-  [CompleteSpace E] in
-lemma measurable_indicatorProcess (hA : MeasurableSet A) (hX : ∀ t, Measurable (X t)) (t : T) :
+omit [PseudoMetricSpace T] [EMetricSpace E] in
+lemma measurable_indicatorProcess [MeasurableSpace E]
+    (hA : MeasurableSet A) (hX : ∀ t, Measurable (X t)) (t : T) :
     Measurable (indicatorProcess X A t) :=
   Measurable.ite hA (hX t) measurable_const
 
-omit [PseudoMetricSpace T] [EMetricSpace E] [MeasurableSpace E] [BorelSpace E]
-  [SecondCountableTopology T] [CompleteSpace E] in
+omit [PseudoMetricSpace T] [EMetricSpace E] in
 lemma induction_indicatorProcess (p : (T → E) → Prop)
     (hp_const : p (fun _ ↦ hE.some)) (A : Set Ω) (ω : Ω) (hpX : p (X · ω)) :
     p (indicatorProcess X A · ω) := by
@@ -265,15 +249,14 @@ lemma induction_indicatorProcess (p : (T → E) → Prop)
   · simp only [hω, indicatorProcess]; exact hpX
   · simp only [hω, indicatorProcess]; exact hp_const
 
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [CompleteSpace E] in
 lemma uniformContinuous_subtype_indicatorProcess {T' : Set T} (ω : Ω)
     (hX : UniformContinuous fun (t : T') ↦ X t ω) :
     UniformContinuous fun (t : T') ↦ indicatorProcess X A t ω :=
   induction_indicatorProcess (p := fun f ↦ UniformContinuous fun (t : T') ↦ f t)
     uniformContinuous_const A ω hX
 
-omit [CompleteSpace E] in
 lemma measurable_pair_indicatorProcess {T₁ T₂ : Type*}
+    [MeasurableSpace E] [BorelSpace E]
     [PseudoMetricSpace T₁] [PseudoMetricSpace T₂] {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
     (hX₁ : ∀ t, Measurable (X₁ t)) (hX₂ : ∀ t, Measurable (X₂ t))
     (hX₁₂ : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X₁ i ω, X₂ j ω))
@@ -300,8 +283,7 @@ lemma measurable_pair_indicatorProcess {T₁ T₂ : Type*}
     clear hX₁₂
     fun_prop
 
-omit [CompleteSpace E] in
-lemma measurable_edist_indicatorProcess {T₁ T₂ : Type*}
+lemma measurable_edist_indicatorProcess {T₁ T₂ : Type*} [MeasurableSpace E] [BorelSpace E]
     [PseudoMetricSpace T₁] [PseudoMetricSpace T₂] {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
     (hX₁ : ∀ t, Measurable (X₁ t)) (hX₂ : ∀ t, Measurable (X₂ t))
     (hX₁₂ : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X₁ i ω, X₂ j ω))
@@ -313,6 +295,9 @@ lemma measurable_edist_indicatorProcess {T₁ T₂ : Type*}
     (measurable_pair_indicatorProcess hX₁ hX₂ hX₁₂ hA₁ hA₂ s t)
 
 end IndicatorProcess
+
+variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
+  [SecondCountableTopology T]
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
 lemma measurable_pair_limUnder_comap {T₁ T₂ : Type*}
@@ -374,7 +359,7 @@ lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber (Set.univ : S
     holderModification X β p T' hT'_dense t' ω = X t' ω := by
   simp only [holderModification, indicatorProcess, hω, ↓reduceIte]
   refine hT'_dense.extend_eq ?_ _
-  exact continuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
+  exact continuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω (Set.subset_univ T')
 
 omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
 lemma exists_tendsto_indicatorProcess_holderSet
@@ -385,7 +370,8 @@ lemma exists_tendsto_indicatorProcess_holderSet
       (comap Subtype.val (𝓝 t)) (𝓝 c) := by
   by_cases hω : ω ∈ holderSet X T' p β
   · simp only [hω, ↓reduceIte, indicatorProcess]
-    exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω t
+    exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω
+      (Set.subset_univ T') t
   · simp only [hω, ↓reduceIte, indicatorProcess]
     exact ⟨hE.some, tendsto_const_nhds⟩
 
@@ -485,7 +471,7 @@ lemma uniformContinuous_holderModification
   refine hT'_dense.uniformContinuous_extend ?_
   by_cases hω : ω ∈ holderSet X T' p β
   · simp only [hω, ↓reduceIte, indicatorProcess]
-    exact uniformContinuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
+    exact uniformContinuous_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω (Set.subset_univ T')
   · simp only [hω, ↓reduceIte, indicatorProcess]
     exact uniformContinuous_const
 
@@ -509,8 +495,8 @@ lemma holderWith_holderModification
   by_cases hω : ω ∈ holderSet X T' p β
   · simp only [holderModification, hω, ↓reduceIte,indicatorProcess]
     refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    exact hT'_dense.holderWith_extend (holderWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω)
-      hβ_pos
+    exact hT'_dense.holderWith_extend
+      (holderWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω (Set.subset_univ T')) hβ_pos
   · simp only [hω, ↓reduceIte, holderModification, indicatorProcess]
     exact ⟨0, hT'_dense.holderWith_extend (by simp [HolderWith]) hβ_pos⟩
 
@@ -529,6 +515,7 @@ lemma ae_mem_holderSet (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T)
   let C ω := ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
   have hC_lt_top : ∀ᵐ ω ∂P, C ω < ∞ :=
     hX.ae_iSup_rpow_edist_div_lt_top hT hc hd_pos hdq_lt hβ_pos hβ_lt hT'_countable
+      (Set.subset_univ _)
   filter_upwards [hC_lt_top, h_ae_zero] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
 omit [SecondCountableTopology T] in
@@ -567,7 +554,7 @@ lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber (Se
     simp [hY_eq hω (u n)]
   -- `X (u n)` converges in measure to `X t`
   have h_tendsto_X : TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) :=
-    hX.tendstoInMeasure_of_mem_holderSet (hd_pos.trans hdq_lt) hu
+    hX.tendstoInMeasure (hd_pos.trans hdq_lt) hu
   -- `Y (u n)` converges in measure to `Y t`
   have h_tendsto_Y : TendstoInMeasure P (fun n ↦ Y (u n)) atTop (Y t) := by
     have h_ae ω : Tendsto (fun n ↦ Y (u n) ω) atTop (𝓝 (Y t ω)) :=
@@ -652,7 +639,8 @@ lemma isLimitOfIndicator_holderModification
   have hA_meas : MeasurableSet A := hX.measurableSet_holderSet hT'_countable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := ae_mem_holderSet hT hX hc hd_pos hdq_lt hβ_pos hβ_lt hT'_countable
   refine ⟨T', hT'_dense, A, hT'_countable, hA_meas, hA_ae, fun t ω hω ↦ ?_, fun t ω ↦ rfl⟩
-  exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω t
+  exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω
+    (Set.subset_univ T') t
 
 omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] [CompleteSpace E]
   [IsFiniteMeasure P] in
@@ -691,7 +679,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
   · refine ⟨T', hT'_dense, holderSet X T' p β,
       hT'_countable, hX.measurableSet_holderSet hT'_countable, ?_, fun t ω hω ↦ ?_, fun t ω ↦ rfl⟩
     · exact ae_mem_holderSet hT hX hc hd_pos hdq_lt hβ_pos hβ_lt hT'_countable
-    · exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω t
+    · exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hT'_dense hω
+        (Set.subset_univ T') t
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber (Set.univ : Set T) c d)
     (hX : IsAEKolmogorovProcess X P p q M)
