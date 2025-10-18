@@ -228,7 +228,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountable
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
 lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) [IsGaussian μ] :
-    μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
+    μ = gaussianReal (∫ x, x ∂μ) Var[id; μ].toNNReal := by
   nth_rw 1 [← Measure.map_id (μ := μ), ← ContinuousLinearMap.coe_id' (R₁ := ℝ),
     map_eq_gaussianReal]
   rfl

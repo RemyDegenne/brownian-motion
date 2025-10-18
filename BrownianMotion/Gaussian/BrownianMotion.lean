@@ -211,8 +211,7 @@ lemma aux (h : ∀ᵐ ω ∂P, X 0 ω = 0) {I : Finset ℝ≥0} (hI : I.Nonempty
     Fin.coe_castSucc, Function.comp_apply, Fin.val_natCast, Fin.natCast_eq_zero]
   rw [← Finset.Iio_succ_eq_Iic, Nat.succ_eq_succ, Finset.Iio_eq_Ico]
   have : #I ≠ 0 := hI.card_ne_zero
-  convert (Finset.sum_Ico_sub (fun n ↦ X (toFin hI n) ω) (bot_le)).symm
-    with n hn
+  convert (Finset.sum_Ico_sub (fun n ↦ X (toFin hI n) ω) (bot_le)).symm with n hn
   · rw [toFin_idxOf_sort t.2]
     simp [hω]
   · have : n < #I := by
@@ -361,6 +360,57 @@ lemma covariance_eq {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     · exact hY.const_mul _ |>.integrable (by norm_num)
     · exact integrable_const _
 
+lemma HasLaw.aeeq_of_dirac' {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
+    {x : 𝓧} {X : Ω → 𝓧}
+    (hX : HasLaw X (.dirac x) P) : X =ᵐ[P] (fun _ ↦ x) := by
+  apply ae_of_ae_map (p := fun y ↦ y = x) hX.aemeasurable
+  rw [hX.map_eq, ae_dirac_iff]
+  simp
+
+lemma HasLaw.aeeq_of_dirac {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
+    {x : 𝓧} {X : Ω → 𝓧}
+    (hX : HasLaw X (.dirac x) P) : ∀ᵐ ω ∂P, X ω = x := hX.aeeq_of_dirac'
+
+lemma HasIndepIncrements.hasGaussianLaw_restrict (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P)
+    (incr : HasIndepIncrements X P) (I : Finset ℝ≥0) :
+    HasGaussianLaw (fun ω ↦ I.restrict fun x ↦ X x ω) P where
+  isGaussian_map := by
+    have := (law 0).isProbabilityMeasure_iff.1 inferInstance
+    obtain rfl | hI := I.eq_empty_or_nonempty
+    · have : IsEmpty {x // x ∈ (∅ : Finset ℝ≥0)} := inferInstance
+      have : P.map (fun ω ↦ Finset.restrict ∅ fun x ↦ X x ω) = .dirac this.elim := by
+        ext s -
+        apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
+        · simp
+        simp only [measure_univ]
+        exact @measure_univ _ _ _
+          (Measure.isProbabilityMeasure_map (aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable))
+      rw [this]
+      infer_instance
+    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
+      apply HasLaw.aeeq_of_dirac
+      rw [← gaussianReal_zero_var]
+      exact law 0
+    have := aux aeeq hI
+    rw [Measure.map_congr this]
+    have : HasGaussianLaw
+        (fun ω (i : Fin (#I - 1 + 1)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+      have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
+      have (i : Fin (#I - 1 + 1)) :
+          HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+        have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
+        apply IndepFun.hasGaussianLaw_sub (X := X (toFin hI i.castSucc))
+          (Y := X (toFin hI i.succ) - X (toFin hI i.castSucc))
+        · exact (law _).hasGaussianLaw
+        · simpa using (law _).hasGaussianLaw
+        apply incr.indepFun_incr (r := 0)
+        · simp
+        · apply monotone_toFin hI
+          exact Fin.castSucc_lt_succ i |>.le
+        · exact aeeq
+      exact ind.hasGaussianLaw
+    infer_instance
+
 lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
     IsPreBrownian X P where
@@ -375,31 +425,7 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     · ext s -
       apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
       all_goals simp
-    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
-      apply ae_of_ae_map (p := fun x ↦ x = 0)
-      · rw [(law 0).map_eq, gaussianReal_zero_var, ae_dirac_iff]
-        simp
-      · exact (law 0).aemeasurable
-    have : IsGaussian (P.map (fun ω ↦ I.restrict fun x ↦ X x ω)) := by
-      have := aux aeeq hI
-      rw [Measure.map_congr this]
-      have : HasGaussianLaw
-          (fun ω (i : Fin (#I - 1 + 1)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
-        have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
-        have (i : Fin (#I - 1 + 1)) :
-            HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
-          have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
-          apply IndepFun.hasGaussianLaw_sub (X := X (toFin hI i.castSucc))
-            (Y := X (toFin hI i.succ) - X (toFin hI i.castSucc))
-          · exact (law _).hasGaussianLaw
-          · simpa using (law _).hasGaussianLaw
-          apply incr.indepFun_incr (r := 0)
-          · simp
-          · apply monotone_toFin hI
-            exact Fin.castSucc_lt_succ i |>.le
-          · exact aeeq
-        exact ind.hasGaussianLaw
-      infer_instance
+    have := incr.hasGaussianLaw_restrict law
     apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
     rw [MeasurableEquiv.coe_toLp, ← PiLp.continuousLinearEquiv_symm_apply 2 ℝ]
     apply IsGaussian.ext
@@ -445,7 +471,9 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
           · apply incr.indepFun_incr (r := 0)
             · simp
             · simpa
-            · exact aeeq
+            · apply HasLaw.aeeq_of_dirac
+              rw [← gaussianReal_zero_var]
+              exact law 0
           · exact (law _).hasGaussianLaw.memLp_two
           · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
           · exact (law _).hasGaussianLaw.memLp_two
