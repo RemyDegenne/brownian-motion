@@ -604,51 +604,14 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
   p_pos := by positivity
   q_pos := by positivity
 
-/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
-the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
-    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
-
 lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
     x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by simp
 
-lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t := by
-  have h1 : brownian s = (fun x ↦ x ⟨s, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  have h2 : brownian t = (fun x ↦ x ⟨t, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  rw [h1, h2, ← covariance_map]
-  · simp_rw [hasLaw_restrict_brownian.map_eq]
-    rw [covariance_eval_gaussianProjectiveFamily]
-  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
-  exact Measurable.aemeasurable <| by fun_prop
+lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t :=
+  IsPreBrownian.covariance_fun_eval s t
 
-lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
-  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
-  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin (n + 1) → ℝ :=
-      { toFun := (fun x (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
-          (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩)
-        map_add' x y := by ext; simp; ring
-        map_smul' m x := by ext; simp; ring
-        cont := by fun_prop }
-    have : (fun ω i ↦ (brownian (t i.succ) - brownian (t i.castSucc)) ω) =
-        L ∘ fun ω ↦ (Finset.univ.image t).restrict (brownian · ω) := by ext; simp [L]
-    rw [this]
-    infer_instance
-  intro i j hij
-  rw [covariance_sub_left, covariance_sub_right, covariance_sub_right]
-  · simp_rw [covariance_brownian]
-    wlog h : i < j
-    · simp_rw [← this n t ht j i hij.symm (by omega), min_comm]
-      ring
-    have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
-    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
-    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
-    rw [min_eq_left (ht h1), min_eq_left (ht h), min_eq_left (ht h2), min_eq_left (ht h3)]
-    simp
-  all_goals exact HasGaussianLaw.memLp_two
+lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit :=
+  IsPreBrownian.hasIndepIncrements
 
 section Measure
 
