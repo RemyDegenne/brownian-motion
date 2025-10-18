@@ -1,3 +1,4 @@
+import Mathlib.Analysis.Normed.Operator.NormedSpace
 import Mathlib.Topology.MetricSpace.HolderNorm
 
 open Bornology Filter

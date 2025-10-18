@@ -1,4 +1,4 @@
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import BrownianMotion.Auxiliary.MeasureTheory
 import Mathlib.Probability.Distributions.Gaussian.Basic
 import Mathlib.Probability.HasLaw
 
@@ -7,6 +7,19 @@ open MeasureTheory ENNReal WithLp
 namespace ProbabilityTheory
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
+
+section HasLaw
+
+variable {𝓧} {m𝓧 : MeasurableSpace 𝓧} (X : Ω → 𝓧) (μ : Measure 𝓧)
+  (P : Measure Ω := by volume_tac)
+
+variable {X μ} {P : Measure Ω}
+
+lemma hasLaw_map [IsProbabilityMeasure P] (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
+  aemeasurable := hX
+  map_eq := rfl
+
+end HasLaw
 
 section HasGaussianLaw
 
@@ -89,13 +102,10 @@ instance HasGaussianLaw.eval {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {m�
     [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)] [∀ i, BorelSpace (E i)]
     [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
     [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
-    HasGaussianLaw (X i) P where
-  isGaussian_map := by
-    have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
-    rw [this, ← AEMeasurable.map_map_of_aemeasurable]
-    · infer_instance
-    · fun_prop
-    · exact h.aemeasurable
+    HasGaussianLaw (X i) P := by
+  have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+  rw [this]
+  infer_instance
 
 instance HasGaussianLaw.toLp_comp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι : Type*} [Fintype ι] {E : ι → Type*}
     [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
@@ -103,6 +113,35 @@ instance HasGaussianLaw.toLp_comp (p : ℝ≥0∞) [Fact (1 ≤ p)] {ι : Type*}
     {X : (i : ι) → Ω → E i} [HasGaussianLaw (fun ω ↦ (X · ω)) P] :
     HasGaussianLaw (fun ω ↦ toLp p (X · ω)) P := by
   rw [← PiLp.continuousLinearEquiv_symm_apply p ℝ]
+  infer_instance
+
+instance HasGaussianLaw.toLp_comp' (p : ℝ≥0∞) [Fact (1 ≤ p)] {E F : Type*}
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    [MeasurableSpace E] [MeasurableSpace F] [BorelSpace E] [BorelSpace F]
+    [SecondCountableTopology E] [SecondCountableTopology F]
+    {X : Ω → E} {Y : Ω → F} [HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P] :
+    HasGaussianLaw (fun ω ↦ toLp p (X ω, Y ω)) P := by
+  conv => enter [1, ω]; change (WithLp.prodContinuousLinearEquiv p ℝ E F).symm _
+  infer_instance
+
+lemma HasGaussianLaw.fst {E F : Type*}
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    [MeasurableSpace E] [MeasurableSpace F] [BorelSpace E] [BorelSpace F]
+    [SecondCountableTopology E] [SecondCountableTopology F]
+    {X : Ω → E} {Y : Ω → F} [HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P] :
+    HasGaussianLaw X P := by
+  have : X = (ContinuousLinearMap.fst ℝ E F) ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
+  rw [this]
+  infer_instance
+
+lemma HasGaussianLaw.snd {E F : Type*}
+    [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace ℝ E] [NormedSpace ℝ F]
+    [MeasurableSpace E] [MeasurableSpace F] [BorelSpace E] [BorelSpace F]
+    [SecondCountableTopology E] [SecondCountableTopology F]
+    {X : Ω → E} {Y : Ω → F} [HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P] :
+    HasGaussianLaw Y P := by
+  have : Y = (ContinuousLinearMap.snd ℝ E F) ∘ (fun ω ↦ (X ω, Y ω)) := by ext; simp
+  rw [this]
   infer_instance
 
 instance IsGaussian.map_eval {ι : Type*} [Fintype ι] {E : ι → Type*}
@@ -122,14 +161,11 @@ instance HasGaussianLaw.sub {ι Ω E : Type*} [Fintype ι] {mΩ : MeasurableSpac
     {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] {X : ι → Ω → E}
     [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i j : ι) :
-    HasGaussianLaw (X i - X j) P where
-  isGaussian_map := by
-    have : X i - X j = (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) i -
-        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) j) ∘ (fun ω ↦ (X · ω)) := by ext; simp
-    rw [this, ← AEMeasurable.map_map_of_aemeasurable]
-    · infer_instance
-    · fun_prop
-    · exact h.aemeasurable
+    HasGaussianLaw (X i - X j) P := by
+  have : X i - X j = (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) i -
+      ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) j) ∘ (fun ω ↦ (X · ω)) := by ext; simp
+  rw [this]
+  infer_instance
 
 instance IsGaussian.map_eval_sub_eval {ι E : Type*} [Fintype ι]
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]

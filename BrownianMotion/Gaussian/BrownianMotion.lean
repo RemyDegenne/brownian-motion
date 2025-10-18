@@ -7,6 +7,8 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
+import BrownianMotion.Auxiliary.HasGaussianLaw
+import Mathlib.Probability.Independence.Integrable
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 import Mathlib.Probability.Independence.CharacteristicFunction
 
@@ -15,10 +17,484 @@ import Mathlib.Probability.Independence.CharacteristicFunction
 
 -/
 
-open MeasureTheory NNReal WithLp Finset
+open MeasureTheory NNReal WithLp Finset NormedSpace Fin.NatCast
 open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
+
+section IsPreBrownian
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} (X : ℝ≥0 → Ω → ℝ)
+
+class IsPreBrownian (P : Measure Ω := by volume_tac) : Prop where
+  hasLaw : ∀ I : Finset ℝ≥0, HasLaw (fun ω ↦ I.restrict (X · ω)) (gaussianProjectiveFamily I) P
+
+variable {X} {P : Measure Ω}
+
+lemma IsPreBrownian.congr {Y : ℝ≥0 → Ω → ℝ} [hX : IsPreBrownian X P] (h : ∀ t, X t =ᵐ[P] Y t) :
+    IsPreBrownian Y P where
+  hasLaw I := by
+    refine (hX.hasLaw I).congr ?_
+    have : ∀ᵐ ω ∂P, ∀ i : I, X i ω = Y i ω := ae_all_iff.2 fun _ ↦ h _
+    filter_upwards [this] with ω hω using funext fun i ↦ (hω i).symm
+
+instance IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess X P where
+  hasGaussianLaw I := (IsPreBrownian.hasLaw I).hasGaussianLaw
+
+lemma IsPreBrownian.aemeasurable [IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
+  HasGaussianLaw.aemeasurable
+
+lemma IsPreBrownian.hasLaw_gaussianLimit [IsPreBrownian X P]
+    (hX : AEMeasurable (fun ω ↦ (X · ω)) P) :
+    HasLaw (fun ω ↦ (X · ω)) gaussianLimit P where
+  aemeasurable := hX
+  map_eq := by
+    refine isProjectiveLimit_gaussianLimit.unique ?_ |>.symm
+    intro I
+    rw [AEMeasurable.map_map_of_aemeasurable _ hX]
+    · exact (IsPreBrownian.hasLaw I).map_eq
+    · fun_prop
+
+lemma isPreBrownian_of_hasLaw_gaussianLimit (hX : HasLaw (fun ω ↦ (X · ω)) gaussianLimit P) :
+    IsPreBrownian X P where
+  hasLaw _ := hasLaw_restrict_gaussianLimit.comp hX
+
+@[gcongr]
+private lemma mono_cast (n m : ℕ) (h : n = m) (i j : Fin n) (hij : i ≤ j) :
+    h ▸ i ≤ h ▸ j := by
+  cases h
+  exact hij
+
+private lemma fin_cast_eq (n m : ℕ) (h : n = m) (i : Fin n) :
+    h ▸ i = Fin.cast h i := by
+  cases h; rfl
+
+section secret
+
+variable {I : Finset ℝ≥0} (hI : I.Nonempty)
+
+include hI in
+lemma test {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) : (i.pred hi).val < (I.sort (· ≤ ·)).length := by
+  simp only [Fin.coe_pred, length_sort]
+  have := i.isLt
+  have := hI.card_ne_zero
+  omega
+
+lemma lol {t : ℝ≥0} (ht : t ∈ I) : (I.sort (· ≤ ·)).idxOf t < #I - 1 + 1 := by
+  have h := List.idxOf_lt_length_of_mem (Finset.mem_sort (· ≤ ·) |>.2 ht)
+  have := Finset.Nonempty.card_ne_zero ⟨t, ht⟩
+  rw [← I.length_sort (· ≤ ·)]
+  omega
+
+/-- Given a nonempty `I : Finset ℝ≥0` of cardinality `n`, `toFin : Fin (#I - 1 + 2) → ℝ≥0`
+is the map `(0, t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
+noncomputable def toFin : Fin (#I - 1 + 2) → ℝ≥0 := fun i ↦ if h : i = 0 then 0 else
+      (I.sort (· ≤ ·))[(i.pred h).val]'(test hI h)
+
+@[simp]
+lemma toFin_zero : toFin hI 0 = 0 := rfl
+
+lemma toFin_of_ne_zero {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) :
+    toFin hI i = (I.sort (· ≤ ·))[(i.pred hi).val]'(test hI hi) := by
+  rw [toFin, dif_neg hi]
+
+include hI in
+lemma omg (i : Fin (#I - 1 + 1)) : i.val < (I.sort (· ≤ ·)).length := by
+  rw [Finset.length_sort]
+  have := i.isLt
+  have := hI.card_ne_zero
+  omega
+
+lemma toFin_succ (i : Fin (#I - 1 + 1)) : toFin hI i.succ = (I.sort (· ≤ ·))[i]'(omg hI i) := by
+  simp [toFin]
+
+lemma toFin_mem {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) :
+    toFin hI i ∈ I := by
+  rw [toFin_of_ne_zero hI hi, ← Finset.mem_sort (· ≤ ·)]
+  exact List.get_mem _ _
+
+lemma _root_.List.getElem_idxOf' {α : Type*} [DecidableEq α] {a : α} {l : List α}
+    (h : a ∈ l) : l[l.idxOf a]'(l.idxOf_lt_length_of_mem h) = a :=
+  l.getElem_idxOf (l.idxOf_lt_length_of_mem h)
+
+lemma ah {a b : ℕ} (h : a < b + 1) :
+    (a : Fin (b + 1)).succ = (↑(a + 1) : Fin (b + 2)) := by
+  ext
+  simp only [Fin.val_succ, Fin.val_natCast]
+  rw [Nat.mod_eq_of_lt, Nat.mod_eq_of_lt]
+  all_goals omega
+
+lemma toFin_idxOf_sort {t : ℝ≥0} (ht : t ∈ I) :
+    toFin ⟨t, ht⟩ ((I.sort (· ≤ ·)).idxOf t).succ = t := by
+  rw [Nat.succ_eq_add_one, ← ah (lol ht), toFin_succ]
+  simp only [Fin.getElem_fin, Fin.val_natCast]
+  convert List.getElem_idxOf' (Finset.mem_sort (· ≤ ·) |>.2 ht)
+  rw [Nat.mod_eq_of_lt (lol ht)]
+
+lemma toFin_idxOf (i : Fin (#I - 1 + 1)) :
+    (I.sort (· ≤ ·))[i.val]'(omg hI i) = toFin hI i.succ := by
+  simp [toFin]
+
+lemma monotone_toFin : Monotone (toFin hI) := by
+  intro i j hij
+  obtain rfl | hi := eq_or_ne i 0
+  · simp
+  rw [← Fin.pos_iff_ne_zero] at hi
+  simp only [ne_eq, hi.ne', not_false_eq_true, toFin_of_ne_zero, Fin.coe_pred,
+    (hi.trans_le hij).ne']
+  apply (I.sort_sorted (· ≤ ·)).rel_get_of_le
+  simp only [Fin.mk_le_mk, tsub_le_iff_right]
+  omega
+
+end secret
+
+lemma IsPreBrownian.hasLaw_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
+    HasLaw (X t) (gaussianReal 0 t) P :=
+  (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp (h.hasLaw {t})
+
+lemma IsPreBrownian.hasLaw_sub [IsPreBrownian X P] (s t : ℝ≥0) :
+    HasLaw (X s - X t) (gaussianReal 0 (max (s - t) (t - s))) P := by
+  have : X s - X t = ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘
+      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (X · ω)) := by ext; simp
+  rw [this]
+  exact (hasLaw_eval_sub_eval_gaussianProjectiveFamily _ _).comp (IsPreBrownian.hasLaw _)
+
+lemma IsPreBrownian.law_zero [IsPreBrownian X P] : X 0 =ᵐ[P] 0 := by
+  change id ∘ (X 0) =ᵐ[P] (fun _ ↦ 0) ∘ (X 0)
+  apply ae_eq_comp
+  · exact IsPreBrownian.aemeasurable 0
+  · rw [(IsPreBrownian.hasLaw_eval 0).map_eq, gaussianReal_zero_var]
+    exact MeasureTheory.ae_eq_dirac _
+
+lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
+    cov[fun ω ↦ X s ω, fun ω ↦ X t ω; P] = min s t := by
+  convert (h.hasLaw {s, t}).covariance_fun_comp (f := Function.eval ⟨s, by simp⟩)
+    (g := Function.eval ⟨t, by simp⟩) _ _
+  · simp [covariance_eval_gaussianProjectiveFamily]
+  all_goals exact Measurable.aemeasurable (by fun_prop)
+
+/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
+the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
+def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
+    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
+    iIndepFun (fun (i : Fin (n + 1)) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
+
+lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
+  have : IsProbabilityMeasure P := HasGaussianLaw.isProbabilityMeasure (X := X 0)
+  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero fun i j hij ↦ ?_
+  rw [covariance_fun_sub_left, covariance_fun_sub_right, covariance_fun_sub_right]
+  · simp_rw [IsPreBrownian.covariance_fun_eval]
+    wlog h' : i < j generalizing i j
+    · simp_rw [← this j i hij.symm (by omega), min_comm]
+      ring
+    have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h'.le
+    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
+    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
+    rw [min_eq_left (ht h1), min_eq_left (ht h'), min_eq_left (ht h2), min_eq_left (ht h3)]
+    simp
+  all_goals exact HasGaussianLaw.memLp_two
+
+noncomputable def lin (I : Finset ℝ≥0) : (Fin (#I - 1 + 1) → ℝ) →L[ℝ] (I → ℝ) :=
+  { toFun x i := ∑ j ≤ (I.sort (· ≤ ·)).idxOf i.1, x j
+    map_add' x y := by ext; simp [sum_add_distrib]
+    map_smul' m x := by ext; simp [mul_sum]
+    cont := by fun_prop }
+
+lemma aux (h : ∀ᵐ ω ∂P, X 0 ω = 0) {I : Finset ℝ≥0} (hI : I.Nonempty) :
+    (fun ω ↦ I.restrict (X · ω)) =ᵐ[P]
+        (lin I) ∘ (fun ω i ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) := by
+  filter_upwards [h] with ω hω
+  ext t
+  simp only [restrict, lin, ContinuousLinearMap.coe_mk', LinearMap.coe_mk, AddHom.coe_mk, toFin,
+    Fin.succ_ne_zero, ↓reduceDIte, Fin.pred_succ, Fin.castSucc_eq_zero_iff, Fin.coe_pred,
+    Fin.coe_castSucc, Function.comp_apply, Fin.val_natCast, Fin.natCast_eq_zero]
+  rw [← Finset.Iio_succ_eq_Iic, Nat.succ_eq_succ, Finset.Iio_eq_Ico]
+  have : #I ≠ 0 := hI.card_ne_zero
+  convert (Finset.sum_Ico_sub (fun n ↦ X (toFin hI n) ω) (bot_le)).symm with n hn
+  · rw [toFin_idxOf_sort t.2]
+    simp [hω]
+  · have : n < #I := by
+      have := Finset.mem_Ico.1 hn |>.2
+      have := lol t.2
+      omega
+    rw [← ah (by omega), toFin_succ hI]
+    rfl
+  · have : n < #I := by
+      have := Finset.mem_Ico.1 hn |>.2
+      have := lol t.2
+      omega
+    split_ifs with h
+    · rw [Nat.eq_zero_of_dvd_of_lt h (by omega), Nat.cast_zero, toFin_zero]
+    · have : n ≠ 0 := fun h' ↦ h (h' ▸ Nat.dvd_zero _)
+      rw [toFin_of_ne_zero]
+      · congr 2
+        simp only [Fin.val_natCast]
+        rw [Nat.mod_eq_of_lt (by omega), Nat.mod_eq_of_lt (by omega)]
+      · simp only [ne_eq, Fin.natCast_eq_zero]
+        exact mt (Nat.eq_zero_of_dvd_of_lt · (by omega)) this
+
+lemma IndepFun.charFunDual_map_add_eq_mul {Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {P : Measure Ω} [IsProbabilityMeasure P] {X Y : Ω → E}
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
+    charFunDual (P.map (X + Y)) = charFunDual (P.map X) * charFunDual (P.map Y) := by
+  ext L
+  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFunDual_conv, Pi.mul_apply]
+
+lemma IndepFun.charFun_map_add_eq_mul {Ω E : Type*} {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {P : Measure Ω} [IsProbabilityMeasure P] {X Y : Ω → E}
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
+    charFun (P.map (X + Y)) = charFun (P.map X) * charFun (P.map Y) := by
+  ext t
+  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFun_conv, Pi.mul_apply]
+
+lemma IndepFun.hasLaw_sub_of_gaussian {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
+    (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw (X + Y) (gaussianReal μY vY) P)
+    (h : IndepFun X Y P) :
+    HasLaw Y (gaussianReal (μY - μX) (vY - vX)) P where
+  aemeasurable := by
+    convert hY.aemeasurable.sub hX.aemeasurable
+    simp
+  map_eq := by
+    have : IsProbabilityMeasure P := hX.hasGaussianLaw.isProbabilityMeasure
+    refine Measure.ext_of_charFun <| funext fun t ↦ ?_
+    apply mul_left_cancel₀ (a := charFun (P.map X) t)
+    · rw [hX.map_eq, charFun_gaussianReal]
+      exact Complex.exp_ne_zero _
+    · rw [← Pi.mul_apply, ← h.charFun_map_add_eq_mul, hY.map_eq, hX.map_eq, charFun_gaussianReal,
+        charFun_gaussianReal, charFun_gaussianReal, ← Complex.exp_add, NNReal.coe_sub,
+        Complex.ofReal_sub]
+      · congr
+        field_simp
+        push_cast
+        ring
+      · rw [← @Real.toNNReal_coe vY, ← @variance_id_gaussianReal μY vY, ← hY.variance_eq,
+          h.variance_add, hX.variance_eq, variance_id_gaussianReal, Real.toNNReal_add,
+          Real.toNNReal_coe]
+        any_goals simp
+        · exact variance_nonneg _ _
+        · exact hX.hasGaussianLaw.memLp_two
+        · convert hY.hasGaussianLaw.memLp_two.sub hX.hasGaussianLaw.memLp_two
+          simp
+      · exact hX.aemeasurable
+      · convert hY.aemeasurable.sub hX.aemeasurable
+        simp
+
+lemma IndepFun.hasGaussianLaw_sub' {X Y : Ω → ℝ}
+    (hX : HasGaussianLaw X P) (hY : HasGaussianLaw (X + Y) P)
+    (h : IndepFun X Y P) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    have h1 : HasLaw X (gaussianReal _ _) P := ⟨hX.aemeasurable, hX.map_eq_gaussianReal⟩
+    have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
+    have := h.hasLaw_sub_of_gaussian h1 h2
+    exact this.hasGaussianLaw.isGaussian_map
+
+lemma IndepFun.hasGaussianLaw_sub {Ω E : Type*} {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [InnerProductSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {P : Measure Ω} [IsProbabilityMeasure P] {X Y : Ω → E}
+    (hX : HasGaussianLaw X P) (hY : HasGaussianLaw (X + Y) P)
+    (h : IndepFun X Y P) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    refine ⟨fun L ↦ ?_⟩
+    conv => enter [2, 1, 2, x]; change id (L x)
+    rw [← integral_map, ← variance_id_map]
+    · refine @IsGaussian.eq_gaussianReal _ ?_
+      rw [AEMeasurable.map_map_of_aemeasurable]
+      · refine @HasGaussianLaw.isGaussian_map (self := ?_)
+        apply IndepFun.hasGaussianLaw_sub' (X := L ∘ X)
+        · infer_instance
+        · rw [← map_comp_add]
+          infer_instance
+        · exact h.comp L.measurable L.measurable
+      · fun_prop
+      · convert hY.aemeasurable.sub hX.aemeasurable
+        simp
+    all_goals fun_prop
+
+lemma HasIndepIncrements.indepFun_incr {Ω T E : Type*} {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E]
+    [Preorder T] {X : T → Ω → E} {P : Measure Ω} (h : HasIndepIncrements X P)
+    {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) (hX : ∀ᵐ ω ∂P, X r ω = 0) :
+    IndepFun (X s) (X t - X s) P := by
+  let τ : Fin (1 + 2) → T := ![r, s, t]
+  have hτ : Monotone τ := by
+    intro i j hij
+    fin_cases i <;> fin_cases j
+    any_goals simp only [Nat.reduceAdd, Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, le_refl, τ]
+    any_goals assumption
+    any_goals contradiction
+    exact hrs.trans hst
+  have h' : (0 : Fin (1 + 1)) ≠ (1 : Fin (1 + 1)) := by simp
+  have := (h 1 τ hτ).indepFun h'
+  simp only [Nat.reduceAdd, Fin.isValue, Fin.succ_zero_eq_one, Matrix.cons_val_one,
+    Matrix.cons_val_zero, Fin.castSucc_zero, Fin.succ_one_eq_two, Matrix.cons_val, Fin.castSucc_one,
+    τ] at this
+  have h' : X s =ᵐ[P] X s - X r := by
+    filter_upwards [hX] with ω hω
+    simp [hω]
+  exact this.congr h'.symm ae_eq_rfl
+
+lemma covariance_eq {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [IsProbabilityMeasure P] {X Y : Ω → ℝ} (hX : MemLp X 2 P) (hY : MemLp Y 2 P) :
+    cov[X, Y; P] = P[X * Y] - P[X] * P[Y] := by
+  simp_rw [covariance, sub_mul, mul_sub]
+  rw [integral_sub, integral_sub, integral_sub]
+  · simp_rw [integral_mul_const, integral_const_mul, integral_const, Measure.real, measure_univ,
+      ENNReal.toReal_one, one_smul]
+    simp
+  · exact hY.const_mul _ |>.integrable (by norm_num)
+  · exact integrable_const _
+  · exact hX.integrable_mul hY
+  · conv => enter [1, a]; rw [mul_comm]
+    exact hX.const_mul _ |>.integrable (by norm_num)
+  · apply Integrable.sub
+    · exact hX.integrable_mul hY
+    · conv => enter [1, a]; rw [mul_comm]
+      exact hX.const_mul _ |>.integrable (by norm_num)
+  · apply Integrable.sub
+    · exact hY.const_mul _ |>.integrable (by norm_num)
+    · exact integrable_const _
+
+lemma HasLaw.aeeq_of_dirac' {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
+    {x : 𝓧} {X : Ω → 𝓧}
+    (hX : HasLaw X (.dirac x) P) : X =ᵐ[P] (fun _ ↦ x) := by
+  apply ae_of_ae_map (p := fun y ↦ y = x) hX.aemeasurable
+  rw [hX.map_eq, ae_dirac_iff]
+  simp
+
+lemma HasLaw.aeeq_of_dirac {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
+    {x : 𝓧} {X : Ω → 𝓧}
+    (hX : HasLaw X (.dirac x) P) : ∀ᵐ ω ∂P, X ω = x := hX.aeeq_of_dirac'
+
+lemma HasIndepIncrements.hasGaussianLaw_restrict (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P)
+    (incr : HasIndepIncrements X P) (I : Finset ℝ≥0) :
+    HasGaussianLaw (fun ω ↦ I.restrict fun x ↦ X x ω) P where
+  isGaussian_map := by
+    have := (law 0).isProbabilityMeasure_iff.1 inferInstance
+    obtain rfl | hI := I.eq_empty_or_nonempty
+    · have : IsEmpty {x // x ∈ (∅ : Finset ℝ≥0)} := inferInstance
+      have : P.map (fun ω ↦ Finset.restrict ∅ fun x ↦ X x ω) = .dirac this.elim := by
+        ext s -
+        apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
+        · simp
+        simp only [measure_univ]
+        exact @measure_univ _ _ _
+          (Measure.isProbabilityMeasure_map (aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable))
+      rw [this]
+      infer_instance
+    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
+      apply HasLaw.aeeq_of_dirac
+      rw [← gaussianReal_zero_var]
+      exact law 0
+    have := aux aeeq hI
+    rw [Measure.map_congr this]
+    have : HasGaussianLaw
+        (fun ω (i : Fin (#I - 1 + 1)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+      have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
+      have (i : Fin (#I - 1 + 1)) :
+          HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
+        have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
+        apply IndepFun.hasGaussianLaw_sub (X := X (toFin hI i.castSucc))
+          (Y := X (toFin hI i.succ) - X (toFin hI i.castSucc))
+        · exact (law _).hasGaussianLaw
+        · simpa using (law _).hasGaussianLaw
+        apply incr.indepFun_incr (r := 0)
+        · simp
+        · apply monotone_toFin hI
+          exact Fin.castSucc_lt_succ i |>.le
+        · exact aeeq
+      exact ind.hasGaussianLaw
+    infer_instance
+
+lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
+    (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
+    IsPreBrownian X P where
+  hasLaw := by
+    classical
+    have : IsProbabilityMeasure P := (law 0).hasGaussianLaw.isProbabilityMeasure
+    refine fun I ↦ ⟨aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable, ?_⟩
+    have : IsProbabilityMeasure (P.map fun ω ↦ I.restrict (X · ω)) := by
+      apply Measure.isProbabilityMeasure_map
+      exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
+    obtain rfl | hI := I.eq_empty_or_nonempty
+    · ext s -
+      apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
+      all_goals simp
+    have := incr.hasGaussianLaw_restrict law
+    apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
+    rw [MeasurableEquiv.coe_toLp, ← PiLp.continuousLinearEquiv_symm_apply 2 ℝ]
+    apply IsGaussian.ext
+    · rw [integral_map, integral_map, integral_map]
+      · simp only [PiLp.continuousLinearEquiv_symm_apply, id_eq]
+        simp_rw [← PiLp.continuousLinearEquiv_symm_apply 2 ℝ, ← ContinuousLinearEquiv.coe_coe]
+        rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
+          ContinuousLinearMap.integral_comp_comm]
+        · simp only [ContinuousLinearEquiv.coe_coe, PiLp.continuousLinearEquiv_symm_apply,
+            toLp_zero]
+          convert toLp_zero 2
+          ext i
+          rw [eval_integral]
+          · simp only [restrict, Pi.zero_apply]
+            rw [(law _).integral_eq, integral_id_gaussianReal]
+          · exact fun _ ↦ (law _).hasGaussianLaw.integrable
+        · apply Integrable.of_eval
+          exact fun _ ↦ (law _).hasGaussianLaw.integrable
+        · exact IsGaussian.integrable_id
+      · fun_prop
+      · exact aestronglyMeasurable_id
+      · exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
+      · exact Measurable.aestronglyMeasurable (by fun_prop)
+      · fun_prop
+      · exact aestronglyMeasurable_id
+    · refine ContinuousBilinForm.ext_of_isSymm (isPosSemidef_covInnerBilin ?_).isSymm
+        (isPosSemidef_covInnerBilin ?_).isSymm fun x ↦ ?_
+      · exact IsGaussian.memLp_two_id
+      · exact IsGaussian.memLp_two_id
+      rw [PiLp.continuousLinearEquiv_symm_apply, covInnerBilin_apply_pi, covInnerBilin_apply_pi]
+      · congr with i
+        congr with j
+        congr 1
+        rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
+        · change cov[X i, X j; P] = _
+          wlog hij : i ≤ j generalizing i j
+          · rw [covariance_comm, this j i (le_of_not_ge hij), min_comm]
+          rw [show X j = X j - X i + X i  by simp, covariance_add_right,
+            IndepFun.covariance_eq_zero, covariance_self, (law _).variance_eq,
+            variance_id_gaussianReal]
+          · simpa
+          · exact (law _).aemeasurable
+          · apply incr.indepFun_incr (r := 0)
+            · simp
+            · simpa
+            · apply HasLaw.aeeq_of_dirac
+              rw [← gaussianReal_zero_var]
+              exact law 0
+          · exact (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
+          · exact (law _).hasGaussianLaw.memLp_two
+        · exact Measurable.aestronglyMeasurable (by fun_prop)
+        · exact Measurable.aestronglyMeasurable (by fun_prop)
+        · exact aemeasurable_pi_lambda _ (fun _ ↦ (law _).aemeasurable)
+      · exact fun _ ↦ HasGaussianLaw.memLp_two
+      · exact fun _ ↦ HasGaussianLaw.memLp_two
+
+end IsPreBrownian
+
+section IsBrownian
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} (X : ℝ≥0 → Ω → ℝ)
+
+class IsBrownian (P : Measure Ω := by volume_tac) : Prop extends IsPreBrownian X P where
+  cont : ∀ᵐ ω ∂P, Continuous (X · ω)
+
+end IsBrownian
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
@@ -31,26 +507,8 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
   aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
   map_eq := Measure.map_id
 
-lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
-    HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
-  hasLaw_restrict_gaussianLimit.comp hasLaw_preBrownian
-
-lemma hasLaw_preBrownian_eval (t : ℝ≥0) :
-    HasLaw (preBrownian t) (gaussianReal 0 t) gaussianLimit :=
-  (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp
-    (hasLaw_restrict_preBrownian ({t} : Finset ℝ≥0))
-
-instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit where
-  hasGaussianLaw I := (hasLaw_restrict_preBrownian I).hasGaussianLaw
-
-lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
-    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (max (s - t) (t - s)))
-      gaussianLimit := by
-  have : preBrownian s - preBrownian t =
-      ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
-    ext; simp [preBrownian]
-  rw [this]
-  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp hasLaw_restrict_gaussianLimit
+instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
+  isPreBrownian_of_hasLaw_gaussianLimit hasLaw_preBrownian
 
 lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n
@@ -67,7 +525,7 @@ lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
   simp_rw [edist_dist, Real.dist_eq]
   change ∫⁻ ω, (fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     ((preBrownian s - preBrownian t) ω) ∂_ = _
-  rw [(hasLaw_preBrownian_sub s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
+  rw [(IsPreBrownian.hasLaw_sub s t).lintegral_comp (f := fun x ↦ (ENNReal.ofReal |x|) ^ (2 * n))
     (by fun_prop)]
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
@@ -130,33 +588,10 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
-lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
-    HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit := by
-  refine (hasLaw_restrict_preBrownian I).congr ?_
-  filter_upwards [ae_all_iff.2 fun i : I ↦ brownian_ae_eq_preBrownian i.1] with ω hω
-  ext; simp [hω]
+instance isBrownian_brownian : IsBrownian brownian gaussianLimit where
+  toIsPreBrownian := isPreBrownian_preBrownian.congr (fun t ↦ (brownian_ae_eq_preBrownian t).symm)
+  cont := ae_of_all _ continuous_brownian
 
-lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit where
-  aemeasurable := (measurable_pi_lambda _ measurable_brownian).aemeasurable
-  map_eq := by
-    symm
-    refine isProjectiveLimit_gaussianLimit.unique fun I ↦ ?_
-    rw [Measure.map_map (by fun_prop) (measurable_pi_lambda _ measurable_brownian)]
-    exact hasLaw_restrict_brownian.map_eq
-
-lemma hasLaw_brownian_eval {t : ℝ≥0} :
-    HasLaw (brownian t) (gaussianReal 0 t) gaussianLimit :=
-  (hasLaw_preBrownian_eval t).congr (brownian_ae_eq_preBrownian t)
-
-lemma hasLaw_brownian_sub {s t : ℝ≥0} :
-    HasLaw (brownian s - brownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
-  (hasLaw_preBrownian_sub s t).congr
-    ((brownian_ae_eq_preBrownian s).sub (brownian_ae_eq_preBrownian t))
-
-instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
-
-open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
@@ -169,63 +604,14 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
   p_pos := by positivity
   q_pos := by positivity
 
-lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
-    [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
-    iIndepFun X P := by
-  refine iIndepFun_iff_charFun_pi (fun _ ↦ h1.aemeasurable.eval _) |>.2 fun ξ ↦ ?_
-  simp_rw [HasGaussianLaw.charFun_toLp, ← sum_sub_distrib, Complex.exp_sum,
-    HasGaussianLaw.charFun_map_real]
-  congrm ∏ i, Complex.exp (_ - ?_)
-  rw [Fintype.sum_eq_single i]
-  · simp [covariance_self, h1.aemeasurable.eval, pow_two, mul_div_assoc]
-  · exact fun j hj ↦ by simp [h2 i j hj.symm]
-
-/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
-the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
-    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
-
 lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
     x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by simp
 
-lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t := by
-  have h1 : brownian s = (fun x ↦ x ⟨s, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  have h2 : brownian t = (fun x ↦ x ⟨t, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  rw [h1, h2, ← covariance_map]
-  · simp_rw [hasLaw_restrict_brownian.map_eq]
-    rw [covariance_eval_gaussianProjectiveFamily]
-  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
-  exact Measurable.aemeasurable <| by fun_prop
+lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t :=
+  IsPreBrownian.covariance_fun_eval s t
 
-lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
-  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
-  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin (n + 1) → ℝ :=
-      { toFun := (fun x (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
-          (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩)
-        map_add' x y := by ext; simp; ring
-        map_smul' m x := by ext; simp; ring
-        cont := by fun_prop }
-    have : (fun ω i ↦ (brownian (t i.succ) - brownian (t i.castSucc)) ω) =
-        L ∘ fun ω ↦ (Finset.univ.image t).restrict (brownian · ω) := by ext; simp [L]
-    rw [this]
-    infer_instance
-  intro i j hij
-  rw [covariance_sub_left, covariance_sub_right, covariance_sub_right]
-  · simp_rw [covariance_brownian]
-    wlog h : i < j
-    · simp_rw [← this n t ht j i hij.symm (by omega), min_comm]
-      ring
-    have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
-    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
-    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
-    rw [min_eq_left (ht h1), min_eq_left (ht h), min_eq_left (ht h2), min_eq_left (ht h3)]
-    simp
-  all_goals exact HasGaussianLaw.memLp_two
+lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit :=
+  IsPreBrownian.hasIndepIncrements
 
 section Measure
 
