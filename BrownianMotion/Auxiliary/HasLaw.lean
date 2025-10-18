@@ -8,6 +8,16 @@ namespace ProbabilityTheory
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
 
+section HasLaw
+
+variable {𝓧} {m𝓧 : MeasurableSpace 𝓧} {X : Ω → 𝓧} {μ : Measure 𝓧} {P : Measure Ω}
+
+lemma hasLaw_map (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
+  aemeasurable := hX
+  map_eq := rfl
+
+end HasLaw
+
 section HasGaussianLaw
 
 variable {E : Type*} (X : Ω → E) (P : Measure Ω)
