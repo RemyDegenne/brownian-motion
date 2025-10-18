@@ -384,22 +384,22 @@ lemma countable_denseCountable : (denseCountable T).Countable :=
   (TopologicalSpace.exists_countable_dense T).choose_spec.1
 
 open Classical in
-def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∃ (U : Set T) (A : Set Ω), MeasurableSet A ∧
+def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Prop :=
+  ∃ (A : Set Ω), MeasurableSet A ∧
     (∀ᵐ ω ∂P, ω ∈ A) ∧
     (∀ t ∈ U, ∀ ω ∈ A, ∃ c, Tendsto (fun t' : denseCountable T ↦ X t' ω)
       (comap Subtype.val (𝓝 t)) (𝓝 c)) ∧
     ∀ t ω, Y t ω = if t ∈ U then dense_denseCountable.extend
       (fun t' : denseCountable T ↦ indicatorProcess X A t' ω) t else hE.some
 
-lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E}
+lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ : Set T}
     (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
     (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
-    (hY : IsLimitOfIndicator Y X P) (hZ : IsLimitOfIndicator Z X' P)
+    (hY : IsLimitOfIndicator Y X P U₁) (hZ : IsLimitOfIndicator Z X' P U₂)
     (s t : T) :
     Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Z t ω)) := by
-  obtain ⟨U₁, A₁, hA₁, hA₁_ae, hY_tendsto, hY_eq⟩ := hY
-  obtain ⟨U₂, A₂, hA₂, hA₂_ae, hZ_tendsto, hZ_eq⟩ := hZ
+  obtain ⟨A₁, hA₁, hA₁_ae, hY_tendsto, hY_eq⟩ := hY
+  obtain ⟨A₂, hA₂, hA₂_ae, hZ_tendsto, hZ_eq⟩ := hZ
   simp_rw [hY_eq, hZ_eq]
   simp only [Dense.extend, IsDenseInducing.extend]
   by_cases hsU₁ : s ∈ U₁ <;> by_cases htU₂ : t ∈ U₂
@@ -425,9 +425,9 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E}
 
 omit [CompleteSpace E] in
 lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
-    (hX : ∀ t, Measurable (X t)) (hY : IsLimitOfIndicator Y X P) (t : T) :
+    (hX : ∀ t, Measurable (X t)) (hY : IsLimitOfIndicator Y X P U) (t : T) :
     Measurable (Y t) := by
-  obtain ⟨U, A, hA, hA_ae, hY_tendsto, hY_eq⟩ := hY
+  obtain ⟨A, hA, hA_ae, hY_tendsto, hY_eq⟩ := hY
   change Measurable (fun ω ↦ Y t ω)
   simp_rw [hY_eq]
   by_cases htU : t ∈ U
@@ -443,10 +443,10 @@ lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
   · simp only [htU, ↓reduceIte]
     exact measurable_const
 
-lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E}
+lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E} {U₁ U₂ : Set T}
     (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
     (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
-    (hY : IsLimitOfIndicator Y X P) (hZ : IsLimitOfIndicator Z X' P)
+    (hY : IsLimitOfIndicator Y X P U₁) (hZ : IsLimitOfIndicator Z X' P U₂)
     (s t : T) :
     Measurable (fun ω ↦ edist (Y s ω) (Z t ω)) := by
   borelize (E × E)
@@ -456,11 +456,11 @@ lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E}
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
 lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
-    (hY : IsLimitOfIndicator Y X P) (A : Set Ω) (hA_meas : MeasurableSet A)
+    (hY : IsLimitOfIndicator Y X P U) (A : Set Ω) (hA_meas : MeasurableSet A)
     (hA_ae : ∀ᵐ ω ∂P, ω ∈ A) :
-    IsLimitOfIndicator (fun t ↦ indicatorProcess Y A t) X P := by
-  obtain ⟨U, A', hA', hA'_ae, hY_tendsto, hY_eq⟩ := hY
-  refine ⟨U, A ∩ A', MeasurableSet.inter hA_meas hA', ?_, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
+    IsLimitOfIndicator (fun t ↦ indicatorProcess Y A t) X P U := by
+  obtain ⟨A', hA', hA'_ae, hY_tendsto, hY_eq⟩ := hY
+  refine ⟨A ∩ A', MeasurableSet.inter hA_meas hA', ?_, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
   · filter_upwards [hA_ae, hA'_ae] with ω hω₁ hω₂ using ⟨hω₁, hω₂⟩
   · exact hY_tendsto t htU ω hω.2
   · classical
@@ -484,12 +484,12 @@ lemma isLimitOfIndicator_holderModification
     (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)]
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
-    IsLimitOfIndicator (holderModification X β p U) X P := by
+    IsLimitOfIndicator (holderModification X β p U) X P U := by
   let A := holderSet X (denseCountable T) p β U
   have hA_meas : MeasurableSet A := hX.measurableSet_holderSet countable_denseCountable
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := ae_mem_holderSet hT hX hc hd_pos hdq_lt hβ_pos hβ_lt
     countable_denseCountable
-  refine ⟨U, A, hA_meas, hA_ae, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
+  refine ⟨A, hA_meas, hA_ae, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
   · exact exists_tendsto_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos dense_denseCountable
       hω t htU
   · simp only [holderModification, indicatorProcess, A, Dense.extend, IsDenseInducing.extend]
@@ -738,7 +738,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, Y t =ᵐ[P] X t) ∧
-      (∀ ω, ∃ C : ℝ≥0, HolderOnWith C β (Y · ω) U) ∧ IsLimitOfIndicator Y X P := by
+      (∀ ω, ∃ C : ℝ≥0, HolderOnWith C β (Y · ω) U) ∧ IsLimitOfIndicator Y X P U := by
   refine ⟨holderModification X β p U, ?_, ?_, ?_, ?_⟩
   · exact measurable_holderModification hT hX hc hd_pos hdq_lt hβ_pos hβ_lt
   · exact modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
@@ -834,7 +834,7 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, Y t =ᵐ[P] X t) ∧
       (∀ (β : ℝ≥0), 0 < β → β < (q - d) / p → ∀ ω, ∃ C, HolderOnWith C β (Y · ω) U) ∧
-      IsLimitOfIndicator Y X P := by
+      IsLimitOfIndicator Y X P U := by
   have h_ratio_pos : 0 < (q - d) / p := by
     have : 0 < p := hX.p_pos
     bound
@@ -945,7 +945,7 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t) ∧
       (∀ ω t, ∃ U ∈ 𝓝 t, ∀ (β : ℝ≥0), 0 < β → β < (q - d) / p → ∃ C, HolderOnWith C β (Y · ω) U) ∧
-      IsLimitOfIndicator Y X P := by
+      IsLimitOfIndicator Y X P Set.univ := by
   have hp_pos : 0 < p := hX.p_pos
   have h_div_pos : 0 < (q - d) / p := by bound
   let ⟨β₀', hβ₀_pos', hβ₀_lt'⟩ := exists_between h_div_pos
@@ -1005,7 +1005,7 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     simpa using ht
   let nt t := Nat.find (h_mem t)
   have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
-  choose U' A' hA'_meas hA'_ae hZ_tendsto hZ_eq' using hZ_extend
+  choose A' hA'_meas hA'_ae hZ_tendsto hZ_eq' using hZ_extend
   let Y (t : T) (ω : Ω) : E := if ω ∈ (A ∩ ⋂ n, A' n) then Z (nt t) t ω else hE.some
   have hY_eq {ω} (hω : ω ∈ A ∩ ⋂ n, A' n) n (t : T) (ht : t ∈ C n) : Y t ω = Z n t ω := by
     simp only [hω, ↓reduceIte, Y]
@@ -1033,29 +1033,24 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     simp only
     rw [hY_eq hω (nt t) s hs, hY_eq hω (nt t) s' hs']
     exact hC' s hs s' hs'
-  · refine ⟨Set.univ, A ∩ ⋂ n, A' n, ?_, ?_, ?_, ?_⟩
+  · refine ⟨A ∩ ⋂ n, A' n, ?_, ?_, ?_, ?_⟩
     · exact hA.inter (MeasurableSet.iInter hA'_meas)
     · simp only [Set.mem_inter_iff, Set.mem_iInter, eventually_and, ae_all_iff]
       exact ⟨hA_ae, hA'_ae⟩
     · rintro t - ω hω
       simp only [Set.mem_inter_iff, Set.mem_iInter] at hω
-      obtain ⟨c, hc⟩ := hZ_tendsto (nt t) t (hnt t) ω (hω.2 (nt t))
-      refine ⟨c, ?_⟩
-      simp only [Xn] at hc
-      refine tendsto_of_seq_tendsto fun u hu ↦ ?_
-      have hu_mem : ∀ᶠ n in atTop, (u n : T) ∈ C (nt t) := by sorry
-      sorry
+      exact hZ_tendsto (nt t) t (hnt t) ω (hω.2 (nt t))
     · intro t ω
       classical
+      simp only [Set.mem_univ, ↓reduceIte, indicatorProcess_apply]
       by_cases hω : ω ∈ A ∩ ⋂ n, A' n
       swap
-      · simp only [hω, ↓reduceIte, indicatorProcess_apply, Y]
+      · simp only [hω, ↓reduceIte, Y]
         rw [Dense.extend_eq_of_tendsto]
         exact tendsto_const_nhds
       simp only [hZ_eq', indicatorProcess_apply, hω, ↓reduceIte, Y]
       simp only [Set.mem_inter_iff, Set.mem_iInter] at hω
-      simp only [hω, ↓reduceIte]
-      sorry
+      simp [hω, ↓reduceIte, hnt]
 
 lemma exists_modification_holder' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
