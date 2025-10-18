@@ -388,7 +388,7 @@ This in some sense is a more convenient way to use the dual characteristic funct
 
 Let us now turn to Gaussian measures.
 
-\begin{definition}
+\begin{definition}\label{def:gaussian}
   The measure $\mu$ is called \emph{Gaussian} (\docs{ProbabilityTheory.IsGaussian}) if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
 \end{definition}
 
@@ -408,7 +408,20 @@ The properties of the covariance allow to easily deduce that $C_\mu$ is actually
   $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
 \end{theorem}
 
-This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, If two random variables have Gaussian
+This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, the product of finitely many Gaussian measures is a Gaussian measure. Another result is that if two Gaussian random variables have covariance zero, then they are independent.
+
+\paragraph{On Euclidean spaces}
+
+As stated before, any Gaussian measure is uniquely determined by its mean and covariance. A follow-up question is to know whether, given $m \in E$ and $C$ a continuous and positive semidefinite bilinear form over $E$, there exists a Gaussian measure with mean $m$ and covariance $C$. The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project. As a bilinear form over a finite-dimensional vector-space can be represented by a matrix, we will use the \emph{covariance matrix} to represent the covariance of a measure.
+
+Assume now that $E$ is a Euclidean space with a basis $(e_1, \dots, e_n)$. We define the \emph{standard Gaussian measure} (\docs{ProbabilityTheory.stdGaussian}) as the pushforward measure
+$$\left(x \mapsto \sum_{i=1}^n x_i e_i\right)_* N(0, 1)^{\otimes n}.$$
+
+As stated above, $N(0, 1)^{\otimes n}$ is a Gaussian measure because it is a product of Gaussian measures, and the map $x \mapsto \sum_{i=1}^n x_i e_i$ is a linear form over $E$, so that this measure is indeed Gaussian. It is easy to see that its mean is $0$ and its covariance matrix is the identity matrix $I_n$. We denote it $N(0, I_n)$.
+
+Now from Definition~\ref{def:gaussian} it is clear that the pushforward of a Gaussian measure by a continuous affine map is again a Gaussian measure. In particular, given $A$ an $n \times n$ matrix, $b \in E$ and $\mu$ a Gaussian measure over $E$ with mean $m$ and covariance $C$, we have that $(x \mapsto Ax + b)_* \mu$ is a Gaussian measure with mean $Am + b$ and covariance matrix $A^\top C A$. Consider thus $b \in E$ and $A$ a positive semidefinite $n \times n$ matrix. There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Ax + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \docs{ProbabilityTheory.multivariateGaussian}.
+
+\paragraph{Fernique's theorem}
 
 \todor{ General Gaussian def, characteristic function, Fernique's theorem (not in detail), Hilbert spaces defs, stdGaussian and multivariateGaussian.}
 
