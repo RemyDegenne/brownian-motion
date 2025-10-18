@@ -28,8 +28,8 @@
 {\texttt{\detokenize{#2}}}}
 
 \newcommand{\docs}[1]{%
-\href{https://leanprover-community.github.io/mathlib4_docs/find/?pattern=#1\#doc}
-{\texttt{\detokenize{#1}}}}
+\leanlink{https://leanprover-community.github.io/mathlib4_docs/find/?pattern=#1\#doc}
+{#1}}
 
 \lstset{escapeinside={(*}{*)}, language=lean}
 
@@ -366,6 +366,49 @@ Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogach
 \label{S:gaussian}
 
 Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \docs{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures. In addition, we relied on characteristic functions \docs{MeasureTheory.charFun}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}.
+
+We start by defining the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms defined on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
+
+\begin{definition}
+	The \emph{dual characteristic function} (\docs{MeasureTheory.charFunDual}) of $\mu$ is the map $\phi_\mu : E' \to \R$ defined by
+	$$\phi_\mu(L) = \int_E e^{i L(x)} \mu(\mathrm dx),$$
+	where $i$ is the imaginary unit.
+\end{definition}
+
+This function is quite useful because if $E$ is separable and equipped with the Borel $\sigma$-algebra, and if $\mu$ is finite, then it is characterized by $\phi_\mu$ (\docs{MeasureTheory.Measure.ext_of_charFunDual}). Thus it is a great tool to deduce certain properties of the measure. For instance, two random variables are independent if and only if the dual characteristic function of their joint law is the product of the dual characteristic functions of the marginal laws (\docs{ProbabilityTheory.indepFun_iff_charFunDual_prod}).
+
+In the special case where $E$ is a Hilbert space, Riesz's representation theorem implies that each $L \in E'$ can be uniquely represented by an element $t \in E$. This motivates the following definition.
+
+\begin{definition}
+  If $E$ is a Hilbert space, the \emph{characteristic function} (\docs{MeasureTheory.charFun}) of $\mu$ is the map $\psi_\mu : E \to \R$ defined by
+  $$\psi_\mu(t) = \int_E e^{i \langle t, x \rangle} \mu(\mathrm dx).$$
+\end{definition}
+
+This in some sense is a more convenient way to use the dual characteristic function, as it makes computations easier, and ensures the same characterization property. As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a separable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
+
+Let us now turn to Gaussian measures.
+
+\begin{definition}
+  The measure $\mu$ is called \emph{Gaussian} (\docs{ProbabilityTheory.IsGaussian}) if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
+\end{definition}
+
+In the case of a real Gaussian measure $N(m, \sigma^2)$, the characteristic function is given by
+$$\psi_{N(m, \sigma^2)}(t) = \exp(im - \sigma^2/2).$$
+This proves in particular that a real Gaussian measure is determined by its mean and covariance. The same statement is actually true for any Gaussian measure, if we generalize the notion of covariance.
+
+\begin{definition}
+  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of $\mu$ is the bilinear form $C\_mu : E \times E \to \R$ defined by
+  $$C_\mu(s, t) = \mathrm{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
+\end{definition}
+
+The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following result (\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}).
+
+\begin{theorem}
+  The measure $\mu$ is Gaussian if and only if its characteristic function is given by
+  $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
+\end{theorem}
+
+This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, If two random variables have Gaussian
 
 \todor{ General Gaussian def, characteristic function, Fernique's theorem (not in detail), Hilbert spaces defs, stdGaussian and multivariateGaussian.}
 
