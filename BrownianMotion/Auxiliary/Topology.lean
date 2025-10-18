@@ -10,6 +10,13 @@ variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] [CompleteSp
 lemma neBot_comap_nhds (hs : Dense s) (x : X) : ((𝓝 x).comap ((↑) : s → X)).NeBot :=
   hs.isDenseInducing_val.comap_nhds_neBot _
 
+lemma Dense.holderOnWith_extend {U : Set X} (hU : IsOpen U) (hs : Dense s)
+    (hf : HolderOnWith C r f {x | ↑x ∈ U}) (hr : 0 < r) :
+    HolderOnWith C r (hs.extend f) U := by
+  intro x y
+  have hf' := hf.uniformContinuousOn hr
+  sorry
+
 lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r) :
     HolderWith C r (hs.extend f) := by
   intro x y
