@@ -78,6 +78,10 @@ lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGro
     [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : StrongDual 𝕜 E) :
   inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
 
+lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike 𝕜]
+    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E] (x : E) :
+  InnerProductSpace.toDual 𝕜 E x = InnerProductSpace.toDualMap 𝕜 E x := rfl
+
 theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : StrongDual ℝ E) :
     ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
