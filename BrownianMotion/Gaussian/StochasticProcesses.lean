@@ -23,10 +23,14 @@ lemma indistinguishable_of_modification [TopologicalSpace E] [TopologicalSpace T
   change (fun t ↦ X t ω) t = (fun t ↦ Y t ω) t
   rw [Continuous.ext_on D_dense hX hY h]
 
+open scoped Topology in
 lemma subset_closure_dense_inter {α : Type*} [TopologicalSpace α] {T' U : Set α}
     (hT'_dense : Dense T') (hU : IsOpen U) :
     U ⊆ closure (T' ∩ U) := by
-  sorry
+  refine fun x hxU ↦ mem_closure_iff_nhds.mpr fun t ht ↦ ?_
+  have htU : t ∩ U ∈ 𝓝 x := by simp [ht, hU.mem_nhds hxU]
+  suffices (T' ∩ (t ∩ U)).Nonempty by grind
+  exact hT'_dense.inter_nhds_nonempty htU
 
 open TopologicalSpace in
 lemma indistinguishable_of_modification_on [TopologicalSpace E] [TopologicalSpace T]
