@@ -5,7 +5,8 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Gaussian.Fernique
+import Mathlib.MeasureTheory.SpecificCodomains.WithLp
+import Mathlib.Probability.Distributions.Gaussian.Fernique
 import Mathlib.Probability.Moments.CovarianceBilinDual
 
 /-!

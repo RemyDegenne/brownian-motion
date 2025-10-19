@@ -1,4 +1,6 @@
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.CovMatrix
+import BrownianMotion.Gaussian.Fernique
 
 /-!
 # Facts about Gaussian characteristic function
@@ -44,7 +46,7 @@ lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : Measurable
   · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
       integral_complex_ofReal, ← ofReal_mul]
     congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)
-    rw [integral_map, PiLp.integral_eval]
+    rw [integral_map, eval_integral_piLp]
     · simp
     · simp only [id_eq, PiLp.toLp_apply]
       exact fun i ↦ HasGaussianLaw.integrable
@@ -102,8 +104,7 @@ lemma gaussian_charFun_congr [IsFiniteMeasure μ] (m : E) (f : ContinuousBilinFo
   · apply ext_inner_left ℝ
     simp [hn]
   · apply ContinuousBilinForm.ext_of_isSymm hf.isSymm h'.isPosSemidef_covInnerBilin.isSymm
-    intro x
-    linear_combination 2 * (hn x).1.symm
+    grind
 
 /-- Two Gaussian measures are equal if they have same mean and same covariance. This is
 `IsGaussian.ext_covarianceBilin` specialized to Hilbert spaces. -/
