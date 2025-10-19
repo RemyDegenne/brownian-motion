@@ -1,4 +1,5 @@
 import BrownianMotion.Gaussian.CovMatrix
+import BrownianMotion.Gaussian.Fernique
 import Mathlib.Probability.Moments.CovarianceBilinDual
 
 /-!
@@ -128,6 +129,24 @@ lemma IsGaussian.charFun_eq [IsGaussian μ] (t : E) :
   congr
   · simp_rw [integral_complex_ofReal, ← integral_inner IsGaussian.integrable_id, id]
   · rw [covInnerBilin_self IsGaussian.memLp_two_id]
+
+lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsFiniteMeasure P] {X : ι → Ω → ℝ} [hX : HasGaussianLaw (fun ω ↦ (X · ω)) P]
+    (ξ : EuclideanSpace ℝ ι) :
+    charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
+      exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
+  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_pi, EuclideanSpace.real_inner_eq]
+  · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
+      integral_complex_ofReal, ← ofReal_mul]
+    congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)
+    rw [integral_map, eval_integral_piLp]
+    · simp
+    · simp only [id_eq, PiLp.toLp_apply]
+      exact fun i ↦ HasGaussianLaw.integrable
+    · have := hX.aemeasurable
+      fun_prop
+    · exact aestronglyMeasurable_id
+  · exact fun i ↦ HasGaussianLaw.memLp_two
 
 lemma isGaussian_iff_gaussian_charFun [IsFiniteMeasure μ] :
     IsGaussian μ ↔
