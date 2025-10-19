@@ -413,35 +413,75 @@ def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Pro
     ∀ t ω, Y t ω = if t ∈ U then dense_denseCountable.extend
       (fun t' : denseCountable T ↦ indicatorProcess X A t' ω) t else hE.some
 
+omit [CompleteSpace E] in
+lemma measurable_pair_limUnder_indicatorProcess {X X' : T → Ω → E}
+    (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
+    (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
+    {A₁ A₂ : Set Ω} (hA₁ : MeasurableSet A₁) (hA₂ : MeasurableSet A₂)
+    (s t : T)
+    (h_tendsto₁ : ∀ ω ∈ A₁, ∃ c, Tendsto (fun t' : denseCountable T ↦ X t' ω)
+      (comap Subtype.val (𝓝 s)) (𝓝 c))
+    (h_tendsto₂ : ∀ ω ∈ A₂, ∃ c, Tendsto (fun t' : denseCountable T ↦ X' t' ω)
+      (comap Subtype.val (𝓝 t)) (𝓝 c)) :
+    Measurable[_, borel (E × E)] fun ω ↦
+      (limUnder (comap Subtype.val (𝓝 s)) fun t' : denseCountable T ↦ indicatorProcess X A₁ t' ω,
+        limUnder (comap Subtype.val (𝓝 t))
+          fun t' : denseCountable T ↦ indicatorProcess X' A₂ t' ω) := by
+  refine measurable_pair_limUnder_comap dense_denseCountable ?_ _ _ ?_ ?_
+    (X₁ := indicatorProcess X A₁)
+  · exact fun i j ↦ measurable_pair_indicatorProcess hX hX' hX_pair hA₁ hA₂ i j
+  · intro ω
+    by_cases hω : ω ∈ A₁
+    · simpa [hω, indicatorProcess] using h_tendsto₁ ω hω
+    · simp only [indicatorProcess, hω, ↓reduceIte]
+      exact ⟨hE.some, tendsto_const_nhds⟩
+  · intro ω
+    by_cases hω : ω ∈ A₂
+    · simpa [hω, indicatorProcess] using h_tendsto₂ ω hω
+    · simp only [indicatorProcess, hω, ↓reduceIte]
+      exact ⟨hE.some, tendsto_const_nhds⟩
+
+omit [CompleteSpace E] in
 lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ : Set T}
     (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
     (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
     (hY : IsLimitOfIndicator Y X P U₁) (hZ : IsLimitOfIndicator Z X' P U₂)
     (s t : T) :
     Measurable[_, borel (E × E)] (fun ω ↦ (Y s ω, Z t ω)) := by
+  have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 s)) := by
+    apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
+  have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 t)) := by
+    apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
   obtain ⟨A₁, hA₁, hA₁_ae, hY_tendsto, hY_eq⟩ := hY
   obtain ⟨A₂, hA₂, hA₂_ae, hZ_tendsto, hZ_eq⟩ := hZ
   simp_rw [hY_eq, hZ_eq]
   simp only [Dense.extend, IsDenseInducing.extend]
   by_cases hsU₁ : s ∈ U₁ <;> by_cases htU₂ : t ∈ U₂
   · simp only [hsU₁, ↓reduceIte, htU₂]
-    refine measurable_pair_limUnder_comap dense_denseCountable ?_ _ _ ?_ ?_
-      (X₁ := indicatorProcess X A₁)
-    · exact fun i j ↦ measurable_pair_indicatorProcess hX hX' hX_pair hA₁ hA₂ i j
-    · intro ω
-      by_cases hω : ω ∈ A₁
-      · simpa [hω, indicatorProcess] using hY_tendsto s hsU₁ ω hω
-      · simp only [indicatorProcess, hω, ↓reduceIte]
-        exact ⟨hE.some, tendsto_const_nhds⟩
-    · intro ω
-      by_cases hω : ω ∈ A₂
-      · simpa [hω, indicatorProcess] using hZ_tendsto t htU₂ ω hω
-      · simp only [indicatorProcess, hω, ↓reduceIte]
-        exact ⟨hE.some, tendsto_const_nhds⟩
+    exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair hA₁ hA₂ s t (hY_tendsto s hsU₁)
+      (hZ_tendsto t htU₂)
   · simp only [hsU₁, ↓reduceIte, htU₂]
-    sorry
+    suffices Measurable[_, borel (E × E)] fun ω ↦
+        (limUnder (comap Subtype.val (𝓝 s)) fun t' : denseCountable T ↦ indicatorProcess X A₁ t' ω,
+        limUnder (comap Subtype.val (𝓝 t))
+          fun t' : denseCountable T ↦ indicatorProcess X' ∅ t' ω) by
+      convert this
+      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte]
+      rw [Tendsto.limUnder_eq]
+      exact tendsto_const_nhds
+    exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair hA₁ MeasurableSet.empty s t
+      (hY_tendsto s hsU₁) (by simp)
   · simp only [hsU₁, ↓reduceIte, htU₂]
-    sorry
+    suffices Measurable[_, borel (E × E)] fun ω ↦
+        (limUnder (comap Subtype.val (𝓝 s)) fun t' : denseCountable T ↦ indicatorProcess X ∅ t' ω,
+        limUnder (comap Subtype.val (𝓝 t))
+          fun t' : denseCountable T ↦ indicatorProcess X' A₂ t' ω) by
+      convert this
+      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte]
+      rw [Tendsto.limUnder_eq]
+      exact tendsto_const_nhds
+    exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair MeasurableSet.empty hA₂ s t
+      (by simp) (hZ_tendsto t htU₂)
   · simp [hsU₁, htU₂]
 
 omit [CompleteSpace E] in
@@ -464,6 +504,7 @@ lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
   · simp only [htU, ↓reduceIte]
     exact measurable_const
 
+omit [CompleteSpace E] in
 lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E} {U₁ U₂ : Set T}
     (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
     (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
