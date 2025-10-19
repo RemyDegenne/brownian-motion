@@ -16,27 +16,39 @@ open scoped ENNReal NNReal Topology Asymptotics
 section aux
 
 lemma UniformContinuousOn.exists_tendsto {α β : Type*} [UniformSpace α] [FirstCountableTopology α]
-    [UniformSpace β] [CompleteSpace β] {s t : Set α}
-    {f : s → β} (hf : UniformContinuousOn f {x | ↑x ∈ t}) (a : α) (has : a ∈ closure (s ∩ t)) :
+    [UniformSpace β] [CompleteSpace β] {s t : Set α} (hs : Dense s) (ht : IsOpen t)
+    {f : s → β} (hf : UniformContinuousOn f {x | ↑x ∈ t}) (a : α) (ha : a ∈ t) :
     ∃ c, Tendsto f (comap Subtype.val (𝓝 a)) (𝓝 c) := by
   have (u : ℕ → s) (hu : Tendsto (fun n ↦ (u n : α)) atTop (𝓝 a)) :
       ∃ c, Tendsto (f ∘ u) atTop (𝓝 c) := by
     refine cauchySeq_tendsto_of_complete ?_
-    sorry
-    -- refine hf.comp_cauchySeq ?_
-    -- have h_cauchy := hu.cauchySeq
-    -- rw [cauchySeq_iff] at h_cauchy
-    -- rw [cauchySeq_iff, uniformity_subtype]
-    -- simp only [mem_comap, ge_iff_le, forall_exists_index, and_imp] at h_cauchy ⊢
-    -- intro V s hs hsV
-    -- obtain ⟨N, hN⟩ := h_cauchy s hs
-    -- exact ⟨N, fun k hNk l hNl ↦ hsV (hN k hNk l hNl)⟩
+    rw [cauchySeq_iff_tendsto]
+    rw [UniformContinuousOn] at hf
+    change Tendsto ((fun p ↦ (f p.1, f p.2)) ∘ (fun p : ℕ × ℕ ↦ (u p.1, u p.2))) atTop
+      (uniformity β)
+    refine hf.comp ?_
+    rw [tendsto_inf]
+    constructor
+    · suffices hu_cauchy : CauchySeq u by rwa [cauchySeq_iff_tendsto] at hu_cauchy
+      have h_cauchy := hu.cauchySeq
+      rw [cauchySeq_iff] at h_cauchy
+      rw [cauchySeq_iff, uniformity_subtype]
+      simp only [mem_comap, ge_iff_le, forall_exists_index, and_imp] at h_cauchy ⊢
+      intro V s hs hsV
+      obtain ⟨N, hN⟩ := h_cauchy s hs
+      exact ⟨N, fun k hNk l hNl ↦ hsV (hN k hNk l hNl)⟩
+    · rw [tendsto_principal]
+      have hut : ∀ᶠ n in atTop, (u n : α) ∈ t := hu.eventually_mem (ht.mem_nhds ha)
+      simp only [eventually_atTop, ge_iff_le, Set.mem_prod, Set.mem_setOf_eq, Prod.forall,
+        Prod.exists, Prod.mk_le_mk, and_imp] at hut ⊢
+      obtain ⟨N, hN⟩ := hut
+      exact ⟨N, N, fun a b hNa hNb ↦ ⟨hN a hNa, hN b hNb⟩⟩
   choose c hc using this
   obtain ⟨u, hu⟩ : ∃ u : ℕ → s, Tendsto (fun n ↦ (u n : α)) atTop (𝓝 a) := by
+    have has : a ∈ closure s := by simp [hs.closure_eq]
     rw [mem_closure_iff_seq_limit] at has
-    obtain ⟨u, hu⟩ := has
-    sorry
-    -- exact ⟨fun n ↦ ⟨u n, hu.1 n⟩, hu.2⟩
+    obtain ⟨u, hu_mem, hu⟩ := has
+    exact ⟨fun n ↦ ⟨u n, hu_mem n⟩, hu⟩
   refine ⟨c u hu, ?_⟩
   refine tendsto_of_seq_tendsto fun v hv' ↦ ?_
   have hv : Tendsto (fun n ↦ (v n : α)) atTop (𝓝 a) := by rwa [tendsto_comap_iff] at hv'
@@ -47,10 +59,19 @@ lemma UniformContinuousOn.exists_tendsto {α β : Type*} [UniformSpace α] [Firs
   have hu' : Tendsto u atTop (comap Subtype.val (𝓝 a)) := by rwa [tendsto_comap_iff]
   have hv' : Tendsto v atTop (comap Subtype.val (𝓝 a)) := by rwa [tendsto_comap_iff]
   refine Tendsto.mono_right (hu'.prodMk hv') ?_
-  rw [← Filter.comap_prodMap_prod, ← nhds_prod_eq, uniformity_subtype]
-  sorry
-  -- refine comap_mono ?_
-  -- exact nhds_le_uniformity a
+  rw [le_inf_iff]
+  constructor
+  · rw [← Filter.comap_prodMap_prod, ← nhds_prod_eq, uniformity_subtype]
+    refine comap_mono ?_
+    exact nhds_le_uniformity a
+  · simp only [le_principal_iff]
+    rw [mem_prod_iff]
+    simp_rw [Set.prod_subset_prod_iff]
+    simp only [mem_comap]
+    refine ⟨Subtype.val ⁻¹' t, ⟨t, ?_, subset_rfl⟩, Subtype.val ⁻¹' t, ⟨t, ?_, subset_rfl⟩, ?_⟩
+    · exact ht.mem_nhds ha
+    · exact ht.mem_nhds ha
+    · grind
 
 lemma UniformContinuous.exists_tendsto {α β : Type*} [UniformSpace α] [FirstCountableTopology α]
     [UniformSpace β] [CompleteSpace β] {s : Set α}
@@ -211,8 +232,8 @@ lemma exists_tendsto_of_mem_holderSet [CompleteSpace E]
     {T' : Set T} (hT'_dense : Dense T') {ω : Ω} (hω : ω ∈ holderSet X T' p β U)
     (t : T) (htU : t ∈ U) :
     ∃ c, Tendsto (fun t' : T' ↦ X t' ω) (comap Subtype.val (𝓝 t)) (𝓝 c) :=
-  (uniformContinuousOn_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).exists_tendsto t
-    (by exact subset_closure_dense_inter hT'_dense hU htU)
+  (uniformContinuousOn_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).exists_tendsto hT'_dense hU t
+    htU
 
 lemma ae_mem_holderSet [MeasurableSpace E] [BorelSpace E]
     (hT : HasBoundedInternalCoveringNumber U c d) (hX : IsKolmogorovProcess X P p q M)
@@ -527,7 +548,13 @@ lemma exists_tendsto_indicatorProcess_holderSet
       suffices ∀ᶠ (x : T') in (comap Subtype.val (𝓝 t)), ↑x ∈ U by
         filter_upwards [this] with x hx
         simp [hω, indicatorProcess]
-      sorry
+      simp only [eventually_comap, Subtype.forall]
+      suffices ∀ᶠ b in 𝓝 t, b ∈ U by
+        filter_upwards [this] with x hx
+        rintro x' hx' rfl
+        exact hx
+      rw [eventually_mem_set]
+      exact hU.mem_nhds htU
     simp_rw [tendsto_congr' this]
     exact exists_tendsto_of_mem_holderSet hT hU hd_pos hX.p_pos hβ_pos
       hT'_dense hω t htU
@@ -888,13 +915,10 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
       obtain ⟨n, hn⟩ : ∃ n, β₀ < β' n := (Tendsto.eventually_const_lt hβ₀_lt hβ'_tendsto).exists
       exact ⟨n, mod_cast hn⟩
     suffices ∃ C, HolderOnWith C (β n) (fun x ↦ Z 0 x ω) U by
-      -- todo: HolderOnWith.mono
-      sorry
-      -- have h_bounded : BoundedSpace T := by -- extract this lemma
-      --   constructor
-      --   rw [Metric.isBounded_iff_ediam_ne_top]
-      --   exact (hT.diam_lt_top hd_pos).ne
-      -- refine this.mono hn.le
+      obtain ⟨C, hC⟩ := this
+      refine HolderOnWith.mono_right hC hn.le ?_
+      rw [Metric.isBounded_iff_ediam_ne_top]
+      exact (hT.diam_lt_top hd_pos).ne
     simp only [Set.mem_setOf_eq, A] at hω
     obtain ⟨C, hC⟩ := hZ_holder n ω
     refine ⟨C, fun s hs t ht ↦ ?_⟩

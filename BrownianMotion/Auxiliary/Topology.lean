@@ -10,13 +10,6 @@ variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] [CompleteSp
 lemma neBot_comap_nhds (hs : Dense s) (x : X) : ((𝓝 x).comap ((↑) : s → X)).NeBot :=
   hs.isDenseInducing_val.comap_nhds_neBot _
 
-lemma Dense.holderOnWith_extend {U : Set X} (hU : IsOpen U) (hs : Dense s)
-    (hf : HolderOnWith C r f {x | ↑x ∈ U}) (hr : 0 < r) :
-    HolderOnWith C r (hs.extend f) U := by
-  intro x y
-  have hf' := hf.uniformContinuousOn hr
-  sorry
-
 lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r) :
     HolderWith C r (hs.extend f) := by
   intro x y
@@ -35,6 +28,22 @@ lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r
     refine (Continuous.tendsto ?_ (x, y)).comp ?_
     · fun_prop (disch := exact ENNReal.coe_ne_top)
     exact Tendsto.prodMk_nhds (tendsto_comap.comp tendsto_fst) (tendsto_comap.comp tendsto_snd)
+
+lemma Dense.holderOnWith_extend {U : Set X} (hU : IsOpen U) (hs : Dense s)
+    (hf : HolderOnWith C r f {x | ↑x ∈ U}) (hr : 0 < r) :
+    HolderOnWith C r (hs.extend f) U := by
+  let f' : {x : U | ↑x ∈ s} → Y := fun x ↦ f ⟨x, x.2⟩
+  have hf' : HolderWith C r f' := by
+    sorry
+  have h_dense' : Dense {x : U | ↑x ∈ s} := by
+    sorry
+  have h_extend : HolderWith C r (h_dense'.extend f') := h_dense'.holderWith_extend hf' hr
+  intro x hx y hy
+  specialize h_extend ⟨x, hx⟩ ⟨y, hy⟩
+  simp only [Subtype.edist_mk_mk] at h_extend
+  convert h_extend
+  · sorry
+  · sorry
 
 lemma Metric.boundedSpace_iff {X : Type*} [PseudoMetricSpace X] :
     BoundedSpace X ↔ ∃ C, ∀ x y : X, dist x y ≤ C := by
