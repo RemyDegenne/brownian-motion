@@ -209,6 +209,7 @@ variable [PseudoMetricSpace T] [EMetricSpace E]
 
 section HolderSet
 
+/-- A set on which the process is Hölder continuous. -/
 def holderSet (X : T → Ω → E) (T' : Set T) (p β : ℝ) (U : Set T) : Set Ω :=
   {ω | ⨆ (s : (T' ∩ U : Set T)) (t : (T' ∩ U : Set T)),
       edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞
@@ -373,8 +374,7 @@ lemma measurable_indicatorProcess [MeasurableSpace E]
   Measurable.ite hA (hX t) measurable_const
 
 lemma measurable_pair_indicatorProcess {T₁ T₂ : Type*}
-    [MeasurableSpace E] [BorelSpace E]
-    [PseudoMetricSpace T₁] [PseudoMetricSpace T₂] {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
+    [MeasurableSpace E] [BorelSpace E] {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
     (hX₁ : ∀ t, Measurable (X₁ t)) (hX₂ : ∀ t, Measurable (X₂ t))
     (hX₁₂ : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X₁ i ω, X₂ j ω))
     {A₁ A₂ : Set Ω} (hA₁ : MeasurableSet A₁) (hA₂ : MeasurableSet A₂) (s : T₁) (t : T₂) :
@@ -400,7 +400,7 @@ lemma measurable_pair_indicatorProcess {T₁ T₂ : Type*}
     fun_prop
 
 lemma measurable_edist_indicatorProcess {T₁ T₂ : Type*} [MeasurableSpace E] [BorelSpace E]
-    [PseudoMetricSpace T₁] [PseudoMetricSpace T₂] {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
+    {X₁ : T₁ → Ω → E} {X₂ : T₂ → Ω → E}
     (hX₁ : ∀ t, Measurable (X₁ t)) (hX₂ : ∀ t, Measurable (X₂ t))
     (hX₁₂ : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X₁ i ω, X₂ j ω))
     {A₁ A₂ : Set Ω} (hA₁ : MeasurableSet A₁) (hA₂ : MeasurableSet A₂) (s : T₁) (t : T₂) :
@@ -456,6 +456,7 @@ lemma countable_denseCountable : (denseCountable T).Countable :=
   (TopologicalSpace.exists_countable_dense T).choose_spec.1
 
 open Classical in
+/-- A class of processes built from an other. Used to ensure measurability. -/
 def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Prop :=
   ∃ (A : Set Ω), MeasurableSet A ∧
     (∀ᵐ ω ∂P, ω ∈ A) ∧
