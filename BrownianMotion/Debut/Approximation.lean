@@ -145,7 +145,7 @@ section 𝓛_sets
 /-- `𝓛₀(X)` is the collection of sets of the form `A ×ˢ B`, where `A : Set X` is compact and
 `B ∈ 𝓚 f t`. -/
 def 𝓛₀ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) : Set (Set (X × (T × Ω))) :=
-  {X | ∃ A B, B ∈ 𝓚 f t ∧ A ×ˢ B = X}
+  {C | ∃ A B, IsCompact A ∧ B ∈ 𝓚 f t ∧ A ×ˢ B = C}
 
 /-- `𝓛₁(X)` is the collection of finite unions of sets in `𝓛₀(X)`. -/
 inductive 𝓛₁ (X : Type*) [TopologicalSpace X] (f : Filtration T mΩ) (t : T) :
