@@ -336,18 +336,6 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
 
-section FromPR
-
-variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace E]
-variable {f : ℕ → α → E} {g : α → E}
-
-theorem tendstoInMeasure_of_tendsto_ae_of_measurable_edist [IsFiniteMeasure μ]
-    (hf : ∀ n, Measurable (fun a ↦ edist (f n a) (g a)))
-    (hfg : ∀ᵐ x ∂μ, Tendsto (fun n => f n x) atTop (𝓝 (g x))) : TendstoInMeasure μ f atTop g :=
-  sorry -- in Mathlib: need a bump
-
-end FromPR
-
 variable [hE : Nonempty E]
 
 section IndicatorProcess
