@@ -1,4 +1,6 @@
+import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Gaussian.CovMatrix
+import BrownianMotion.Gaussian.Fernique
 
 /-!
 # Facts about Gaussian characteristic function
@@ -44,7 +46,7 @@ lemma HasGaussianLaw.charFun_toLp {ι Ω : Type*} [Fintype ι] {mΩ : Measurable
   · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
       integral_complex_ofReal, ← ofReal_mul]
     congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)
-    rw [integral_map, PiLp.integral_eval]
+    rw [integral_map, eval_integral_piLp]
     · simp
     · simp only [id_eq, PiLp.toLp_apply]
       exact fun i ↦ HasGaussianLaw.integrable
@@ -102,8 +104,7 @@ lemma gaussian_charFun_congr [IsFiniteMeasure μ] (m : E) (f : ContinuousBilinFo
   · apply ext_inner_left ℝ
     simp [hn]
   · apply ContinuousBilinForm.ext_of_isSymm hf.isSymm h'.isPosSemidef_covInnerBilin.isSymm
-    intro x
-    linear_combination 2 * (hn x).1.symm
+    grind
 
 /-- Two Gaussian measures are equal if they have same mean and same covariance. This is
 `IsGaussian.ext_covarianceBilin` specialized to Hilbert spaces. -/
@@ -127,16 +128,16 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountable
 
 /-- Two Gaussian measures are equal if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
-    (hm : μ[id] = ν[id]) (hv : covarianceBilin μ = covarianceBilin ν) : μ = ν := by
+    (hm : μ[id] = ν[id]) (hv : covarianceBilinDual μ = covarianceBilinDual ν) : μ = ν := by
   apply Measure.ext_of_charFunDual
   ext L
   simp_rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
     L.integral_comp_id_comm' IsGaussian.integrable_id, hm,
-    ← covarianceBilin_self_eq_variance IsGaussian.memLp_two_id, hv]
+    ← covarianceBilinDual_self_eq_variance IsGaussian.memLp_two_id, hv]
 
 /-- Two Gaussian measures are equal if and only if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_iff_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν] :
-    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilin μ = covarianceBilin ν where
+    μ = ν ↔ μ[id] = ν[id] ∧ covarianceBilinDual μ = covarianceBilinDual ν where
   mp h := by simp [h]
   mpr h := IsGaussian.ext_covarianceBilin h.1 h.2
 
