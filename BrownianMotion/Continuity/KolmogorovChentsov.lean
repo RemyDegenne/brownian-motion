@@ -304,6 +304,7 @@ section IndicatorProcess
 
 variable {A : Set Ω}
 
+/-- Process where we replace the values for `ω` outside of `A` with a constant value. -/
 noncomputable
 def indicatorProcess (X : T → Ω → E) (A : Set Ω) : T → Ω → E :=
   haveI := Classical.decPred (· ∈ A)
@@ -395,6 +396,7 @@ lemma measurable_pair_limUnder_comap {X₁ X₂ : T → Ω → E} {T' : Set T} (
   · exact h₀.comp tendsto_fst
   · exact h₁.comp tendsto_snd
 
+/-- A countable dense subset of a second-countable topological space. -/
 def denseCountable (T : Type*) [TopologicalSpace T] [SecondCountableTopology T] : Set T :=
   (TopologicalSpace.exists_countable_dense T).choose
 
@@ -535,6 +537,7 @@ lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
         exact tendsto_const_nhds
       · simp only [htU, ↓reduceIte]
 
+/-- A Hölder continuous modification of a process `X`. -/
 noncomputable
 def holderModification (X : T → Ω → E) (β : ℝ≥0) (p : ℝ) (U : Set T) [DecidablePred (· ∈ U)] :
     T → Ω → E :=
