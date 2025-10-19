@@ -104,8 +104,7 @@ lemma gaussian_charFun_congr [IsFiniteMeasure μ] (m : E) (f : ContinuousBilinFo
   · apply ext_inner_left ℝ
     simp [hn]
   · apply ContinuousBilinForm.ext_of_isSymm hf.isSymm h'.isPosSemidef_covInnerBilin.isSymm
-    intro x
-    linear_combination 2 * (hn x).1.symm
+    grind
 
 /-- Two Gaussian measures are equal if they have same mean and same covariance. This is
 `IsGaussian.ext_covarianceBilin` specialized to Hilbert spaces. -/

@@ -627,10 +627,8 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber (Se
     have h_tendsto_Y : TendstoInMeasure P (fun n ↦ Y (u n)) atTop (Y t) := by
       have h_ae ω : Tendsto (fun n ↦ Y (u n) ω) atTop (𝓝 (Y t ω)) :=
         ((hY_cont ω).tendsto t).comp hu
-      refine tendstoInMeasure_of_tendsto_ae_of_stronglyMeasurable ?_ ?_ ?_
-      · exact fun n ↦ (hY (u n)).stronglyMeasurable
-      · exact (hY t).stronglyMeasurable
-      · exact ae_of_all _ h_ae
+      refine tendstoInMeasure_of_tendsto_ae ?_ (ae_of_all _ h_ae)
+      exact fun n ↦ (hY (u n)).aestronglyMeasurable
     refine (ae_le_const_iff_forall_gt_measure_zero _ _).mpr fun ε hε ↦ ?_
     suffices Tendsto (fun n : ℕ ↦ P {ω | ε ≤ edist (Y t ω) (X t ω)}) atTop (𝓝 0) by
       simpa using this
