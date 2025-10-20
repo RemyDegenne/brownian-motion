@@ -90,7 +90,7 @@ Brownian motion is a building block in modern probability theory. In this paper,
 
 Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and if $X_0=0$):
 \begin{itemize}
-\item It has a normal distirbution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with $\mathbf E[X_{t_i}] = 0$ and $\mathbf{COV}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$ (in other words, $X$ is a Gaussian process);
+\item It has a normal distribution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with mean $\mathbf E[X_{t_i}] = 0$ and covariance $\mathbf{COV}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$, the minimum of $t_i$ and $t_j$ (in other words, $X$ is a Gaussian process);
 \item Its states after time $t$ are independent of states before $t$ given $X_t$, or $\mathbb P(X_{t+s} \in . | (X_r)_{r\leq t}) = \mathbb P(X_{t+s} \in . | X_t)$ for $s,t \ge 0$, i.e.\ Brownian Motion is a Markov process;
 \item It has independent increments, which only depend on the evolved time, i.e.\ $X_s$ and $X_t - X_s$ are independent, and $X_t - X_s$ is a function of $t-s$, i.e.\ it is a Lévy process;
 \item It describes a fair game (usually denoted a martingale), i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; interestingly, it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are martingales;
@@ -121,7 +121,7 @@ For the Lean theorem prover, \cite{ying2023formalization} formalized martingales
 
 This project started as a traditional collaboration between researchers, in which two of the authors (R.D. and P.P.) formalized the Kolmogorov extension theorem.
 In a second phase however, we decided to transform the project into a collaborative effort, open to anyone interested in contributing.
-We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a detailed \emph{blueprint} (TODO cite leanblueprint, using the github template \cite{Monticone_LeanProject_2025}).
+We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a detailed \emph{blueprint} (a collaboration tool introduced for the Sphere Eversion project \cite{sphere_eversion}, used here through the LeanProject github template \cite{Monticone_LeanProject_2025}).
 This is a website that accompanies the github repository on which the code is hosted, and that contains pages with detailed descriptions of the sequence of lemmas and definitions needed to prove the main theorems.
 The dependency of each lemma on the previous ones is made explicit, and the \texttt{leanblueprint} tool automatically generates a color-coded graph of dependencies.
 The graph is useful to visualize the structure of the proof, and to identify which lemmas are proved, which are ready to be proved, and which are still missing prerequisites.
