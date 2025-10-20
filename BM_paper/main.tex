@@ -46,7 +46,7 @@
 
 % please fill in
 \msc{TODO}
-\keywords{Formalization, Mathlib, Lean, Brownian motion}
+\keywords{Formalization, Mathlib, Lean, Probability, Brownian motion}
 
 %update
 \VOLUME{TODO}
@@ -181,6 +181,8 @@ In order to finally construct Brownian Motion, we need to put everything togethe
 Finally, the assumption in the Kolmogorov-Chentsov Theorem can e.g.\ be verified by using that
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
 So, we have constructed a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion. Since this also gives a distribution on $\mathcal C(\mathbb R_+, \mathbb R)$, we call this distribution Wiener measure.
+
+
 
 \section{The Carathéodory and Kolmogorov Extension Theorems}
 \label{S:extension}
@@ -362,12 +364,20 @@ In order to apply this result and show the extension theorem, we need to show th
 
 Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $\alpha$ is a dependent type, i.e.\ for every index $t \in \iota$, the state space $\alpha_t$ might be different. Second, all $\alpha_t$ are not necessarily separable, complete metric spaces (or Polish, i.e.\ separable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or t2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap. While the firstgeneralization did not require any change in the proof, the second generalization was only possible since underlying results in mathlib were already provided on the same level of generality.  More precisely, \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq \alpha$ is compact iff it is complete and totally bounded, requires $\alpha$ to be a uniform space (recall that every metric space is uniform).  We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace}).
 
+
+
 \section{Gaussian Measures and characteristic functions}
 \label{S:gaussian}
 
-Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \docs{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures. In addition, we relied on characteristic functions \docs{MeasureTheory.charFun}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}.
+Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \docs{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures.
+We will denote by $N(m, \sigma^2)$ the normal distribution on $\mathbb{R}$ with mean $m$ and variance $\sigma^2$.
+In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need definitions and properties of mutivariate Gaussian distributions.
+We did not however define Gaussians only for that setting, but first introduced a general definition for Banach spaces, and then specialized to Hilbert and finally finite dimensional spaces.
+Our formalization uses many results from \mathlib and we relied on characteristic functions \docs{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}\todorm{treat as existing thing or talk about is as something we developped?}.
 
-We start by defining the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms defined on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
+\todor{Everywhere: be clear about what we formalized and what was already in mathlib.}
+
+We start by defining the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
 
 \begin{definition}
 	The \emph{dual characteristic function} (\docs{MeasureTheory.charFunDual}) of $\mu$ is the map $\phi_\mu : E' \to \R$ defined by
@@ -384,9 +394,9 @@ In the special case where $E$ is a Hilbert space, Riesz's representation theorem
   $$\psi_\mu(t) = \int_E e^{i \langle t, x \rangle} \mu(\mathrm dx).$$
 \end{definition}
 
-This in some sense is a more convenient way to use the dual characteristic function, as it makes computations easier, and ensures the same characterization property. As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a separable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
+This in some sense is a more convenient way to use the dual characteristic function, as it makes computations easier, and ensures the same characterization property.
 
-Let us now turn to Gaussian measures.
+Let us now turn to Gaussian measures, which are defined through their one-dimensional projections.
 
 \begin{definition}\label{def:gaussian}
   The measure $\mu$ is called \emph{Gaussian} (\docs{ProbabilityTheory.IsGaussian}) if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
@@ -395,37 +405,51 @@ Let us now turn to Gaussian measures.
 In the case of a real Gaussian measure $N(m, \sigma^2)$, the characteristic function is given by
 $$\psi_{N(m, \sigma^2)}(t) = \exp(im - \sigma^2/2).$$
 This proves in particular that a real Gaussian measure is determined by its mean and covariance. The same statement is actually true for any Gaussian measure, if we generalize the notion of covariance.
+As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a separable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
 
 \begin{definition}
-  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of $\mu$ is the bilinear form $C\_mu : E \times E \to \R$ defined by
+  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of $\mu$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
   $$C_\mu(s, t) = \mathrm{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
+\todor{needs a moment condition}
 
 The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following result (\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}).
 
-\begin{theorem}
+\begin{theorem}\label{thm:gaussian_charFun}
   The measure $\mu$ is Gaussian if and only if its characteristic function is given by
   $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
 \end{theorem}
 
-This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, the product of finitely many Gaussian measures is a Gaussian measure. Another result is that if two Gaussian random variables have covariance zero, then they are independent.
+This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, the product $N(0, 1)^{\otimes n}$ of $n \in \mathbb{N}$ times many Gaussian measures $N(0, 1)$ is a Gaussian measure.
+Another result is that if two Gaussian random variables have covariance zero, then they are independent.
+
+Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite moments $(\mathbf E_\mu[\lVert X \rVert^n])_{n \in \mathbb{N}}$.
+While this is relatively easy to prove in finite dimension and is all we would need to define a Brownian motion on $\mathbb{R}_+$, we proved a more general result, applicable to Banach spaces, called Fernique's theorem\todorm{ref}.
+It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $\alpha > 0$ such that
+\begin{align*}
+  \int_E \exp\left( \alpha \|x\|^2 \right) \mu(\mathrm dx) < \infty.
+\end{align*}
+This implies that all moments of a Gaussian measure in a separable Banach space are finite.
 
 \paragraph{On Euclidean spaces}
 
-As stated before, any Gaussian measure is uniquely determined by its mean and covariance. A follow-up question is to know whether, given $m \in E$ and $C$ a continuous and positive semidefinite bilinear form over $E$, there exists a Gaussian measure with mean $m$ and covariance $C$. The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project. As a bilinear form over a finite-dimensional vector-space can be represented by a matrix, we will use the \emph{covariance matrix} to represent the covariance of a measure.
+As stated before, any Gaussian measure is uniquely determined by its mean and covariance. A follow-up question is to know whether, given $m \in E$ and $C$ a continuous and positive semidefinite bilinear form over $E$, there exists a Gaussian measure with mean $m$ and covariance $C$.
+The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project\todorm{The question is also answerable in Hilbert spaces, but we did not do it}.
+As a bilinear form over a finite-dimensional vector-space can be represented by a matrix, we will use the \emph{covariance matrix} to represent the covariance of a measure.
 
 Assume now that $E$ is a Euclidean space with a basis $(e_1, \dots, e_n)$. We define the \emph{standard Gaussian measure} (\docs{ProbabilityTheory.stdGaussian}) as the pushforward measure
 $$\left(x \mapsto \sum_{i=1}^n x_i e_i\right)_* N(0, 1)^{\otimes n}.$$
 
-As stated above, $N(0, 1)^{\otimes n}$ is a Gaussian measure because it is a product of Gaussian measures, and the map $x \mapsto \sum_{i=1}^n x_i e_i$ is a linear form over $E$, so that this measure is indeed Gaussian. It is easy to see that its mean is $0$ and its covariance matrix is the identity matrix $I_n$. We denote it $N(0, I_n)$.
+As stated above, $N(0, 1)^{\otimes n}$ is a Gaussian measure because it is a product of Gaussian measures, and the map $x \mapsto \sum_{i=1}^n x_i e_i$ is a linear form over $E$, so that this measure is indeed Gaussian. It is easy to see that its mean is $0$ and its covariance matrix is the identity matrix $I_n$.
+Also, the measure we obtain does not depend on the choice of the basis.
+We denote it $N(0, I_n)$.
 
-Now from Definition~\ref{def:gaussian} it is clear that the pushforward of a Gaussian measure by a continuous affine map is again a Gaussian measure. In particular, given $A$ an $n \times n$ matrix, $b \in E$ and $\mu$ a Gaussian measure over $E$ with mean $m$ and covariance $C$, we have that $(x \mapsto Ax + b)_* \mu$ is a Gaussian measure with mean $Am + b$ and covariance matrix $A^\top C A$. Consider thus $b \in E$ and $A$ a positive semidefinite $n \times n$ matrix. There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Ax + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \docs{ProbabilityTheory.multivariateGaussian}.
-
-\paragraph{Fernique's theorem}
-
-\todor{ General Gaussian def, characteristic function, Fernique's theorem (not in detail), Hilbert spaces defs, stdGaussian and multivariateGaussian.}
+Now from Definition~\ref{def:gaussian} it is clear that the pushforward of a Gaussian measure by a continuous affine map is again a Gaussian measure. In particular, given $A$ an $n \times n$ matrix, $b \in E$ and $\mu$ a Gaussian measure over $E$ with mean $m$ and covariance $C$, we have that $(x \mapsto Ax + b)_* \mu$ is a Gaussian measure with mean $Am + b$ and covariance matrix $A^\top C A$.
+Consider thus $b \in E$ and $A$ a positive semidefinite $n \times n$ matrix.
+There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Sx + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \docs{ProbabilityTheory.multivariateGaussian}.
 
 
+\todor{talk here about projectivity of the family of finite-dimensional Gaussian measures?}
 
 
 \section{The Kolmogorov-Chentsov Theorem}
@@ -567,6 +591,8 @@ Although we use it only for $T = \mathbb{R}_+$, Theorem~\ref{thm:localized_holde
 
 We don't describe the proof of Theorem~\ref{thm:localized_holder_modification_sup} in detail here (we refer the reader to \cite{kratschmer2023kolmogorov}, or to the code\todorm{and blueprint: link}): it consists in applying the same type of arguments as in the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov} to build separately modifications for each set $T_n$ and exponents ($p_m, q_m)$ and then combine them into one process (see section~\ref{sub:holder_process}).
 
+
+
 \subsection{Covers and chaining}
 
 
@@ -588,6 +614,8 @@ Since $J \subseteq T$, it also has bounded covering number with the same exponen
 \todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
 
 \todor{Any formalization insights in that part? Proving that L is finite was painful (but there is a tactic coming that will help).}
+
+
 
 \subsection{Building a Hölder continuous process}
 \label{sub:holder_process}
@@ -629,6 +657,7 @@ We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is
 Then $Z$ is a modification of $X$ and has Hölder continuous paths of order $\beta_n$ for all $n$.
 It thus has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$.
 
+\todor{Here talk about the measurability issue and the need to modify the main theorem to include an additional property of the modification.}
 
 
 
