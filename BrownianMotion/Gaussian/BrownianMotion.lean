@@ -3,12 +3,12 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
-import Mathlib.Probability.Independence.CharacteristicFunction
 
 /-!
 # Brownian motion
@@ -168,18 +168,6 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
     (fun t ↦ (brownian_ae_eq_preBrownian t).symm) |>.kolmogorovCondition
   p_pos := by positivity
   q_pos := by positivity
-
-lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {ι Ω : Type*} [Fintype ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsProbabilityMeasure P] {X : ι → Ω → ℝ}
-    [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
-    iIndepFun X P := by
-  refine iIndepFun_iff_charFun_pi (fun _ ↦ h1.aemeasurable.eval _) |>.2 fun ξ ↦ ?_
-  simp_rw [HasGaussianLaw.charFun_toLp, ← sum_sub_distrib, Complex.exp_sum,
-    HasGaussianLaw.charFun_map_real]
-  congrm ∏ i, Complex.exp (_ - ?_)
-  rw [Fintype.sum_eq_single i]
-  · simp [covariance_self, h1.aemeasurable.eval, pow_two, mul_div_assoc]
-  · exact fun j hj ↦ by simp [h2 i j hj.symm]
 
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
