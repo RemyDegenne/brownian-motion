@@ -499,6 +499,7 @@ Let $\Omega$ be a measurable space, on which we define a finite measure $\mathbb
 Let $T$ be a set, and for each $t \in T$, let $E_t$ be a measurable space.
 A stochastic process indexed by $T$ with values in $(E_t)_{t \in T}$ is a collection $(X_t)_{t \in T}$ of random variables $X_t : \Omega \to E_t$, which satisfies a measurability condition (see further down).
 We will often take $E_t = E$ for all $t \in T$ for some fixed measurable space $E$, but we first prove general results about processes with values in different spaces.
+There is no \Lean definition for a stochastic process: we use a function \lstinline|X : T → Ω → E| together with appropriate measurability conditions.
 
 The goal of our formalization of Brownian motion is to define a process with a given law and continuous paths.
 The law of a stochastic process is the pushforward of the measure $\mathbb{P}$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
@@ -507,26 +508,27 @@ The paths of the process are the maps $T \to E_t$ defined by $t \mapsto X_t(\ome
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
 $X$ and $Y$ are said to be indistinguishable if almost surely, $X_t = Y_t$ for all $t \in T$ simultaneously.
 Being indistinguishable implies being a modification, which in turn implies equality of laws (that last part is proved through finite dimensional distributions, see below).
-We will use repeatedly that if $T$ is a separable topological space, $E$ is a Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable\todorm{add link}.
+We will use repeatedly that if $T$ is a separable topological space, $E$ is a Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\docs{indistinguishable_of_modification}).
 
 
 \paragraph{Measurability}
 
 Working with stochastic processes requires a form of measurability.
 First, we say that $X$ is measurable if $X_t$ is measurable for all $t \in T$.
-This is equivalent to requiring that the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$ is measurable for the product $\sigma$-algebra on $\prod_{t \in T} E_t$ \todorm{ref to Mathlib?}.
-
-\todor{explain the need for a.e.-measurability. Well explained in the change of variable paper by Sébastien Gouëzel iirc.}
+This is equivalent to requiring that the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$ is measurable for the product $\sigma$-algebra on $\prod_{t \in T} E_t$.
 
 We say that $X$ is almost everywhere measurable if there exists a measurable process $Y$ such that almost surely, $X_t = Y_t$ for all $t \in T$.
 That is, there exists a measurable process $Y$ which is indistinguishable from $X$.
 Contrary to the case of measurability, this is strictly stronger than requiring that for all $t \in T$, $X_t$ is almost everywhere equal to a measurable function (unless $T$ is countable, in which case the two notions coincide).
 In the following, a \emph{stochastic process} will always mean an almost everywhere measurable collection $(X_t)_{t \in T}$.
 
+\mathlib uses extensively almost everywhere random variables, more so than measurable ones, because almost everywhere measurability is a much more flexible notion, which does not depend on the behavior of the function on sets to which the measure gives zero mass.
+\cite{gouezel2022formalization} contains a detailed discussion of the advantages of almost everywhere measurability when it comes to defining integrals in the context of calculus.
+
 \paragraph{Finite dimensional distributions}
 
 The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $\mathbb{P}$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
-Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in TODO LINK by using the uniqueness of the projective limit of a family of measures. Indeed the law of a process is the projective limit of its finite-dimensional distributions.
+Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in \docs{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures. Indeed the law of a process is the projective limit of its finite-dimensional distributions.
 Our goal in this project is thus to build a process with given finite-dimensional distributions and continuous paths.
 
 \paragraph{The Kolmogorov condition}
@@ -537,7 +539,7 @@ That is, $T$ is equipped with a ``distance'' $d_T$ with values in $[0,+\infty]$ 
 $T$ will denote the index set of a stochastic process, and $E$ the space of values of that process.
 The space $E$ is equipped with the Borel $\sigma$-algebra $\mathcal{B}(E)$ generated by the open sets of $E$.
 
-The key assumption of the Kolmogorov-Chentsov theorem that gives the existence of a continuous modification is that the process satisfies the Kolmogorov condition.
+The key assumption of the Kolmogorov-Chentsov theorem that gives the existence of a continuous modification is that the process satisfies the Kolmogorov condition, \docs{ProbabilityTheory.IsKolmogorovProcess}.
 
 \begin{definition}[Kolmogorov condition]\label{def:kolmogorov_condition}
 Let $p, q, M$ be non-negative real numbers with $p,q>0$.
@@ -561,10 +563,6 @@ Therefore, we introduce a definition \lstinline|IsAEKolmogorovProcess| for the p
 We formalize a recent and general version of the Kolmogorov-Chentsov theorem \cite[Theorem 1]{kratschmer2023kolmogorov}, which applies to extended pseudo-metric spaces under a covering assumption on the index set $T$.
 We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$.
 
-\todor{say somewhere that simpler versions exist in simpler cases, e.g. $T = [0,1]^n$.
-Talk briefly about the dyadics proof vs chaining.}
-
-
 \begin{theorem}[Kolmogorov-Chentsov]\label{thm:kolmogorov_chentsov}
 Suppose that the index set $T$ has bounded covering number with constant $c>0$ and exponent $d > 0$.
 Let $(X_t)_{t \in T}$ be a stochastic process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
@@ -577,8 +575,7 @@ Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d
 If furthermore $E$ is an extended metric space (not pseudo-metric: $d_E(x,y) = 0$ implies $x = y$) and is complete, and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
-\todor{In the code we also have $E$ second-countable, but we are trying to remove it.}
-
+In our formalization, the two parts of this theorem correspond to the statements \docs{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \docs{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
 We adopt here \Lean's convention that $0/0 = 0$, which means that the expression under the expectation is well-defined even if we allow $d_T(s, t) = 0$ in the supremum.
 Indeed, if $d_T(s, t) = 0$, then the Kolmogorov condition implies that $d_E(X_s, X_t) = 0$ almost surely, so the ratio is then $0/0 = 0$ and the expectation is well-defined.
 
@@ -590,8 +587,7 @@ Therefore, from the beginning of the project we made the design choice to consid
 
 Our reference \cite{kratschmer2023kolmogorov} proves the theorem for $T$ and $E$ metric spaces.
 The most notable difference is that we allow pseudo-metrics, for which $d_T(s, t)$ can be zero for $s \ne t$.
-\todorm{The Krätschmer paper also does not mention separability of $T$ for the second part of the theorem, but they take a countable dense subset of $T$ in the proof, which requires $T$ to be second-countable.}
-
+%\todorm{The Krätschmer paper also does not mention separability of $T$ for the second part of the theorem, but they take a countable dense subset of $T$ in the proof, which requires $T$ to be second-countable.}
 The proof we implement follows that paper, with minor changes.
 The first one is that the authors of \cite{kratschmer2023kolmogorov} used the Minkowski inequality in a part of the proof, which requires $p \ge 1$, and did not mention how to handle the (easier) case $p < 1$, although the theorem is also valid there.
 Beyond fixing this minor omission by adding a separate argument for $p \in (0,1)$, the second change we make is to ensure that all exponents we use are natural numbers, in order to simplify the formalization.
@@ -599,7 +595,14 @@ Whenever the proof in \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{
 
 \todor{and there might be other changes: I'm not sure I followed exactly the computations from the paper. I might have refactored some of them.}
 
-\paragraph{Localized version}
+
+\paragraph{TODO: paragraph about different versions of the theorem}
+
+\todor{simpler versions exist in simpler cases, e.g. $T = [0,1]^n$.
+Talk briefly about the dyadics proof vs chaining.}
+
+
+\paragraph{Localized theorem}
 
 In order to obtain a Brownian motion, we will want to apply Theorem~\ref{thm:kolmogorov_chentsov} to a process defined on $T = \mathbb{R}_+$, which is not bounded and does not have bounded covering number.
 We thus need an extension of the theorem.
@@ -654,7 +657,7 @@ We then want to find an upper bound, for $\delta > 0$, on
 \end{align*}
 We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
 
-\begin{lemma}\label{lem:finite_set_bound_of_dist_le}
+\begin{lemma}[\docs{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
 For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
 \begin{align*}
   \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
