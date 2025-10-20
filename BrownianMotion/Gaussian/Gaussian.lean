@@ -201,7 +201,7 @@ end InnerProductSpace
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
--- Two Gaussian measures are equal if they have same mean and same covariance. -/
+/-- Two Gaussian measures are equal if they have same mean and same covariance. -/
 protected lemma IsGaussian.ext_covarianceBilin {ν : Measure E} [IsGaussian μ] [IsGaussian ν]
     (hm : μ[id] = ν[id]) (hv : covarianceBilinDual μ = covarianceBilinDual ν) : μ = ν := by
   apply Measure.ext_of_charFunDual
