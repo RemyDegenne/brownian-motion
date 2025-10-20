@@ -577,13 +577,6 @@ Our reference \cite{kratschmer2023kolmogorov} proves the theorem for $T$ and $E$
 The most notable difference is that we allow pseudo-metrics, for which $d_T(s, t)$ can be zero for $s \ne t$.
 \todorm{The Krätschmer paper also does not mention separability of $T$ for the second part of the theorem, but they take a countable dense subset of $T$ in the proof, which requires $T$ to be second-countable.}
 
-\todor{For reference, if we want to mention it:
-\begin{align*}
-  L(T, c, d, p, q, \beta)
-    = 2^{2p+5q+1} c (1 + \mathrm{diam}(T))^{q - d}
-      \sum_{k=0}^\infty 2^{k (\beta p - (q - d))}\left(4^d \max\{0, \log_2 c + (k+2)d\}^q + \max\left\{\frac{1}{2^{q-d} - 1}, \frac{1}{(2^{(q-d)/p} - 1)^p}\right\}\right)
-\end{align*}}
-
 The proof we implement follows that paper, with minor changes.
 The first one is that the authors of \cite{kratschmer2023kolmogorov} used the Minkowski inequality in a part of the proof, which requires $p \ge 1$, and did not mention how to handle the (easier) case $p < 1$, although the theorem is also valid there.
 Beyond fixing this minor omission by adding a separate argument for $p \in (0,1)$, the second change we make is to ensure that all exponents we use are natural numbers, in order to simplify the formalization.
