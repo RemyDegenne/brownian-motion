@@ -91,10 +91,8 @@ lemma iIndepFun.hasGaussianLaw {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
       ContinuousBilinForm.isPosSemidef_diagonalStrongDual
         (fun i ↦ isPosSemidef_covarianceBilinDual), fun L ↦ ?_⟩
     rw [(iIndepFun_iff_charFunDual_pi _).1 hX]
-    · simp only [← sum_single_apply E (fun i ↦ ∫ ω, X i ω ∂μ), map_sum, Complex.ofReal_sum,
-      sum_mul, ContinuousBilinForm.diagonalStrongDual, LinearMap.mkContinuous₂_apply,
-      LinearMap.mk₂_apply,
-      sum_div, ← sum_sub_distrib, Complex.exp_sum]
+    · simp only [← sum_single_apply E (fun i ↦ ∫ ω, X i ω ∂μ), map_sum, ofReal_sum, sum_mul,
+      ContinuousBilinForm.diagonalStrongDual_apply, sum_div, ← sum_sub_distrib, exp_sum]
       congr with i
       rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
         ContinuousLinearMap.integral_comp_id_comm, covarianceBilinDual_self_eq_variance,
