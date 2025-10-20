@@ -377,6 +377,8 @@ Our formalization uses many results from \mathlib and we relied on characteristi
 
 \todor{Everywhere: be clear about what we formalized and what was already in mathlib.}
 
+\subsection{Gaussian distributions}
+
 We start by defining the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
 
 \begin{definition}
@@ -449,7 +451,14 @@ Consider thus $b \in E$ and $A$ a positive semidefinite $n \times n$ matrix.
 There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Sx + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \docs{ProbabilityTheory.multivariateGaussian}.
 
 
-\todor{talk here about projectivity of the family of finite-dimensional Gaussian measures?}
+
+\subsection{Projective family of finite-dimensional Gaussian measures}
+
+The law of the standard Brownian motion on $\mathbb{R}_+$ is a measure on $\mathbb{R}^{\mathbb{R}_+}$, whose finite-dimensional distributions are specific multivariate Gaussian measures.
+We build it as the projective limit of these finite-dimensional distributions, using the Kolmogorov extension theorem (Theorem~\ref{T1}).
+In order to apply the theorem, we need to show that these finite-dimensional distributions form a projective family of measures.
+
+TODO
 
 
 \section{The Kolmogorov-Chentsov Theorem}
@@ -645,6 +654,17 @@ To obtain that exact condition on $\beta$, it is thus important to get the facto
 This is where the chaining argument is used, as seen further down in the proof.
 
 \begin{proof}
+
+TODO
+
+The main consequence of the Kolmogorov condition that we will use in the proof is that for $K$ a finite set of pairs of points in $T$ such that for all $(s,t) \in K$, $d_T(s, t) \le \varepsilon$, we have
+\begin{align}
+  \mathbb{E}\left[ \sum_{(s,t) \in K} d_E(X_s, X_t)^p \right]
+  \le \sum_{(s,t) \in K} \mathbb{E}\left[ d_E(X_s, X_t)^p \right]
+  \le M \lvert K \rvert \varepsilon^q
+  \: .\label{eq:kolmogorov_condition_finite_set}
+\end{align}
+
 
 TODO
 \todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
