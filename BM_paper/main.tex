@@ -564,7 +564,7 @@ The most notable difference is that we allow pseudo-metrics, for which $d_T(s, t
       \sum_{k=0}^\infty 2^{k (\beta p - (q - d))}\left(4^d \max\{0, \log_2 c + (k+2)d\}^q + \max\left\{\frac{1}{2^{q-d} - 1}, \frac{1}{(2^{(q-d)/p} - 1)^p}\right\}\right)
 \end{align*}}
 
-The proof we implement follows that paper, with two minor changes.
+The proof we implement follows that paper, with minor changes.
 The first one is that the authors of \cite{kratschmer2023kolmogorov} used the Minkowski inequality in a part of the proof, which requires $p \ge 1$, and did not mention how to handle the (easier) case $p < 1$, although the theorem is also valid there.
 Beyond fixing this minor omission by adding a separate argument for $p \in (0,1)$, the second change we make is to ensure that all exponents we use are natural numbers, in order to simplify the formalization.
 Whenever the proof in \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{-n_1}, 2^{-n_1-1},\ldots, 2^{-n_2}$ with exponents $n_1 < n_2 \in \mathbb{Z}$ possibly negative, we introduce a multiplicative factor $\varepsilon_0$ and use a grid of the form $\varepsilon_0 2^{-m_1}, \ldots, \varepsilon_0 2^{-m_2}$ with $m_1, m_2 \in \mathbb{N}$\todorm{and why is that desirable?}.
@@ -610,10 +610,56 @@ for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
 Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a different constant $2^d c$\todorm{ref}.
 
+The next step is to discretize the possible distances between points in $J$.
+For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1) \ge 2^{-k}$.
+We write the set of pairs of points in $J$ as the union of the sets $\{(s, t) \in J^2 \mid d_T(s, t) \in (\eta_k, 2\eta_k]\}$.
+Then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{s, t \in J} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le 2\eta_k}} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+We then want to find an upper bound, for $\delta > 0$, on
+\begin{align*}
+  \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
+  \: .
+\end{align*}
+We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
 
+\begin{lemma}\label{lem:finite_set_bound_of_dist_le}
+For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
+\begin{align*}
+  \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
+  &\le 2^{2p+4q+1} M c \delta^{q-d}\left( 4^d \left(\max\left\{0, \log_2 \left(c 4^d \delta^{-d}\right)\right\}\right)^q + C_p \right)
+  \: ,
+  \\
+  \text{ with } C_p
+  &= \max\left\{\frac{1}{2^{q-d} - 1}, \frac{1}{(2^{(q-d)/p} - 1)^p}\right\}
+  \: .
+\end{align*}
+\end{lemma}
+
+We apply that lemma for $\delta$ of order $2^{-k}$ and we obtain for the constant $L$ a sum over $k$ of $2^{k(\beta p - (q - d))}$ multiplied by an expression that grows like $k^q$.
+That series converges if and only if $\beta < (q - d)/p$.
+To obtain that exact condition on $\beta$, it is thus important to get the factor $\delta^{q-d}$ in the lemma above, and not a worse exponent.
+This is where the chaining argument is used, as seen further down in the proof.
+
+\begin{proof}
+
+TODO
 \todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
 
-\todor{Any formalization insights in that part? Proving that L is finite was painful (but there is a tactic coming that will help).}
+\todor{We need to insist on the place where we use the chaining argument. That's not done very well in KU23.}
+
+
+\end{proof}
+
+
+\todor{Any formalization insights in that part?
+
+- Proving that L is finite was painful (but there is a tactic coming that will help).
+
+- Keeping track of the constants is easy}
 
 
 
@@ -640,7 +686,7 @@ Let $x_0 \in E$ be arbitrary and let $Y$ be the process defined by
   \end{cases}
 \end{align*}
 The limits in that definition are the reason for the completeness assumption on $E$.
-Then $Y$ has Hölder continuous paths of order $\beta$ almost surely.
+Then $Y$ has Hölder continuous paths of order $\beta$.
 We finally need to show that $Y$ is a modification of $X$, which we do by showing that for all $t \in T$, $d_E(X_t, Y_t) = 0$ almost surely.
 That is why that part of the theorem requires $E$ to be metric and not pseudo-metric.
 
