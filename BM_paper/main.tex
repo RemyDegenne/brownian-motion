@@ -164,12 +164,7 @@ For any probability measure $P$ on $\mathbb R^n$, its characteristic function is
 \psi_{f_\ast N(0,I_n)}(t) = \int e^{it^\top x} f_\ast N(0,I_n) dx = \int e^{it^\top A x} N(0,I_n) dx = \exp\big( - \tfrac 12 t^\top C t\big).
 \end{align}
 Using the same transformation, we can show that Gaussian measures are closed under linear maps.
-
-So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite. For this, we rely on Gram matrices, which are based on inner product spaces. In such a space $E$ (with scalar product $\langle .,. \rangle$), and $v_i,...,v_n \in E$, define $C_{ij} := \langle v_i, v_j\rangle$. Then, for $t :=(t_1,...,t_n) \in \R^n$,
-$$ t^\top C t = \sum_{i,j} t_i \langle v_i, v_j\rangle t_j = \Big\langle \sum_i t_i v_i, \sum_j t_j v_j\Big\rangle \geq 0.$$
-Let $v_i = 1_{[0,t_i]}$ in the space of $L^2$ integrable functions with respect to Lebesgue integral. Then,
-$$ \langle v_i, v_j \rangle = \int 1_{[0,t_i]}(x) 1_{[0,t_j]}(x) dx = \int 1_{[0,t_i \wedge t_j]}(x) dx = t_i \wedge t_j.$$
-So, $C$ from above is a Gram matrix, which is non-negative definite by general theory, and we have constructed the finite dimensional distributions for Brownian motion.
+So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite.
 
 \cite{hairer2009introduction}
 
@@ -468,7 +463,18 @@ We build it as the projective limit of these finite-dimensional distributions, u
 In order to apply the theorem, we need to show that these finite-dimensional distributions form a projective family of measures.
 
 Let then $P_J$ be the measure over $\mathbb{R}^J$ defined as the multivariate Gaussian measure $N(0, C_J)$, where $C_J$ is the covariance matrix defined by $(C_J)_{ij} = t_i \wedge t_j$ for $J = \{t_1, \dots, t_n\} \subseteq \mathbb{R}_+$.
-This Gaussian measure exists because $C_J$ is positive semidefinite\todorm{say why?}.
+To show that this Gaussian measure exists we need to prove that $C_J$ is positive semidefinite.
+For this, we rely on Gram matrices, which are based on inner product spaces. In such a space $E$ (with scalar product $\langle .,. \rangle$), and $v_i,...,v_n \in E$, define a matrix $G$ by $G_{ij} := \langle v_i, v_j\rangle$.
+Then, for $t :=(t_1,...,t_n) \in \R^n$,
+\begin{align*}
+  t^\top G t = \sum_{i,j} t_i \langle v_i, v_j\rangle t_j = \Big\langle \sum_i t_i v_i, \sum_j t_j v_j\Big\rangle = \left\Vert \sum_i t_i v_i \right\Vert^2 \geq 0
+  \: ,
+\end{align*}
+and thus the Gram matrix $G$ is positive semidefinite.
+Let $v_i = 1_{[0,t_i]}$ in the space of $L^2$ integrable functions with respect to Lebesgue integral. Then,
+$$ \langle v_i, v_j \rangle = \int 1_{[0,t_i]}(x) 1_{[0,t_j]}(x) dx = \int 1_{[0,t_i \wedge t_j]}(x) dx = t_i \wedge t_j.$$
+So, $C_J$ from above is a Gram matrix, which is positive semidefinite.
+
 In order to prove that $(P_J)_{J \subseteq_f \mathbb{R}_+}$ is projective, we need to show that the pushforward of a Gaussian measure $P_J = N(0, C_J)$ by the projection $\pi_H^J : \mathbb{R}^J \to \mathbb{R}^H$ is equal to $P_H = N(0, C_H)$ for all $H \subseteq J \subseteq_f \mathbb{R}_+$.
 
 We first show that the pushforward of a Gaussian measure by a continuous linear map is again a Gaussian measure.
