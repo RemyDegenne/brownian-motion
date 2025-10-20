@@ -458,8 +458,19 @@ The law of the standard Brownian motion on $\mathbb{R}_+$ is a measure on $\math
 We build it as the projective limit of these finite-dimensional distributions, using the Kolmogorov extension theorem (Theorem~\ref{T1}).
 In order to apply the theorem, we need to show that these finite-dimensional distributions form a projective family of measures.
 
-TODO
+Let then $P_J$ be the measure over $\mathbb{R}^J$ defined as the multivariate Gaussian measure $N(0, C_J)$, where $C_J$ is the covariance matrix defined by $(C_J)_{ij} = t_i \wedge t_j$ for $J = \{t_1, \dots, t_n\} \subseteq \mathbb{R}_+$.
+This Gaussian measure exists because $C_J$ is positive semidefinite\todorm{say why?}.
+In order to prove that $(P_J)_{J \subseteq_f \mathbb{R}_+}$ is projective, we need to show that the pushforward of a Gaussian measure $P_J = N(0, C_J)$ by the projection $\pi_H^J : \mathbb{R}^J \to \mathbb{R}^H$ is equal to $P_H = N(0, C_H)$ for all $H \subseteq J \subseteq_f \mathbb{R}_+$.
 
+We first show that the pushforward of a Gaussian measure by a continuous linear map is again a Gaussian measure.
+It thus suffices to compute its mean and covariance. The mean is straightforward to compute, as the expectation commutes with linear maps.
+
+TODO: a word about the covariance?
+
+We have thus constructed a measure on $\mathbb{R}^{\mathbb{R}_+}$.
+We can define the canonical process on $\mathbb{R}^{\mathbb{R}_+}$, which is the process $(X_t)_{t \in \mathbb{R}_+}$ defined by $X_t(\omega) = \omega(t)$ for all $\omega \in \mathbb{R}^{\mathbb{R}_+}$.
+By construction, this process has the right finite-dimensional distributions to be a Brownian motion.
+However, its paths are not necessarily continuous.
 
 \section{The Kolmogorov-Chentsov Theorem}
 \label{S:continuity}
