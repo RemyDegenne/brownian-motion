@@ -291,6 +291,10 @@ variable [RCLike 𝕜] [∀ i, NormedSpace 𝕜 (E i)]
     (L : (i : ι) → ContinuousBilinForm 𝕜 (StrongDual 𝕜 (E i)))
 
 open ContinuousLinearMap in
+/-- Given `L i : (E i)' × (E i)' → 𝕜` a family of continuous bilinear forms,
+`diagonalStrongDual L` is a continuous bilinear form is the continuous bilinear form over
+`(Π i, E i)'` which maps `(x, y) : (Π i, E i)' × (Π i, E i)'` to
+`∑ i, L i (fun a ↦ x aᵢ) (fun a ↦ y aᵢ)`. -/
 noncomputable
 def diagonalStrongDual : ContinuousBilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) :=
   letI g : LinearMap.BilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) := LinearMap.mk₂ 𝕜
