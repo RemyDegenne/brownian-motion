@@ -93,10 +93,10 @@ instance IsGaussianProcess.hasGaussianLaw_fun_sub [SecondCountableTopology E]
   IsGaussianProcess.hasGaussianLaw_sub
 
 instance IsGaussianProcess.hasGaussianLaw_increments [SecondCountableTopology E]
-    [IsGaussianProcess X P] {n : ℕ} {t : Fin (n + 2) → T} :
-    HasGaussianLaw (fun ω (i : Fin (n + 1)) ↦ X (t i.succ) ω - X (t i.castSucc) ω) P := by
+    [IsGaussianProcess X P] {n : ℕ} {t : Fin (n + 1) → T} :
+    HasGaussianLaw (fun ω (i : Fin n) ↦ X (t i.succ) ω - X (t i.castSucc) ω) P := by
   classical
-  let L : ((Finset.univ.image t) → E) →L[ℝ] Fin (n + 1) → E :=
+  let L : ((Finset.univ.image t) → E) →L[ℝ] Fin n → E :=
     { toFun x i := x ⟨t i.succ, by simp⟩ - x ⟨t i.castSucc, by simp⟩
       map_add' x y := by ext; simp; abel
       map_smul' m x := by ext; simp; module

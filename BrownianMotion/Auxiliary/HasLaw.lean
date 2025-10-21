@@ -39,6 +39,12 @@ attribute [instance] HasGaussianLaw.isGaussian_map
 
 variable {X P}
 
+lemma HasGaussianLaw.congr {Y : Ω → E} [HasGaussianLaw X P] (h : ∀ᵐ ω ∂P, X ω = Y ω) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    rw [← Measure.map_congr h]
+    infer_instance
+
 instance IsGaussian.hasGaussianLaw [IsGaussian (P.map X)] :
     HasGaussianLaw X P where
   isGaussian_map := inferInstance

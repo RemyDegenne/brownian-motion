@@ -34,7 +34,7 @@ lemma iIndepFun.hasGaussianLaw {ι Ω : Type*} [Fintype ι] {E : ι → Type*}
     [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
     {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsProbabilityMeasure μ] {X : Π i, Ω → (E i)}
     [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)]
-    [∀ i, SecondCountableTopology (E i)] [∀ i, HasGaussianLaw (X i) μ] (hX : iIndepFun X μ) :
+    [∀ i, SecondCountableTopology (E i)] (h : ∀ i, HasGaussianLaw (X i) μ) (hX : iIndepFun X μ) :
     HasGaussianLaw (fun ω ↦ (X · ω)) μ where
   isGaussian_map := by
     classical

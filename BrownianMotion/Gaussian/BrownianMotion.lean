@@ -15,7 +15,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 -/
 
-open MeasureTheory NNReal WithLp Finset NormedSpace Fin.NatCast
+open MeasureTheory NNReal WithLp Finset NormedSpace
 open scoped ENNReal NNReal Topology
 
 namespace ProbabilityTheory
@@ -69,7 +69,7 @@ private lemma fin_cast_eq (n m : ℕ) (h : n = m) (i : Fin n) :
 
 section secret
 
-variable {I : Finset ℝ≥0} (hI : I.Nonempty)
+variable (I : Finset ℝ≥0) (hI : I.Nonempty)
 
 include hI in
 lemma test {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) : (i.pred hi).val < (I.sort (· ≤ ·)).length := by
@@ -86,63 +86,65 @@ lemma lol {t : ℝ≥0} (ht : t ∈ I) : (I.sort (· ≤ ·)).idxOf t < #I - 1 +
 
 /-- Given a nonempty `I : Finset ℝ≥0` of cardinality `n`, `toFin : Fin (#I - 1 + 2) → ℝ≥0`
 is the map `(0, t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
-noncomputable def toFin : Fin (#I - 1 + 2) → ℝ≥0 := fun i ↦ if h : i = 0 then 0 else
-      (I.sort (· ≤ ·))[(i.pred h).val]'(test hI h)
+noncomputable def toFin (i : Fin #I) : ℝ≥0 := (I.sort (· ≤ ·)).get (I.length_sort (· ≤ ·) ▸ i)
+
+lemma monotone_toFin : Monotone (toFin I) :=
+  fun i j hij ↦ (I.sort_sorted (· ≤ ·)).rel_get_of_le (by grind)
+
+lemma toFin_mem (i : Fin #I) : toFin I i ∈ I := I.mem_sort (· ≤ ·) |>.1 <| List.get_mem _ _
+
+noncomputable def ofFin (i : I) : Fin #I :=
+  haveI : NeZero #I := ⟨Finset.Nonempty.card_ne_zero ⟨i.1, i.2⟩⟩
+  Fin.ofNat #I ((I.sort (· ≤ ·)).idxOf i.1)
+
+lemma toFin_ofFin (i : I) : toFin I (ofFin I i) = i.1 := by
+  rw [toFin, ofFin]
+  nth_rw 2 [← (I.sort (· ≤ ·)).idxOf_get (a := i.1)]
+  · congr
+    rw [fin_cast_eq]
+    ext
+    simp only [Fin.ofNat_eq_cast, Fin.coe_cast, Fin.val_natCast]
+    rw [Nat.mod_eq_of_lt]
+    rw [← I.length_sort (· ≤ ·)]
+    refine List.idxOf_lt_length_of_mem ?_
+    exact I.mem_sort (· ≤ ·) |>.2 i.2
+  refine List.idxOf_lt_length_of_mem ?_
+  exact I.mem_sort (· ≤ ·) |>.2 i.2
+
+lemma ofFin_toFin (i : Fin #I) : ofFin I ⟨toFin I i, toFin_mem I i⟩ = i := by
+  simp_rw [toFin, ofFin]
+  rw [List.get_idxOf]
+  · simp [fin_cast_eq]
+  · exact sort_nodup (fun x1 x2 ↦ x1 ≤ x2) I
+
+noncomputable def toFin' (i : Fin (#I + 1)) : ℝ≥0 :=
+  if h : i = 0
+    then 0
+    else toFin I (i.pred h)
 
 @[simp]
-lemma toFin_zero : toFin hI 0 = 0 := rfl
+lemma toFin'_zero : toFin' I 0 = 0 := rfl
 
-lemma toFin_of_ne_zero {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) :
-    toFin hI i = (I.sort (· ≤ ·))[(i.pred hi).val]'(test hI hi) := by
-  rw [toFin, dif_neg hi]
+lemma toFin'_of_ne_zero (i : Fin (#I + 1)) (hi : i ≠ 0) :
+    toFin' I i = toFin I (i.pred hi) := by rw [toFin', dif_neg hi]
 
-include hI in
-lemma omg (i : Fin (#I - 1 + 1)) : i.val < (I.sort (· ≤ ·)).length := by
-  rw [Finset.length_sort]
-  have := i.isLt
-  have := hI.card_ne_zero
-  omega
+@[simp]
+lemma toFin'_succ (i : Fin #I) :
+    toFin' I i.succ = toFin I i := by
+  rw [toFin'_of_ne_zero, Fin.pred_succ]
+  simp
 
-lemma toFin_succ (i : Fin (#I - 1 + 1)) : toFin hI i.succ = (I.sort (· ≤ ·))[i]'(omg hI i) := by
-  simp [toFin]
+lemma toFin'_mem (i : Fin (#I + 1)) (hi : i ≠ 0) : toFin' I i ∈ I := by
+  rw [toFin'_of_ne_zero _ _ hi]
+  exact toFin_mem I _
 
-lemma toFin_mem {i : Fin (#I - 1 + 2)} (hi : i ≠ 0) :
-    toFin hI i ∈ I := by
-  rw [toFin_of_ne_zero hI hi, ← Finset.mem_sort (· ≤ ·)]
-  exact List.get_mem _ _
-
-lemma _root_.List.getElem_idxOf' {α : Type*} [DecidableEq α] {a : α} {l : List α}
-    (h : a ∈ l) : l[l.idxOf a]'(l.idxOf_lt_length_of_mem h) = a :=
-  l.getElem_idxOf (l.idxOf_lt_length_of_mem h)
-
-lemma ah {a b : ℕ} (h : a < b + 1) :
-    (a : Fin (b + 1)).succ = (↑(a + 1) : Fin (b + 2)) := by
-  ext
-  simp only [Fin.val_succ, Fin.val_natCast]
-  rw [Nat.mod_eq_of_lt, Nat.mod_eq_of_lt]
-  all_goals omega
-
-lemma toFin_idxOf_sort {t : ℝ≥0} (ht : t ∈ I) :
-    toFin ⟨t, ht⟩ ((I.sort (· ≤ ·)).idxOf t).succ = t := by
-  rw [Nat.succ_eq_add_one, ← ah (lol ht), toFin_succ]
-  simp only [Fin.getElem_fin, Fin.val_natCast]
-  convert List.getElem_idxOf' (Finset.mem_sort (· ≤ ·) |>.2 ht)
-  rw [Nat.mod_eq_of_lt (lol ht)]
-
-lemma toFin_idxOf (i : Fin (#I - 1 + 1)) :
-    (I.sort (· ≤ ·))[i.val]'(omg hI i) = toFin hI i.succ := by
-  simp [toFin]
-
-lemma monotone_toFin : Monotone (toFin hI) := by
+lemma monotone_toFin' : Monotone (toFin' I) := by
   intro i j hij
   obtain rfl | hi := eq_or_ne i 0
   · simp
-  rw [← Fin.pos_iff_ne_zero] at hi
-  simp only [ne_eq, hi.ne', not_false_eq_true, toFin_of_ne_zero, Fin.coe_pred,
-    (hi.trans_le hij).ne']
-  apply (I.sort_sorted (· ≤ ·)).rel_get_of_le
-  simp only [Fin.mk_le_mk, tsub_le_iff_right]
-  omega
+  rw [toFin'_of_ne_zero I i hi, toFin'_of_ne_zero I j (by aesop)]
+  apply monotone_toFin
+  simpa
 
 end secret
 
@@ -175,8 +177,8 @@ lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) 
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
 def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
     [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-    iIndepFun (fun (i : Fin (n + 1)) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
+  ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
+    iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
 
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := HasGaussianLaw.isProbabilityMeasure (X := X 0)
@@ -193,44 +195,68 @@ lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncreme
     simp
   all_goals exact HasGaussianLaw.memLp_two
 
-noncomputable def lin (I : Finset ℝ≥0) : (Fin (#I - 1 + 1) → ℝ) →L[ℝ] (I → ℝ) :=
-  { toFun x i := ∑ j ≤ (I.sort (· ≤ ·)).idxOf i.1, x j
+noncomputable def lin (I : Finset ℝ≥0) : (Fin #I → ℝ) →L[ℝ] (I → ℝ) :=
+  { toFun x i := ∑ j ≤ ofFin I i, x j
     map_add' x y := by ext; simp [sum_add_distrib]
     map_smul' m x := by ext; simp [mul_sum]
     cont := by fun_prop }
 
+lemma fonda (n : ℕ) (a : Fin n) (f : Fin (n + 1) → ℝ) :
+    ∑ i ∈ Iic a, (f i.succ - f i.castSucc) = f a.succ - f 0 := by
+  let g : Fin n → ℝ := fun i ↦ if i ∈ Iic a then f i.succ - f i.castSucc else 0
+  let h : Fin n → ℝ := fun i ↦ f i.succ - f i.castSucc
+  change ∑ i ∈ Iic a, h i = _
+  have h1 : ∑ i ∈ Iic a, h i = ∑ i, g i := by
+    simp_rw [g]
+    rw [Finset.sum_ite_mem, univ_inter]
+  let k : ℕ → ℝ := fun i ↦ if hi : i < n then g ⟨i, hi⟩ else 0
+  have : ∑ i, g i = ∑ i : Fin n, k i := by
+    congr with i
+    simp_rw [k, dif_pos i.2]
+  have h2 : ∑ i ∈ range n, k i = ∑ i ∈ range a.succ, k i := by
+    refine Finset.sum_congr_of_eq_on_inter ?_ (by grind) (by grind)
+    simp only [mem_range, Fin.val_succ, not_lt]
+    intro i hi1 hi2
+    simp_rw [k, dif_pos hi1, g]
+    rw [if_neg]
+    simpa
+  have h3 : ∑ i ∈ range a.succ, k i =
+      ∑ i ∈ range a.succ, (f (Fin.ofNat (n + 1) (i + 1)) - f (Fin.ofNat (n + 1) i)) := by
+    apply Finset.sum_congr rfl
+    simp only [Fin.val_succ, mem_range, Fin.ofNat_eq_cast]
+    intro i hi
+    simp_rw [k]
+    rw [dif_pos (by omega)]
+    simp_rw [g]
+    rw [if_pos]
+    · congr
+      · ext
+        simp only [Fin.succ_mk, Fin.val_natCast]
+        rw [Nat.mod_eq_of_lt]
+        omega
+      · ext
+        simp only [Fin.castSucc_mk, Fin.val_natCast]
+        rw [Nat.mod_eq_of_lt]
+        omega
+    rw [Finset.mem_Iic, Fin.le_def]
+    simp
+    omega
+  rw [h1, this, Fin.sum_univ_eq_sum_range, h2, h3,
+    Finset.sum_range_sub (fun i ↦ f (Fin.ofNat (n + 1) i))]
+  congr
+  ext
+  simp
+
 lemma aux (h : ∀ᵐ ω ∂P, X 0 ω = 0) {I : Finset ℝ≥0} (hI : I.Nonempty) :
     (fun ω ↦ I.restrict (X · ω)) =ᵐ[P]
-        (lin I) ∘ (fun ω i ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) := by
+        (lin I) ∘ (fun ω i ↦ X (toFin' I i.succ) ω - X (toFin' I i.castSucc) ω) := by
+  have : NeZero #I := ⟨hI.card_ne_zero⟩
   filter_upwards [h] with ω hω
   ext t
-  simp only [restrict, lin, ContinuousLinearMap.coe_mk', LinearMap.coe_mk, AddHom.coe_mk, toFin,
-    Fin.succ_ne_zero, ↓reduceDIte, Fin.pred_succ, Fin.castSucc_eq_zero_iff, Fin.coe_pred,
-    Fin.coe_castSucc, Function.comp_apply, Fin.val_natCast, Fin.natCast_eq_zero]
-  rw [← Finset.Iio_succ_eq_Iic, Nat.succ_eq_succ, Finset.Iio_eq_Ico]
-  have : #I ≠ 0 := hI.card_ne_zero
-  convert (Finset.sum_Ico_sub (fun n ↦ X (toFin hI n) ω) (bot_le)).symm with n hn
-  · rw [toFin_idxOf_sort t.2]
-    simp [hω]
-  · have : n < #I := by
-      have := Finset.mem_Ico.1 hn |>.2
-      have := lol t.2
-      omega
-    rw [← ah (by omega), toFin_succ hI]
-    rfl
-  · have : n < #I := by
-      have := Finset.mem_Ico.1 hn |>.2
-      have := lol t.2
-      omega
-    split_ifs with h
-    · rw [Nat.eq_zero_of_dvd_of_lt h (by omega), Nat.cast_zero, toFin_zero]
-    · have : n ≠ 0 := fun h' ↦ h (h' ▸ Nat.dvd_zero _)
-      rw [toFin_of_ne_zero]
-      · congr 2
-        simp only [Fin.val_natCast]
-        rw [Nat.mod_eq_of_lt (by omega), Nat.mod_eq_of_lt (by omega)]
-      · simp only [ne_eq, Fin.natCast_eq_zero]
-        exact mt (Nat.eq_zero_of_dvd_of_lt · (by omega)) this
+  simp only [restrict, lin, ContinuousLinearMap.coe_mk', LinearMap.coe_mk, AddHom.coe_mk,
+    Function.comp_apply]
+  rw [fonda #I (ofFin I t) (fun j ↦ X (toFin' I j) ω), toFin'_succ, toFin_ofFin, toFin'_zero, hω,
+    sub_zero]
 
 lemma IndepFun.charFunDual_map_add_eq_mul {Ω E : Type*} {mΩ : MeasurableSpace Ω}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
@@ -319,7 +345,7 @@ lemma HasIndepIncrements.indepFun_incr {Ω T E : Type*} {mΩ : MeasurableSpace �
     [Preorder T] {X : T → Ω → E} {P : Measure Ω} (h : HasIndepIncrements X P)
     {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) (hX : ∀ᵐ ω ∂P, X r ω = 0) :
     IndepFun (X s) (X t - X s) P := by
-  let τ : Fin (1 + 2) → T := ![r, s, t]
+  let τ : Fin (2 + 1) → T := ![r, s, t]
   have hτ : Monotone τ := by
     intro i j hij
     fin_cases i <;> fin_cases j
@@ -328,35 +354,13 @@ lemma HasIndepIncrements.indepFun_incr {Ω T E : Type*} {mΩ : MeasurableSpace �
     any_goals contradiction
     exact hrs.trans hst
   have h' : (0 : Fin (1 + 1)) ≠ (1 : Fin (1 + 1)) := by simp
-  have := (h 1 τ hτ).indepFun h'
-  simp only [Nat.reduceAdd, Fin.isValue, Fin.succ_zero_eq_one, Matrix.cons_val_one,
-    Matrix.cons_val_zero, Fin.castSucc_zero, Fin.succ_one_eq_two, Matrix.cons_val, Fin.castSucc_one,
-    τ] at this
+  have := (h 2 τ hτ).indepFun h'
+  simp only [Fin.isValue, Fin.succ_zero_eq_one, Matrix.cons_val_one, Matrix.cons_val_zero,
+    Fin.castSucc_zero, Fin.succ_one_eq_two, Matrix.cons_val, Fin.castSucc_one, τ] at this
   have h' : X s =ᵐ[P] X s - X r := by
     filter_upwards [hX] with ω hω
     simp [hω]
   exact this.congr h'.symm ae_eq_rfl
-
-lemma covariance_eq {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [IsProbabilityMeasure P] {X Y : Ω → ℝ} (hX : MemLp X 2 P) (hY : MemLp Y 2 P) :
-    cov[X, Y; P] = P[X * Y] - P[X] * P[Y] := by
-  simp_rw [covariance, sub_mul, mul_sub]
-  rw [integral_sub, integral_sub, integral_sub]
-  · simp_rw [integral_mul_const, integral_const_mul, integral_const, Measure.real, measure_univ,
-      ENNReal.toReal_one, one_smul]
-    simp
-  · exact hY.const_mul _ |>.integrable (by norm_num)
-  · exact integrable_const _
-  · exact hX.integrable_mul hY
-  · conv => enter [1, a]; rw [mul_comm]
-    exact hX.const_mul _ |>.integrable (by norm_num)
-  · apply Integrable.sub
-    · exact hX.integrable_mul hY
-    · conv => enter [1, a]; rw [mul_comm]
-      exact hX.const_mul _ |>.integrable (by norm_num)
-  · apply Integrable.sub
-    · exact hY.const_mul _ |>.integrable (by norm_num)
-    · exact integrable_const _
 
 lemma HasLaw.aeeq_of_dirac' {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
     {x : 𝓧} {X : Ω → 𝓧}
@@ -370,12 +374,13 @@ lemma HasLaw.aeeq_of_dirac {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [Measur
     (hX : HasLaw X (.dirac x) P) : ∀ᵐ ω ∂P, X ω = x := hX.aeeq_of_dirac'
 
 lemma HasIndepIncrements.hasGaussianLaw_restrict (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P)
-    (incr : HasIndepIncrements X P) (I : Finset ℝ≥0) :
-    HasGaussianLaw (fun ω ↦ I.restrict fun x ↦ X x ω) P where
-  isGaussian_map := by
+    (incr : HasIndepIncrements X P) :
+    IsGaussianProcess X P where
+  hasGaussianLaw I := by
     have := (law 0).isProbabilityMeasure_iff.1 inferInstance
     obtain rfl | hI := I.eq_empty_or_nonempty
-    · have : IsEmpty {x // x ∈ (∅ : Finset ℝ≥0)} := inferInstance
+    · constructor
+      have : IsEmpty {x // x ∈ (∅ : Finset ℝ≥0)} := inferInstance
       have : P.map (fun ω ↦ Finset.restrict ∅ fun x ↦ X x ω) = .dirac this.elim := by
         ext s -
         apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
@@ -390,40 +395,23 @@ lemma HasIndepIncrements.hasGaussianLaw_restrict (law : ∀ t, HasLaw (X t) (gau
       rw [← gaussianReal_zero_var]
       exact law 0
     have := aux aeeq hI
-    rw [Measure.map_congr this]
-    have : HasGaussianLaw
-        (fun ω (i : Fin (#I - 1 + 1)) ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
-      have ind := incr (#I - 1) (toFin hI) (monotone_toFin hI)
-      have (i : Fin (#I - 1 + 1)) :
-          HasGaussianLaw (fun ω ↦ X (toFin hI i.succ) ω - X (toFin hI i.castSucc) ω) P := by
-        have : i.succ ≠ i.castSucc := Fin.castSucc_lt_succ i |>.ne'
-        apply IndepFun.hasGaussianLaw_sub (X := X (toFin hI i.castSucc))
-          (Y := X (toFin hI i.succ) - X (toFin hI i.castSucc))
-        · exact (law _).hasGaussianLaw
-        · simpa using (law _).hasGaussianLaw
-        apply incr.indepFun_incr (r := 0)
-        · simp
-        · apply monotone_toFin hI
-          exact Fin.castSucc_lt_succ i |>.le
-        · exact aeeq
-      exact ind.hasGaussianLaw
-    infer_instance
+    refine @HasGaussianLaw.congr _ _ _ _ _ _ _ _ _ _ ?_ this.symm
+    refine @HasGaussianLaw.map _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ?_
+    apply iIndepFun.hasGaussianLaw
+    · intro i
+      convert incr.indepFun_incr (zero_le (toFin' I i.castSucc))
+        (monotone_toFin' I ?_) aeeq |>.hasGaussianLaw_sub ?_ ?_
+      · exact Fin.castSucc_le_succ i
+      · exact law (toFin' I i.castSucc) |>.hasGaussianLaw
+      · simpa using law (toFin' I i.succ) |>.hasGaussianLaw
+    exact incr _ _ (monotone_toFin' I)
 
-lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
-    (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
+lemma isPreBrownian_of (h1 : IsGaussianProcess X P) (h2 : ∀ t, P[X t] = 0)
+    (h3 : ∀ s t, cov[X s, X t; P] = min s t) :
     IsPreBrownian X P where
   hasLaw := by
-    classical
-    have : IsProbabilityMeasure P := (law 0).hasGaussianLaw.isProbabilityMeasure
-    refine fun I ↦ ⟨aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable, ?_⟩
-    have : IsProbabilityMeasure (P.map fun ω ↦ I.restrict (X · ω)) := by
-      apply Measure.isProbabilityMeasure_map
-      exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
-    obtain rfl | hI := I.eq_empty_or_nonempty
-    · ext s -
-      apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
-      all_goals simp
-    have := incr.hasGaussianLaw_restrict law
+    intro I
+    refine ⟨aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _, ?_⟩
     apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
     rw [MeasurableEquiv.coe_toLp, ← PiLp.continuousLinearEquiv_symm_apply 2 ℝ]
     apply IsGaussian.ext
@@ -438,14 +426,14 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
           ext i
           rw [eval_integral]
           · simp only [restrict, Pi.zero_apply]
-            rw [(law _).integral_eq, integral_id_gaussianReal]
-          · exact fun _ ↦ (law _).hasGaussianLaw.integrable
+            exact h2 _
+          · exact fun _ ↦ h1.hasGaussianLaw_eval.integrable
         · apply Integrable.of_eval
-          exact fun _ ↦ (law _).hasGaussianLaw.integrable
+          exact fun _ ↦ h1.hasGaussianLaw_eval.integrable
         · exact IsGaussian.integrable_id
       · fun_prop
       · exact aestronglyMeasurable_id
-      · exact aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable
+      · exact aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _
       · exact Measurable.aestronglyMeasurable (by fun_prop)
       · fun_prop
       · exact aestronglyMeasurable_id
@@ -459,29 +447,39 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
         congr 1
         rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
         · change cov[X i, X j; P] = _
-          wlog hij : i ≤ j generalizing i j
-          · rw [covariance_comm, this j i (le_of_not_ge hij), min_comm]
-          rw [show X j = X j - X i + X i  by simp, covariance_add_right,
-            IndepFun.covariance_eq_zero, covariance_self, (law _).variance_eq,
-            variance_id_gaussianReal]
-          · simpa
-          · exact (law _).aemeasurable
-          · apply incr.indepFun_incr (r := 0)
-            · simp
-            · simpa
-            · apply HasLaw.aeeq_of_dirac
-              rw [← gaussianReal_zero_var]
-              exact law 0
-          · exact (law _).hasGaussianLaw.memLp_two
-          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
-          · exact (law _).hasGaussianLaw.memLp_two
-          · exact (law _).hasGaussianLaw.memLp_two.sub (law _).hasGaussianLaw.memLp_two
-          · exact (law _).hasGaussianLaw.memLp_two
+          exact h3 _ _
         · exact Measurable.aestronglyMeasurable (by fun_prop)
         · exact Measurable.aestronglyMeasurable (by fun_prop)
-        · exact aemeasurable_pi_lambda _ (fun _ ↦ (law _).aemeasurable)
+        · exact aemeasurable_pi_lambda _ (fun _ ↦ h1.aemeasurable _)
       · exact fun _ ↦ HasGaussianLaw.memLp_two
       · exact fun _ ↦ HasGaussianLaw.memLp_two
+
+lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
+    (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
+    IsPreBrownian X P := by
+  apply isPreBrownian_of
+  · exact incr.hasGaussianLaw_restrict law
+  · intro t
+    rw [(law t).integral_eq, integral_id_gaussianReal]
+  · intro s t
+    wlog hst : s ≤ t generalizing s t
+    · rw [min_comm, covariance_comm, this t s (by grind)]
+    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
+      apply HasLaw.aeeq_of_dirac
+      rw [← gaussianReal_zero_var]
+      exact law 0
+    have h1 := incr.indepFun_incr (zero_le s) hst aeeq
+    have := (law 0).isProbabilityMeasure_iff.1 inferInstance
+    have h2 : X t = X t - X s + X s := by simp
+    rw [h2, covariance_add_right, h1.covariance_eq_zero, covariance_self, (law s).variance_eq,
+      variance_id_gaussianReal]
+    · simpa
+    · exact (law s).aemeasurable
+    · exact (law s).hasGaussianLaw.memLp_two
+    · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
+    · exact (law s).hasGaussianLaw.memLp_two
+    · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
+    · exact (law s).hasGaussianLaw.memLp_two
 
 end IsPreBrownian
 
