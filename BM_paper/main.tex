@@ -639,9 +639,10 @@ Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that fo
   \: ,
 \end{align*}
 for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
+This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to the blueprint\todorm{link}. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
 
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
-Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a different constant $2^d c$\todorm{ref}.
+Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a constant $2^d c$\todorm{ref}.
 
 The next step is to discretize the possible distances between points in $J$.
 For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1) \ge 2^{-k}$.
@@ -678,8 +679,12 @@ To obtain that exact condition on $\beta$, it is thus important to get the facto
 This is where the chaining argument is used, as seen further down in the proof.
 
 \begin{proof}
-
-TODO
+We note first that we can restrict the supremum in the expectation to pairs $(s, t) \in J^2$ such that $d_T(s, t) > 0$, since if $d_T(s, t) = 0$, then by the Kolmogorov condition, $d_E(X_s, X_t) = 0$ almost surely.
+Let $\varepsilon_0 = \mathrm{diam}(T)$ and for $n \in \mathbb{N}$, let $\varepsilon_n = 2^{-n} \varepsilon_0$.
+Since $J$ is finite, there exists $N \in \mathbb{N}$ such that $\varepsilon_N < \min_{s, t \in J, \: d_T(s, t) > 0} d_T(s, t)$. Let $N$ be the smallest such integer.
+We can assume that $\delta \ge \varepsilon_N$, since otherwise the supremum is zero.
+The supremum over the set $J$ is thus equal to the supremum over minimal cover $C_N$ of $J$ by balls of radius $\varepsilon_N$.
+Let more generally $C_n$ be the minimal cover of $J$ by balls of radius $\varepsilon_n$ for all $n \in \{0, \dots, N\}$.
 
 The main consequence of the Kolmogorov condition that we will use in the proof is that for $K$ a finite set of pairs of points in $T$ such that for all $(s,t) \in K$, $d_T(s, t) \le \varepsilon$, we have
 \begin{align}
@@ -689,6 +694,17 @@ The main consequence of the Kolmogorov condition that we will use in the proof i
   \: .\label{eq:kolmogorov_condition_finite_set}
 \end{align}
 
+Let us first present a naive upper bound on the expectation of the supremum, which will highlight the need for more advanced techniques.
+We bound the supremum by a sum and apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_N^2 \mid d_T(s, t) \le \delta\}$ with cardinal $\lvert K \rvert \le \lvert C_N \rvert^2$, and then the covering number assumption:
+\begin{align*}
+  \mathbb{E}\left[ \sup_{\substack{s, t \in C_N \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
+  &\le M \lvert C_N \rvert^2 \delta^q
+  \le M c^2 \varepsilon_N^{-2d} \delta^q
+  \: .
+\end{align*}
+TODO: too naive to be interesting. Need to first go from $C_N$ to $C_m$ with $\varepsilon_m \approx \delta$.
+Then we will get $\delta^{q - 2d}$ and we will remark that this is worse than the $\delta^{q - d}$ we want.
+The whole issue is the square on the covering number.
 
 TODO
 \todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
@@ -739,7 +755,7 @@ That is why that part of the theorem requires $E$ to be metric and not pseudo-me
 Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
 Note that since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$\todorm{add ref?}.
 
-Let $\beta_n$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
+Let $(\beta_n)_{n \in \mathbb{N}}$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
 For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
 Those $Y^n$ are all modifications of each other and are continuous, hence indistinguishable.
 Thus almost surely, for all $t \in T$, $Y^n_t = Y^1_t$ for all $n$.
