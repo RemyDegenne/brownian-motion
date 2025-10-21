@@ -747,13 +747,16 @@ We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is
 Then $Z$ is a modification of $X$ and has Hölder continuous paths of order $\beta_n$ for all $n$.
 It thus has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$.
 
-\todor{Here talk about the measurability issue and the need to modify the main theorem to include an additional property of the modification.}
-
-TODO: the measurability issue arises when proving that the event that all processes are equal is measurable.
-We need to prove that the event $A = \{\omega \mid \forall t \in T, \: Y_t^1(\omega) = Y_t^n(\omega)\}$ that two processes are equal is measurable.
-In order to do so, we use continuity and the fact that the distance $d_E(Y^1_t(\omega), Y^n_t(\omega))$ between the two processes is a measurable function for all $t \in T$. This is in turn true because the pairs $(Y_t^1, Y_t^n)$ are measurable... which is something that requires more than what the theorem gives us.
-
-TODO: the "limit of an indicator of the original process" condition.
+That discussion is very close to the one in \cite{kratschmer2023kolmogorov}, and we omitted an aspect that proved more subtle than expected during the formalization: the measurability of $Z$.
+The process $Z$ is defined as being equal to one of two measurable processes depending on whether $\omega$ belongs to a certain event or not.
+In order to ensure that $Z$ is measurable, that event must be measurable.
+In particular we need the event $\{\omega \mid \forall t \in T, \: Y_t^1(\omega) = Y_t^n(\omega)\}$ that two processes are equal to be measurable.
+We use continuity to reduce to equality of the processes on a countable subset of $T$, and it suffices then to prove that the set $\{\omega \mid Y_t^1(\omega) = Y_t^n(\omega)\}$ is measurable for all $t \in T$.
+Rewriting the equality as $d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0$, we see that this is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
+However, as currently stated, Theorem~\ref{thm:kolmogorov_chentsov} does not guarantee that the two modifications $Y^1$ and $Y^n$ satisfy that property (unless $E$ is second-countable, in which case that follows from the measurability of each $Y^i$).
+The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal writing but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
+To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event, and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
+The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
 \section{Construction of a Brownian motion and a Wiener measure}
