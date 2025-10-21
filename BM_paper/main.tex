@@ -171,22 +171,32 @@ So, we can define the finite dimensional distributions of Brownian motion given 
 \cite{hairer2009introduction}
 
 \subsection{The Kolmogorov-Chentsov Theorem}
-Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections. The result states that for a stochastic process $X$ (with $T = [0,1])$, assume we find $E, \beta, C > 0$ satisfying
+Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections. The result states that for a stochastic process $X$ (with $T = [0,1])$, assume we find $p>0, q>1, C > 0$ satisfying
 \begin{align}
 \label{eq:cs}
-  \mathbf E[r(X_s, X_t)^E] \leq C|t-s|^{\beta + 1}, \qquad 0\leq s,t\leq 1.
+  \mathbf E[d_E(X_s, X_t)^p] \leq C|t-s|^q, \qquad 0\leq s,t\leq 1.
 \end{align}
-Then there exists $Y = (Y_t)_{t\in [0,1]}$ with $\mathbf P(X_t = Y_t) = 1$ for all $t\in [0,1]$ and $Y$ has almost surely Hölder continuous paths with coefficient $\gamma$ for any $\gamma < \tfrac \beta E$.
+Then there exists $Y = (Y_t)_{t\in [0,1]}$ with $\mathbf P(X_t = Y_t) = 1$ for all $t\in [0,1]$ and $Y$ has almost surely Hölder continuous paths with coefficient $\gamma$ for any $\gamma < \tfrac {q-1} p$.
 
-In order to see this, set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\in\mathbb N} D_n$. Start by showing summability of $\mathbf P\Big( \sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t) \geq 2^{-\gamma n} \Big)$ using \eqref{eq:cs}. By the Borel-Cantelli Lemma, this shows that $\sup_{s,t\in D_n, |t-s| = 2^{-n}} r(X_s, X_t) \leq 2^{-\gamma n}$ holds for $n$ large enough. From this, we see that $X$ is locally Hölder-$\gamma$ continuous on $D$. From here, define some Hölder continuous $Y$ coinciding with $X$ on $D$. Finally, fix $t \in [0,1]$ and $t_1, t_2,...\in D$ with $t_n \xrightarrow{n\to\infty} t$. Using \eqref{eq:cs}, we see that $X_{t_n} \xrightarrow{n\to\infty} X_t$ in probability, as well as $Y_{t_n} \xrightarrow{n\to\infty} Y_t$ almost surely due to continuity of $Y$. Therefore, $X_t = Y_t$ almost surely.
+In order to see this, set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\in\mathbb N} D_n$. Start by showing summability of $\mathbf P\Big( \sup_{s,t\in D_n, |t-s| = 2^{-n}} d_E(X_s, X_t) \geq 2^{-\gamma n} \Big)$ using \eqref{eq:cs}.
+By the Borel-Cantelli Lemma, this shows that $\sup_{s,t\in D_n, |t-s| = 2^{-n}} d_E(X_s, X_t) \leq 2^{-\gamma n}$ holds for $n$ large enough.
+From this, we see that $X$ is locally Hölder-$\gamma$ continuous on $D$.
+From here, define some Hölder continuous $Y$ coinciding with $X$ on $D$.
+Finally, fix $t \in [0,1]$ and $t_1, t_2,...\in D$ with $t_n \xrightarrow{n\to\infty} t$.
+Using \eqref{eq:cs}, we see that $X_{t_n} \xrightarrow{n\to\infty} X_t$ in probability, as well as $Y_{t_n} \xrightarrow{n\to\infty} Y_t$ almost surely due to continuity of $Y$.
+Therefore, $X_t = Y_t$ almost surely.
 
-We will use a more general version of this statement, replacing $T = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $T$. This is based on recent work of \cite{talagrand2022upper} and \cite{kratschmer2023kolmogorov}.
+We will use a more general version of this statement, replacing $T = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $T$. This is based on recent work of \cite{kratschmer2023kolmogorov}, which uses the chaining technique of \cite{talagrand2022upper}.
+
+
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
+
 In order to finally construct Brownian Motion, we need to put everything together. First, the projectivity property of the finite-dimensional distributions as defined in Section~\ref{ss:char} follows from the fact that Gaussian measures are closed under linear maps, and -- as in \eqref{eq:gausslin} -- the characteristic function of the image of $N(0,C)$ under the linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity. Therefore, we have constructed a probability measure on $\mathbb R_+^{\mathbb R}$, the law of Brownian motion.\\
 Finally, the assumption in the Kolmogorov-Chentsov Theorem can e.g.\ be verified by using that
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
-So, we have constructed a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion. Since this also gives a distribution on $\mathcal C(\mathbb R_+, \mathbb R)$, we call this distribution Wiener measure.
+So, we have constructed a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion.
+This also gives a distribution on $\mathcal C(\mathbb R_+, \mathbb R)$, which we call Wiener measure.
 
 
 
