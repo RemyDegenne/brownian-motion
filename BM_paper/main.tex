@@ -572,7 +572,7 @@ Therefore, we introduce a definition \lstinline|IsAEKolmogorovProcess| for the p
 \subsection{The main theorem}
 
 We formalize a recent and general version of the Kolmogorov-Chentsov theorem \cite[Theorem 1]{kratschmer2023kolmogorov}, which applies to extended pseudo-metric spaces under a covering assumption on the index set $T$.
-We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$.
+We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below).
 
 \begin{theorem}[Kolmogorov-Chentsov]\label{thm:kolmogorov_chentsov}
 Suppose that the index set $T$ has bounded covering number with constant $c>0$ and exponent $d > 0$.
@@ -637,16 +637,49 @@ We don't describe the proof of Theorem~\ref{thm:localized_holder_modification_su
 
 \subsection{Covers and chaining}
 
-\todor{
-- covers and covering numbers
+The proof of Theorem~\ref{thm:kolmogorov_chentsov} uses discretizations of the space $T$ at different scales, using covers, and uses a chaining argument to relate the supremum of distances over $T$ to suprema over those discretizations.
+Covers and chaining are important tools in the study of suprema of stochastic processes, in particular in bounds on their expectation or on their tail probabilities \cite{talagrand2022upper, vershynin2018high}.
+Part of the reason for choosing to formalize the Kolmogorov-Chentsov theorem as presented in \cite{kratschmer2023kolmogorov} is that it uses these techniques, which can be reused in other contexts.
 
-- chaining: sequence of points in covers at different scales
 
-- the pair reduction lemma (to be used on a cover at a given scale)
+\paragraph{Covers}
 
-general remark about chaining: we chose to follow \cite{kratschmer2023kolmogorov} partly because it uses chaining, which is a powerful technique that can be reused in other contexts (e.g. concentration inequalities for suprema of empirical processes).
-}
+An (internal) $\varepsilon$-cover of $T$ is a subset $S \subseteq T$ such that for all $t \in T$, there exists $s \in S$ such that $d_T(s, t) \le \varepsilon$.
+If $T$ has bounded diameter we can find an $\varepsilon$-cover which is finite, and the covering number of $T$ for $\varepsilon > 0$ is the minimal cardinality of an $\varepsilon$-cover of $T$, denoted by $N_\varepsilon(T)$.
+We call a cover with that cardinality a minimal $\varepsilon$-cover.
+Our formalization also includes definitions of external covers and covering numbers, packing numbers and inequalities between these numbers and the volume of balls. We don't detail those here, but the relations between those quantities are helpful to prove properties of covering numbers.
 
+The main hypothesis of the Kolmogorov-Chentsov theorem on the index set is that $T$ has bounded covering number, defined as follows.
+
+\begin{definition}\label{def:bounded_covering_number}
+A set $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
+\end{definition}
+
+The exponent is a measure of dimensionality of the space $T$.
+For instance, for $T = [0,1]^m$ with the Euclidean distance, $T$ has bounded covering number with exponent $d = m$.
+Covering numbers are not monotone for set inclusion, but if $A \subseteq B$ then $N_\varepsilon(A) \le N_{\varepsilon/2}(B)$, which implies the following lemma on bounded covering numbers of subsets.
+
+\begin{lemma}[\docs{HasBoundedInternalCoveringNumber.subset}]\label{lem:covering_number_subset}
+Let $T' \subseteq T$ be a subset of a set $T$ with bounded covering number with constant $c$ and exponent $d$.
+Then $T'$ has bounded covering number with the constant $2^d c$ and exponent $d$.
+\end{lemma}
+
+
+\paragraph{Chaining}
+
+We will consider minimal covers $(C_n)_{n \in \mathbb{N}}$ for a sequence $(\varepsilon_n)_{n \in \mathbb{N}}$ of positive real numbers decreasing to $0$.
+The proof of Theorem~\ref{thm:kolmogorov_chentsov} will involve bounding a supremum $\mathbb{E}\left[\sup_{s, t \in C_N, \: d_T(s, t) \le \delta}d_E(X_s, X_t)^p\right]$ for a fine scale cover $C_N$.
+In order to do so, we will move to a coarser scale $m < N$.
+For $x \in C_N$, we define a chaining sequence $\bar{x}_0, \bar{x}_1, \ldots, \bar{x}_N$ by letting $\bar{x}_N = x$ and for $n < N$, $\bar{x}_n$ be a point in $C_n$ closest to $\bar{x}_{n+1}$.
+That sequence satisfies $d_T(\bar{x}_n, \bar{x}_{n+1}) \le \varepsilon_n$ for all $n < N$, by the cover property of $C_n$.
+
+TODO:
+\begin{itemize}
+  \item $\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p \le 2^p \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p + 4^p \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})$.
+  \item For $x, y \in C_N$ with $d_T(x, y) \le \delta$, $d_T(\bar{x}_m, \bar{y}_m) \le \delta + 2 \sum_{i=m}^{N-1}\varepsilon_i$. Last term is $\varepsilon_0 2^{-m+2}$ for a geometric grid.
+\end{itemize}
+
+\paragraph{Pair reduction lemma}
 
 \subsection{Proof of the main inequality}
 
@@ -660,7 +693,7 @@ for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
 This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to the blueprint\todorm{link}. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
 
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
-Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a constant $2^d c$\todorm{ref}.
+Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a constant $2^d c$ (Lemma~\ref{lem:covering_number_subset}).
 
 The next step is to discretize the possible distances between points in $J$.
 For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1) \ge 2^{-k}$.
