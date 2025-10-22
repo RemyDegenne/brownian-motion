@@ -336,8 +336,12 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
   aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
   map_eq := Measure.map_id
 
-instance isPreBrownian_preBrownian : IsPreBrownian (preBrownian) gaussianLimit :=
+instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
   hasLaw_preBrownian.isPreBrownian
+
+-- for blueprint
+instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit :=
+  inferInstance
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
@@ -431,6 +435,10 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
 
 instance IsPreBrownian_brownian : IsPreBrownian brownian gaussianLimit :=
   IsPreBrownian.congr fun t ↦ (brownian_ae_eq_preBrownian t).symm
+
+-- for blueprint
+instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
+  inferInstance
 
 lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
     HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
