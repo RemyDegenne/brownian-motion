@@ -64,7 +64,7 @@ section Bot
 
 variable [Bot T]
 
-/-- Given a finite set `I : Finset T` of cardinality `n`, `ofFin : Fin #I → T`
+/-- Given a finite set `I : Finset T` of cardinality `n`, `ofFin' : Fin (#I + 1) → T`
 is the map `(⊥, t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
 noncomputable def ofFin' (i : Fin (#I + 1)) : T :=
   if h : i = 0
@@ -122,7 +122,7 @@ noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] 
     map_smul' m x := by ext; simp [smul_sum]
     cont := by fun_prop }
 
-lemma incrementsToRestrict_increments_ofFin'_aeeq_restrict [LinearOrder T] (R : Type*) [OrderBot T]
+lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R : Type*) [OrderBot T]
     [Semiring R] [AddCommGroup E] [Module R E] [TopologicalSpace E] [ContinuousAdd E]
     {X : T → Ω → E} (h : ∀ᵐ ω ∂P, X ⊥ ω = 0) (I : Finset T) :
     (fun ω ↦ I.restrict (X · ω)) =ᵐ[P]
@@ -178,7 +178,7 @@ lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
           (Measure.isProbabilityMeasure_map (aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable))
       rw [this]
       infer_instance
-    have := incrementsToRestrict_increments_ofFin'_aeeq_restrict ℝ h_bot I
+    have := incrementsToRestrict_increments_ofFin'_ae_eq_restrict ℝ h_bot I
     refine @HasGaussianLaw.congr _ _ _ _ _ _ _ _ _ _ ?_ this.symm
     refine @HasGaussianLaw.map _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ?_
     exact (incr _ _ (monotone_ofFin' I)).hasGaussianLaw fun i ↦
@@ -263,8 +263,8 @@ lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncreme
     simp
   all_goals exact HasGaussianLaw.memLp_two
 
-lemma isPreBrownian_of (h1 : IsGaussianProcess X P) (h2 : ∀ t, P[X t] = 0)
-    (h3 : ∀ s t, cov[X s, X t; P] = min s t) :
+lemma IsGaussianProcess.isPreBrownian_of_covariance_eq_min (h1 : IsGaussianProcess X P)
+    (h2 : ∀ t, P[X t] = 0) (h3 : ∀ s t, cov[X s, X t; P] = min s t) :
     IsPreBrownian X P where
   hasLaw I := by
     refine ⟨aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _, ?_⟩
@@ -299,18 +299,15 @@ lemma isPreBrownian_of (h1 : IsGaussianProcess X P) (h2 : ∀ t, P[X t] = 0)
 lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
     IsPreBrownian X P := by
-  apply isPreBrownian_of
-  · exact incr.isGaussianProcess (fun t ↦ (law t).hasGaussianLaw) (law 0).aeeq_const_of_gaussianReal
+  apply IsGaussianProcess.isPreBrownian_of_covariance_eq_min
+  · exact incr.isGaussianProcess (fun t ↦ (law t).hasGaussianLaw)
+      (law 0).ae_eq_const_of_gaussianReal
   · intro t
     rw [(law t).integral_eq, integral_id_gaussianReal]
   · intro s t
     wlog hst : s ≤ t generalizing s t
     · rw [min_comm, covariance_comm, this t s (by grind)]
-    have aeeq : ∀ᵐ ω ∂P, X 0 ω = 0 := by
-      apply HasLaw.aeeq_of_dirac
-      rw [← gaussianReal_zero_var]
-      exact law 0
-    have h1 := incr.indepFun_eval_sub (zero_le s) hst aeeq
+    have h1 := incr.indepFun_eval_sub (zero_le s) hst (law 0).ae_eq_const_of_gaussianReal
     have := (law 0).isProbabilityMeasure_iff.1 inferInstance
     have h2 : X t = X t - X s + X s := by simp
     rw [h2, covariance_add_right, h1.covariance_eq_zero, covariance_self, (law s).variance_eq,
