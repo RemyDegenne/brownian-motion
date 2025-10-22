@@ -246,26 +246,6 @@ lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) 
     cov[fun ω ↦ X s ω, fun ω ↦ X t ω; P] = min s t :=
   h.covariance_eval s t
 
-section dirac
-
-lemma HasLaw.aeeq_of_dirac' {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
-    {x : 𝓧} {X : Ω → 𝓧}
-    (hX : HasLaw X (.dirac x) P) : X =ᵐ[P] (fun _ ↦ x) := by
-  apply ae_of_ae_map (p := fun y ↦ y = x) hX.aemeasurable
-  rw [hX.map_eq, ae_dirac_iff]
-  simp
-
-lemma HasLaw.aeeq_of_dirac {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} [MeasurableSingletonClass 𝓧]
-    {x : 𝓧} {X : Ω → 𝓧}
-    (hX : HasLaw X (.dirac x) P) : ∀ᵐ ω ∂P, X ω = x := hX.aeeq_of_dirac'
-
-lemma HasLaw.aeeq_const {X : Ω → ℝ} {μ : ℝ} (hX : HasLaw X (gaussianReal μ 0) P) :
-    ∀ᵐ ω ∂P, X ω = μ := by
-  rw [gaussianReal_zero_var] at hX
-  exact hX.aeeq_of_dirac
-
-end dirac
-
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
   refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero fun i j hij ↦ ?_
@@ -318,7 +298,8 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
     IsPreBrownian X P := by
   apply isPreBrownian_of
-  · exact incr.isGaussianProcess_restrict (fun t ↦ (law t).hasGaussianLaw) (law 0).aeeq_const
+  · exact incr.isGaussianProcess_restrict (fun t ↦ (law t).hasGaussianLaw)
+      (law 0).aeeq_const_of_gaussianReal
   · intro t
     rw [(law t).integral_eq, integral_id_gaussianReal]
   · intro s t
@@ -660,7 +641,6 @@ def MeasurableEquiv.continuousMap : {f : ℝ≥0 → ℝ // Continuous f} ≃ᵐ
     refine Measurable.subtype_mk ?_
     rw [measurable_pi_iff]
     exact fun _ ↦ Continuous.measurable (by fun_prop)
-
 
 noncomputable
 def wienerMeasure : Measure C(ℝ≥0, ℝ) := wienerMeasureAux.map MeasurableEquiv.continuousMap
