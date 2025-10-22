@@ -28,7 +28,7 @@
 {\texttt{\detokenize{#2}}}}
 
 \newcommand{\docs}[1]{%
-\leanlink{https://leanprover-community.github.io/mathlib4_docs/find/?pattern=#1\#doc}
+\leanlink{https://remydegenne.github.io/brownian-motion/docs/find/?pattern=#1\#doc}
 {#1}}
 
 \lstset{escapeinside={(*}{*)}, language=lean}
@@ -692,7 +692,10 @@ For a geometric grid $\varepsilon_n = \varepsilon_0 2^{-n}$ and $m$ such that $\
 
 \paragraph{Pair reduction lemma}
 
-TODO: how do we justify it without repeating the discussion in the proof below?
+In the proof of Theorem~\ref{thm:kolmogorov_chentsov} we will need to control the expectation of the first term of the right hand side of \eqref{eq:scale_change}.
+Essentially, we bound the expectation of a supremum over pairs by the number of pairs multiplied by an upper bound for the expectation of each distance.
+A bound on the cardinality of $\{(s, t) \in C_m^2 \mid d_T(s, t) \le \delta'\}$ would be $\lvert C_m \rvert^2$, which as we explain in the main proof below is too large for our needs.
+The pair reduction lemma below allows us to reduce the number of pairs we need to consider to a quantity of order $\lvert C_m \rvert$ instead of quadratic, at the cost of increasing the distance threshold from $\delta'$ to a larger value $\delta' \log \lvert C_m \rvert$.
 
 \begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, Lemma B.2.7]\label{lem:pair_reduction}
 Let $T$ be a pseudo-metric space, $c \ge 0$, $J$ a finite subset of $T$, $a \ge 0$ and $n \in \mathbb{N}$ such that $\lvert J \rvert \le a^n$.
@@ -704,6 +707,8 @@ Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space 
 \end{enumerate}
 \end{lemma}
 
+\todor{Add here the sketch of proof that David wrote for the Implementation section of \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/EMetricSpace/PairReduction.html}{that Mathlib doc page}, or not?}
+
 \subsection{Proof of the main inequality}
 
 Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that for all countable subset $T' \subseteq T$,
@@ -714,7 +719,7 @@ Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that fo
 \end{align*}
 for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
 This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to the blueprint\todorm{link}. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
-In particular, we explain why the pair reduction lemma (TODO REF\todorm{}) is needed in the proof.
+In particular, we explain why the pair reduction Lemma~\ref{lem:pair_reduction} is needed in the proof.
 
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
 Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a constant $2^d c$ (Lemma~\ref{lem:covering_number_subset}).
@@ -722,47 +727,47 @@ Since $J \subseteq T$, it also has bounded covering number with the same exponen
 The next step is to discretize the possible distances between points in $J$.
 For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1) \ge 2^{-k}$.
 We write the set of pairs of points in $J$ as the union of the sets $\{(s, t) \in J^2 \mid d_T(s, t) \in (\eta_k, 2\eta_k]\}$.
-Then
+Then we can show
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le 2\eta_k}} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
-We then want to find an upper bound, for $\delta > 0$, on
-\begin{align*}
-  \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
+We thus want to find an upper bound, for $\delta > 0$, on
+$
+  \mathbb{E}\left[ \sup_{s, t \in J,\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \: .
-\end{align*}
+$
 We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
 
 \begin{lemma}[\docs{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
 For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
 \begin{align*}
   \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
-  &\le 2^{2p+4q+1} M c \delta^{q-d}\left( 4^d \left(\max\left\{0, \log_2 \left(c 4^d \delta^{-d}\right)\right\}\right)^q + C_p \right)
+  &\le 2^{2p+4q+1} M c \delta^{q-d}\left( 4^d \left(\max\left\{0, \log_2 \left(c 4^d \delta^{-d}\right)\right\}\right)^q + R_p \right)
   \: ,
   \\
-  \text{ with } C_p
+  \text{ with } R_p
   &= \max\left\{\frac{1}{2^{q-d} - 1}, \frac{1}{(2^{(q-d)/p} - 1)^p}\right\}
   \: .
 \end{align*}
 \end{lemma}
 
 We apply that lemma for $\delta$ of order $2^{-k}$ and we obtain for the constant $L$ a sum over $k$ of $2^{k(\beta p - (q - d))}$ multiplied by an expression that grows like $k^q$.
-That series converges if and only if $\beta < (q - d)/p$.
+That series converges if and only if $\beta < (q - d)/p$ (a fact that was surprisingly tedious to prove using current tactics from \mathlib, although recent developments on a tactic for computing limits may help in the future).
 To obtain that exact condition on $\beta$, it is thus important to get the factor $\delta^{q-d}$ in the lemma above, and not a worse exponent.
 This is where the chaining argument is used, as seen further down in the proof.
 
-\begin{proof}
+The remainder of this section is devoted to the proof of Lemma~\ref{lem:finite_set_bound_of_dist_le}.
 We note first that we can restrict the supremum in the expectation to pairs $(s, t) \in J^2$ such that $d_T(s, t) > 0$, since if $d_T(s, t) = 0$, then by the Kolmogorov condition, $d_E(X_s, X_t) = 0$ almost surely.
 Let $\varepsilon_0 = \mathrm{diam}(T)$ and for $n \in \mathbb{N}$, let $\varepsilon_n = 2^{-n} \varepsilon_0$.
 Since $J$ is finite, there exists $N \in \mathbb{N}$ such that $\varepsilon_N < \min_{s, t \in J, \: d_T(s, t) > 0} d_T(s, t)$. Let $N$ be the smallest such integer.
 We can assume that $\delta \ge \varepsilon_N$, since otherwise the supremum is zero.
 The supremum over the set $J$ is thus equal to the supremum over minimal cover $C_N$ of $J$ by balls of radius $\varepsilon_N$.
-Let more generally $C_n$ be the minimal cover of $J$ by balls of radius $\varepsilon_n$ for all $n \in \{0, \dots, N\}$.
+Let more generally $C_n$ be a minimal cover of $J$ by balls of radius $\varepsilon_n$ for all $n \in \{0, \dots, N\}$.
 
 We change scale using Equation~\eqref{eq:scale_change}, with $m \in \{0, \dots, N-1\}$ chosen such that $\varepsilon_m \le \delta \le 4 \varepsilon_m$.
-Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and the proof is a simpler version of what follows (\docs{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
+Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and where the proof is a simpler version of what follows (\docs{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
 \begin{align*}
   \mathbb{E}\left[\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p\right]
   &\le 2^p \mathbb{E}\left[\sup_{s', t' \in C_m, d_T(s', t') \le 8 \varepsilon_m} d_E(X_{s'}, X_{t'})^p\right] + 4^p \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
@@ -771,17 +776,16 @@ Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case 
 We now bound separately the two terms in that sum, which correspond respectively to distances between points in the coarser cover $C_m$, and to distances along the chaining sequences.
 
 \textbf{First term.}
-
 The main consequence of the Kolmogorov condition that we will use in the proof is that for $K$ a finite set of pairs of points in $T$ such that for all $(s,t) \in K$, $d_T(s, t) \le \varepsilon$, we have
 \begin{align}
-  \mathbb{E}\left[ \sum_{(s,t) \in K} d_E(X_s, X_t)^p \right]
+  \mathbb{E}\left[ \sup_{(s,t) \in K} d_E(X_s, X_t)^p \right]
   \le \sum_{(s,t) \in K} \mathbb{E}\left[ d_E(X_s, X_t)^p \right]
   \le M \lvert K \rvert \varepsilon^q
   \: .\label{eq:kolmogorov_condition_finite_set}
 \end{align}
 
 Let us first present a naive upper bound on the expectation of the supremum, which will highlight the need for more advanced techniques.
-We bound the supremum by a sum and apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_m^2 \mid d_T(s, t) \le 8 \varepsilon_m\}$ with cardinal $\lvert K \rvert \le \lvert C_m \rvert^2$, and then the covering number assumption:
+We apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_m^2 \mid d_T(s, t) \le 8 \varepsilon_m\}$ with cardinal $\lvert K \rvert \le \lvert C_m \rvert^2$, and then the bounded covering number assumption:
 \begin{align*}
   \mathbb{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
   &\le M \lvert C_m \rvert^2 (8 \varepsilon_m)^q
@@ -789,25 +793,46 @@ We bound the supremum by a sum and apply the inequality~\eqref{eq:kolmogorov_con
   \: .
 \end{align*}
 Since $\varepsilon_m \le \delta \le 4 \varepsilon_m$, we obtain a bound of order $\delta^{q - 2d}$, which is not sufficient to conclude the proof with the right exponent $\delta^{q - d}$.
-The issue is the square on the cardinal of the cover $C_m$, and this is what is fixed by the pair reduction lemma (Lemma~\ref{lem:pair_reduction}).
+The issue is the square on the cardinal of the cover $C_m$, and this is where the pair reduction lemma (Lemma~\ref{lem:pair_reduction}) comes into play.
+With that lemma applied to $a = 2$, $n = \lceil \log_2 J \rceil$ and $c = 8 \varepsilon_m$, we obtain a set $K \subseteq C_m^2$ with $\lvert K \rvert \le 2 \lvert C_m \rvert$ and $\sup_{(s, t) \in K} d_T(s, t) \le 8 n \varepsilon_m$, such that an application of \eqref{eq:kolmogorov_condition_finite_set} gives
+\begin{align*}
+  \mathbb{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
+  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in K} d_E(X_s, X_t)^p \right]
+  \le 2^p M \lvert K \rvert (8 n \varepsilon_m)^q
+  \: .
+\end{align*}
+Omitting constants, that is now of order
+$\lvert C_m \rvert \varepsilon_m^q (\log_2 \lvert C_m\rvert)^q \approx \delta^{q - d} \left(\log_2 \delta^{-d} \right)^q
+$, which has the right exponent on $\delta$ to conclude the proof.
 
 \textbf{Second term.}
 
-TODO
-\todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
-
-\todor{We need to insist on the place where we use the chaining argument. That's not done very well in KU23.}
-
-
-\end{proof}
-
-
-\todor{Any formalization insights in that part?
-
-- Proving that L is finite was painful (but there is a tactic coming that will help).
-
-- Keeping track of the constants is easy}
-
+To obtain an upper bound on $\mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]$, we consider separately the cases $p \in (0, 1]$ and $p \ge 1$.
+For $p \le 1$ we use that the power function is sub-additive: for $a, b \ge 0$, $(a + b)^p \le a^p + b^p$.
+\begin{align*}
+  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  &\le \mathbb{E}\left[\sup_{s \in C_N} \sum_{i=m}^{N-1} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  \le \sum_{i=m}^{N-1} \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  \: .
+\end{align*}
+It remains to control the expectation inside the sum, which we do using the Kolmogorov condition though Equation~\eqref{eq:kolmogorov_condition_finite_set} with $K = \{(\bar{s}_{i+1}, \bar{s}_i) \mid s \in C_N\}$. That set has cardinal at most $\lvert C_{i+1} \rvert$ (the number of possible values for $\bar{s}_{i+1}$).
+\begin{align*}
+  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  &\le M \lvert C_{i+1} \rvert \varepsilon_i^q
+  \le M c \varepsilon_{i+1}^{-d} \varepsilon_i^{q}
+  \: .
+\end{align*}
+We omit the computations, but the sum of those expressions is bounded by the $R_p$ term in the statement of the lemma.
+For $p \ge 1$, we use the Minkowski inequality (see \cite{kratschmer2023kolmogorov} for details) and obtain
+\begin{align*}
+  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  &\le \left( \sum_{i=m}^{N-1} \left( \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right] \right)^{1/p} \right)^p
+  \: .
+\end{align*}
+The expectation inside the sum is bounded as before, and again we get something bounded by the $R_p$ term in Lemma~\ref{lem:finite_set_bound_of_dist_le}.
+Only the case $p \ge 1$ was treated in \cite{kratschmer2023kolmogorov}, although the final result is presented for all $p > 0$.
+Accordingly, they write their lemma with only the part $\frac{1}{(2^{(q-d)/p} - 1)^p}$ in the definition of $R_p$, which we correct to include the $p \le 1$ case.
+We finally note that keeping track of how the constants evolve through the proof is straightforward in Lean, in contrast to for example the latex proof which we wrote in the blueprint, in which the constants needed to be modified repeatedly due to small mistakes. Also any improvement in a constant in a Lean proof is easy to propagate through the rest of the proof, since the system automatically raises errors where the new value invalidates a computation.
 
 
 \subsection{Building a Hölder continuous process}
