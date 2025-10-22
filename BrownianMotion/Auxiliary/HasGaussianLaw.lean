@@ -159,11 +159,11 @@ lemma IndepFun.hasGaussianLaw_of_add_real
     have := h.hasLaw_gaussianReal_of_add h1 h2
     exact this.hasGaussianLaw.isGaussian_map
 
-lemma IndepFun.hasGaussianLaw_of_add {E : Type*} [NormedAddCommGroup E]
+lemma IndepFun.hasGaussianLaw_sub {E : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
     [SecondCountableTopology E] {X Y : Ω → E} (hX : HasGaussianLaw X P)
-    (hY : HasGaussianLaw (X + Y) P) (h : IndepFun X Y P) :
-    HasGaussianLaw Y P where
+    (hY : HasGaussianLaw Y P) (h : IndepFun X (Y - X) P) :
+    HasGaussianLaw (Y - X) P where
   isGaussian_map := by
     refine ⟨fun L ↦ ?_⟩
     conv => enter [2, 1, 2, x]; change id (L x)
@@ -173,12 +173,11 @@ lemma IndepFun.hasGaussianLaw_of_add {E : Type*} [NormedAddCommGroup E]
       · refine @HasGaussianLaw.isGaussian_map (self := ?_)
         apply IndepFun.hasGaussianLaw_of_add_real (X := L ∘ X)
         · infer_instance
-        · rw [← map_comp_add]
+        · rw [← map_comp_add, add_sub_cancel]
           infer_instance
         · exact h.comp L.measurable L.measurable
       · fun_prop
-      · convert hY.aemeasurable.sub hX.aemeasurable
-        simp
+      · exact hY.aemeasurable.sub hX.aemeasurable
     all_goals fun_prop
 
 end ProbabilityTheory
