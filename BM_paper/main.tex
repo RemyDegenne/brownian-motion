@@ -426,12 +426,11 @@ This proves in particular that a real Gaussian measure is determined by its mean
 As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a separable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
 
 \begin{definition}
-  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of $\mu$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
+  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert X \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
   $$C_\mu(s, t) = \mathrm{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
-\todor{needs a moment condition}
 
-The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following result (\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}).
+The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures (\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}).
 
 \begin{theorem}\label{thm:gaussian_charFun}
   The measure $\mu$ is Gaussian if and only if its characteristic function is given by
@@ -441,11 +440,11 @@ The properties of the covariance allow to easily deduce that $C_\mu$ is actually
 This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, the product $N(0, 1)^{\otimes n}$ of $n \in \mathbb{N}$ times many Gaussian measures $N(0, 1)$ is a Gaussian measure.
 Another result is that if two Gaussian random variables have covariance zero, then they are independent.
 
-Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite moments $(\mathbf E_\mu[\lVert X \rVert^n])_{n \in \mathbb{N}}$.
+Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite first and second moments $\mathbf E_\mu[\lVert X \rVert]$ and $\mathbf{E}_\mu[\lVert X \rVert^2]$.
 While this is relatively easy to prove in finite dimension and is all we would need to define a Brownian motion on $\mathbb{R}_+$, we proved a more general result, applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\docs{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
-It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $E > 0$ such that
+It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $C > 0$ such that
 \begin{align*}
-  \int_E \exp\left( E \|x\|^2 \right) \mu(\mathrm dx) < \infty.
+  \int_E \exp\left( C \|x\|^2 \right) \mu(\mathrm dx) < \infty.
 \end{align*}
 This implies that all moments of a Gaussian measure in a separable Banach space are finite.
 
