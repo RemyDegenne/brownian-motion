@@ -608,9 +608,9 @@ The most notable difference is that we allow pseudo-metrics, for which $d_T(s, t
 The proof we implement follows that paper, with minor changes.
 The first one is that the authors of \cite{kratschmer2023kolmogorov} used the Minkowski inequality in a part of the proof, which requires $p \ge 1$, and did not mention how to handle the (easier) case $p < 1$, although the theorem is also valid there.
 Beyond fixing this minor omission by adding a separate argument for $p \in (0,1)$, the second change we make is to ensure that all exponents we use are natural numbers, in order to simplify the formalization.
-Whenever the proof in \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{-n_1}, 2^{-n_1-1},\ldots, 2^{-n_2}$ with exponents $n_1 < n_2 \in \mathbb{Z}$ possibly negative, we introduce a multiplicative factor $\varepsilon_0$ and use a grid of the form $\varepsilon_0 2^{-m_1}, \ldots, \varepsilon_0 2^{-m_2}$ with $m_1, m_2 \in \mathbb{N}$\todorm{and why is that desirable?}.
-
-\todor{and there might be other changes: I'm not sure I followed exactly the computations from the paper. I might have refactored some of them.}
+Whenever the proof of \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{-n_1}, 2^{-n_1-1},\ldots, 2^{-n_2}$ with exponents $n_1 < n_2 \in \mathbb{Z}$ possibly negative, we introduce a multiplicative factor $\varepsilon_0$ and use a grid of the form $\varepsilon_0 2^{-m_1}, \ldots, \varepsilon_0 2^{-m_2}$ with $m_1, m_2 \in \mathbb{N}$.
+\mathlib has more support for sums over natural numbers, and natural number exponents are easier to manipulate as for example the monotonicity of $x \mapsto x^r$ for $r \in \mathbb{Z}$ depends on the sign of $r$ but is always the same for $r \in \mathbb{N}$. In practice, using natural number exponents means that we don't have to prove as many side conditions in the formalization.
+Those changes do not impact the main ideas of the proof, but the constants we report are different from those of \cite{kratschmer2023kolmogorov}.
 
 
 \paragraph{TODO: paragraph about different versions of the theorem}
@@ -868,10 +868,10 @@ Then $Y$ has Hölder continuous paths of order $\beta$.
 We finally need to show that $Y$ is a modification of $X$, which we do by showing that for all $t \in T$, $d_E(X_t, Y_t) = 0$ almost surely.
 That is why that part of the theorem requires $E$ to be metric and not pseudo-metric.
 
-\todor{explain the last part of the proof? refer to the paper? It caused us to refactor convergence in probability in Mathlib to allow extended metric spaces.}
+\todor{explain the last part of the proof about being a modification? refer to the paper? It caused us to refactor convergence in probability in Mathlib to allow extended metric spaces.}
 
 Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
-Note that since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$\todorm{add ref?}.
+Note that since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \docs{HolderOnWith.mono_right}).
 
 Let $(\beta_n)_{n \in \mathbb{N}}$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
 For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
@@ -888,8 +888,8 @@ In particular we need the event $\{\omega \mid \forall t \in T, \: Y_t^1(\omega)
 We use continuity to reduce to equality of the processes on a countable subset of $T$, and it suffices then to prove that the set $\{\omega \mid Y_t^1(\omega) = Y_t^n(\omega)\}$ is measurable for all $t \in T$.
 Rewriting the equality as $d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0$, we see that this is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
 However, as currently stated, Theorem~\ref{thm:kolmogorov_chentsov} does not guarantee that the two modifications $Y^1$ and $Y^n$ satisfy that property (unless $E$ is second-countable, in which case that follows from the measurability of each $Y^i$).
-The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal writing but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
-To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event, and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
+The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
+To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event (\docs{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
 The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
