@@ -627,7 +627,7 @@ The following localized version of the theorem fulfills this need, and also uses
 The conclusion of the theorem is not Hölder continuity of the paths, but local Hölder continuity.
 A function $f : T \to E$ is said to be locally Hölder continuous of order $\gamma$ if for all $t \in T$, there exists a neighborhood $U$ of $t$ such that $f$ is $\gamma$-Hölder continuous on $U$.
 
-\begin{theorem}[Localized Kolmogorov-Chentsov]\label{thm:localized_holder_modification_sup}
+\begin{theorem}[\docs{ProbabilityTheory.exists_modification_holder_iSup}]\label{thm:localized_holder_modification_sup}
 Suppose that $T$ can be covered by an increasing sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ such that each $T_n$ has bounded covering number with constant $c_n > 0$ and exponent $d > 0$ (the same exponent for all $n$).
 Let $(p_m, q_m)_{m \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_m > d$ for all $m \in \mathbb{N}$.
 Let $(X_t)_{t \in T}$ be a process that satisfies the Kolmogorov condition with exponents $(p_m, q_m)$ for all $m \in \mathbb{N}$.
@@ -657,7 +657,7 @@ Our formalization also includes definitions of external covers and covering numb
 
 The main hypothesis of the Kolmogorov-Chentsov theorem on the index set is that $T$ has bounded covering number, defined as follows.
 
-\begin{definition}\label{def:bounded_covering_number}
+\begin{definition}[\docs{HasBoundedInternalCoveringNumber}]\label{def:bounded_covering_number}
 A set $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
 \end{definition}
 
@@ -703,7 +703,7 @@ Essentially, we bound the expectation of a supremum over pairs by the number of 
 A bound on the cardinality of $\{(s, t) \in C_m^2 \mid d_T(s, t) \le \delta'\}$ would be $\lvert C_m \rvert^2$, which as we explain in the main proof below is too large for our needs.
 The pair reduction lemma below allows us to reduce the number of pairs we need to consider to a quantity of order $\lvert C_m \rvert$ instead of quadratic, at the cost of increasing the distance threshold from $\delta'$ to a larger value $\delta' \log \lvert C_m \rvert$.
 
-\begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, Lemma B.2.7]\label{lem:pair_reduction}
+\begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, B.2.7, \docs{EMetric.pair_reduction}]\label{lem:pair_reduction}
 Let $T$ be a pseudo-metric space, $c \ge 0$, $J$ a finite subset of $T$, $a \ge 0$ and $n \in \mathbb{N}$ such that $\lvert J \rvert \le a^n$.
 Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space $E$ and any map $f: T \to E$~,
 \begin{enumerate}
