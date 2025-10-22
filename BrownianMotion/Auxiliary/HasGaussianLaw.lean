@@ -160,7 +160,7 @@ lemma IndepFun.hasGaussianLaw_of_add_real
     exact this.hasGaussianLaw.isGaussian_map
 
 lemma IndepFun.hasGaussianLaw_sub {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] {X Y : Ω → E} (hX : HasGaussianLaw X P)
     (hY : HasGaussianLaw Y P) (h : IndepFun X (Y - X) P) :
     HasGaussianLaw (Y - X) P where
