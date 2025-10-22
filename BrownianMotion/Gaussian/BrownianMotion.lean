@@ -157,7 +157,9 @@ lemma HasIndepIncrements.indepFun_eval_sub [Preorder T] [MeasurableSpace E] [Add
   refine this.congr ?_ .rfl
   filter_upwards [hX] with ω hω using by simp [hω]
 
-lemma HasIndepIncrements.isGaussianProcess_restrict [LinearOrder T] [OrderBot T]
+/-- A stochastic process `X` with independent increments and such that `X t` is gaussian for
+all `t` is a Gaussian process. -/
+lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] [CompleteSpace E]
     {X : T → Ω → E} (law : ∀ t, HasGaussianLaw (X t) P) (h_bot : ∀ᵐ ω ∂P, X ⊥ ω = 0)
@@ -298,8 +300,7 @@ lemma isPreBrownian_of_hasLaw_of_hasIndepIncrements
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
     IsPreBrownian X P := by
   apply isPreBrownian_of
-  · exact incr.isGaussianProcess_restrict (fun t ↦ (law t).hasGaussianLaw)
-      (law 0).aeeq_const_of_gaussianReal
+  · exact incr.isGaussianProcess (fun t ↦ (law t).hasGaussianLaw) (law 0).aeeq_const_of_gaussianReal
   · intro t
     rw [(law t).integral_eq, integral_id_gaussianReal]
   · intro s t
