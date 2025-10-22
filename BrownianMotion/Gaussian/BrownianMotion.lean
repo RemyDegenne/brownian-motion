@@ -18,11 +18,13 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 open MeasureTheory NNReal WithLp Finset
 open scoped ENNReal NNReal Topology
 
-variable {T Ω E : Type*} [LinearOrder T] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 namespace Finset
 
-variable (I : Finset T)
+/-! ### Indexing the elements of a finset in order -/
+
+variable [LinearOrder T] (I : Finset T)
 
 /-- Given a finite set `I : Finset T` of cardinality `n`, `ofFin : Fin #I → T`
 is the map `(t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
@@ -101,15 +103,18 @@ namespace ProbabilityTheory
 
 section Increments
 
+/-! ### Independent increments -/
+
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 1` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements [Sub E] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
+def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) :
+    Prop :=
   ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
     iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
 
 /-- `incrementsToRestrict I` is a continuous linear map `f` such that
 `f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
-noncomputable def incrementsToRestrict (R : Type*) [Semiring R] [AddCommMonoid E]
+noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] [AddCommMonoid E]
     [Module R E] [TopologicalSpace E] [ContinuousAdd E] (I : Finset T) :
     (Fin #I → E) →L[R] (I → E) :=
   { toFun x i := ∑ j ≤ I.toFin i, x j
@@ -117,43 +122,7 @@ noncomputable def incrementsToRestrict (R : Type*) [Semiring R] [AddCommMonoid E
     map_smul' m x := by ext; simp [smul_sum]
     cont := by fun_prop }
 
-lemma _root_.Fin.sum_Iic_sub [AddCommGroup E] {n : ℕ} (a : Fin n) (f : Fin (n + 1) → E) :
-    ∑ i ∈ Iic a, (f i.succ - f i.castSucc) = f a.succ - f 0 := by
-  let g : Fin n → E := fun i ↦ if i ∈ Iic a then f i.succ - f i.castSucc else 0
-  let h : ℕ → E := fun i ↦ if hi : i < n then g ⟨i, hi⟩ else 0
-  calc
-  _ = ∑ i, g i := by
-    rw [Finset.sum_ite_mem, univ_inter]
-  _ = ∑ i : Fin n, h i := by
-    congr with i
-    simp_rw [h, dif_pos i.2]
-  _ = ∑ i ∈ range a.succ, h i := by
-    rw [Fin.sum_univ_eq_sum_range]
-    refine Finset.sum_congr_of_eq_on_inter ?_ (by grind) (by grind)
-    simp only [mem_range, Fin.val_succ, not_lt]
-    intro i hi1 hi2
-    simp_rw [h, dif_pos hi1, g]
-    rw [if_neg (by simpa)]
-  _ = ∑ i ∈ range a.succ, (f (Fin.ofNat (n + 1) (i + 1)) - f (Fin.ofNat (n + 1) i)) := by
-    apply Finset.sum_congr rfl
-    simp only [Fin.val_succ, mem_range, mem_Iic, Fin.succ_mk, Fin.castSucc_mk, Fin.ofNat_eq_cast, h,
-      g]
-    intro i hi
-    rw [dif_pos (by omega), if_pos]
-    · congr
-      · rw [Nat.mod_eq_of_lt]
-        grind
-      · rw [Nat.mod_eq_of_lt]
-        grind
-    rw [Fin.le_def]
-    grind
-  _ = f a.succ - f 0 := by
-    rw [Finset.sum_range_sub (fun i ↦ f (Fin.ofNat (n + 1) i))]
-    congr
-    ext
-    simp
-
-lemma incrementsToRestrict_increments_ofFin'_aeeq_restrict (R : Type*) [OrderBot T]
+lemma incrementsToRestrict_increments_ofFin'_aeeq_restrict [LinearOrder T] (R : Type*) [OrderBot T]
     [Semiring R] [AddCommGroup E] [Module R E] [TopologicalSpace E] [ContinuousAdd E]
     {X : T → Ω → E} (h : ∀ᵐ ω ∂P, X ⊥ ω = 0) (I : Finset T) :
     (fun ω ↦ I.restrict (X · ω)) =ᵐ[P]
@@ -166,8 +135,8 @@ lemma incrementsToRestrict_increments_ofFin'_aeeq_restrict (R : Type*) [OrderBot
   rw [Fin.sum_Iic_sub (I.toFin t) (fun j ↦ X (I.ofFin' j) ω)]
   simp [hω]
 
-lemma HasIndepIncrements.indepFun_sub_sub [MeasurableSpace E] [AddGroup E] {X : T → Ω → E}
-    (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) :
+lemma HasIndepIncrements.indepFun_sub_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
+    {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) :
     IndepFun (X s - X r) (X t - X s) P := by
   let τ : Fin (2 + 1) → T := ![r, s, t]
   have hτ : Monotone τ := by
@@ -180,14 +149,15 @@ lemma HasIndepIncrements.indepFun_sub_sub [MeasurableSpace E] [AddGroup E] {X : 
   have h' : (0 : Fin (1 + 1)) ≠ (1 : Fin (1 + 1)) := by simp
   simpa using (h 2 τ hτ).indepFun h'
 
-lemma HasIndepIncrements.indepFun_eval_sub [MeasurableSpace E] [AddGroup E] {X : T → Ω → E}
-    (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) (hX : ∀ᵐ ω ∂P, X r ω = 0) :
+lemma HasIndepIncrements.indepFun_eval_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
+    {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t)
+    (hX : ∀ᵐ ω ∂P, X r ω = 0) :
     IndepFun (X s) (X t - X s) P := by
   have := h.indepFun_sub_sub hrs hst
   refine this.congr ?_ .rfl
   filter_upwards [hX] with ω hω using by simp [hω]
 
-lemma HasIndepIncrements.isGaussianProcess_restrict [OrderBot T]
+lemma HasIndepIncrements.isGaussianProcess_restrict [LinearOrder T] [OrderBot T]
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] [CompleteSpace E]
     {X : T → Ω → E} (law : ∀ t, HasGaussianLaw (X t) P) (h_bot : ∀ᵐ ω ∂P, X ⊥ ω = 0)
@@ -209,14 +179,9 @@ lemma HasIndepIncrements.isGaussianProcess_restrict [OrderBot T]
     have := incrementsToRestrict_increments_ofFin'_aeeq_restrict ℝ h_bot I
     refine @HasGaussianLaw.congr _ _ _ _ _ _ _ _ _ _ ?_ this.symm
     refine @HasGaussianLaw.map _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ?_
-    apply iIndepFun.hasGaussianLaw
-    · intro i
-      convert incr.indepFun_eval_sub bot_le
-        (monotone_ofFin' I ?_) h_bot |>.hasGaussianLaw_of_add ?_ ?_
-      · exact Fin.castSucc_le_succ i
-      · exact law (I.ofFin' i.castSucc)
-      · simpa using law (I.ofFin' i.succ)
-    exact incr _ _ (monotone_ofFin' I)
+    exact (incr _ _ (monotone_ofFin' I)).hasGaussianLaw fun i ↦
+      incr.indepFun_eval_sub bot_le
+        (monotone_ofFin' I (Fin.castSucc_le_succ i)) h_bot |>.hasGaussianLaw_sub (law _) (law _)
 
 end Increments
 
@@ -244,16 +209,16 @@ instance IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess
 lemma IsPreBrownian.aemeasurable [IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
   HasGaussianLaw.aemeasurable
 
-lemma IsPreBrownian.hasLaw_gaussianLimit (hX1 : IsPreBrownian X P)
-    (hX2 : AEMeasurable (fun ω ↦ (X · ω)) P) :
+lemma IsPreBrownian.hasLaw_gaussianLimit [IsPreBrownian X P]
+    (hX : AEMeasurable (fun ω ↦ (X · ω)) P) :
     HasLaw (fun ω ↦ (X · ω)) gaussianLimit P where
-  aemeasurable := hX2
+  aemeasurable := hX
   map_eq := by
     refine isProjectiveLimit_gaussianLimit.unique (fun I ↦ ?_) |>.symm
-    rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX2]
-    exact (hX1.hasLaw I).map_eq
+    rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX]
+    exact (IsPreBrownian.hasLaw I).map_eq
 
-lemma isPreBrownian_of_hasLaw_gaussianLimit (hX : HasLaw (fun ω ↦ (X · ω)) gaussianLimit P) :
+lemma HasLaw.isPreBrownian (hX : HasLaw (fun ω ↦ (X · ω)) gaussianLimit P) :
     IsPreBrownian X P where
   hasLaw _ := hasLaw_restrict_gaussianLimit.comp hX
 
@@ -262,11 +227,24 @@ lemma IsPreBrownian.hasLaw_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
   (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp (h.hasLaw {t})
 
 lemma IsPreBrownian.hasLaw_sub [IsPreBrownian X P] (s t : ℝ≥0) :
-    HasLaw (X s - X t) (gaussianReal 0 (max (s - t) (t - s))) P := by
-  have : X s - X t = ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (X · ω)) := by ext; simp
-  rw [this]
-  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp (IsPreBrownian.hasLaw _)
+    HasLaw (X s - X t) (gaussianReal 0 (max (s - t) (t - s))) P :=
+  (hasLaw_eval_sub_eval_gaussianProjectiveFamily {s, t} ⟨s, by simp⟩ ⟨t, by simp⟩).comp
+    (IsPreBrownian.hasLaw _)
+
+lemma IsPreBrownian.integral_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
+    P[X t] = 0 := by
+  rw [(h.hasLaw_eval t).integral_eq, integral_id_gaussianReal]
+
+lemma IsPreBrownian.covariance_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
+    cov[X s, X t; P] = min s t := by
+  convert (h.hasLaw {s, t}).covariance_comp
+    (f := Function.eval ⟨s, by simp⟩) (g := Function.eval ⟨t, by simp⟩) ?_ ?_
+  · rw [covariance_eval_gaussianProjectiveFamily]
+  all_goals exact Measurable.aemeasurable (by fun_prop)
+
+lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
+    cov[fun ω ↦ X s ω, fun ω ↦ X t ω; P] = min s t :=
+  h.covariance_eval s t
 
 section dirac
 
@@ -287,13 +265,6 @@ lemma HasLaw.aeeq_const {X : Ω → ℝ} {μ : ℝ} (hX : HasLaw X (gaussianReal
   exact hX.aeeq_of_dirac
 
 end dirac
-
-lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
-    cov[fun ω ↦ X s ω, fun ω ↦ X t ω; P] = min s t := by
-  convert (h.hasLaw {s, t}).covariance_fun_comp (f := Function.eval ⟨s, by simp⟩)
-    (g := Function.eval ⟨t, by simp⟩) _ _
-  · simp [covariance_eval_gaussianProjectiveFamily]
-  all_goals exact Measurable.aemeasurable (by fun_prop)
 
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
@@ -383,26 +354,20 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
   aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
   map_eq := Measure.map_id
 
+instance isPreBrownian_preBrownian : IsPreBrownian (preBrownian) gaussianLimit :=
+  hasLaw_preBrownian.isPreBrownian
+
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
-  hasLaw_restrict_gaussianLimit.comp hasLaw_preBrownian
+  IsPreBrownian.hasLaw I
 
 lemma hasLaw_preBrownian_eval (t : ℝ≥0) :
     HasLaw (preBrownian t) (gaussianReal 0 t) gaussianLimit :=
-  (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp
-    (hasLaw_restrict_preBrownian ({t} : Finset ℝ≥0))
-
-instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit where
-  hasGaussianLaw I := (hasLaw_restrict_preBrownian I).hasGaussianLaw
+  IsPreBrownian.hasLaw_eval t
 
 lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
-    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (max (s - t) (t - s)))
-      gaussianLimit := by
-  have : preBrownian s - preBrownian t =
-      ((fun x ↦ x ⟨s, by simp⟩) - (fun x ↦ x ⟨t, by simp⟩)) ∘ ({s, t} : Finset ℝ≥0).restrict := by
-    ext; simp [preBrownian]
-  rw [this]
-  exact hasLaw_eval_sub_eval_gaussianProjectiveFamily.comp hasLaw_restrict_gaussianLimit
+    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
+  IsPreBrownian.hasLaw_sub s t
 
 lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n
@@ -482,33 +447,25 @@ lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
-lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
-    HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit := by
-  refine (hasLaw_restrict_preBrownian I).congr ?_
-  filter_upwards [ae_all_iff.2 fun i : I ↦ brownian_ae_eq_preBrownian i.1] with ω hω
-  ext; simp [hω]
+instance IsPreBrownian_brownian : IsPreBrownian brownian gaussianLimit :=
+  IsPreBrownian.congr fun t ↦ (brownian_ae_eq_preBrownian t).symm
 
-lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit where
-  aemeasurable := (measurable_pi_lambda _ measurable_brownian).aemeasurable
-  map_eq := by
-    symm
-    refine isProjectiveLimit_gaussianLimit.unique fun I ↦ ?_
-    rw [Measure.map_map (by fun_prop) (measurable_pi_lambda _ measurable_brownian)]
-    exact hasLaw_restrict_brownian.map_eq
+lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
+    HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
+  IsPreBrownian.hasLaw I
+
+lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit :=
+  IsPreBrownian.hasLaw_gaussianLimit
+    (measurable_pi_lambda _ fun t ↦ measurable_brownian t).aemeasurable
 
 lemma hasLaw_brownian_eval {t : ℝ≥0} :
     HasLaw (brownian t) (gaussianReal 0 t) gaussianLimit :=
-  (hasLaw_preBrownian_eval t).congr (brownian_ae_eq_preBrownian t)
+  IsPreBrownian.hasLaw_eval t
 
 lemma hasLaw_brownian_sub {s t : ℝ≥0} :
     HasLaw (brownian s - brownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
-  (hasLaw_preBrownian_sub s t).congr
-    ((brownian_ae_eq_preBrownian s).sub (brownian_ae_eq_preBrownian t))
+  IsPreBrownian.hasLaw_sub s t
 
-instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  isGaussianProcess_preBrownian.modification fun t ↦ (brownian_ae_eq_preBrownian t).symm
-
-open NNReal Filter Topology in
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
 
@@ -521,51 +478,11 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
   p_pos := by positivity
   q_pos := by positivity
 
-/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 2` and `t₁ ≤ ... ≤ tₙ`,
-the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
-    [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
-    iIndepFun (fun i : Fin n ↦ X (t i.succ) - X (t i.castSucc)) P
+lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t :=
+    IsPreBrownian.covariance_eval s t
 
-lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
-    x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by simp
-
-lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t := by
-  have h1 : brownian s = (fun x ↦ x ⟨s, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  have h2 : brownian t = (fun x ↦ x ⟨t, by simp⟩) ∘
-      (fun ω ↦ ({s, t} : Finset ℝ≥0).restrict (brownian · ω)) := by ext; simp
-  rw [h1, h2, ← covariance_map]
-  · simp_rw [hasLaw_restrict_brownian.map_eq]
-    rw [covariance_eval_gaussianProjectiveFamily]
-  any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
-  exact Measurable.aemeasurable <| by fun_prop
-
-lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
-  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
-  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin n → ℝ :=
-      { toFun := (fun x (i : Fin n) ↦ x i.succ - x i.castSucc) ∘
-          (fun x (i : Fin (n + 1)) ↦ x ⟨t i, by simp⟩)
-        map_add' x y := by ext; simp; ring
-        map_smul' m x := by ext; simp; ring
-        cont := by fun_prop }
-    have : (fun ω i ↦ (brownian (t i.succ) - brownian (t i.castSucc)) ω) =
-        L ∘ fun ω ↦ (Finset.univ.image t).restrict (brownian · ω) := by ext; simp [L]
-    rw [this]
-    infer_instance
-  intro i j hij
-  rw [covariance_sub_left, covariance_sub_right, covariance_sub_right]
-  · simp_rw [covariance_brownian]
-    wlog h : i < j
-    · simp_rw [← this n t ht j i hij.symm (by omega), min_comm]
-      ring
-    have h1 : i.succ ≤ j.succ := Fin.succ_le_succ_iff.mpr h.le
-    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
-    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
-    rw [min_eq_left (ht h1), min_eq_left (ht h), min_eq_left (ht h2), min_eq_left (ht h3)]
-    simp
-  all_goals exact HasGaussianLaw.memLp_two
+lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit :=
+  IsPreBrownian.hasIndepIncrements
 
 section Measure
 
