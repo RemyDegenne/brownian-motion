@@ -143,7 +143,7 @@ Let us start with our notation.
 Any stochastic process has an index set $T$ (usually denoted {\em time}, usually uncountably infinite), and a state space.
 Since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$. Probability measures are denoted $P_.$.
 
-All references to results in \mathlib are accurate for commit {\tt xxx}, August 22, 2025\todorm{move this?}.
+All references to results in \mathlib are accurate for commit {\tt xxx}, August 22, 2025\todorm{Here mention also our repository, and say that some of the code has been ported to mathlib, but not all of it}.
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq T$.
@@ -837,7 +837,7 @@ For $p \ge 1$, we use the Minkowski inequality (see \cite{kratschmer2023kolmogor
 \end{align*}
 The expectation inside the sum is bounded as before, and again we get something bounded by the $R_p$ term in Lemma~\ref{lem:finite_set_bound_of_dist_le}.
 Only the case $p \ge 1$ was treated in \cite{kratschmer2023kolmogorov}, although the final result is presented for all $p > 0$.
-Accordingly, they write their lemma with only the part $\frac{1}{(2^{(q-d)/p} - 1)^p}$ in the definition of $R_p$, which we correct to include the $p \le 1$ case.
+Accordingly, they write their lemma with only the part $(2^{(q-d)/p} - 1)^{-p}$ in the definition of $R_p$, which we correct to include the $p \le 1$ case.
 We finally note that keeping track of how the constants evolve through the proof is straightforward in Lean, in contrast to for example the latex proof which we wrote in the blueprint, in which the constants needed to be modified repeatedly due to small mistakes. Also any improvement in a constant in a Lean proof is easy to propagate through the rest of the proof, since the system automatically raises errors where the new value invalidates a computation.
 
 
