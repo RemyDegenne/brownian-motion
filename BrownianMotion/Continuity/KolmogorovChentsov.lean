@@ -205,7 +205,7 @@ variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
 
 section EMetricSpace
 
-variable [PseudoMetricSpace T] [EMetricSpace E]
+variable [PseudoEMetricSpace T] [EMetricSpace E]
 
 section HolderSet
 
@@ -348,14 +348,14 @@ def indicatorProcess (X : T → Ω → E) (A : Set Ω) : T → Ω → E :=
   haveI := Classical.decPred (· ∈ A)
   fun t ω ↦ if ω ∈ A then X t ω else hE.some
 
-omit [PseudoMetricSpace T] [EMetricSpace E] in
+omit [PseudoEMetricSpace T] [EMetricSpace E] in
 @[simp]
 lemma indicatorProcess_apply (X : T → Ω → E) (A : Set Ω) (t : T) (ω : Ω)
     [Decidable (ω ∈ A)] :
     indicatorProcess X A t ω = if ω ∈ A then X t ω else hE.some := by
   simp [indicatorProcess]
 
-omit [PseudoMetricSpace T] [EMetricSpace E] in
+omit [PseudoEMetricSpace T] [EMetricSpace E] in
 lemma measurable_indicatorProcess [MeasurableSpace E]
     (hA : MeasurableSet A) (hX : ∀ t, Measurable (X t)) (t : T) :
     Measurable (indicatorProcess X A t) :=
@@ -998,9 +998,9 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
       exact ⟨n, mod_cast hn⟩
     suffices ∃ C, HolderOnWith C (β n) (fun x ↦ Z 0 x ω) U by
       obtain ⟨C, hC⟩ := this
-      refine HolderOnWith.mono_right hC hn.le ?_
-      rw [Metric.isBounded_iff_ediam_ne_top]
-      exact (hT.diam_lt_top hd_pos).ne
+      refine HolderOnWith.mono_right' hC hn.le (C' := (EMetric.diam U).toNNReal) ?_
+      rw [ENNReal.coe_toNNReal (hT.diam_lt_top hd_pos).ne]
+      exact fun x hx y hy ↦ EMetric.edist_le_diam_of_mem hx hy
     simp only [Set.mem_setOf_eq, A] at hω
     obtain ⟨C, hC⟩ := hZ_holder n ω
     refine ⟨C, fun s hs t ht ↦ ?_⟩
