@@ -16,6 +16,21 @@ lemma hasLaw_map (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
   aemeasurable := hX
   map_eq := rfl
 
+variable {E : Type*} [NormedAddCommGroup E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E] [IsProbabilityMeasure P] {X Y : Ω → E}
+
+lemma IndepFun.charFunDual_map_add_eq_mul [NormedSpace ℝ E]
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
+    charFunDual (P.map (X + Y)) = charFunDual (P.map X) * charFunDual (P.map Y) := by
+  ext L
+  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFunDual_conv, Pi.mul_apply]
+
+lemma IndepFun.charFun_map_add_eq_mul [InnerProductSpace ℝ E]
+    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
+    charFun (P.map (X + Y)) = charFun (P.map X) * charFun (P.map Y) := by
+  ext t
+  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFun_conv, Pi.mul_apply]
+
 end HasLaw
 
 section HasGaussianLaw
@@ -35,6 +50,12 @@ class HasGaussianLaw :
 attribute [instance] HasGaussianLaw.isGaussian_map
 
 variable {X P}
+
+lemma HasGaussianLaw.congr {Y : Ω → E} [HasGaussianLaw X P] (h : ∀ᵐ ω ∂P, X ω = Y ω) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    rw [← Measure.map_congr h]
+    infer_instance
 
 instance IsGaussian.hasGaussianLaw [IsGaussian (P.map X)] :
     HasGaussianLaw X P where
