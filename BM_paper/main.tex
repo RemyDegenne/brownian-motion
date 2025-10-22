@@ -667,19 +667,42 @@ Then $T'$ has bounded covering number with the constant $2^d c$ and exponent $d$
 
 \paragraph{Chaining}
 
-We will consider minimal covers $(C_n)_{n \in \mathbb{N}}$ for a sequence $(\varepsilon_n)_{n \in \mathbb{N}}$ of positive real numbers decreasing to $0$.
+We will consider minimal covers $(C_n)_{n \in \mathbb{N}}$ for a sequence $(\varepsilon_n)_{n \in \mathbb{N}}$ of positive real numbers decreasing to $0$, which in the proof will be chosen as $\varepsilon_n = \varepsilon_0 2^{-n}$.
 The proof of Theorem~\ref{thm:kolmogorov_chentsov} will involve bounding a supremum $\mathbb{E}\left[\sup_{s, t \in C_N, \: d_T(s, t) \le \delta}d_E(X_s, X_t)^p\right]$ for a fine scale cover $C_N$.
 In order to do so, we will move to a coarser scale $m < N$.
 For $x \in C_N$, we define a chaining sequence $\bar{x}_0, \bar{x}_1, \ldots, \bar{x}_N$ by letting $\bar{x}_N = x$ and for $n < N$, $\bar{x}_n$ be a point in $C_n$ closest to $\bar{x}_{n+1}$.
 That sequence satisfies $d_T(\bar{x}_n, \bar{x}_{n+1}) \le \varepsilon_n$ for all $n < N$, by the cover property of $C_n$.
 
-TODO:
-\begin{itemize}
-  \item $\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p \le 2^p \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p + 4^p \sup_{s \in C_k} d_E(X_s, X_{\bar{s}_m})$.
-  \item For $x, y \in C_N$ with $d_T(x, y) \le \delta$, $d_T(\bar{x}_m, \bar{y}_m) \le \delta + 2 \sum_{i=m}^{N-1}\varepsilon_i$. Last term is $\varepsilon_0 2^{-m+2}$ for a geometric grid.
-\end{itemize}
+The change of scale from $C_N$ to $C_m$ is done through the following decomposition, due to the triangle inequality and the fact that $(a + b)^p \le 2^p (a^p + b^p)$ for $a, b \ge 0$ (\docs{scale_change_rpow}):
+\begin{align*}
+  \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p
+  &\le 2^p \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p + 4^p \sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p
+  \: .
+\end{align*}
+The first term is a supremum with points in the coarser cover $C_m$, while the second term quantifies the distance along the chaining sequence.
+The first term will be bounded by $2^p \sup_{s, t \in C_m, d_T(s, t) \le \delta'} d_E(X_s, X_t)^p$ for a constant $\delta'$ related to $\delta$ and the $\varepsilon_n$'s.
+It thus has the same form as the original supremum, but on a coarser scale.
+By the triangle inequality and the cover property, for $x, y \in C_N$ with $d_T(x, y) \le \delta$, $d_T(\bar{x}_m, \bar{y}_m) \le \delta + 2 \sum_{i=m}^{N-1}\varepsilon_i$.
+For a geometric grid $\varepsilon_n = \varepsilon_0 2^{-n}$ and $m$ such that $\varepsilon_m \le \delta \le 4 \varepsilon_m = 4 \varepsilon_0 2^{-m}$, we obtain $d_T(\bar{x}_m, \bar{y}_m) \le \varepsilon_0 2^{-m+3}$, such that
+\begin{align}
+  \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p
+  &\le 2^p \sup_{s', t' \in C_m, d_T(s', t') \le \varepsilon_0 2^{-m+3}} d_E(X_{s'}, X_{t'})^p + 4^p \sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p
+  \: . \label{eq:scale_change}
+\end{align}
 
 \paragraph{Pair reduction lemma}
+
+TODO: how do we justify it without repeating the discussion in the proof below?
+
+\begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, Lemma B.2.7]\label{lem:pair_reduction}
+Let $T$ be a pseudo-metric space, $c \ge 0$, $J$ a finite subset of $T$, $a \ge 0$ and $n \in \mathbb{N}$ such that $\lvert J \rvert \le a^n$.
+Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space $E$ and any map $f: T \to E$~,
+\begin{enumerate}
+  \item $\lvert K \rvert \le a \lvert J \rvert$~,
+  \item for all $(s, t) \in J^2$, $d_T(s, t) \le cn$~,
+  \item $\sup_{s, t \in J, \: d_T(s, t) \le c} d_E(f(s), f(t)) \le 2 \sup_{(s, t) \in K} d_E(f(s), f(t))$~.
+\end{enumerate}
+\end{lemma}
 
 \subsection{Proof of the main inequality}
 
@@ -691,6 +714,7 @@ Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that fo
 \end{align*}
 for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
 This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to the blueprint\todorm{link}. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
+In particular, we explain why the pair reduction lemma (TODO REF\todorm{}) is needed in the proof.
 
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
 Since $J \subseteq T$, it also has bounded covering number with the same exponent $d$ and a constant $2^d c$ (Lemma~\ref{lem:covering_number_subset}).
@@ -737,6 +761,17 @@ We can assume that $\delta \ge \varepsilon_N$, since otherwise the supremum is z
 The supremum over the set $J$ is thus equal to the supremum over minimal cover $C_N$ of $J$ by balls of radius $\varepsilon_N$.
 Let more generally $C_n$ be the minimal cover of $J$ by balls of radius $\varepsilon_n$ for all $n \in \{0, \dots, N\}$.
 
+We change scale using Equation~\eqref{eq:scale_change}, with $m \in \{0, \dots, N-1\}$ chosen such that $\varepsilon_m \le \delta \le 4 \varepsilon_m$.
+Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and the proof is a simpler version of what follows (\docs{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
+\begin{align*}
+  \mathbb{E}\left[\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p\right]
+  &\le 2^p \mathbb{E}\left[\sup_{s', t' \in C_m, d_T(s', t') \le 8 \varepsilon_m} d_E(X_{s'}, X_{t'})^p\right] + 4^p \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  \: .
+\end{align*}
+We now bound separately the two terms in that sum, which correspond respectively to distances between points in the coarser cover $C_m$, and to distances along the chaining sequences.
+
+\textbf{First term.}
+
 The main consequence of the Kolmogorov condition that we will use in the proof is that for $K$ a finite set of pairs of points in $T$ such that for all $(s,t) \in K$, $d_T(s, t) \le \varepsilon$, we have
 \begin{align}
   \mathbb{E}\left[ \sum_{(s,t) \in K} d_E(X_s, X_t)^p \right]
@@ -746,16 +781,17 @@ The main consequence of the Kolmogorov condition that we will use in the proof i
 \end{align}
 
 Let us first present a naive upper bound on the expectation of the supremum, which will highlight the need for more advanced techniques.
-We bound the supremum by a sum and apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_N^2 \mid d_T(s, t) \le \delta\}$ with cardinal $\lvert K \rvert \le \lvert C_N \rvert^2$, and then the covering number assumption:
+We bound the supremum by a sum and apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_m^2 \mid d_T(s, t) \le 8 \varepsilon_m\}$ with cardinal $\lvert K \rvert \le \lvert C_m \rvert^2$, and then the covering number assumption:
 \begin{align*}
-  \mathbb{E}\left[ \sup_{\substack{s, t \in C_N \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
-  &\le M \lvert C_N \rvert^2 \delta^q
-  \le M c^2 \varepsilon_N^{-2d} \delta^q
+  \mathbb{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
+  &\le M \lvert C_m \rvert^2 (8 \varepsilon_m)^q
+  \le M c^2 \varepsilon_m^{-2d} (8 \varepsilon_m)^q
   \: .
 \end{align*}
-TODO: too naive to be interesting. Need to first go from $C_N$ to $C_m$ with $\varepsilon_m \approx \delta$.
-Then we will get $\delta^{q - 2d}$ and we will remark that this is worse than the $\delta^{q - d}$ we want.
-The whole issue is the square on the covering number.
+Since $\varepsilon_m \le \delta \le 4 \varepsilon_m$, we obtain a bound of order $\delta^{q - 2d}$, which is not sufficient to conclude the proof with the right exponent $\delta^{q - d}$.
+The issue is the square on the cardinal of the cover $C_m$, and this is what is fixed by the pair reduction lemma (Lemma~\ref{lem:pair_reduction}).
+
+\textbf{Second term.}
 
 TODO
 \todor{how much detail do we want? Certainly we don't want to repeat the paper that we follow.}
