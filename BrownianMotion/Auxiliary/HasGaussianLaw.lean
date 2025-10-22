@@ -2,6 +2,7 @@ import BrownianMotion.Gaussian.Gaussian
 import Mathlib.Probability.Independence.CharacteristicFunction
 
 open MeasureTheory ProbabilityTheory Finset WithLp Complex
+open scoped NNReal
 
 namespace ProbabilityTheory
 
@@ -80,7 +81,7 @@ open ContinuousLinearMap in
 lemma iIndepFun.hasGaussianLaw {E : ι → Type*}
     [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
     [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
-    {X : Π i, Ω → (E i)} [∀ i, HasGaussianLaw (X i) P] (hX : iIndepFun X P) :
+    {X : Π i, Ω → (E i)} (h : ∀ i, HasGaussianLaw (X i) P) (hX : iIndepFun X P) :
     HasGaussianLaw (fun ω ↦ (X · ω)) P where
   isGaussian_map := by
     have := hX.isProbabilityMeasure
@@ -111,5 +112,73 @@ lemma iIndepFun.hasGaussianLaw {E : ι → Type*}
       · exact IsGaussian.memLp_two_id
       · exact IsGaussian.integrable_id
     · exact fun i ↦ HasGaussianLaw.aemeasurable
+
+variable {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
+
+lemma IndepFun.hasLaw_sub_of_gaussian
+    (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw Y (gaussianReal μY vY) P)
+    (h1 : IndepFun X (Y - X) P) (h2 : vX ≤ vY) :
+    HasLaw (Y - X) (gaussianReal (μY - μX) (vY - vX)) P where
+  map_eq := by
+    have : IsProbabilityMeasure P := hX.hasGaussianLaw.isProbabilityMeasure
+    refine Measure.ext_of_charFun <| funext fun t ↦ ?_
+    apply mul_left_cancel₀ (a := charFun (P.map X) t)
+    · rw [hX.map_eq, charFun_gaussianReal]
+      exact Complex.exp_ne_zero _
+    · rw [← Pi.mul_apply, ← h1.charFun_map_add_eq_mul, add_sub_cancel, hY.map_eq, hX.map_eq,
+        charFun_gaussianReal, charFun_gaussianReal, charFun_gaussianReal, ← Complex.exp_add,
+        NNReal.coe_sub h2, Complex.ofReal_sub]
+      · congr
+        field_simp
+        push_cast
+        ring
+      all_goals fun_prop
+
+lemma IndepFun.hasLaw_gaussianReal_of_add
+    (hX : HasLaw X (gaussianReal μX vX) P) (hY : HasLaw (X + Y) (gaussianReal μY vY) P)
+    (h : IndepFun X Y P) :
+    HasLaw Y (gaussianReal (μY - μX) (vY - vX)) P := by
+  have h' := h
+  rw [show Y = X + Y - X by simp] at h' ⊢
+  apply h'.hasLaw_sub_of_gaussian hX hY
+  rw [← @Real.toNNReal_coe vY, ← @variance_id_gaussianReal μY vY, ← hY.variance_eq,
+    h.variance_add, hX.variance_eq, variance_id_gaussianReal, Real.toNNReal_add,
+    Real.toNNReal_coe]
+  any_goals simp
+  · exact variance_nonneg _ _
+  · exact hX.hasGaussianLaw.memLp_two
+  · convert hY.hasGaussianLaw.memLp_two.sub hX.hasGaussianLaw.memLp_two
+    simp
+
+lemma IndepFun.hasGaussianLaw_of_add_real
+    (hX : HasGaussianLaw X P) (hY : HasGaussianLaw (X + Y) P) (h : IndepFun X Y P) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    have h1 : HasLaw X (gaussianReal _ _) P := ⟨hX.aemeasurable, hX.map_eq_gaussianReal⟩
+    have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
+    have := h.hasLaw_gaussianReal_of_add h1 h2
+    exact this.hasGaussianLaw.isGaussian_map
+
+lemma IndepFun.hasGaussianLaw_of_add {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [MeasurableSpace E] [CompleteSpace E] [BorelSpace E]
+    [SecondCountableTopology E] {X Y : Ω → E} (hX : HasGaussianLaw X P)
+    (hY : HasGaussianLaw (X + Y) P) (h : IndepFun X Y P) :
+    HasGaussianLaw Y P where
+  isGaussian_map := by
+    refine ⟨fun L ↦ ?_⟩
+    conv => enter [2, 1, 2, x]; change id (L x)
+    rw [← integral_map, ← variance_id_map]
+    · refine @IsGaussian.eq_gaussianReal _ ?_
+      rw [AEMeasurable.map_map_of_aemeasurable]
+      · refine @HasGaussianLaw.isGaussian_map (self := ?_)
+        apply IndepFun.hasGaussianLaw_of_add_real (X := L ∘ X)
+        · infer_instance
+        · rw [← map_comp_add]
+          infer_instance
+        · exact h.comp L.measurable L.measurable
+      · fun_prop
+      · convert hY.aemeasurable.sub hX.aemeasurable
+        simp
+    all_goals fun_prop
 
 end ProbabilityTheory
