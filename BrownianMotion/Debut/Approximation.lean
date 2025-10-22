@@ -69,17 +69,24 @@ lemma 𝓚₀_subset_𝓚 (f : Filtration T mΩ) (t : T) : 𝓚₀ f t ⊆ 𝓚 
 lemma mem_𝓚_iff (f : Filtration T mΩ) (t : T) (B : Set (T × Ω)) :
     B ∈ 𝓚 f t ↔ ∃ s : Finset (Set (T × Ω)),
       (s : Set _) ⊆ 𝓚₀ f t ∧ B = ⋃ x ∈ s, x := by
+  classical
   refine ⟨fun hB ↦ ?_, fun ⟨s, hs, hB⟩ ↦ ?_⟩
   · induction hB with
     | base B hB => exact ⟨{B}, by simp [hB]⟩
     | union B B' hB hB' ihB ihB' =>
       have ⟨s, hs_subs, hs_eq⟩ := ihB
       have ⟨s', hs'_subs, hs'_eq⟩ := ihB'
-      classical
       refine ⟨s ∪ s', by simp [hs_subs, hs'_subs], ?_⟩
       rw [Finset.set_biUnion_union, hs_eq, hs'_eq]
-  · -- fairly easy
-    sorry
+  · induction s using Finset.induction_on generalizing B with
+    | empty =>
+      simp only [hB, Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty]
+      exact 𝓚.base ∅ (empty_mem_𝓚₀ f t)
+    | insert x s hxs ih =>
+      simp only [Finset.mem_insert, Set.iUnion_iUnion_eq_or_left, Finset.coe_insert] at hB hs
+      refine hB ▸ 𝓚.union _ _ ?_ ?_
+      · exact 𝓚.base _ (hs (Set.mem_insert _ _))
+      · grind
 
 lemma subset_Iic_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
     B ⊆ Set.Iic t ×ˢ .univ := by
