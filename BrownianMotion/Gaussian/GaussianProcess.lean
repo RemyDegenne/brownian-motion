@@ -31,7 +31,7 @@ class IsGaussianProcess (X : T → Ω → E) (P : Measure Ω := by volume_tac) :
 
 attribute [instance] IsGaussianProcess.hasGaussianLaw
 
-lemma IsGaussianProcess.isProbabilityMeasure [Nonempty T] [hX : IsGaussianProcess X P] :
+lemma IsGaussianProcess.isProbabilityMeasure [hX : IsGaussianProcess X P] :
     IsProbabilityMeasure P :=
   hX.hasGaussianLaw Classical.ofNonempty |>.isProbabilityMeasure
 

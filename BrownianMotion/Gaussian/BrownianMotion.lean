@@ -525,8 +525,8 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
 def HasIndepIncrements {Ω T E : Type*} {mΩ : MeasurableSpace Ω} [Sub E]
     [Preorder T] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) : Prop :=
-  ∀ n, ∀ t : Fin (n + 2) → T, Monotone t →
-    iIndepFun (fun i : Fin (n + 1) ↦ X (t i.succ) - X (t i.castSucc)) P
+  ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
+    iIndepFun (fun i : Fin n ↦ X (t i.succ) - X (t i.castSucc)) P
 
 lemma mem_pair_iff {α : Type*} [DecidableEq α] {x y z : α} :
     x ∈ ({y, z} : Finset α) ↔ x = y ∨ x = z := by simp
@@ -544,9 +544,9 @@ lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussian
 
 lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit := by
   refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero (h1 := ?_) ?_
-  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin (n + 1) → ℝ :=
-      { toFun := (fun x (i : Fin (n + 1)) ↦ x i.succ - x i.castSucc) ∘
-          (fun x (i : Fin (n + 2)) ↦ x ⟨t i, by simp⟩)
+  · let L : ((Finset.univ.image t) → ℝ) →L[ℝ] Fin n → ℝ :=
+      { toFun := (fun x (i : Fin n) ↦ x i.succ - x i.castSucc) ∘
+          (fun x (i : Fin (n + 1)) ↦ x ⟨t i, by simp⟩)
         map_add' x y := by ext; simp; ring
         map_smul' m x := by ext; simp; ring
         cont := by fun_prop }
