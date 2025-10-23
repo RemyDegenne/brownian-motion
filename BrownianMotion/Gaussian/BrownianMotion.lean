@@ -463,6 +463,8 @@ section IsBrownian
 
 variable (X : ℝ≥0 → Ω → ℝ)
 
+/-- A stochastic process is called **Brownian** if its finite-dimensional laws are those
+of a Brownian motion, see `IsPreBrownian`, and if it has almost-sure continuous paths. -/
 class IsBrownian (X) (P : Measure Ω := by volume_tac) : Prop extends IsPreBrownian X P where
   cont : ∀ᵐ ω ∂P, Continuous (X · ω)
 
