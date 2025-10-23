@@ -249,7 +249,7 @@ section covariance
 
 namespace ProbabilityTheory
 
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y Z : Ω → ℝ}
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y Z : Ω → ℝ} (c : ℝ)
 
 lemma covariance_fun_add_left [IsFiniteMeasure μ]
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
@@ -270,6 +270,20 @@ lemma covariance_fun_sub_right [IsFiniteMeasure μ]
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
     cov[X, fun ω ↦ Y ω - Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] - cov[X, fun ω ↦ Z ω; μ] :=
   covariance_sub_right hX hY hZ
+
+lemma covariance_fun_div_left :
+    cov[fun ω ↦ X ω / c, Y; μ] = cov[X, Y; μ] / c := by
+  simp_rw [← inv_mul_eq_div, covariance_mul_left]
+
+lemma covariance_fun_div_right :
+    cov[X, fun ω ↦ Y ω / c; μ] = cov[X, Y; μ] / c := by
+  simp_rw [← inv_mul_eq_div, covariance_mul_right]
+
+lemma variance_fun_div (hX : AEMeasurable X μ) :
+    Var[fun ω ↦ X ω / c; μ] = Var[X; μ] / c ^ 2 := by
+  rw [← covariance_self (by fun_prop), covariance_fun_div_left, covariance_fun_div_right,
+    covariance_self hX]
+  field_simp
 
 end ProbabilityTheory
 
