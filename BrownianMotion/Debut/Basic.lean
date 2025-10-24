@@ -30,31 +30,31 @@ variable {Ω ι : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 open scoped Classical in
 /-- The debut of a set `E ⊆ T × Ω` is the random variable that gives the smallest `t` such that
 `(t, ω) ∈ E` for a given `ω`. -/
-noncomputable def Debut [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n m : ι) : Ω → ι :=
+noncomputable def debut [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n m : ι) : Ω → ι :=
   fun ω ↦ if ∃ t ∈ Set.Icc n m, (t, ω) ∈ E then
     sInf {t ∈ Set.Icc n m | (t, ω) ∈ E} else m
 
 open scoped Classical in
 lemma debut_def [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n m : ι) :
-    Debut E n m = fun ω ↦ if ∃ t ∈ Set.Icc n m, (t, ω) ∈ E then
+    debut E n m = fun ω ↦ if ∃ t ∈ Set.Icc n m, (t, ω) ∈ E then
       sInf {t ∈ Set.Icc n m | (t, ω) ∈ E} else m := rfl
 
 /- TODO: prove that this def is equiv to the hitting time of an indicator function of E,
 when it hits [1,∞] -/
 
-namespace Debut
+namespace debut
 
 variable [ConditionallyCompleteLinearOrder ι] (n m : ι)
 
 /-- The debut of the empty set is the constant function that returns `m`. -/
 @[simp]
-lemma empty : Debut (∅ : Set (ι × Ω)) n m = fun _ ↦ m := by
-  unfold Debut
+lemma empty : debut (∅ : Set (ι × Ω)) n m = fun _ ↦ m := by
+  unfold debut
   simp
 
 @[simp]
-lemma univ : Debut (Set.univ : Set (ι × Ω)) n m = fun _ ↦ if n ≤ m then n else m := by
-  unfold Debut
+lemma univ : debut (Set.univ : Set (ι × Ω)) n m = fun _ ↦ if n ≤ m then n else m := by
+  unfold debut
   split_ifs with h
   · ext ω
     rw [if_pos ⟨n, Set.left_mem_Icc.mpr h, Set.mem_univ _⟩]
@@ -64,15 +64,15 @@ lemma univ : Debut (Set.univ : Set (ι × Ω)) n m = fun _ ↦ if n ≤ m then n
 open scoped Classical in
 @[simp]
 lemma prod (I : Set ι) (A : Set Ω) :
-    Debut (I ×ˢ A) n m = fun ω ↦ if Set.Icc n m ∩ I ≠ ∅ then
+    debut (I ×ˢ A) n m = fun ω ↦ if Set.Icc n m ∩ I ≠ ∅ then
         if ω ∈ A then sInf (Set.Icc n m ∩ I) else m
       else m := by
   ext ω
   split_ifs with hI hω
-  · simp only [Debut, Set.mem_Icc, Set.mem_prod, hω, and_true]
+  · simp only [debut, Set.mem_Icc, Set.mem_prod, hω, and_true]
     rw [if_pos (by exact Set.nonempty_iff_ne_empty.mpr hI)]
     congr
-  · simp [Debut, hω]
+  · simp [debut, hω]
   · simp only [ne_eq, Decidable.not_not] at hI
     refine if_neg ?_
     simp only [Set.mem_Icc, Set.mem_prod, not_exists, not_and, and_imp]
@@ -80,15 +80,15 @@ lemma prod (I : Set ι) (A : Set Ω) :
 
 open scoped Classical in
 lemma prod_univ (I : Set ι) :
-    Debut (I ×ˢ (.univ : Set Ω)) n m = fun _ ↦ if Set.Icc n m ∩ I ≠ ∅ then
+    debut (I ×ˢ (.univ : Set Ω)) n m = fun _ ↦ if Set.Icc n m ∩ I ≠ ∅ then
       sInf (Set.Icc n m ∩ I) else m := by
   simp
 
 lemma univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
-    Debut ((.univ : Set ι) ×ˢ A) n m = fun ω ↦ if n ≤ m then
+    debut ((.univ : Set ι) ×ˢ A) n m = fun ω ↦ if n ≤ m then
         if ω ∈ A then n else m
       else m := by
-  unfold Debut
+  unfold debut
   split_ifs with h
   · ext ω
     split_ifs with hi hω hω
@@ -100,9 +100,9 @@ lemma univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
     · simp_all
   · simp [h]
 
-lemma anti : Antitone (Debut (Ω := Ω) · n m) := by
+lemma anti : Antitone (debut (Ω := Ω) · n m) := by
   intro E F h ω
-  simp only [Debut]
+  simp only [debut]
   split_ifs with hF hE hE
   · exact csInf_le_csInf ⟨n, fun i hi ↦ hi.1.1⟩ hE (by aesop)
   · have ⟨t, ht⟩ := hF
@@ -113,57 +113,57 @@ lemma anti : Antitone (Debut (Ω := Ω) · n m) := by
 
 section Inequalities
 
-lemma le (E : Set (ι × Ω)) (ω : Ω) : Debut E n m ω ≤ m := by
-  unfold Debut
+lemma le (E : Set (ι × Ω)) (ω : Ω) : debut E n m ω ≤ m := by
+  unfold debut
   split_ifs with h
   · have ⟨t, ht, htE⟩ := h
     exact csInf_le_of_le (BddBelow.inter_of_left bddBelow_Icc) ⟨ht, htE⟩ ht.2
   · exact le_rfl
 
-lemma ge (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (hnm : n ≤ m) : n ≤ Debut E n m ω := by
-  unfold Debut
+lemma ge (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (hnm : n ≤ m) : n ≤ debut E n m ω := by
+  unfold debut
   split_ifs with h
   · exact le_csInf h fun i hi ↦ hi.1.1
   · exact hnm
 
 lemma ge_of_exists {E : Set (ι × Ω)} {n m : ι} {ω : Ω} (h : ∃ t ∈ Set.Icc n m, (t, ω) ∈ E) :
-    n ≤ Debut E n m ω := by
+    n ≤ debut E n m ω := by
   refine ge E ω ?_
   by_contra! hh
   simp [hh] at h
 
-lemma of_le (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (h : m ≤ n) : Debut E n m ω = m := by
+lemma of_le (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (h : m ≤ n) : debut E n m ω = m := by
   rcases eq_or_lt_of_le h with rfl | h
   · exact le_antisymm (le ..) (ge _ _ h)
-  · grind [Debut, not_le, Set.Icc_eq_empty, Set.mem_empty_iff_false]
+  · grind [debut, not_le, Set.Icc_eq_empty, Set.mem_empty_iff_false]
 
-lemma mem_Icc (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (hnm : n ≤ m) : Debut E n m ω ∈ Set.Icc n m :=
+lemma mem_Icc (E : Set (ι × Ω)) {n m : ι} (ω : Ω) (hnm : n ≤ m) : debut E n m ω ∈ Set.Icc n m :=
   ⟨ge E ω hnm, le ..⟩
 
 lemma mem_set [WellFoundedLT ι] {E : Set (ι × Ω)} {n m : ι} {ω : Ω}
     (h : ∃ t ∈ Set.Icc n m, (t, ω) ∈ E) :
-    (Debut E n m ω, ω) ∈ E := by
-  rw [Debut, if_pos h]
+    (debut E n m ω, ω) ∈ E := by
+  rw [debut, if_pos h]
   exact (csInf_mem h).2
 
 lemma mem_set_of_debut_lt [WellFoundedLT ι] {E : Set (ι × Ω)} {n m : ι} {ω : Ω}
-    (h : Debut E n m ω < m) :
-    (Debut E n m ω, ω) ∈ E := by
+    (h : debut E n m ω < m) :
+    (debut E n m ω, ω) ∈ E := by
   refine mem_set ?_
   by_contra ht
-  simp [Debut, if_neg ht] at h
+  simp [debut, if_neg ht] at h
 
 lemma le_of_mem {E : Set (ι × Ω)} {n m i : ι} (hni : n ≤ i) (him : i ≤ m) {ω : Ω}
     (hiE : (i, ω) ∈ E) :
-    Debut E n m ω ≤ i := by
+    debut E n m ω ≤ i := by
   have h_exists : ∃ k ∈ Set.Icc n m, (k, ω) ∈ E := ⟨i, ⟨hni, him⟩, hiE⟩
-  simp_rw [Debut, if_pos h_exists]
+  simp_rw [debut, if_pos h_exists]
   exact csInf_le (BddBelow.inter_of_left bddBelow_Icc) (Set.mem_inter ⟨hni, him⟩ hiE)
 
 lemma eq_debut_of_exists {E : Set (ι × Ω)} {n m₁ m₂ : ι} {ω : Ω}
     (hm : m₁ ≤ m₂) (h : ∃ t ∈ Set.Icc n m₁, (t, ω) ∈ E) :
-    Debut E n m₁ ω = Debut E n m₂ ω := by
-  simp only [Debut, if_pos h]
+    debut E n m₁ ω = debut E n m₂ ω := by
+  simp only [debut, if_pos h]
   have ⟨t, ht, htE⟩ := h
   rw [if_pos ⟨t, ⟨ht.1, ht.2.trans hm⟩, htE⟩]
   refine le_antisymm ?_ (csInf_le_csInf bddBelow_Icc.inter_of_left ⟨t, ht, htE⟩
@@ -174,11 +174,11 @@ lemma eq_debut_of_exists {E : Set (ι × Ω)} {n m₁ m₂ : ι} {ω : Ω}
   · exact ((csInf_le bddBelow_Icc.inter_of_left ⟨ht, htE⟩).trans (ht.2.trans le_rfl)).trans
         (le_of_lt (not_le.1 him))
 
-lemma mono_right (E : Set (ι × Ω)) (n : ι) (ω : Ω) : Monotone (Debut E n · ω) := by
+lemma mono_right (E : Set (ι × Ω)) (n : ι) (ω : Ω) : Monotone (debut E n · ω) := by
   refine fun m₁ m₂ hm ↦ ?_
   by_cases h : ∃ j ∈ Set.Icc n m₁, (j, ω) ∈ E
   · exact (eq_debut_of_exists hm h).le
-  · simp_rw [Debut, if_neg h]
+  · simp_rw [debut, if_neg h]
     split_ifs with h'
     · have ⟨t, ht, htE⟩ := h'
       refine le_csInf h' fun t ht ↦ ?_
@@ -197,7 +197,7 @@ maybe something like (mι : MeasurableSpace ι) [BorelSpace ι]
 `∀ t, MeasurableSet[mι.prod (f t)] (E ∩ Set.Iic t ×ˢ Ω)`? I'm not completely sure this is actually
 equivalent, but if I stated the lemma `MeasureTheory.Approximation.of_mem_prod_borel` correctly
 this should be enough to prove the theorem below.
-before changing this definition it may be worth it to begin the proof of `Debut.isStoppingTime`
+before changing this definition it may be worth it to begin the proof of `debut.isStoppingTime`
 to identify exactly what is needed, maybe in the end we do not even need to define the concpet of
 progressively measurable set, but we can just add the necessary hypothesis manually. -/
 
@@ -210,14 +210,14 @@ def _root_.MeasureTheory.ProgMeasurableSet
 /-- **Debùt Therorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime [MeasurableSpace ι]
     {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) :
-    IsStoppingTime f (Debut E n m) := by
+    IsStoppingTime f (debut E n m) := by
   /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
   usual hypotheses on the filtration (in particular the right continuity of the filtration, find if
   it is defined anywhere in mathlib, or if we need to define it ourselves or just state it as
   a hypothesis) -/
   sorry
 
-end Debut
+end debut
 
 section HittingTime
 
