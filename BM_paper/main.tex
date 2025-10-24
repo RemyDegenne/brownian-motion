@@ -65,8 +65,6 @@ Brownian motion is a building block in modern probability theory. In this paper,
 
 \begin{document}
 
-\href{https://github.com/RemyDegenne/brownian-motion}{github}
-
 % Some useful commands:
 % \mathlib{}
 % \leanlink{url}{this is a link to Lean code}
@@ -86,28 +84,33 @@ Brownian motion is a building block in modern probability theory. In this paper,
 \section{Introduction}
 
 \subsection{Mathematical background}
-\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
+\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
 Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and if $X_0=0$):
 \begin{itemize}
-\item It has a normal distribution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with mean $\mathbf E[X_{t_i}] = 0$ and covariance $\mathbf{COV}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$, the minimum of $t_i$ and $t_j$ (in other words, $X$ is a Gaussian process);
-\item Its states after time $t$ are independent of states before $t$ given $X_t$, or $\mathbb P(X_{t+s} \in . | (X_r)_{r\leq t}) = \mathbb P(X_{t+s} \in . | X_t)$ for $s,t \ge 0$, i.e.\ Brownian Motion is a Markov process;
-\item It has independent increments, which only depend on the evolved time, i.e.\ $X_s$ and $X_t - X_s$ are independent, and $X_t - X_s$ is a function of $t-s$, i.e.\ it is a Lévy process;
-\item It describes a fair game (usually denoted a martingale), i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; interestingly, it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are martingales;
-\item It has continuous paths (almost surely); more precisely, it has Hölder-continuous paths for any coefficient $\beta < \tfrac 12$; as a consequence, its paths are nowhere differentiable, almost surely;
+\item it has a normal distribution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with mean $\mathbf E[X_{t_i}] = 0$ and covariance $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$, the minimum of $t_i$ and $t_j$ (in particular, $X$ is a Gaussian process);
+\item its states after time $t$ are independent of states before $t$ given $X_t$, or $\mathbb P(X_{t+s} \in . | (X_r)_{r\leq t}) = \mathbb P(X_{t+s} \in . | X_t)$ for $s,t \ge 0$, i.e.\ Brownian Motion is a Markov process;
+\item it has independent increments, which only depend on the evolved time, i.e.\ $X_s$ and $X_t - X_s$ are independent, and $X_t - X_s$ is a function of $t-s$, i.e.\ it is a Lévy process;
+\item it describes a fair game (usually denoted a martingale), i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; interestingly, it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are martingales;
+\item it has continuous paths (almost surely); more precisely, it has Hölder-continuous paths for any coefficient $\beta < \tfrac 12$; its paths are also nowhere differentiable, almost surely.
 \end{itemize}
-
-\todor{Did we show all of those things? Not sure. Here, after the list, it could be nice to present one specific characterization of BM for which we can then say that we proved that our constructed process satisfies it.}
 
 The goal of the present paper is to describe a formalization of Brownian Motion using Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}.
-Since that library has a decent amount of measure and probability theory already included, but is still lacking some fundamentals, we describe our way to a full formalization using the following steps:
+That library has a solid foundation in measure theory, but at the start of the project it lacked other tools we needed like multivariate Gaussian distributions.
+Starting from what was available in \mathlib, we arrived at a fully formalized Brownian motion on $\mathbb{R}_+$ by following these steps:
 \begin{itemize}
-\item {\em The Carathéodory and Kolmogorov Extension Theorems:} Constructing a probability measure on an uncountable infinite product (i.e.\ the distribution of a stochastic process) is not straight-forward, since the corresponding product of $\sigma$-algebras is too large. Rather, one uses the $\sigma$-algebra defined by all finite (or countably infinite) projections, and constructs a probability measure by extension from all finite dimensional possibilities, which is the content of the Kolmogorov Extension Theorem. This result is in fact an application of a more general result, the Carathèodory Extension Theorem. In this step, we need that the family of finite dimensional distributions has a consistency property (i.e.\ it forms a projective family).
-\item {\em Gaussian Measures and characteristic functions:} Defining a one-dimensional normal distribution is straight-forward using its density with respect to Lebesgue measure, and concrete calulations are often possible using the density. In the multi-dimensional case, which we have to work with extensively, it is often much more convenient to use characteristic functions, which are known to characterize probability measures uniquely. In particular, they can be used to show that linear maps (e.g.\ projections) of Gaussian measures are Gaussian. This approach is fundamental to show that finite dimensional distributions of Brownian Motion indeed form a projective family.
-\item {\em The Kolmogorov-Chentsov Theorem:} We are aiming for a stochastic process with continuous paths. The classical Kolmogorov Chentsov theorem gives a criterion in terms of some moment bounds if the set of times is a subset of $\mathbb R^d$; see e.g.\ \cite{kallenberg2021}. Here, we use a modern version for existence of a modification of a stochastic process with continuous paths, based on a more general set of times \cite{kratschmer2023kolmogorov}.
-\item {\em Construction of Brownian motion and Wiener measure on $\R_+$:} Putting all of the above together gives a continuous Gaussian stochastic process with the correct distribution, i.e.\ Brownian Motion. From this, we can also define a probability measure on (the Polish space) of continuous functions $\mathbb R_+ \to \mathbb R$. This is usually called the Wiener measure.
+\item {\em The Carathéodory and Kolmogorov Extension Theorems.} Constructing a probability measure on an uncountable infinite product (i.e.\ the distribution of a stochastic process) is not straightforward, since the corresponding product of $\sigma$-algebras is too large.
+Rather, one uses the $\sigma$-algebra defined by all finite (or countably infinite) projections, and constructs a probability measure by extension from all finite dimensional possibilities, which is the content of the Kolmogorov Extension Theorem. This result is in fact an application of a more general result, the Carathéodory Extension Theorem. In this step, we need that the family of finite dimensional distributions has a consistency property (i.e.\ it forms a projective family).
+\item {\em Gaussian Measures and characteristic functions.} Defining a one-dimensional normal distribution is straight-forward using its density with respect to Lebesgue measure, and concrete calulations are often possible using the density. In the multi-dimensional case, which we have to work with extensively, it is often much more convenient to use characteristic functions, which are known to characterize probability measures uniquely.
+In particular, they can be used to show that linear maps (e.g.\ projections) of Gaussian measures are Gaussian. This approach is fundamental to show that the finite dimensional distributions of the Brownian Motion indeed form a projective family.
+\item {\em The Kolmogorov-Chentsov Theorem.} We are aiming for a stochastic process with continuous paths. The classical Kolmogorov Chentsov theorem gives a criterion in terms of some moment bounds if the set of times is a subset of $\mathbb R^d$; see e.g.\ \cite{kallenberg2021}. Here, we use a modern version for existence of a modification of a stochastic process with continuous paths, based on a more general set of times \cite{kratschmer2023kolmogorov}.
+\item {\em Construction of a Brownian motion and Wiener measure on $\R_+$.} Putting all of the above together gives a continuous Gaussian stochastic process with the correct distribution, i.e.\ Brownian Motion.
+We show important properties of Brownian motion, such as the independent increments property.
+From this process, we can also define a probability measure on (the Polish space) of continuous functions $\mathbb R_+ \to \mathbb R$. This is usually called the Wiener measure.
 \end{itemize}
-It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths). We account for this duality in our code by introducing in the assumptions that a certain law is required\todorm{I don't understand that last sentence}.
+
+It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths).
+%We account for this duality in our code by introducing in the assumptions that a certain law is required\todorm{I don't understand that last sentence}.
 
 
 
@@ -124,26 +127,33 @@ For the Lean theorem prover, \cite{ying2023formalization} formalized martingales
 
 This project started as a traditional collaboration between researchers, in which two of the authors (R.D. and P.P.) formalized the Kolmogorov extension theorem.
 In a second phase however, we decided to transform the project into a collaborative effort, open to anyone interested in contributing.
-We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a detailed \emph{blueprint} (a collaboration tool introduced for the Sphere Eversion project \cite{sphere_eversion}, used here through the LeanProject github template \cite{Monticone_LeanProject_2025}).
+We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a detailed \emph{blueprint}, a collaboration tool introduced for the Sphere Eversion project \cite{sphere_eversion} (used here through the LeanProject github template \cite{Monticone_LeanProject_2025}).
 This is a website that accompanies the github repository on which the code is hosted, and that contains pages with detailed descriptions of the sequence of lemmas and definitions needed to prove the main theorems.
-The dependency of each lemma on the previous ones is made explicit, and the \texttt{leanblueprint} tool automatically generates a color-coded graph of dependencies.
+The dependency of each lemma on the previous ones is made explicit, and the blueprint tool automatically generates a color-coded graph of dependencies.
 The graph is useful to visualize the structure of the proof, and to identify which lemmas are proved, which are ready to be proved, and which are still missing prerequisites.
-Before making the project public, we additionally implemented in \Lean several key definitions and statements (without proofs).
+
+Before making the project public, we thus spent time detailing every step of the proofs, cutting them into small lemmas, and identifying all the missing pieces between what was available in \mathlib and what we would need for the project.
+We additionally implemented in \Lean several key definitions and statements (without proofs): there are always several ways to turn a mathematical concept into a \Lean definition, and in order to collaborate on a project it is important to decide early on a unique way to talk about any concept to ensure compatibility of the code produced, even if the definition chosen can then be refined.
+Different parts of the blueprint had different levels of details: we wrote a precise description of the technical Kolmogorov-Chentsov proof, but omitted many proofs for more standard results on Gaussian distributions.
+
 The project was announced on the Lean Zulip website, and anyone interested was invited to contribute.
 M.H, D.L., and E.M. joined the project at that time and then contributed significantly to the formalization.
 The coordination of the project was done through discussions on Zulip: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
-
-\todor{remark on the blueprint bottleneck?}
+The blueprint continued to evolve during the formalization, as new lemmas were added (once because a small gap was identified in the blueprint proof), definitions were changed to better fit the needs of writing in \Lean, and small mistakes were corrected (particularly in the exact value of constants used in the Kolmogorov-Chentsov proof).
 
 
 \section{The formalization}
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
+We refer to the implementation using links, like \docs{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to our repository: \href{https://github.com/RemyDegenne/brownian-motion}{github link}.
+Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
+All links point to commit {\tt xxx} for \mathlib (xxx date), and commit {\tt xxx} for our repository (xxx date).
+\todorm{pin all links to specific commits before final submission}
+
 Let us start with our notation.
 Any stochastic process has an index set $T$ (usually denoted {\em time}, usually uncountably infinite), and a state space.
 Since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$. Probability measures are denoted $P_.$.
 
-All references to results in \mathlib are accurate for commit {\tt xxx}, August 22, 2025\todorm{Here mention also our repository, and say that some of the code has been ported to mathlib, but not all of it}.
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq T$.
@@ -159,26 +169,32 @@ We are going to formulate the main result in a modern fashion, as e.g.\ found in
 
 \subsection{Gaussian Measures and characteristic functions}
 \label{ss:char}
-Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $C_{ij} = t_i \wedge t_j$. In order to do so, we rely on (i) the implementation of the one-dimensional normal distribution (xxx ref to mathlib) and characteristic functions of probability (or finite) measures.
+Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $C_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely (i) the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
 
-For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (xxx ref to mathlib). For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$. Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$. In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ (xxx ref to mathlib) and there is the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the caracteristic function
+For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (\docs{MeasureTheory.Measure.ext_of_charFun}).
+For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$.
+Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$.
+In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ and we can take the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the characteristic function
 \begin{align} \label{eq:gausslin}
 \psi_{f_\ast N(0,I_n)}(t) = \int e^{it^\top x} f_\ast N(0,I_n) dx = \int e^{it^\top A x} N(0,I_n) dx = \exp\big( - \tfrac 12 t^\top C t\big).
 \end{align}
-Using the same transformation, we can show that Gaussian measures are closed under linear maps.
 So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite.
+We can also show with characteristic functions that Gaussian measures are closed under linear maps, and prove that the family of finite-dimensional distributions of Brownian motion is projective, as needed for the Kolmogorov extension theorem.
+% Indeed the characteristic function of the image of $N(0,C)$ under a linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity.
 
-\cite{hairer2009introduction}
 
 \subsection{The Kolmogorov-Chentsov Theorem}
-Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections. The result states that for a stochastic process $X$ (with $T = [0,1])$, assume we find $p>0, q>1, C > 0$ satisfying
+Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections.
+Let $X$ be a stochastic process on the index set $T = [0,1]$ with values in a metric space $E$ with distance $d_E$.
+The result states that if we assume we find $p>0, q>1, M > 0$ satisfying
 \begin{align}
 \label{eq:cs}
-  \mathbf E[d_E(X_s, X_t)^p] \leq C|t-s|^q, \qquad 0\leq s,t\leq 1.
+  \mathbf E[d_E(X_s, X_t)^p] \leq M|t-s|^q, \qquad 0\leq s,t\leq 1\:,
 \end{align}
-Then there exists $Y = (Y_t)_{t\in [0,1]}$ with $\mathbf P(X_t = Y_t) = 1$ for all $t\in [0,1]$ and $Y$ has almost surely Hölder continuous paths with coefficient $\gamma$ for any $\gamma < \tfrac {q-1} p$.
+then there exists $Y = (Y_t)_{t\in [0,1]}$ with $\mathbf P(X_t = Y_t) = 1$ for all $t\in [0,1]$ and $Y$ has almost surely Hölder continuous paths with coefficient $\gamma$ for any $\gamma < \tfrac {q-1} p$.
 
-In order to see this, set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\in\mathbb N} D_n$. Start by showing summability of $\mathbf P\Big( \sup_{s,t\in D_n, |t-s| = 2^{-n}} d_E(X_s, X_t) \geq 2^{-\gamma n} \Big)$ using \eqref{eq:cs}.
+The most commonly given proof of this statement is a follows.
+Set $D_n := \{k/2^n: k=0,...,2^n\}$ and $D := \bigcup_{n\in\mathbb N} D_n$, the set of dyadics. Start by showing summability of $\mathbf P\Big( \sup_{s,t\in D_n, |t-s| = 2^{-n}} d_E(X_s, X_t) \geq 2^{-\gamma n} \Big)$ using \eqref{eq:cs}.
 By the Borel-Cantelli Lemma, this shows that $\sup_{s,t\in D_n, |t-s| = 2^{-n}} d_E(X_s, X_t) \leq 2^{-\gamma n}$ holds for $n$ large enough.
 From this, we see that $X$ is locally Hölder-$\gamma$ continuous on $D$.
 From here, define some Hölder continuous $Y$ coinciding with $X$ on $D$.
@@ -192,22 +208,26 @@ We will use a more general version of this statement, replacing $T = [0,1]$ by a
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 
-In order to finally construct Brownian Motion, we need to put everything together. First, the projectivity property of the finite-dimensional distributions as defined in Section~\ref{ss:char} follows from the fact that Gaussian measures are closed under linear maps, and -- as in \eqref{eq:gausslin} -- the characteristic function of the image of $N(0,C)$ under the linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity. Therefore, we have constructed a probability measure on $\mathbb R_+^{\mathbb R}$, the law of Brownian motion.\\
-Finally, the assumption in the Kolmogorov-Chentsov Theorem can e.g.\ be verified by using that
+In order to finally construct Brownian Motion, we need to put everything together.
+We have constructed a projective family of finite-dimensional distributions given by $N(0,C_t)$ for $t = (t_1,...,t_n)$ with $(C_t)_{ij} = t_i \wedge t_j$.
+We can then invoke the Kolmogorov extension theorem to obtain a probability measure on $\mathbb{R}^{\mathbb{R}}$ and define a stochastic process $X = (X_t)_{t\geq 0}$ with that distribution.
+% First, the projectivity property of the finite-dimensional distributions as defined in Section~\ref{ss:char} follows from the fact that Gaussian measures are closed under linear maps, and -- as in \eqref{eq:gausslin} -- the characteristic function of the image of $N(0,C)$ under the linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity.
+% Therefore, we have constructed a probability measure on $\mathbb R_+^{\mathbb R}$, the law of Brownian motion.\\
+Finally, the assumption in the Kolmogorov-Chentsov Theorem can be verified by computing moments of Gaussian distributions.
+For example,
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
-So, we have constructed a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion.
-This also gives a distribution on $\mathcal C(\mathbb R_+, \mathbb R)$, which we call Wiener measure.
-
+So, we obtain from that theorem a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion.
+This also gives a distribution on the continuous functions $\mathcal C(\mathbb R_+, \mathbb R)$, which is the Wiener measure.
 
 
 \section{The Carathéodory and Kolmogorov Extension Theorems}
 \label{S:extension}
-We describe our implementation of the Kolmogorov Extension Theorem, and rely on basic notions from topology, such as a metric space, and the Borel $\sigma$-algebra. Recall, that a pseudo-metric $r(.,.)$ can have $r(x,y) = 0$ for $x\neq y$.
+We describe our implementation of the Kolmogorov Extension Theorem, and rely on basic notions from topology, such as a metric space, and the Borel $\sigma$-algebra. Recall, that a pseudo-metric $r(.,.)$ can have $r(x,y) = 0$ for $x\neq y$\todorm{move this remark to some place below where it matters}.
 
-We begin by defining set systems we will need, which correspond to the \mathlib definitions \docs{MeasureTheory.IsSetSemiring} and \docs{MeasureTheory.IsSetRing}.
+We begin by defining set systems we will need, which correspond to the definitions \docs{MeasureTheory.IsSetSemiring} and \docs{MeasureTheory.IsSetRing} (which we added to \mathlib).
 
 \begin{definition}[Semi-ring, ring]\label{def:semi}
-  Let $E$ be some set. We call $\mathcal H \subseteq 2^E$ a
+  Let $E$ be some set. We call a set of sets $\mathcal H \subseteq 2^E$ a
   \emph{semi-ring}, if it is (i) a $\pi$-system (i.e.\ closed under
   $\cap$) and (ii) for all $A, B \in\mathcal H$ there is\footnote{We write $A \subseteq_f B$ if $A$ is a finite subset of $B$.} $\mathcal K
   \subseteq_f \mathcal H$ with\footnote{We write $A\uplus B$ for
@@ -286,7 +306,8 @@ In the construction above, since all sets in the semi-ring $\mathcal H$ are Cara
 \end{theorem}
 
 
-In order to apply Theorem~\ref{T:masseind}\todorm{to what? I'm lost}, we need to show that the additive content is $\sigma$-additive. We do this on the level of rings rather than semi-rings. Note that we can extend an additive content on a semi-ring to an additive content on the ring generated by the semi-ring.
+In order to apply Theorem~\ref{T:masseind}, we need to show that an additive content is $\sigma$-additive.
+We do this on the level of rings rather than semi-rings. Note that we can extend an additive content on a semi-ring to an additive content on the ring generated by the semi-ring.
 
 \begin{lemma}
 Let $\mathcal H$ be a semi-ring. Then,
@@ -299,10 +320,11 @@ extends $m$ to $\mathcal R$.
 \end{lemma}
 
 Actually, $\sigma$-additivity and $\sigma$-sub-additivity are close relatives.
-We first have the result \docs{MeasureTheory.addContent_iUnion_eq_sum_of_tendsto_zero}, which states that $\sigma$-additivity is implied by continuity of the content at the empty set, and \docs{MeasureTheory.isSigmaSubadditive_of_addContent_iUnion_eq_tsum}, which states that -- if the additive content is defined on a ring -- it is $\sigma$-sub-additive if it is $\sigma$-additive. Therefore, we need to show continuity in $\emptyset$\todorm{in order to obtain what? I'm lost}.
+We first have the result \docs{MeasureTheory.addContent_iUnion_eq_sum_of_tendsto_zero}, which states that $\sigma$-additivity is implied by continuity of the content at the empty set, and \docs{MeasureTheory.isSigmaSubadditive_of_addContent_iUnion_eq_tsum}, which states that -- if the additive content is defined on a ring -- it is $\sigma$-sub-additive if it is $\sigma$-additive.
+Therefore, a convenient way to show $\sigma$-additivity of a content (in order for example to apply Carathéodory's extension theorem) is to show continuity in $\emptyset$.
 For this, we require the notion of inner regularity with respect to a compact system.
 
-We define inner (and outer) regularity of set functions\todorm{that was already in Mathlib. Better distinguish what we did and what was there already.}.
+We recall the definition of inner regularity of set functions, which was already in \mathlib.
 
 \begin{definition}[Inner regularity \docs{MeasureTheory.Measure.InnerRegularWRT}] \label{def:innerreg}
   Let $E$ be some set, equipped with a topology, and $m$ be a
@@ -312,8 +334,7 @@ We define inner (and outer) regularity of set functions\todorm{that was already 
     called inner regular with respect to $p$ and $q$, if
     $$ m(A) = \sup\{m(F) : p(F) = \text{true}, F \subseteq A\}$$ for
     all $A \in \mathcal H$ with $q(A) = \text{true}$.
-  \item If $q(A) = \text{true}$ iff $A$ is measurable, we neglect the
-    {\em and $q$}\todorm{what does that mean?}. If $p(A) = \text{true}$ iff $A$ is closed (compact,
+  \item If $q(A) = \text{true}$ iff $A$ is measurable, we write simply ``inner regular with respect to $p$'' (omitting ``and $q$''). If $p(A) = \text{true}$ iff $A$ is closed (compact,
     closed and compact), we say that $m$ is inner regular with respect
     to closed (compact, compact and closed) sets.
   \end{enumerate}
@@ -368,7 +389,7 @@ We aim to apply Theorems~\ref{T:cara} and~\ref{T:masseind} on product spaces. Th
   \end{enumerate}
 \end{definition}
 
-In order to apply this result and show the extension theorem, we need to show that $\{\pi_J^{-1} C: C \in \prod_{j\in J} E_j \text{ compact and closed}\}$ is a compact system. Note that compact sets are closed in Hausdorff spaces, but we do not have this property since we are working with pseudo-metric spaces, which do not have this property.
+In order to apply this result and show the extension theorem, we need to show that $\{\pi_J^{-1} C: C \in \prod_{j\in J} E_j \text{ compact and closed}\}$ is a compact system. Note that compact sets are closed in Hausdorff spaces, but we do not have this property since we are working with pseudo-metric spaces\todorm{are pseudo-metric spaces explained before?}, which do not have this property.
 Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive content \docs{MeasureTheory.projectiveFamilyContent}, which is defined through the projective family $P$, we have a proof of the Kolmogorov Extension Theorem \docs{MeasureTheory.projectiveLimitWithWeakestHypotheses}\todorm{Refer perhaps to the other one about polish spaces?}.
 
 \begin{theorem}[Kolmogorov extension]\label{T1}
@@ -383,7 +404,7 @@ Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive c
 
 Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $E$ is a dependent type, i.e.\ for every index $t \in T$, the state space $E_t$ might be different. Second, all $E_t$ are not necessarily separable, complete metric spaces (or Polish, i.e.\ separable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or t2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap.
 While the first generalization did not require any change in the proof, the second generalization was only possible since underlying results in \mathlib were already provided on the same level of generality.  More precisely, \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space (recall that every metric space is uniform).
-We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace}).
+We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph}.
 
 
 
@@ -397,11 +418,10 @@ In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need defin
 We did not however define Gaussians only for that setting, but first introduced a general definition for Banach spaces, and then specialized to Hilbert and finally finite dimensional spaces.
 Our formalization uses many results from \mathlib and we relied on characteristic functions \docs{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}.
 
-\todor{Everywhere in the paper: be clear about what we formalized and what was already in mathlib.}
 
 \subsection{Gaussian distributions}
 
-We start by defining the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
+We start by recalling the definition of the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
 
 \begin{definition}
 	The \emph{dual characteristic function} (\docs{MeasureTheory.charFunDual}) of $\mu$ is the map $\phi_\mu : E' \to \R$ defined by
@@ -409,12 +429,13 @@ We start by defining the characteristic function of a general measure. Fix $E$ a
 	where $i$ is the imaginary unit.
 \end{definition}
 
-This function is quite useful because if $E$ is separable and equipped with the Borel $\sigma$-algebra, and if $\mu$ is finite, then it is characterized by $\phi_\mu$ (\docs{MeasureTheory.Measure.ext_of_charFunDual}). Thus it is a great tool to deduce certain properties of the measure. For instance, two random variables are independent if and only if the dual characteristic function of their joint law is the product of the dual characteristic functions of the marginal laws (\docs{ProbabilityTheory.indepFun_iff_charFunDual_prod}).
+This function is quite useful because if $E$ is separable and equipped with the Borel $\sigma$-algebra, and if $\mu$ is finite, then it is characterized by $\phi_\mu$ (\docs{MeasureTheory.Measure.ext_of_charFunDual}). Thus it is a great tool to deduce certain properties of the measure and we formalized several of its properties.
+For instance, two random variables are independent if and only if the dual characteristic function of their joint law is the product of the dual characteristic functions of the marginal laws (\docs{ProbabilityTheory.indepFun_iff_charFunDual_prod}).
 
 In the special case where $E$ is a Hilbert space, Riesz's representation theorem implies that each $L \in E'$ can be uniquely represented by an element $t \in E$. This motivates the following definition.
 
-\begin{definition}
-  If $E$ is a Hilbert space, the \emph{characteristic function} (\docs{MeasureTheory.charFun}) of $\mu$ is the map $\psi_\mu : E \to \R$ defined by
+\begin{definition}[\docs{MeasureTheory.charFun}]
+  If $E$ is a Hilbert space, the \emph{characteristic function} of $\mu$ is the map $\psi_\mu : E \to \R$ defined by
   $$\psi_\mu(t) = \int_E e^{i \langle t, x \rangle} \mu(\mathrm dx).$$
 \end{definition}
 
@@ -422,8 +443,8 @@ This in some sense is a more convenient way to use the dual characteristic funct
 
 Let us now turn to Gaussian measures, which are defined through their one-dimensional projections.
 
-\begin{definition}\label{def:gaussian}
-  The measure $\mu$ is called \emph{Gaussian} (\docs{ProbabilityTheory.IsGaussian}) if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
+\begin{definition}[\docs{ProbabilityTheory.IsGaussian}]\label{def:gaussian}
+  The measure $\mu$ is called \emph{Gaussian} if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
 \end{definition}
 
 In the case of a real Gaussian measure $N(m, \sigma^2)$, the characteristic function is given by
@@ -431,14 +452,14 @@ $$\psi_{N(m, \sigma^2)}(t) = \exp(im - \sigma^2/2).$$
 This proves in particular that a real Gaussian measure is determined by its mean and covariance. The same statement is actually true for any Gaussian measure, if we generalize the notion of covariance.
 As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a separable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
 
-\begin{definition}
-  The \emph{covariance bilinear form} (\docs{ProbabilityTheory.covarianceBilin}) of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert X \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
+\begin{definition}[\docs{ProbabilityTheory.covarianceBilin}]
+  The \emph{covariance bilinear form} of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert X \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
   $$C_\mu(s, t) = \mathrm{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
 
-The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures (\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}).
+The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures.
 
-\begin{theorem}\label{thm:gaussian_charFun}
+\begin{theorem}[\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}]\label{thm:gaussian_charFun}
   The measure $\mu$ is Gaussian if and only if its characteristic function is given by
   $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
 \end{theorem}
@@ -447,7 +468,7 @@ This simple description of Gaussian measures allows to easily formalize several 
 Another result is that if two Gaussian random variables have covariance zero, then they are independent.
 
 Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite first and second moments $\mathbf E_\mu[\lVert X \rVert]$ and $\mathbf{E}_\mu[\lVert X \rVert^2]$.
-While this is relatively easy to prove in finite dimension and is all we would need to define a Brownian motion on $\mathbb{R}_+$, we proved a more general result, applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\docs{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
+While we would only need to prove this result in finite dimension to define a Brownian motion on $\mathbb{R}_+$, we proved a more general theorem applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\docs{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
 It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $C > 0$ such that
 \begin{align*}
   \int_E \exp\left( C \|x\|^2 \right) \mu(\mathrm dx) < \infty.
@@ -457,7 +478,7 @@ This implies that all moments of a Gaussian measure in a separable Banach space 
 \paragraph{On Euclidean spaces}
 
 As stated before, any Gaussian measure is uniquely determined by its mean and covariance. A follow-up question is to know whether, given $m \in E$ and $C$ a continuous and positive semidefinite bilinear form over $E$, there exists a Gaussian measure with mean $m$ and covariance $C$.
-The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project\todorm{The question is also answerable in Hilbert spaces, but we did not do it}.
+The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project.
 As a bilinear form over a finite-dimensional vector-space can be represented by a matrix, we will use the \emph{covariance matrix} to represent the covariance of a measure.
 
 Assume now that $E$ is a Euclidean space with a basis $(e_1, \dots, e_n)$. We define the \emph{standard Gaussian measure} (\docs{ProbabilityTheory.stdGaussian}) as the pushforward measure
@@ -493,11 +514,7 @@ $$ \langle v_i, v_j \rangle = \int 1_{[0,t_i]}(x) 1_{[0,t_j]}(x) dx = \int 1_{[0
 So, $C_J$ from above is a Gram matrix, which is positive semidefinite.
 
 In order to prove that $(P_J)_{J \subseteq_f \mathbb{R}_+}$ is projective, we need to show that the pushforward of a Gaussian measure $P_J = N(0, C_J)$ by the projection $\pi_H^J : \mathbb{R}^J \to \mathbb{R}^H$ is equal to $P_H = N(0, C_H)$ for all $H \subseteq J \subseteq_f \mathbb{R}_+$.
-
-We first show that the pushforward of a Gaussian measure by a continuous linear map is again a Gaussian measure.
-It thus suffices to compute its mean and covariance. The mean is straightforward to compute, as the expectation commutes with linear maps.
-
-TODO: a word about the covariance?
+Since we have proved that the pushforward of a Gaussian measure by a continuous linear map is again a Gaussian measure, it suffices to compute its mean and covariance, which finishes the proof of projectivity.
 
 We have thus constructed a measure on $\mathbb{R}^{\mathbb{R}_+}$.
 We can define the canonical process on $\mathbb{R}^{\mathbb{R}_+}$, which is the process $(X_t)_{t \in \mathbb{R}_+}$ defined by $X_t(\omega) = \omega(t)$ for all $\omega \in \mathbb{R}^{\mathbb{R}_+}$.
@@ -512,7 +529,9 @@ The Kolmogorov-Chentsov theorem gives the existence of a Hölder continuous modi
 
 \subsection{Stochastic processes and the Kolmogorov condition}
 
-Let $\Omega$ be a measurable space, on which we define a finite measure $\mathbb{P}$ (with expectation denoted by $\mathbb{E}$).
+\todor{Move some of that section to the intro?}
+
+Let $\Omega$ be a measurable space, on which we define a probability measure $\mathbb{P}$ (with expectation denoted by $\mathbf{E}$).
 Let $T$ be a set, and for each $t \in T$, let $E_t$ be a measurable space.
 A stochastic process indexed by $T$ with values in $(E_t)_{t \in T}$ is a collection $(X_t)_{t \in T}$ of random variables $X_t : \Omega \to E_t$, which satisfies a measurability condition (see further down).
 We will often take $E_t = E$ for all $t \in T$ for some fixed measurable space $E$, but we first prove general results about processes with values in different spaces.
@@ -525,7 +544,7 @@ The paths of the process are the maps $T \to E_t$ defined by $t \mapsto X_t(\ome
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
 $X$ and $Y$ are said to be indistinguishable if almost surely, $X_t = Y_t$ for all $t \in T$ simultaneously.
 Being indistinguishable implies being a modification, which in turn implies equality of laws (that last part is proved through finite dimensional distributions, see below).
-We will use repeatedly that if $T$ is a separable topological space, $E$ is a Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\docs{indistinguishable_of_modification}).
+We will use repeatedly that if $T$ is a separable topological space, $E$ is Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\docs{indistinguishable_of_modification}).
 
 
 \paragraph{Measurability}
@@ -562,13 +581,13 @@ The key assumption of the Kolmogorov-Chentsov theorem that gives the existence o
 Let $p, q, M$ be non-negative real numbers with $p,q>0$.
 A stochastic process $(X_t)_{t \in T}$ is said to satisfy the Kolmogorov condition for exponents $(p, q)$ with constant $M$ if for all $s, t \in T$, the pair $(X_t, X_t) : \Omega \to E \times E$ is measurable for the Borel $\sigma$-algebra on $E \times E$, and
 \begin{align*}
-  \mathbb{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
+  \mathbf{E}[d_E(X_s, X_t)^p] \le M d_T(s, t)^q
   \: .
 \end{align*}
 \end{definition}
 
 The measurability condition ensures that the distance $d_E(X_s, X_t)$ is a measurable.
-If $E$ was second-countable\todorm{write second-countable or separable?}, we could simply assume that $X_s$ is measurable for all $s \in T$, and the measurability of the pair would follow.
+If $E$ was second-countable\todorm{write second-countable or separable? I think I used both at different places of the paper}, we could simply assume that $X_s$ is measurable for all $s \in T$, and the measurability of the pair would follow.
 For a second-countable space $E$, $\mathcal{B}(E \times E)$ is the product of the Borel $\sigma$-algebras on $E$, which is not true in general.
 
 We remark that the inequality in Definition~\ref{def:kolmogorov_condition} remains true for any modification of the process $X$, and that Theorem~\ref{thm:kolmogorov_chentsov} also holds for a modification of a process satisfying the Kolmogorov condition.
@@ -585,7 +604,7 @@ Suppose that the index set $T$ has bounded covering number with constant $c>0$ a
 Let $(X_t)_{t \in T}$ be a stochastic process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
 Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d, p, q, \beta)$ such that for every countable subset $T' \subseteq T$,
 \begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mathbf{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c, d, p, q, \beta)
   \: .
 \end{align*}
@@ -613,10 +632,10 @@ Whenever the proof of \cite{kratschmer2023kolmogorov} uses a geometric grid $2^{
 Those changes do not impact the main ideas of the proof, but the constants we report are different from those of \cite{kratschmer2023kolmogorov}.
 
 
-\paragraph{TODO: paragraph about different versions of the theorem}
+% \paragraph{TODO: paragraph about different versions of the theorem}
 
-\todor{simpler versions exist in simpler cases, e.g. $T = [0,1]^n$.
-Talk briefly about the dyadics proof vs chaining.}
+% \todor{simpler versions exist in simpler cases, e.g. $T = [0,1]^n$.
+% Talk briefly about the dyadics proof vs chaining.}
 
 
 \paragraph{Localized theorem}
@@ -637,7 +656,7 @@ Then $X$ has a modification $Y$ such that the paths of $Y$ are locally Hölder c
 The hypothesis on $T$ is satisfied for $T = \mathbb{R}_+$, with $T_n = [0,n)$ (which is open in $\mathbb{R}_+$), for $d = 1$.
 Although we use it only for $T = \mathbb{R}_+$, Theorem~\ref{thm:localized_holder_modification_sup} can be used in higher dimension and in more involved cases: the authors of \cite{kratschmer2023kolmogorov} show how to apply it to subsets of $m$-dimensional Riemannian manifolds.
 
-We don't describe the proof of Theorem~\ref{thm:localized_holder_modification_sup} in detail here (we refer the reader to \cite{kratschmer2023kolmogorov}, or to the code\todorm{and blueprint: link}): it consists in applying the same type of arguments as in the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov} to build separately modifications for each set $T_n$ and exponents ($p_m, q_m)$ and then combine them into one process (see section~\ref{sub:holder_process}).
+We don't describe the proof of Theorem~\ref{thm:localized_holder_modification_sup} in detail here (we refer the reader to \cite{kratschmer2023kolmogorov}, or to the code): it consists in applying the same type of arguments as in the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov} to build separately modifications for each set $T_n$ and exponents ($p_m, q_m)$ and then combine them into one process (see section~\ref{sub:holder_process}).
 
 
 
@@ -674,7 +693,7 @@ Then $T'$ has bounded covering number with the constant $2^d c$ and exponent $d$
 \paragraph{Chaining}
 
 We will consider minimal covers $(C_n)_{n \in \mathbb{N}}$ for a sequence $(\varepsilon_n)_{n \in \mathbb{N}}$ of positive real numbers decreasing to $0$, which in the proof will be chosen as $\varepsilon_n = \varepsilon_0 2^{-n}$.
-The proof of Theorem~\ref{thm:kolmogorov_chentsov} will involve bounding a supremum $\mathbb{E}\left[\sup_{s, t \in C_N, \: d_T(s, t) \le \delta}d_E(X_s, X_t)^p\right]$ for a fine scale cover $C_N$.
+The proof of Theorem~\ref{thm:kolmogorov_chentsov} will involve bounding a supremum $\mathbf{E}\left[\sup_{s, t \in C_N, \: d_T(s, t) \le \delta}d_E(X_s, X_t)^p\right]$ for a fine scale cover $C_N$.
 In order to do so, we will move to a coarser scale $m < N$.
 For $x \in C_N$, we define a chaining sequence $\bar{x}_0, \bar{x}_1, \ldots, \bar{x}_N$ by letting $\bar{x}_N = x$ and for $n < N$, $\bar{x}_n$ be a point in $C_n$ closest to $\bar{x}_{n+1}$.
 That sequence satisfies $d_T(\bar{x}_n, \bar{x}_{n+1}) \le \varepsilon_n$ for all $n < N$, by the cover property of $C_n$.
@@ -719,12 +738,12 @@ Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space 
 
 Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that for all countable subset $T' \subseteq T$,
 \begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  \mathbf{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
   \le M L(T, c, d, p, q, \beta)
   \: ,
 \end{align*}
 for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
-This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to the blueprint\todorm{link}. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
+This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to our blueprint. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
 In particular, we explain why the pair reduction Lemma~\ref{lem:pair_reduction} is needed in the proof.
 
 First, it suffices to show the inequality for finite subsets $J \subseteq T$, since the countable case follows by monotone convergence.
@@ -735,13 +754,13 @@ For $k \in \mathbb{N}$, let $\eta_k = 2^{-k}(\mathrm{diam}(T) + 1) \ge 2^{-k}$.
 We write the set of pairs of points in $J$ as the union of the sets $\{(s, t) \in J^2 \mid d_T(s, t) \in (\eta_k, 2\eta_k]\}$.
 Then we can show
 \begin{align*}
-  \mathbb{E}\left[ \sup_{s, t \in J} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le 2\eta_k}} d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{s, t \in J} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
+  &\le \sum_{k=0}^\infty 2^{k \beta p} \mathbf{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le 2\eta_k}} d_E(X_s, X_t)^p \right]
   \: .
 \end{align*}
 We thus want to find an upper bound, for $\delta > 0$, on
 $
-  \mathbb{E}\left[ \sup_{s, t \in J,\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{s, t \in J,\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \: .
 $
 We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
@@ -749,7 +768,7 @@ We will then check that the series we obtain when summing over $k$ converges whe
 \begin{lemma}[\docs{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
 For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
 \begin{align*}
-  \mathbb{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
   &\le 2^{2p+4q+1} M c \delta^{q-d}\left( 4^d \left(\max\left\{0, \log_2 \left(c 4^d \delta^{-d}\right)\right\}\right)^q + R_p \right)
   \: ,
   \\
@@ -775,8 +794,8 @@ Let more generally $C_n$ be a minimal cover of $J$ by balls of radius $\varepsil
 We change scale using Equation~\eqref{eq:scale_change}, with $m \in \{0, \dots, N-1\}$ chosen such that $\varepsilon_m \le \delta \le 4 \varepsilon_m$.
 Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and where the proof is a simpler version of what follows (\docs{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
 \begin{align*}
-  \mathbb{E}\left[\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p\right]
-  &\le 2^p \mathbb{E}\left[\sup_{s', t' \in C_m, d_T(s', t') \le 8 \varepsilon_m} d_E(X_{s'}, X_{t'})^p\right] + 4^p \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  \mathbf{E}\left[\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p\right]
+  &\le 2^p \mathbf{E}\left[\sup_{s', t' \in C_m, d_T(s', t') \le 8 \varepsilon_m} d_E(X_{s'}, X_{t'})^p\right] + 4^p \mathbf{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
   \: .
 \end{align*}
 We now bound separately the two terms in that sum, which correspond respectively to distances between points in the coarser cover $C_m$, and to distances along the chaining sequences.
@@ -784,8 +803,8 @@ We now bound separately the two terms in that sum, which correspond respectively
 \textbf{First term.}
 The main consequence of the Kolmogorov condition that we will use in the proof is that for $K$ a finite set of pairs of points in $T$ such that for all $(s,t) \in K$, $d_T(s, t) \le \varepsilon$, we have
 \begin{align}
-  \mathbb{E}\left[ \sup_{(s,t) \in K} d_E(X_s, X_t)^p \right]
-  \le \sum_{(s,t) \in K} \mathbb{E}\left[ d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{(s,t) \in K} d_E(X_s, X_t)^p \right]
+  \le \sum_{(s,t) \in K} \mathbf{E}\left[ d_E(X_s, X_t)^p \right]
   \le M \lvert K \rvert \varepsilon^q
   \: .\label{eq:kolmogorov_condition_finite_set}
 \end{align}
@@ -793,7 +812,7 @@ The main consequence of the Kolmogorov condition that we will use in the proof i
 Let us first present a naive upper bound on the expectation of the supremum, which will highlight the need for more advanced techniques.
 We apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s,t) \in C_m^2 \mid d_T(s, t) \le 8 \varepsilon_m\}$ with cardinal $\lvert K \rvert \le \lvert C_m \rvert^2$, and then the bounded covering number assumption:
 \begin{align*}
-  \mathbb{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
   &\le M \lvert C_m \rvert^2 (8 \varepsilon_m)^q
   \le M c^2 \varepsilon_m^{-2d} (8 \varepsilon_m)^q
   \: .
@@ -802,8 +821,8 @@ Since $\varepsilon_m \le \delta \le 4 \varepsilon_m$, we obtain a bound of order
 The issue is the square on the cardinal of the cover $C_m$, and this is where the pair reduction lemma (Lemma~\ref{lem:pair_reduction}) comes into play.
 With that lemma applied to $a = 2$, $n = \lceil \log_2 J \rceil$ and $c = 8 \varepsilon_m$, we obtain a set $K \subseteq C_m^2$ with $\lvert K \rvert \le 2 \lvert C_m \rvert$ and $\sup_{(s, t) \in K} d_T(s, t) \le 8 n \varepsilon_m$, such that an application of \eqref{eq:kolmogorov_condition_finite_set} gives
 \begin{align*}
-  \mathbb{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
-  &\le 2^p \mathbb{E}\left[ \sup_{s, t \in K} d_E(X_s, X_t)^p \right]
+  \mathbf{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
+  &\le 2^p \mathbf{E}\left[ \sup_{s, t \in K} d_E(X_s, X_t)^p \right]
   \le 2^p M \lvert K \rvert (8 n \varepsilon_m)^q
   \: .
 \end{align*}
@@ -813,17 +832,17 @@ $, which has the right exponent on $\delta$ to conclude the proof.
 
 \textbf{Second term.}
 
-To obtain an upper bound on $\mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]$, we consider separately the cases $p \in (0, 1]$ and $p \ge 1$.
+To obtain an upper bound on $\mathbf{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]$, we consider separately the cases $p \in (0, 1]$ and $p \ge 1$.
 For $p \le 1$ we use that the power function is sub-additive: for $a, b \ge 0$, $(a + b)^p \le a^p + b^p$.
 \begin{align*}
-  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
-  &\le \mathbb{E}\left[\sup_{s \in C_N} \sum_{i=m}^{N-1} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
-  \le \sum_{i=m}^{N-1} \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  \mathbf{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  &\le \mathbf{E}\left[\sup_{s \in C_N} \sum_{i=m}^{N-1} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  \le \sum_{i=m}^{N-1} \mathbf{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
   \: .
 \end{align*}
-It remains to control the expectation inside the sum, which we do using the Kolmogorov condition though Equation~\eqref{eq:kolmogorov_condition_finite_set} with $K = \{(\bar{s}_{i+1}, \bar{s}_i) \mid s \in C_N\}$. That set has cardinal at most $\lvert C_{i+1} \rvert$ (the number of possible values for $\bar{s}_{i+1}$).
+It remains to control the expectation inside the sum, which we do using the Kolmogorov condition though Equation~\eqref{eq:kolmogorov_condition_finite_set} with $K = \{(\bar{s}_{i+1}, \bar{s}_i) \mid s \in C_N\}$. That set has cardinal at most $\lvert C_{i+1} \rvert$ (the number of possible values for $\bar{s}_{i+1}$, since $\bar{s}_i$ is a function of $\bar{s}_{i+1}$).
 \begin{align*}
-  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
+  \mathbf{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right]
   &\le M \lvert C_{i+1} \rvert \varepsilon_i^q
   \le M c \varepsilon_{i+1}^{-d} \varepsilon_i^{q}
   \: .
@@ -831,14 +850,15 @@ It remains to control the expectation inside the sum, which we do using the Kolm
 We omit the computations, but the sum of those expressions is bounded by the $R_p$ term in the statement of the lemma.
 For $p \ge 1$, we use the Minkowski inequality (see \cite{kratschmer2023kolmogorov} for details) and obtain
 \begin{align*}
-  \mathbb{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
-  &\le \left( \sum_{i=m}^{N-1} \left( \mathbb{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right] \right)^{1/p} \right)^p
+  \mathbf{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
+  &\le \left( \sum_{i=m}^{N-1} \left( \mathbf{E}\left[\sup_{s \in C_N} d_E(X_{\bar{s}_{i+1}}, X_{\bar{s}_i})^p\right] \right)^{1/p} \right)^p
   \: .
 \end{align*}
 The expectation inside the sum is bounded as before, and again we get something bounded by the $R_p$ term in Lemma~\ref{lem:finite_set_bound_of_dist_le}.
 Only the case $p \ge 1$ was treated in \cite{kratschmer2023kolmogorov}, although the final result is presented for all $p > 0$.
 Accordingly, they write their lemma with only the part $(2^{(q-d)/p} - 1)^{-p}$ in the definition of $R_p$, which we correct to include the $p \le 1$ case.
-We finally note that keeping track of how the constants evolve through the proof is straightforward in Lean, in contrast to for example the latex proof which we wrote in the blueprint, in which the constants needed to be modified repeatedly due to small mistakes. Also any improvement in a constant in a Lean proof is easy to propagate through the rest of the proof, since the system automatically raises errors where the new value invalidates a computation.
+We finally note that keeping track of how the constants evolve through the proof is straightforward in \Lean, in contrast to for example the latex proof which we wrote in the blueprint, in which the constants needed to be modified repeatedly due to small mistakes.
+Also any improvement in a constant in a \Lean proof is easy to propagate through the rest of the proof, since the system automatically raises errors where the new value invalidates a computation.
 
 
 \subsection{Building a Hölder continuous process}
@@ -867,11 +887,10 @@ The limits in that definition are the reason for the completeness assumption on 
 Then $Y$ has Hölder continuous paths of order $\beta$.
 We finally need to show that $Y$ is a modification of $X$, which we do by showing that for all $t \in T$, $d_E(X_t, Y_t) = 0$ almost surely.
 That is why that part of the theorem requires $E$ to be metric and not pseudo-metric.
-
-\todor{explain the last part of the proof about being a modification? refer to the paper? It caused us to refactor convergence in probability in Mathlib to allow extended metric spaces.}
+We refer to \cite{kratschmer2023kolmogorov} for the proof that $Y$ is a modification of $X$, and only note that it uses convergence in probability, which we had to generalize in \mathlib from pseudo-metric to extended pseudo-metric spaces.
 
 Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
-Note that since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \docs{HolderOnWith.mono_right}).
+Since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \docs{HolderOnWith.mono_right}).
 
 Let $(\beta_n)_{n \in \mathbb{N}}$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
 For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
