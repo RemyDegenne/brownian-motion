@@ -108,4 +108,42 @@ instance IsGaussianProcess.hasGaussianLaw_increments [SecondCountableTopology E]
   rw [this]
   infer_instance
 
+lemma IsGaussianProcess.comp_right [SecondCountableTopology E] {S : Type*} [IsGaussianProcess X P]
+    (f : S → T) : IsGaussianProcess (X ∘ f) P where
+  hasGaussianLaw I := by
+    classical
+    let L : ((I.image f) → E) →L[ℝ] (I → E) :=
+      { toFun x s := x ⟨f s, Finset.mem_image.2 ⟨s.1, s.2, rfl⟩⟩
+        map_add' x y := by ext; simp
+        map_smul' c x := by ext; simp }
+    have : (fun ω ↦ I.restrict ((X ∘ f) · ω)) = L ∘ (fun ω ↦ (I.image f).restrict (X · ω)) := by
+      ext; simp [L]
+    rw [this]
+    infer_instance
+
+lemma IsGaussianProcess.comp_left [SecondCountableTopology E] {F : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] [BorelSpace F]
+    [SecondCountableTopology F] (L : T → E →L[ℝ] F) [IsGaussianProcess X P] :
+    IsGaussianProcess (fun t ω ↦ L t (X t ω)) P where
+  hasGaussianLaw I := by
+    let L' : (I → E) →L[ℝ] (I → F) :=
+      { toFun x t := L t (x t)
+        map_add' x y := by ext; simp
+        map_smul' c x := by ext; simp }
+    have : (fun ω ↦ I.restrict (fun t ↦ L t (X t ω))) =
+        L' ∘ (fun ω ↦ I.restrict (X · ω)) := by
+      ext; simp [L']
+    rw [this]
+    infer_instance
+
+instance IsGaussianProcess.smul [SecondCountableTopology E] (c : T → ℝ) [IsGaussianProcess X P] :
+    IsGaussianProcess (fun t ω ↦ c t • (X t ω)) P :=
+  letI L t : E →L[ℝ] E :=
+    { toFun x := c t • x
+      map_add' := by simp
+      map_smul' := by simp [smul_smul, mul_comm]
+      cont := by fun_prop }
+  IsGaussianProcess.comp_left L
+
+
 end ProbabilityTheory
