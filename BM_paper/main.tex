@@ -454,7 +454,7 @@ As our work primarily focuses on the case where $E$ is a Euclidean space, in wha
 
 \begin{definition}[\docs{ProbabilityTheory.covarianceBilin}]
   The \emph{covariance bilinear form} of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert X \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
-  $$C_\mu(s, t) = \mathrm{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
+  $$C_\mu(s, t) = \mathbf{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
 
 The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures.
@@ -920,7 +920,7 @@ We build a stochastic process $(B_t)_{t \in \mathbb{R}_+}$ such that
 \begin{itemize}
   \item $B$ has continuous paths,
   \item $B_0 = 0$ almost surely,
-  \item for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(B_{t_1}, \ldots, B_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathrm{cov}(B_{t_i}, B_{t_j}) = t_i \wedge t_j$.
+  \item for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(B_{t_1}, \ldots, B_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(B_{t_i}, B_{t_j}) = t_i \wedge t_j$.
 \end{itemize}
 
 We build the finite-dimensional distributions of $B$ using the multivariate normal distribution defined in section~\ref{S:gaussian}: the prescribed covariance matrix is positive semi-definite since it can be written as a Gram matrix, which means that the multivariate normal distribution with mean 0 and that covariance matrix is well-defined.
@@ -934,10 +934,22 @@ We can then apply Theorem~\ref{thm:localized_holder_modification_sup} to obtain 
 In particular, $B$ has continuous paths.
 The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\mathbb{R}$.
 
+We introduced the property of being a Brownian motion on $\mathbb{R}_+$ with values in $\mathbb{R}$.
 
-\todor{We need to list properties about our Brownian motion to certify that it is indeed a Brownian motion. Independent increments, etc.
-
-It would be nice to finish the code the Brownian characterization and talk about it here.}
+\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
+A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a Brownian motion if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
+\end{definition}
+The process $B$ we constructed satisfies that property, with continuous paths (not just almost surely).
+We also proved the following properties of a Brownian motion $B$:
+\begin{enumerate}[noitemsep]
+  \item $B$ has stationary increments: for all $s \le t \in \mathbb{R}_+$, $B_t - B_s$ has law $N(0, t - s)$,
+  \item $B$ has independent increments,
+  \item a process with independent increments and such that $X_t$ has law $N(0,t)$ for all $t \in \mathbb{R}_+$ has the same distribution as $B$,
+  \item for $c>0$, the process $B_{ct}/\sqrt{c}$ is a Brownian motion,
+  \item for $t_0 \in \mathbb{R}_+$, the process $B_{t_0 + t} - B_{t_0}$ is a Brownian motion,
+  \item $t B_{1/t}$ is a Brownian motion,
+  \item $B_t$ tends to 0 almost surely as $t$ tends to 0.
+\end{enumerate}
 
 
 \paragraph{Wiener measure}
@@ -945,12 +957,14 @@ It would be nice to finish the code the Brownian characterization and talk about
 The Brownian motion $B$ can be seen as a random variable on the space $\mathbb{R}^{\mathbb{R}_+}$, with the product $\sigma$-algebra and the measure $P_B$.
 It also has continuous paths, and thus is a random variable on the subspace of continuous functions of $\mathbb{R}^{\mathbb{R}_+}$, with the subset $\sigma$-algebra coming from the product $\sigma$-algebra on $\mathbb{R}^{\mathbb{R}_+}$.
 
-We may want to consider instead the space of continuous functions $C(\mathbb{R}_+, \mathbb{R})$, equipped with the Borel $\sigma$-algebra generated the topology of uniform convergence on compact sets.
+We may want to consider instead the space of continuous functions $\mathcal{C}(\mathbb{R}_+, \mathbb{R})$, equipped with the Borel $\sigma$-algebra generated the topology of uniform convergence on compact sets.
 
 We prove in \docs{ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval} that those two $\sigma$-algebras on continuous functions from a topological space $X$ to another $Y$ are equal whenever $X$ is a second-countable, locally compact space and $Y$ is second-countable and regular, equipped with the Borel $\sigma$-algebra.
 These assumptions are satisfied for $X = \mathbb{R}_+$ and $Y = \mathbb{R}$.
-Thus $B$ is a random variable on $(C(\mathbb{R}_+, \mathbb{R}), \mathcal{B}(C(\mathbb{R}_+, \mathbb{R})))$.
-The law of $B$ in that space is called the Wiener measure.
+Thus $B$ is a random variable on $(\mathcal{C}(\mathbb{R}_+, \mathbb{R}), \mathcal{B}(\mathcal{C}(\mathbb{R}_+, \mathbb{R})))$.
+The law of $B$ in that space is called the Wiener measure (\docs{ProbabilityTheory.wienerMeasure}).
+
+\todor{Do we want a conclusion section? Some remarks about future work? It would be trivial to build a Brownian motion in $\mathbb{R}^n$ using the current development. Donsker's theorem would be nice...}
 
 \section*{Acknowledgments}
 
