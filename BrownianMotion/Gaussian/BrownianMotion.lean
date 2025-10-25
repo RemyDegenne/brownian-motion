@@ -368,8 +368,8 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
           congr with i
           rw [eval_integral]
           · simpa using h2 _
-          · exact fun _ ↦ h1.hasGaussianLaw_eval.integrable
-        · exact Integrable.of_eval fun _ ↦ h1.hasGaussianLaw_eval.integrable
+          · exact fun _ ↦ (h1.hasGaussianLaw_eval _).integrable
+        · exact Integrable.of_eval fun _ ↦ (h1.hasGaussianLaw_eval _).integrable
         · exact IsGaussian.integrable_id
       any_goals fun_prop
       exact aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _
