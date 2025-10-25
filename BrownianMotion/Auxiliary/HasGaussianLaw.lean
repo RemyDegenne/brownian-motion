@@ -206,7 +206,6 @@ lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {X : ι → Ω → ℝ}
     [h1 : HasGaussianLaw (fun ω ↦ (X · ω)) P] (h2 : ∀ i j : ι, i ≠ j → cov[X i, X j; P] = 0) :
     iIndepFun X P := by
   refine h1.iIndepFun_of_cov fun i j hij L₁ L₂ ↦ ?_
-  -- change cov[fun ω ↦ L₁ (X i ω), fun ω ↦ L₂ (X j ω); P] = 0
   simp [← inner_toDual_symm_eq_self, Function.comp_def,
     mul_comm _ ((InnerProductSpace.toDual ℝ ℝ).symm _),
     covariance_mul_right, covariance_mul_left, h2, hij]
