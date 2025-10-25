@@ -10,6 +10,7 @@ import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Metric
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Auxiliary.Nat
+import BrownianMotion.Auxiliary.Processes
 import BrownianMotion.Auxiliary.Real
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
