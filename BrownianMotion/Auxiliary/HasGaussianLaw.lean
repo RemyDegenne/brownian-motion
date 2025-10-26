@@ -1,4 +1,3 @@
-import BrownianMotion.Auxiliary.Processes
 import BrownianMotion.Gaussian.Gaussian
 import Mathlib.MeasureTheory.Constructions.Cylinders
 import Mathlib.Probability.Independence.CharacteristicFunction

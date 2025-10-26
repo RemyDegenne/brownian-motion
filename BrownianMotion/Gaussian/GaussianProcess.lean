@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Gaussian.StochasticProcesses
+import Mathlib.Probability.Independence.Process
 import Mathlib.Probability.Process.FiniteDimensionalLaws
 
 /-!
@@ -118,7 +119,7 @@ lemma IsGaussianProcess.indepFun [CompleteSpace E] {X : S → Ω → E} {Y : T �
   have := h.isProbabilityMeasure
   have _ s : HasGaussianLaw (X s) P := h.hasGaussianLaw_eval (.inl s)
   have _ t : HasGaussianLaw (Y t) P := h.hasGaussianLaw_eval (.inr t)
-  refine IndepFun.indepFun_processes hX hY fun I J ↦
+  refine IndepFun.indepFun_process hX hY fun I J ↦
     HasGaussianLaw.indepFun_of_cov ?_ fun L₁ L₂ ↦ ?_
   · let L : (I.disjSum J → E) →L[ℝ] (I → E) × (J → E) :=
       { toFun x := (fun s ↦ x ⟨Sum.inl s, Finset.inl_mem_disjSum.2 s.2⟩,
@@ -150,7 +151,7 @@ lemma IsGaussianProcess.iIndepFun [CompleteSpace E] {S : T → Type*}
     iIndepFun (fun t ω s ↦ X t s ω) P := by
   have := h.isProbabilityMeasure
   have _ t s : HasGaussianLaw (X t s) P := h.hasGaussianLaw_eval ⟨t, s⟩
-  refine iIndepFun.iIndepFun_processes hX fun I J ↦
+  refine iIndepFun.iIndepFun_process hX fun I J ↦
     HasGaussianLaw.iIndepFun_of_cov ?_ fun i j hij L₁ L₂ ↦ ?_
   · classical
     let L : (I.sigma (fun i ↦ if hi : i ∈ I then J ⟨i, hi⟩ else ∅) → E) →L[ℝ] (i : I) → J i → E :=
