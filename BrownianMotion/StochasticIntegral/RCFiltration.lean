@@ -9,6 +9,20 @@ import Mathlib.Probability.Process.Adapted
 /-!
 # Progressively Measurable σ-algebra
 
+This file defines the progressively measurable σ-algebra associated to a filtration, as well as the
+notion of predictable processes. We prove that predictable processes are progressively measurable
+and adapted. We also give an equivalent characterization of predictability for discrete processes.
+
+## Main definitions
+* `Filtration.Predictable` : The predictable σ-algebra associated to a filtration.
+* `Filtration.IsPredictable` : A process is predictable if it is measurable with respect to the
+  predictable σ-algebra.
+
+## Main results
+* `Filtration.IsPredictable.progMeasurable` : A predictable process is progressively measurable.
+* `Filtration.IsPredictable.measurable_succ` : `u` is a discrete predictable process iff
+  `u (n + 1)` is `𝓕 n`-measurable and `u 0` is `𝓕 0`-measurable.
+
 -/
 
 open Filter Order TopologicalSpace
@@ -63,12 +77,28 @@ end Filtration
 
 end
 
+/-- Sets of the form `(i, j] × A` for any `A ∈ 𝓕 i` is measurable with respect to the predictable
+σ-algebra. -/
+lemma measurableSet_predictable_Ioc_prod [LinearOrder ι] [OrderBot ι]
+    {𝓕 : Filtration ι m} (i j : ι) {s : Set Ω} (hs : MeasurableSet[𝓕 i] s) :
+    MeasurableSet[𝓕.Predictable] <| Set.Ioc i j ×ˢ s := by
+  by_cases hji : j ≤ i
+  · rw [Set.Ioc_eq_empty_of_le hji, Set.empty_prod]
+    simp only [MeasurableSet.empty]
+  · rw [not_le] at hji
+    rw [← Set.Ioi_diff_Ioi, (by simp : (Set.Ioi i \ Set.Ioi j) ×ˢ s
+      = Set.Ioi i ×ˢ (s \ s) ∪ (Set.Ioi i \ Set.Ioi j) ×ˢ s), ← Set.prod_diff_prod]
+    exact MeasurableSet.diff
+      (MeasurableSpace.measurableSet_generateFrom <| Or.inr ⟨i, s, hs, rfl⟩) <|
+      (MeasurableSpace.measurableSet_generateFrom <| Or.inr ⟨j, s, 𝓕.mono hji.le _ hs, rfl⟩)
+
 namespace Filtration.IsPredictable
 
 variable [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι]
     [OpensMeasurableSpace ι] [OrderClosedTopology ι] [MeasurableSingletonClass ι]
     [MetrizableSpace E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
 
+/-- A predictable process is progressively measurable. -/
 lemma progMeasurable {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : 𝓕.IsPredictable u) :
     ProgMeasurable 𝓕 u := by
   intro i
@@ -94,6 +124,7 @@ lemma progMeasurable {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : �
           iff_false, not_and]
         exact fun hj ↦ False.elim <| hji <| hj.le.trans p.1.2
 
+/-- A predictable process is adapted. -/
 lemma adapted {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : 𝓕.IsPredictable u) :
     Adapted 𝓕 u :=
   h𝓕.progMeasurable.adapted
@@ -137,6 +168,7 @@ lemma measurableSet_of_predictable {𝓕 : Filtration ℕ m} {s : Set (ℕ × Ω
         exact ⟨fun _ ↦ by aesop, fun _ ↦ lt_add_one_iff.2 hni⟩
 
 omit [SecondCountableTopology E] in
+/-- If `u` is a discrete predictable process, then `u (n + 1)` is `𝓕 n`-measurable. -/
 lemma measurable_succ {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} (h𝓕 : 𝓕.IsPredictable u) (n : ℕ) :
     Measurable[𝓕 n] (u (n + 1)) := by
   intro s hs
@@ -144,5 +176,42 @@ lemma measurable_succ {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} (h𝓕 : 
   exact measurableSet_of_predictable (h𝓕.measurable hs) n
 
 end Filtration.IsPredictable
+
+section
+
+variable [MetrizableSpace E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+
+lemma measurableSet_predictable_singleton_prod
+    {𝓕 : Filtration ℕ m} {n : ℕ} {s : Set Ω} (hs : MeasurableSet[𝓕 n] s) :
+    MeasurableSet[𝓕.Predictable] <| {n + 1} ×ˢ s := by
+  rw [(_ : {n + 1} = Set.Ioc n (n + 1))]
+  · exact measurableSet_predictable_Ioc_prod _ _ hs
+  · ext m
+    simp only [Set.mem_singleton_iff, Set.mem_Ioc]
+    refine ⟨fun hm ↦ ⟨hm ▸ lt_add_one n, hm ▸ le_rfl⟩, ?_⟩
+    rintro ⟨hm₁, hm₂⟩
+    linarith
+
+lemma isPredictable_of_measurable_succ
+    {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E}
+    (h₀ : Measurable[𝓕 0] (u 0)) (h : ∀ n, Measurable[𝓕 n] (u (n + 1))) :
+    𝓕.IsPredictable u := by
+  refine Measurable.stronglyMeasurable ?_
+  intro s hs
+  rw [(by aesop : Function.uncurry u ⁻¹' s = ⋃ n : ℕ, {n} ×ˢ (u n ⁻¹' s))]
+  refine MeasurableSet.iUnion <| fun n ↦ ?_
+  obtain (rfl | hn) := n.eq_zero_or_eq_succ_pred
+  · exact MeasurableSpace.measurableSet_generateFrom <| Or.inl ⟨u 0 ⁻¹' s, h₀ hs, rfl⟩
+  · rw [hn]
+    exact measurableSet_predictable_singleton_prod (h (n - 1) hs)
+
+/-- A discrete process `u` is predictable iff `u (n + 1)` is `𝓕 n`-measurable for all `n` and
+`u 0` is `𝓕 0`-measurable. -/
+lemma isPredictable_iff_measurable_succ {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} :
+    𝓕.IsPredictable u ↔ Measurable[𝓕 0] (u 0) ∧ ∀ n, Measurable[𝓕 n] (u (n + 1)) :=
+  ⟨fun h𝓕 ↦ ⟨(h𝓕.adapted 0).measurable, fun n ↦ h𝓕.measurable_succ (n)⟩,
+   fun h ↦ isPredictable_of_measurable_succ h.1 h.2⟩
+
+end
 
 end MeasureTheory
