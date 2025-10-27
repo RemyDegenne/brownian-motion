@@ -39,7 +39,7 @@ variable [Preorder ι]
 
 /-- A filtration `𝓕` is right continuous if `𝓕 t = ⨅ j > i, 𝓕 j = 𝓕 i` for all `t`. -/
 class IsRightContinuous (𝓕 : Filtration ι m) where
-    IsRightContinuous (i : ι) := ⨅ j > i, 𝓕 j = 𝓕 i
+    RC (i : ι) := ⨅ j > i, 𝓕 j = 𝓕 i
 
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
   and consequently `𝓕 t` is complete (i.e. contains all null sets) for all `t`. -/
