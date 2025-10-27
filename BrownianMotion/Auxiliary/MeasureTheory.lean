@@ -245,88 +245,46 @@ lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E
     · simp
     all_goals simp_all
 
-section eval
+section covariance
 
-namespace MeasureTheory
+namespace ProbabilityTheory
 
-open Finset
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X Y Z : Ω → ℝ} (c : ℝ)
 
-variable {ι Ω : Type*} {E : ι → Type*} [Fintype ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [∀ i, NormedAddCommGroup (E i)] {p : ℝ≥0∞}
+lemma covariance_fun_add_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω + Y ω, Z; μ] = cov[fun ω ↦ X ω, Z; μ] + cov[fun ω ↦ Y ω, Z; μ] :=
+  covariance_add_left hX hY hZ
 
-section Pi
+lemma covariance_fun_add_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω + Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] + cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_add_right hX hY hZ
 
-variable {X : (i : ι) → Ω → E i}
+lemma covariance_fun_sub_left [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[X, Z; μ] - cov[Y, Z; μ] :=
+  covariance_sub_left hX hY hZ
 
-lemma Isometry.single [DecidableEq ι] {E : ι → Type*} [∀ i, PseudoEMetricSpace (E i)]
-    [∀ i, Zero (E i)] (i : ι) : Isometry (Pi.single (M := E) i) := by
-  intro x y
-  rw [edist_pi_def, Finset.sup_univ_eq_ciSup]
-  refine le_antisymm ?_ ?_
-  · refine iSup_le fun j ↦ ?_
-    by_cases h : i = j
-    · cases h
-      simp
-    · simp [h]
-  · apply le_iSup_of_le i
-    simp
+lemma covariance_fun_sub_right [IsFiniteMeasure μ]
+    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
+    cov[X, fun ω ↦ Y ω - Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] - cov[X, fun ω ↦ Z ω; μ] :=
+  covariance_sub_right hX hY hZ
 
-lemma memLp_pi_iff : MemLp (fun ω ↦ (X · ω)) p P ↔ ∀ i, MemLp (X i) p P where
-  mp hX i := by
-    have : X i = (Function.eval i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
-    rw [this]
-    exact (LipschitzWith.eval i).comp_memLp (by simp) hX
-  mpr hX := by
-    classical
-    have : (fun ω ↦ (X · ω)) = ∑ i, (Pi.single i) ∘ (X i) := by ext; simp
-    rw [this]
-    refine memLp_finset_sum' _ fun i _ ↦ ?_
-    exact (Isometry.single i).lipschitz.comp_memLp (by simp) (hX i)
+lemma covariance_fun_div_left :
+    cov[fun ω ↦ X ω / c, Y; μ] = cov[X, Y; μ] / c := by
+  simp_rw [← inv_mul_eq_div, covariance_mul_left]
 
-alias ⟨MemLp.eval, MemLp.of_eval⟩ := memLp_pi_iff
+lemma covariance_fun_div_right :
+    cov[X, fun ω ↦ Y ω / c; μ] = cov[X, Y; μ] / c := by
+  simp_rw [← inv_mul_eq_div, covariance_mul_right]
 
-lemma integrable_pi_iff : Integrable (fun ω ↦ (X · ω)) P ↔ ∀ i, Integrable (X i) P := by
-  simp_rw [← memLp_one_iff_integrable, memLp_pi_iff]
+lemma variance_fun_div (hX : AEMeasurable X μ) :
+    Var[fun ω ↦ X ω / c; μ] = Var[X; μ] / c ^ 2 := by
+  rw [← covariance_self (by fun_prop), covariance_fun_div_left, covariance_fun_div_right,
+    covariance_self hX]
+  field_simp
 
-alias ⟨Integrable.eval, Integrable.of_eval⟩ := integrable_pi_iff
+end ProbabilityTheory
 
-variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
-
-lemma integral_eval (hX : ∀ i, Integrable (X i) P) (i : ι) :
-    (∫ ω, (X · ω) ∂P) i = ∫ ω, X i ω ∂P := by
-  rw [← ContinuousLinearMap.proj_apply (R := ℝ) i (∫ ω, (X · ω) ∂P),
-    ← ContinuousLinearMap.integral_comp_comm]
-  · simp
-  exact Integrable.of_eval hX
-
-end Pi
-
-section PiLp
-
-variable {q : ℝ≥0∞} [Fact (1 ≤ q)] {X : Ω → PiLp q E}
-
-lemma memLp_piLp_iff : MemLp X p P ↔ ∀ i, MemLp (X · i) p P := by
-  simp_rw [← memLp_pi_iff, ← PiLp.ofLp_apply, ← Function.comp_apply (f := WithLp.ofLp)]
-  exact (PiLp.lipschitzWith_ofLp q E).memLp_comp_iff_of_antilipschitz
-    (PiLp.antilipschitzWith_ofLp q E) (by simp) |>.symm
-
-alias ⟨MemLp.eval_piLp, MemLp.of_eval_piLp⟩ := memLp_piLp_iff
-
-lemma integrable_piLp_iff : Integrable X P ↔ ∀ i, Integrable (X · i) P := by
-  simp_rw [← memLp_one_iff_integrable, memLp_piLp_iff]
-
-alias ⟨Integrable.eval_piLp, Integrable.of_eval_piLp⟩ := integrable_piLp_iff
-
-variable [∀ i, NormedSpace ℝ (E i)] [∀ i, CompleteSpace (E i)]
-
-lemma _root_.PiLp.integral_eval (hX : ∀ i, Integrable (X · i) P) (i : ι) :
-    (∫ ω, X ω ∂P) i = ∫ ω, X ω i ∂P := by
-  rw [← PiLp.proj_apply (𝕜 := ℝ) q E i (∫ ω, X ω ∂P), ← ContinuousLinearMap.integral_comp_comm]
-  · simp
-  exact Integrable.of_eval_piLp hX
-
-end PiLp
-
-end MeasureTheory
-
-end eval
+end covariance

@@ -2,6 +2,7 @@ import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.FiniteInf
+import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Auxiliary.LinearAlgebra
 import BrownianMotion.Auxiliary.MeanInequalities
@@ -17,7 +18,7 @@ import BrownianMotion.Continuity.CoveringNumber
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Continuity.KolmogorovChentsov
-import BrownianMotion.Continuity.LogSizeBallSequence
+import BrownianMotion.Continuity.KolmogorovChentsovInequality
 import BrownianMotion.Gaussian.BrownianMotion
 import BrownianMotion.Gaussian.CovMatrix
 import BrownianMotion.Gaussian.Fernique
@@ -30,3 +31,4 @@ import BrownianMotion.Gaussian.StochasticProcesses
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
+import BrownianMotion.StochasticIntegral.Predictable

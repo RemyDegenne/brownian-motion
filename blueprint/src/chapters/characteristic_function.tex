@@ -88,7 +88,7 @@ Let $F$ be a Banach space and $E$ be a Hilbert space.
 
 \begin{definition}[Covariance]\label{def:covarianceBilin}
   \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin, ProbabilityTheory.covarianceBilin_apply, ProbabilityTheory.covarianceBilin_apply'}
+  \lean{ProbabilityTheory.covarianceBilinDual, ProbabilityTheory.covarianceBilinDual_apply, ProbabilityTheory.covarianceBilinDual_apply'}
 The covariance bilinear form of a measure $\mu$ on $F$ with finite second moment is the continuous bilinear form $C_\mu : F^* \times F^* \to \mathbb{R}$ with
 \begin{align*}
   C_\mu(L_1, L_2)
@@ -102,7 +102,7 @@ The covariance bilinear form of a measure $\mu$ on $F$ with finite second moment
 \begin{lemma}\label{lem:covarianceBilin_same_eq_variance}
   \uses{def:covarianceBilin}
   \mathlibok
-  \lean{ProbabilityTheory.covarianceBilin_same_eq_variance}
+  \lean{ProbabilityTheory.covarianceBilinDual_self_eq_variance}
 For $\mu$ a measure on $F$ with finite second moment and $L \in F^*$, $C_\mu(L, L) = \mathbb{V}_\mu[L]$.
 \end{lemma}
 
