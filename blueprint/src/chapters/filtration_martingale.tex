@@ -136,7 +136,7 @@ By the monotonicity of the filtration $\mathcal{F}$, all of these cases are $\ma
   \lean{MeasureTheory.measurableSet_predictable_Ioc_prod}
 Sets of the form $(s, t] \times A$ for any $A \in \mathcal{F}_s$ is measurable with respect to the predictable $\sigma$-algebra.
 \end{lemma}
-\begin{proof}
+\begin{proof}\leanok
 For $t \le s$, the set in question is empty and thusly, trivially measurable. On the other hand, for $s < t$, measurability follows as
 $(s, t] \times A = (s, \infty) \times A \setminus (t, \infty) \times A$.
 \end{proof}
@@ -149,7 +149,7 @@ Let $X : \mathbb{N} \to \Omega \to E$ be a stochastic process and let $\mathcal{
 Then $X$ is predictable if and only if $X_0$ is $\mathcal{F}_0$-measurable and for all $n \in \mathbb{N}$, $X_{n+1}$ is $\mathcal{F}_n$-measurable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:predictable_Ioc_prod}
 Suppose first that $X$ is predictable. Straightaway, $X_0$ is $\mathcal{F}_0$-measurable as predictable implies progressively measurable which in turn implies adapted.
 
