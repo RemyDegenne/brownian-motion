@@ -44,7 +44,7 @@ class IsRightContinuous (𝓕 : Filtration ι m) where
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
   and consequently `𝓕 t` is complete (i.e. contains all null sets) for all `t`. -/
 class Filtration.UsualConditions [OrderBot ι] (𝓕 : Filtration ι m) (μ : Measure Ω := by volume_tac)
-    extends RightContinuous 𝓕 where
+    extends IsRightContinuous 𝓕 where
     IsComplete ⦃s : Set Ω⦄ (hs : μ s = 0) : MeasurableSet[𝓕 ⊥] s
 
 variable [OrderBot ι]
@@ -71,7 +71,7 @@ def predictable (𝓕 : Filtration ι m) : MeasurableSpace (ι × Ω) :=
 /-- A process is said to be predictable if it is measurable with respect to the predictable
 σ-algebra. -/
 def IsPredictable (𝓕 : Filtration ι m) (u : ι → Ω → E) :=
-    StronglyMeasurable[𝓕.Predictable] <| Function.uncurry u
+    StronglyMeasurable[𝓕.predictable] <| Function.uncurry u
 
 end Filtration
 
@@ -81,7 +81,7 @@ end
 σ-algebra. -/
 lemma measurableSet_predictable_Ioc_prod [LinearOrder ι] [OrderBot ι]
     {𝓕 : Filtration ι m} (i j : ι) {s : Set Ω} (hs : MeasurableSet[𝓕 i] s) :
-    MeasurableSet[𝓕.Predictable] <| Set.Ioc i j ×ˢ s := by
+    MeasurableSet[𝓕.predictable] <| Set.Ioc i j ×ˢ s := by
   by_cases hji : j ≤ i
   · rw [Set.Ioc_eq_empty_of_le hji, Set.empty_prod]
     simp only [MeasurableSet.empty]
@@ -107,7 +107,7 @@ lemma progMeasurable {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : �
   rw [measurable_iff_comap_le, (by aesop : (fun (p : Set.Iic i × Ω) ↦ u (p.1) p.2)
       = Function.uncurry u ∘ (fun p ↦ (p.1, p.2))), ← MeasurableSpace.comap_comp]
   refine (MeasurableSpace.comap_mono h𝓕).trans ?_
-  rw [Predictable, MeasurableSpace.comap_generateFrom]
+  rw [predictable, MeasurableSpace.comap_generateFrom]
   refine MeasurableSpace.generateFrom_le ?_
   rintro - ⟨-, (⟨s, hs, rfl⟩ | ⟨j, A, hA, rfl⟩), rfl⟩
   · rw [(by aesop : (fun (p : Set.Iic i × Ω) ↦ ((p.1 : ι), p.2)) ⁻¹' ({⊥} ×ˢ s) = {⊥} ×ˢ s)]
@@ -130,7 +130,7 @@ lemma adapted {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : 𝓕.IsPre
   h𝓕.progMeasurable.adapted
 
 lemma measurableSet_prodMk_add_one_of_predictable {𝓕 : Filtration ℕ m} {s : Set (ℕ × Ω)}
-    (hs : MeasurableSet[𝓕.Predictable] s) (n : ℕ) :
+    (hs : MeasurableSet[𝓕.predictable] s) (n : ℕ) :
     MeasurableSet[𝓕 n] {ω | (n + 1, ω) ∈ s} := by
   rw [(by aesop : {ω | (n + 1, ω) ∈ s} = (Prod.mk (α := Set.singleton (n + 1)) (β := Ω)
       (⟨n + 1, rfl⟩)) ⁻¹' ((fun (p : Set.singleton (n + 1) × Ω) ↦ ((p.1 : ℕ), p.2)) ⁻¹' s))]
@@ -173,7 +173,7 @@ lemma measurable_add_one {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} (h𝓕
     Measurable[𝓕 n] (u (n + 1)) := by
   intro s hs
   rw [(by aesop : u (n + 1) ⁻¹' s = {ω | (n + 1, ω) ∈ (Function.uncurry u) ⁻¹' s})]
-  exact measurableSet_of_predictable (h𝓕.measurable hs) n
+  exact measurableSet_prodMk_add_one_of_predictable (h𝓕.measurable hs) n
 
 end Filtration.IsPredictable
 
@@ -183,7 +183,7 @@ variable [MetrizableSpace E] [MeasurableSpace E] [BorelSpace E] [SecondCountable
 
 lemma measurableSet_predictable_singleton_prod
     {𝓕 : Filtration ℕ m} {n : ℕ} {s : Set Ω} (hs : MeasurableSet[𝓕 n] s) :
-    MeasurableSet[𝓕.Predictable] <| {n + 1} ×ˢ s := by
+    MeasurableSet[𝓕.predictable] <| {n + 1} ×ˢ s := by
   rw [(_ : {n + 1} = Set.Ioc n (n + 1))]
   · exact measurableSet_predictable_Ioc_prod _ _ hs
   · ext m
@@ -209,8 +209,8 @@ lemma isPredictable_of_measurable_add_one
 `u 0` is `𝓕 0`-measurable. -/
 lemma isPredictable_iff_measurable_add_one {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} :
     𝓕.IsPredictable u ↔ Measurable[𝓕 0] (u 0) ∧ ∀ n, Measurable[𝓕 n] (u (n + 1)) :=
-  ⟨fun h𝓕 ↦ ⟨(h𝓕.adapted 0).measurable, fun n ↦ h𝓕.measurable_succ (n)⟩,
-   fun h ↦ isPredictable_of_measurable_succ h.1 h.2⟩
+  ⟨fun h𝓕 ↦ ⟨(h𝓕.adapted 0).measurable, fun n ↦ h𝓕.measurable_add_one (n)⟩,
+   fun h ↦ isPredictable_of_measurable_add_one h.1 h.2⟩
 
 end
 
