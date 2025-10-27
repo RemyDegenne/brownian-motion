@@ -187,6 +187,18 @@ A localizing sequence is a sequence of stopping times $(\tau_n)_{n \in \mathbb{N
 \end{definition}
 
 
+\begin{lemma}\label{lem:localizingSequence_const_top}
+  \uses{def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.isLocalizingSequence_const_top}
+The constant sequence $\tau_n = \infty$ is a localizing sequence.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:localizingSequence_min}
   \uses{def:localizingSequence}
 Let $(\sigma_n), (\tau_n)$ be localizing sequences.
@@ -215,7 +227,8 @@ We denote the class of processes that are locally in $P$ by $P_{\mathrm{loc}}$.
 For any class of processes $P$, we have $P \subseteq P_{\mathrm{loc}}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
+  \uses{lem:localizingSequence_const_top}
 Take $\tau_n = \infty$ for all $n$.
 \end{proof}
 

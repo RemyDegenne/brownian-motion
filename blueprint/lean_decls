@@ -167,7 +167,15 @@ MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.IsStoppingTime
 MeasureTheory.stoppedProcess
+MeasureTheory.IsRightContinuous
+MeasureTheory.Filtration.UsualConditions
+MeasureTheory.Filtration.predictable
+MeasureTheory.IsPredictable
+MeasureTheory.IsPredictable.progMeasurable
+MeasureTheory.measurableSet_predictable_Ioc_prod
+MeasureTheory.isPredictable_iff_measurable_add_one
 ProbabilityTheory.IsLocalizingSequence
+ProbabilityTheory.isLocalizingSequence_const_top
 ProbabilityTheory.Locally
 ProbabilityTheory.locally_of_prop
 ProbabilityTheory.IsStable
