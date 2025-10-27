@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.HasGaussianLaw
-import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.Probability.Independence.Process
 import Mathlib.Probability.Process.FiniteDimensionalLaws
 
@@ -215,33 +214,43 @@ lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
   h.iIndepFun' hX fun _ _ h'' _ _ _ _ ↦ by
     simp [mul_comm, covariance_mul_left, covariance_mul_right, h' _ _ h'']
 
-lemma IsGaussianProcess.comp_right [IsGaussianProcess X P]
-    (f : S → T) : IsGaussianProcess (X ∘ f) P where
+/-- If a stochastic process `Y` is such that for `s`, `Y s` can be written as a linear
+combination of finitely many values of a Gaussian process, then `Y` is a Gaussian process. -/
+lemma IsGaussianProcess.of_isGaussianProcess [IsGaussianProcess X P]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F]
+    [BorelSpace F] [SecondCountableTopology F] {Y : S → Ω → F}
+    (h : ∀ s, ∃ I : Finset T, ∃ L : (I → E) →L[ℝ] F, ∀ ω, Y s ω = L (I.restrict (X · ω))) :
+    IsGaussianProcess Y P where
   hasGaussianLaw I := by
+    choose J L hL using h
     classical
-    let L : ((I.image f) → E) →L[ℝ] (I → E) :=
-      { toFun x s := x ⟨f s, Finset.mem_image.2 ⟨s.1, s.2, rfl⟩⟩
-        map_add' x y := by ext; simp
-        map_smul' c x := by ext; simp }
-    have : (fun ω ↦ I.restrict ((X ∘ f) · ω)) = L ∘ (fun ω ↦ (I.image f).restrict (X · ω)) := by
-      ext; simp [L]
+    let K : (I.biUnion J → E) →L[ℝ] I → F :=
+      { toFun x s := L s (fun t ↦ x ⟨t.1, Finset.mem_biUnion.2 ⟨s.1, s.2, t.2⟩⟩)
+        map_add' x y := by ext; simp [← Pi.add_def]
+        map_smul' c x := by ext; simp [← Pi.smul_def]
+        cont := by fun_prop }
+    have : (fun ω ↦ I.restrict (Y · ω)) = K ∘ (fun ω ↦ (I.biUnion J).restrict (X · ω)) := by
+      ext; simp [K, hL]; rfl
     rw [this]
     infer_instance
 
+lemma IsGaussianProcess.comp_right [h : IsGaussianProcess X P]
+    (f : S → T) : IsGaussianProcess (X ∘ f) P :=
+  h.of_isGaussianProcess fun s ↦ ⟨{f s},
+    { toFun x := x ⟨f s, by simp⟩
+      map_add' := by simp
+      map_smul' := by simp },
+    by simp⟩
+
 lemma IsGaussianProcess.comp_left {F : Type*}
     [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] [BorelSpace F]
-    [SecondCountableTopology F] (L : T → E →L[ℝ] F) [IsGaussianProcess X P] :
-    IsGaussianProcess (fun t ω ↦ L t (X t ω)) P where
-  hasGaussianLaw I := by
-    let L' : (I → E) →L[ℝ] (I → F) :=
-      { toFun x t := L t (x t)
-        map_add' x y := by ext; simp
-        map_smul' c x := by ext; simp }
-    have : (fun ω ↦ I.restrict (fun t ↦ L t (X t ω))) =
-        L' ∘ (fun ω ↦ I.restrict (X · ω)) := by
-      ext; simp [L']
-    rw [this]
-    infer_instance
+    [SecondCountableTopology F] (L : T → E →L[ℝ] F) [h : IsGaussianProcess X P] :
+    IsGaussianProcess (fun t ω ↦ L t (X t ω)) P :=
+  h.of_isGaussianProcess fun t ↦ ⟨{t},
+    { toFun x := L t (x ⟨t, by simp⟩),
+      map_add' := by simp
+      map_smul' := by simp },
+    by simp⟩
 
 instance IsGaussianProcess.smul [SecondCountableTopology E] (c : T → ℝ) [IsGaussianProcess X P] :
     IsGaussianProcess (fun t ω ↦ c t • (X t ω)) P :=
@@ -252,5 +261,23 @@ instance IsGaussianProcess.smul [SecondCountableTopology E] (c : T → ℝ) [IsG
       cont := by fun_prop }
   IsGaussianProcess.comp_left L
 
+instance IsGaussianProcess.shift [SecondCountableTopology E]
+    [Add T] [h : IsGaussianProcess X P] (t₀ : T) :
+    IsGaussianProcess (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) P := by
+  classical
+  exact h.of_isGaussianProcess fun t ↦ ⟨{t₀, t₀ + t},
+    { toFun x := x ⟨t₀ + t, by simp⟩ - x ⟨t₀, by simp⟩
+      map_add' x y := by simp; abel
+      map_smul' c x := by simp; module },
+    by simp⟩
+
+instance IsGaussianProcess.restrict [SecondCountableTopology E]
+    [h : IsGaussianProcess X P] (s : Set T) :
+    IsGaussianProcess (fun t : s ↦ X t) P :=
+  h.of_isGaussianProcess fun t ↦ ⟨{t.1},
+    { toFun x := x ⟨t.1, by simp⟩
+      map_add' := by simp
+      map_smul' := by simp },
+    by simp⟩
 
 end ProbabilityTheory

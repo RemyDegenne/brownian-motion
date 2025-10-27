@@ -422,17 +422,12 @@ lemma IsPreBrownian.smul [IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     · simp [field]
     · exact mul_le_mul_left' hst c
 
+/-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
+`X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
+This is the proof that it is pre-Brownian, see `IsPreBrownian.indepFun_shift` for independence. -/
 lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
     IsPreBrownian (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) P := by
-  refine IsGaussianProcess.isPreBrownian_of_covariance ⟨fun I ↦ ?_⟩ (fun t ↦ ?_) (fun s t hst ↦ ?_)
-  · let L : (({t₀} ∪ I.image (t₀ + ·) : Finset ℝ≥0) → ℝ) →L[ℝ] I → ℝ :=
-      { toFun x t := x ⟨t₀ + t.1, by simp⟩ - x ⟨t₀, by simp⟩
-        map_add' x y := by ext; simp; ring
-        map_smul' c x := by ext; simp; ring }
-    have : (fun ω ↦ I.restrict (fun t ↦ X (t₀ + t) ω - X t₀ ω)) =
-        L ∘ (fun ω ↦ ({t₀} ∪ I.image (t₀ + ·)).restrict (X · ω)) := by ext; simp [L]
-    rw [this]
-    infer_instance
+  refine IsGaussianProcess.isPreBrownian_of_covariance inferInstance (fun t ↦ ?_) (fun s t hst ↦ ?_)
   · rw [integral_sub, IsPreBrownian.integral_eval, IsPreBrownian.integral_eval, sub_zero]
     all_goals exact HasGaussianLaw.integrable
   · have := h.isGaussianProcess.isProbabilityMeasure
@@ -440,6 +435,34 @@ lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
       h.covariance_eval, h.covariance_eval, h.covariance_eval, h.covariance_eval, ← add_min,
       min_eq_left hst, min_eq_right, min_eq_left, min_self]
     any_goals simp
+    all_goals exact HasGaussianLaw.memLp_two
+
+/-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
+`X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
+This is the proof that of independence, see `IsPreBrownian.shift` for the proof
+that it is pre-Brownian. -/
+lemma IsPreBrownian.indepFun_shift [h : IsPreBrownian X P] (hX : ∀ t, Measurable (X t)) (t₀ : ℝ≥0) :
+    IndepFun (fun ω t ↦ X (t₀ + t) ω - X t₀ ω) (fun ω (t : Set.Iic t₀) ↦ X t ω) P := by
+  apply IsGaussianProcess.indepFun''
+  · apply h.isGaussianProcess.of_isGaussianProcess
+    rintro (t | ⟨t, ht⟩)
+    · let L : (({t₀, t₀ + t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ :=
+        { toFun x := x ⟨t₀ + t, by simp⟩ - x ⟨t₀, by simp⟩
+          map_add' x y := by simp; abel
+          map_smul' c x := by simp; ring }
+      exact ⟨_, L, fun ω ↦ by simp [L]⟩
+    · let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ :=
+        { toFun x := x ⟨t, by simp⟩
+          map_add' x y := by simp
+          map_smul' c x := by simp }
+      exact ⟨_, L, fun ω ↦ by simp [L]⟩
+  any_goals fun_prop
+  · rintro s ⟨t, ht : t ≤ t₀⟩
+    have := h.isGaussianProcess.isProbabilityMeasure
+    rw [covariance_fun_sub_left, h.covariance_eval, h.covariance_eval, min_eq_right, min_eq_right,
+      sub_self]
+    · grind
+    · simp [ht, le_add_right]
     all_goals exact HasGaussianLaw.memLp_two
 
 lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
