@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.HasGaussianLaw
-import BrownianMotion.Gaussian.StochasticProcesses
+import Mathlib.Probability.Independence.Process
 import Mathlib.Probability.Process.FiniteDimensionalLaws
 
 /-!
