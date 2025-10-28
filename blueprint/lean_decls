@@ -177,6 +177,7 @@ MeasureTheory.isPredictable_iff_measurable_add_one
 ProbabilityTheory.IsLocalizingSequence
 ProbabilityTheory.isLocalizingSequence_const_top
 ProbabilityTheory.Locally
+ProbabilityTheory.Locally.localSeq
 ProbabilityTheory.locally_of_prop
 ProbabilityTheory.IsStable
 ProbabilityTheory.locally_and
@@ -187,4 +188,5 @@ ProbabilityTheory.IsLocalMartingale
 ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
+ProbabilityTheory.isStable_submartingale
 MeasureTheory.maximal_ineq

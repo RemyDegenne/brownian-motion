@@ -213,7 +213,7 @@ Then $(\sigma_n \wedge \tau_n)$ is a localizing sequence.
 \begin{definition}[Local property]\label{def:locally}
   \uses{def:localizingSequence, def:stoppedProcess}
   \leanok
-  \lean{ProbabilityTheory.Locally}
+  \lean{ProbabilityTheory.Locally, ProbabilityTheory.Locally.localSeq}
 Let $P$ be a class of stochastic processes (or equivalently a predicate on stochastic processes).
 We say that a stochastic process $X : \mathbb{R}_+ \to \Omega \to E$ is locally in $P$ (or satisfies $P$ locally) if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$ (in which $X^{\tau_n}$ denotes the stopped process).
 We denote the class of processes that are locally in $P$ by $P_{\mathrm{loc}}$.
@@ -347,7 +347,19 @@ The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ i
 \end{lemma}
 
 \begin{proof}
-TODO: this should already be in Mathlib? I'm sure we have it for submartingales at least.
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:stable_IsSubmartingale}
+  \uses{def:Submartingale, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_submartingale}
+The class of submartingales is stable. That is, if $M$ is a submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a submartingale.
+\end{lemma}
+
+\begin{proof}
+
 \end{proof}
 
 

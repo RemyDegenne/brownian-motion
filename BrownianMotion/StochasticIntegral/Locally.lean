@@ -26,10 +26,10 @@ structure IsLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : �
   tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop atTop
 
 lemma isLocalizingSequence_const_top [Preorder ι] (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
-    IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P :=
-  { isStoppingTime n := by simp [IsStoppingTime]
-    mono := ae_of_all _ fun _ _ _ _ ↦ by simp
-    tendsto_top := by filter_upwards [] with ω using by simp [tendsto_atTop] }
+    IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
+  isStoppingTime n := by simp [IsStoppingTime]
+  mono := ae_of_all _ fun _ _ _ _ ↦ by simp
+  tendsto_top := by filter_upwards [] with ω using by simp [tendsto_atTop]
 
 variable [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
   {p q : (ι → Ω → E) → Prop}
@@ -49,17 +49,16 @@ def Locally [Zero E] (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
 
 /-- A localizing sequence, witness of the local property of the stochastic process. -/
 noncomputable
-def Locally.localizingSequence [Zero E] (hX : Locally p 𝓕 X P) :
+def Locally.localSeq [Zero E] (hX : Locally p 𝓕 X P) :
     ℕ → Ω → WithTop ι :=
   hX.choose
 
 lemma Locally.IsLocalizingSequence [Zero E] (hX : Locally p 𝓕 X P) :
-    IsLocalizingSequence 𝓕 (hX.localizingSequence) P :=
+    IsLocalizingSequence 𝓕 (hX.localSeq) P :=
   hX.choose_spec.1
 
 lemma Locally.stoppedProcess [Zero E] (hX : Locally p 𝓕 X P) (n : ℕ) :
-    p (stoppedProcess (fun i ↦ {ω | ⊥ < hX.localizingSequence n ω}.indicator (X i))
-      (hX.localizingSequence n)) :=
+    p (stoppedProcess (fun i ↦ {ω | ⊥ < hX.localSeq n ω}.indicator (X i)) (hX.localSeq n)) :=
   hX.choose_spec.2 n
 
 lemma locally_of_prop [Zero E] (hp : p X) : Locally p 𝓕 X P :=

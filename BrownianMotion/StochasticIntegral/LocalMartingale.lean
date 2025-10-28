@@ -41,4 +41,8 @@ lemma Submartingale.IsLocalSubmartingale [LE E] (hX : Submartingale X 𝓕 P) :
 lemma isStable_martingale : IsStable (fun X : ι → Ω → E ↦ Martingale X 𝓕 P) 𝓕 := by
   sorry
 
+/-- Submartingales are a stable class. -/
+lemma isStable_submartingale : IsStable (fun X : ι → Ω → ℝ ↦ Submartingale X 𝓕 P) 𝓕 := by
+  sorry
+
 end ProbabilityTheory
