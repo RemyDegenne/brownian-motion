@@ -97,15 +97,20 @@ lemma subset_Iic_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
 /-- `𝓚(t)` is closed under union. -/
 lemma union_mem_𝓚 {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) : B ∪ B' ∈ 𝓚 f t := by
-  -- easy
-  sorry
+  classical
+  rw [mem_𝓚_iff] at *
+  rcases hB with ⟨s, hs, hB⟩
+  rcases hB' with ⟨s', hs', hB'⟩
+  use s ∪ s'
+  aesop
 
 /-- If `B ∈ 𝓚(t)`, then its projection over `Ω` is (f t)-measurable. -/
 lemma measurableSet_snd_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
     MeasurableSet[f t] (Prod.snd '' B) := by
-  /- should be easy, just use `measurableSet_snd_of_mem_𝓚₀` and the fact that the union of snd is
-  snd of the union (`Set.image_union`) and then the fact that union of measurable is measurable -/
-  sorry
+  rw [mem_𝓚_iff] at hB
+  rcases hB with ⟨s, hs, hB⟩
+  simp only [hB, Set.image_iUnion]
+  exact s.measurableSet_biUnion (fun x hx ↦ measurableSet_snd_of_mem_𝓚₀ (hs hx))
 
 /-- `𝓚δ(t)` is the collection of countable intersections of sets in `𝓚(t)`. -/
 def 𝓚δ (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) :=
@@ -119,8 +124,18 @@ lemma subset_Iic_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
 /-- `𝓚δ(t)` is closed under union. -/
 lemma union_mem_𝓚δ {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) (hB' : B' ∈ 𝓚δ f t) : B ∪ B' ∈ 𝓚δ f t := by
-  -- easy, you can use `union_mem_𝓚`, `Set.iInter_union` and `Set.union_iInter`
-  sorry
+  have ⟨ℬ, hℬ_sub, ⟨b, hb⟩, hℬ_count, hB_eq⟩ := hB
+  have ⟨ℬ', hℬ_sub', ⟨b', hb'⟩, hℬ_count', hB_eq'⟩ := hB'
+  refine ⟨{x | ∃ bb ∈ ℬ, ∃ bb' ∈ ℬ', x = bb ∪ bb'}, fun x ⟨bb, hbb, bb', hbb', hx⟩ ↦ ?_,
+    ⟨b ∪ b', b, hb, b', hb', rfl⟩, ?_, ?_⟩
+  · exact hx ▸ union_mem_𝓚 (hℬ_sub hbb) (hℬ_sub' hbb')
+  · have : {x | ∃ bb ∈ ℬ, ∃ bb' ∈ ℬ', x = bb ∪ bb'} = (fun p ↦ p.1 ∪ p.2) '' (ℬ ×ˢ ℬ') := by
+      aesop
+    rw [Set.countable_coe_iff, this]
+    exact .image (.prod hℬ_count hℬ_count') _
+  · simp only [Set.mem_setOf_eq, Set.iInter_exists, Set.biInter_and', Set.iInter_iInter_eq_left,
+      hB_eq, hB_eq']
+    exact Set.iInter₂_union_iInter₂ (fun i₁ i₂ ↦ i₁) fun j₁ j₂ ↦ j₁
 
 /- TODO: check that this is provable even without the hypothesis that `B := ⋂ B_n ⊆ 𝒦δ`, I'm not
 completely sure. If it is not possible to prove it like this, then just add the hypothesis
@@ -193,7 +208,6 @@ lemma exists_mem_𝓛σδ_of_measurableSet {mT : MeasurableSpace T} [BorelSpace 
   implemented, see this Zulip message:
   https://leanprover.zulipchat.com/#narrow/channel/113489-new-members/topic/Proof.3A.20.20isField.20ss.20.E2.88.A7.20isMonoClass.20ss.20.E2.86.94.20isSigmaField.20ss.20.3F/near/448825855 -/
   sorry
-
 
 end 𝓛_sets
 
