@@ -189,4 +189,7 @@ ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
+MeasureTheory.predictablePart
+MeasureTheory.martingalePart
+MeasureTheory.martingale_martingalePart
 MeasureTheory.maximal_ineq

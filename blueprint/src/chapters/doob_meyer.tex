@@ -2,9 +2,76 @@
 \label{chap:doob_meyer}
 
 
-This chapter follows \cite{Beiglböck_Schachermayer_Veliyev_2012}
-which gives an elementary and short proof of the result.
+This chapter starts with a short review of the properties of the Doob decomposition of an adapted process indexed on a discrete set, and then follows \cite{Beiglböck_Schachermayer_Veliyev_2012} which gives an elementary and short proof of the Doob-Meyer theorem.
 
+
+\section{Doob decomposition in discrete time}
+
+
+\begin{definition}\label{def:predictablePart}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
+The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined by $A_0 = 0$ and for $n \ge 0$,
+\begin{align*}
+  A_{n+1}
+  &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{definition}\label{def:martingalePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.martingalePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$ and let $A$ be the predictable part of $X$ for that filtration.
+The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defined by $M_n = X_n - A_n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_predictablePart}
+  \uses{def:predictablePart, def:predictable, def:adapted}
+The predictable part of an adapted process is a predictable process.
+\end{lemma}
+
+\begin{proof}
+This is almost \texttt{MeasureTheory.adapted\_predictablePart} but we need to formulate it with the new predictable definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_martingalePart}
+  \uses{def:martingalePart, def:Martingale}
+  \mathlibok
+  \lean{MeasureTheory.martingale_martingalePart}
+Suppose that the filtration is sigma-finite.
+Then the martingale part of an adapted process $X$ such that $X_n$ is integrable for all $n$ is a martingale.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
+  \uses{def:predictablePart, def:Submartingale}
+The predictable part of a submartingale is a nondecreasing process.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:Submartingale}
+Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$,
+\begin{align*}
+  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
+  &\ge A_n
+  \: .
+\end{align*}
+The last inequality follows from the submartingale property of $X$.
+Thus, $(A_n)_{n \in \mathbb{N}}$ is nondecreasing.
+\end{proof}
 
 
 \section{Cadlag modifications of (local) martingales}
@@ -185,7 +252,7 @@ $D$ is the class of all adapted processes $(S_t)_{0\leq t\leq T}$ such that the 
 
 
 \begin{definition}[A]\label{def:A}
-  \uses{def:dyadics}
+  \uses{def:dyadics, def:predictablePart}
 Define $A_0=0$ and for $t\in\mathcal{D}_n^T$ positive,
 \begin{align*}
 A^n_t
@@ -196,7 +263,7 @@ A^n_t
 
 
 \begin{definition}[M]\label{def:M}
-  \uses{def:A}
+  \uses{def:A, def:martingalePart}
 For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{definition}
 
@@ -207,7 +274,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:predictable_nat_iff}
+  \uses{lem:predictable_nat_iff, lem:predictable_predictablePart}
   Trivial
 \end{proof}
 
@@ -218,6 +285,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:martingale_martingalePart}
   Trivial
 \end{proof}
 
@@ -228,7 +296,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
-  \uses{def:Submartingale}
+  \uses{def:Submartingale, lem:nondecreasing_predictablePart_of_submartingale}
 $S$ is a submartingale:
 \begin{align*}
   A^n_{t+T2^{-n}} - A^n_t
