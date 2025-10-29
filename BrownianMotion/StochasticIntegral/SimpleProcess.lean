@@ -37,4 +37,6 @@ def SimpleProcess.integral (V : SimpleProcess ι Ω E F) (X : ι → Ω → E) :
   fun i ω ↦ ∑ p ∈ V.intervals,
     V.value p.1 ω (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
+-- todo: possible notation V●X, possibly for more general integrals
+
 end ProbabilityTheory
