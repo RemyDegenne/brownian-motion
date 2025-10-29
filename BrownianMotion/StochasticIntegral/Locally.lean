@@ -162,13 +162,6 @@ theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
     stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (fun ω ↦ min (σ ω) (τ ω)) := by
   simp; rfl
 
--- lemma IsStable.indicator_stoppedProcess [Zero E]
---     (hp : IsStable p 𝓕) {X : ι → Ω → E} (hX : p X) {τ : Ω → WithTop ι}
---     (hτ : IsStoppingTime 𝓕 τ) :
---     p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) := by
---   rw [stoppedProcess_indicator_comm']
-  -- hp _ hX _ hτ
-
 -- Move
 theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_right
     {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : σ ≤ τ) :
@@ -215,20 +208,120 @@ end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
 
-variable [ConditionallyCompleteLinearOrderBot ι]
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [DenselyOrdered ι] [FirstCountableTopology ι]
   {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
+
+-- Move
+lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt [NoMaxOrder ι]
+    {τ : Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, MeasurableSet[𝓕 i] {ω | τ ω < i}) :
+    IsStoppingTime 𝓕 τ := by
+  intro i
+  obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto i
+  refine MeasurableSet.of_compl ?_
+  rw [(_ : {ω | τ ω ≤ i}ᶜ = ⋃ n, {ω | u n ≤ τ ω})]
+  · refine measurableSet_of_isRightContinuous ?_
+    simp_rw [MeasurableSpace.measurableSet_iInf]
+    intros j hj
+    obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hj).exists
+    rw [(_ : ⋃ n, {ω | u n ≤ τ ω} = ⋃ n ≥ N, {ω | u n ≤ τ ω})]
+    · refine MeasurableSet.iUnion <| fun n ↦ MeasurableSet.iUnion <| fun hn ↦
+        𝓕.mono ((hu₁.antitone hn).trans hN) _ <| MeasurableSet.of_compl ?_
+      rw [(by ext; simp : {ω | u n ≤ τ ω}ᶜ = {ω | τ ω < u n})]
+      exact hτ (u n)
+    · ext ω
+      simp only [Set.mem_iUnion, Set.mem_setOf_eq, ge_iff_le, exists_prop]
+      constructor
+      · rintro ⟨i, hle⟩
+        refine ⟨i + N, N.le_add_left i, le_trans ?_ hle⟩
+        norm_cast
+        exact hu₁.antitone <| i.le_add_right N
+      · rintro ⟨i, -, hi⟩
+        exact ⟨i, hi⟩
+  · ext ω
+    simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_le, Set.mem_iUnion]
+    constructor
+    · intro h
+      by_cases hτ : τ ω = ⊤
+      · exact ⟨0, hτ ▸ le_top⟩
+      · have hlt : i < (τ ω).untop hτ := by
+          rwa [WithTop.lt_untop_iff]
+        obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hlt).exists
+        refine ⟨N, WithTop.coe_le_iff.2 <| fun n hn ↦ hN.trans ?_⟩
+        simp only [hn, WithTop.untop_coe, le_refl]
+    · rintro ⟨j, hj⟩
+      refine lt_of_lt_of_le ?_ hj
+      norm_cast
+      exact hu₂ _
+
+-- Move
+lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt' {τ : Ω → WithTop ι}
+    (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i})
+    (hτmax : ∀ i, IsMax i → MeasurableSet[𝓕 i] {ω | τ ω = ⊤}) :
+    IsStoppingTime 𝓕 τ := by
+  intro i
+  by_cases hmax : IsMax i
+  · rw [(_ : {ω | τ ω ≤ i} = {ω | τ ω = ⊤}ᶜ)]
+    · exact (hτmax i hmax).compl
+    · ext ω
+      simp only [Set.mem_setOf_eq, Set.mem_compl_iff]
+      constructor
+      · rintro hle htop
+        rw [htop] at hle
+        simp only [top_le_iff, WithTop.coe_ne_top] at hle
+      · intro htop
+        rw [← WithTop.coe_untop _ htop]
+        norm_cast
+        exact not_lt.1 hmax.not_lt
+  rw [not_isMax_iff] at hmax
+  obtain ⟨j, hj⟩ := hmax
+  obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto' hj
+  refine MeasurableSet.of_compl ?_
+  rw [(_ : {ω | τ ω ≤ i}ᶜ = ⋃ n, {ω | u n ≤ τ ω})]
+  · refine measurableSet_of_isRightContinuous ?_
+    simp_rw [MeasurableSpace.measurableSet_iInf]
+    intros j hj
+    obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hj).exists
+    rw [(_ : ⋃ n, {ω | u n ≤ τ ω} = ⋃ n > N, {ω | u n ≤ τ ω})]
+    · refine MeasurableSet.iUnion <| fun n ↦ MeasurableSet.iUnion <| fun hn ↦
+        𝓕.mono ((hu₁ hn).le.trans hN) _ <| MeasurableSet.of_compl ?_
+      rw [(by ext; simp : {ω | u n ≤ τ ω}ᶜ = {ω | τ ω < u n})]
+      refine hτ (u n) <| not_isMax_iff.2 ⟨u N, hu₁ hn⟩
+    · ext ω
+      simp only [Set.mem_iUnion, Set.mem_setOf_eq, gt_iff_lt, exists_prop]
+      constructor
+      · rintro ⟨i, hle⟩
+        refine ⟨i + N + 1, by linarith, le_trans ?_ hle⟩
+        norm_cast
+        exact hu₁.antitone (by linarith)
+      · rintro ⟨i, -, hi⟩
+        exact ⟨i, hi⟩
+  · ext ω
+    simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_le, Set.mem_iUnion]
+    constructor
+    · intro h
+      by_cases hτ : τ ω = ⊤
+      · exact ⟨0, hτ ▸ le_top⟩
+      · have hlt : i < (τ ω).untop hτ := by
+          rwa [WithTop.lt_untop_iff]
+        obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hlt).exists
+        refine ⟨N, WithTop.coe_le_iff.2 <| fun n hn ↦ hN.trans ?_⟩
+        simp only [hn, WithTop.untop_coe, le_refl]
+    · rintro ⟨j, hj⟩
+      refine lt_of_lt_of_le ?_ hj
+      norm_cast
+      exact (hu₂ j).1
 
 -- Move. Weaken the lattice assumption?
 lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTop ι}
     (s : Set ℕ) (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) :
     IsStoppingTime 𝓕 (fun ω ↦ ⨅ (n) (_ : n ∈ s), τ n ω) := by
+  intro i
   sorry
 
 -- 1: IsStoppingTime.iInf
 -- 2: Given a sequence of stopping times `τₙ` which converge to infinity,
 --  `σₙ := inf_{k ≤ n} τₖ` defines a localizing sequence.
-#check sInf
-#check IsStoppingTime.min
 
 lemma IsLocalizingSequence.exists_subseq_isStoppingTime_tendsto_atTop
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
@@ -258,6 +351,7 @@ lemma IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop
   exact ⟨nk, isLocalizingSequence_of_isStoppingTime_tendsto_atTop h𝓕
     (fun j ↦ (hτ.isStoppingTime j).min <| (hσ j).isStoppingTime (nk j)) hnk₂⟩
 
+/-- A stable property holding locally is idempotent. -/
 lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
