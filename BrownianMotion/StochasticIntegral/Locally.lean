@@ -109,7 +109,7 @@ def IsStable [Zero E] (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ
     p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
 -- Move
-lemma stoppedProcess_indicator_apply_comm {β : Type*} [Zero β] {u : ι → Ω → β}
+lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} (i : ι) :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ i
       = s.indicator (stoppedProcess u τ i) := by
@@ -118,6 +118,14 @@ lemma stoppedProcess_indicator_apply_comm {β : Type*} [Zero β] {u : ι → Ω 
   split_ifs with hω
   · rw [stoppedProcess, Set.indicator_of_mem hω, stoppedProcess]
   · rw [stoppedProcess, Set.indicator_of_notMem hω]
+
+-- Move
+lemma stoppedProcess_indicator_comm' {β : Type*} [Zero β] {u : ι → Ω → β}
+    {τ : Ω → WithTop ι} {s : Set Ω} :
+    stoppedProcess (fun i ↦ s.indicator (u i)) τ
+      = fun i ↦ s.indicator (stoppedProcess u τ i) := by
+  ext i ω
+  rw [stoppedProcess_indicator_comm]
 
 -- Move
 theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
@@ -149,6 +157,31 @@ theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
     · exact (lt_of_le_of_lt (min_le_right _ _) <| WithTop.lt_top_iff_ne_top.2 hσ).ne
 
 -- Move
+@[simp] theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess'
+    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} :
+    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (fun ω ↦ min (σ ω) (τ ω)) := by
+  simp; rfl
+
+-- lemma IsStable.indicator_stoppedProcess [Zero E]
+--     (hp : IsStable p 𝓕) {X : ι → Ω → E} (hX : p X) {τ : Ω → WithTop ι}
+--     (hτ : IsStoppingTime 𝓕 τ) :
+--     p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) := by
+--   rw [stoppedProcess_indicator_comm']
+  -- hp _ hX _ hτ
+
+-- Move
+theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_right
+    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : σ ≤ τ) :
+    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u σ := by
+  rw [stoppedProcess_stoppedProcess, inf_of_le_left h]
+
+-- Move
+theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_left
+    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : τ ≤ σ) :
+    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u τ := by
+  rw [stoppedProcess_stoppedProcess, inf_of_le_right h]
+
+-- Move
 theorem _root_.MeasureTheory.stoppedProcess_eq_stoppedValue_apply
     {β : Type*} {u : ι → Ω → β} {τ : Ω → WithTop ι} (i : ι) (ω : Ω) :
     stoppedProcess u τ i ω = stoppedValue u (fun ω ↦ min i (τ ω)) ω := rfl
@@ -159,9 +192,9 @@ lemma locally_and [Zero E] (hp : IsStable p 𝓕) (hq : IsStable q 𝓕) :
     ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
   · convert hp _ (hpX.stoppedProcess n) _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
     ext i ω
-    rw [stoppedProcess_indicator_apply_comm]
+    rw [stoppedProcess_indicator_comm]
     simp_rw [Pi.inf_apply, lt_inf_iff, inf_comm (hpX.localSeq n)]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_apply_comm,
+    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
       (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
         = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω}), Set.inter_comm]
     · simp_rw [← Set.indicator_indicator]
@@ -169,9 +202,9 @@ lemma locally_and [Zero E] (hp : IsStable p 𝓕) (hq : IsStable q 𝓕) :
     · rfl
   · convert hq _ (hqX.stoppedProcess n) _ <| hpX.IsLocalizingSequence.isStoppingTime n using 1
     ext i ω
-    rw [stoppedProcess_indicator_apply_comm]
+    rw [stoppedProcess_indicator_comm]
     simp_rw [Pi.inf_apply, lt_inf_iff]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_apply_comm,
+    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
       (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
         = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω})]
     · simp_rw [← Set.indicator_indicator]
@@ -233,7 +266,24 @@ lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p
     obtain ⟨nk, hnk⟩ :=
       hL.IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop h𝓕 hτ₁
     refine ⟨_, hnk, fun n ↦ ?_⟩
-    sorry
+    have := hp _ (hτ₂ n (nk n)) (fun ω ↦ ⨅ j ≥ n, (hL.localSeq j ω) ⊓ (τ j (nk j) ω)) ?_
+    · rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess_of_le_right
+        (τ := fun ω ↦ (hL.localSeq n ω) ⊓ (τ n (nk n) ω))
+        (fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl), ← stoppedProcess_indicator_comm']
+      convert this using 2
+      ext i ω
+      rw [stoppedProcess_indicator_comm', stoppedProcess_indicator_comm',
+        stoppedProcess_indicator_comm', Set.indicator_indicator, Set.indicator_indicator]
+      · congr 1
+        · ext ω'
+          simp only [ge_iff_le, Set.mem_setOf_eq, Set.mem_inter_iff]
+          exact ⟨fun h ↦ ⟨⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans <|
+              (iInf_le _ le_rfl).trans <| min_le_right _ _⟩,
+            lt_of_lt_of_le h <| (iInf_le _ n).trans <| (iInf_le _ le_rfl).trans <| min_le_left _ _⟩,
+            fun h ↦ h.1.1⟩
+        · rw [stoppedProcess_stoppedProcess, inf_comm]; rfl
+    · exact IsStoppingTime.iInf {j | j ≥ n} h𝓕 <| fun j ↦
+        (hL.IsLocalizingSequence.isStoppingTime j).min <| (hτ₁ j).isStoppingTime (nk j)
   · exact ⟨hL.localSeq, hL.IsLocalizingSequence, fun n ↦ locally_of_prop <| hL.stoppedProcess n⟩
 
 /-- If `p` implies `q` locally, then `p` locally implies `q` locally. -/
