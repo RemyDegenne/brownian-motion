@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import Mathlib.Probability.Process.Stopping
+import BrownianMotion.StochasticIntegral.Predictable
 
 /-! # Local properties of processes
 
@@ -30,6 +31,8 @@ lemma isLocalizingSequence_const_top [Preorder ι] (𝓕 : Filtration ι mΩ) (P
   isStoppingTime n := by simp [IsStoppingTime]
   mono := ae_of_all _ fun _ _ _ _ ↦ by simp
   tendsto_top := by filter_upwards [] with ω using by simp [tendsto_atTop]
+
+section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
   {p q : (ι → Ω → E) → Prop}
@@ -175,8 +178,41 @@ lemma locally_and [Zero E] (hp : IsStable p 𝓕) (hq : IsStable q 𝓕) :
       rfl
     · rfl
 
--- lemma
+end LinearOrder
 
+section ConditionallyCompleteLinearOrderBot
+
+variable [ConditionallyCompleteLinearOrderBot ι]
+  {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
+
+-- Move. Weaken the lattice assumption?
+lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTop ι}
+    (s : Set ℕ) (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) :
+    IsStoppingTime 𝓕 (fun ω ↦ ⨅ (n) (_ : n ∈ s), τ n ω) := by
+  sorry
+
+-- 1: IsStoppingTime.iInf
+-- 2: Given a sequence of stopping times `τₙ` which converge to infinity,
+--  `σₙ := inf_{k ≤ n} τₖ` defines a localizing sequence.
+#check sInf
+#check IsStoppingTime.min
+
+lemma IsLocalizingSequence.exists_subseq_isStoppingTime_tendsto_atTop
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ nk : ℕ → ℕ, StrictMono nk
+      ∧ ∀ᵐ ω ∂P, Tendsto (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) atTop atTop := by
+  sorry
+
+lemma IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ nk : ℕ → ℕ, IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, (τ j ω) ⊓ (σ j (nk j) ω)) P := by
+  obtain ⟨nk, hnk₁, hnk₂⟩ := hτ.exists_subseq_isStoppingTime_tendsto_atTop hσ
+  refine ⟨nk, fun n ↦ IsStoppingTime.iInf {j | j ≥ n} h𝓕 <|
+      fun j ↦ (hτ.isStoppingTime j).min <| (hσ j).isStoppingTime (nk j),
+      ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk, ?_⟩
+  · sorry
 
 lemma locally_locally [Zero E] (hp : IsStable p 𝓕) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
@@ -192,5 +228,7 @@ lemma locally_induction [Zero E] (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq :
     (hpX : Locally p 𝓕 X P) :
     Locally q 𝓕 X P :=
   (locally_locally hq).1 <| hpX.mono hpq
+
+end ConditionallyCompleteLinearOrderBot
 
 end ProbabilityTheory
