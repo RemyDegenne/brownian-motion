@@ -65,8 +65,8 @@ lemma locally_of_prop [Zero E] (hp : p X) : Locally p 𝓕 X P :=
   ⟨fun n _ ↦ (⊤ : WithTop ι), isLocalizingSequence_const_top _ _, by simpa⟩
 
 lemma Locally.mono [Zero E] (hpq : ∀ X, p X → q X) (hpX : Locally p 𝓕 X P) :
-    Locally q 𝓕 X P := by
-  sorry
+    Locally q 𝓕 X P :=
+  ⟨hpX.localSeq, hpX.IsLocalizingSequence, fun n ↦ hpq _ <| hpX.stoppedProcess n⟩
 
 /-- A property of stochastic processes is said to be stable if it is preserved under taking
 the stopped process by a stopping time. -/
