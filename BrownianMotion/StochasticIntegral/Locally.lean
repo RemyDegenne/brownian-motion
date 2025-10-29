@@ -41,7 +41,7 @@ variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
 theorem _root_.Filter.Tendsto.min_atTop_atTop {α β : Type*}
     [Nonempty β] [LinearOrder β] [LinearOrder α]
     {f g : β → α} (hf : Tendsto f atTop atTop) (hg : Tendsto g atTop atTop) :
-    Tendsto (fun x => f x ⊓ g x) atTop atTop := by
+    Tendsto (fun x ↦ f x ⊓ g x) atTop atTop := by
   rw [Filter.tendsto_atTop_atTop] at *
   exact fun a ↦ let ⟨b₁, hb₁⟩ := hf a; let ⟨b₂, hb₂⟩ := hg a
     ⟨max b₁ b₂, fun B hB ↦ le_min (hb₁ _ (max_le_iff.1 hB).1) (hb₂ _ (max_le_iff.1 hB).2)⟩
@@ -201,33 +201,46 @@ lemma IsLocalizingSequence.exists_subseq_isStoppingTime_tendsto_atTop
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk
-      ∧ ∀ᵐ ω ∂P, Tendsto (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) atTop atTop := by
+      ∧ ∀ᵐ ω ∂P, Tendsto (fun i ↦ (τ i ω) ⊓ (σ i (nk i) ω)) atTop atTop := by
   sorry
+
+lemma isLocalizingSequence_of_isStoppingTime_tendsto_atTop
+    {τ : ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
+    (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) (hTends : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop atTop) :
+    IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, τ j ω) P where
+  isStoppingTime (n : ℕ) := IsStoppingTime.iInf {j | j ≥ n} h𝓕 (fun j ↦ hτ j)
+  mono :=  ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk
+  tendsto_top := by
+    filter_upwards [hTends] with ω hω
+    rw [tendsto_atTop_atTop] at ⊢ hω
+    intro C
+    obtain ⟨i, hi⟩ := hω C
+    exact ⟨i, fun j hij ↦ le_iInf <| fun k ↦ le_iInf fun hk ↦ hi _ <| hij.trans hk⟩
 
 lemma IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, (τ j ω) ⊓ (σ j (nk j) ω)) P := by
   obtain ⟨nk, hnk₁, hnk₂⟩ := hτ.exists_subseq_isStoppingTime_tendsto_atTop hσ
-  refine ⟨nk, fun n ↦ IsStoppingTime.iInf {j | j ≥ n} h𝓕 <|
-      fun j ↦ (hτ.isStoppingTime j).min <| (hσ j).isStoppingTime (nk j),
-      ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk, ?_⟩
-  · sorry
+  exact ⟨nk, isLocalizingSequence_of_isStoppingTime_tendsto_atTop h𝓕
+    (fun j ↦ (hτ.isStoppingTime j).min <| (hσ j).isStoppingTime (nk j)) hnk₂⟩
 
-lemma locally_locally [Zero E] (hp : IsStable p 𝓕) :
+lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
-    choose τ hτ using hLL
-    simp_rw [Locally] at *
+    choose τ hτ₁ hτ₂ using hLL
+    obtain ⟨nk, hnk⟩ :=
+      hL.IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop h𝓕 hτ₁
+    refine ⟨_, hnk, fun n ↦ ?_⟩
     sorry
   · exact ⟨hL.localSeq, hL.IsLocalizingSequence, fun n ↦ locally_of_prop <| hL.stoppedProcess n⟩
 
 /-- If `p` implies `q` locally, then `p` locally implies `q` locally. -/
-lemma locally_induction [Zero E] (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable q 𝓕)
-    (hpX : Locally p 𝓕 X P) :
+lemma locally_induction [Zero E] (h𝓕 : IsRightContinuous 𝓕)
+    (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable q 𝓕) (hpX : Locally p 𝓕 X P) :
     Locally q 𝓕 X P :=
-  (locally_locally hq).1 <| hpX.mono hpq
+  (locally_locally h𝓕 hq).1 <| hpX.mono hpq
 
 end ConditionallyCompleteLinearOrderBot
 
