@@ -213,7 +213,7 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
   {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
 
 -- Move
-lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt [NoMaxOrder ι]
+lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
     {τ : Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, MeasurableSet[𝓕 i] {ω | τ ω < i}) :
     IsStoppingTime 𝓕 τ := by
   intro i
@@ -255,7 +255,7 @@ lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt [NoMaxOrder ι]
       exact hu₂ _
 
 -- Move
-lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt' {τ : Ω → WithTop ι}
+lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' {τ : Ω → WithTop ι}
     (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i})
     (hτmax : ∀ i, IsMax i → MeasurableSet[𝓕 i] {ω | τ ω = ⊤}) :
     IsStoppingTime 𝓕 τ := by
@@ -312,12 +312,18 @@ lemma IsRightContinuous.isStoppingTime_of_measurableSet_lt' {τ : Ω → WithTop
       norm_cast
       exact (hu₂ j).1
 
+variable [NoMaxOrder ι]
+
 -- Move. Weaken the lattice assumption?
 lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTop ι}
     (s : Set ℕ) (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) :
     IsStoppingTime 𝓕 (fun ω ↦ ⨅ (n) (_ : n ∈ s), τ n ω) := by
-  intro i
-  sorry
+  refine isStoppingTime_of_measurableSet_lt_of_isRightContinuous h𝓕 <| fun i ↦ ?_
+  refine MeasurableSet.of_compl ?_
+  rw [(_ : {ω | ⨅ n ∈ s, τ n ω < i}ᶜ = ⋂ n ∈ s, {ω | i ≤ τ n ω})]
+  · exact MeasurableSet.iInter <| fun n ↦ MeasurableSet.iInter <| fun hn ↦ (hτ n).measurableSet_ge i
+  · ext ω
+    simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
 
 -- 1: IsStoppingTime.iInf
 -- 2: Given a sequence of stopping times `τₙ` which converge to infinity,
