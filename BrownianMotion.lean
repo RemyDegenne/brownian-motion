@@ -32,3 +32,4 @@ import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
 import BrownianMotion.StochasticIntegral.Predictable
+import BrownianMotion.StochasticIntegral.SimpleProcess
