@@ -201,11 +201,13 @@ The constant sequence $\tau_n = \infty$ is a localizing sequence.
 
 \begin{lemma}\label{lem:localizingSequence_min}
   \uses{def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalizingSequence.min}
 Let $(\sigma_n), (\tau_n)$ be localizing sequences.
 Then $(\sigma_n \wedge \tau_n)$ is a localizing sequence.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -248,7 +250,7 @@ A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then fo
 If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\mathrm{loc}}\cap Q_{\mathrm{loc}}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -260,7 +262,7 @@ If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\m
 If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $X \in P_{\mathrm{loc}}$.
 Then there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in P$.
 Since $P \subseteq Q$, for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in Q$.
@@ -300,7 +302,7 @@ Then $X$ satisfies $Q$ locally.
 In short, if $P$ implies $Q$ locally, then $P$ locally implies $Q$ locally.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:locally_locally, lem:locally_mono}
 Since $X \in P_{\mathrm{loc}}$, then $X \in (Q_{\mathrm{loc}})_{\mathrm{loc}}$ by assumption and Lemma~\ref{lem:locally_mono}.
 By Lemma \ref{lem:locally_locally}, $(Q_{\mathrm{loc}})_{\mathrm{loc}} = Q_{\mathrm{loc}}$.
