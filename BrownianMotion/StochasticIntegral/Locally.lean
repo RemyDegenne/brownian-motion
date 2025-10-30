@@ -18,30 +18,30 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 /-- A localizing sequence is a sequence of stopping times that tends almost surely to infinity. -/
-structure IsPreLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
-    (P : Measure Ω := by volume_tac) :
+structure IsPreLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) (P : Measure Ω := by volume_tac) :
     Prop where
   isStoppingTime : ∀ n, IsStoppingTime 𝓕 (τ n)
-  tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop atTop
+  tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop (𝓝 ⊤)
 
 /-- A localizing sequence is a sequence of stopping times that is almost surely increasing and
 tends almost surely to infinity. -/
-structure IsLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
+structure IsLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
     (P : Measure Ω := by volume_tac) extends IsPreLocalizingSequence 𝓕 τ P where
   mono : ∀ᵐ ω ∂P, Monotone (τ · ω)
 
-lemma isLocalizingSequence_const_top [Preorder ι] (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
-    IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
+lemma isLocalizingSequence_const_top [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (P : Measure Ω) : IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
   isStoppingTime n := by simp [IsStoppingTime]
   mono := ae_of_all _ fun _ _ _ _ ↦ by simp
-  tendsto_top := by filter_upwards [] with ω using by simp [tendsto_atTop]
+  tendsto_top := by filter_upwards [] with ω using tendsto_const_nhds
 
 section LinearOrder
 
-variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-  {p q : (ι → Ω → E) → Prop}
+variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
 
--- Move. Can this be generalized?
+-- Move.
 theorem _root_.Filter.Tendsto.min_atTop_atTop {α β : Type*}
     [Nonempty β] [LinearOrder β] [LinearOrder α]
     {f g : β → α} (hf : Tendsto f atTop atTop) (hg : Tendsto g atTop atTop) :
@@ -50,13 +50,29 @@ theorem _root_.Filter.Tendsto.min_atTop_atTop {α β : Type*}
   exact fun a ↦ let ⟨b₁, hb₁⟩ := hf a; let ⟨b₂, hb₂⟩ := hg a
     ⟨max b₁ b₂, fun B hB ↦ le_min (hb₁ _ (max_le_iff.1 hB).1) (hb₂ _ (max_le_iff.1 hB).2)⟩
 
-lemma IsLocalizingSequence.min {τ σ : ℕ → Ω → WithTop ι}
+lemma IsLocalizingSequence.min [TopologicalSpace ι] [OrderTopology ι] {τ σ : ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : IsLocalizingSequence 𝓕 σ P) :
     IsLocalizingSequence 𝓕 (min τ σ) P where
   isStoppingTime n := (hτ.isStoppingTime n).min (hσ.isStoppingTime n)
   mono := by filter_upwards [hτ.mono, hσ.mono] with ω hτω hσω; exact hτω.min hσω
   tendsto_top := by
-    filter_upwards [hτ.tendsto_top, hσ.tendsto_top] with ω hτω hσω using hτω.min_atTop_atTop hσω
+    filter_upwards [hτ.tendsto_top, hσ.tendsto_top] with ω hτω hσω using hτω.min hσω
+
+lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*} [TopologicalSpace ι] [OrderTopology ι]
+    {f : Filter α} (x : α → WithTop ι) :
+    Tendsto x f (𝓝 ⊤) ↔ ∀ (i : ι), ∀ᶠ (a : α) in f, ↑i < x a := by
+  sorry
+
+lemma _root_.WithTop.tendsto_atTop_nhds_top_iff {α : Type*} [TopologicalSpace ι] [OrderTopology ι]
+    [Nonempty α] [inst : Preorder α] [IsDirected α fun x1 x2 ↦ x1 ≤ x2] (x : α → WithTop ι) :
+    Tendsto x atTop (𝓝 ⊤) ↔  ∀ (i : ι), ∃ N, ∀ n ≥ N, ↑i < x n := by
+  rw [WithTop.tendsto_nhds_top_iff]
+  simp only [eventually_atTop, ge_iff_le]
+
+lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top [TopologicalSpace ι] [OrderTopology ι]
+    {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
+    Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
+  sorry
 
 variable [OrderBot ι]
 
@@ -68,10 +84,15 @@ lemma stoppedProcess_const_top : stoppedProcess X (fun _ ↦ ⊤) = X := by
 /-- A stochastic process `X` is said to satisfy a property `p` locally with respect to a
 filtration `𝓕` if there exists a localizing sequence `(τ_n)` such that for all `n`, the stopped
 process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
-def Locally [Zero E] (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
+def Locally [TopologicalSpace ι] [OrderTopology ι] [Zero E]
+    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
     (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
   ∃ τ : ℕ → Ω → WithTop ι, IsLocalizingSequence 𝓕 τ P ∧
     ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
+
+section
+
+variable [TopologicalSpace ι] [OrderTopology ι]
 
 /-- A localizing sequence, witness of the local property of the stochastic process. -/
 noncomputable
@@ -106,11 +127,14 @@ lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X
     Locally q 𝓕 X P :=
   hX.of_and.right
 
+end
+
 /-- A property of stochastic processes is said to be stable if it is preserved under taking
 the stopped process by a stopping time. -/
-def IsStable [Zero E] (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ) : Prop :=
-  ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
-    p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
+def IsStable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
+    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ) : Prop :=
+    ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
+      p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
 -- Move
 lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
@@ -182,6 +206,8 @@ theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_left
 theorem _root_.MeasureTheory.stoppedProcess_eq_stoppedValue_apply
     {β : Type*} {u : ι → Ω → β} {τ : Ω → WithTop ι} (i : ι) (ω : Ω) :
     stoppedProcess u τ i ω = stoppedValue u (fun ω ↦ min i (τ ω)) ω := rfl
+
+variable [TopologicalSpace ι] [OrderTopology ι]
 
 lemma locally_and [Zero E] (hp : IsStable p 𝓕) (hq : IsStable q 𝓕) :
     Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
@@ -358,10 +384,14 @@ lemma isLocalizingSequence_of_isPreLocalizingSequence
   mono :=  ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk
   tendsto_top := by
     filter_upwards [hτ.tendsto_top] with ω hω
-    rw [tendsto_atTop_atTop] at ⊢ hω
-    intro C
-    obtain ⟨i, hi⟩ := hω C
-    exact ⟨i, fun j hij ↦ le_iInf <| fun k ↦ le_iInf fun hk ↦ hi _ <| hij.trans hk⟩
+    replace hω := hω.liminf_eq
+    rw [liminf_eq_iSup_iInf_of_nat] at hω
+    rw [← hω]
+    refine tendsto_atTop_iSup ?_
+    intro n m hnm
+    simp only [ge_iff_le, le_iInf_iff, iInf_le_iff]
+    intro k hk i hi
+    grind
 
 /-- A stable property holds locally `p` for `X` if there exists a pre-localizing sequence `τ` for
 which the stopped process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
@@ -399,9 +429,9 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
     refine (by simp : ¬ (1 / 2 : ℝ≥0∞) ^ n ≤ 0) <| this.trans <| nonpos_iff_eq_zero.2 ?_
     rw [measure_eq_zero_iff_ae_notMem]
     filter_upwards [(hσ n).tendsto_top] with ω hTop hmem
-    rw [tendsto_atTop_atTop] at hTop
+    rw [WithTop.tendsto_atTop_nhds_top_iff] at hTop
     simp only [Set.mem_iInter, Set.mem_setOf_eq] at hmem
-    obtain ⟨N, hN⟩ := hTop (τ n ω)
+    obtain ⟨N, hN⟩ := hTop (T n)
     specialize hN N le_rfl
     specialize hmem N
     grind
@@ -452,11 +482,6 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂
     σ n (nk n) ω < τ n ω ∧ σ n (nk n) ω < T n
   grind
 
-lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_atTop
-    {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
-    Tendsto (fun n ↦ (a n : WithTop ι)) atTop atTop := by
-  sorry
-
 lemma isPreLocalizingSequence_of_isLocalizingSequence₂
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
@@ -469,17 +494,12 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂
       (tsum_geometric_lt_top.2 <| by norm_num)
   have hτTop := hτ.tendsto_top
   filter_upwards [ae_eventually_notMem this.ne, hτTop] with ω hω hωτ
-  replace hT := hT.tendsto_withTop_atTop_atTop
-  rw [tendsto_atTop_atTop] at hωτ hT ⊢
-  intro C
-  obtain ⟨N, hN⟩ := eventually_atTop.1 hω
-  obtain ⟨i, hi⟩ := hωτ C
-  obtain ⟨j, hj⟩ := hT C
-  refine ⟨max (max i j) N, fun r hr ↦ ?_⟩
-  specialize hN r (by aesop)
-  specialize hi r (by aesop)
-  specialize hj r (by aesop)
-  grind
+  replace hT := hωτ.min hT.tendsto_withTop_atTop_nhds_top
+  simp_rw [eventually_atTop, not_lt, ← eventually_atTop] at hω
+  rw [min_self] at hT
+  rw [← min_self ⊤]
+  refine hωτ.min <|  tendsto_of_tendsto_of_tendsto_of_le_of_le' hT tendsto_const_nhds hω ?_
+  simp only [le_top, eventually_atTop, ge_iff_le, implies_true, exists_const]
 
 /-- A stable property holding locally is idempotent. -/
 lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
