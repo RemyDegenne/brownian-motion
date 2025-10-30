@@ -415,7 +415,8 @@ lemma locally_of_isPreLocalizingSequence [Zero E] {τ : ℕ → Ω → WithTop �
 
 section
 
-variable [(atTop : Filter ι).IsCountablyGenerated] [IsFiniteMeasure P]
+omit [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
+variable [SecondCountableTopology ι] [IsFiniteMeasure P]
 
 lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
@@ -444,10 +445,15 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
     change σ n j ω < τ n ω ∧ σ n j ω < T n → σ n i ω < τ n ω ∧ σ n i ω < T n
     grind
   · intro i
-    sorry
-    -- refine MeasurableSet.nullMeasurableSet ?_
-    -- rw [(_ : {ω | σ n i ω < min (τ n ω) (T n)} = {ω | σ n i ω < (min (τ n ω) (T n)).untopA})]
-    -- refine 𝓕.le _ <| ((hσ _).isStoppingTime _).measurableSet_lt_le le_rfl
+    refine MeasurableSet.nullMeasurableSet ?_
+    have hMσ := ((hσ n).isStoppingTime i).measurable
+    have hMτ := (hτ.isStoppingTime n).measurable
+    simp_rw [lt_inf_iff]
+    rw [(_ : {ω | σ n i ω < τ n ω ∧ σ n i ω < T n} = {ω | σ n i ω < τ n ω} ∩ {ω | σ n i ω < T n})]
+    · exact MeasurableSet.inter
+        (measurableSet_lt ((hσ n).isStoppingTime i).measurable' (hτ.isStoppingTime n).measurable')
+        <| measurableSet_lt ((hσ n).isStoppingTime i).measurable' measurable_const
+    · rfl
   · exact ⟨0, measure_ne_top P _⟩
 
 def mkStrictMono (x : ℕ → ℕ) : ℕ → ℕ
@@ -501,8 +507,11 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂
   refine hωτ.min <|  tendsto_of_tendsto_of_tendsto_of_le_of_le' hT tendsto_const_nhds hω ?_
   simp only [le_top, eventually_atTop, ge_iff_le, implies_true, exists_const]
 
+variable [DenselyOrdered ι] [NoMaxOrder ι]
+
 /-- A stable property holding locally is idempotent. -/
-lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
+lemma locally_locally [Zero E]
+    (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
