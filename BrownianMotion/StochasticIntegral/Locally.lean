@@ -17,14 +17,18 @@ namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
-/-- A localizing sequence is a sequence of stopping times that is almost surely increasing and
-tends almost surely to infinity. -/
-structure IsLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
+/-- A localizing sequence is a sequence of stopping times that tends almost surely to infinity. -/
+structure IsPreLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
     (P : Measure Ω := by volume_tac) :
     Prop where
   isStoppingTime : ∀ n, IsStoppingTime 𝓕 (τ n)
-  mono : ∀ᵐ ω ∂P, Monotone (τ · ω)
   tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop atTop
+
+/-- A localizing sequence is a sequence of stopping times that is almost surely increasing and
+tends almost surely to infinity. -/
+structure IsLocalizingSequence [Preorder ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
+    (P : Measure Ω := by volume_tac) extends IsPreLocalizingSequence 𝓕 τ P where
+  mono : ∀ᵐ ω ∂P, Monotone (τ · ω)
 
 lemma isLocalizingSequence_const_top [Preorder ι] (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
@@ -317,37 +321,44 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
 
--- 1: IsStoppingTime.iInf
--- 2: Given a sequence of stopping times `τₙ` which converge to infinity,
---  `σₙ := inf_{k ≤ n} τₖ` defines a localizing sequence.
-
-lemma IsLocalizingSequence.exists_subseq_isStoppingTime_tendsto_atTop
+lemma isPreLocalizingSequence_of_isLocalizingSequence₂
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk
-      ∧ ∀ᵐ ω ∂P, Tendsto (fun i ↦ (τ i ω) ⊓ (σ i (nk i) ω)) atTop atTop := by
+      ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
   sorry
 
-lemma isLocalizingSequence_of_isStoppingTime_tendsto_atTop
-    {τ : ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
-    (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) (hTends : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop atTop) :
+lemma isLocalizingSequence_of_isPreLocalizingSequence
+    {τ : ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P) :
     IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, τ j ω) P where
-  isStoppingTime (n : ℕ) := IsStoppingTime.iInf {j | j ≥ n} h𝓕 (fun j ↦ hτ j)
+  isStoppingTime (n : ℕ) := IsStoppingTime.iInf {j | j ≥ n} h𝓕 (fun j ↦ hτ.isStoppingTime j)
   mono :=  ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk
   tendsto_top := by
-    filter_upwards [hTends] with ω hω
+    filter_upwards [hτ.tendsto_top] with ω hω
     rw [tendsto_atTop_atTop] at ⊢ hω
     intro C
     obtain ⟨i, hi⟩ := hω C
     exact ⟨i, fun j hij ↦ le_iInf <| fun k ↦ le_iInf fun hk ↦ hi _ <| hij.trans hk⟩
 
-lemma IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop
-    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
-    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
-    ∃ nk : ℕ → ℕ, IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, (τ j ω) ⊓ (σ j (nk j) ω)) P := by
-  obtain ⟨nk, hnk₁, hnk₂⟩ := hτ.exists_subseq_isStoppingTime_tendsto_atTop hσ
-  exact ⟨nk, isLocalizingSequence_of_isStoppingTime_tendsto_atTop h𝓕
-    (fun j ↦ (hτ.isStoppingTime j).min <| (hσ j).isStoppingTime (nk j)) hnk₂⟩
+/-- A stable property holds locally `p` for `X` if there exists a pre-localizing sequence `τ` for
+which the stopped process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
+lemma locally_of_isPreLocalizingSequence [Zero E] {τ : ℕ → Ω → WithTop ι}
+    (hp : IsStable p 𝓕) (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P)
+    (hpτ : ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))) :
+    Locally p 𝓕 X P := by
+  refine ⟨_, isLocalizingSequence_of_isPreLocalizingSequence h𝓕 hτ, fun n ↦ ?_⟩
+  have := hp _ (hpτ n) (fun ω ↦ ⨅ j ≥ n, τ j ω) <|
+    (isLocalizingSequence_of_isPreLocalizingSequence h𝓕 hτ).isStoppingTime n
+  rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess_of_le_right
+    (τ := fun ω ↦ τ n ω) (fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl),
+    ← stoppedProcess_indicator_comm']
+  convert this using 2
+  ext i ω
+  rw [stoppedProcess_indicator_comm', Set.indicator_indicator]
+  congr 1
+  ext ω'
+  simp only [ge_iff_le, Set.mem_setOf_eq, Set.mem_inter_iff]
+  exact ⟨fun h ↦ ⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans (iInf_le _ le_rfl)⟩, fun h ↦ h.1⟩
 
 /-- A stable property holding locally is idempotent. -/
 lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
@@ -355,27 +366,19 @@ lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
     choose τ hτ₁ hτ₂ using hLL
-    obtain ⟨nk, hnk⟩ :=
-      hL.IsLocalizingSequence.exists_subseq_isLocalizingSequence_tendsto_atTop h𝓕 hτ₁
-    refine ⟨_, hnk, fun n ↦ ?_⟩
-    have := hp _ (hτ₂ n (nk n)) (fun ω ↦ ⨅ j ≥ n, (hL.localSeq j ω) ⊓ (τ j (nk j) ω)) ?_
-    · rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess_of_le_right
-        (τ := fun ω ↦ (hL.localSeq n ω) ⊓ (τ n (nk n) ω))
-        (fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl), ← stoppedProcess_indicator_comm']
-      convert this using 2
-      ext i ω
-      rw [stoppedProcess_indicator_comm', stoppedProcess_indicator_comm',
-        stoppedProcess_indicator_comm', Set.indicator_indicator, Set.indicator_indicator]
-      · congr 1
-        · ext ω'
-          simp only [ge_iff_le, Set.mem_setOf_eq, Set.mem_inter_iff]
-          exact ⟨fun h ↦ ⟨⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans <|
-              (iInf_le _ le_rfl).trans <| min_le_right _ _⟩,
-            lt_of_lt_of_le h <| (iInf_le _ n).trans <| (iInf_le _ le_rfl).trans <| min_le_left _ _⟩,
-            fun h ↦ h.1.1⟩
-        · rw [stoppedProcess_stoppedProcess, inf_comm]; rfl
-    · exact IsStoppingTime.iInf {j | j ≥ n} h𝓕 <| fun j ↦
-        (hL.IsLocalizingSequence.isStoppingTime j).min <| (hτ₁ j).isStoppingTime (nk j)
+    obtain ⟨nk, hnk, hpre⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂
+      hL.IsLocalizingSequence hτ₁
+    refine locally_of_isPreLocalizingSequence hp h𝓕 hpre <| fun n ↦ ?_
+    specialize hτ₂ n (nk n)
+    convert hτ₂ using 1
+    ext i ω
+    rw [stoppedProcess_indicator_comm', stoppedProcess_indicator_comm',
+      stoppedProcess_stoppedProcess, stoppedProcess_indicator_comm']
+    simp only [lt_inf_iff, Set.indicator_indicator]
+    congr 1
+    · ext ω'; simp only [And.comm, Set.mem_setOf_eq, Set.mem_inter_iff]
+    · simp_rw [inf_comm]
+      rfl
   · exact ⟨hL.localSeq, hL.IsLocalizingSequence, fun n ↦ locally_of_prop <| hL.stoppedProcess n⟩
 
 /-- If `p` implies `q` locally, then `p` locally implies `q` locally. -/
