@@ -87,6 +87,9 @@ lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top'
   obtain ⟨j, hj⟩ := ha i'
   exact ⟨j, fun n hn ↦ lt_of_lt_of_le hi' <| hj _ hn⟩
 
+-- Figure this out
+-- Change definition of right continuous filtrations
+
 lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
     [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι]
     {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
