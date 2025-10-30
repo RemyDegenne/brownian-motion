@@ -321,12 +321,31 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
 
+lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ nk : ℕ → ℕ, StrictMono nk ∧ ∀ n, P {ω | σ n (nk n) ω < τ n ω} ≤ (1 / 2) ^ n := by
+  sorry
+
 lemma isPreLocalizingSequence_of_isLocalizingSequence₂
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk
       ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
-  sorry
+  obtain ⟨nk, hnk, hP⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux hτ hσ
+  refine ⟨nk, hnk, fun n ↦ (hτ.isStoppingTime n).min ((hσ _).isStoppingTime _), ?_⟩
+  have : ∑' n, P {ω | σ n (nk n) ω < τ n ω} < ∞ :=
+    lt_of_le_of_lt (ENNReal.summable.tsum_mono ENNReal.summable hP)
+      (tsum_geometric_lt_top.2 <| by norm_num)
+  have hτTop := hτ.tendsto_top
+  filter_upwards [ae_eventually_notMem this.ne, hτTop] with ω hω hωτ
+  rw [tendsto_atTop_atTop] at hωτ ⊢
+  intro C
+  obtain ⟨i, hi⟩ := hωτ C
+  obtain ⟨N, hN⟩ := eventually_atTop.1 hω
+  refine ⟨max i N, fun j hj ↦ ?_⟩
+  rw [min_eq_left (not_lt.1 (hN j <| (le_max_right i N).trans hj))]
+  exact hi _ <| le_trans (le_max_left i N) hj
 
 lemma isLocalizingSequence_of_isPreLocalizingSequence
     {τ : ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P) :
