@@ -58,18 +58,37 @@ lemma IsLocalizingSequence.min [TopologicalSpace ι] [OrderTopology ι] {τ σ :
   tendsto_top := by
     filter_upwards [hτ.tendsto_top, hσ.tendsto_top] with ω hτω hσω using hτω.min hσω
 
-lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*} [TopologicalSpace ι] [OrderTopology ι]
-    {f : Filter α} (x : α → WithTop ι) :
-    Tendsto x f (𝓝 ⊤) ↔ ∀ (i : ι), ∀ᶠ (a : α) in f, ↑i < x a := by
-  sorry
+lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*}
+    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι] {f : Filter α} (x : α → WithTop ι) :
+    Tendsto x f (𝓝 ⊤) ↔ ∀ (i : ι), ∀ᶠ (a : α) in f, i < x a := by
+  refine nhds_top_basis.tendsto_right_iff.trans ?_
+  simp only [Set.mem_Ioi]
+  refine ⟨fun h i ↦ h i trivial, fun h i hi ↦ ?_⟩
+  specialize h (i.untop hi.ne)
+  filter_upwards [h] with a ha
+  simpa using ha
 
-lemma _root_.WithTop.tendsto_atTop_nhds_top_iff {α : Type*} [TopologicalSpace ι] [OrderTopology ι]
+lemma _root_.WithTop.tendsto_atTop_nhds_top_iff {α : Type*}
+    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι]
     [Nonempty α] [inst : Preorder α] [IsDirected α fun x1 x2 ↦ x1 ≤ x2] (x : α → WithTop ι) :
-    Tendsto x atTop (𝓝 ⊤) ↔  ∀ (i : ι), ∃ N, ∀ n ≥ N, ↑i < x n := by
+    Tendsto x atTop (𝓝 ⊤) ↔ ∀ (i : ι), ∃ N, ∀ n ≥ N, i < x n := by
   rw [WithTop.tendsto_nhds_top_iff]
   simp only [eventually_atTop, ge_iff_le]
 
-lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top [TopologicalSpace ι] [OrderTopology ι]
+lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top'
+    [Nonempty ι] [NoMaxOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
+    Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
+  rw [WithTop.tendsto_atTop_nhds_top_iff]
+  rw [tendsto_atTop_atTop] at ha
+  norm_cast
+  intro i
+  obtain ⟨i', hi'⟩ := NoMaxOrder.exists_gt i
+  obtain ⟨j, hj⟩ := ha i'
+  exact ⟨j, fun n hn ↦ lt_of_lt_of_le hi' <| hj _ hn⟩
+
+lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
+    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι]
     {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
     Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
   sorry
