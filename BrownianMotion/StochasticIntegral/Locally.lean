@@ -321,31 +321,35 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
 
-lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux
-    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
-    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
-    ∃ nk : ℕ → ℕ, StrictMono nk ∧ ∀ n, P {ω | σ n (nk n) ω < τ n ω} ≤ (1 / 2) ^ n := by
-  sorry
-
-lemma isPreLocalizingSequence_of_isLocalizingSequence₂
-    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
-    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
-    ∃ nk : ℕ → ℕ, StrictMono nk
-      ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
-  obtain ⟨nk, hnk, hP⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux hτ hσ
-  refine ⟨nk, hnk, fun n ↦ (hτ.isStoppingTime n).min ((hσ _).isStoppingTime _), ?_⟩
-  have : ∑' n, P {ω | σ n (nk n) ω < τ n ω} < ∞ :=
-    lt_of_le_of_lt (ENNReal.summable.tsum_mono ENNReal.summable hP)
-      (tsum_geometric_lt_top.2 <| by norm_num)
-  have hτTop := hτ.tendsto_top
-  filter_upwards [ae_eventually_notMem this.ne, hτTop] with ω hω hωτ
-  rw [tendsto_atTop_atTop] at hωτ ⊢
-  intro C
-  obtain ⟨i, hi⟩ := hωτ C
-  obtain ⟨N, hN⟩ := eventually_atTop.1 hω
-  refine ⟨max i N, fun j hj ↦ ?_⟩
-  rw [min_eq_left (not_lt.1 (hN j <| (le_max_right i N).trans hj))]
-  exact hi _ <| le_trans (le_max_left i N) hj
+lemma measure_iInter_of_ae_antitone {ι : Type*}
+    [Countable ι] [Preorder ι] [IsDirected ι fun (x1 x2 : ι) ↦ x1 ≤ x2]
+    {s : ι → Set Ω} (hs : ∀ᵐ ω ∂P, Antitone (s · ω))
+    (hsm : ∀ (i : ι), MeasureTheory.NullMeasurableSet (s i) P) (hfin : ∃ (i : ι), P (s i) ≠ ⊤) :
+    P (⋂ (i : ι), s i) = ⨅ (i : ι), P (s i) := by
+  set t : ι → Set Ω := fun i ↦ ⋂ j ≤ i, s j with ht
+  have hst (i : ι) : s i =ᵐ[P] t i := by
+    filter_upwards [hs] with ω hω
+    suffices ω ∈ s i ↔ ω ∈ t i by
+      exact propext this
+    simp only [ht, Set.mem_iInter]
+    refine ⟨fun (h : s i ω) j hj ↦ ?_, fun h ↦ h i le_rfl⟩
+    change s j ω
+    specialize hω hj
+    simp only [le_Prop_eq] at hω
+    exact hω h
+  rw [measure_congr <| EventuallyEq.countable_iInter hst, Antitone.measure_iInter]
+  · exact iInf_congr <| fun i ↦ measure_congr <| (hst i).symm
+  · intros i j hij
+    simp only [ht]
+    rw [(_ : ⋂ k ≤ j, s k = (⋂ k ≤ i, s k) ∩ (⋂ k ∈ {k | k ≤ j ∧ ¬ k ≤ i}, s k))]
+    · exact Set.inter_subset_left
+    · ext ω
+      simp only [Set.mem_iInter, Set.mem_setOf_eq, Set.mem_inter_iff, and_imp]
+      grind
+  · exact fun _ ↦ NullMeasurableSet.iInter <| fun j ↦ NullMeasurableSet.iInter <| fun _ ↦ hsm j
+  · obtain ⟨i, hi⟩ := hfin
+    refine ⟨i, (lt_of_le_of_lt ?_ <| lt_top_iff_ne_top.2 hi).ne⟩
+    rw [measure_congr (hst i)]
 
 lemma isLocalizingSequence_of_isPreLocalizingSequence
     {τ : ℕ → Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P) :
@@ -379,6 +383,104 @@ lemma locally_of_isPreLocalizingSequence [Zero E] {τ : ℕ → Ω → WithTop �
   simp only [ge_iff_le, Set.mem_setOf_eq, Set.mem_inter_iff]
   exact ⟨fun h ↦ ⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans (iInf_le _ le_rfl)⟩, fun h ↦ h.1⟩
 
+section
+
+variable [(atTop : Filter ι).IsCountablyGenerated] [IsFiniteMeasure P]
+
+lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ T : ℕ → ι, Tendsto T atTop atTop
+      ∧ ∀ n, ∃ k, P {ω | σ n k ω < min (τ n ω) (T n)} ≤ (1 / 2) ^ n := by
+  obtain ⟨T, -, hT⟩ := Filter.exists_seq_monotone_tendsto_atTop_atTop ι
+  refine ⟨T, hT, fun n ↦ ?_⟩
+  by_contra hn; push_neg at hn
+  suffices (1 / 2) ^ n ≤ P (⋂ k : ℕ, {ω | σ n k ω < min (τ n ω) (T n)}) by
+    refine (by simp : ¬ (1 / 2 : ℝ≥0∞) ^ n ≤ 0) <| this.trans <| nonpos_iff_eq_zero.2 ?_
+    rw [measure_eq_zero_iff_ae_notMem]
+    filter_upwards [(hσ n).tendsto_top] with ω hTop hmem
+    rw [tendsto_atTop_atTop] at hTop
+    simp only [Set.mem_iInter, Set.mem_setOf_eq] at hmem
+    obtain ⟨N, hN⟩ := hTop (τ n ω)
+    specialize hN N le_rfl
+    specialize hmem N
+    grind
+  rw [measure_iInter_of_ae_antitone, le_iInf_iff]
+  · exact fun k ↦ (hn k).le
+  · filter_upwards [(hσ n).mono] with ω hω
+    intros i j hij
+    specialize hω hij
+    simp only [lt_inf_iff, le_Prop_eq] at *
+    change σ n j ω < τ n ω ∧ σ n j ω < T n → σ n i ω < τ n ω ∧ σ n i ω < T n
+    grind
+  · intro i
+    sorry
+    -- refine MeasurableSet.nullMeasurableSet ?_
+    -- rw [(_ : {ω | σ n i ω < min (τ n ω) (T n)} = {ω | σ n i ω < (min (τ n ω) (T n)).untopA})]
+    -- refine 𝓕.le _ <| ((hσ _).isStoppingTime _).measurableSet_lt_le le_rfl
+  · exact ⟨0, measure_ne_top P _⟩
+
+def mkStrictMono (x : ℕ → ℕ) : ℕ → ℕ
+| 0 => x 0
+| n + 1 => max (x (n + 1)) (mkStrictMono x n) + 1
+
+lemma mkStrictMono_strictMono (x : ℕ → ℕ) : StrictMono (mkStrictMono x) := by
+  refine strictMono_nat_of_lt_succ <| fun n ↦ ?_
+  simp only [mkStrictMono]
+  exact lt_of_le_of_lt (le_max_right (x (n + 1)) _) (lt_add_one (max (x (n + 1)) _))
+
+lemma le_mkStrictMono (x : ℕ → ℕ) : ∀ n, x n ≤ mkStrictMono x n
+| 0 => by simp [mkStrictMono]
+| n + 1 => by
+    simp only [mkStrictMono]
+    exact (le_max_left (x (n + 1)) (mkStrictMono x n)).trans <|
+       Nat.le_add_right (max (x (n + 1)) (mkStrictMono x n)) 1
+
+lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ nk : ℕ → ℕ, StrictMono nk ∧ ∃ T : ℕ → ι, Tendsto T atTop atTop
+      ∧ ∀ n, P {ω | σ n (nk n) ω < min (τ n ω) (T n)} ≤ (1 / 2) ^ n := by
+  obtain ⟨T, hT, h⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁ hτ hσ
+  choose nk hnk using h
+  refine ⟨mkStrictMono nk, mkStrictMono_strictMono nk, T, hT, fun n ↦
+    le_trans (EventuallyLE.measure_le ?_) (hnk n)⟩
+  filter_upwards [(hσ n).mono] with ω hω
+  specialize hω (le_mkStrictMono nk n)
+  simp only [lt_inf_iff, le_Prop_eq]
+  change σ n (mkStrictMono nk n) ω < τ n ω ∧ σ n (mkStrictMono nk n) ω < T n →
+    σ n (nk n) ω < τ n ω ∧ σ n (nk n) ω < T n
+  grind
+
+lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_atTop
+    {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
+    Tendsto (fun n ↦ (a n : WithTop ι)) atTop atTop := by
+  sorry
+
+lemma isPreLocalizingSequence_of_isLocalizingSequence₂
+    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
+    ∃ nk : ℕ → ℕ, StrictMono nk
+      ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
+  obtain ⟨nk, hnk, T, hT, hP⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂ hτ hσ
+  refine ⟨nk, hnk, fun n ↦ (hτ.isStoppingTime n).min ((hσ _).isStoppingTime _), ?_⟩
+  have : ∑' n, P {ω | σ n (nk n) ω < min (τ n ω) (T n)} < ∞ :=
+    lt_of_le_of_lt (ENNReal.summable.tsum_mono ENNReal.summable hP)
+      (tsum_geometric_lt_top.2 <| by norm_num)
+  have hτTop := hτ.tendsto_top
+  filter_upwards [ae_eventually_notMem this.ne, hτTop] with ω hω hωτ
+  replace hT := hT.tendsto_withTop_atTop_atTop
+  rw [tendsto_atTop_atTop] at hωτ hT ⊢
+  intro C
+  obtain ⟨N, hN⟩ := eventually_atTop.1 hω
+  obtain ⟨i, hi⟩ := hωτ C
+  obtain ⟨j, hj⟩ := hT C
+  refine ⟨max (max i j) N, fun r hr ↦ ?_⟩
+  specialize hN r (by aesop)
+  specialize hi r (by aesop)
+  specialize hj r (by aesop)
+  grind
+
 /-- A stable property holding locally is idempotent. -/
 lemma locally_locally [Zero E] (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
@@ -405,6 +507,8 @@ lemma locally_induction [Zero E] (h𝓕 : IsRightContinuous 𝓕)
     (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable q 𝓕) (hpX : Locally p 𝓕 X P) :
     Locally q 𝓕 X P :=
   (locally_locally h𝓕 hq).1 <| hpX.mono hpq
+
+end
 
 end ConditionallyCompleteLinearOrderBot
 
