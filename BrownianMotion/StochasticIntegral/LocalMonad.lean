@@ -1,6 +1,15 @@
+/-
+Copyright (c) 2025 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
 import BrownianMotion.StochasticIntegral.Locally
 import Mathlib.MeasureTheory.Category.MeasCat
 import Mathlib.CategoryTheory.Category.Preorder
+
+/-! # The Local Monad on Stable Properties
+
+-/
 
 open MeasureTheory Filter CategoryTheory
 open scoped ENNReal Topology
