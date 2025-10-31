@@ -154,7 +154,7 @@ end
 /-- A property of stochastic processes is said to be stable if it is preserved under taking
 the stopped process by a stopping time. -/
 def IsStable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
-    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ) : Prop :=
+    (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
     ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
       p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
@@ -231,7 +231,7 @@ theorem _root_.MeasureTheory.stoppedProcess_eq_stoppedValue_apply
 
 variable [TopologicalSpace ι] [OrderTopology ι]
 
-lemma locally_and [Zero E] (hp : IsStable p 𝓕) (hq : IsStable q 𝓕) :
+lemma locally_and [Zero E] (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
     Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
   refine ⟨Locally.of_and, fun ⟨hpX, hqX⟩ ↦
     ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
@@ -418,7 +418,7 @@ lemma isLocalizingSequence_of_isPreLocalizingSequence
 /-- A stable property holds locally `p` for `X` if there exists a pre-localizing sequence `τ` for
 which the stopped process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
 lemma locally_of_isPreLocalizingSequence [Zero E] {τ : ℕ → Ω → WithTop ι}
-    (hp : IsStable p 𝓕) (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P)
+    (hp : IsStable 𝓕 p) (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P)
     (hpτ : ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))) :
     Locally p 𝓕 X P := by
   refine ⟨_, isLocalizingSequence_of_isPreLocalizingSequence h𝓕 hτ, fun n ↦ ?_⟩
@@ -526,14 +526,14 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂
   simp_rw [eventually_atTop, not_lt, ← eventually_atTop] at hω
   rw [min_self] at hT
   rw [← min_self ⊤]
-  refine hωτ.min <|  tendsto_of_tendsto_of_tendsto_of_le_of_le' hT tendsto_const_nhds hω ?_
+  refine hωτ.min <| tendsto_of_tendsto_of_tendsto_of_le_of_le' hT tendsto_const_nhds hω ?_
   simp only [le_top, eventually_atTop, ge_iff_le, implies_true, exists_const]
 
-variable [DenselyOrdered ι] [NoMaxOrder ι]
+variable [DenselyOrdered ι] [NoMaxOrder ι] [Zero E]
 
 /-- A stable property holding locally is idempotent. -/
-lemma locally_locally [Zero E]
-    (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable p 𝓕) :
+lemma locally_locally
+    (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable 𝓕 p) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
@@ -554,8 +554,8 @@ lemma locally_locally [Zero E]
   · exact ⟨hL.localSeq, hL.IsLocalizingSequence, fun n ↦ locally_of_prop <| hL.stoppedProcess n⟩
 
 /-- If `p` implies `q` locally, then `p` locally implies `q` locally. -/
-lemma locally_induction [Zero E] (h𝓕 : IsRightContinuous 𝓕)
-    (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable q 𝓕) (hpX : Locally p 𝓕 X P) :
+lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
+    (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable 𝓕 q) (hpX : Locally p 𝓕 X P) :
     Locally q 𝓕 X P :=
   (locally_locally h𝓕 hq).1 <| hpX.mono hpq
 
