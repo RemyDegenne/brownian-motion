@@ -15,9 +15,9 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [LinearOrder ι] [OrderBot ι]
-  {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 /-- A stochastic process is a local martingale if it satisfies the martingale property locally. -/
 def IsLocalMartingale (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω := by volume_tac) :
@@ -38,11 +38,11 @@ lemma Submartingale.IsLocalSubmartingale [LE E] (hX : Submartingale X 𝓕 P) :
   locally_of_prop hX
 
 /-- Martingales are a stable class. -/
-lemma isStable_martingale : IsStable (fun X : ι → Ω → E ↦ Martingale X 𝓕 P) 𝓕 := by
+lemma isStable_martingale : IsStable 𝓕 (fun X : ι → Ω → E ↦ Martingale X 𝓕 P) := by
   sorry
 
 /-- Submartingales are a stable class. -/
-lemma isStable_submartingale : IsStable (fun X : ι → Ω → ℝ ↦ Submartingale X 𝓕 P) 𝓕 := by
+lemma isStable_submartingale : IsStable 𝓕 (fun X : ι → Ω → ℝ ↦ Submartingale X 𝓕 P) := by
   sorry
 
 end ProbabilityTheory
