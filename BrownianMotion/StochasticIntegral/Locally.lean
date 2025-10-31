@@ -338,9 +338,18 @@ def IsStable [Zero E]
     ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
       p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
-variable [TopologicalSpace ι] [OrderTopology ι]
+variable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
 
-lemma locally_and [Zero E] (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
+lemma IsStable.isStable_locally (hp : IsStable 𝓕 p) :
+    IsStable 𝓕 (fun Y ↦ Locally p 𝓕 Y P) := by
+  intro X hX τ hτ
+  refine ⟨hX.localSeq, hX.IsLocalizingSequence, fun n ↦ ?_⟩
+  simp_rw [← stoppedProcess_indicator_comm', Set.indicator_indicator, Set.inter_comm,
+    ← Set.indicator_indicator, stoppedProcess_stoppedProcess, inf_comm]
+  rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess]
+  exact hp _ (hX.stoppedProcess n) τ hτ
+
+lemma locally_and (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
     Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
   refine ⟨Locally.of_and, fun ⟨hpX, hqX⟩ ↦
     ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
