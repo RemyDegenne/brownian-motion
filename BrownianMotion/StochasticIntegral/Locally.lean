@@ -75,7 +75,7 @@ lemma _root_.WithTop.tendsto_atTop_nhds_top_iff {α : Type*}
   rw [WithTop.tendsto_nhds_top_iff]
   simp only [eventually_atTop, ge_iff_le]
 
-lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top'
+lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
     [Nonempty ι] [NoMaxOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
     Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
@@ -86,15 +86,6 @@ lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top'
   obtain ⟨i', hi'⟩ := NoMaxOrder.exists_gt i
   obtain ⟨j, hj⟩ := ha i'
   exact ⟨j, fun n hn ↦ lt_of_lt_of_le hi' <| hj _ hn⟩
-
--- Figure this out
--- Change definition of right continuous filtrations
-
-lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
-    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι]
-    {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
-    Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
-  sorry
 
 variable [OrderBot ι]
 
@@ -511,7 +502,7 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂
   grind
 
 lemma isPreLocalizingSequence_of_isLocalizingSequence₂
-    {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
+    [NoMaxOrder ι] {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk
       ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
