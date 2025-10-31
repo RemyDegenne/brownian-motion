@@ -17,31 +17,12 @@ namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
-/-- A localizing sequence is a sequence of stopping times that tends almost surely to infinity. -/
-structure IsPreLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
-    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) (P : Measure Ω := by volume_tac) :
-    Prop where
-  isStoppingTime : ∀ n, IsStoppingTime 𝓕 (τ n)
-  tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop (𝓝 ⊤)
+section ToMove
 
-/-- A localizing sequence is a sequence of stopping times that is almost surely increasing and
-tends almost surely to infinity. -/
-structure IsLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
-    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
-    (P : Measure Ω := by volume_tac) extends IsPreLocalizingSequence 𝓕 τ P where
-  mono : ∀ᵐ ω ∂P, Monotone (τ · ω)
+-- This section contains lemmas that should be moved files which already exist in mathlib.
 
-lemma isLocalizingSequence_const_top [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) : IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
-  isStoppingTime n := by simp [IsStoppingTime]
-  mono := ae_of_all _ fun _ _ _ _ ↦ by simp
-  tendsto_top := by filter_upwards [] with ω using tendsto_const_nhds
+section Tendsto
 
-section LinearOrder
-
-variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
-
--- Move.
 theorem _root_.Filter.Tendsto.min_atTop_atTop {α β : Type*}
     [Nonempty β] [LinearOrder β] [LinearOrder α]
     {f g : β → α} (hf : Tendsto f atTop atTop) (hg : Tendsto g atTop atTop) :
@@ -50,16 +31,9 @@ theorem _root_.Filter.Tendsto.min_atTop_atTop {α β : Type*}
   exact fun a ↦ let ⟨b₁, hb₁⟩ := hf a; let ⟨b₂, hb₂⟩ := hg a
     ⟨max b₁ b₂, fun B hB ↦ le_min (hb₁ _ (max_le_iff.1 hB).1) (hb₂ _ (max_le_iff.1 hB).2)⟩
 
-lemma IsLocalizingSequence.min [TopologicalSpace ι] [OrderTopology ι] {τ σ : ℕ → Ω → WithTop ι}
-    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : IsLocalizingSequence 𝓕 σ P) :
-    IsLocalizingSequence 𝓕 (min τ σ) P where
-  isStoppingTime n := (hτ.isStoppingTime n).min (hσ.isStoppingTime n)
-  mono := by filter_upwards [hτ.mono, hσ.mono] with ω hτω hσω; exact hτω.min hσω
-  tendsto_top := by
-    filter_upwards [hτ.tendsto_top, hσ.tendsto_top] with ω hτω hσω using hτω.min hσω
-
 lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*}
-    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι] {f : Filter α} (x : α → WithTop ι) :
+    [Nonempty ι] [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι] {f : Filter α}
+    (x : α → WithTop ι) :
     Tendsto x f (𝓝 ⊤) ↔ ∀ (i : ι), ∀ᶠ (a : α) in f, i < x a := by
   refine nhds_top_basis.tendsto_right_iff.trans ?_
   simp only [Set.mem_Ioi]
@@ -69,14 +43,14 @@ lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*}
   simpa using ha
 
 lemma _root_.WithTop.tendsto_atTop_nhds_top_iff {α : Type*}
-    [Nonempty ι] [TopologicalSpace ι] [OrderTopology ι]
+    [Nonempty ι] [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     [Nonempty α] [inst : Preorder α] [IsDirected α fun x1 x2 ↦ x1 ≤ x2] (x : α → WithTop ι) :
     Tendsto x atTop (𝓝 ⊤) ↔ ∀ (i : ι), ∃ N, ∀ n ≥ N, i < x n := by
   rw [WithTop.tendsto_nhds_top_iff]
   simp only [eventually_atTop, ge_iff_le]
 
 lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
-    [Nonempty ι] [NoMaxOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    [Nonempty ι] [LinearOrder ι] [NoMaxOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     {a : ℕ → ι} (ha : Tendsto a atTop atTop) :
     Tendsto (fun n ↦ (a n : WithTop ι)) atTop (𝓝 ⊤) := by
   rw [WithTop.tendsto_atTop_nhds_top_iff]
@@ -87,69 +61,12 @@ lemma _root_.Filter.Tendsto.tendsto_withTop_atTop_nhds_top
   obtain ⟨j, hj⟩ := ha i'
   exact ⟨j, fun n hn ↦ lt_of_lt_of_le hi' <| hj _ hn⟩
 
-variable [OrderBot ι]
+end Tendsto
 
-@[simp]
-lemma stoppedProcess_const_top : stoppedProcess X (fun _ ↦ ⊤) = X := by
-  unfold stoppedProcess
-  simp
+section StoppedProcess
 
-/-- A stochastic process `X` is said to satisfy a property `p` locally with respect to a
-filtration `𝓕` if there exists a localizing sequence `(τ_n)` such that for all `n`, the stopped
-process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
-def Locally [TopologicalSpace ι] [OrderTopology ι] [Zero E]
-    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
-    (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
-  ∃ τ : ℕ → Ω → WithTop ι, IsLocalizingSequence 𝓕 τ P ∧
-    ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
+variable [Nonempty ι] [LinearOrder ι]
 
-section
-
-variable [TopologicalSpace ι] [OrderTopology ι]
-
-/-- A localizing sequence, witness of the local property of the stochastic process. -/
-noncomputable
-def Locally.localSeq [Zero E] (hX : Locally p 𝓕 X P) :
-    ℕ → Ω → WithTop ι :=
-  hX.choose
-
-lemma Locally.IsLocalizingSequence [Zero E] (hX : Locally p 𝓕 X P) :
-    IsLocalizingSequence 𝓕 (hX.localSeq) P :=
-  hX.choose_spec.1
-
-lemma Locally.stoppedProcess [Zero E] (hX : Locally p 𝓕 X P) (n : ℕ) :
-    p (stoppedProcess (fun i ↦ {ω | ⊥ < hX.localSeq n ω}.indicator (X i)) (hX.localSeq n)) :=
-  hX.choose_spec.2 n
-
-lemma locally_of_prop [Zero E] (hp : p X) : Locally p 𝓕 X P :=
-  ⟨fun n _ ↦ (⊤ : WithTop ι), isLocalizingSequence_const_top _ _, by simpa⟩
-
-lemma Locally.mono [Zero E] (hpq : ∀ X, p X → q X) (hpX : Locally p 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  ⟨hpX.localSeq, hpX.IsLocalizingSequence, fun n ↦ hpq _ <| hpX.stoppedProcess n⟩
-
-lemma Locally.of_and [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally p 𝓕 X P ∧ Locally q 𝓕 X P :=
-  ⟨hX.mono <| fun _ ↦ And.left, hX.mono <| fun _ ↦ And.right⟩
-
-lemma Locally.of_and_left [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally p 𝓕 X P :=
-  hX.of_and.left
-
-lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  hX.of_and.right
-
-end
-
-/-- A property of stochastic processes is said to be stable if it is preserved under taking
-the stopped process by a stopping time. -/
-def IsStable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
-    (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
-    ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
-      p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
-
--- Move
 lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} (i : ι) :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ i
@@ -160,7 +77,6 @@ lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β
   · rw [stoppedProcess, Set.indicator_of_mem hω, stoppedProcess]
   · rw [stoppedProcess, Set.indicator_of_notMem hω]
 
--- Move
 lemma stoppedProcess_indicator_comm' {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ
@@ -168,14 +84,13 @@ lemma stoppedProcess_indicator_comm' {β : Type*} [Zero β] {u : ι → Ω → �
   ext i ω
   rw [stoppedProcess_indicator_comm]
 
--- Move
 theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
     {β : Type*} {ω : Ω} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (hω : σ ω ≠ ⊤) :
     stoppedValue (stoppedProcess u τ) σ ω = stoppedValue u (fun ω ↦ min (σ ω) (τ ω)) ω := by
   simp only [stoppedValue_stoppedProcess, ne_eq, hω, not_false_eq_true, reduceIte]
 
--- Move
-@[simp] theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess
+@[simp]
+theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess
     {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} :
     stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (σ ⊓ τ) := by
   ext i ω
@@ -197,65 +112,32 @@ theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
       rfl
     · exact (lt_of_le_of_lt (min_le_right _ _) <| WithTop.lt_top_iff_ne_top.2 hσ).ne
 
--- Move
-@[simp] theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess'
+theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess'
     {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} :
     stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (fun ω ↦ min (σ ω) (τ ω)) := by
   simp; rfl
 
--- Move
 theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_right
     {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : σ ≤ τ) :
     stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u σ := by
   rw [stoppedProcess_stoppedProcess, inf_of_le_left h]
 
--- Move
 theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_left
     {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : τ ≤ σ) :
     stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u τ := by
   rw [stoppedProcess_stoppedProcess, inf_of_le_right h]
 
--- Move
 theorem _root_.MeasureTheory.stoppedProcess_eq_stoppedValue_apply
     {β : Type*} {u : ι → Ω → β} {τ : Ω → WithTop ι} (i : ι) (ω : Ω) :
     stoppedProcess u τ i ω = stoppedValue u (fun ω ↦ min i (τ ω)) ω := rfl
 
-variable [TopologicalSpace ι] [OrderTopology ι]
+end StoppedProcess
 
-lemma locally_and [Zero E] (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
-    Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
-  refine ⟨Locally.of_and, fun ⟨hpX, hqX⟩ ↦
-    ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
-  · convert hp _ (hpX.stoppedProcess n) _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
-    ext i ω
-    rw [stoppedProcess_indicator_comm]
-    simp_rw [Pi.inf_apply, lt_inf_iff, inf_comm (hpX.localSeq n)]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
-      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
-        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω}), Set.inter_comm]
-    · simp_rw [← Set.indicator_indicator]
-      rfl
-    · rfl
-  · convert hq _ (hqX.stoppedProcess n) _ <| hpX.IsLocalizingSequence.isStoppingTime n using 1
-    ext i ω
-    rw [stoppedProcess_indicator_comm]
-    simp_rw [Pi.inf_apply, lt_inf_iff]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
-      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
-        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω})]
-    · simp_rw [← Set.indicator_indicator]
-      rfl
-    · rfl
-
-end LinearOrder
-
-section ConditionallyCompleteLinearOrderBot
+section IsStoppingTime
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [DenselyOrdered ι] [FirstCountableTopology ι]
-  {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
+  [DenselyOrdered ι] [FirstCountableTopology ι] {𝓕 : Filtration ι mΩ}
 
--- Move
 lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
     {τ : Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, MeasurableSet[𝓕 i] {ω | τ ω < i}) :
     IsStoppingTime 𝓕 τ := by
@@ -297,7 +179,6 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
       norm_cast
       exact hu₂ _
 
--- Move
 -- This lemma will change when we decide on the correct definition of `IsRightContinuous`
 lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' {τ : Ω → WithTop ι}
     (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i}) :
@@ -349,7 +230,6 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' {τ : Ω → With
 
 variable [NoMaxOrder ι]
 
--- Move. Weaken the lattice assumption?
 lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTop ι}
     (s : Set ℕ) (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ n, IsStoppingTime 𝓕 (τ n)) :
     IsStoppingTime 𝓕 (fun ω ↦ ⨅ (n) (_ : n ∈ s), τ n ω) := by
@@ -359,6 +239,139 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · exact MeasurableSet.iInter <| fun n ↦ MeasurableSet.iInter <| fun hn ↦ (hτ n).measurableSet_ge i
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
+
+end IsStoppingTime
+
+end ToMove
+
+/-- A localizing sequence is a sequence of stopping times that tends almost surely to infinity. -/
+structure IsPreLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) (P : Measure Ω := by volume_tac) :
+    Prop where
+  isStoppingTime : ∀ n, IsStoppingTime 𝓕 (τ n)
+  tendsto_top : ∀ᵐ ω ∂P, Tendsto (τ · ω) atTop (𝓝 ⊤)
+
+/-- A localizing sequence is a sequence of stopping times that is almost surely increasing and
+tends almost surely to infinity. -/
+structure IsLocalizingSequence [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
+    (P : Measure Ω := by volume_tac) extends IsPreLocalizingSequence 𝓕 τ P where
+  mono : ∀ᵐ ω ∂P, Monotone (τ · ω)
+
+lemma isLocalizingSequence_const_top [Preorder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι mΩ) (P : Measure Ω) : IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
+  isStoppingTime n := by simp [IsStoppingTime]
+  mono := ae_of_all _ fun _ _ _ _ ↦ by simp
+  tendsto_top := by filter_upwards [] with ω using tendsto_const_nhds
+
+section LinearOrder
+
+variable [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
+
+lemma IsLocalizingSequence.min [TopologicalSpace ι] [OrderTopology ι] {τ σ : ℕ → Ω → WithTop ι}
+    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : IsLocalizingSequence 𝓕 σ P) :
+    IsLocalizingSequence 𝓕 (min τ σ) P where
+  isStoppingTime n := (hτ.isStoppingTime n).min (hσ.isStoppingTime n)
+  mono := by filter_upwards [hτ.mono, hσ.mono] with ω hτω hσω; exact hτω.min hσω
+  tendsto_top := by
+    filter_upwards [hτ.tendsto_top, hσ.tendsto_top] with ω hτω hσω using hτω.min hσω
+
+variable [OrderBot ι]
+
+@[simp]
+lemma stoppedProcess_const_top : stoppedProcess X (fun _ ↦ ⊤) = X := by
+  unfold stoppedProcess
+  simp
+
+/-- A stochastic process `X` is said to satisfy a property `p` locally with respect to a
+filtration `𝓕` if there exists a localizing sequence `(τ_n)` such that for all `n`, the stopped
+process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
+def Locally [TopologicalSpace ι] [OrderTopology ι] [Zero E]
+    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
+    (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
+  ∃ τ : ℕ → Ω → WithTop ι, IsLocalizingSequence 𝓕 τ P ∧
+    ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
+
+section Locally
+
+variable [TopologicalSpace ι] [OrderTopology ι]
+
+/-- A localizing sequence, witness of the local property of the stochastic process. -/
+noncomputable
+def Locally.localSeq [Zero E] (hX : Locally p 𝓕 X P) :
+    ℕ → Ω → WithTop ι :=
+  hX.choose
+
+lemma Locally.IsLocalizingSequence [Zero E] (hX : Locally p 𝓕 X P) :
+    IsLocalizingSequence 𝓕 (hX.localSeq) P :=
+  hX.choose_spec.1
+
+lemma Locally.stoppedProcess [Zero E] (hX : Locally p 𝓕 X P) (n : ℕ) :
+    p (stoppedProcess (fun i ↦ {ω | ⊥ < hX.localSeq n ω}.indicator (X i)) (hX.localSeq n)) :=
+  hX.choose_spec.2 n
+
+lemma locally_of_prop [Zero E] (hp : p X) : Locally p 𝓕 X P :=
+  ⟨fun n _ ↦ (⊤ : WithTop ι), isLocalizingSequence_const_top _ _, by simpa⟩
+
+lemma Locally.mono [Zero E] (hpq : ∀ X, p X → q X) (hpX : Locally p 𝓕 X P) :
+    Locally q 𝓕 X P :=
+  ⟨hpX.localSeq, hpX.IsLocalizingSequence, fun n ↦ hpq _ <| hpX.stoppedProcess n⟩
+
+lemma Locally.of_and [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
+    Locally p 𝓕 X P ∧ Locally q 𝓕 X P :=
+  ⟨hX.mono <| fun _ ↦ And.left, hX.mono <| fun _ ↦ And.right⟩
+
+lemma Locally.of_and_left [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
+    Locally p 𝓕 X P :=
+  hX.of_and.left
+
+lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
+    Locally q 𝓕 X P :=
+  hX.of_and.right
+
+end Locally
+
+/-- A property of stochastic processes is said to be stable if it is preserved under taking
+the stopped process by a stopping time. -/
+def IsStable [Zero E]
+    (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
+    ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
+      p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
+
+variable [TopologicalSpace ι] [OrderTopology ι]
+
+lemma locally_and [Zero E] (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
+    Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
+  refine ⟨Locally.of_and, fun ⟨hpX, hqX⟩ ↦
+    ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
+  · convert hp _ (hpX.stoppedProcess n) _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
+    ext i ω
+    rw [stoppedProcess_indicator_comm]
+    simp_rw [Pi.inf_apply, lt_inf_iff, inf_comm (hpX.localSeq n)]
+    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
+      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
+        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω}), Set.inter_comm]
+    · simp_rw [← Set.indicator_indicator]
+      rfl
+    · rfl
+  · convert hq _ (hqX.stoppedProcess n) _ <| hpX.IsLocalizingSequence.isStoppingTime n using 1
+    ext i ω
+    rw [stoppedProcess_indicator_comm]
+    simp_rw [Pi.inf_apply, lt_inf_iff]
+    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
+      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
+        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω})]
+    · simp_rw [← Set.indicator_indicator]
+      rfl
+    · rfl
+
+end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
+  {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
 
 lemma measure_iInter_of_ae_antitone {ι : Type*}
     [Countable ι] [Preorder ι] [IsDirected ι fun (x1 x2 : ι) ↦ x1 ≤ x2]
@@ -431,7 +444,7 @@ section
 omit [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
 variable [SecondCountableTopology ι] [IsFiniteMeasure P]
 
-lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
+lemma isPreLocalizingSequence_of_isLocalizingSequence_aux'
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ T : ℕ → ι, Tendsto T atTop atTop
@@ -469,44 +482,46 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁
     · rfl
   · exact ⟨0, measure_ne_top P _⟩
 
-def mkStrictMono (x : ℕ → ℕ) : ℕ → ℕ
+/-- Auxliary defintion for `isPreLocalizingSequence_of_isLocalizingSequence` which constructs a
+strictly increasing sequence from a given sequence. -/
+def mkStrictMonoAux (x : ℕ → ℕ) : ℕ → ℕ
 | 0 => x 0
-| n + 1 => max (x (n + 1)) (mkStrictMono x n) + 1
+| n + 1 => max (x (n + 1)) (mkStrictMonoAux x n) + 1
 
-lemma mkStrictMono_strictMono (x : ℕ → ℕ) : StrictMono (mkStrictMono x) := by
+lemma mkStrictMonoAux_strictMono (x : ℕ → ℕ) : StrictMono (mkStrictMonoAux x) := by
   refine strictMono_nat_of_lt_succ <| fun n ↦ ?_
-  simp only [mkStrictMono]
+  simp only [mkStrictMonoAux]
   exact lt_of_le_of_lt (le_max_right (x (n + 1)) _) (lt_add_one (max (x (n + 1)) _))
 
-lemma le_mkStrictMono (x : ℕ → ℕ) : ∀ n, x n ≤ mkStrictMono x n
-| 0 => by simp [mkStrictMono]
+lemma le_mkStrictMonoAux (x : ℕ → ℕ) : ∀ n, x n ≤ mkStrictMonoAux x n
+| 0 => by simp [mkStrictMonoAux]
 | n + 1 => by
-    simp only [mkStrictMono]
-    exact (le_max_left (x (n + 1)) (mkStrictMono x n)).trans <|
-       Nat.le_add_right (max (x (n + 1)) (mkStrictMono x n)) 1
+    simp only [mkStrictMonoAux]
+    exact (le_max_left (x (n + 1)) (mkStrictMonoAux x n)).trans <|
+       Nat.le_add_right (max (x (n + 1)) (mkStrictMonoAux x n)) 1
 
-lemma isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂
+lemma isPreLocalizingSequence_of_isLocalizingSequence_aux
     {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk ∧ ∃ T : ℕ → ι, Tendsto T atTop atTop
       ∧ ∀ n, P {ω | σ n (nk n) ω < min (τ n ω) (T n)} ≤ (1 / 2) ^ n := by
-  obtain ⟨T, hT, h⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux₁ hτ hσ
+  obtain ⟨T, hT, h⟩ := isPreLocalizingSequence_of_isLocalizingSequence_aux' hτ hσ
   choose nk hnk using h
-  refine ⟨mkStrictMono nk, mkStrictMono_strictMono nk, T, hT, fun n ↦
+  refine ⟨mkStrictMonoAux nk, mkStrictMonoAux_strictMono nk, T, hT, fun n ↦
     le_trans (EventuallyLE.measure_le ?_) (hnk n)⟩
   filter_upwards [(hσ n).mono] with ω hω
-  specialize hω (le_mkStrictMono nk n)
+  specialize hω (le_mkStrictMonoAux nk n)
   simp only [lt_inf_iff, le_Prop_eq]
-  change σ n (mkStrictMono nk n) ω < τ n ω ∧ σ n (mkStrictMono nk n) ω < T n →
+  change σ n (mkStrictMonoAux nk n) ω < τ n ω ∧ σ n (mkStrictMonoAux nk n) ω < T n →
     σ n (nk n) ω < τ n ω ∧ σ n (nk n) ω < T n
   grind
 
-lemma isPreLocalizingSequence_of_isLocalizingSequence₂
+lemma isPreLocalizingSequence_of_isLocalizingSequence
     [NoMaxOrder ι] {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
     (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
     ∃ nk : ℕ → ℕ, StrictMono nk
       ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
-  obtain ⟨nk, hnk, T, hT, hP⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂_aux₂ hτ hσ
+  obtain ⟨nk, hnk, T, hT, hP⟩ := isPreLocalizingSequence_of_isLocalizingSequence_aux hτ hσ
   refine ⟨nk, hnk, fun n ↦ (hτ.isStoppingTime n).min ((hσ _).isStoppingTime _), ?_⟩
   have : ∑' n, P {ω | σ n (nk n) ω < min (τ n ω) (T n)} < ∞ :=
     lt_of_le_of_lt (ENNReal.summable.tsum_mono ENNReal.summable hP)
@@ -529,7 +544,7 @@ lemma locally_locally
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
     choose τ hτ₁ hτ₂ using hLL
-    obtain ⟨nk, hnk, hpre⟩ := isPreLocalizingSequence_of_isLocalizingSequence₂
+    obtain ⟨nk, hnk, hpre⟩ := isPreLocalizingSequence_of_isLocalizingSequence
       hL.IsLocalizingSequence hτ₁
     refine locally_of_isPreLocalizingSequence hp h𝓕 hpre <| fun n ↦ ?_
     specialize hτ₂ n (nk n)
