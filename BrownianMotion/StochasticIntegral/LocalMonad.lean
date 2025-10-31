@@ -29,7 +29,7 @@ def Local (P : Measure Ω) (p : StableCat E 𝓕) : StableCat E 𝓕 :=
   ⟨(Locally p.1 𝓕 · P), p.2.isStable_locally⟩
 
 /-- The local functor is monotone. -/
-def LocalMono (P : Measure Ω) {p q : StableCat E 𝓕} (h : p ⟶ q) (u : ι → Ω → E) :
+lemma LocalMono (P : Measure Ω) {p q : StableCat E 𝓕} (h : p ⟶ q) (u : ι → Ω → E) :
     (Local P p).1 u ≤ (Local P q).1 u :=
   Locally.mono <| fun v ↦ leOfHom <| h v
 
