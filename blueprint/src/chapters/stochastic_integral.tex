@@ -363,6 +363,8 @@ The decomposition is a.s. unique.
 
 
 \begin{definition}[Simple process]\label{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess}
 Let $0 \le t_0 \le t_1 \le \ldots \le t_n$ in $\mathbb{R}_+$.
 Let $(\eta_k)_{0 \le k \le n-1}$ be $\mathcal{F}_{t_k}$-measurable random variables.
 Then the simple process for that sequence is the process $V : \mathbb{R}_+ \to \Omega \to E$ defined by
@@ -376,6 +378,8 @@ Let $\mathcal{E}$ be the set of simple processes.
 
 \begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
   \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral}
 Let $V \in \mathcal{E}$ be a simple process and let $X$ be a stochastic process.
 The \emph{elementary stochastic integral} process $V \cdot X : \mathbb{R}_+ \to \Omega \to E$ is defined by
 \begin{align*}
