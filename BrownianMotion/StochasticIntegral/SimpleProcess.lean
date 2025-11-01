@@ -32,7 +32,7 @@ noncomputable
 instance : CoeFun (SimpleProcess ι Ω E F) (fun _ ↦ ι → Ω → E →L[ℝ] F) where
   coe V := fun i ω ↦ ∑ p ∈ V.intervals, (Set.Ioc p.1 p.2).indicator (fun _ ↦ V.value p.1 ω) i
 
--- todo: write stoppedProcess of a min?
+-- todo: write stoppedProcess as a min?
 /-- The elementary stochastic integral. -/
 noncomputable
 def SimpleProcess.integral (V : SimpleProcess ι Ω E F) (X : ι → Ω → E) : ι → Ω → F :=
