@@ -20,6 +20,7 @@ variable {ι Ω E F : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpa
 
 open scoped Function
 
+/-- A simple process. TODO: more details. -/
 structure SimpleProcess (ι Ω E F : Type*) [LinearOrder ι] [OrderBot ι]
     [MeasurableSpace Ω] [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] where
@@ -32,6 +33,7 @@ instance : CoeFun (SimpleProcess ι Ω E F) (fun _ ↦ ι → Ω → E →L[ℝ]
   coe V := fun i ω ↦ ∑ p ∈ V.intervals, (Set.Ioc p.1 p.2).indicator (fun _ ↦ V.value p.1 ω) i
 
 -- todo: write stoppedProcess of a min?
+/-- The elementary stochastic integral. -/
 noncomputable
 def SimpleProcess.integral (V : SimpleProcess ι Ω E F) (X : ι → Ω → E) : ι → Ω → F :=
   fun i ω ↦ ∑ p ∈ V.intervals,

@@ -179,11 +179,20 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 This section contains material taken mostly from \cite[Chapters 10 and 18]{kallenberg2021} and \cite{almostsuremath}.
 
 
-\begin{definition}[Localizing sequence]\label{def:localizingSequence}
+\begin{definition}\label{def:preLocalizingSequence}
   \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.IsPreLocalizingSequence}
+A pre-localizing sequence is a sequence of stopping times $(\tau_n)_{n \in \mathbb{N}}$ such that $\tau_n$ $\tau_n \to \infty$ as $n \to \infty$ (a.s.).
+\end{definition}
+
+
+\begin{definition}[Localizing sequence]\label{def:localizingSequence}
+  \uses{def:preLocalizingSequence}
   \leanok
   \lean{ProbabilityTheory.IsLocalizingSequence}
 A localizing sequence is a sequence of stopping times $(\tau_n)_{n \in \mathbb{N}}$ such that $\tau_n$ is non-decreasing and $\tau_n \to \infty$ as $n \to \infty$ (a.s.).
+That is, it is a pre-localizing sequence that is also non-decreasing.
 \end{definition}
 
 
@@ -235,12 +244,39 @@ Take $\tau_n = \infty$ for all $n$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:locally_mono}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.Locally.mono}
+If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
+\end{lemma}
+
+\begin{proof}\leanok
+Let $X \in P_{\mathrm{loc}}$.
+Then there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in P$.
+Since $P \subseteq Q$, for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in Q$.
+Thus $X \in Q_{\mathrm{loc}}$.
+\end{proof}
+
+
 \begin{definition}\label{def:stable}
   \uses{def:locally}
   \leanok
   \lean{ProbabilityTheory.IsStable}
 A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then for any stopping time $\tau$, the process $X^{\tau}\mathbb{I}_{\tau > 0}$ is also in $P$.
 \end{definition}
+
+
+\begin{lemma}\label{lem:isStable_locally}
+  \uses{def:locally, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.IsStable.isStable_locally}
+If $P$ is a stable class of processes, then $P_{\mathrm{loc}}$ is also stable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
 
 
 \begin{lemma}\label{lem:locally_inter}
@@ -259,19 +295,42 @@ Suppose that $X \in P_{\mathrm{loc}}\cap Q_{\mathrm{loc}}$. Then, there exists l
 Similarly, by the stability of $Q$, $X^{\sigma_n \wedge \tau_n} \mathbb{I}_{\sigma_n \wedge \tau_n > 0} \in Q$. Thus, as $\sigma_n \wedge \tau_n$ is a localizing sequence by Lemma~\ref{lem:localizingSequence_min} and $X^{\sigma_n \wedge \tau_n} \mathbb{I}_{\sigma_n \wedge \tau_n > 0} \in P \cap Q$ for all $n$, it follows that $X \in (P \cap Q)_{\mathrm{loc}}$
 \end{proof}
 
-
-\begin{lemma}\label{lem:locally_mono}
-  \uses{def:locally}
+\begin{lemma}\label{lem:isLocalizingSequence_of_isPreLocalizingSequence}
+  \uses{def:localizingSequence, def:rightContinuous}
   \leanok
-  \lean{ProbabilityTheory.Locally.mono}
-If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
+  \lean{ProbabilityTheory.isLocalizingSequence_of_isPreLocalizingSequence}
+If $(\tau_n)_{n \in \mathbb{N}}$ is a pre-localizing sequence, then the sequence defined by $\tau'_n = \inf_{m \ge n} \tau_m$ is a localizing sequence.
 \end{lemma}
 
 \begin{proof}\leanok
-Let $X \in P_{\mathrm{loc}}$.
-Then there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in P$.
-Since $P \subseteq Q$, for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0} \in Q$.
-Thus $X \in Q_{\mathrm{loc}}$.
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:locally_of_isPreLocalizingSequence}
+  \uses{def:locally, def:localizingSequence, def:stable, def:rightContinuous, def:preLocalizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.locally_of_isPreLocalizingSequence}
+Let $P$ be a stable class of processes and let $(\tau_n)_{n \in \mathbb{N}}$ be a pre-localizing sequence such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$.
+If the filtration is right-continuous, then $X$ is locally in $P$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isLocalizingSequence_of_isPreLocalizingSequence}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isPreLocalizingSequence_of_isLocalizingSequence}
+  \uses{def:preLocalizingSequence, def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.isPreLocalizingSequence_of_isLocalizingSequence}
+Let $(\tau_n)_{n \in \mathbb{N}}$ be a localizing sequence and let $(\sigma_{n,k})_{k \in \mathbb{N}}$ be a localizing sequence for each $n$.
+Then, there exists a strictly increasing sequence $(k_n)_{n \in \mathbb{N}}$ such that the sequence defined by $\tau'_n = \tau_n \wedge \sigma_{n,k_n}$ is a pre-localizing sequence.
+\end{lemma}
+
+\begin{proof}
+
 \end{proof}
 
 
@@ -283,6 +342,7 @@ For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}
 \end{lemma}
 
 \begin{proof}\leanok
+  \uses{lem:locally_of_isPreLocalizingSequence, lem:isStable_locally, lem:isPreLocalizingSequence_of_isLocalizingSequence}
 Let $X$ be a process in $(P_{\mathrm{loc}})_{\mathrm{loc}}$.
 By definition there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P_{\mathrm{loc}}$.
 By definition of $P_{\mathrm{loc}}$, for each $n$ there exists a localizing sequence $(\sigma_{n,k})_{k \in \mathbb{N}}$ such that for all $k \in \mathbb{N}$, $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k}}\mathbb{I}_{\sigma_{n,k} > 0}$ is in $P$.
