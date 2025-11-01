@@ -338,6 +338,7 @@ Then, there exists a strictly increasing sequence $(k_n)_{n \in \mathbb{N}}$ suc
   \uses{def:locally, def:stable}
   \leanok
   \lean{ProbabilityTheory.locally_locally}
+Suppose that the filtration is right-continuous.
 For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}} = P_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -361,6 +362,7 @@ Indeed, $X^{\tau''_n} = ((X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\ma
   \uses{def:locally, def:stable}
   \leanok
   \lean{ProbabilityTheory.locally_induction}
+Suppose that the filtration is right-continuous.
 Let $P, Q$ be two classes of stochastic processes such that $P \subseteq Q_{\mathrm{loc}}$ and $Q$ is stable.
 Let $X$ be a stochastic process that satisfies $P$ locally.
 Then $X$ satisfies $Q$ locally.
