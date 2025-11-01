@@ -24,8 +24,10 @@ open scoped Function
 structure SimpleProcess (ι Ω E F : Type*) [LinearOrder ι] [OrderBot ι]
     [MeasurableSpace Ω] [NormedAddCommGroup E] [NormedSpace ℝ E]
     [NormedAddCommGroup F] [NormedSpace ℝ F] where
+  /-- The intervals over which we sum to define the integral. -/
   intervals : Finset (ι × ι)
   disjoint_intervals : Pairwise (Disjoint on (fun p : intervals ↦ Set.Ioc p.1.1 p.1.2))
+  /-- The values of the process at the left endpoints of the intervals. -/
   value : ι → Ω → E →L[ℝ] F -- only the values at left endpoints of intervals are used
 
 noncomputable
