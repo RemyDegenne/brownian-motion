@@ -38,7 +38,7 @@ instance : CoeFun (SimpleProcess ι Ω F) (fun _ ↦ ι → Ω → F) where
 -- TODO: write stoppedProcess as a min?
 /-- The elementary stochastic integral. -/
 noncomputable
-def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess ι Ω F) (X : ι → Ω → E) :
+def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimpleProcess ι Ω F) :
     ι → Ω → G :=
   fun i ω ↦ ∑ p ∈ V.intervals,
     B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) (V.value p.1 ω)
