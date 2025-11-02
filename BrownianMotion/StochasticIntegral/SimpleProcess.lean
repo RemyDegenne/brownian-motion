@@ -15,32 +15,34 @@ open scoped ENNReal Topology
 
 namespace ProbabilityTheory
 
-variable {ι Ω E F : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {ι Ω E F G : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 open scoped Function
 
+-- TODO: remove disjoint_intervals or not?
 /-- A simple process. TODO: more details. -/
-structure SimpleProcess (ι Ω E F : Type*) [LinearOrder ι] [OrderBot ι]
-    [MeasurableSpace Ω] [NormedAddCommGroup E] [NormedSpace ℝ E]
+structure SimpleProcess (ι Ω F : Type*) [LinearOrder ι] [OrderBot ι]
     [NormedAddCommGroup F] [NormedSpace ℝ F] where
   /-- The intervals over which we sum to define the integral. -/
   intervals : Finset (ι × ι)
   disjoint_intervals : Pairwise (Disjoint on (fun p : intervals ↦ Set.Ioc p.1.1 p.1.2))
   /-- The values of the process at the left endpoints of the intervals. -/
-  value : ι → Ω → E →L[ℝ] F -- only the values at left endpoints of intervals are used
+  value : ι → Ω → F -- only the values at left endpoints of intervals are used
 
 noncomputable
-instance : CoeFun (SimpleProcess ι Ω E F) (fun _ ↦ ι → Ω → E →L[ℝ] F) where
+instance : CoeFun (SimpleProcess ι Ω F) (fun _ ↦ ι → Ω → F) where
   coe V := fun i ω ↦ ∑ p ∈ V.intervals, (Set.Ioc p.1 p.2).indicator (fun _ ↦ V.value p.1 ω) i
 
--- todo: write stoppedProcess as a min?
+-- TODO: write stoppedProcess as a min?
 /-- The elementary stochastic integral. -/
 noncomputable
-def SimpleProcess.integral (V : SimpleProcess ι Ω E F) (X : ι → Ω → E) : ι → Ω → F :=
+def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess ι Ω F) (X : ι → Ω → E) :
+    ι → Ω → G :=
   fun i ω ↦ ∑ p ∈ V.intervals,
-    V.value p.1 ω (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
+    B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) (V.value p.1 ω)
 
--- todo: possible notation V●X, possibly for more general integrals
+-- TODO: possible notation V●X, possibly for more general integrals
 
 end ProbabilityTheory
