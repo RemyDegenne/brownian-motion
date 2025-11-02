@@ -562,6 +562,128 @@ lemma IsBrownian.tendsto_div_id_atTop [h : IsBrownian X P] :
   rw [this]
   exact hω.comp tendsto_inv_atTop_zero
 
+variable {α β : Type*} {mα : MeasurableSpace α}
+  [TopologicalSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [MeasurableSpace β] [BorelSpace β]
+
+open Metric Filter TopologicalSpace
+
+/-- A limit (over a general filter) of measurable functions valued in a (pseudo) metrizable space is
+measurable. -/
+theorem measurable_of_tendsto_metrizable' {ι} {f : ι → α → β} {g : α → β} (u : Filter ι) [NeBot u]
+    [IsCountablyGenerated u] (hf : ∀ i, Measurable (f i)) (lim : Tendsto f u (𝓝 g)) :
+    Measurable g := by
+  letI : PseudoMetricSpace β := pseudoMetrizableSpacePseudoMetric β
+  apply measurable_of_isClosed'
+  intro s h1s h2s h3s
+  have : Measurable fun x => infNndist (g x) s := by
+    suffices Tendsto (fun i x => infNndist (f i x) s) u (𝓝 fun x => infNndist (g x) s) from
+      NNReal.measurable_of_tendsto' u (fun i => (hf i).infNndist) this
+    rw [tendsto_pi_nhds] at lim ⊢
+    intro x
+    exact ((continuous_infNndist_pt s).tendsto (g x)).comp (lim x)
+  have h4s : g ⁻¹' s = (fun x => infNndist (g x) s) ⁻¹' {0} := by
+    ext x
+    simp [← h1s.mem_iff_infDist_zero h2s, ← NNReal.coe_eq_zero]
+  rw [h4s]
+  exact this (measurableSet_singleton 0)
+
+lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
+    (hX' : ∀ ω, Continuous (X · ω)) :
+    ∀ A, MeasurableSet[⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s] A →
+    P A = 0 ∨ P A = 1 := by
+  let m1 : MeasurableSpace Ω := ⨆ t, .comap (X t) inferInstance
+  let m2 : MeasurableSpace Ω := ⨆ t > 0, .comap (X t) inferInstance
+  let m3 : MeasurableSpace Ω := ⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s
+  have hm1 : m1 ≤ mΩ := by
+    apply iSup_le
+    exact fun i ↦ (hX i).comap_le
+  have hm2 : m2 ≤ m1 := iSup₂_le_iSup _ _
+  have hm2' := hm2.trans hm1
+  let π := Set.preimage (fun ω (i : Set.Ioi (0 : ℝ≥0)) ↦ X i ω) ''
+      squareCylinders (fun i : Set.Ioi (0 : ℝ≥0) ↦ {s : Set ℝ | MeasurableSet s})
+  have hm3 : m3 ≤ m1 := by
+    simp_rw [m3, Filtration.natural, m1]
+    apply iInf₂_le_of_le 1 (by simp)
+    apply iSup₂_le_iSup
+  have hπ1 : IsPiSystem π :=
+    IsPiSystem.comap (isPiSystem_squareCylinders
+      (fun _ ↦ MeasurableSpace.isPiSystem_measurableSet) (by simp)) _
+  have hπ2 : m2 = MeasurableSpace.generateFrom π := by
+    simp_rw [π, ← MeasurableSpace.comap_generateFrom, generateFrom_squareCylinders, m2,
+      MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp,
+      Function.comp_def]
+    apply le_antisymm
+    · apply iSup₂_le
+      intro t ht
+      convert le_iSup _ (⟨t, Set.mem_Ioi.2 ht⟩ : Set.Ioi (0 : ℝ≥0))
+      rfl
+    · apply iSup_le
+      intro t
+      convert le_iSup₂ t.1 (Set.mem_Ioi.1 t.2)
+      rfl
+  intro A hA
+  have := h.isGaussianProcess.isProbabilityMeasure
+  apply measure_eq_zero_or_one_of_indepSet_self
+  suffices IndepSets {A} {B | MeasurableSet[⨆ t, .comap (X t) inferInstance] B} P by
+    refine this.indepSet_of_mem _ _ (by simp) ?_ ?_ ?_ P
+    · refine (MeasurableSpace.le_def (b := ⨆ t, .comap (X t) inferInstance)).1 ?_ A hA
+      simp_rw [Filtration.natural]
+      apply iInf₂_le_of_le 1 (by simp)
+      apply iSup₂_le_iSup
+    · refine (MeasurableSpace.le_def).1 ?_ A hA
+      apply iInf₂_le_of_le 1 (by simp)
+      exact Filtration.le _ 1
+    · refine (MeasurableSpace.le_def).1 ?_ A hA
+      apply iInf₂_le_of_le 1 (by simp)
+      exact Filtration.le _ 1
+  suffices IndepSets {A} {B | MeasurableSet[m2] B} P by
+    convert this using 3 with B
+    congrm @MeasurableSet _ ?_ _
+    apply le_antisymm
+    · rw [iSup_split_single _ 0]
+      simp_rw [pos_iff_ne_zero]
+      rw [sup_le_iff]
+      constructor
+      · rw [← measurable_iff_comap_le]
+        have this : Filter.Tendsto (X ∘ ((↑) : Set.Ioi (0 : ℝ≥0) → ℝ≥0))
+            ((𝓝[≠] 0).comap ((↑) : _ → ℝ≥0)) (𝓝 (X 0)) := by
+          refine Filter.tendsto_comap'_iff ?_ |>.2 ?_
+          · convert self_mem_nhdsWithin
+            ext; simp [pos_iff_ne_zero]
+          · refine tendsto_pi_nhds.mpr fun ω ↦ ?_
+            exact continuousAt_iff_punctured_nhds.1 (hX' ω).continuousAt
+        have _ : NeBot ((𝓝[≠] (0 : ℝ≥0)).comap ((↑) : Set.Ioi (0 : ℝ≥0) → ℝ≥0)) := by
+          refine comap_coe_neBot_of_le_principal ?_
+          refine le_principal_iff.mpr ?_
+          convert self_mem_nhdsWithin
+          ext; simp [pos_iff_ne_zero]
+        refine measurable_of_tendsto_metrizable' _ ?_ this
+        intro t
+        apply Measurable.iSup' t.1
+        apply Measurable.iSup' (Set.mem_Ioi.1 t.2 |>.ne')
+        exact comap_measurable _
+      exact le_rfl
+    · apply iSup₂_le_iSup
+  suffices ∀ (I : Finset (Set.Iic (0 : ℝ≥0))) (g : (I → ℝ) →ᵇ ℝ≥0),
+      ∫⁻ ω, A.indicator (1 : Ω → ℝ≥0) ω * g (fun i ↦ X i.1.1 ω) ∂P =
+      P A * ∫⁻ ω, g (fun i ↦ X i.1.1 ω) ∂P by
+    rw [IndepSets_iff]
+    rintro D C hD
+    simp only [Set.mem_singleton_iff] at hD
+    simp_rw [hD]
+    revert C
+    suffices (P.restrict A).trim hm2' = (P A) • (P.trim hm2') by
+      intro C hC
+      rw [Set.inter_comm, ← P.restrict_apply (hm2' C hC), ← trim_measurableSet_eq hm2' hC,
+        ← trim_measurableSet_eq hm2' hC]
+      simp [this]
+    apply ext_of_forall_integral_eq_of_IsFiniteMeasure
+    -- rw [← lintegral_indicator_one]
+    -- · simp_rw [Set.inter_indicator_one]
+    --   let f : Ω → ℝ≥0 := ((fun ω (i : Set.Ioi (0 : ℝ≥0)) ↦ X i ω) ⁻¹' .pi I s).indicator 1
+    --   let g :=
+  -- sorry
+
 end IsBrownian
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
