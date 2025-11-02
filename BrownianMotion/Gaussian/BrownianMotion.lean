@@ -8,6 +8,9 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
+import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
+import Mathlib.Probability.Independence.ZeroOne
+import Mathlib.Probability.Process.Filtration
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
@@ -16,7 +19,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 -/
 
 open MeasureTheory NNReal WithLp Finset
-open scoped ENNReal NNReal Topology
+open scoped ENNReal NNReal Topology BoundedContinuousFunction
 
 variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
@@ -587,6 +590,39 @@ theorem measurable_of_tendsto_metrizable' {ι} {f : ι → α → β} {g : α �
   rw [h4s]
   exact this (measurableSet_singleton 0)
 
+section Aux
+
+-- Mathlib #31184
+
+variable {Ω S T : Type*} {m mΩ : MeasurableSpace Ω} {P : Measure Ω}
+
+lemma IndepFun.singleton_indepSets_of_indicator {𝓧 : Type*} [mX : MeasurableSpace 𝓧] {A : Set Ω}
+    {X : Ω → 𝓧} (h : (A.indicator (1 : Ω → ℝ)) ⟂ᵢ[P] X) :
+    IndepSets {A} {s | MeasurableSet[mX.comap X] s} P := by
+  rw [IndepSets_iff]
+  rintro s - hs ⟨t, ht, rfl⟩
+  rw [Set.mem_singleton_iff.1 hs]
+  have hA' : A = A.indicator (1 : Ω → ℝ) ⁻¹' {1} := by ext; simp [Set.indicator]
+  rw [hA']
+  exact h.measure_inter_preimage_eq_mul _ _ (by simp) ht
+
+variable {E : S → Type*} {F : T → Type*} {G H : Type*}
+  [∀ s, TopologicalSpace (E s)] [∀ s, MeasurableSpace (E s)] [∀ s, BorelSpace (E s)]
+  [∀ s, HasOuterApproxClosed (E s)]
+  [∀ t, TopologicalSpace (F t)] [∀ t, MeasurableSpace (F t)] [∀ t, BorelSpace (F t)]
+  [∀ t, HasOuterApproxClosed (F t)]
+  [TopologicalSpace G] [MeasurableSpace G] [BorelSpace G] [HasOuterApproxClosed G]
+  [TopologicalSpace H] [MeasurableSpace H] [BorelSpace H] [HasOuterApproxClosed H]
+  {X : (s : S) → Ω → E s} {Y : (t : T) → Ω → F t} {Z : Ω → G} {U : Ω → H}
+
+lemma indicator_indepFun_process_of_bcf
+    {A : Set Ω} (mA : NullMeasurableSet A P) (mX : ∀ s, Measurable (X s))
+    (h : ∀ (I : Finset S) (f : (Π s : I, E s) →ᵇ ℝ),
+      ∫ ω in A, f (X · ω) ∂P = P.real A * ∫ ω, f (X · ω) ∂P) :
+    IndepFun (A.indicator (1 : Ω → ℝ)) (fun ω s ↦ X s ω) P := sorry
+
+end Aux
+
 lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) :
     ∀ A, MeasurableSet[⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s] A →
@@ -664,25 +700,107 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
         exact comap_measurable _
       exact le_rfl
     · apply iSup₂_le_iSup
-  suffices ∀ (I : Finset (Set.Iic (0 : ℝ≥0))) (g : (I → ℝ) →ᵇ ℝ≥0),
-      ∫⁻ ω, A.indicator (1 : Ω → ℝ≥0) ω * g (fun i ↦ X i.1.1 ω) ∂P =
-      P A * ∫⁻ ω, g (fun i ↦ X i.1.1 ω) ∂P by
-    rw [IndepSets_iff]
-    rintro D C hD
-    simp only [Set.mem_singleton_iff] at hD
-    simp_rw [hD]
-    revert C
-    suffices (P.restrict A).trim hm2' = (P A) • (P.trim hm2') by
-      intro C hC
-      rw [Set.inter_comm, ← P.restrict_apply (hm2' C hC), ← trim_measurableSet_eq hm2' hC,
-        ← trim_measurableSet_eq hm2' hC]
-      simp [this]
-    apply ext_of_forall_integral_eq_of_IsFiniteMeasure
-    -- rw [← lintegral_indicator_one]
-    -- · simp_rw [Set.inter_indicator_one]
-    --   let f : Ω → ℝ≥0 := ((fun ω (i : Set.Ioi (0 : ℝ≥0)) ↦ X i ω) ⁻¹' .pi I s).indicator 1
-    --   let g :=
-  -- sorry
+  have : m2 = MeasurableSpace.comap (fun ω (t : Set.Ioi (0 : ℝ≥0)) ↦ X t ω) MeasurableSpace.pi := by
+    simp_rw [m2, MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp,
+      iSup_subtype]
+    congr
+  simp_rw [this]
+  refine IndepFun.singleton_indepSets_of_indicator
+    (indicator_indepFun_process_of_bcf ?_ ?_ ?_)
+  · exact ((hm3.trans hm1) A hA).nullMeasurableSet
+  · fun_prop
+  intro I f
+  have key (ε : ℝ≥0) (hε1 : 0 < ε) (hε2 : ∀ t ∈ I, ε ≤ t) :
+      ∫ ω in A, f (fun t ↦ X t ω - X ε ω) ∂P = P.real A * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P := by
+    have h1 : (A.indicator (1 : Ω → ℝ)) ⟂ᵢ[P] (fun ω (t : I) ↦ X t ω - X ε ω) := by
+      have := h.indepFun_shift hX ε
+      symm at this
+      rw [IndepFun_iff_Indep] at this
+      have h1 : Measurable[(MeasurableSpace.comap (fun ω (t : Set.Iic ε) ↦ X t ω)
+          MeasurableSpace.pi)] (A.indicator (1 : Ω → ℝ)) := by
+        apply (measurable_indicator_const_iff 1).2
+        suffices m3 ≤ (MeasurableSpace.comap (fun ω (t : Set.Iic ε) ↦ X t ω)
+          MeasurableSpace.pi) from this A hA
+        simp_rw [m3, MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
+        apply iInf₂_le_of_le ε hε1
+        simp_rw [Filtration.natural]
+        apply iSup₂_le
+        intro i hi
+        apply le_iSup_of_le ⟨i, by simp [hi]⟩
+        rfl
+      have h2 : Measurable[MeasurableSpace.comap (fun ω t ↦ X (ε + t) ω - X ε ω)
+          MeasurableSpace.pi] (fun ω (t : I) ↦ X t ω - X ε ω) := by
+        apply @measurable_pi_lambda _ _ _
+          (MeasurableSpace.comap (fun ω t ↦ X (ε + t) ω - X ε ω) MeasurableSpace.pi)
+        rintro ⟨⟨t, ht⟩, ht'⟩
+        simp_rw [measurable_iff_comap_le, MeasurableSpace.pi, MeasurableSpace.comap_iSup,
+          MeasurableSpace.comap_comp]
+        convert le_iSup _ (t - ε)
+        congr with s
+        simp only [Function.comp_apply, sub_left_inj]
+        rw [add_tsub_cancel_of_le]
+        exact hε2 ⟨t, ht⟩ ht'
+      rw [IndepFun_iff_Indep]
+      apply indep_of_indep_of_le_left
+        (indep_of_indep_of_le_right this (measurable_iff_comap_le.1 h2))
+        (measurable_iff_comap_le.1 h1)
+    calc
+    _ = ∫ ω, (A.indicator 1 ω) * f (fun t ↦ X t ω - X ε ω) ∂P := by
+      rw [← integral_indicator ((hm3.trans hm1) A hA)]
+      congr with ω
+      by_cases hω : ω ∈ A <;> simp [hω]
+    _ = (∫ ω, A.indicator 1 ω ∂P) * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P := by
+      change (∫ ω, id (A.indicator 1 ω) * _ ∂P) = _
+      rw [h1.integral_fun_comp_mul_comp]
+      · simp
+      · exact Measurable.aemeasurable ((measurable_indicator_const_iff 1).2 ((hm3.trans hm1) A hA))
+      · fun_prop
+      · fun_prop
+      · fun_prop
+    _ = P.real A * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P := by
+      rw [integral_indicator_one (hm3.trans hm1 A hA)]
+  have h1 : Tendsto (fun ε ↦ ∫ ω in A, f (fun t ↦ X t ω - X ε ω) ∂P) (𝓝[>] 0)
+      (𝓝 (∫ (ω : Ω) in A, f (fun t ↦ X t ω) ∂P)) := by
+    refine tendsto_integral_filter_of_dominated_convergence (fun _ ↦ ‖f‖) ?_ ?_
+      (integrable_const _) ?_
+    · exact Eventually.of_forall fun _ ↦ Measurable.aestronglyMeasurable (by fun_prop)
+    · exact Eventually.of_forall fun _ ↦ ae_of_all _ fun _ ↦ f.norm_coe_le_norm _
+    apply ae_restrict_of_ae
+    filter_upwards [h.tendsto_nhds_zero] with ω hω
+    refine f.continuous.tendsto _ |>.comp ?_
+    apply tendsto_pi_nhds.2
+    intro t
+    convert (tendsto_nhdsWithin_of_tendsto_nhds hω).const_sub (X t ω)
+    simp
+  have h2 : Tendsto (fun ε ↦ ∫ ω in A, f (fun t ↦ X t ω - X ε ω) ∂P) (𝓝[>] 0)
+      (𝓝 (P.real A * ∫ (ω : Ω), f (fun t ↦ X t ω) ∂P)) := by
+    refine Tendsto.congr' (f₁ := fun ε ↦ P.real A * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P) ?_ ?_
+    · symm
+      simp_rw [Filter.EventuallyEq, Filter.Eventually]
+      obtain rfl | hI := I.eq_empty_or_nonempty
+      · have h' : IsEmpty {x // x ∈ (∅ : Finset (Set.Ioi (0 : ℝ≥0)))} := inferInstance
+        have (x : (i : (∅ : Finset (Set.Ioi (0 : ℝ≥0)))) → ℝ) : x = h'.elim' := by ext; grind
+        simp_rw [this]
+        simp
+      refine sets_of_superset (x := Set.Ioo (0 : ℝ≥0) (I.min' sorry)) ?_ ?_ ?_
+      · simp only [Filter.mem_sets]
+        apply Ioo_mem_nhdsGT
+        exact I.min' sorry |>.2
+      rintro ε ⟨h1, h2⟩
+      convert key ε h1 (fun t ht ↦ ?_)
+      · exact h2.le.trans (by exact_mod_cast I.min'_le t ht)
+    refine Filter.Tendsto.const_mul (b := P.real A) ?_
+    refine tendsto_integral_filter_of_dominated_convergence (fun _ ↦ ‖f‖) ?_ ?_
+      (integrable_const _) ?_
+    · exact Eventually.of_forall fun _ ↦ Measurable.aestronglyMeasurable (by fun_prop)
+    · exact Eventually.of_forall fun _ ↦ ae_of_all _ fun _ ↦ f.norm_coe_le_norm _
+    filter_upwards [h.tendsto_nhds_zero] with ω hω
+    refine f.continuous.tendsto _ |>.comp ?_
+    apply tendsto_pi_nhds.2
+    intro t
+    convert (tendsto_nhdsWithin_of_tendsto_nhds hω).const_sub (X t ω)
+    simp
+  exact tendsto_nhds_unique h1 h2
 
 end IsBrownian
 
