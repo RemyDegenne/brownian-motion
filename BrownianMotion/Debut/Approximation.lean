@@ -59,10 +59,20 @@ lemma measurableSet_snd_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f
   rwa [hB_eq, Set.snd_image_prod (Set.nonempty_iff_ne_empty.mpr hK_empty)]
 
 /-- `𝓚₀(t)` is closed under intersection. -/
-lemma inter_mem_𝓚₀ {f : Filtration T mΩ} {t : T}
+lemma inter_mem_𝓚₀ [T2Space T] {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) (hB' : B' ∈ 𝓚₀ f t) : B ∩ B' ∈ 𝓚₀ f t := by
   --easy
-  sorry
+  obtain ⟨K, C, rfl, hK_sub, hK_comp, hC_meas⟩ := hB
+  obtain ⟨K', C', rfl, hK'_sub, hK'_comp, hC'_meas⟩ := hB'
+  have : (K ×ˢ C) ∩ (K' ×ˢ C') = (K ∩ K') ×ˢ (C ∩ C') := by
+    aesop
+  rw [this]
+  have K_inter_comp : IsCompact (K ∩ K') := hK_comp.inter hK'_comp
+  refine ⟨K ∩ K', C ∩ C', ?_, ?_, K_inter_comp, ?_⟩
+  · exact rfl
+  · have : K ∩ K' ⊆ K := by exact Set.inter_subset_left
+    grw [this, hK_sub]
+  · exact MeasurableSet.inter hC_meas hC'_meas
 
 /-- `𝓚(t)` is the collection of finite unions of sets in `𝓚₀(t)`. -/
 inductive 𝓚 (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
@@ -119,7 +129,7 @@ lemma measurableSet_snd_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
   exact s.measurableSet_biUnion (fun x hx ↦ measurableSet_snd_of_mem_𝓚₀ (hs hx))
 
 /-- `𝓚(t)` is closed under intersection. -/
-lemma inter_mem_𝓚 {f : Filtration T mΩ} {t : T}
+lemma inter_mem_𝓚 [T2Space T] {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) : B ∩ B' ∈ 𝓚 f t := by
   classical
   rw [mem_𝓚_iff] at hB hB'
@@ -186,7 +196,7 @@ lemma iInf_snd_eq_snd_iInf_of_mem_𝓚δ {t : T}
   sorry
 
 /-- If `B ∈ 𝓚δ(t)`, then its projetion over `Ω` is (f t)-measurable. -/
-lemma measurableSet_snd_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
+lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
     MeasurableSet[f t] (Prod.snd '' B) := by
   -- use `iInf_snd_eq_snd_iInf_of_mem_𝓚δ`, `measurableSet_snd_of_mem_𝓚` and the definition of `𝒦δ`
   obtain ⟨ℬ, h𝓚, h_ne, ⟨F, hF⟩, hB⟩ := hB
