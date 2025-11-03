@@ -226,7 +226,7 @@ Then $(\sigma_n \wedge \tau_n)$ is a localizing sequence.
   \leanok
   \lean{ProbabilityTheory.Locally, ProbabilityTheory.Locally.localSeq}
 Let $P$ be a class of stochastic processes (or equivalently a predicate on stochastic processes).
-We say that a stochastic process $X : \mathbb{R}_+ \to \Omega \to E$ is locally in $P$ (or satisfies $P$ locally) if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$ (in which $X^{\tau_n}$ denotes the stopped process).
+We say that a stochastic process $X : T \to \Omega \to E$ is locally in $P$ (or satisfies $P$ locally) if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$ (in which $X^{\tau_n}$ denotes the stopped process).
 We denote the class of processes that are locally in $P$ by $P_{\mathrm{loc}}$.
 \end{definition}
 
@@ -329,7 +329,7 @@ Let $(\tau_n)_{n \in \mathbb{N}}$ be a localizing sequence and let $(\sigma_{n,k
 Then, there exists a strictly increasing sequence $(k_n)_{n \in \mathbb{N}}$ such that the sequence defined by $\tau'_n = \tau_n \wedge \sigma_{n,k_n}$ is a pre-localizing sequence.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
