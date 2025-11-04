@@ -206,12 +206,26 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 
 \begin{lemma}\label{lem:conExpUI}
-  If $S$ is a family of uniformly integrable functions and $\mathcal{A}$ is a family of $\sigma$-algebras,
-  then the family $\{P[X \mid \mathcal{G}]\}_{X \in S, \mathcal{G} \in \mathcal{A}}$ is uniformly integrable.
+  If $S$ is a family of (probabilistically) uniformly integrable (pUI) functions and $\mathcal{A}$ is a family of $\sigma$-algebras,
+  then the family $\{P[X \mid \mathcal{G}]\}_{X \in S, \mathcal{G} \in \mathcal{A}}$ is pUI.
 \end{lemma}
 
 \begin{proof}
+  Since $S$ is pUI, it is uniformly bounded in $L^1$ and
+  for any \(\epsilon > 0\),
+  there exists some \(\delta > 0\) such that
+  for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{X \in S} P[|X| \mathbb{I}_A] < \epsilon\).
 
+  On the other hand, by Markov's inequality, we have that
+  \[P(|P[X \mid \mathcal{G}]| \ge \lambda) \le \lambda^{-1}P[|P[X \mid \mathcal{G}]|] \le \lambda^{-1}P[|X|].\]
+  Thus, taking \(\lambda > \delta^{-1} \sup_{X \in S} P[|X|]\), we have that
+  \(P(|P[X \mid \mathcal{G}]| \ge \lambda) < \delta\) and so,
+  \begin{align*}
+    \sup_{X \in S, \mathcal{G} \in \mathcal{A}} P[|P[X \mid \mathcal{G}]| \mathbb{I}_{|P[X \mid \mathcal{G}]| \ge \lambda}]
+    & \le \sup_{X \in S, \mathcal{G} \in \mathcal{A}}P[P[|X|\mathbb{I}_{|P[X \mid \mathcal{G}]| \ge \lambda} \mid \mathcal{G}]]\\
+    & = \sup_{X \in S}P[|X|\mathbb{I}_{|P[X \mid \mathcal{G}]| \ge \lambda}] < \epsilon
+  \end{align*}
+  showing that \(\{P[X \mid \mathcal{G}]\}_{X \in S, \mathcal{G} \in \mathcal{A}}\) is pUI.
 \end{proof}
 
 
