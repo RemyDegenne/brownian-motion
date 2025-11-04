@@ -60,6 +60,11 @@ A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is 
   Then, $\mathcal{F}_\tau \subseteq \mathcal{F}_\sigma$.
 \end{lemma}
 
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Stopped process]\label{def:stoppedProcess}
   \mathlibok
   \lean{MeasureTheory.stoppedProcess}
@@ -195,16 +200,31 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:conExpUI}
   If $S$ is a family of uniformly integrable functions and $\mathcal{A}$ is a family of $\sigma$-algebras,
   then the family $\{P[X \mid \mathcal{G}]\}_{X \in S, \mathcal{G} \in \mathcal{A}}$ is uniformly integrable.
 \end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
   \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
   A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
 \end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -221,16 +241,17 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
+
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
   any bounded stopping times $\sigma, \tau$, we have that
-  $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}].$
+  $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete, lem:conExpUI, lem:vitali}
-  Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\sigma} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
+  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete, lem:conExpUI, lem:vitali, lem:StoppingTimeGenMono}
+  Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
   Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
@@ -238,13 +259,13 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete}) that
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
-  we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] = P[X_{\sigma_n} \mathbb{I}_A]$. On the other hand, again
-  by optional sampling, we have $X_{\tau_n} = P[X_{\tau_1} \mid \mathcal{F}_{\tau_n}]$ and
-  $X_{\sigma_n} = P[X_{\sigma_1} \mid \mathcal{F}_{\sigma_n}]$. In particular, both sequences $(X_{\sigma_n})$
+  we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] = P[X_{\tau_n} \mathbb{I}_A]$.
+  On the other hand, again by optional sampling, we have $X_{\tau_n} = P[X_{\tau_1} \mid \mathcal{F}_{\tau_n}]$ and
+  $X_{\sigma_n} = P[X_{\sigma_1} \mid \mathcal{F}_{\sigma_n}]$. In particular, both sequences $(X_{\tau_n})$
   and $(X_{\sigma_n \wedge \tau_n}) = (P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}])$ are UI by
   Lemma~\ref{lem:conExpUI} (extended to a family of functions). Thus, as $X$ is right-continuous,
-  $(X_{\sigma_n \wedge \tau_n}, X_{\sigma_n}) \to (X_{\tau}, X_{\sigma})$ a.s. we have
-  $P[X_{\sigma} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
+  $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s. we have
+  $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
 \end{proof}
 
