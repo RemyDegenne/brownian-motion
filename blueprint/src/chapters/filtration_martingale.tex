@@ -60,6 +60,11 @@ A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is 
   Then, $\mathcal{F}_\tau \subseteq \mathcal{F}_\sigma$.
 \end{lemma}
 
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Stopped process]\label{def:stoppedProcess}
   \mathlibok
   \lean{MeasureTheory.stoppedProcess}
@@ -195,17 +200,32 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:conExpUI}
   \mathlibok
   \lean{MeasureTheory.Integrable.uniformIntegrable_condExp}
   The conditional expectation of a function with respect to any family of $\sigma$-algebras is uniformly integrable.
 \end{lemma}
 
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
   \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
   A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
 \end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -222,6 +242,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
+
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
@@ -230,7 +251,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete, lem:conExpUI, lem:vitali}
+  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete, lem:conExpUI, lem:vitali, lem:StoppingTimeGenMono}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\sigma} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
