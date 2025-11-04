@@ -222,7 +222,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
-\begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalStopping}
+\begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
   any bounded stopping times $\sigma, \tau$, we have that
@@ -492,11 +492,11 @@ The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ i
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalStopping}
+  \uses{lem:optionalSampling}
   Fixing $s \le t \in T$, as $\{\tau > 0\} \in \mathcal{F}_0 \subseteq \mathcal{F}_s$, we have
   $$P[M^{\tau}_t \mathbb{I}_{\tau > 0} \mid \mathcal{F}_s] = \mathbb{I}_{\tau > 0}P[M_{\tau \wedge t} \mid \mathcal{F}_{s}].$$
   Thus, as $\tau \wedge t$ is a bounded stopping time, we have by the optional stopping theorem
-  (Lemma~\ref{lem:optionalStopping}) that $P[M_{\tau \wedge t} \mid \mathcal{F}_{s}] = M_{(\tau \wedge t) \wedge s} = M_{\tau \wedge s}$
+  (Lemma~\ref{lem:optionalSampling}) that $P[M_{\tau \wedge t} \mid \mathcal{F}_{s}] = M_{(\tau \wedge t) \wedge s} = M_{\tau \wedge s}$
   and so, $P[M^{\tau}_t \mathbb{I}_{\tau > 0} \mid \mathcal{F}_s] = M^{\tau}_s \mathbb{I}_{\tau > 0}$ as required.
 \end{proof}
 
