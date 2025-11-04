@@ -262,11 +262,11 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
   we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] = P[X_{\tau_n} \mathbb{I}_A]$.
   On the other hand, again by optional sampling, we have $X_{\tau_n} = P[X_{\tau_1} \mid \mathcal{F}_{\tau_n}]$ and
-  $X_{\sigma_n} = P[X_{\sigma_1} \mid \mathcal{F}_{\sigma_n}]$. In particular, both sequences $(X_{\sigma_n})$
+  $X_{\sigma_n} = P[X_{\sigma_1} \mid \mathcal{F}_{\sigma_n}]$. In particular, both sequences $(X_{\tau_n})$
   and $(X_{\sigma_n \wedge \tau_n}) = (P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}])$ are UI by
   Lemma~\ref{lem:conExpUI} (extended to a family of functions). Thus, as $X$ is right-continuous,
-  $(X_{\sigma_n \wedge \tau_n}, X_{\sigma_n}) \to (X_{\tau}, X_{\sigma})$ a.s. we have
-  $P[X_{\sigma} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
+  $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s. we have
+  $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
 \end{proof}
 
