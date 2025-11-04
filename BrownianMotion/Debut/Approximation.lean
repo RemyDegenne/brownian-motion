@@ -156,9 +156,13 @@ lemma subset_Iic_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
   exact hB_eq ▸ Set.iInter₂_subset_of_subset b hb (subset_Iic_of_mem_𝓚 (hℬ_sub hb))
 
 /-- `𝓚(t) ⊆ 𝓚δ(t)`. -/
-lemma 𝓚_subset_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚δ f t := by
-  --easy
-  sorry
+lemma 𝓚_subset_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚δ f t := by
+  refine ⟨{B}, ?_, ⟨B, rfl⟩, ?_, ?_⟩
+  · rintro X ⟨rfl⟩
+    exact hB
+  · have : ({B} : Set (Set (T × Ω))).Finite := Set.finite_singleton B
+    exact this.countable
+  · simp
 
 /-- `𝓚δ(t)` is closed under union. -/
 lemma union_mem_𝓚δ {f : Filtration T mΩ} {t : T}
@@ -212,8 +216,18 @@ lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B �
     exact hi ▸ hx i i (le_refl i)
 
   have h_desc : ∀ (i : ℕ), G (i + 1) ⊆ G i := by
-    -- easy
-    sorry
+    intro i
+    simp only [G]
+    intro x hx
+    simp only [Set.mem_iInter] at hx ⊢
+    intro n
+    by_cases h : n ≤ i
+    · have : n ≤ i + 1 := Nat.le_succ_of_le h
+      specialize hx n this
+      intro _; exact hx
+    · intro hn
+      exact (h hn).elim
+
   have hG_mem (i : ℕ) : G i ∈ 𝓚 f t := by
     induction i with
     | zero =>
@@ -221,9 +235,29 @@ lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B �
       exact h𝓚 (g 0).coe_prop
     | succ i ih =>
       have : G (i + 1) = G i ∩ g (i + 1) := by
-        simp [G]
-        -- easy
-        sorry
+        simp only [G]
+        induction i with
+        | zero =>
+          simp_all only [nonempty_subtype, zero_add, nonpos_iff_eq_zero, Set.iInter_iInter_eq_left]
+          ext x
+          constructor
+          · intro hx
+            aesop
+          · intro hx
+            refine Set.mem_iInter₂_of_mem ?_
+            simp_all only [Set.mem_inter_iff]
+            intro i hile_one
+            interval_cases i
+            · exact hx.left
+            · exact hx.right
+        | succ i ih =>
+          ext x
+          constructor
+          · intro hx
+            aesop
+          · simp_all only [nonempty_subtype, Set.mem_inter_iff, Set.mem_iInter, and_imp]
+            intro hx_in_g hx
+            grind
       exact this ▸ inter_mem_𝓚 ih (h𝓚 (g (i + 1)).coe_prop)
   have hG_mem' : ∀ i, G i ∈ 𝓚δ f t := fun i ↦ 𝓚_subset_𝓚δ (hG_mem i)
   rw [hG, ← iInf_snd_eq_snd_iInf_of_mem_𝓚δ hG_mem' h_desc]
@@ -332,7 +366,11 @@ lemma B'_succ (𝒜 : Approximation f P t A) (n : ℕ) :
 lemma B_subset_B' (𝒜 : Approximation f P t A) (n : ℕ) [NeZero n] :
     𝒜.B (1 / n) ⊆ 𝒜.B' n := by
   -- easy, use the definition of B'
-  sorry
+  rw [B']
+  apply Set.subset_iUnion₂_of_subset n
+  · exact fun ⦃a⦄ a_1 ↦ a_1
+  · simp_all only [Finset.mem_Icc, le_refl, and_true]
+    exact NeZero.one_le
 
 lemma B'_mem (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ∈ 𝓚δ f t := by
   -- easy, use the definition of B', B_mem and the fact that 𝓚δ is closed under union
@@ -340,6 +378,7 @@ lemma B'_mem (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ∈ 𝓚δ f t
 
 lemma B'_subset_A (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ⊆ A := by
   -- easy, use the definition of B' and B_subset_A
+
   sorry
 
 lemma le' (𝒜 : Approximation f P t A) (n : ℕ) :
