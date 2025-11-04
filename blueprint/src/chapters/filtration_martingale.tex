@@ -222,10 +222,10 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
-\begin{lemma}[Optional stopping (continuous time)]\label{lem:optionalStopping}
+\begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalStopping}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any bounded stopping times $\sigma \le \tau$, we have that
+  any bounded stopping times $\sigma, \tau$, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}].$
 \end{lemma}
 
