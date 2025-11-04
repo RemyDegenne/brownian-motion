@@ -61,18 +61,10 @@ lemma measurableSet_snd_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f
 /-- `𝓚₀(t)` is closed under intersection. -/
 lemma inter_mem_𝓚₀ [T2Space T] {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) (hB' : B' ∈ 𝓚₀ f t) : B ∩ B' ∈ 𝓚₀ f t := by
-  --easy
   obtain ⟨K, C, rfl, hK_sub, hK_comp, hC_meas⟩ := hB
   obtain ⟨K', C', rfl, hK'_sub, hK'_comp, hC'_meas⟩ := hB'
-  have : (K ×ˢ C) ∩ (K' ×ˢ C') = (K ∩ K') ×ˢ (C ∩ C') := by
-    aesop
-  rw [this]
-  have K_inter_comp : IsCompact (K ∩ K') := hK_comp.inter hK'_comp
-  refine ⟨K ∩ K', C ∩ C', ?_, ?_, K_inter_comp, ?_⟩
-  · exact rfl
-  · have : K ∩ K' ⊆ K := by exact Set.inter_subset_left
-    grw [this, hK_sub]
-  · exact MeasurableSet.inter hC_meas hC'_meas
+  exact ⟨K ∩ K', C ∩ C', Set.prod_inter_prod, Set.inter_subset_left.trans hK_sub,
+    hK_comp.inter hK'_comp, hC_meas.inter hC'_meas⟩
 
 /-- `𝓚(t)` is the collection of finite unions of sets in `𝓚₀(t)`. -/
 inductive 𝓚 (f : Filtration T mΩ) (t : T) : Set (Set (T × Ω)) where
@@ -351,7 +343,7 @@ lemma B'_mono (𝒜 : Approximation f P t A) : Monotone 𝒜.B' := by
   -- easy, use the definition of B'
   sorry
 
-lemma measurableSet_snd_iUnion_B' (𝒜 : Approximation f P t A) :
+lemma measurableSet_snd_iUnion_B' [T2Space T] (𝒜 : Approximation f P t A) :
     MeasurableSet[f t] (Prod.snd '' (⋃ n, 𝒜.B' n)) := by
   /- easy, use `measurableSet_snd_of_mem_𝓚δ`, the fact that a union of projections is the
   projection of the union and the fact that a countable union of measurable sets is measurable -/
@@ -372,7 +364,7 @@ lemma measure_snd_diff [IsFiniteMeasure P] (𝒜 : Approximation f P t A) :
 -- we probably need a complete measure space for this lemma to hold.
 /-- If there exists an approximation of `A`, then the projection of `A` over `Ω` is measurable
 with respect to `f t`. -/
-lemma measurableSet_snd (𝒜 : Approximation f P t A) :
+lemma measurableSet_snd [T2Space T] (𝒜 : Approximation f P t A) :
     MeasurableSet[f t] (Prod.snd '' A) := by
   /- easy, use the completeness and `measure_snd_diff` to get measurability for `(π(A) \ π(B))`,
   then measurableSet_snd_iUnion_B' to get measurability for `π(B)`, and finally use the fact that
