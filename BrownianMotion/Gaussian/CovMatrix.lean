@@ -19,7 +19,7 @@ open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
 
-lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
+lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} [IsFiniteMeasure μ] :
     ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
   map_symm := covarianceBilinDual_comm
