@@ -184,9 +184,7 @@ lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     RCLike.inner_apply, conj_trivial, dotProduct]
   congr with i
   rw [mul_comm, ← WithLp.linearEquiv_apply 2 ℝ]
-  congr
-  rw [map_sum, Finset.sum_apply]
-  simp
+  simp [-EuclideanSpace.ofLp_single, Finset.sum_apply]
 
 lemma covInnerBilin_multivariateGaussian (hS : S.PosSemidef) :
     covInnerBilin (multivariateGaussian μ S)

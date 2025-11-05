@@ -91,8 +91,8 @@ lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
 
 end ContinuousLinearMap
 
--- lemma EuclideanSpace.coe_measurableEquiv' {ι : Type*} :
---     ⇑(EuclideanSpace.measurableEquiv ι) = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
+lemma MeasurableEquiv.coe_toLp_symm_eq {ι : Type*} :
+    ⇑(MeasurableEquiv.toLp 2 (ι → ℝ)).symm = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
 
 @[simp]
 lemma zero_mem_parallelepiped {ι E : Type*} [Fintype ι] [AddCommGroup E] [Module ℝ E] {v : ι → E} :
