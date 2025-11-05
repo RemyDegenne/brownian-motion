@@ -465,6 +465,8 @@ For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}
 
 \begin{proof}\leanok
   \uses{lem:locally_of_isPreLocalizingSequence, lem:isStable_locally, lem:isPreLocalizingSequence_of_isLocalizingSequence}
+$(P_{\mathrm{loc}})_{\mathrm{loc}} \supseteq P_{\mathrm{loc}}$ by Lemma~\ref{lem:isStable_locally} so we only prove the reverse inclusion.
+
 Let $X$ be a process in $(P_{\mathrm{loc}})_{\mathrm{loc}}$.
 By definition there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P_{\mathrm{loc}}$.
 By definition of $P_{\mathrm{loc}}$, for each $n$ there exists a localizing sequence $(\sigma_{n,k})_{k \in \mathbb{N}}$ such that for all $k \in \mathbb{N}$, $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k}}\mathbb{I}_{\sigma_{n,k} > 0}$ is in $P$.
