@@ -437,7 +437,7 @@ If the filtration is right-continuous, then $X$ is locally in $P$.
 
 \begin{proof}\leanok
   \uses{lem:isLocalizingSequence_of_isPreLocalizingSequence}
-
+  Using the localizing sequence defined by Lemma~\ref{lem:isLocalizingSequence_of_isPreLocalizingSequence} suffices.
 \end{proof}
 
 
@@ -450,7 +450,8 @@ Then, there exists a strictly increasing sequence $(k_n)_{n \in \mathbb{N}}$ suc
 \end{lemma}
 
 \begin{proof}\leanok
-
+  For each $n$, since $\sigma_{n,k} \to \infty$ a.s. as $k \to \infty$, we may choose $k_n \in \mathbb{N}$ such that $P(\sigma_{n,k_n} < \tau_n \wedge n) \le 2^{-n}$.
+  Then, defining $\tau'_n = \tau_n \wedge \sigma_{n,k_n}$, we have $\tau_n' \to \infty$ by the Borel-Cantelli lemma.
 \end{proof}
 
 
@@ -468,13 +469,10 @@ Let $X$ be a process in $(P_{\mathrm{loc}})_{\mathrm{loc}}$.
 By definition there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P_{\mathrm{loc}}$.
 By definition of $P_{\mathrm{loc}}$, for each $n$ there exists a localizing sequence $(\sigma_{n,k})_{k \in \mathbb{N}}$ such that for all $k \in \mathbb{N}$, $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k}}\mathbb{I}_{\sigma_{n,k} > 0}$ is in $P$.
 
-For each $n$, since $\sigma_{n,k} \to \infty$ a.s. as $k \to \infty$, we may choose $k_n \in \mathbb{N}$ such that $P(\sigma_{n,k_n} < \tau_n \wedge n) \le 2^{-n}$.
-Let $\tau'_n = \tau_n \wedge \sigma_{n,k_n}$. $\tau_n' \to \infty$ by the Borel-Cantelli lemma.
-Let $\tau''_n = \inf_{m \ge n} \tau'_m$.
-Then $(\tau''_n)_{n \in \mathbb{N}}$ is a localizing sequence.
-
-It remains to argue that by stability of $P$, $X^{\tau''_n}\mathbb{I}_{\tau''_n > 0}$ is in $P$ for all $n$.
-Indeed, $X^{\tau''_n} = ((X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\mathbb{I}_{\sigma_{n,k_n} > 0})^{\tau''_n}\mathbb{I}_{\tau''_n > 0}$. $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\mathbb{I}_{\sigma_{n,k_n} > 0}$ is in $P$ by construction and $P$ is stable.
+By Lemma~\ref{lem:locally_of_isPreLocalizingSequence}, it suffices to show that there exists a pre-localizing sequence $(\tau'_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, $X^{\tau'_n}\mathbb{I}_{\tau'_n > 0}$ is in $P$.
+Thus, using the localizing sequences $\tau'_n = \tau_n \wedge \sigma_{n, k_n}$ defined by Lemma~\ref{lem:locally_of_isPreLocalizingSequence},
+it remains to argue that by stability of $P$, $X^{\tau'_n}\mathbb{I}_{\tau'_n > 0}$ is in $P$ for all $n$.
+Indeed, this follows as $X^{\tau'_n}\mathbb{I}_{\tau'_n > 0} = ((X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\mathbb{I}_{\sigma_{n,k_n} > 0})^{\tau'_n}\mathbb{I}_{\tau'_n > 0}$ where $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})^{\sigma_{n,k_n}}\mathbb{I}_{\sigma_{n,k_n} > 0}$ is in $P$ by construction and $P$ is stable.
 \end{proof}
 
 
