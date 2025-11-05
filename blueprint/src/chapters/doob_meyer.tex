@@ -2,9 +2,76 @@
 \label{chap:doob_meyer}
 
 
-This chapter follows \cite{Beiglböck_Schachermayer_Veliyev_2012}
-which gives an elementary and short proof of the result.
+This chapter starts with a short review of the properties of the Doob decomposition of an adapted process indexed on a discrete set, and then follows \cite{Beiglböck_Schachermayer_Veliyev_2012} which gives an elementary and short proof of the Doob-Meyer theorem.
 
+
+\section{Doob decomposition in discrete time}
+
+
+\begin{definition}\label{def:predictablePart}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
+The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined by $A_0 = 0$ and for $n \ge 0$,
+\begin{align*}
+  A_{n+1}
+  &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{definition}\label{def:martingalePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.martingalePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$ and let $A$ be the predictable part of $X$ for that filtration.
+The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defined by $M_n = X_n - A_n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_predictablePart}
+  \uses{def:predictablePart, def:predictable, def:adapted}
+The predictable part of an adapted process is a predictable process.
+\end{lemma}
+
+\begin{proof}
+This is almost \texttt{MeasureTheory.adapted\_predictablePart} but we need to formulate it with the new predictable definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_martingalePart}
+  \uses{def:martingalePart, def:Martingale}
+  \mathlibok
+  \lean{MeasureTheory.martingale_martingalePart}
+Suppose that the filtration is sigma-finite.
+Then the martingale part of an adapted process $X$ such that $X_n$ is integrable for all $n$ is a martingale.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
+  \uses{def:predictablePart, def:Submartingale}
+The predictable part of a submartingale is a nondecreasing process.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:Submartingale}
+Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$,
+\begin{align*}
+  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
+  &\ge A_n
+  \: .
+\end{align*}
+The last inequality follows from the submartingale property of $X$.
+Thus, $(A_n)_{n \in \mathbb{N}}$ is nondecreasing.
+\end{proof}
 
 
 \section{Cadlag modifications of (local) martingales}
@@ -178,14 +245,8 @@ Let $T>0$ and recall that $\mathcal{D}_n^T=\left\lbrace \frac{k}{2^n}T \mid k=0,
 TODO: everywhere below, $S$ is a cadlag submartingale of class D on $[0,T]$?
 
 
-\begin{definition}\label{def:Doob_Meyer_class}
-  \uses{def:IsStoppingTime}
-$D$ is the class of all adapted processes $(S_t)_{0\leq t\leq T}$ such that the set $\{S_\tau \mid \tau \text{ is a stopping time}\}$ is uniformly integrable.
-\end{definition}
-
-
 \begin{definition}[A]\label{def:A}
-  \uses{def:dyadics}
+  \uses{def:dyadics, def:predictablePart}
 Define $A_0=0$ and for $t\in\mathcal{D}_n^T$ positive,
 \begin{align*}
 A^n_t
@@ -196,7 +257,7 @@ A^n_t
 
 
 \begin{definition}[M]\label{def:M}
-  \uses{def:A}
+  \uses{def:A, def:martingalePart}
 For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{definition}
 
@@ -207,7 +268,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:predictable_nat_iff}
+  \uses{lem:predictable_nat_iff, lem:predictable_predictablePart}
   Trivial
 \end{proof}
 
@@ -218,6 +279,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:martingale_martingalePart}
   Trivial
 \end{proof}
 
@@ -228,7 +290,7 @@ For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
 \end{lemma}
 
 \begin{proof}
-  \uses{def:Submartingale}
+  \uses{def:Submartingale, lem:nondecreasing_predictablePart_of_submartingale}
 $S$ is a submartingale:
 \begin{align*}
   A^n_{t+T2^{-n}} - A^n_t
@@ -342,7 +404,7 @@ Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} 
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:A_uniform_integrable}
+  \uses{lem:A_uniform_integrable, def:classD}
   $M^n_T=S_T-A^n_T$, also $S$ is of class $D$ and $A^n_T$ is uniformly integrable.
 \end{proof}
 
@@ -474,7 +536,7 @@ Define
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\lim_n\mathbb{E}[A^n_\tau]=\mathbb{E}[A_\tau]$.
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg}
+  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg, def:classD}
   Let $\sigma_n:=\inf\left(t\in\mathcal{D}^T_n\vert t>\tau\right)$. By construction of $A^n$ we have $A^n_\tau=A^n_{\sigma_n}$.
   Also $\sigma_n\searrow\tau$. Since $S$ is of class $D$ and cadlag we have
   \begin{align*}
@@ -532,20 +594,6 @@ Define
 \section{Local version of the Doob-Meyer decomposition}
 
 
-
-\begin{lemma}\label{lem:IsLocalSubmartingale.local_doobMeyerClass}
-  \uses{def:IsLocalSubmartingale, def:Doob_Meyer_class}
-Every local submartingale $X$ with $X_0 = 0$ is locally of class D.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:local_induction}
-By Lemma~\ref{lem:local_induction}, it suffices to show that if $X$ is a submartingale with $X_0=0$ then it is locally of class D.
-
-TODO
-\end{proof}
-
-
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
   \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
 An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
@@ -553,6 +601,6 @@ The processes $M$ and $A$ are uniquely determined by $X$ a.s.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:IsLocalSubmartingale.local_doobMeyerClass, thm:Doob_Meyer}
+  \uses{lem:IsLocalSubmartingale.locally_classD, thm:Doob_Meyer}
 
 \end{proof}
