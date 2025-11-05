@@ -148,7 +148,7 @@ lemma subset_Iic_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
   exact hB_eq ▸ Set.iInter₂_subset_of_subset b hb (subset_Iic_of_mem_𝓚 (hℬ_sub hb))
 
 /-- `𝓚(t) ⊆ 𝓚δ(t)`. -/
-lemma 𝓚_subset_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚δ f t :=
+lemma 𝓚_subset_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚δ f t :=
   ⟨{B}, fun _ h ↦ h ▸ hB, ⟨B, rfl⟩, (Set.finite_singleton B).countable,
     Eq.symm Set.iInter_iInter_eq_left⟩
 
