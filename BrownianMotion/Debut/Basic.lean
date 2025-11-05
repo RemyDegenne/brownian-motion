@@ -44,6 +44,10 @@ lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × 
   simp only [debut, hittingAfter]
   split_ifs <;> grind
 
+lemma hittingAfter_eq_debut [Preorder ι] [InfSet ι] {β : Type*} (u : ι → Ω → β)
+    (s : Set β) (n : ι) :
+    hittingAfter u s n = debut {p : ι × Ω | u p.1 p.2 ∈ s} n := rfl
+
 section Debut
 -- TODO: revisit the names, probably we should remove the namespace and just add `debut` to
 -- the names
