@@ -32,12 +32,15 @@ lemma HasGaussianLaw.charFun_toLp_pi {X : ι → Ω → ℝ} [hX : HasGaussianLa
 lemma HasGaussianLaw.charFun_toLp_prodMk {X Y : Ω → ℝ} [hXY : HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P]
     (ξ : WithLp 2 (ℝ × ℝ)) :
     charFun (P.map (fun ω ↦ toLp 2 (X ω, Y ω))) ξ =
-      exp ((ξ.1 * P[X] + ξ.2 * P[Y]) * I -
-        (ξ.1 ^ 2 * Var[X; P] + 2 * ξ.1 * ξ.2 * cov[X, Y; P] + ξ.2 ^ 2 * Var[Y; P]) / 2) := by
+      exp ((ξ.fst * P[X] + ξ.snd * P[Y]) * I -
+        (ξ.fst ^ 2 * Var[X; P] +
+          2 * ξ.fst * ξ.snd * cov[X, Y; P] + ξ.snd ^ 2 * Var[Y; P]) / 2) := by
   have := hXY.isProbabilityMeasure
   nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_prod]
-  · simp only [id_eq, prod_inner_apply, ofLp_fst, RCLike.inner_apply, conj_trivial, ofLp_snd,
-      ofReal_add, ofReal_mul, add_mul, add_div, integral_complex_ofReal, pow_two, mul_comm]
+  · simp [id_eq, prod_inner_apply, ofLp_fst, RCLike.inner_apply, conj_trivial, ofLp_snd,
+    ofReal_add, ofReal_mul, add_div, integral_complex_ofReal, pow_two, mul_comm,
+      show ∀ x y, (toLp 2 (x, y)).fst = x by simp]
+    rw [mul_comm (ξ.fst : ℂ), mul_comm (ξ.snd : ℂ)]
     congrm exp (I * (_ * ?_ + _ * ?_) - ?_)
     · rw [integral_map, fst_integral_withLp]
       · simp
