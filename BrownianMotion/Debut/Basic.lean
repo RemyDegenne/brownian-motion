@@ -49,17 +49,56 @@ section Debut
 -- the names
 variable [ConditionallyCompleteLinearOrder ι] (n : ι)
 
+@[simp]
+lemma hittingAfter_empty {β : Type*} {u : ι → Ω → β} : hittingAfter u ∅ n = fun _ ↦ ⊤ := by
+  ext
+  simp [hittingAfter]
+
+@[simp]
+lemma hittingAfter_univ {β : Type*} {u : ι → Ω → β} :
+    hittingAfter u Set.univ n = fun _ ↦ (n : WithTop ι) := by
+  ext ω
+  classical
+  simp only [hittingAfter, Set.mem_univ, and_true]
+  rw [if_pos ⟨n, le_refl n⟩]
+  norm_cast
+  exact csInf_Ici
+
+lemma hittingAfter_anti {β : Type*} {u : ι → Ω → β} : Antitone (hittingAfter u · n) := by
+  intro E F hEF ω
+  simp only [hittingAfter]
+  split_ifs with hF hE hE
+  · norm_cast
+    gcongr
+    exacts [⟨n, by simp only [mem_lowerBounds, Set.mem_setOf_eq, and_imp]; grind⟩, hE, hEF]
+  · simp
+  · have ⟨t, ht⟩ := hE
+    exact absurd ⟨t, ht.1, hEF ht.2⟩ hF
+  · simp
+
+lemma hittingAfter_mono {β : Type*} (u : ι → Ω → β) (s : Set β) : Monotone (hittingAfter u s) := by
+  intro n m hnm ω
+  simp only [hittingAfter]
+  split_ifs with h_n h_m h_m
+  · norm_cast
+    gcongr
+    exacts [⟨n, by simp only [mem_lowerBounds, Set.mem_setOf_eq, and_imp]; grind⟩, h_m]
+  · simp
+  · have ⟨t, ht⟩ := h_m
+    exact absurd ⟨t, hnm.trans ht.1, ht.2⟩ h_n
+  · simp
+
+lemma hittingAfter_apply_mono {β : Type*} (u : ι → Ω → β) (s : Set β) (ω : Ω) :
+    Monotone (hittingAfter u s · ω) := fun _ _ hnm ↦ hittingAfter_mono u s hnm ω
+
 /-- The debut of the empty set is the constant function that returns `m`. -/
 @[simp]
 lemma debut_empty : debut (∅ : Set (ι × Ω)) n = fun _ ↦ ⊤ := by
-  unfold debut
-  simp
+  rw [debut_eq_hittingAfter, hittingAfter_empty]
 
 @[simp]
 lemma debut_univ : debut (Set.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι) := by
-  ext ω
-  rw [debut, if_pos ⟨n, le_refl n, Set.mem_univ _⟩]
-  simpa only [ge_iff_le, Set.mem_univ, and_true, WithTop.coe_eq_coe] using csInf_Ici
+  rw [debut_eq_hittingAfter, hittingAfter_univ]
 
 open scoped Classical in
 @[simp]
@@ -97,13 +136,7 @@ lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
     exact (lt_self_iff_false n).mp (hi n) |>.elim
   · simp_all
 
-lemma debut_anti : Antitone (debut (Ω := Ω) · n) := by
-  intro E F h ω
-  simp only [debut]
-  split_ifs with hF hE hE <;> try (solve | simp)
-  · exact mod_cast csInf_le_csInf ⟨n, fun i hi ↦ hi.1⟩ hE (by aesop)
-  · have ⟨t, ht⟩ := hE
-    exact (hF ⟨t, ⟨ht.1, h ht.2⟩⟩).elim
+lemma debut_anti : Antitone (debut (Ω := Ω) · n) := hittingAfter_anti n
 
 section Inequalities
 
@@ -131,15 +164,7 @@ lemma debut_le_iff [WellFoundedLT ι] : debut E n ω ≤ t ↔ ∃ j ∈ Set.Icc
 lemma debut_lt_iff [WellFoundedLT ι] : debut E n ω < t ↔ ∃ j ∈ Set.Ico n t, (j, ω) ∈ E :=
   hittingAfter_lt_iff
 
-lemma debut_mono (E : Set (ι × Ω)) (ω : Ω) : Monotone (debut E · ω) := by
-  refine fun n₁ n₂ hn ↦ ?_
-  dsimp [debut]
-  split_ifs with h₁ h₂ h₂
-  · exact mod_cast csInf_le_csInf ⟨n₁, fun _ ⟨h, _⟩ ↦ h⟩ h₂ fun i hi ↦ ⟨hn.trans hi.1, hi.2⟩
-  · bound
-  · obtain ⟨t, hnt, htE⟩ := h₂
-    exact h₁ ⟨t, hn.trans hnt, htE⟩ |>.elim
-  · gcongr
+lemma debut_mono (E : Set (ι × Ω)) (ω : Ω) : Monotone (debut E · ω) := hittingAfter_apply_mono _ _ _
 
 end Inequalities
 
