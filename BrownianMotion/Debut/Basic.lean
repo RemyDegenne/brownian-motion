@@ -35,7 +35,7 @@ lemma debut_def [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
 
 -- todo: turn this into the definition of `debut`?
 lemma debut_eq_hittingAfter [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
-    debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := by ext; simp [debut, hittingAfter]
+    debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := rfl
 
 lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × Ω))
     [∀ t ω, Decidable ((t, ω) ∈ E)] (n : ι) :
