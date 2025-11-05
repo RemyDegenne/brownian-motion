@@ -33,11 +33,20 @@ lemma debut_def [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
     debut E n = fun ω ↦ if ∃ t ≥ n, (t, ω) ∈ E then
       ((sInf {t ≥ n | (t, ω) ∈ E} : ι) : WithTop ι) else ⊤ := rfl
 
-/- TODO: prove that this def is equiv to the hitting time of an indicator function of E,
-when it hits [1,∞] -/
+-- todo: turn this into the definition of `debut`?
+lemma debut_eq_hittingAfter [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
+    debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := by ext; simp [debut, hittingAfter]
+
+lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × Ω))
+    [∀ t ω, Decidable ((t, ω) ∈ E)] (n : ι) :
+    debut E n = hittingAfter (fun t ω ↦ if (t, ω) ∈ E then 1 else 0) {1} n := by
+  ext ω
+  simp only [debut, hittingAfter]
+  split_ifs <;> grind
 
 section Debut
--- TODO: revisit the names, probably we should remove the namespace and just add `debut` to the names
+-- TODO: revisit the names, probably we should remove the namespace and just add `debut` to
+-- the names
 variable [ConditionallyCompleteLinearOrder ι] (n : ι)
 
 /-- The debut of the empty set is the constant function that returns `m`. -/
