@@ -206,5 +206,30 @@ Then $X$ has a cadlag modification.
 \end{lemma}
 
 \begin{proof}
+  \uses{cor:exists_caldag_modification}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.exists_modifications_limits}
+  \uses{def:modification, def:Martingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale.
+Then $X$ has a modification $Y$ such that for all $t \in T$, $Y$ has left and right limits at $t$ and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:Martingale.exists_cadlag_modification}
+  \uses{def:modification, def:Martingale, def:rightContinuous}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale with respect to a right-continuous filtration.
+Then $X$ has a cadlag modification.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:Martingale.exists_modifications_limits}
 
 \end{proof}
