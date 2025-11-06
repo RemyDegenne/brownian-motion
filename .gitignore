@@ -2,7 +2,7 @@ Manuscript/proof_outline.pdf
 Manuscript/_minted/*
 Manuscript/_minted-proof-outline/*
 BM_paper/main.pdf
-
+docbuild/*
 ## macOS
 .DS_Store
 ## Lake
@@ -42,3 +42,4 @@ BM_paper/main.pdf
 *.synctex.gz(busy)
 *.pdfsync
 *.pygtex
+BM_paper/main.tex
