@@ -36,6 +36,16 @@ Let $\mathcal{F}$ be a filtration on a measurable space $\Omega$ with measure $P
 A family of functions $M : T \to \Omega \to E$ is a submartingale with respect to a filtration $\mathcal{F}$ if $M$ is adapted with respect to $\mathcal{F}$ and for all $i \le j$, $P[M_j \mid \mathcal{F}_i] \ge M_i$ almost surely.
 \end{definition}
 
+\begin{lemma}\label{lem:condExp_sub_nonneg}
+  \uses{def:Submartingale}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.condExp_sub_nonneg}
+Let $X$ be a real-valued submartingale with respect to a filtration $\mathcal{F}$. Then for all $i \le j$, we have $0 \le P[M_j - M_i \mid \mathcal{F}_i]$ almost surely.
+\end{lemma}
+
+\begin{proof}\mathlibok
+
+\end{proof}
 
 \begin{definition}[Stopping time]\label{def:IsStoppingTime}
   \uses{def:filtration}
