@@ -40,18 +40,15 @@ theorem uniformIntegrable_subsingleton' {p : ℝ≥0∞} {f : ι → Ω → E} [
     rw [eLpNorm_congr_ae (hf i)]
     exact le_of_eq <| (ENNReal.coe_toNNReal hfint.eLpNorm_ne_top).symm
 
-variable [LinearOrder ι] [LocallyFiniteOrder ι] [OrderBot ι]
-  [TopologicalSpace ι] [DiscreteTopology ι] [MeasurableSpace ι] [BorelSpace ι]
-  {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+variable [LinearOrder ι] [OrderBot ι] [Countable ι] [TopologicalSpace ι] [OrderTopology ι]
+  [FirstCountableTopology ι] {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
 
 lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → ℝ}
     (hX : Martingale X 𝓕 μ) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) {n : ι}
     (hτ_le : ∀ ω, τ ω ≤ n) :
-    stoppedValue X τ =ᵐ[μ] μ[X n | hτ.measurableSpace] := by
-  convert stoppedValue_min_ae_eq_condExp hX (isStoppingTime_const 𝓕 n) hτ (n := n) ?_ using 2
-  · ext ω
-    exact (min_eq_left (hτ_le ω)).symm
-  exact fun _ ↦ le_rfl
+    stoppedValue X τ =ᵐ[μ] μ[X n | hτ.measurableSpace] :=
+  stoppedValue_ae_eq_condExp_of_le hX (isStoppingTime_const 𝓕 n) hτ (n := n) hτ_le
+    (fun _ ↦ le_rfl)
 
 lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration μ 𝓕]
