@@ -623,16 +623,22 @@ lemma indicator_indepFun_process_of_bcf
 
 end Aux
 
+lemma comap_process {Ω T : Type*} {𝓧 : T → Type*} [∀ t, MeasurableSpace (𝓧 t)]
+    (X : (t : T) → Ω → 𝓧 t) :
+    MeasurableSpace.comap (fun ω t ↦ X t ω) MeasurableSpace.pi =
+      ⨆ t, MeasurableSpace.comap (X t) inferInstance := by
+  simp_rw [MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
+  rfl
+
+
 lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
-    (hX' : ∀ ω, Continuous (X · ω)) :
-    ∀ A, MeasurableSet[⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s] A →
+    (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
+    (hA : MeasurableSet[⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s] A) :
     P A = 0 ∨ P A = 1 := by
   let m1 : MeasurableSpace Ω := ⨆ t, .comap (X t) inferInstance
-  let m2 : MeasurableSpace Ω := ⨆ t > 0, .comap (X t) inferInstance
-  let m3 : MeasurableSpace Ω := ⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s
-  have hm1 : m1 ≤ mΩ := by
-    apply iSup_le
-    exact fun i ↦ (hX i).comap_le
+  let m2 : MeasurableSpace Ω := ⨆ (t : Set.Ioi (0 : ℝ≥0)), .comap (X t) inferInstance
+  set m3 : MeasurableSpace Ω := ⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s
+  have hm1 : m1 ≤ mΩ := iSup_le fun i ↦ (hX i).comap_le
   have hm2 : m2 ≤ m1 := iSup₂_le_iSup _ _
   have hm2' := hm2.trans hm1
   let π := Set.preimage (fun ω (i : Set.Ioi (0 : ℝ≥0)) ↦ X i ω) ''
@@ -657,7 +663,6 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
       intro t
       convert le_iSup₂ t.1 (Set.mem_Ioi.1 t.2)
       rfl
-  intro A hA
   have := h.isGaussianProcess.isProbabilityMeasure
   apply measure_eq_zero_or_one_of_indepSet_self
   suffices IndepSets {A} {B | MeasurableSet[⨆ t, .comap (X t) inferInstance] B} P by
@@ -782,10 +787,10 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
         have (x : (i : (∅ : Finset (Set.Ioi (0 : ℝ≥0)))) → ℝ) : x = h'.elim' := by ext; grind
         simp_rw [this]
         simp
-      refine sets_of_superset (x := Set.Ioo (0 : ℝ≥0) (I.min' sorry)) ?_ ?_ ?_
+      refine sets_of_superset (x := Set.Ioo (0 : ℝ≥0) (I.min' hI)) ?_ ?_ ?_
       · simp only [Filter.mem_sets]
         apply Ioo_mem_nhdsGT
-        exact I.min' sorry |>.2
+        exact I.min' hI |>.2
       rintro ε ⟨h1, h2⟩
       convert key ε h1 (fun t ht ↦ ?_)
       · exact h2.le.trans (by exact_mod_cast I.min'_le t ht)
