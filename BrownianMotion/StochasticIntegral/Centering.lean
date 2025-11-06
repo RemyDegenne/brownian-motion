@@ -19,8 +19,9 @@ variable {Ω E : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
   [MeasurableSpace E] [BorelSpace E]
   {X : ℕ → Ω → E} {𝓕 : Filtration ℕ mΩ}
 
-lemma isPredictable_predictablePart : IsPredictable 𝓕 (predictablePart X 𝓕 μ) := by
-  sorry
+lemma isPredictable_predictablePart : IsPredictable 𝓕 (predictablePart X 𝓕 μ) :=
+  isPredictable_of_measurable_add_one (by simp [measurable_const'])
+    fun n ↦ (adapted_predictablePart n).measurable
 
 -- todo: feel free to replace `Preorder E` by something stonger if needed
 lemma Submartingale.monotone_predictablePart [Preorder E] (hX : Submartingale X 𝓕 μ) :
