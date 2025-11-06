@@ -16,29 +16,34 @@ open scoped ENNReal Topology
 namespace ProbabilityTheory
 
 variable {ι Ω E F G : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F]
   [NormedAddCommGroup G] [NormedSpace ℝ G]
+  {𝓕 : Filtration ι mΩ}
 
 open scoped Function
 
 -- TODO: remove disjoint_intervals or not?
 /-- A simple process. TODO: more details. -/
-structure SimpleProcess (ι Ω F : Type*) [LinearOrder ι] [OrderBot ι]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] where
+structure SimpleProcess (ι F : Type*) [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] (𝓕 : Filtration ι mΩ) where
   /-- The intervals over which we sum to define the integral. -/
   intervals : Finset (ι × ι)
   disjoint_intervals : Pairwise (Disjoint on (fun p : intervals ↦ Set.Ioc p.1.1 p.1.2))
   /-- The values of the process at the left endpoints of the intervals. -/
   value : ι → Ω → F -- only the values at left endpoints of intervals are used
+  measurable_value_bot : Measurable[𝓕 ⊥] (value ⊥)
+  measurable_value : ∀ p ∈ intervals, Measurable[𝓕 p.1] (value p.1)
 
 noncomputable
-instance : CoeFun (SimpleProcess ι Ω F) (fun _ ↦ ι → Ω → F) where
-  coe V := fun i ω ↦ ∑ p ∈ V.intervals, (Set.Ioc p.1 p.2).indicator (fun _ ↦ V.value p.1 ω) i
+instance : CoeFun (SimpleProcess ι F 𝓕) (fun _ ↦ ι → Ω → F) where
+  coe V := fun i ω ↦ ({⊥} : Set ι).indicator (fun _ ↦ V.value ⊥ ω) i
+    + ∑ p ∈ V.intervals, (Set.Ioc p.1 p.2).indicator (fun _ ↦ V.value p.1 ω) i
 
 -- TODO: write stoppedProcess as a min?
 /-- The elementary stochastic integral. -/
 noncomputable
-def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimpleProcess ι Ω F) :
+def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimpleProcess ι F 𝓕) :
     ι → Ω → G :=
   fun i ω ↦ ∑ p ∈ V.intervals,
     B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) (V.value p.1 ω)

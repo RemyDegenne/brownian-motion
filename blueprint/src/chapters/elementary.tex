@@ -1,0 +1,210 @@
+\chapter{Simple processes and elementary integrals}
+
+
+\section{Simple processes}
+
+\begin{definition}[Simple process]\label{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess}
+Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ be points in a linear order $T$ with a bottom element 0.
+Let $(\eta_k)_{0 \le k \le n}$ be random variables with values in a normed space $F$ such that $\eta_0$ is $\mathcal{F}_0$-measurable and $\eta_k$ is $\mathcal{F}_{s_k}$-measurable for $k \ge 1$.
+Then the simple process for that sequence is the process $V : T \to \Omega \to F$ defined by
+\begin{align*}
+  V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)
+  \: .
+\end{align*}
+Let $\mathcal{E}_{T, F}$ be the set of simple processes indexed by $T$ with value in $F$.
+\end{definition}
+
+
+\begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
+A set $A \subseteq T \times \Omega$ is an \emph{elementary predictable set} if it is a finite union of sets of the form ${0} \times B$ for $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $0 \le s < t$ in $T$ and $B \in \mathcal{F}_s$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictableSet_elementaryPredictableSet}
+  \uses{def:elementaryPredictableSet, def:predictableMeasurableSpace}
+An elementary predictable set is measurable with respect to the predictable $\sigma$-algebra.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictable_Ioc_prod}
+It is a union of sets of the form ${0} \times B$ with $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $B \in \mathcal{F}_s$, which are measurable by Lemma~\ref{lem:predictable_Ioc_prod}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictable_simpleProcess}
+  \uses{def:predictable, def:simpleProcess}
+A simple process is predictable.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:elementaryPredictableSet_iff_indicator}
+  \uses{def:elementaryPredictableSet, def:simpleProcess}
+A set $A \subseteq T \times \Omega$ is an elementary predictable set if and only if the indicator function $\mathbb{1}_A$ is a simple process.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral}
+Let $V \in \mathcal{E}_{T, F}$ be a simple process and let $X$ be a stochastic process with values in a normed space $E$.
+Let $B$ be a continuous bilinear map from $E \times F$ to another normed space $G$.
+The \emph{elementary stochastic integral} process $V \bullet X : T \to \Omega \to G$ is defined by
+\begin{align*}
+  (V \bullet X)_t
+  &= \sum_{k=1}^{n} B (X^t_{t_k} - X^t_{s_k}, \eta_k)
+  \: .
+\end{align*}
+An important example is $G = E$, $F = \mathbb{R}$ and $B(x, r) = r \cdot x$ the scalar multiplication.
+\end{definition}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_linear}
+  \uses{def:elemStochIntegral}
+The elementary stochastic integral is linear in both arguments.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_assoc}
+  \uses{def:elemStochIntegral}
+$V \bullet (W \bullet X) = (V * W) \bullet X$ for simple processes $V, W$ and stochastic process $X$.
+
+TODO: that's for $B$ the multiplication. What is the right statement for general $B$?
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_stoppedProcess}
+  \uses{def:elemStochIntegral, def:stoppedProcess}
+Let $X$ be a stochastic process, $V$ a simple process and $τ$ a stopping time.
+Then
+\begin{align*}
+  (V \bullet X)^τ = V \bullet (X^τ)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:submartingale_iff_integral_elemStochIntegral_nonneg}
+  \uses{def:elemStochIntegral, def:Submartingale}
+An adapted integrable process $X$ is a submartingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}_+$, $\mathbb{E}[(V \bullet X)_\infty] \ge 0$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_iff_integral_elemStochIntegral_eq_zero}
+  \uses{def:elemStochIntegral, def:Martingale}
+An adapted integrable process $X$ is a martingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}$, $\mathbb{E}[(V \bullet X)_\infty] = 0$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.elemStochIntegral}
+  \uses{def:elemStochIntegral, def:Submartingale}
+Let $X$ be a submartingale and $V$ be a nonnegative bounded simple process.
+Then the elementary stochastic integral $V \bullet X$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:submartingale_iff_integral_elemStochIntegral_nonneg, lem:elemStochIntegral_assoc}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.elemStochIntegral}
+  \uses{def:elemStochIntegral, def:Martingale}
+Let $X$ be a martingale and $V$ be a bounded simple process.
+Then the elementary stochastic integral $V \bullet X$ is a martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:martingale_iff_integral_elemStochIntegral_eq_zero, lem:elemStochIntegral_assoc}
+
+\end{proof}
+
+
+\section{Modifications with cadlag paths}
+
+\subsection{Upcrossings}
+
+
+\begin{lemma}\label{lem:upcrossing_simpleProcess_le}
+  \uses{def:elemStochIntegral, def:simpleProcess}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process.
+Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary predictable set $A$ such that the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ satisfies
+\begin{align*}
+  (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
+  \:.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+\subsection{Cadlag modifications}
+
+\begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+  \uses{def:elemStochIntegral, def:modification}
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that one of the two following conditions hold:
+\begin{enumerate}
+  \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+  \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
+\end{enumerate}
+Then $X$ has a modification $Y$ which has left and right limits everywhere and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:upcrossing_simpleProcess_le}
+
+\end{proof}
+
+
+\begin{corollary}\label{cor:exists_caldag_modification}
+  \uses{def:elemStochIntegral, def:modification}
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that one of the two conditions of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
+Then $X$ has a cadlag modification.
+\end{corollary}
+
+\begin{proof}
+  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.exists_cadlag_modification_of_rightContinuous}
+  \uses{def:modification, def:Martingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale which is right-continuous in probability.
+Then $X$ has a cadlag modification.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}

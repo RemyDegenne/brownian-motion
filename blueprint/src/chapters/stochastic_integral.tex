@@ -363,33 +363,7 @@ The decomposition is a.s. unique.
 \section{Stochastic integral}
 
 
-\begin{definition}[Simple process]\label{def:simpleProcess}
-  \leanok
-  \lean{ProbabilityTheory.SimpleProcess}
-Let $0 \le t_0 \le t_1 \le \ldots \le t_n$ in $\mathbb{R}_+$.
-Let $(\eta_k)_{0 \le k \le n-1}$ be $\mathcal{F}_{t_k}$-measurable random variables.
-Then the simple process for that sequence is the process $V : \mathbb{R}_+ \to \Omega \to E$ defined by
-\begin{align*}
-  V_t = \sum_{k=0}^{n-1} \eta_k \mathbb{1}_{(t_k, t_{k+1}]}(t)
-  \: .
-\end{align*}
-Let $\mathcal{E}$ be the set of simple processes.
-\end{definition}
-
-
-\begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
-  \uses{def:simpleProcess}
-  \leanok
-  \lean{ProbabilityTheory.SimpleProcess.integral}
-Let $V \in \mathcal{E}$ be a simple process and let $X$ be a stochastic process.
-The \emph{elementary stochastic integral} process $V \cdot X : \mathbb{R}_+ \to \Omega \to E$ is defined by
-\begin{align*}
-  (V \cdot X)_t
-  &= \sum_{k=0}^{n-1} \eta_k (X^t_{t_{k+1}} - X^t_{t_k})
-  \: .
-\end{align*}
-\end{definition}
-
+\subsection{Itô isometry}
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
   \uses{def:elemStochIntegral}
@@ -404,9 +378,6 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \cdot M \in \mathcal{
 \begin{proof}
 
 \end{proof}
-
-
-\subsection{Itô isometry}
 
 \begin{definition}\label{def:L2M}
   \uses{def:squareIntegrableMartingales}
