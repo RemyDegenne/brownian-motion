@@ -110,9 +110,9 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : 
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
-  ((uniformIntegrable_subsingleton' (f := fun (_ : ℕ) ↦ X n) le_rfl ENNReal.one_ne_top
-    (fun _ ↦ Eq.eventuallyEq rfl) <| memLp_one_iff_integrable.2 <| hX.integrable n).condExp
+  (((uniformIntegrable_subsingleton (f := fun _ : Unit ↦ X n) le_rfl (by simp)
+    (fun _ ↦ memLp_one_iff_integrable.2 <| hX.integrable n)).condExp'
     (fun i ↦ (hτ i).measurableSpace_le)).ae_eq <| fun m ↦
-      (hX.ae_eq_condExp_of_isStoppingTime (hτ m) (hτ_le m)).symm
+      (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
 
 end MeasureTheory
