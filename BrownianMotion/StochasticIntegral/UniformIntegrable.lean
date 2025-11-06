@@ -19,7 +19,7 @@ variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι 
 
 -- todo: `X` takes values in `ℝ` because
 -- `MeasureTheory.Integrable.uniformIntegrable_condExp` is written only for `ℝ`. Investigate why.
-lemma UniformIntegrable.condExp {κ : Type*} (hX : UniformIntegrable X 1 μ)
+lemma UniformIntegrable.condExp' {κ : Type*} (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun (p : ι × κ) ↦ μ[X p.1 | 𝓕 p.2]) 1 μ := by
   have hX' := hX
@@ -58,6 +58,24 @@ lemma UniformIntegrable.condExp {κ : Type*} (hX : UniformIntegrable X 1 μ)
     gcongr
     exact ENNReal.div_le_one_of_le <| le_iSup (α := ℝ≥0∞) _ p.1
   _ = _ := by simp
+
+lemma UnifIntegrable.comp {κ : Type*} [NormedAddCommGroup E]
+    {X : ι → Ω → E} {p : ℝ≥0∞} (hX : UnifIntegrable X p μ) (f : κ → ι) :
+    UnifIntegrable (X ∘ f) p μ := by
+  intro ε hε
+  obtain ⟨δ, hδ, h⟩ := hX hε
+  exact ⟨δ, ⟨hδ, fun i ↦ h (f i)⟩⟩
+
+lemma UniformIntegrable.comp {κ : Type*} [NormedAddCommGroup E]
+    {X : ι → Ω → E} {p : ℝ≥0∞} (hX : UniformIntegrable X p μ) (f : κ → ι) :
+    UniformIntegrable (X ∘ f) p μ := by
+  obtain ⟨hX1, hX2, ⟨C, hC⟩⟩ := hX
+  exact ⟨fun _ ↦ hX1 _, hX2.comp f, ⟨C, fun i ↦ hC (f i)⟩⟩
+
+lemma UniformIntegrable.condExp (hX : UniformIntegrable X 1 μ)
+    {𝓕 : ι → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
+    UniformIntegrable (fun i ↦ μ[X i | 𝓕 i]) 1 μ :=
+  (hX.condExp' h𝓕).comp (fun i ↦ (i, i))
 
 variable [Preorder ι]
 
