@@ -630,6 +630,12 @@ lemma comap_process {Ω T : Type*} {𝓧 : T → Type*} [∀ t, MeasurableSpace 
   simp_rw [MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
   rfl
 
+lemma measure_eq_zero_or_one_of_indep_self [IsProbabilityMeasure P] {m : MeasurableSpace Ω}
+    (hm : Indep m m P) {A : Set Ω} (hA : MeasurableSet[m] A) :
+    P A = 0 ∨ P A = 1 := by
+  rw [Indep_iff_IndepSets, indepSets_iff_singleton_indepSets] at hm
+  replace hm := indepSets_iff_singleton_indepSets.1 (hm A hA).symm
+
 
 lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
