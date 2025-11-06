@@ -630,17 +630,19 @@ lemma comap_process {Ω T : Type*} {𝓧 : T → Type*} [∀ t, MeasurableSpace 
   simp_rw [MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
   rfl
 
-lemma measure_eq_zero_or_one_of_indep_self [IsProbabilityMeasure P] {m : MeasurableSpace Ω}
-    (hm : Indep m m P) {A : Set Ω} (hA : MeasurableSet[m] A) :
+lemma measure_eq_zero_or_one_of_indep_self [IsZeroOrProbabilityMeasure P] {m : MeasurableSpace Ω}
+    (hm1 : m ≤ mΩ) (hm2 : Indep m m P) {A : Set Ω} (hA : MeasurableSet[m] A) :
     P A = 0 ∨ P A = 1 := by
-  rw [Indep_iff_IndepSets, indepSets_iff_singleton_indepSets] at hm
-  replace hm := indepSets_iff_singleton_indepSets.1 (hm A hA).symm
-
+  rw [Indep_iff_IndepSets, indepSets_iff_singleton_indepSets] at hm2
+  replace hm2 := indepSets_iff_singleton_indepSets.1 (hm2 A hA).symm A hA
+  exact measure_eq_zero_or_one_of_indepSet_self <|
+    (indepSet_iff_indepSets_singleton (hm1 A hA) (hm1 A hA) P).2 hm2
 
 lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
     (hA : MeasurableSet[⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s] A) :
     P A = 0 ∨ P A = 1 := by
+  have := h.isGaussianProcess.isProbabilityMeasure
   let m1 : MeasurableSpace Ω := ⨆ t, .comap (X t) inferInstance
   let m2 : MeasurableSpace Ω := ⨆ (t : Set.Ioi (0 : ℝ≥0)), .comap (X t) inferInstance
   set m3 : MeasurableSpace Ω := ⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s
