@@ -58,16 +58,16 @@ variable [DecidableEq ι]
 
 noncomputable
 def gaussianProjectiveFamily (I : Finset ℝ≥0) : Measure (I → ℝ) :=
-  multivariateGaussian 0 (brownianCovMatrix I) |>.map (EuclideanSpace.measurableEquiv I)
+  multivariateGaussian 0 (brownianCovMatrix I) |>.map (MeasurableEquiv.toLp 2 (I → ℝ)).symm
 
 lemma measurePreserving_equiv_multivariateGaussian (I : Finset ℝ≥0) :
-    MeasurePreserving (EuclideanSpace.measurableEquiv I)
+    MeasurePreserving (MeasurableEquiv.toLp 2 (I → ℝ)).symm
       (multivariateGaussian 0 (brownianCovMatrix I)) (gaussianProjectiveFamily I) where
   measurable := by fun_prop
   map_eq := rfl
 
 lemma measurePreserving_equiv_gaussianProjectiveFamily (I : Finset ℝ≥0) :
-    MeasurePreserving (EuclideanSpace.measurableEquiv I).symm (gaussianProjectiveFamily I)
+    MeasurePreserving (MeasurableEquiv.toLp 2 (I → ℝ)).symm.symm (gaussianProjectiveFamily I)
       (multivariateGaussian 0 (brownianCovMatrix I)) where
   measurable := by fun_prop
   map_eq := by
@@ -80,12 +80,12 @@ lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [Norm
     ∫ x, f x ∂gaussianProjectiveFamily I =
       ∫ x, f (EuclideanSpace.equiv I ℝ x)
         ∂multivariateGaussian 0 (brownianCovMatrix I) := by
-  rw [gaussianProjectiveFamily, integral_map_equiv, EuclideanSpace.coe_measurableEquiv']
+  simp [gaussianProjectiveFamily, integral_map_equiv]
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) := by
   unfold gaussianProjectiveFamily
-  rw [EuclideanSpace.coe_measurableEquiv']
+  rw [MeasurableEquiv.coe_toLp_symm_eq]
   infer_instance
 
 @[simp]
@@ -150,9 +150,9 @@ lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
   intro I J hJI
   nth_rw 2 [gaussianProjectiveFamily]
   rw [Measure.map_map]
-  · have : (Finset.restrict₂ (π := fun _ ↦ ℝ) hJI ∘ EuclideanSpace.measurableEquiv I) =
-        EuclideanSpace.measurableEquiv J ∘ (EuclideanSpace.restrict₂ hJI) := by
-      ext; simp [EuclideanSpace.measurableEquiv]
+  · have : (Finset.restrict₂ (π := fun _ ↦ ℝ) hJI ∘ (MeasurableEquiv.toLp 2 (I → ℝ)).symm) =
+        (MeasurableEquiv.toLp 2 (J → ℝ)).symm ∘ (EuclideanSpace.restrict₂ hJI) := by
+      ext; simp
     rw [this, ((measurePreserving_equiv_multivariateGaussian J).comp
       (measurePreserving_restrict_multivariateGaussian
         (posSemidef_brownianCovMatrix I) hJI)).map_eq]

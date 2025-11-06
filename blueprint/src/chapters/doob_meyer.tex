@@ -34,8 +34,10 @@ The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defi
 
 
 \begin{lemma}\label{lem:predictable_predictablePart}
-  \uses{def:predictablePart, def:predictable, def:adapted}
-The predictable part of an adapted process is a predictable process.
+  \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.isPredictable_predictablePart}
+The predictable part of a process is predictable.
 \end{lemma}
 
 \begin{proof}
@@ -58,6 +60,8 @@ Then the martingale part of an adapted process $X$ such that $X_n$ is integrable
 
 \begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
   \uses{def:predictablePart, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
 The predictable part of a submartingale is a nondecreasing process.
 \end{lemma}
 
@@ -245,12 +249,6 @@ Let $T>0$ and recall that $\mathcal{D}_n^T=\left\lbrace \frac{k}{2^n}T \mid k=0,
 TODO: everywhere below, $S$ is a cadlag submartingale of class D on $[0,T]$?
 
 
-\begin{definition}\label{def:Doob_Meyer_class}
-  \uses{def:IsStoppingTime}
-$D$ is the class of all adapted processes $(S_t)_{0\leq t\leq T}$ such that the set $\{S_\tau \mid \tau \text{ is a stopping time}\}$ is uniformly integrable.
-\end{definition}
-
-
 \begin{definition}[A]\label{def:A}
   \uses{def:dyadics, def:predictablePart}
 Define $A_0=0$ and for $t\in\mathcal{D}_n^T$ positive,
@@ -410,7 +408,7 @@ Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} 
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:A_uniform_integrable}
+  \uses{lem:A_uniform_integrable, def:classD}
   $M^n_T=S_T-A^n_T$, also $S$ is of class $D$ and $A^n_T$ is uniformly integrable.
 \end{proof}
 
@@ -542,7 +540,7 @@ Define
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\lim_n\mathbb{E}[A^n_\tau]=\mathbb{E}[A_\tau]$.
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg}
+  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg, def:classD}
   Let $\sigma_n:=\inf\left(t\in\mathcal{D}^T_n\vert t>\tau\right)$. By construction of $A^n$ we have $A^n_\tau=A^n_{\sigma_n}$.
   Also $\sigma_n\searrow\tau$. Since $S$ is of class $D$ and cadlag we have
   \begin{align*}
@@ -600,20 +598,6 @@ Define
 \section{Local version of the Doob-Meyer decomposition}
 
 
-
-\begin{lemma}\label{lem:IsLocalSubmartingale.local_doobMeyerClass}
-  \uses{def:IsLocalSubmartingale, def:Doob_Meyer_class}
-Every local submartingale $X$ with $X_0 = 0$ is locally of class D.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:local_induction}
-By Lemma~\ref{lem:local_induction}, it suffices to show that if $X$ is a submartingale with $X_0=0$ then it is locally of class D.
-
-TODO
-\end{proof}
-
-
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
   \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
 An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
@@ -621,6 +605,6 @@ The processes $M$ and $A$ are uniquely determined by $X$ a.s.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:IsLocalSubmartingale.local_doobMeyerClass, thm:Doob_Meyer}
+  \uses{lem:IsLocalSubmartingale.locally_classD, thm:Doob_Meyer}
 
 \end{proof}

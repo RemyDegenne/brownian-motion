@@ -31,8 +31,11 @@ import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Gaussian.StochasticProcesses
+import BrownianMotion.StochasticIntegral.Centering
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
 import BrownianMotion.StochasticIntegral.Predictable
+import BrownianMotion.StochasticIntegral.SimpleProcess
+import BrownianMotion.StochasticIntegral.UniformIntegrable

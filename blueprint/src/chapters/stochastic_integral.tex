@@ -310,13 +310,14 @@ TODO: filtrations should be assumed right-continuous and complete whenever neede
 
 
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
-  \uses{def:IsLocalMartingale}
-For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $M^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
+  \uses{def:IsLocalMartingale, thm:local_doobMeyer}
+For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $\Vert M \Vert^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
+$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the sub-martingale $\Vert M \Vert^2$~.
 \end{definition}
 
 
 \begin{definition}[Covariation]\label{def:covariation}
-  \uses{def:IsLocalMartingale}
+  \uses{def:IsLocalMartingale, def:quadraticVariation}
 For any continuous local martingales $M$ and $N$, there exists a continuous process $[M,N]$ with $[M,N]_0 = 0$ such that $MN - [M,N]$ is a local martingale. That process is a.s. unique and is called the \emph{covariation} of $M$ and $N$.
 
 It can be defined by $[M, N]_t = \frac{1}{4}\left([M+N]_t - [M-N]_t \right)$~.
@@ -363,6 +364,8 @@ The decomposition is a.s. unique.
 
 
 \begin{definition}[Simple process]\label{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess}
 Let $0 \le t_0 \le t_1 \le \ldots \le t_n$ in $\mathbb{R}_+$.
 Let $(\eta_k)_{0 \le k \le n-1}$ be $\mathcal{F}_{t_k}$-measurable random variables.
 Then the simple process for that sequence is the process $V : \mathbb{R}_+ \to \Omega \to E$ defined by
@@ -376,6 +379,8 @@ Let $\mathcal{E}$ be the set of simple processes.
 
 \begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
   \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral}
 Let $V \in \mathcal{E}$ be a simple process and let $X$ be a stochastic process.
 The \emph{elementary stochastic integral} process $V \cdot X : \mathbb{R}_+ \to \Omega \to E$ is defined by
 \begin{align*}
@@ -452,7 +457,7 @@ We define $L^2_{loc}(M)$ as the space of predictable processes $X$ such that for
 
 
 \begin{definition}[Stochastic integral for continuous local martingales]\label{def:locStochIntegral}
-  \uses{def:L2locM, def:itoIsometry}
+  \uses{def:L2locM, def:itoIsometry, def:covariation}
 Let $M$ be a continuous local martingale and let $X \in L^2_{loc}(M)$.
 We define the local stochastic integral $X \cdot M$ as the unique continuous local martingale with $(X \cdot M)_0 = 0$ such that for any continuous local martingale $N$, almost surely,
 \begin{align*}
