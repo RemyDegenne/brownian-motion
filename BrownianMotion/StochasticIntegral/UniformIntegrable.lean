@@ -53,10 +53,10 @@ lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → ℝ}
     exact (min_eq_left (hτ_le ω)).symm
   exact fun _ ↦ le_rfl
 
-lemma Martingale.uniformIntegrable_stoppedValue {X : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ mΩ}
+lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration μ 𝓕]
-    (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → ℕ∞) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
-    {n : ℕ} (hτ_le : ∀ i ω, τ i ω ≤ n) :
+    (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
+    {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
   ((uniformIntegrable_subsingleton' (f := fun (_ : ℕ) ↦ X n) le_rfl ENNReal.one_ne_top
     (fun _ ↦ Eq.eventuallyEq rfl) <| memLp_one_iff_integrable.2 <| hX.integrable n).condExp
