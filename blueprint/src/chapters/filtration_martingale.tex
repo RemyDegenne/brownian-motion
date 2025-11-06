@@ -108,7 +108,7 @@ We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies th
 
 \begin{definition}\label{def:predictableMeasurableSpace}
   \uses{def:filtration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.predictable}
 Let $\mathcal{F}$ be a filtration on a measurable space indexed $\Omega$ by a linearly ordered set $T$.
 Let $S = \{\{\bot\} \times A \mid A \in \mathcal{F}_\bot\}$ if $T$ has a bottom element and $S = \emptyset$ otherwise.
@@ -118,7 +118,7 @@ The predictable sigma-algebra on $T \times \Omega$ is the sigma-algebra generate
 
 \begin{definition}[Predictable process]\label{def:predictable}
   \uses{def:predictableMeasurableSpace}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.IsPredictable}
 A process $X : T \to \Omega \to E$ is said to be predictable with respect to a filtration $\mathcal{F}$ if it is measurable with respect to the predictable sigma-algebra on $T \times \Omega$.
 \end{definition}
@@ -126,7 +126,7 @@ A process $X : T \to \Omega \to E$ is said to be predictable with respect to a f
 
 \begin{lemma}\label{lem:Predictable.progressive}
   \uses{def:predictable}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.IsPredictable.progMeasurable}
 A predictable process is progressively measurable.
 \end{lemma}
@@ -150,24 +150,28 @@ $$\iota_t^{-1}((s, \infty) \times A) = \begin{cases}
 By the monotonicity of the filtration $\mathcal{F}$, all of these cases are $\mathcal{B}([0, t]) \otimes \mathcal{F}_t$-measurable allowing us to conclude.
 \end{proof}
 
+
 \begin{lemma}\label{lem:predictable_Ioc_prod}
   \uses{def:predictableMeasurableSpace}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.measurableSet_predictable_Ioc_prod}
 Sets of the form $(s, t] \times A$ for any $A \in \mathcal{F}_s$ is measurable with respect to the predictable $\sigma$-algebra.
 \end{lemma}
+
 \begin{proof}\leanok
 For $t \le s$, the set in question is empty and thusly, trivially measurable. On the other hand, for $s < t$, measurability follows as
 $(s, t] \times A = (s, \infty) \times A \setminus (t, \infty) \times A$.
 \end{proof}
 
+
 \begin{lemma}\label{lem:predictable_nat_iff}
   \uses{def:predictable}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.isPredictable_iff_measurable_add_one}
 Let $X : \mathbb{N} \to \Omega \to E$ be a stochastic process and let $\mathcal{F}$ be a filtration indexed by $\mathbb{N}$.
 Then $X$ is predictable if and only if $X_0$ is $\mathcal{F}_0$-measurable and for all $n \in \mathbb{N}$, $X_{n+1}$ is $\mathcal{F}_n$-measurable.
 \end{lemma}
+
 
 \begin{proof}\leanok
   \uses{lem:predictable_Ioc_prod}
@@ -191,6 +195,7 @@ $$X^{-1}(S) = \bigcup_{n \in \mathbb{N}} \{n\} \times X_n^{-1}(S) = {0} \times X
 Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and $\{n + 1\} \times X_{n + 1}^{-1}(S) = (n, n + 1] \times X_{n + 1}^{-1}(S) \in \Sigma_{\mathcal{F}}$ by Lemma~\ref{lem:predictable_Ioc_prod} and the fact that $X_{n + 1}^{-1}(S) \in \mathcal{F}_n$, we have that $X^{-1}(S) \in \Sigma_{\mathcal{F}}$ as required.
 \end{proof}
 
+
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
   \uses{def:Martingale, def:IsStoppingTime}
   \mathlibok
@@ -206,6 +211,8 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 
 \begin{lemma}\label{lem:conExpUI}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.condExp}
   If $S$ is a family of (probabilistically) uniformly integrable (pUI) functions and $\mathcal{A}$ is a family of $\sigma$-algebras,
   then the family $\{P[X \mid \mathcal{G}]\}_{X \in S, \mathcal{G} \in \mathcal{A}}$ is pUI.
 \end{lemma}
@@ -231,6 +238,8 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale}
   \uses{def:Martingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue}
 Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
 Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
 \end{lemma}

@@ -34,8 +34,10 @@ The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defi
 
 
 \begin{lemma}\label{lem:predictable_predictablePart}
-  \uses{def:predictablePart, def:predictable, def:adapted}
-The predictable part of an adapted process is a predictable process.
+  \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.isPredictable_predictablePart}
+The predictable part of a process is predictable.
 \end{lemma}
 
 \begin{proof}
@@ -58,6 +60,8 @@ Then the martingale part of an adapted process $X$ such that $X_n$ is integrable
 
 \begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
   \uses{def:predictablePart, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
 The predictable part of a submartingale is a nondecreasing process.
 \end{lemma}
 
