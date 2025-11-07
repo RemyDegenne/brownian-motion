@@ -18,7 +18,7 @@ variable {Ω E : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {X : ℕ → Ω → E} {𝓕 : Filtration ℕ mΩ}
 
-lemma predictablePart_succ (n : ℕ) :
+lemma predictablePart_add_one (n : ℕ) :
     predictablePart X 𝓕 μ (n + 1) =
       predictablePart X 𝓕 μ n + μ[X (n + 1) - X n | 𝓕 n] := by
   simp [predictablePart, Finset.sum_range_add]
@@ -36,6 +36,6 @@ lemma Submartingale.monotone_predictablePart {X : ℕ → Ω → ℝ} (hX : Subm
   filter_upwards [this] with ω h
   simp only [Pi.zero_apply, Nat.succ_eq_add_one, ← ge_iff_le] at h
   refine monotone_nat_of_le_succ fun n ↦ (?_ : _ ≥ _)
-  grw [predictablePart_succ, Pi.add_apply, h n, add_zero]
+  grw [predictablePart_add_one, Pi.add_apply, h n, add_zero]
 
 end MeasureTheory

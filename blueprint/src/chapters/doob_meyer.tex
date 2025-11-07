@@ -31,10 +31,10 @@ We have $A_0 = 0$.
 
 \end{proof}
 
-\begin{lemma}\label{lem:predictablePart_succ}
+\begin{lemma}\label{lem:predictablePart_add_one}
   \uses{def:predictablePart}
   \leanok
-  \lean{MeasureTheory.predictablePart_succ}
+  \lean{MeasureTheory.predictablePart_add_one}
 For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
 \end{lemma}
 
@@ -105,14 +105,14 @@ The predictable part of a real-valued submartingale is an almost surely nondecre
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_succ}
+  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
 Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
 \begin{align*}
   A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
   &\ge A_n
   \: .
 \end{align*}
-The first equality comes from Lemma~\ref{lem:predictablePart_succ}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
+The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
 Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 \end{proof}
 

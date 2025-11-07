@@ -204,7 +204,7 @@ ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
 MeasureTheory.predictablePart
 MeasureTheory.predictablePart_zero
-MeasureTheory.predictablePart_succ
+MeasureTheory.predictablePart_add_one
 MeasureTheory.adapted_predictablePart
 MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
