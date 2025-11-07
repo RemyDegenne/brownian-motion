@@ -21,10 +21,7 @@ variable {Ω E : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 lemma predictablePart_succ (n : ℕ) :
     predictablePart X 𝓕 μ (n + 1) =
       predictablePart X 𝓕 μ n + μ[X (n + 1) - X n | 𝓕 n] := by
-  induction n with
-  | zero => simp [predictablePart]
-  | succ k hk =>
-    simp [predictablePart, Finset.sum_range_add]
+  simp [predictablePart, Finset.sum_range_add]
 
 variable [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]
 
