@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+  \PYG{k+kd}{theorem} \PYG{n}{innerRegular\PYGZus{}isCompact\PYGZus{}isClosed\PYGZus{}measurableSet\PYGZus{}of\PYGZus{}complete\PYGZus{}countable}
+  \PYG{o}{[}\PYG{n}{PseudoEMetricSpace} \PYG{n}{α}\PYG{o}{]} \PYG{o}{[}\PYG{n}{CompleteSpace} \PYG{n}{α}\PYG{o}{]} \PYG{o}{[}\PYG{n}{SecondCountableTopology} \PYG{n}{α}\PYG{o}{]} \PYG{o}{[}\PYG{n}{BorelSpace} \PYG{n}{α}\PYG{o}{]}
+  \PYG{o}{(}\PYG{n}{P} \PYG{o}{:} \PYG{n}{Measure} \PYG{n}{α}\PYG{o}{)} \PYG{o}{[}\PYG{n}{IsFiniteMeasure} \PYG{n}{P}\PYG{o}{]} \PYG{o}{:}
+  \PYG{n}{P.InnerRegular} \PYG{o}{(}\PYG{k}{fun} \PYG{n}{s} \PYG{n+nb+bp}{=\PYGZgt{}} \PYG{n}{IsCompact} \PYG{n}{s} \PYG{n+nb+bp}{∧} \PYG{n}{IsClosed} \PYG{n}{s}\PYG{o}{)} \PYG{n}{MeasurableSet}
+\end{Verbatim}

@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+  \PYG{k+kd}{structure} \PYG{n}{Subalgebra} \PYG{o}{(}\PYG{n}{R} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u}\PYG{o}{)} \PYG{o}{(}\PYG{n}{A} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{v}\PYG{o}{)} \PYG{o}{[}\PYG{n}{CommSemiring} \PYG{n}{R}\PYG{o}{]} \PYG{o}{[}\PYG{n}{Semiring} \PYG{n}{A}\PYG{o}{]}
+    \PYG{o}{[}\PYG{n}{Algebra} \PYG{n}{R} \PYG{n}{A}\PYG{o}{]} \PYG{k+kd}{extends} \PYG{n}{Subsemiring} \PYG{o}{:}
+  \PYG{k+kt}{Type} \PYG{n}{v}
+
+  \PYG{n}{abbrev} \PYG{n}{Subalgebra.SeparatesPoints} \PYG{o}{\PYGZob{}}\PYG{n}{α} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u\PYGZus{}1}\PYG{o}{\PYGZcb{}} \PYG{o}{[}\PYG{n}{TopologicalSpace} \PYG{n}{α}\PYG{o}{]}
+    \PYG{o}{\PYGZob{}}\PYG{n}{R} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u\PYGZus{}2}\PYG{o}{\PYGZcb{}} \PYG{o}{[}\PYG{n}{CommSemiring} \PYG{n}{R}\PYG{o}{]} \PYG{o}{\PYGZob{}}\PYG{n}{A} \PYG{o}{:} \PYG{k+kt}{Type} \PYG{n}{u\PYGZus{}3}\PYG{o}{\PYGZcb{}} \PYG{o}{[}\PYG{n}{TopologicalSpace} \PYG{n}{A}\PYG{o}{]}
+    \PYG{o}{[}\PYG{n}{Semiring} \PYG{n}{A}\PYG{o}{]} \PYG{o}{[}\PYG{n}{Algebra} \PYG{n}{R} \PYG{n}{A}\PYG{o}{]} \PYG{o}{[}\PYG{n}{TopologicalSemiring} \PYG{n}{A}\PYG{o}{]} \PYG{o}{(}\PYG{n}{s} \PYG{o}{:} \PYG{n}{Subalgebra} \PYG{n}{R} \PYG{n}{C}\PYG{o}{(}\PYG{n}{α}\PYG{o}{,} \PYG{n}{A}\PYG{o}{))}
+    \PYG{o}{:} \PYG{k+kt}{Prop}
+\end{Verbatim}
