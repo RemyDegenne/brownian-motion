@@ -647,7 +647,9 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
   let m2 : MeasurableSpace Ω := ⨆ (t : Set.Ioi (0 : ℝ≥0)), .comap (X t) inferInstance
   set m3 : MeasurableSpace Ω := ⨅ s > 0, Filtration.natural X (fun t ↦ (hX t).stronglyMeasurable) s
   have hm1 : m1 ≤ mΩ := iSup_le fun i ↦ (hX i).comap_le
-  have hm2 : m2 ≤ m1 := iSup₂_le_iSup _ _
+  have hm2 : m2 ≤ m1 := by
+    simp_rw [m2, ← iSup_subtype' (f := fun t h ↦ MeasurableSpace.comap (X t) inferInstance)]
+    exact iSup₂_le_iSup _ _
   have hm2' := hm2.trans hm1
   let π := Set.preimage (fun ω (i : Set.Ioi (0 : ℝ≥0)) ↦ X i ω) ''
       squareCylinders (fun i : Set.Ioi (0 : ℝ≥0) ↦ {s : Set ℝ | MeasurableSet s})
