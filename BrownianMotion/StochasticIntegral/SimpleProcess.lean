@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import Mathlib.Probability.Process.Predictable
 import Mathlib.Probability.Process.Stopping
 import BrownianMotion.Gaussian.BrownianMotion
 
@@ -47,5 +48,75 @@ def SimpleProcess.integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E)
     B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) (V.value p.1 ω)
 
 -- TODO: possible notation V●X, possibly for more general integrals
+
+namespace SimpleProcess
+
+lemma isPredictable (V : SimpleProcess ι F 𝓕) : IsPredictable 𝓕 V := by
+  sorry
+
+instance : Add (SimpleProcess ι F 𝓕) where
+  add V W := sorry
+
+instance : Zero (SimpleProcess ι F 𝓕) where
+  zero := sorry
+
+instance : Neg (SimpleProcess ι F 𝓕) where
+  neg V := sorry
+
+instance : AddCommGroup (SimpleProcess ι F 𝓕) where
+  add_assoc := sorry
+  add_comm := sorry
+  zero_add := sorry
+  add_zero := sorry
+  neg_add_cancel := sorry
+  nsmul := nsmulRec
+  zsmul := zsmulRec
+
+instance : SMul ℝ (SimpleProcess ι F 𝓕) where
+  smul c V := sorry
+
+instance : Module ℝ (SimpleProcess ι F 𝓕) where
+  zero_smul := sorry
+  smul_zero := sorry
+  add_smul := sorry
+  smul_add := sorry
+  one_smul := sorry
+  mul_smul := sorry
+
+lemma integral_zero_left {B : E →L[ℝ] F →L[ℝ] G} (V : SimpleProcess ι F 𝓕) :
+    integral B (fun _ ↦ 0) V = fun _ ↦ 0 := by
+  sorry
+
+lemma integral_zero_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E) :
+    integral B X (0 : SimpleProcess ι F 𝓕) = fun _ ↦ 0 := by
+  sorry
+
+lemma integral_add_left {B : E →L[ℝ] F →L[ℝ] G} (X Y : ι → Ω → E) (V : SimpleProcess ι F 𝓕) :
+    integral B (X + Y) V = integral B X V + integral B Y V := by
+  sorry
+
+lemma integral_sub_left {B : E →L[ℝ] F →L[ℝ] G} (X Y : ι → Ω → E) (V : SimpleProcess ι F 𝓕) :
+    integral B (X - Y) V = integral B X V - integral B Y V := by
+  sorry
+
+lemma integral_smul_left {B : E →L[ℝ] F →L[ℝ] G} (c : ℝ) (X : ι → Ω → E)
+    (V : SimpleProcess ι F 𝓕) :
+    integral B (c • X) V = c • integral B X V := by
+  sorry
+
+lemma integral_add_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E) (V W : SimpleProcess ι F 𝓕) :
+    integral B X (V + W) = integral B X V + integral B X W := by
+  sorry
+
+lemma integral_sub_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E) (V W : SimpleProcess ι F 𝓕) :
+    integral B X (V - W) = integral B X V - integral B X W := by
+  sorry
+
+lemma integral_smul_right {B : E →L[ℝ] F →L[ℝ] G} (c : ℝ) (X : ι → Ω → E)
+    (V : SimpleProcess ι F 𝓕) :
+    integral B X (c • V) = c • integral B X V := by
+  sorry
+
+end SimpleProcess
 
 end ProbabilityTheory

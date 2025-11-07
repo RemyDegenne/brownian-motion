@@ -33,6 +33,8 @@ It is a union of sets of the form ${0} \times B$ with $B \in \mathcal{F}_0$ or o
 
 \begin{lemma}\label{lem:predictable_simpleProcess}
   \uses{def:predictable, def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.isPredictable}
 A simple process is predictable.
 \end{lemma}
 
@@ -62,6 +64,30 @@ A set $A \subseteq T \times \Omega$ is an elementary predictable set if and only
 \end{proof}
 
 
+\begin{lemma}\label{lem:addCommGroup_simpleProcess}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.instAddCommGroup}
+The simple processes $\mathcal{E}_{T, F}$ form an additive commutative group.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:module_simpleProcess}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.instModuleReal}
+The simple processes $\mathcal{E}_{T, F}$ form a module over the scalars $\mathbb{R}$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
   \uses{def:simpleProcess}
   \leanok
@@ -79,7 +105,9 @@ An important example is $G = E$, $F = \mathbb{R}$ and $B(x, r) = r \cdot x$ the 
 
 
 \begin{lemma}\label{lem:elemStochIntegral_linear}
-  \uses{def:elemStochIntegral}
+  \uses{def:elemStochIntegral, lem:addCommGroup_simpleProcess, lem:module_simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral_add_left, ProbabilityTheory.SimpleProcess.integral_smul_left, ProbabilityTheory.SimpleProcess.integral_add_right, ProbabilityTheory.SimpleProcess.integral_smul_right, ProbabilityTheory.SimpleProcess.integral_sub_left, ProbabilityTheory.SimpleProcess.integral_sub_right, ProbabilityTheory.SimpleProcess.integral_zero_left, ProbabilityTheory.SimpleProcess.integral_zero_right}
 The elementary stochastic integral is linear in both arguments.
 \end{lemma}
 
