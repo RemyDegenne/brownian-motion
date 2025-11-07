@@ -1,8 +1,6 @@
 \chapter{Simple processes and elementary integrals}
 
 
-\section{Simple processes}
-
 \begin{definition}[Simple process]\label{def:simpleProcess}
   \leanok
   \lean{ProbabilityTheory.SimpleProcess}
@@ -94,7 +92,7 @@ Immediate from the definition.
 
 \begin{lemma}\label{lem:elemStochIntegral_assoc}
   \uses{def:elemStochIntegral}
-$V \bullet (W \bullet X) = (V * W) \bullet X$ for simple processes $V, W$ and stochastic process $X$.
+$V \bullet (W \bullet X) = (V \times W) \bullet X$ for simple processes $V, W$ and stochastic process $X$.
 
 TODO: that's for $B$ the multiplication. What is the right statement for general $B$?
 \end{lemma}
@@ -201,8 +199,8 @@ Then the elementary stochastic integral $V \bullet X$ is a submartingale.
 \begin{proof}
   \uses{lem:submartingale_iff_integral_elemStochIntegral_nonneg, lem:elemStochIntegral_assoc}
 We use Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg} and have to show that for every nonnegative bounded simple process $W$, $\mathbb{E}[(W \bullet (V \bullet X))_\infty] \ge 0$.
-By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W * V) \bullet X)_\infty]$.
-Since $W * V$ is a nonnegative bounded simple process, this is nonnegative by Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg} applied to $X$.
+By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W \times V) \bullet X)_\infty]$.
+Since $W \times V$ is a nonnegative bounded simple process, this is nonnegative by Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg} applied to $X$.
 \end{proof}
 
 
@@ -215,91 +213,6 @@ Then the elementary stochastic integral $V \bullet X$ is a martingale.
 \begin{proof}
   \uses{lem:martingale_iff_integral_elemStochIntegral_eq_zero, lem:elemStochIntegral_assoc}
 We use Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} and have to show that for every bounded simple process $W$, $\mathbb{E}[(W \bullet (V \bullet X))_\infty] = 0$.
-By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W * V) \bullet X)_\infty]$.
-Since $W * V$ is a bounded simple process, this is zero by Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} applied to $X$.
-\end{proof}
-
-
-\section{Modifications with cadlag paths}
-
-\subsection{Upcrossings}
-
-
-\begin{lemma}\label{lem:upcrossing_simpleProcess_le}
-  \uses{def:elemStochIntegral, def:simpleProcess}
-Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process.
-Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary predictable set $A$ such that the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ satisfies
-\begin{align*}
-  (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
-  \:.
-\end{align*}
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-\subsection{Cadlag modifications}
-
-\begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
-  \uses{def:elemStochIntegral, def:modification}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that one of the two following conditions hold:
-\begin{enumerate}
-  \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
-  \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
-\end{enumerate}
-Then $X$ has a modification $Y$ which has left and right limits everywhere and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
-\end{theorem}
-
-\begin{proof}
-  \uses{lem:upcrossing_simpleProcess_le}
-
-\end{proof}
-
-
-\begin{corollary}\label{cor:exists_caldag_modification}
-  \uses{def:elemStochIntegral, def:modification}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that one of the two conditions of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
-Then $X$ has a cadlag modification.
-\end{corollary}
-
-\begin{proof}
-  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:Martingale.exists_cadlag_modification_of_rightContinuous}
-  \uses{def:modification, def:Martingale}
-Let $X : T \to \Omega \to \mathbb{R}$ be a martingale which is right-continuous in probability.
-Then $X$ has a cadlag modification.
-\end{lemma}
-
-\begin{proof}
-  \uses{cor:exists_caldag_modification}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:Martingale.exists_modifications_limits}
-  \uses{def:modification, def:Martingale}
-Let $X : T \to \Omega \to \mathbb{R}$ be a martingale.
-Then $X$ has a modification $Y$ such that for all $t \in T$, $Y$ has left and right limits at $t$ and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
-\end{lemma}
-
-\begin{proof}
-  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
-
-\end{proof}
-
-
-\begin{theorem}\label{thm:Martingale.exists_cadlag_modification}
-  \uses{def:modification, def:Martingale, def:rightContinuous}
-Let $X : T \to \Omega \to \mathbb{R}$ be a martingale with respect to a right-continuous filtration.
-Then $X$ has a cadlag modification.
-\end{theorem}
-
-\begin{proof}
-  \uses{lem:Martingale.exists_modifications_limits}
-
+By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W \times V) \bullet X)_\infty]$.
+Since $W \times V$ is a bounded simple process, this is zero by Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} applied to $X$.
 \end{proof}
