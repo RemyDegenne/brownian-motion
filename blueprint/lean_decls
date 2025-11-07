@@ -165,6 +165,7 @@ MeasureTheory.Filtration
 MeasureTheory.Adapted
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
+MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
@@ -202,6 +203,9 @@ ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
 MeasureTheory.predictablePart
+MeasureTheory.predictablePart_zero
+MeasureTheory.predictablePart_add_one
+MeasureTheory.adapted_predictablePart
 MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
