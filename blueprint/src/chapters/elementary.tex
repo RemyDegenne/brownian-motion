@@ -1,0 +1,246 @@
+\chapter{Simple processes and elementary integrals}
+
+
+\begin{definition}[Simple process]\label{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess}
+Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ be points in a linear order $T$ with a bottom element 0.
+Let $(\eta_k)_{0 \le k \le n}$ be random variables with values in a normed space $F$ such that $\eta_0$ is $\mathcal{F}_0$-measurable and $\eta_k$ is $\mathcal{F}_{s_k}$-measurable for $k \ge 1$.
+Then the simple process for that sequence is the process $V : T \to \Omega \to F$ defined by
+\begin{align*}
+  V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)
+  \: .
+\end{align*}
+Let $\mathcal{E}_{T, F}$ be the set of simple processes indexed by $T$ with value in $F$.
+\end{definition}
+
+
+\begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
+A set $A \subseteq T \times \Omega$ is an \emph{elementary predictable set} if it is a finite union of sets of the form ${0} \times B$ for $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $0 \le s < t$ in $T$ and $B \in \mathcal{F}_s$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictableSet_elementaryPredictableSet}
+  \uses{def:elementaryPredictableSet, def:predictableMeasurableSpace}
+An elementary predictable set is measurable with respect to the predictable $\sigma$-algebra.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictable_Ioc_prod}
+It is a union of sets of the form ${0} \times B$ with $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $B \in \mathcal{F}_s$, which are measurable by Lemma~\ref{lem:predictable_Ioc_prod}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictable_simpleProcess}
+  \uses{def:predictable, def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.isPredictable}
+A simple process is predictable.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:iSup_comap_simpleProcess}
+  \uses{def:simpleProcess, def:predictableMeasurableSpace}
+Real simple processes generate the predictable $\sigma$-algebra, i.e., the predictable $\sigma$-algebra is the supremum of the comaps by simple processes (seen as maps from $T \times \Omega$ to $\mathbb{R}$) of the Borel $\sigma$-algebra.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictable_simpleProcess}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:elementaryPredictableSet_iff_indicator}
+  \uses{def:elementaryPredictableSet, def:simpleProcess}
+A set $A \subseteq T \times \Omega$ is an elementary predictable set if and only if the indicator function $\mathbb{1}_A$ is a simple process.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:addCommGroup_simpleProcess}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.instAddCommGroup}
+The simple processes $\mathcal{E}_{T, F}$ form an additive commutative group.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:module_simpleProcess}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.instModuleReal}
+The simple processes $\mathcal{E}_{T, F}$ form a module over the scalars $\mathbb{R}$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegral}
+  \uses{def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral}
+Let $V \in \mathcal{E}_{T, F}$ be a simple process and let $X$ be a stochastic process with values in a normed space $E$.
+Let $B$ be a continuous bilinear map from $E \times F$ to another normed space $G$.
+The \emph{elementary stochastic integral} process $V \bullet X : T \to \Omega \to G$ is defined by
+\begin{align*}
+  (V \bullet X)_t
+  &= \sum_{k=1}^{n} B (X^t_{t_k} - X^t_{s_k}, \eta_k)
+  \: .
+\end{align*}
+An important example is $G = E$, $F = \mathbb{R}$ and $B(x, r) = r \cdot x$ the scalar multiplication.
+\end{definition}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_linear}
+  \uses{def:elemStochIntegral, lem:addCommGroup_simpleProcess, lem:module_simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral_add_left, ProbabilityTheory.SimpleProcess.integral_smul_left, ProbabilityTheory.SimpleProcess.integral_add_right, ProbabilityTheory.SimpleProcess.integral_smul_right, ProbabilityTheory.SimpleProcess.integral_sub_left, ProbabilityTheory.SimpleProcess.integral_sub_right, ProbabilityTheory.SimpleProcess.integral_zero_left, ProbabilityTheory.SimpleProcess.integral_zero_right}
+The elementary stochastic integral is linear in both arguments.
+\end{lemma}
+
+\begin{proof}
+(In Lean, this is split into several lemmas about each argument and add/sub/smul.)
+
+Immediate from the definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_assoc}
+  \uses{def:elemStochIntegral}
+$V \bullet (W \bullet X) = (V \times W) \bullet X$ for simple processes $V, W$ and stochastic process $X$.
+
+TODO: that's for $B$ the multiplication. What is the right statement for general $B$?
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:elemStochIntegral_linear}
+Unfold definitions, use linearity.
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_stoppedProcess}
+  \uses{def:elemStochIntegral, def:stoppedProcess}
+Let $X$ be a stochastic process, $V$ a simple process and $τ$ a stopping time.
+Then
+\begin{align*}
+  (V \bullet X)^τ = V \bullet (X^τ)
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+TODO: we are probably missing properties of stopped processes to make the following proof easy in Lean.
+\begin{align*}
+  (V \bullet X)^\tau_t
+  &= (V \bullet X)_{t \wedge \tau}
+  \\
+  &= \sum_{k=1}^{n} B (X^{t \wedge \tau}_{t_k} - X^{t \wedge \tau}_{s_k}, \eta_k)
+  \\
+  &= \sum_{k=1}^{n} B ((X^{\tau})^t_{t_k} - (X^{\tau})^t_{s_k}, \eta_k)
+  \\
+  &= (V \bullet (X^{\tau}))_t
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:submartingale_iff_integral_elemStochIntegral_nonneg}
+  \uses{def:elemStochIntegral, def:Submartingale}
+An adapted integrable process $X$ is a submartingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}_+$, $\mathbb{E}[(V \bullet X)_\infty] \ge 0$.
+
+TODO: $(V \bullet X)_t$ is constant for large $t$, so we can write $(V \bullet X)_\infty$ for that value. How to express that in Lean? Eventually for $t$ at top?
+\end{lemma}
+
+\begin{proof}
+  \uses{def:Submartingale}
+First suppose that $X$ is a submartingale.
+The simple process $V$ can be written as $V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)$ for nonnegative $\eta_k$. Then
+\begin{align*}
+  \mathbb{E}[(V \bullet X)_\infty]
+  &= \mathbb{E}\left[\sum_{k=1}^{n} \eta_k (X_{t_k} - X_{s_k})\right]
+  \\
+  &= \sum_{k=1}^{n} \mathbb{E}[\eta_k (X_{t_k} - X_{s_k})]
+  \: .
+\end{align*}
+It suffices to show that each term of the sum is nonnegative.
+Since $\eta_k$ is $\mathcal{F}_{s_k}$-measurable and nonnegative, by the submartingale property we have
+\begin{align*}
+  \mathbb{E}[\eta_k (X_{t_k} - X_{s_k})]
+  &= \mathbb{E}[\eta_k \mathbb{E}[X_{t_k} - X_{s_k} \mid \mathcal{F}_{s_k}]]
+  \ge 0
+  \: .
+\end{align*}
+This concludes the proof in one direction.
+Suppose now that for every bounded simple process $V$ with values in $\mathbb{R}_+$, $\mathbb{E}[(V \bullet X)_\infty] \ge 0$.
+To show that $X$ is a submartingale, let $s < t$ in $T$ and let $A = \{\mathbb{E}[X_t \mid \mathcal{F}_s] < X_s\} \in \mathcal{F}_s$.
+Define the simple process $V$ by $V_r = \mathbb{1}_A \mathbb{1}_{(s, t]}(r)$.
+Then
+\begin{align*}
+  \mathbb{E}[\mathbb{1}_A (X_t - X_s)]
+  &= \mathbb{E}[(V \bullet X)_\infty]
+  \ge 0
+  \: .
+\end{align*}
+But we also have
+\begin{align*}
+  \mathbb{E}[\mathbb{1}_A (X_t - X_s)]
+  &= \mathbb{E}[\min\{\mathbb{E}[X_t \mid \mathcal{F}_s] - X_s, 0\}]
+  \le 0
+  \: .
+\end{align*}
+Combining both inequalities, we get $\mathbb{E}[\min\{\mathbb{E}[X_t \mid \mathcal{F}_s] - X_s, 0\}] = 0$.
+Since $\min\{\mathbb{E}[X_t \mid \mathcal{F}_s] - X_s, 0\}$ is nonpositive and has expectation zero, it is almost surely zero.
+Thus $\mathbb{E}[X_t \mid \mathcal{F}_s] \ge X_s$ almost surely, which concludes the proof.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_iff_integral_elemStochIntegral_eq_zero}
+  \uses{def:elemStochIntegral, def:Martingale}
+An adapted integrable process $X$ is a martingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}$, $\mathbb{E}[(V \bullet X)_\infty] = 0$.
+\end{lemma}
+
+\begin{proof}
+There might not be an order on the type $E$ of values of $X$, so we cannot just say that $X$ is a martingale if and only if both $X$ and $-X$ are submartingales and conclude with Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg}.
+But we can use almost the same proof as in Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg}, replacing inequalities by equalities?
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.elemStochIntegral}
+  \uses{def:elemStochIntegral, def:Submartingale}
+Let $X$ be a submartingale and $V$ be a nonnegative bounded simple process.
+Then the elementary stochastic integral $V \bullet X$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:submartingale_iff_integral_elemStochIntegral_nonneg, lem:elemStochIntegral_assoc}
+We use Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg} and have to show that for every nonnegative bounded simple process $W$, $\mathbb{E}[(W \bullet (V \bullet X))_\infty] \ge 0$.
+By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W \times V) \bullet X)_\infty]$.
+Since $W \times V$ is a nonnegative bounded simple process, this is nonnegative by Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg} applied to $X$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.elemStochIntegral}
+  \uses{def:elemStochIntegral, def:Martingale}
+Let $X$ be a martingale and $V$ be a bounded simple process.
+Then the elementary stochastic integral $V \bullet X$ is a martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:martingale_iff_integral_elemStochIntegral_eq_zero, lem:elemStochIntegral_assoc}
+We use Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} and have to show that for every bounded simple process $W$, $\mathbb{E}[(W \bullet (V \bullet X))_\infty] = 0$.
+By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W \times V) \bullet X)_\infty]$.
+Since $W \times V$ is a bounded simple process, this is zero by Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} applied to $X$.
+\end{proof}

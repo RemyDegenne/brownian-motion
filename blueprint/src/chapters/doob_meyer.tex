@@ -117,81 +117,9 @@ Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 \end{proof}
 
 
-\section{Cadlag modifications of (local) martingales}
-
-
-
-\begin{definition}[Dyadics]\label{def:dyadics}
-For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$ be the set of dyadics at scale $n$ and let $\mathcal{D}^T=\bigcup_{n\in\mathbb{N}}\mathcal{D}_n^T$ be the set of all dyadics of $[0,T]$.
-\end{definition}
-
-
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
-
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
-
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:mg_is_cadlag}
-  \uses{def:usualConditions, def:Martingale}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
-  \uses{def:usualConditions, def:Submartingale}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:exists_cadlag_mod_of_local_mg}
-  \uses{def:usualConditions}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every local martingale $X$ admits a modification that is still a local martingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:mg_is_cadlag}
-\end{proof}
-
 
 
 \section{Komlòs Lemma}
-
 
 
 Firstly we will need Komlos' Lemma.
