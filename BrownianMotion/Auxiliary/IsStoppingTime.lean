@@ -2,7 +2,7 @@ import Mathlib.Probability.Process.Stopping
 import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.Auxiliary.WithTop
 
-open MeasureTheory Filter
+open MeasureTheory Filter Filtration
 open scoped ENNReal Topology
 
 namespace MeasureTheory
@@ -18,8 +18,8 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto i
   refine MeasurableSet.of_compl ?_
   rw [(_ : {ω | τ ω ≤ i}ᶜ = ⋃ n, {ω | u n ≤ τ ω})]
-  · refine measurableSet_of_isRightContinuous ?_
-    simp_rw [MeasurableSpace.measurableSet_iInf]
+  · refine h𝓕.measurableSet ?_
+    simp_rw [𝓕.rightCont_eq, MeasurableSpace.measurableSet_iInf]
     intros j hj
     obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hj).exists
     rw [(_ : ⋃ n, {ω | u n ≤ τ ω} = ⋃ n ≥ N, {ω | u n ≤ τ ω})]
@@ -53,22 +53,21 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
       exact hu₂ _
 
 -- This lemma will change when we decide on the correct definition of `IsRightContinuous`
-lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' {τ : Ω → WithTop ι}
+lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' [MeasurableSpace ι]
+    [OpensMeasurableSpace ι] {τ : Ω → WithTop ι} (mτ : Measurable τ)
     (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i}) :
     IsStoppingTime 𝓕 τ := by
   intro i
   by_cases hmax : IsMax i
-  · have := IsRightContinuous.RC (𝓕 := 𝓕) i
-    rw [iInf₂_eq_top.2] at this
-    · exact this.le _ trivial
-    · exact fun j hj ↦ False.elim <| hmax.not_lt hj
+  · rw [h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
+    exact mτ measurableSet_Iic
+  rw [h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
   rw [not_isMax_iff] at hmax
   obtain ⟨j, hj⟩ := hmax
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto' hj
   refine MeasurableSet.of_compl ?_
   rw [(_ : {ω | τ ω ≤ i}ᶜ = ⋃ n, {ω | u n ≤ τ ω})]
-  · refine measurableSet_of_isRightContinuous ?_
-    simp_rw [MeasurableSpace.measurableSet_iInf]
+  · simp_rw [MeasurableSpace.measurableSet_iInf]
     intros j hj
     obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hj).exists
     rw [(_ : ⋃ n, {ω | u n ≤ τ ω} = ⋃ n > N, {ω | u n ≤ τ ω})]
