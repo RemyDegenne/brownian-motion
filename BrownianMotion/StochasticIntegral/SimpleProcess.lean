@@ -23,13 +23,11 @@ variable {ι Ω E F G : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableS
 
 open scoped Function
 
--- TODO: remove disjoint_intervals or not?
 /-- A simple process. TODO: more details. -/
 structure SimpleProcess (ι F : Type*) [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
     [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F] (𝓕 : Filtration ι mΩ) where
   /-- The intervals over which we sum to define the integral. -/
   intervals : Finset (ι × ι)
-  disjoint_intervals : Pairwise (Disjoint on (fun p : intervals ↦ Set.Ioc p.1.1 p.1.2))
   /-- The values of the process at the left endpoints of the intervals. -/
   value : ι → Ω → F -- only the values at left endpoints of intervals are used
   measurable_value_bot : Measurable[𝓕 ⊥] (value ⊥)
