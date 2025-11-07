@@ -166,6 +166,7 @@ MeasureTheory.Adapted
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
+MeasureTheory.Submartingale.integrable_stoppedValue
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono

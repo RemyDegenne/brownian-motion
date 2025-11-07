@@ -366,7 +366,7 @@ The decomposition is a.s. unique.
 \subsection{Itô isometry}
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
-  \uses{def:elemStochIntegral}
+  \uses{def:elemStochIntegral, def:squareIntegrableMartingales, def:quadraticVariation}
 For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \cdot M \in \mathcal{M}^2$ and
 \begin{align*}
   \Vert V \cdot M \Vert_{\mathcal{M}^2}^2
@@ -376,11 +376,12 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \cdot M \in \mathcal{
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:Martingale.elemStochIntegral}
 
 \end{proof}
 
 \begin{definition}\label{def:L2M}
-  \uses{def:squareIntegrableMartingales}
+  \uses{def:squareIntegrableMartingales, def:quadraticVariation, def:predictableMeasurableSpace}
 Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
 \begin{align*}
   L^2(M) = L^2(\Omega \times \mathbb{R}_+, \mathcal{P}, \mathbb{P} \times d[M])

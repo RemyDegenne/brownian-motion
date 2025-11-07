@@ -244,3 +244,18 @@ We use Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} and hav
 By Lemma~\ref{lem:elemStochIntegral_assoc}, this is $\mathbb{E}[((W \times V) \bullet X)_\infty]$.
 Since $W \times V$ is a bounded simple process, this is zero by Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} applied to $X$.
 \end{proof}
+
+
+\begin{lemma}\label{lem:stoppedProcess_eq_elemStochIntegral}
+  \uses{def:elemStochIntegral, def:stoppedProcess}
+Let $X$ be a stochastic process and $τ$ be a stopping time taking finitely many values.
+Then $\mathbb{1}_{[0, τ]}$ is a simple process and
+\begin{align*}
+  X^τ = X_0 + \mathbb{1}_{[0, τ]} \bullet X
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
