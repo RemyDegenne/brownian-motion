@@ -48,6 +48,18 @@ Let $X$ be a real-valued submartingale with respect to a filtration $\mathcal{F}
 \end{proof}
 
 
+\begin{lemma}\label{lem:Submartingale.integrable_stoppedValue}
+  \uses{def:Submartingale, def:stoppedProcess}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.integrable_stoppedValue}
+Let $X$ be a submartingale. Then for all bounded stopping times $\tau$, the stopped value $X_\tau$ is integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:Martingale.congr}
   \uses{def:Martingale, def:adapted}
 If $X$ is a martingale and $Y$ is an adapted modification of $X$, then $Y$ is a martingale.
@@ -619,6 +631,7 @@ The class of submartingales is stable. That is, if $M$ is a submartingale and $\
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:optionalSampling}
 
 \end{proof}
 
@@ -641,7 +654,7 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 \begin{definition}\label{def:locallyIntegrableSup}
   \uses{def:locally}
 We say that a stochastic process is integrable if for all $t$, $E[\Vert X_t \Vert] < \infty$.
-A process has locally integrable supremum if $\sup_{t \in T} \Vert X_t \Vert$ is locally integrable.
+A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
 \end{definition}
 
 
@@ -700,7 +713,7 @@ A cadlag martingale is of class D if and only if it is uniformly integrable.
 
 
 \begin{lemma}\label{lem:isStable_classD}
-  \uses{def:stable}
+  \uses{def:stable, def:classD}
 The class D is stable.
 \end{lemma}
 
@@ -731,16 +744,66 @@ A cadlag adapted process is locally of class D if and only if it is locally of c
 \end{proof}
 
 
+\begin{lemma}\label{lem:sup_stoppedProcess_le}
+  \uses{def:stoppedProcess}
+For $Y$ a stochastic process, let $Y^*_t = \sup_{s \le t} \Vert Y_s \Vert$.
+Let $X$ be a stochastic process and let $\tau = \inf \{t \mid \Vert X_t \Vert \ge n\}$ for some $n \in \mathbb{R}$.
+Then
+\begin{align*}
+  (X^{\tau})^*_t
+  \le n + \mathbb{1}_{\tau \le t} \Vert X_{\tau} \Vert
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.locallyIntegrableSup}
+  \uses{def:Submartingale, def:locallyIntegrableSup}
+Every submartingale has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:sup_stoppedProcess_le, lem:Submartingale.integrable_stoppedValue}
+Define the stopping times $\sigma_n = \inf\{t \mid \Vert X_t \Vert \ge n\}$ and set $\tau_n = \sigma_n \wedge n$.
+The times $(\tau_n)_{n \in \mathbb{N}}$ form a localizing sequence.
+By Lemma~\ref{lem:sup_stoppedProcess_le}, we have that
+\begin{align*}
+  (X^{\tau_n})^*_t
+  & \le n + \mathbb{1}_{\tau_n \le t} \Vert X_{\tau_n} \Vert \\
+  & \le n + \Vert X_{\tau_n} \Vert
+  \: .
+\end{align*}
+It remains to show that $X_{\tau_n}$ is integrable for each $n$.
+This follows by Lemma~\ref{lem:Submartingale.integrable_stoppedValue} as $\tau_n$ is a bounded stopping time.
+\end{proof}
+
+
+
+\begin{lemma}\label{lem:Submartingale.locally_classD}
+  \uses{def:Submartingale, def:classD, def:locally}
+Every cadlag submartingale is locally of class D.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.locallyIntegrableSup, lem:locally_classD_iff_locallyIntegrableSup}
+By Lemma~\ref{lem:locally_classD_iff_locallyIntegrableSup}, it suffices to show that every cadlag submartingale has locally integrable supremum.
+This is done in Lemma~\ref{lem:Submartingale.locallyIntegrableSup}.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsLocalSubmartingale.locally_classD}
   \uses{def:IsLocalSubmartingale, def:classD, def:locally}
 Every local submartingale is locally of class D.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:local_induction, lem:stable_IsSubmartingale}
+  \uses{lem:local_induction, lem:stable_IsSubmartingale, lem:Submartingale.locally_classD, lem:isStable_classD}
 By Lemma~\ref{lem:local_induction}, it suffices to show that if $X$ is a submartingale then it is locally of class D.
-
-TODO
+This is done in Lemma~\ref{lem:Submartingale.locally_classD}.
 \end{proof}
 
 
