@@ -311,6 +311,8 @@ TODO: filtrations should be assumed right-continuous and complete whenever neede
 
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
   \uses{def:IsLocalMartingale, thm:local_doobMeyer}
+  \leanok
+  \lean{ProbabilityTheory.quadraticVariation}
 For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $\Vert M \Vert^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
 $[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the sub-martingale $\Vert M \Vert^2$~.
 \end{definition}

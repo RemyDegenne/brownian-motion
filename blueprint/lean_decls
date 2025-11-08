@@ -203,6 +203,7 @@ ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
+ProbabilityTheory.HasLocallyIntegrableSup
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable
 ProbabilityTheory.SimpleProcess.instAddCommGroup
@@ -224,4 +225,6 @@ MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
+ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 MeasureTheory.maximal_ineq
+ProbabilityTheory.quadraticVariation
