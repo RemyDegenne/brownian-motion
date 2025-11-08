@@ -21,8 +21,10 @@ variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] 
 /-- The quadratic variation of a local martingale, defined as the predictable part of the Doob-Meyer
 decomposition of its squared norm. -/
 noncomputable
-def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) : ι → Ω → ℝ :=
+def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, cadlag (X · ω)) :
+    ι → Ω → ℝ :=
   have hX2 : IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := sorry
-  hX2.predictablePart
+  have hX2_cadlag : ∀ ω, cadlag (fun t ↦ ‖X t ω‖ ^ 2) := sorry
+  hX2.predictablePart (fun t ω ↦ ‖X t ω‖ ^ 2) hX2_cadlag
 
 end ProbabilityTheory
