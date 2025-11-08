@@ -14,15 +14,21 @@ notion of predictable processes. We prove that predictable processes are progres
 and adapted. We also give an equivalent characterization of predictability for discrete processes.
 
 ## Main definitions
-* `Filtration.Predictable` : The predictable σ-algebra associated to a filtration.
-* `Filtration.IsPredictable` : A process is predictable if it is measurable with respect to the
+
+* `Filtration.rightCont`: The right continuation of a filtration.
+* `Filtration.Predictable`: The predictable σ-algebra associated to a filtration.
+* `Filtration.IsPredictable`: A process is predictable if it is measurable with respect to the
   predictable σ-algebra.
 
 ## Main results
-* `Filtration.IsPredictable.progMeasurable` : A predictable process is progressively measurable.
-* `Filtration.IsPredictable.measurable_succ` : `u` is a discrete predictable process iff
+
+* `Filtration.IsPredictable.progMeasurable`: A predictable process is progressively measurable.
+* `Filtration.IsPredictable.measurable_succ`: `u` is a discrete predictable process iff
   `u (n + 1)` is `𝓕 n`-measurable and `u 0` is `𝓕 0`-measurable.
 
+## Notation
+
+* Given a filtration `𝓕`, its right continuation is denoted `𝓕₊` (type `₊` with `;_+`).
 -/
 
 open Filter Order TopologicalSpace
@@ -32,48 +38,80 @@ open scoped MeasureTheory NNReal ENNReal Topology
 namespace MeasureTheory.Filtration
 
 variable {Ω ι : Type*} {m : MeasurableSpace Ω} {E : Type*} [TopologicalSpace E]
+  [PartialOrder ι] [TopologicalSpace ι]
 
-section
-
-variable [Preorder ι]
-
-/-- Given a filtration `𝓕`, its **right continuation** is defined by
-`𝓕 i := m ⊓ ⨅ j > i, 𝓕 j`. We define it with `m ⊓ ·` to ensure that it is smaller than `m`.
-
-In general the index set does not contain any maximal element and we recover the usual expression,
-see `rightCont_eq`. -/
-def rightCont (𝓕 : Filtration ι m) : Filtration ι m where
-  seq i := m ⊓ ⨅ j > i, 𝓕 j
+open scoped Classical in
+/-- Given a filtration `𝓕`, its **right continuation** is the filtration `𝓕₊` defined as follows:
+- If `i` is isolated on the right, then `𝓕₊ i := 𝓕 i`;
+- Otherwise, `𝓕₊ i := ⨅ j > i, 𝓕 j`.
+It is sometimes simply defined as `𝓕₊ i := ⨅ j > i, 𝓕 j` when the index type is `ℝ`. In the
+general case this is not ideal however. If `i` is maximal for instance, then `𝓕₊ i = ⊤`, which
+is inconvenient because `𝓕₊` is not  a `Filtration ι m` anymore. If the index type
+is discrete (such as `ℕ`), then we would have `𝓕 = 𝓕₊` (i.e. `𝓕` is right-continuous) only if
+`𝓕` is constant. -/
+noncomputable def rightCont (𝓕 : Filtration ι m) : Filtration ι m where
+  seq i := if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i
   mono' i j hij := by
-    refine le_inf (inf_le_left.trans le_rfl) ?_
-    exact inf_le_right.trans <| le_iInf₂ fun k hkj ↦ iInf₂_le k (hij.trans_lt hkj)
-  le' _ := inf_le_left
+    simp only [gt_iff_lt]
+    split_ifs with hi hj hj
+    · exact le_iInf₂ fun k hkj ↦ iInf₂_le k (hij.trans_lt hkj)
+    · obtain rfl | hj := eq_or_ne j i
+      · contradiction
+      · have : i < j := lt_of_le_of_ne hij hj.symm
+        exact iInf₂_le j this
+    · exact le_iInf₂ fun k hk ↦ 𝓕.mono (hij.trans hk.le)
+    · exact 𝓕.mono hij
+  le' i := by
+    split_ifs with hi
+    · obtain ⟨j, hj⟩ := (frequently_gt_nhds i).exists
+      exact iInf₂_le_of_le j hj (𝓕.le j)
+    · exact 𝓕.le i
 
+@[inherit_doc] scoped postfix:max "₊" => rightCont
+
+open scoped Classical in
 lemma rightCont_def (𝓕 : Filtration ι m) (i : ι) :
-    𝓕.rightCont i = m ⊓ ⨅ j > i, 𝓕 j := sorry
+    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := sorry
 
-lemma rightCont_eq_of_not_isMax (𝓕 : Filtration ι m) {i : ι} (hi : ¬IsMax i) :
-    𝓕.rightCont i = ⨅ j > i, 𝓕 j := sorry
+lemma rightCont_eq_of_nhdsGT_eq_bot (𝓕 : Filtration ι m) {i : ι} (hi : 𝓝[>] i = ⊥) :
+    𝓕₊ i = 𝓕 i := sorry
+
+/-- If the index type is a `SuccOrder`, then `𝓕₊ = 𝓕`. -/
+lemma rightCont_eq_self {ι : Type*} [TopologicalSpace ι] [LinearOrder ι] [ClosedIciTopology ι]
+    [SuccOrder ι] (𝓕 : Filtration ι m) :
+  𝓕₊ = 𝓕 := sorry
 
 lemma rightCont_eq_of_isMax (𝓕 : Filtration ι m) {i : ι} (hi : IsMax i) :
-    𝓕.rightCont i = m := sorry
+  𝓕₊ i = 𝓕 i := sorry
 
-lemma rightCont_eq [NoMaxOrder ι] (𝓕 : Filtration ι m) (i : ι) :
-    𝓕.rightCont i = ⨅ j > i, 𝓕 j := sorry
+/-- If `i` is not isolated on the right, then `𝓕₊ i = ⨅ j > i, 𝓕 j`. This is for instance the case
+when `ι` is a densely ordered linear order with no maximal elements and equipped with the order
+topology, see `nhdsGT_neBot`.
 
-lemma le_rightCont (𝓕 : Filtration ι m) : 𝓕 ≤ 𝓕.rightCont := sorry
+In particular, this is satisfied `ι := ℝ≥0`. -/
+lemma rightCont_eq (𝓕 : Filtration ι m) (i : ι) [(𝓝[>] i).NeBot] :
+    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
 
-/-- A filtration `𝓕` is right continuous if it is equal to its right continuation `𝓕.rightCont`,
-i.e. for all `i`, `𝓕 i = m ⊓ ⨅ j > i, ℱ j`. -/
+lemma rightCont_eq_of_not_isMax {ι : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι]
+    [DenselyOrdered ι] (𝓕 : Filtration ι m) {i : ι} (hi : ¬IsMax i) :
+  𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+
+lemma le_rightCont (𝓕 : Filtration ι m) : 𝓕 ≤ 𝓕₊ := sorry
+
+lemma rightCont_self (𝓕 : Filtration ι m) : 𝓕₊₊ = 𝓕₊ := sorry
+
+/-- A filtration `𝓕` is right continuous if it is equal to its right continuation `𝓕₊`. -/
 class IsRightContinuous (𝓕 : Filtration ι m) where
     /-- The right continuity property. -/
-    RC : 𝓕.rightCont ≤ 𝓕
+    RC : 𝓕₊ ≤ 𝓕
 
 lemma IsRightContinuous.eq {𝓕 : Filtration ι m} [h : IsRightContinuous 𝓕] :
-    𝓕 = 𝓕.rightCont := sorry
+    𝓕 = 𝓕₊ := sorry
+
+lemma isRightContinuous_rightCont (𝓕 : Filtration ι m) : 𝓕₊.IsRightContinuous := sorry
 
 lemma IsRightContinuous.measurableSet {𝓕 : Filtration ι m} [IsRightContinuous 𝓕] {i : ι}
-    {s : Set Ω} (hs : MeasurableSet[𝓕.rightCont i] s) :
+    {s : Set Ω} (hs : MeasurableSet[𝓕₊ i] s) :
     MeasurableSet[𝓕 i] s := sorry
 
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
@@ -93,7 +131,5 @@ lemma HasUsualConditions.measurableSet_of_null
     (𝓕 : Filtration ι m) {μ : Measure Ω} [u : HasUsualConditions 𝓕 μ] (s : Set Ω) (hs : μ s = 0) :
     MeasurableSet[𝓕 ⊥] s :=
   u.2 hs
-
-end
 
 end MeasureTheory.Filtration

@@ -147,11 +147,48 @@ We now give the definition of a filtered probability space satisfying the usual 
 
 \begin{definition}\label{def:leftRightLimitFiltration}
   \uses{def:filtration}
-For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define $\mathcal{F}_{t-} = \bigsqcup_{s < t} \mathcal{F}_s$ (if that supremum is nonempty: we set $\mathcal{F}_{\bot-} = \mathcal{F}_\bot$) and $\mathcal{F}_{t+} = \bigsqcap_{s > t} \mathcal{F}_s$.
+  \lean{MeasureTheory.Filtration.rightCont}
+Assume that $T$ is a partial order and a topological space. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{left continuation} as
+$$\mathcal{F}_{t-} =
+  \begin{cases}
+    \mathcal{F}_t, & \text{if $t$ is isolated on the left}; \\
+    \bigsqcup_{s < t} \mathcal{F}_s, & \text{otherwise}.
+  \end{cases}
+$$
+Similarly, we define the \emph{right continuation} as
+$$\mathcal{F}_{t+} =
+  \begin{cases}
+    \mathcal{F}_t, & \text{if $t$ is isolated on the right}; \\
+    \bigsqcap_{s > t} \mathcal{F}_s, & \text{otherwise}.
+  \end{cases}
+$$
 
 Note that $\bigsqcap$ and $\bigsqcup$ denote the infimum and supremum in the lattice of sigma-algebras on $\Omega$.
 \end{definition}
 
+\begin{lemma}\label{lem:rightContDef}
+  \uses{def:leftRightLimitFiltration}
+  \leanok
+  \lean{MeasureTheory.Filtration.rightCont_def}
+For $t \in T$, the right continuation of $\mathcal{F}$ at $t$ is defined by
+$$\mathcal{F}_{t+} =
+  \begin{cases}
+    \mathcal{F}_t, & \text{if $t$ is isolated on the right}; \\
+    \bigsqcap_{s > t} \mathcal{F}_s, & \text{otherwise}.
+  \end{cases}
+$$
+\end{lemma}
+
+\begin{proof}
+  By definition.
+\end{proof}
+
+\begin{lemma}\label{lem:rightContIsolated}
+  \uses{lem:rightContDef}
+  \leanok
+  \lean{MeasureTheory.Filtration.rightCont_eq_of_nhdsGT_eq_bot}
+If $t \in T$ is isolated on the right, meaning that there
+\end{lemma}
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
   \uses{def:leftRightLimitFiltration}

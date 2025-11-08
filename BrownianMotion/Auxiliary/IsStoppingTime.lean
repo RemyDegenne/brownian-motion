@@ -54,13 +54,14 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
 
 -- This lemma will change when we decide on the correct definition of `IsRightContinuous`
 lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' [MeasurableSpace ι]
-    [OpensMeasurableSpace ι] {τ : Ω → WithTop ι} (mτ : Measurable τ)
-    (h𝓕 : IsRightContinuous 𝓕) (hτ : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i}) :
+    {τ : Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
+    (hτ1 : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i})
+    (hτ2 : ∀ i, IsMax i → MeasurableSet[𝓕 i] {ω | τ ω ≤ i}) :
     IsStoppingTime 𝓕 τ := by
   intro i
   by_cases hmax : IsMax i
   · rw [h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
-    exact mτ measurableSet_Iic
+    exact hτ2 i hmax
   rw [h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
   rw [not_isMax_iff] at hmax
   obtain ⟨j, hj⟩ := hmax
@@ -74,7 +75,7 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' [MeasurableSpace 
     · refine MeasurableSet.iUnion <| fun n ↦ MeasurableSet.iUnion <| fun hn ↦
         𝓕.mono ((hu₁ hn).le.trans hN) _ <| MeasurableSet.of_compl ?_
       rw [(by ext; simp : {ω | u n ≤ τ ω}ᶜ = {ω | τ ω < u n})]
-      refine hτ (u n) <| not_isMax_iff.2 ⟨u N, hu₁ hn⟩
+      refine hτ1 (u n) <| not_isMax_iff.2 ⟨u N, hu₁ hn⟩
     · ext ω
       simp only [Set.mem_iUnion, Set.mem_setOf_eq, gt_iff_lt, exists_prop]
       constructor
