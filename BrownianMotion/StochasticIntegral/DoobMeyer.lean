@@ -28,13 +28,13 @@ theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) :
       ∧ (∀ ω, Monotone (A · ω)) := by
   sorry
 
-/-- The martingale part of the local submartingale. -/
+/-- The local martingale part of the Doob-Meyer decomposition of the local submartingale. -/
 noncomputable
 def martingalePart (hX : IsLocalSubmartingale X 𝓕 P) :
     ι → Ω → ℝ :=
   hX.doob_meyer.choose
 
-/-- The predictable part of the local submartingale. -/
+/-- The predictable part of the Doob-Meyer decomposition of the local submartingale. -/
 noncomputable
 def predictablePart (hX : IsLocalSubmartingale X 𝓕 P) :
     ι → Ω → ℝ :=
