@@ -229,4 +229,5 @@ MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 MeasureTheory.maximal_ineq
+ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation

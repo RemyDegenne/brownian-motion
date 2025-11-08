@@ -309,12 +309,24 @@ The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
 
 
+\begin{lemma}\label{lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocalMartingale, def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm}
+If $M$ is a cadlag local martingale, then $\Vert M \Vert^2$ is a cadlag local sub-martingale.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
-  \uses{def:IsLocalMartingale, thm:local_doobMeyer}
+  \uses{def:IsLocalMartingale, thm:local_doobMeyer, lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
   \leanok
   \lean{ProbabilityTheory.quadraticVariation}
 For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $\Vert M \Vert^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
-$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the sub-martingale $\Vert M \Vert^2$~.
+$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the local sub-martingale $\Vert M \Vert^2$~.
 \end{definition}
 
 
