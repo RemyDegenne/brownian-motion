@@ -53,7 +53,7 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
       exact hu₂ _
 
 -- This lemma will change when we decide on the correct definition of `IsRightContinuous`
-lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous' [MeasurableSpace ι]
+lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous'
     {τ : Ω → WithTop ι} (h𝓕 : IsRightContinuous 𝓕)
     (hτ1 : ∀ i, ¬ IsMax i → MeasurableSet[𝓕 i] {ω | τ ω < i})
     (hτ2 : ∀ i, IsMax i → MeasurableSet[𝓕 i] {ω | τ ω ≤ i}) :
