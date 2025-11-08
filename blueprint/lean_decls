@@ -163,6 +163,7 @@ ProbabilityTheory.MeasurableEquiv.continuousMap
 ProbabilityTheory.wienerMeasure
 MeasureTheory.Filtration
 MeasureTheory.Adapted
+MeasureTheory.ProgMeasurable
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
@@ -173,6 +174,7 @@ MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
 MeasureTheory.stoppedProcess
+MeasureTheory.hittingAfter
 MeasureTheory.IsRightContinuous
 MeasureTheory.Filtration.UsualConditions
 MeasureTheory.Filtration.predictable
