@@ -20,4 +20,5 @@
  ["docBlame", "ProbabilityTheory.preBrownian"],
  ["docBlame", "ProbabilityTheory.wienerMeasure"],
  ["docBlame", "ProbabilityTheory.wienerMeasureAux"],
- ["docBlame", "ProbabilityTheory.MeasurableEquiv.continuousMap"]]
+ ["docBlame", "ProbabilityTheory.MeasurableEquiv.continuousMap"],
+ ["unusedArguments", "ProbabilityTheory.quadraticVariation"]]
