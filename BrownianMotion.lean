@@ -6,6 +6,7 @@ import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Auxiliary.IsStoppingTime
 import BrownianMotion.Auxiliary.LinearAlgebra
+import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Metric

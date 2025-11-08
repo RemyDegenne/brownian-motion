@@ -167,6 +167,8 @@ MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.Submartingale.integrable_stoppedValue
+MeasureTheory.Martingale.congr
+MeasureTheory.Submartingale.congr
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
