@@ -908,6 +908,59 @@ To solve it, we introduced the property for a process $Y$ of being a limit of $X
 The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
+\section{Random variable formalism}
+\label{S:RV-formalism}
+
+In this section, we take a break before putting all the statements together to discuss how this project led to an interesting development of the random variable formalism in \mathlib. Most content about probability theory in the library is about measure theory. The library contains several notions related to random variables, such as independence, conditional distributions or sub-Gaussianity. However it remains quite cumbersome to deal with random variables only without ever going back to measure theory. This strongly constrasts with probability theory in paper maths, where we set a probability space at the beginning and then do all the reasoning on random variables.
+
+If we had stuck to measure theory, we would just have built a measure on the space of continuous functions and proved properties about the canonical process. But in paper maths, we more generally consider a Brownian motion over a general probability space, discuss its finite dimensional laws, its independence with respect to other processes, or its invariance properties. All these concepts can only be discussed in a random variable framework. This led us to introduce many definitions and results to be able to manipulate these random variables in a way that is similar to what is done in paper maths.
+
+\paragraph{Law of a random variable}
+
+The law of a random variable is a key concept in probability theory. Given a probability space $(\Omega, \mathcal{F}, P)$ and a random variable $X : \Omega \to E$, the law of $X$ is the pushforward of the measure $P$ by the map $X$. In \Lean this is spelt as \lean{P.map X}. This however already comes with an issue. When one writes that $X$ is a random variable, it is implied that the map is required to be measurable. In \Lean however this has to be added as a separate hypothesis. This can quickly get annoying. For instance, say $X$ has law $\mu$ under $P$ and one wants to compute $P[f(X)]$ for some measurable function $f$ to show that it is equal to $\int f(x) \mu(\mathrm dx)$. Then one would have to rewrite saying that $P[f(X)]$ is actually $\int (f \circ X)(\omega) P(\mathrm d\omega) = \int f(x) (X_*P)(\mathrm dx) = \int f(x) \mu(\mathrm dx)$. The first equality in particular is a bit annoying formally, first because \Lean has to recognize the integrand as being of the form $(f \circ X)(\omega)$, which does not always work when $f$ or $X$ has a complicated form,
+and then because one also has to provide a proof that $X$ is measurable. When that happens many times in a proof it gets increasingly annoying.
+
+To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This is a bundled statement that contains both the fact that \lean{P.map X = µ} and the fact that $X$ is measurable. The computation above can the be contained in only one lemma, namely \docs{ProbabilityTheory.HasLaw.integral_comp}. But it goes further than that, because capturing this concept into a predicate also allows one to manipulate random variables without ever referring to the pushforward of a measure, but only manipulating the laws of the random variables. For instance, if the function $f$ maps the measure $\mu$ to a measure $\nu$, we have the lemma \docs{ProbabilityTheory.HasLaw.comp} which states \lean{HasLaw (f ∘ X) ν P}. We can likewise state that the law of the sum of two independent random variables is the convolution of their laws. This gives a nice framework for computations with random variables.
+
+
+\paragraph{Gaussian random variables}
+
+As mentioned in the paper, part of the work in this project was to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be pretty inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}. This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\docs{ProbabilityTheory.HasGaussianLaw.map}). Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
+
+One of the great properties of Gaussian random variables is their relation to independence. Proving that to random variables are independent can be quite involved sometimes. But when it comes to Gaussian random variables, we have the following result. If $X$ and $Y$ are two real random variables such that the pair $(X, Y)$ is Gaussian and such that $\mathbf{cov}(X, Y) = 0$, then $X$ and $Y$ are independent. In other words, indepence can be checked by only computing a covariance. This is not only true for real variables and can be generalized. The most general form we formalized is stated below.
+
+\begin{lemma}[\docs{HasGaussianLaw.iIndepFun_of_cov}]\label{lem:gauss-indep}
+  Consider $(E_i)_{1 \le i \le n}$ a family of second countable Banach spaces, and a family of random variables $X_i : \Omega \to E_i$. Assume that the joint random variable $(X_i)_{1 \le i \le n}$ is Gaussian. Then to check that the $X_i$ are mutually independent, it is enough to check that for any $1 \le i \ne j \le n$ and any $L_1 \in E_i'$, $L_2 \in E_j'$, we have $\mathbf{cov}(L_1(X_i), L_2(X_j)) = 0$.
+\end{lemma}
+
+This statement follows actually quite easily from the general results we formalized about characteristic functions of Gaussian measures.
+
+\paragraph{Gaussian processes}
+
+We end this section by presenting our formalization of Gaussian processes. These are of course crucial if we want to talk about the Brownian motion beyond the measure theoretic aspects, as the Brownian motion is itself a Gaussian process.
+
+\begin{definition}[\docs{ProbabilityTheory.IsGaussianProcess}]\label{def:guass-proc}
+  Consider $E$ a Banach space and $(X_t)_{t \in T}$ a stochastic process taking values in $E$. Then $X$ is a \emph{Gaussian process} if for all $t_1, ..., t_n \in T$, the variable $(X_{t_1}, ..., X_{t_n})$ is Gaussian.
+\end{definition}
+
+This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illsutrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
+
+\begin{lemma}[\docs{IsGaussianProcess.indepFun''}]
+  Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $E$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
+\end{lemma}
+
+This lemma reduces the independence of stochastic processes to a very simple computation, and will prove to be a blessing to show that a Brownian motion enjoys the weak Markov property. It is the result of a combination of Lemma~\ref{lem:gauss-indep} and of some results about independence of processes which were added to \mathlib for this purpose (notably \docs{ProbabilityTheory.IndepFun.process_indepFun_process}).
+
+The statement requires $((X_s)_{s \in S}, (Y_t)_{t \in T})$ to be Gaussian. However, written like that, it is not technically a process, but a pair of processes. To state it cleanly in \Lean we consider the disjoint sum $S \oplus T$. This is the set where each element is either an element of $S$, or an element of $T$, both options being exclusive. It corresponds to \docs{Sum} in \mathlib. We can then consider the process
+\begin{align*}
+  X \oplus Y : S \oplus T & \to E \\
+  S \ni s & \mapsto X_s. \\
+  T \ni t & \mapsto Y_t
+\end{align*}
+
+We formalized more results about Gaussian processes that we present in the next section to see how they were applied to prove properties of the Brownian motion. This idea of defining predicates on random variables rather than measures proved to be really nice to work with, landing a formalization process of basic properties of Brownian motion which felt quite close to the paper proofs. This demonstrates that it is possible to mimick basic reasoning on random variables in \Lean without suffering of some obstacles due to formalization.
+
+
 \section{Construction of a Brownian motion and a Wiener measure}
 \label{S:BM}
 
