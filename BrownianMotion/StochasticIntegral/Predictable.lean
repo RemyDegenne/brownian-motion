@@ -107,7 +107,7 @@ lemma rightCont_eq_self [LinearOrder ι] [SuccOrder ι] (𝓕 : Filtration ι m)
 lemma rightCont_eq_of_isMax [PartialOrder ι] (𝓕 : Filtration ι m) {i : ι} (hi : IsMax i) :
     𝓕₊ i = 𝓕 i := sorry
 
-lemma rightCont_eq_of_exists_gt [PartialOrder ι] (𝓕 : Filtration ι m) {i : ι}
+lemma rightCont_eq_of_exists_gt [LinearOrder ι] (𝓕 : Filtration ι m) {i : ι}
     (hi : ∃ j > i, Set.Ioo i j = ∅) :
     𝓕₊ i = 𝓕 i := sorry
 
