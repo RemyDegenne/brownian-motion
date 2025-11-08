@@ -62,6 +62,8 @@ Let $X$ be a submartingale. Then for all bounded stopping times $\tau$, the stop
 
 \begin{lemma}\label{lem:Martingale.congr}
   \uses{def:Martingale, def:adapted}
+  \leanok
+  \lean{MeasureTheory.Martingale.congr}
 If $X$ is a martingale and $Y$ is an adapted modification of $X$, then $Y$ is a martingale.
 \end{lemma}
 
@@ -81,6 +83,8 @@ Let then $A \in \mathcal{F}_i$.
 
 \begin{lemma}\label{lem:Submartingale.congr}
   \uses{def:Submartingale, def:adapted}
+  \leanok
+  \lean{MeasureTheory.Submartingale.congr}
 If $X$ is a submartingale and $Y$ is an adapted modification of $X$, then $Y$ is a submartingale.
 \end{lemma}
 
@@ -653,7 +657,9 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \begin{definition}\label{def:locallyIntegrableSup}
   \uses{def:locally}
-We say that a stochastic process is integrable if for all $t$, $E[\Vert X_t \Vert] < \infty$.
+  \leanok
+  \lean{ProbabilityTheory.HasLocallyIntegrableSup}
+We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
 A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
 \end{definition}
 
