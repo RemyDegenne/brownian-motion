@@ -163,10 +163,13 @@ ProbabilityTheory.MeasurableEquiv.continuousMap
 ProbabilityTheory.wienerMeasure
 MeasureTheory.Filtration
 MeasureTheory.Adapted
+MeasureTheory.ProgMeasurable
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.Submartingale.integrable_stoppedValue
+MeasureTheory.Martingale.congr
+MeasureTheory.Submartingale.congr
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
@@ -189,6 +192,7 @@ MeasureTheory.Filtration.isRightContinuous_rightCont
 MeasureTheory.Filtration.IsRightContinuous.measurableSet
 MeasureTheory.Filtration.HasUsualConditions
 MeasureTheory.Filtration.predictable
+MeasureTheory.hittingAfter
 MeasureTheory.IsPredictable
 MeasureTheory.IsPredictable.progMeasurable
 MeasureTheory.measurableSet_predictable_Ioc_prod
@@ -218,6 +222,7 @@ ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
+ProbabilityTheory.HasLocallyIntegrableSup
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable
 ProbabilityTheory.SimpleProcess.instAddCommGroup
@@ -239,4 +244,7 @@ MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
+ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 MeasureTheory.maximal_ineq
+ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
+ProbabilityTheory.quadraticVariation

@@ -567,6 +567,8 @@ Define
 
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
   \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalSubmartingale.doob_meyer}
 An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
 The processes $M$ and $A$ are uniquely determined by $X$ a.s.
 \end{theorem}

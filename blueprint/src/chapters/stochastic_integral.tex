@@ -309,10 +309,24 @@ The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
 
 
+\begin{lemma}\label{lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocalMartingale, def:IsLocalSubmartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm}
+If $M$ is a cadlag local martingale, then $\Vert M \Vert^2$ is a cadlag local sub-martingale.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
-  \uses{def:IsLocalMartingale, thm:local_doobMeyer}
+  \uses{def:IsLocalMartingale, thm:local_doobMeyer, lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
+  \leanok
+  \lean{ProbabilityTheory.quadraticVariation}
 For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $\Vert M \Vert^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
-$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the sub-martingale $\Vert M \Vert^2$~.
+$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the local sub-martingale $\Vert M \Vert^2$~.
 \end{definition}
 
 
@@ -362,6 +376,14 @@ The decomposition is a.s. unique.
 
 \section{Stochastic integral}
 
+TODO: relax continuity of the martingales, be clear about continuous quadratic variation vs general càdlàg quadratic variation.
+
+For $M$ a continuous local martingale and $X$ a stochastic process, we will use integrals of the form $\int_0^t X_s \: d[M]_s$~.
+Let's explain what those integrals mean. For all $\omega \in \Omega$, $[M](\omega)$ is a right-continuous non-decreasing function (called a Stieltjes function in Mathlib) so it defines a measure on $\mathbb{R}_+$, denoted by $d[M]$~.
+Then, for each fixed $\omega \in \Omega$, if the function $s \mapsto X_s(\omega)$ is integrable with respect to the measure $d[M](\omega)$, the Bochner integral $\int_0^t X_s(\omega) \: d[M](\omega)$ is well-defined.
+By $\int_0^t X_s \: d[M]_s$, we mean the random variable $\omega \mapsto \int_0^t X_s(\omega) \: d[M](\omega)$~.
+If we also vary $t$, we get a stochastic process.
+
 
 \subsection{Itô isometry}
 
@@ -393,13 +415,69 @@ The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\i
 TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
 
 
-\begin{lemma}\label{lem:dense_simpleProcess}
-  \uses{def:L2M, def:simpleProcess}
-Let $M \in \mathcal{M}^2$. Then the set of simple processes is dense in $L^2(M)$.
+\begin{lemma}\label{lem:integral_process_eq_zero}
+  \uses{def:L2M}
+Let $X\in L^2(M)$ such that $\int_0^t X_s \: d[M]_s = 0$ for all $t \ge 0$ a.s.. Then $X = 0$ $(\mathbb{P} \times d[M])$-almost everywhere.
+\end{lemma}
+
+\begin{proof}
+For $B$ a measurable set of $\mathbb{R}_+$ and $\omega \in \Omega$, let $\nu_\omega(B) = \int_B X_s(\omega) \: d[M]_s(\omega)$~. This is a signed measure on $\mathbb{R}_+$~.
+Then if for all $t$, $\int_0^t X_s(\omega) \: d[M]_s(\omega) = 0$ then $\nu_\omega([0,t]) = 0$ for all $t$.
+Those intervals generate the Borel $\sigma$-algebra on $\mathbb{R}_+$, so $\nu_\omega$ is the zero measure.
+Thus, for almost all $\omega$, $\nu_\omega$ is the zero measure.
+
+The measure $\nu_\omega$ is absolutely continuous with respect to the measure $d[M](\omega)$~, and its Radon-Nikodym derivative is $X(\omega)$~.
+Since $\nu_\omega$ is the zero measure for almost all $\omega$, we have that $X(\omega) = 0$ $d[M](\omega)$-almost everywhere for almost all $\omega$~.
+Equivalently, $X = 0$ $(\mathbb{P} \times d[M])$-almost everywhere.
+\end{proof}
+
+
+\begin{lemma}[Injectivity of the integral]\label{lem:integral_process_injective}
+  \uses{def:L2M}
+Let $X, Y \in L^2(M)$ such that $\int_0^t X_s \: d[M]_s = \int_0^t Y_s \: d[M]_s$ for all $t \ge 0$ a.s.. Then $X = Y$ almost everywhere.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_process_eq_zero}
+By linearity of the integral, we have $\int_0^t (X_s - Y_s) \: d[M]_s = 0$ for all $t \ge 0$ a.s..
+Then apply Lemma~\ref{lem:integral_process_eq_zero} to $X - Y$~.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_integral_of_forall_eq_zero}
+  \uses{def:L2M}
+Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Let $A_t = \int_0^t X_s \: d[M]_s$. Then $A_t$ is a martingale.
 \end{lemma}
 
 \begin{proof}
 
+\end{proof}
+
+
+\begin{lemma}\label{lem:integral_eq_zero_of_forall_eq_zero}
+  \uses{def:L2M}
+Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Then for all $t$, $\int_0^t X_s \: d[M]_s = 0$.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:IsLocalMartingale.eq_zero_of_finiteVariation, lem:martingale_integral_of_forall_eq_zero, lem:Martingale.IsLocalMartingale}
+$A_t := \int_0^t X_s \: d[M]_s$ is a finite variation process such that $A_t$ is integrable for all $t \ge 0$~.
+By Theorem~\ref{thm:IsLocalMartingale.eq_zero_of_finiteVariation}, it is enough to show that $A$ is a local martingale. We have by Lemma~\ref{lem:martingale_integral_of_forall_eq_zero} that $A$ is a martingale, and hence a local martingale (Lemma~\ref{lem:Martingale.IsLocalMartingale}).
+\end{proof}
+
+
+\begin{lemma}\label{lem:dense_simpleProcess}
+  \uses{def:L2M, def:simpleProcess}
+The set of simple processes is dense in $L^2(M)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:integral_eq_zero_of_forall_eq_zero, lem:integral_process_eq_zero}
+Since $L^2(M)$ is a Hilbert space, it is enough to show that if $X \in L^2(M)$ is orthogonal to all simple processes, then $X = 0$~.
+Let $X \in L^2(M)$ such that for any simple process $V$, $\mathbb{E}\left[ \int_0^{\infty} X_t V_t \: d[M]_t \right] = 0$~.
+Let $A_t = \int_0^t X_s \: d[M]_s$.
+It suffices to show that $A = 0$ by Lemma~\ref{lem:integral_process_eq_zero}~.
+This is proved in Lemma~\ref{lem:integral_eq_zero_of_forall_eq_zero}~.
 \end{proof}
 
 
