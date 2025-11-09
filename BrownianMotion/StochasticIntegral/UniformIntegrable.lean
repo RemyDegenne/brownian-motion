@@ -97,4 +97,12 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : 
     (fun i ↦ (hτ i).measurableSpace_le)).ae_eq <| fun m ↦
       (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
 
+omit [Countable ι] in
+lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
+    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+    (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
+    {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
+    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
+  sorry
+
 end MeasureTheory

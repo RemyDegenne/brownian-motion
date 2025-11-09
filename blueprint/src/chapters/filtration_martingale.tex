@@ -349,6 +349,18 @@ By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that f
 Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly integrable.
 \end{proof}
 
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \uses{def:Martingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range}
+Let $X$ be a martingale and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable if for each $k$, $\tau_k$ takes value in a countable set.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSampling_discrete, lem:conExpUI}
+  Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
+\end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
