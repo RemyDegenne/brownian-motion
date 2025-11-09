@@ -1,3 +1,4 @@
+import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
