@@ -945,7 +945,7 @@ We end this section by presenting our formalization of Gaussian processes. These
 
 This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illsutrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
 
-\begin{lemma}[\docs{IsGaussianProcess.indepFun''}]
+\begin{lemma}[\docs{IsGaussianProcess.indepFun''}]\label{lem:indepGaussProc}
   Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $E$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
 \end{lemma}
 
@@ -983,24 +983,75 @@ We can then apply Theorem~\ref{thm:localized_holder_modification_sup} to obtain 
 In particular, $B$ has continuous paths.
 The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\mathbb{R}$.
 
-We introduced the property of being a Brownian motion on $\mathbb{R}_+$ with values in $\mathbb{R}$.
+\paragraph{Properties of the Brownian motion}
+
+Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus we introduced a precicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
 
 \begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
-A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a Brownian motion if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
+A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
 \end{definition}
-The process $B$ we constructed satisfies that property, with continuous paths (not just almost surely).
-We also proved the following properties of a Brownian motion $B$:
-\begin{enumerate}[noitemsep]
-  \item $B$ has stationary increments: for all $s \le t \in \mathbb{R}_+$, $B_t - B_s$ has law $N(0, t - s)$,
-  \item $B$ has independent increments,
-  \item a process with independent increments and such that $X_t$ has law $N(0,t)$ for all $t \in \mathbb{R}_+$ has the same distribution as $B$,
-  \item for $c>0$, the process $B_{ct}/\sqrt{c}$ is a Brownian motion,
-  \item for $t_0 \in \mathbb{R}_+$, the process $B_{t_0 + t} - B_{t_0}$ is a Brownian motion,
-  \item $t B_{1/t}$ is a Brownian motion,
-  \item $B_t$ tends to 0 almost surely as $t$ tends to 0.
-\end{enumerate}
 
-Besides providing useful properties of the Brownian motion, those results also serve as verification of the fact that our Lean definition actually corresponds to the usual notion of Brownian motion.
+The process $B$ we constructed satisfies that property, with continuous paths (not just almost surely).
+
+To check the soundness of our formalization, we then formalized a few basic properties of the Brownian motion, which one can for example find in \cite{LeGall2016}.
+
+Definition~\ref{def:IsBrownian} is not necessarily the most convenient way to prove that a stochastic process is a Brownian motion. Therefore we also formalized the two following characterizations.
+
+\begin{lemma}[\docs{ProbabilityTheory.IsGaussianProcess.isPreBrownian_of_covariance}]\label{lem:isBrownianOfCov}
+A centered and almost surely continuous Gaussian process $X$ such that for all $s \le t$, $\mathbf{cov}(X_s, X_t) = s$ is a Brownian motion.
+\end{lemma}
+
+This is certainly the easiest way to prove that a given process is Gaussian. It allowed us to very easily prove the following basic properties of the Brownian motion.
+
+\begin{proposition}
+Consider $B$ a Brownian motion. Then:
+\begin{enumerate}[noitemsep]
+  \item for $c>0$, the process $B_{ct}/\sqrt{c}$ is a Brownian motion;
+  \item \textbf{weak Markov property:} for $t_0 \in \mathbb{R}_+$, the process $B_{t_0 + t} - B_{t_0}$ is a Brownian motion independent of $(B_t)_{t \le t_0}$;
+  \item $t B_{1/t}$ is a Brownian motion;
+  \item $B_t/t$ tends to 0 almost surely as $t$ tends to infinity.
+\end{enumerate}
+\end{proposition}
+
+Let us focus on the first three statements, the fourth one being an easy consequence of the third. Computing the expectation and the variance is quite easy. On paper, proving that these are Gaussian processes is also straightforward, because a linear combination of marginals of any of theses processses is also clearly a linear combination of marginals of the process $B$, and thus has Gaussian law. This is not as obvious to formalize, because the notion of "being a linear combination of marginals" is a bit messy to work with. What we were able to formalize nicely however is the following lemma.
+
+\begin{lemma}[\docs{ProbabilityTheory.IsGaussianProcess.of_isGaussianProcess}]\label{lem:isGaussOfIsGauss}
+Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be an $F$-valyed stochastic process. If for all $s \in S$, there exists $I$ a finite subset of $T$ and $L \in \mathcal{L}(E^I, F)$ such that $Y_s = L((X_t)_{t \in I})$, then $Y$ is a Gaussian process.
+\end{lemma}
+
+This statement makes proving Gaussianity in (1), (2) and (3) very straightforward, especially because proving linearity is very easy thanks to the different automation tactics available in \Lean. It is even more impressive in the case of (2). To prove independence, we rely on Lemma~\ref{lem:indepGaussProc}, which requires to prove that the joint process is Gaussian. Talking about linear combinations in the setting of the joint process would have been a nightmare, but the phrasing of Lemma~\ref{lem:isGaussOfIsGauss} trivializes the formalization.
+
+It remains to discuss the continuity. It is immediate in (1) and (2), and in (3) it is also obvious on $(0, +\infty)$, but the continuity at $0$ is more involved. Because we proved that the process has the law of the Brownian motion, we can apply Theorem~\ref{thm:kolmogorov_chentsov} to obtain a Brownian motion which is a modification of $t B_{1/t}$. Then we can exploit continuity to conclude. To formalize this argument, we took inspiration in the way measurable functions are formalized in \Lean.
+
+Integration is defined for measurable functions, but if $f$ is measurable and $g$ is almost everywhere equal to $f$, then it also makes sense to integrate $g$, even though $g$ is not necessarily measurable. This motivates the notion of \emph{almost-everywhere measurability} (\docs{AEMeasurable}), which proved to be a very convenient way to manipulate almost everywhere equality in \Lean. In particular, if $f$ is an almost-everywhere measurable function, and this fact is registered in \Lean as an hypothesis \lean{hf}, then \lean{hf.mk f} is a measurable function that is almost everywhere equal to $f$. This mechanism allows to transport properties of measurable functions to almost everywhere measurable functions.
+
+Mimicking this process, we introduced a predicate \lean{IsPreBrownian X P}, which registers that the finite dimensional laws of $X$ are those of a Brownian motion, but without assuming continuity. Then, building on Theorem~\ref{thm:kolmogorov_chentsov}, we defined \docs{IsPreBrownian.mk}, which to a pre-Brownian motion associates a Brownian motion satisfying all the properties we can expect. In particular it is \emph{everywhere} locally $\alpha$-Hölder when $\alpha \in (0, 1/2)$.
+
+The second characterization of the Brownian motion we formalized is the one below.
+
+\begin{lemma}[\docs{ProbabilityTheory.HasIndepIncrements.isPreBrownian_of_hasLaw}]\label{lem:isBrownianOfIndep}
+An almost surely continuous stochastic process with independent increments such that for all $t$, $X_t$ has law $N(0,t)$ is a Brownian motion.
+\end{lemma}
+
+This characterization required us to define a predicate \lean{HasIndepIncrements X P} stating that the process $X$ has independent increments under the measure $P$. This was not as straightforward as we would have liked. The main issue is that we manipulate finite-dimensional laws as distributions over unordered families. However, stating that a process has independent increments requires an ordering. Therefore exploiting our definition of \lean{HasIndepIncrements} to prove results about finite-dimensional distributions required us to develop a small API to link the unordered families with the ordered ones.
+
+In particular, the way to prove Lemma~\ref{lem:isBrownianOfIndep} is to first show that the hypotheses imply that the process is Gaussian, and then apply Lemma~\ref{lem:isBrownianOfCov}. To do that we prove this more general result:
+
+\begin{lemma}[\docs{ProbabilityTheory.HasIndepIncrements.isGaussianProcess}]
+Let $E$ be a separable Banach space and $T$ be an index set with a least element $\bot$. Consider $(X_t)_{t \in T}$ an $E$-valued stochastic process with independent increments, and such that for all $t$, $X_t$ has a Gaussian law. Further assume that $X_\bot$ is almost surely equal to $0$. Then $X$ is a Gaussian process.
+\end{lemma}
+
+This is probably the lemma which required most work. The idea is to say that $(X_{t_1}, ..., X_{t_n})$ can be expressed as a linear combination of the increments $(X_{t_1} - X_\bot, ..., X_{t_n} - X_{t_{n-1}})$. Because the increments are independent and each $X_t$ is Gaussian, we can prove that each increment is Gaussian. Because they are independent, their linear combination is also Gaussian, and so $(X_{t_1}, ..., X_{t_n})$ is Gaussian. Making the linear combination explicit and proving the equality was rather technical.
+
+To conclude, let us mention a last result which is fundamental to prove more advanced properties of the Brownian motion, such as the almost sure nowhere differentiability.
+
+\begin{proposition}[Blumenthal's zero-one law]
+Let $B$ be a Brownian motion and denote by $\mathcal{F}$ the canonical filtration. The $\sigma$-algebra $\bigcap_{t > 0} \mathcal{F}_t$ is trivial, i.e.\ it contains only sets which have probability zero or one.
+\end{proposition}
+
+We followed the proof from \cite{LeGall2016}. This led to proving important results about independence, mainly that a process $(X_t)_{t \in T}$ is independent form a $\sigma$-algebra $\mathcal{A}$ if for all $t_1, ..., t_n \in T$, for all bounded continuous function $f$ and for all $A \in \mathcal{A}$, $P[\mathbb{I}_A f(X_{t_1}, ..., X_{t_n})] = P(A) * P[f(X_{t_1}, ..., X_{t_n})]$. We also relied on the weak Markov property which proof was described above.
+
+Besides providing useful properties of the Brownian motion, those results also serve as verification of the fact that our Lean definition actually corresponds to the usual notion of Brownian motion. It also illustrates that working with our definitions in a formalization setting is quite practical, which is essential if we hope to formalize more advanced results.
 
 \paragraph{Wiener measure}
 
