@@ -450,7 +450,17 @@ Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V
 \end{lemma}
 
 \begin{proof}
-
+  \uses{lem:martingale_iff_integral_elemStochIntegral_eq_zero}
+By Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero}, it is enough to show that for any bounded real simple process $V$, $\mathbb{E}[(V \bullet A)_\infty] = 0$~.
+\begin{align*}
+  \mathbb{E}\left[(V \bullet A)_\infty\right]
+  &= \mathbb{E}\left[ \int_0^{\infty} V_t X_t \: d[M]_t \right]
+  \\
+  &= \langle X, V \rangle
+  \\
+  &= 0
+  \: .
+\end{align*}
 \end{proof}
 
 
