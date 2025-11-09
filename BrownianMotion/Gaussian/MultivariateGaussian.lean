@@ -20,7 +20,7 @@ import Mathlib.Analysis.Matrix.Order
 # Multivariate Gaussian distributions
 -/
 
-open MeasureTheory ProbabilityTheory Filter Matrix NormedSpace
+open MeasureTheory ProbabilityTheory Filter Matrix NormedSpace WithLp
 open scoped ENNReal NNReal Topology RealInnerProductSpace MatrixOrder
 
 namespace ProbabilityTheory
@@ -125,7 +125,7 @@ lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ 
     L.opNorm_comp_linearIsometryEquiv]
 
 lemma pi_eq_stdGaussian {n : Type*} [Fintype n] :
-    Measure.pi (fun _ ↦ gaussianReal 0 1) = stdGaussian (EuclideanSpace ℝ n) := by
+    (Measure.pi (fun _ ↦ gaussianReal 0 1)).map (toLp 2) = stdGaussian (EuclideanSpace ℝ n) := by
   -- This instance is not found automatically, probably a defeq issue between
   -- `n → ℝ` and `EuclideanSpace ℝ n`.
   have : IsFiniteMeasure (Measure.pi fun _ : n ↦ gaussianReal 0 1) := inferInstance
@@ -139,9 +139,11 @@ lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : Orth
     stdGaussian E = (Measure.pi fun _ : ι ↦ gaussianReal 0 1).map
       (fun x ↦ ∑ i, x i • b i) := by
   have : (fun (x : ι → ℝ) ↦ ∑ i, x i • b i) =
-      ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) := by
+      ⇑((EuclideanSpace.basisFun ι ℝ).equiv b (Equiv.refl ι)) ∘ (toLp 2) := by
     simp_rw [← b.equiv_apply_euclideanSpace]
-  rw [this, pi_eq_stdGaussian, stdGaussian_map (f := (EuclideanSpace.basisFun ι ℝ).equiv _ _)]
+    rfl
+  rw [this, ← Measure.map_map, pi_eq_stdGaussian, stdGaussian_map]
+  all_goals fun_prop
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
@@ -181,10 +183,8 @@ lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply, PiLp.inner_apply,
     RCLike.inner_apply, conj_trivial, dotProduct]
   congr with i
-  rw [mul_comm]
-  congr
-  rw [Finset.sum_apply]
-  simp
+  rw [mul_comm, ← WithLp.linearEquiv_apply 2 ℝ]
+  simp [-EuclideanSpace.ofLp_single, Finset.sum_apply]
 
 lemma covInnerBilin_multivariateGaussian (hS : S.PosSemidef) :
     covInnerBilin (multivariateGaussian μ S)

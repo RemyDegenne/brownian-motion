@@ -8,7 +8,7 @@ import Mathlib.Probability.Moments.Covariance
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
 
-open MeasureTheory
+open MeasureTheory WithLp
 
 open scoped ENNReal NNReal ProbabilityTheory
 
@@ -20,15 +20,6 @@ theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β
   h.comp₂ (· / ·) h'
 
 namespace ProbabilityTheory
-
-open scoped InnerProductSpace in
-lemma charFun_pi {ι : Type*} [Fintype ι] {E : ι → Type*} {mE : ∀ i, MeasurableSpace (E i)}
-    [∀ i, NormedAddCommGroup (E i)] [∀ i, InnerProductSpace ℝ (E i)] (μ : (i : ι) → Measure (E i))
-    [∀ i, IsProbabilityMeasure (μ i)] (t : PiLp 2 E) :
-    charFun (E := PiLp 2 E) (Measure.pi μ) t = ∏ i, charFun (μ i) (t i) := by
-  simp_rw [charFun, PiLp.inner_apply, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,
-    PiLp, WithLp]
-  rw [integral_fintype_prod_eq_prod (f := fun i x ↦ Complex.exp (⟪x, t i⟫_ℝ * Complex.I))]
 
 @[simp]
 lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
@@ -100,8 +91,8 @@ lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
 
 end ContinuousLinearMap
 
-lemma EuclideanSpace.coe_measurableEquiv' {ι : Type*} :
-    ⇑(EuclideanSpace.measurableEquiv ι) = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
+lemma MeasurableEquiv.coe_toLp_symm_eq {ι : Type*} :
+    ⇑(MeasurableEquiv.toLp 2 (ι → ℝ)).symm = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
 
 @[simp]
 lemma zero_mem_parallelepiped {ι E : Type*} [Fintype ι] [AddCommGroup E] [Module ℝ E] {v : ι → E} :
