@@ -11,7 +11,7 @@ import Mathlib.CategoryTheory.Category.Preorder
 
 -/
 
-open MeasureTheory Filter CategoryTheory
+open MeasureTheory Filter CategoryTheory Filtration
 open scoped ENNReal Topology
 
 namespace ProbabilityTheory
