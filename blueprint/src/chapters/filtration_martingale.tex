@@ -1,6 +1,8 @@
 \chapter{{Filtrations, processes and martingales}}\label{chap:filtration_martingale}
 
 
+\section{Basic definitions}
+
 First, recall the definitions of a filtration, an adapted process, a (sub)martingale, a stopping time and a stopped process, which are already in Mathlib.
 
 
@@ -182,10 +184,13 @@ in which the infimum is infinite if the set is empty.
 \end{definition}
 
 
+
+\section{Right-continuous filtrations}
+
 We now give the definition of a filtered probability space satisfying the usual conditions.
 
 
-\begin{definition}\label{def:leftRightLimitFiltration}
+\begin{definition}[Left and right continuation]\label{def:leftRightLimitFiltration}
   \uses{def:filtration}
   \lean{MeasureTheory.Filtration.rightCont}
 Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{left continuation} as
@@ -412,6 +417,11 @@ We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies th
 \end{definition}
 
 
+
+
+\section{Predictable processes}
+
+
 \begin{definition}[Predictable $\sigma$-algebra]\label{def:predictableMeasurableSpace}
   \uses{def:filtration}
   \mathlibok
@@ -501,6 +511,10 @@ $$X^{-1}(S) = \bigcup_{n \in \mathbb{N}} \{n\} \times X_n^{-1}(S) = {0} \times X
 Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and $\{n + 1\} \times X_{n + 1}^{-1}(S) = (n, n + 1] \times X_{n + 1}^{-1}(S) \in \Sigma_{\mathcal{F}}$ by Lemma~\ref{lem:predictable_Ioc_prod} and the fact that $X_{n + 1}^{-1}(S) \in \mathcal{F}_n$, we have that $X^{-1}(S) \in \Sigma_{\mathcal{F}}$ as required.
 \end{proof}
 
+
+
+
+\section{Optional sampling}
 
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
   \uses{def:Martingale, def:IsStoppingTime}
@@ -621,4 +635,32 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+\end{proof}
+
+
+
+\section{Martingale convergence}
+
+\begin{definition}\label{def:limitProcess}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.limitProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process, let $\mathcal{F}$ be a filtration on $\Omega$ indexed by $T$ and let $P$ be a measure on $\Omega$.
+If there exists a function $Y : \Omega \to E$ which is measurable with respect to $\mathcal{F}_\infty$ such that for $P$-almost surely, $X_t$ converges to $Y$ as $t$ goes to infinity, then we say that $Y$ is the limit of $X$.
+We denote it by $X_\infty$.
+\end{definition}
+
+
+In Mathlib, we have results about convergence of martingales to their limit in discrete time.
+
+
+\begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
+  \uses{def:Martingale, def:limitProcess}
+Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
+Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
+Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
+\end{theorem}
+
+\begin{proof}
+
 \end{proof}

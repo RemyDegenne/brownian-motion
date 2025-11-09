@@ -288,9 +288,10 @@ Let $\mathcal{M}^2$ be the set of square integrable continuous martingales with 
 \end{align*}
 \end{definition}
 
+TODO: add results about $M_\infty$ for $M \in \mathcal{M}^2$~.
 
 \begin{theorem}\label{thm:hilbertSpace_squareIntegrableMartingales}
-  \uses{def:squareIntegrableMartingales}
+  \uses{def:squareIntegrableMartingales, def:limitProcess}
 The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
 \begin{align*}
   \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
@@ -389,9 +390,9 @@ If we also vary $t$, we get a stochastic process.
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
   \uses{def:elemStochIntegral, def:squareIntegrableMartingales, def:quadraticVariation}
-For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \cdot M \in \mathcal{M}^2$ and
+For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathcal{M}^2$ and
 \begin{align*}
-  \Vert V \cdot M \Vert_{\mathcal{M}^2}^2
+  \Vert V \bullet M \Vert_{\mathcal{M}^2}^2
   &= \mathbb{E}\left[ \int_0^{\infty} V_t^2 \: d[M]_t \right]
   \: .
 \end{align*}
