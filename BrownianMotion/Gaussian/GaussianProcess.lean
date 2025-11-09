@@ -118,7 +118,7 @@ lemma IsGaussianProcess.indepFun [CompleteSpace E] {X : S → Ω → E} {Y : T �
   have := h.isProbabilityMeasure
   have _ s : HasGaussianLaw (X s) P := h.hasGaussianLaw_eval (.inl s)
   have _ t : HasGaussianLaw (Y t) P := h.hasGaussianLaw_eval (.inr t)
-  refine IndepFun.indepFun_process hX hY fun I J ↦
+  refine IndepFun.process_indepFun_process hX hY fun I J ↦
     HasGaussianLaw.indepFun_of_cov ?_ fun L₁ L₂ ↦ ?_
   · let L : (I.disjSum J → E) →L[ℝ] (I → E) × (J → E) :=
       { toFun x := (fun s ↦ x ⟨Sum.inl s, Finset.inl_mem_disjSum.2 s.2⟩,

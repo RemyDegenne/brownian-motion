@@ -22,7 +22,7 @@ lemma _root_.WithTop.tendsto_nhds_top_iff {α : Type*}
     Tendsto x f (𝓝 ⊤) ↔ ∀ (i : ι), ∀ᶠ (a : α) in f, i < x a := by
   refine nhds_top_basis.tendsto_right_iff.trans ?_
   simp only [Set.mem_Ioi]
-  refine ⟨fun h i ↦ h i trivial, fun h i hi ↦ ?_⟩
+  refine ⟨fun h i ↦ h i (by simp), fun h i hi ↦ ?_⟩
   specialize h (i.untop hi.ne)
   filter_upwards [h] with a ha
   simpa using ha
