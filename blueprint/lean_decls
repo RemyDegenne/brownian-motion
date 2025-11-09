@@ -164,6 +164,7 @@ ProbabilityTheory.wienerMeasure
 MeasureTheory.Filtration
 MeasureTheory.Adapted
 MeasureTheory.ProgMeasurable
+MeasureTheory.Adapted.progMeasurable_of_rightContinuous
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
@@ -200,6 +201,7 @@ MeasureTheory.isPredictable_iff_measurable_add_one
 MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp
 MeasureTheory.UniformIntegrable.condExp'
 MeasureTheory.Martingale.uniformIntegrable_stoppedValue
+MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range
 MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite
 ProbabilityTheory.IsPreLocalizingSequence
 ProbabilityTheory.IsLocalizingSequence
