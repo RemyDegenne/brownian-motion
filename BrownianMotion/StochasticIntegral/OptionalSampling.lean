@@ -7,7 +7,7 @@ import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.UniformIntegrable
 import Mathlib.Probability.Martingale.OptionalSampling
 
-open Filter
+open Filter TopologicalSpace
 open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
@@ -74,10 +74,82 @@ lemma discreteApproxSequence_of_le {n : ι}
 --   sorry
 
 #check tendsto_Lp_finite_of_tendstoInMeasure -- Vitali
-
+#check lintegral_liminf_le' -- Fatou
 -- Actually, missing that UI + convergence in measure implies limit is integrable
-
+#check AEStronglyMeasurable
 variable [Nonempty ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
+
+lemma ae_tendsto_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    ∀ᵐ ω ∂μ, Tendsto (fun m ↦ stoppedValue X (τn m) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
+  sorry
+
+lemma uniformIntegrable_stoppedValue_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    UniformIntegrable (fun m ↦ stoppedValue X (τn m)) 1 μ := by
+  sorry
+
+lemma integrable_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
+    Integrable (stoppedValue X (τn m)) μ :=
+  ((uniformIntegrable_stoppedValue_discreteApproxSequence h hRC hτ hτ_le τn).memLp m).integrable
+    le_rfl
+
+lemma UniformIntegrable.memLp_of_tendsto_in_measure
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
+    (htends : TendstoInMeasure μ fn atTop f) :
+    MemLp f p μ := by
+  sorry
+
+lemma UniformIntegrable.integrable_of_tendsto_in_measure
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
+    (htends : TendstoInMeasure μ fn atTop f) :
+    Integrable f μ := by
+  sorry
+
+lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn i) - stoppedValue X τ) 1 μ) atTop (𝓝 0) := by
+  sorry
+
+#check measurable_stoppedValue
+#check integrable_stoppedValue_of_mem_finset
+
+lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    AEStronglyMeasurable (stoppedValue X τ) μ :=
+  aestronglyMeasurable_of_tendsto_ae _
+    (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn m).1)
+    (ae_tendsto_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn)
+
+-- Go in Process/Adapted
+omit [IsFiniteMeasure μ] in
+lemma Adapted.progMeasurable_of_rightContinuous
+    {β : Type*} [TopologicalSpace β] [PseudoMetrizableSpace β]
+    [TopologicalSpace ι] [MetrizableSpace ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι]
+    {f : Filtration ι mΩ} {u : ι → Ω → β}
+    (h : Adapted f u) (hu_cont : ∀ a, ContinuousWithinAt u (Set.Ioi a) a) :
+    ProgMeasurable f u :=
+  sorry
+
+theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+    (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
+    stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)
+    =ᵐ[μ] μ[X n|((discreteApproxSequence_of 𝓕 μ hτ_le τn).isStoppingTime m).measurableSpace] :=
+  h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range
+      (DiscreteApproxSequence.isStoppingTime _ m)
+      (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.discrete _ m)
+
+variable [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι]
+  [MetrizableSpace ι]
 
 theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
@@ -89,9 +161,15 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (τn'.discrete m)
   have htends : Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn' i) - stoppedValue X τ) 1 μ)
     atTop (𝓝 0) := by sorry -- this should also give integrability
+  have hintgbl : Integrable (stoppedValue X τ) μ := by
+    refine UniformIntegrable.integrable_of_tendsto_in_measure ?_
+      (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
+        (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn' m).1)
+        (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn') htends)
+    -- Need Martingale.uniformIntegrable_stoppedValue to take countable image
+    sorry
   refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
-    (h.integrable _) ?_ ?_ ?_
-  · sorry
+    (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_ ?_
   · rintro s hs -
     have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) = fun m ↦ ∫ ω in s, X n ω ∂μ := by
       ext m
@@ -100,13 +178,15 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
       refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
       filter_upwards [hint m] with ω hω _ using hω
     rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
-    refine tendsto_setIntegral_of_L1' _ ?_ ?_ htends _
-    · sorry
+    refine tendsto_setIntegral_of_L1' _ hintgbl ?_ htends _
     · rw [eventually_atTop]
       refine ⟨0, fun m _ ↦ ?_⟩
       rw [integrable_congr (hint m)]
       exact integrable_condExp
-  · -- measurable_stoppedValue
+  · -- Note that this measurbaility is with respect to `hτ.measurableSpace`
+    refine Measurable.aestronglyMeasurable ?_
+    refine measurable_stoppedValue ?_ hτ
+    refine h.adapted.progMeasurable_of_rightContinuous ?_
     sorry
 
 end MeasureTheory
