@@ -79,6 +79,8 @@ lemma discreteApproxSequence_of_le {n : ι}
 #check AEStronglyMeasurable
 variable [Nonempty ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
 
+#check Martingale.uniformIntegrable_stoppedValue
+
 lemma ae_tendsto_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
