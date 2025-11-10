@@ -174,11 +174,11 @@ In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is so
 \end{align}
 So, we can define the finite dimensional distributions of Brownian motion given that we show that $C \in \R^n$ with entries $C_{ij} = t_i \wedge t_j$ is non-negative definite.
 We can also show with characteristic functions that Gaussian measures are closed under linear maps, and prove that the family of finite-dimensional distributions of Brownian motion is projective, as needed for the Kolmogorov extension theorem.
-% Indeed the characteristic function of the image of $N(0,C)$ under a linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity.
 
 
 \subsection{The Kolmogorov-Chentsov Theorem}
 \label{ss:kolchen}
+
 Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections.
 Let $X$ be a stochastic process on the index set $T = [0,1]$ with values in a metric space $E$ with distance $d_E$.
 The result states that if we assume we find $p>0, q>1, M > 0$ satisfying
@@ -206,8 +206,6 @@ We will use a more general version of this statement, replacing $T = [0,1]$ by a
 In order to finally construct Brownian Motion, we need to put everything together.
 We have constructed a projective family of finite-dimensional distributions given by $N(0,C_t)$ for $t = (t_1,...,t_n)$ with $(C_t)_{ij} = t_i \wedge t_j$.
 We can then invoke the Kolmogorov extension theorem to obtain a probability measure on $\mathbb{R}^{\mathbb{R}}$ and define a stochastic process $X = (X_t)_{t\geq 0}$ with that distribution.
-% First, the projectivity property of the finite-dimensional distributions as defined in Section~\ref{ss:char} follows from the fact that Gaussian measures are closed under linear maps, and -- as in \eqref{eq:gausslin} -- the characteristic function of the image of $N(0,C)$ under the linear map $\Pi : x \mapsto \pi x$ is $\Psi_{\Pi_\ast N(0,C)}(t) = \exp\Big( -\tfrac 12 t^\top \pi^\top C \pi t \Big)$. So, for $t = (t_1,...,t_n)$ and $C(t) \in \mathbb R^{n\times n}$ with $C(t)_{ij} = t_i \wedge t_j$ and the projection $\Pi: \mathbb R^n \to \mathbb R^m$ with $m < n$ and $\Pi(t) = (s_1,...,s_m)$, this shows that $\Pi_\ast N(0,C(t)) = N(0,C(s))$, which is the desired projectivity.
-% Therefore, we have constructed a probability measure on $\mathbb R_+^{\mathbb R}$, the law of Brownian motion.\\
 Finally, the assumption in the Kolmogorov-Chentsov Theorem can be verified by computing moments of Gaussian distributions.
 For example,
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
@@ -221,7 +219,7 @@ This also gives a distribution on the continuous functions $\mathcal C(\mathbb R
 \label{S:RV-formalism}
 
 Before describing the formalization of the theorems leading to the Brownian motion construction, we discuss how this project led to an interesting development of the random variable formalism in \mathlib. Most content about probability theory in the library focuses on measures, as opposed to random variables.
-The library contains several notions related to random variables, such as independence, conditional distributions or sub-Gaussianity. However it remains quite cumbersome to deal with random variables only without ever going back to measure theory. This strongly constrasts with probability theory in paper mathematics, where we set a probability space at the beginning and then do all the reasoning on random variables.
+The library contains several notions related to random variables, such as independence, conditional distributions or sub-Gaussianity. However it remains quite cumbersome to deal with random variables only without ever going back to measure theory. This strongly contrasts with probability theory in paper mathematics, where we set a probability space at the beginning and then do all the reasoning on random variables.
 
 If we had stuck to measure theory, we would just have built a measure on the space of continuous functions and proved properties about the canonical process. But in paper maths, we more generally consider a Brownian motion over a general probability space, discuss its finite dimensional laws, its independence with respect to other processes, or its invariance properties. All these concepts can only be discussed in a random variable framework. This led us to introduce many definitions and results to be able to manipulate these random variables in a way that is similar to what is done in paper maths.
 
@@ -240,7 +238,7 @@ To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This i
 
 Part of the work in this project is to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}. This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\docs{ProbabilityTheory.HasGaussianLaw.map}). Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
 
-One of the great properties of Gaussian random variables is their relation to independence. Proving that to random variables are independent can be quite involved sometimes. But when it comes to Gaussian random variables, we have the following result. If $X$ and $Y$ are two real random variables such that the pair $(X, Y)$ is Gaussian and such that $\mathbf{cov}(X, Y) = 0$, then $X$ and $Y$ are independent. In other words, indepence can be checked by only computing a covariance. This is not only true for real variables and can be generalized. The most general form we formalized is stated below.
+One of the great properties of Gaussian random variables is their relation to independence. Proving that to random variables are independent can be quite involved sometimes. But when it comes to Gaussian random variables, we have the following result. If $X$ and $Y$ are two real random variables such that the pair $(X, Y)$ is Gaussian and such that $\mathbf{cov}(X, Y) = 0$, then $X$ and $Y$ are independent. In other words, independence can be checked by only computing a covariance. This is not only true for real variables and can be generalized. The most general form we formalized is stated below.
 
 \begin{lemma}[\docs{HasGaussianLaw.iIndepFun_of_cov}]\label{lem:gauss-indep}
   Consider $(E_i)_{1 \le i \le n}$ a family of second countable Banach spaces, and a family of random variables $X_i : \Omega \to E_i$. Assume that the joint random variable $(X_i)_{1 \le i \le n}$ is Gaussian. Then to check that the $X_i$ are mutually independent, it is enough to check that for any $1 \le i \ne j \le n$ and any $L_1 \in E_i'$, $L_2 \in E_j'$, we have $\mathbf{cov}(L_1(X_i), L_2(X_j)) = 0$.
@@ -256,7 +254,7 @@ We end this section by presenting our formalization of Gaussian processes. These
   Consider $E$ a Banach space and $(X_t)_{t \in T}$ a stochastic process taking values in $E$. Then $X$ is a \emph{Gaussian process} if for all $t_1, ..., t_n \in T$, the variable $(X_{t_1}, ..., X_{t_n})$ is Gaussian.
 \end{definition}
 
-This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illsutrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
+This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illustrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
 
 \begin{lemma}[\docs{IsGaussianProcess.indepFun''}]\label{lem:indepGaussProc}
   Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $E$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
@@ -516,7 +514,7 @@ We also require the underlying space(s) to be second-countable. A second-countab
 Our goal is to define a process with Gaussian finite-dimensional distributions.
 Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \docs{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures.
 We will denote by $N(m, \sigma^2)$ the normal distribution on $\mathbb{R}$ with mean $m$ and variance $\sigma^2$.
-In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need definitions and properties of mutivariate Gaussian distributions.
+In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need definitions and properties of multivariate Gaussian distributions.
 We did not however define Gaussians only for that setting, but first introduced a general definition for Banach spaces, and then specialized to Hilbert and finally finite dimensional spaces.
 Our formalization uses many results from \mathlib and we relied on characteristic functions \docs{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}.
 
@@ -999,7 +997,7 @@ The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\
 
 \paragraph{Properties of the Brownian motion}
 
-Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus we introduced a precicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
+Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus we introduced a predicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
 
 \begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
@@ -1027,7 +1025,7 @@ Consider $B$ a Brownian motion. Then:
 \end{enumerate}
 \end{proposition}
 
-Let us focus on the first three statements, the fourth one being an easy consequence of the third. Computing the expectation and the variance is quite easy. On paper, proving that these are Gaussian processes is also straightforward, because a linear combination of marginals of any of theses processses is also clearly a linear combination of marginals of the process $B$, and thus has Gaussian law. This is not as obvious to formalize, because the notion of "being a linear combination of marginals" is a bit messy to work with. What we were able to formalize nicely however is the following lemma.
+Let us focus on the first three statements, the fourth one being an easy consequence of the third. Computing the expectation and the variance is quite easy. On paper, proving that these are Gaussian processes is also straightforward, because a linear combination of marginals of any of theses processes is also clearly a linear combination of marginals of the process $B$, and thus has Gaussian law. This is not as obvious to formalize, because the notion of "being a linear combination of marginals" is a bit messy to work with. What we were able to formalize nicely however is the following lemma.
 
 \begin{lemma}[\docs{ProbabilityTheory.IsGaussianProcess.of_isGaussianProcess}]\label{lem:isGaussOfIsGauss}
 Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be an $F$-valyed stochastic process. If for all $s \in S$, there exists $I$ a finite subset of $T$ and $L \in \mathcal{L}(E^I, F)$ such that $Y_s = L((X_t)_{t \in I})$, then $Y$ is a Gaussian process.
