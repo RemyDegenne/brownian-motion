@@ -189,9 +189,8 @@ theorem debut_isStoppingTime [MeasurableSpace ι]
     {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) :
     IsStoppingTime f (debut E n) := by
   /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
-  usual hypotheses on the filtration (in particular the right continuity of the filtration, find if
-  it is defined anywhere in mathlib, or if we need to define it ourselves or just state it as
-  a hypothesis) -/
+  usual hypotheses on the filtration (in particular the right continuity of the filtration, see
+  `MeasureTheory.Filtration.IsRightContinuous` from the `Predictable` file) -/
   sorry
 
 end Debut
