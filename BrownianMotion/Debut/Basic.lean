@@ -48,7 +48,8 @@ section Debut
 
 variable [ConditionallyCompleteLinearOrder ι] (n : ι)
 
-
+@[simp]
+lemma hittingAfter_empty {β : Type*} {u : ι → Ω → β} : hittingAfter u ∅ n = fun _ ↦ ⊤ := by
   ext
   simp [hittingAfter]
 
@@ -61,7 +62,7 @@ lemma hittingAfter_univ {β : Type*} {u : ι → Ω → β} :
   rw [if_pos ⟨n, le_refl n⟩]
   exact_mod_cast csInf_Ici
 
-lemma hittingAfter_anti {β : Type*} {u : ι → Ω → β} : Antitone (hittingAfter u · n) := by
+lemma hittingAfter_anti {β : Type*} (u : ι → Ω → β) : Antitone (hittingAfter u · n) := by
   intro E F hEF ω
   simp only [hittingAfter]
   split_ifs with hF hE hE
@@ -84,6 +85,9 @@ lemma hittingAfter_mono {β : Type*} (u : ι → Ω → β) (s : Set β) : Monot
   · have ⟨t, ht⟩ := h_m
     exact absurd ⟨t, hnm.trans ht.1, ht.2⟩ h_n
   · simp
+
+lemma hittingAfter_apply_anti {β : Type*} (u : ι → Ω → β) (ω : Ω) :
+    Antitone (hittingAfter u · n ω) := fun _ _ hst ↦ hittingAfter_anti n u hst ω
 
 lemma hittingAfter_apply_mono {β : Type*} (u : ι → Ω → β) (s : Set β) (ω : Ω) :
     Monotone (hittingAfter u s · ω) := fun _ _ hnm ↦ hittingAfter_mono u s hnm ω
@@ -129,7 +133,7 @@ lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
     exact (lt_self_iff_false n).mp (hi n) |>.elim
   · simp_all
 
-lemma debut_anti : Antitone (debut (Ω := Ω) · n) := hittingAfter_anti n
+lemma debut_anti : Antitone (debut (Ω := Ω) · n) := hittingAfter_anti n _
 
 section Inequalities
 
