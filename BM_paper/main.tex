@@ -34,12 +34,11 @@
 \lstset{escapeinside={(*}{*)}, language=lean}
 
 \title[Formalization of Brownian motion in Lean]{Formalization of Brownian motion in Lean}
-\author[R. Degenne, M. Himmel, D. Ledvinka, E. Marion, P. Pfaffelhuber]{
-  Rémy Degenne, Markus Himmel, David Ledvinka, Etienne Marion, Peter Pfaffelhuber}
+\author[R. Degenne, D. Ledvinka, E. Marion, P. Pfaffelhuber]{
+  Rémy Degenne, David Ledvinka, Etienne Marion, Peter Pfaffelhuber}
 
 
 \authorinfo[R. Degenne]{Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189-CRIStAL, F-59000 Lille, France}{remy.degenne@inria.fr}
-\authorinfo[M. Himmel]{University of XYZ, Country}{markus.himmel@example.com}
 \authorinfo[D. Ledvinka]{University of Toronto, Canada}{david.ledvinka@mail.utoronto.ca}
 \authorinfo[E. Marion]{ENS de Lyon, 46, Allée d’Italie, 69007 Lyon, France}{etienne.marion@ens-lyon.fr}
 \authorinfo[P. Pfaffelhuber]{University of Freiburg, Germany}{p.p@stochastik.uni-freiburg.de}
@@ -136,7 +135,7 @@ Before making the project public, we thus spent time detailing every step of the
 We started by implementing in \Lean several key definitions and statements (without proofs): there are always several ways to turn a mathematical concept into a \Lean definition, and in order to collaborate on a project it is important to decide early on a unique way to talk about any concept to ensure compatibility of the code produced, even if the definition chosen can then be refined.
 Different parts of the blueprint had different levels of details: we wrote a precise description of the technical Kolmogorov-Chentsov proof, but omitted many proofs for more standard results on Gaussian distributions.
 
-The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. M.H, D.L., and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
+The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L., and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
 The blueprint continued to evolve during the formalization, as new lemmas were added (once because a small gap was identified in the blueprint proof), definitions were changed to better fit the needs of writing in \Lean, and small mistakes were corrected (particularly in the exact value of constants used in the Kolmogorov-Chentsov proof).
 
@@ -1068,6 +1067,10 @@ The law of $B$ in that space is called the Wiener measure (\docs{ProbabilityTheo
 \todor{Do we want a conclusion section? Some remarks about future work? It would be trivial to build a Brownian motion in $\mathbb{R}^n$ using the current development. Donsker's theorem would be nice...}
 
 \section*{Acknowledgments}
+
+TODO:
+
+Markus Himmel: many lemmas for the Kolmogorov-Chentsov proof
 
 Other contributors, who made one or two PRs: Jonas Bayer, Lorenzo Luccioli, Alessio Rondelli, Jérémy Scanvic
 
