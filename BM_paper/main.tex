@@ -237,7 +237,7 @@ To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This i
 
 \paragraph{Gaussian random variables}
 
-As mentioned in the paper, part of the work in this project was to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be pretty inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}. This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\docs{ProbabilityTheory.HasGaussianLaw.map}). Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
+Part of the work in this project is to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}. This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\docs{ProbabilityTheory.HasGaussianLaw.map}). Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
 
 One of the great properties of Gaussian random variables is their relation to independence. Proving that to random variables are independent can be quite involved sometimes. But when it comes to Gaussian random variables, we have the following result. If $X$ and $Y$ are two real random variables such that the pair $(X, Y)$ is Gaussian and such that $\mathbf{cov}(X, Y) = 0$, then $X$ and $Y$ are independent. In other words, indepence can be checked by only computing a covariance. This is not only true for real variables and can be generalized. The most general form we formalized is stated below.
 
@@ -245,7 +245,7 @@ One of the great properties of Gaussian random variables is their relation to in
   Consider $(E_i)_{1 \le i \le n}$ a family of second countable Banach spaces, and a family of random variables $X_i : \Omega \to E_i$. Assume that the joint random variable $(X_i)_{1 \le i \le n}$ is Gaussian. Then to check that the $X_i$ are mutually independent, it is enough to check that for any $1 \le i \ne j \le n$ and any $L_1 \in E_i'$, $L_2 \in E_j'$, we have $\mathbf{cov}(L_1(X_i), L_2(X_j)) = 0$.
 \end{lemma}
 
-This statement follows actually quite easily from the general results we formalized about characteristic functions of Gaussian measures.
+This statement follows actually quite easily from the general results we formalized about characteristic functions of Gaussian measures (see Section~\ref{S:gaussian}).
 
 \paragraph{Gaussian processes}
 
