@@ -85,7 +85,7 @@ Brownian motion is a building block in modern probability theory. In this paper,
 \subsection{Mathematical background}
 \sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
-Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and if $X_0=0$):
+Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and $X_0=0$):
 \begin{itemize}
 \item it has a normal distribution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with mean $\mathbf E[X_{t_i}] = 0$ and covariance $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$, the minimum of $t_i$ and $t_j$ (in particular, $X$ is a Gaussian process);
 \item its states after time $t$ are independent of states before $t$ given $X_t$, or $\mathbb P(X_{t+s} \in . | (X_r)_{r\leq t}) = \mathbb P(X_{t+s} \in . | X_t)$ for $s,t \ge 0$, i.e.\ Brownian Motion is a Markov process;
@@ -109,6 +109,7 @@ From this process, we can also define a probability measure on (the Polish space
 \end{itemize}
 
 It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths).
+Our formalization led to the addition to \mathlib of new definitions and results that allow to manipulate random variables directly, without having to perform operations on their distributions all the time.
 %We account for this duality in our code by introducing in the assumptions that a certain law is required\todorm{I don't understand that last sentence}.
 
 
@@ -116,10 +117,11 @@ It is important to realize that probability theory comes with a duality between 
 \subsection{Related work}
 Stochastic processes have been formalized in several theorem provers.
 Within Isabelle/HOL, the Kolmogorov extension theorem has been previously formalized \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where the state spaces for all times are identical. As for the Kolmogorov-Chentsov Theorem (showing continuity of paths), there is an Isabelle/HOL formalization as well \cite{Kolmogorov_Chentsov-AFP}.
-It uses the index set  $\R_+$ (rather than a more general type) with the usual dyadics proof, as e.g. outlined in \cite{kallenberg2021}. Last,
-Brownian motion in implemented in Isabelle/HOL at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github})\todorm{the formalization does not look complete}\todopp{This is true, the final result still has sorries.}. As the authors say, dependent type theory would have facilitated their work in places.
+It uses the index set  $\R_+$ (rather than a more general type) with the usual dyadics proof, as e.g. outlined in \cite{kallenberg2021}. Last, an implementation of
+Brownian motion for Isabelle/HOL is described at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github} and seems to be a work in progress)\todorm{How do we refer to this incomplete formalization? Do we even cite it?}.
 
-For the Lean theorem prover, \cite{ying2023formalization} formalized martingales (see e.g.\ \cite{kallenberg2021}) and was the first implementation of stochastic processes. In our work, however, we do not touch martingales, and rather build on implementations of measure theory, as implemented in \cite{mathlib}.
+For the Lean theorem prover, \cite{ying2023formalization} formalized theorems about discrete time martingales (see e.g.\ \cite{kallenberg2021}) and was the first implementation of stochastic processes.
+Our work shares little with that formalization, apart from the general setting of stochastic processes. We however depend extensively on the measure theory content of \cite{mathlib}.
 
 
 \subsection{Project organization}
@@ -151,12 +153,14 @@ Finally, Section~\ref{S:BM} contains the final construction of Brownian motion a
 
 \section{Formalization overview}\label{S:overview}
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
-We refer to the implementation using links, like \docs{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to our repository: \href{https://github.com/RemyDegenne/brownian-motion}{github link}.
+We refer to the implementation using links, like \docs{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
 Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
 All links point to commit {\tt xxx} for \mathlib (xxx date), and commit {\tt xxx} for our repository (xxx date).
 \todorm{pin all links to specific commits before final submission}
 
-Let us start with our notation. Any stochastic process has an index set $T$ (usually denoted {\em time}, usually uncountably infinite), and a state space. As for $T$, the general use of {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$. This is interesting, since virtually no standard textbook treats the case of a time-dependent state space. We only found a few examples of time-dependent stochastic processes in the literature (one of which is \cite{arnaudon2008brownian})\todorm{undefined citation}. Extending the usual hypothesis on the state space, we require that $E_t$ is a complete and second-countable metric space\todorm{We don't assume this everywhere}, for all $t \in T$. Probability measures are denoted $P_.$.
+Let us start with notation. Any stochastic process has an index set $T$ (usually called {\em time}, usually uncountably infinite), and a state space.
+While the general use of the word {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$.
+This is interesting, since virtually no standard textbook treats the case of a time-dependent state space. We only found a few examples of time-dependent stochastic processes in the literature (one of which is \cite{arnaudon2008brownian})\todorm{undefined citation}. Extending the usual hypothesis on the state space, we require that $E_t$ is a complete and second-countable metric space, for all $t \in T$. Probability measures are denoted $P_.$.
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq T$.
@@ -172,7 +176,7 @@ We are going to formulate the main result in a modern fashion, as e.g.\ found in
 
 \subsection{Gaussian Measures and characteristic functions}
 \label{ss:char}
-Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely (i) the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
+Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
 
 For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (\docs{MeasureTheory.Measure.ext_of_charFun}).
 For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$.
@@ -188,7 +192,8 @@ We can also show with characteristic functions that Gaussian measures are closed
 \subsection{The Kolmogorov-Chentsov Theorem}
 \label{ss:kolchen}
 
-Let us describe briefly the Kolmogorov-Chentsov Theorem in a simple case here, before we dive deeper in the next sections.
+Brownian motion is a process with continuous paths. To show the existence of a modification of a stochastic process with continuous paths, we use the Kolmogorov-Chentsov Theorem.
+Let us describe briefly that theorem in a simple case here, before we dive deeper in the next sections.
 Let $X$ be a stochastic process on the index set $T = [0,1]$ with values in a metric space $E$ with distance $d_E$.
 The result states that if we assume we find $p>0, q>1, M > 0$ satisfying
 \begin{align}
@@ -214,7 +219,7 @@ We will use a more general version of this statement, replacing $T = [0,1]$ by a
 
 In order to finally construct Brownian Motion, we need to put everything together.
 We have constructed a projective family of finite-dimensional distributions given by $N(0,C_t)$ for $t = (t_1,...,t_n)$ with $(C_t)_{ij} = t_i \wedge t_j$.
-We can then invoke the Kolmogorov extension theorem to obtain a probability measure on $\mathbb{R}^{\mathbb{R}}$ and define a stochastic process $X = (X_t)_{t\geq 0}$ with that distribution.
+We can then invoke the Kolmogorov extension theorem to obtain a probability measure on $\mathbb{R}^{\mathbb{R}_+}$ and define a stochastic process $X = (X_t)_{t\geq 0}$ with that distribution.
 Finally, the assumption in the Kolmogorov-Chentsov Theorem can be verified by computing moments of Gaussian distributions.
 For example,
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
@@ -291,14 +296,14 @@ After a few preliminaries about stochastic processes in Section~\ref{S:stochasti
 
 \subsection{Stochastic processes}\label{S:stochastic_processes}
 
-Let $\Omega$ be a measurable space, on which we define a probability measure $\mathbb{P}$ (with expectation denoted by $\mathbf{E}$).
+Let $\Omega$ be a measurable space, on which we define a probability measure $P$ (with expectation denoted by $\mathbf{E}$).
 Let $T$ be a set, and for each $t \in T$, let $E_t$ be a measurable space.
 A stochastic process indexed by $T$ with values in $(E_t)_{t \in T}$ is a collection $(X_t)_{t \in T}$ of random variables $X_t : \Omega \to E_t$, which satisfies a measurability condition (see further down).
 We will often take $E_t = E$ for all $t \in T$ for some fixed measurable space $E$, but we first prove general results about processes with values in different spaces.
-There is no \Lean definition for a stochastic process: we use a function \lstinline|X : T → Ω → E| together with appropriate measurability conditions.
+There is no \Lean definition for a stochastic process: we use a function \lstinline|X : (t : T) → Ω → E t| together with appropriate measurability conditions.
 
 The goal of our formalization of Brownian motion is to define a process with a given law and continuous paths.
-The law of a stochastic process is the pushforward of the measure $\mathbb{P}$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
+The law of a stochastic process is the pushforward of the measure $P$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
 The paths of the process are the maps \todopp{Is there a better mathematical notation for such a dependent type?}$(t : T) \to E_t$ defined by $t \mapsto X_t(\omega)$ for each $\omega \in \Omega$.
 
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
@@ -323,7 +328,7 @@ In the following, a \emph{stochastic process} will always mean an almost everywh
 
 \paragraph{Finite dimensional distributions}
 
-The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $\mathbb{P}$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
+The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $P$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
 Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in \docs{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures described further down.
 Indeed the law of a process is the projective limit of its finite-dimensional distributions.
 Our goal in this project is thus to build a process with given finite-dimensional distributions and continuous paths.
@@ -332,7 +337,6 @@ Our goal in this project is thus to build a process with given finite-dimensiona
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 \label{S:extension}
 We describe our implementation of the Kolmogorov Extension Theorem, and rely on basic notions from topology, such as a metric space, and the Borel $\sigma$-algebra.
-
 We begin by defining set systems we will need, which correspond to the definitions \docs{MeasureTheory.IsSetSemiring} and \docs{MeasureTheory.IsSetRing} (which we added to \mathlib).
 
 \begin{definition}[Semi-ring, ring]\label{def:semi}
@@ -508,12 +512,14 @@ Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive c
     T}$ be a projective family of finite measures and $P$ be
   defined on $\mathcal A := \bigcup_{J \subseteq_f T} \mathcal
   F_J$ given by $P(A) = P_J(\pi_J A)$ for $A\in\mathcal F_J$. Then,
-  there is a unique extension of $P$ to $\sigma(\mathcal A)$.
+  there is a unique extension of $P$ to $\sigma(\mathcal A)$, which we call projective limit of the family.
 \end{theorem}
+
+The uniqueness of the projective limit implies in particular that the finite dimensional distributions of a stochastic process define a unique law.
 
 Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $E$ is a dependent type, i.e.\ for every index $t \in T$, the state space $E_t$ might be different. Second, all $E_t$ are not necessarily second-countable, complete metric spaces (or Polish, i.e.\ second-countable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or t2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap.
 While the first generalization did not require any change in the proof, the second generalization was only possible since underlying results in \mathlib were already provided on the same level of generality.  More precisely, \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space (recall that every metric space is uniform).
-We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph}.
+We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph. What is the point of the last sentence?}.
 
 
 
@@ -533,7 +539,7 @@ Our formalization uses many results from \mathlib and we relied on characteristi
 We start by recalling the definition of the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
 
 \begin{definition}
-	The \emph{dual characteristic function} (\docs{charFunDual}) osf $\mu$ is the map $\phi_\mu : E' \to \R$\todopp{Shouldn't it be $\mathbb C$ as codomain here?} defined by
+	The \emph{dual characteristic function} (\docs{MeasureTheory.charFunDual}) osf $\mu$ is the map $\phi_\mu : E' \to \mathbb{C}$ defined by
 	$$\phi_\mu(L) = \int_E e^{i L(x)} \mu(\mathrm dx),$$
 	where $i$ is the imaginary unit.
 \end{definition}
