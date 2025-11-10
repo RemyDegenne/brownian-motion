@@ -400,9 +400,9 @@ Every cadlag submartingale for a right-continuous filtration has locally integra
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:sup_stoppedProcess_le, lem:Submartingale.integrable_stoppedValue, thm:hitting_is_stopping_time, lem:Adapted.progMeasurable_of_cadlag}
+  \uses{lem:sup_stoppedProcess_le, lem:Submartingale.integrable_stoppedValue, cor:isStoppingTime_leastGE_of_rightContinuous}
 Define the stopping times $\sigma_n = \inf\{t \mid \Vert X_t \Vert \ge n\}$ and set $\tau_n = \sigma_n \wedge n$.
-$\sigma_n$ is a stopping time by Theorem~\ref{thm:hitting_is_stopping_time} ($X$ is progressively measurable since it is cadlag and adapted: Lemma~\ref{lem:Adapted.progMeasurable_of_cadlag}) and so $\tau_n$ is also a stopping time.
+$\sigma_n$ is a stopping time by Lemma~\ref{cor:isStoppingTime_leastGE_of_rightContinuous} and so $\tau_n$ is also a stopping time.
 The times $(\tau_n)_{n \in \mathbb{N}}$ form a localizing sequence.
 By Lemma~\ref{lem:sup_stoppedProcess_le}, we have that
 \begin{align*}
