@@ -26,16 +26,16 @@ open scoped Classical in
 /-- The debut of a set `E ⊆ T × Ω` after `n` is the random variable that gives the smallest
 `t ≥ n` such that `(t, ω) ∈ E` for a given `ω`. -/
 noncomputable def debut [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) : Ω → WithTop ι :=
-  fun ω ↦ if ∃ t ≥ n, (t, ω) ∈ E then (sInf {t ≥ n | (t, ω) ∈ E} : ι) else ⊤
+  hittingAfter (fun t ω ↦ (t, ω)) E n
 
 open scoped Classical in
-lemma debut_def [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
+lemma debut_eq_ite [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
     debut E n = fun ω ↦ if ∃ t ≥ n, (t, ω) ∈ E then
       ((sInf {t ≥ n | (t, ω) ∈ E} : ι) : WithTop ι) else ⊤ := rfl
 
--- todo: turn this into the definition of `debut`?
-lemma debut_eq_hittingAfter [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
-    debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := rfl
+-- -- todo: turn this into the definition of `debut`?
+-- lemma debut_eq_hittingAfter [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
+--     debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := rfl
 
 lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × Ω))
     [∀ t ω, Decidable ((t, ω) ∈ E)] (n : ι) :
@@ -97,12 +97,10 @@ lemma hittingAfter_apply_mono {β : Type*} (u : ι → Ω → β) (s : Set β) (
 
 /-- The debut of the empty set is the constant function that returns `m`. -/
 @[simp]
-lemma debut_empty : debut (∅ : Set (ι × Ω)) n = fun _ ↦ ⊤ := by
-  rw [debut_eq_hittingAfter, hittingAfter_empty]
+lemma debut_empty : debut (∅ : Set (ι × Ω)) n = fun _ ↦ ⊤ := hittingAfter_empty n
 
 @[simp]
-lemma debut_univ : debut (Set.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι) := by
-  rw [debut_eq_hittingAfter, hittingAfter_univ]
+lemma debut_univ : debut (.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι) := hittingAfter_univ n
 
 open scoped Classical in
 @[simp]
@@ -112,10 +110,9 @@ lemma debut_prod (I : Set ι) (A : Set Ω) :
       else ⊤ := by
   ext ω
   split_ifs with hI hω
-  · simp only [debut, Set.mem_prod, hω, and_true]
-    rw [if_pos (by exact Set.nonempty_iff_ne_empty.mpr hI)]
-    congr
-  · simp [debut, hω]
+  · simp only [debut_eq_ite, Set.mem_prod, hω, and_true]
+    convert if_pos (Set.nonempty_iff_ne_empty.mpr hI) using 1
+  · simp [debut_eq_ite, hω]
   · simp only [ne_eq, Decidable.not_not] at hI
     refine if_neg ?_
     simp only [Set.mem_prod, not_exists, not_and]
@@ -129,14 +126,13 @@ lemma debut_prod_univ (I : Set ι) :
 
 lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
     debut ((.univ : Set ι) ×ˢ A) n = fun ω ↦ if ω ∈ A then (n : WithTop ι) else ⊤ := by
-  unfold debut
+  rw [debut_eq_ite]
   ext ω
   split_ifs with hi hω hω
-  · simp only [ge_iff_le, Set.mem_prod, Set.mem_univ, hω, and_self, and_true, WithTop.coe_eq_coe]
+  · simp only [Set.mem_prod, Set.mem_univ, hω, and_true, WithTop.coe_eq_coe]
     exact csInf_Ici
   · simp_all
-  · simp only [ge_iff_le, Set.mem_prod, Set.mem_univ, hω, and_self, and_true, not_exists,
-      not_le] at hi
+  · simp only [Set.mem_prod, Set.mem_univ, hω, and_true, not_exists, not_le] at hi
     exact (lt_self_iff_false n).mp (hi n) |>.elim
   · simp_all
 
