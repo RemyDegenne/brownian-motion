@@ -672,7 +672,7 @@ Therefore, we introduce a definition \lstinline|IsAEKolmogorovProcess| for the p
 \subsubsection{The main theorem}
 
 We formalize a recent and general version of the Kolmogorov-Chentsov theorem \cite[Theorem 1]{kratschmer2023kolmogorov}, which applies to extended pseudo-metric spaces under a covering assumption on the index set $T$.
-We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ \todopp{I would be in favour of allowing for $d=0$ (which covers all finite spaces).} if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below). Note that such a space is totally bounded by construction.
+We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d \ge 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below). Note that such a space is totally bounded by construction.
 
 \begin{theorem}[Kolmogorov-Chentsov]\label{thm:kolmogorov_chentsov}
 Suppose that the index set $T$ has bounded covering number with constant $c>0$ and exponent $d > 0$.
@@ -752,7 +752,7 @@ Our formalization also includes definitions of external covers and covering numb
 The main hypothesis of the Kolmogorov-Chentsov theorem on the index set is that $T$ has bounded covering number, defined as follows.
 
 \begin{definition}[\docs{HasBoundedInternalCoveringNumber}]\label{def:bounded_covering_number}
-A set $T$ has bounded covering number with constant $c > 0$ and exponent $d > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
+A set $T$ has bounded covering number with constant $c > 0$ and exponent $d \ge 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
 \end{definition}
 
 The exponent is a measure of dimensionality of the space $T$.
