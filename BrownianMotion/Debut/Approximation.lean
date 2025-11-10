@@ -349,13 +349,9 @@ lemma B'_mem (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ∈ 𝓚δ f t
   sorry
 
 lemma B'_subset_A (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ⊆ A := by
-  intro x hx
-  have hB'_subset_A : ∀ m ∈ Finset.Icc 1 n, 𝒜.B (1 / m) ⊆ A := by
-    intro m hm
-    apply 𝒜.B_subset_A
-    aesop
-  unfold MeasureTheory.Approximation.B' at hx
-  aesop
+  have hB'_subset_A : ∀ m ∈ Finset.Icc 1 n, 𝒜.B (1 / m) ⊆ A :=
+    fun m hm ↦ 𝒜.B_subset_A _ <| ENNReal.div_pos one_ne_zero (ENNReal.natCast_ne_top m)
+  simp_all only [B', Set.iUnion_subset_iff, implies_true]
 
 lemma le' (𝒜 : Approximation f P t A) (n : ℕ) :
     P (Prod.snd '' A) ≤ P (Prod.snd '' 𝒜.B' n) + 1 / n := by
