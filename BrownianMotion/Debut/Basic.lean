@@ -33,10 +33,6 @@ lemma debut_eq_ite [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
     debut E n = fun ω ↦ if ∃ t ≥ n, (t, ω) ∈ E then
       ((sInf {t ≥ n | (t, ω) ∈ E} : ι) : WithTop ι) else ⊤ := rfl
 
--- -- todo: turn this into the definition of `debut`?
--- lemma debut_eq_hittingAfter [Preorder ι] [InfSet ι] (E : Set (ι × Ω)) (n : ι) :
---     debut E n = hittingAfter (fun t ω ↦ (t, ω)) E n := rfl
-
 lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × Ω))
     [∀ t ω, Decidable ((t, ω) ∈ E)] (n : ι) :
     debut E n = hittingAfter (fun t ω ↦ if (t, ω) ∈ E then 1 else 0) {1} n := by
@@ -49,24 +45,21 @@ lemma hittingAfter_eq_debut [Preorder ι] [InfSet ι] {β : Type*} (u : ι → �
     hittingAfter u s n = debut {p : ι × Ω | u p.1 p.2 ∈ s} n := rfl
 
 section Debut
--- TODO: revisit the names, probably we should remove the namespace and just add `debut` to
--- the names
+
 variable [ConditionallyCompleteLinearOrder ι] (n : ι)
 
-@[simp]
-lemma hittingAfter_empty {β : Type*} {u : ι → Ω → β} : hittingAfter u ∅ n = fun _ ↦ ⊤ := by
+
   ext
   simp [hittingAfter]
 
 @[simp]
 lemma hittingAfter_univ {β : Type*} {u : ι → Ω → β} :
-    hittingAfter u Set.univ n = fun _ ↦ (n : WithTop ι) := by
+    hittingAfter u .univ n = fun _ ↦ (n : WithTop ι) := by
   ext ω
   classical
   simp only [hittingAfter, Set.mem_univ, and_true]
   rw [if_pos ⟨n, le_refl n⟩]
-  norm_cast
-  exact csInf_Ici
+  exact_mod_cast csInf_Ici
 
 lemma hittingAfter_anti {β : Type*} {u : ι → Ω → β} : Antitone (hittingAfter u · n) := by
   intro E F hEF ω
@@ -105,8 +98,8 @@ lemma debut_univ : debut (.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι)
 open scoped Classical in
 @[simp]
 lemma debut_prod (I : Set ι) (A : Set Ω) :
-    debut (I ×ˢ A) n = fun ω ↦ if Set.Ici n ∩ I ≠ ∅ then
-        if ω ∈ A then ((sInf (Set.Ici n ∩ I) : ι) : WithTop ι) else ⊤
+    debut (I ×ˢ A) n = fun ω ↦ if .Ici n ∩ I ≠ ∅ then
+        if ω ∈ A then ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤
       else ⊤ := by
   ext ω
   split_ifs with hI hω
@@ -120,8 +113,8 @@ lemma debut_prod (I : Set ι) (A : Set Ω) :
 
 open scoped Classical in
 lemma debut_prod_univ (I : Set ι) :
-    debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if Set.Ici n ∩ I ≠ ∅ then
-      ((sInf (Set.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by
+    debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if .Ici n ∩ I ≠ ∅ then
+      ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by
   simp
 
 lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
