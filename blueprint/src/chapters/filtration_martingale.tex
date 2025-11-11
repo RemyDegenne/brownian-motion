@@ -190,9 +190,8 @@ in which the infimum is infinite if the set is empty.
 We now give the definition of a filtered probability space satisfying the usual conditions.
 
 
-\begin{definition}[Left and right continuation]\label{def:leftRightLimitFiltration}
+\begin{definition}[Left continuation]\label{def:leftLimitFiltration}
   \uses{def:filtration}
-  \lean{MeasureTheory.Filtration.rightCont}
 Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{left continuation} as
 $$\mathcal{F}_{t-} =
   \begin{cases}
@@ -200,7 +199,16 @@ $$\mathcal{F}_{t-} =
     \bigsqcup_{s < t} \mathcal{F}_s, & \text{otherwise}.
   \end{cases}
 $$
-Similarly, we define the \emph{right continuation} as
+
+Note that $\bigsqcup$ denotes the supremum in the lattice of sigma-algebras on $\Omega$.
+\end{definition}
+
+
+\begin{definition}[Right continuation]\label{def:rightLimitFiltration}
+  \uses{def:filtration}
+  \leanok
+  \lean{MeasureTheory.Filtration.rightCont}
+Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{right continuation} as
 $$\mathcal{F}_{t+} =
   \begin{cases}
     \mathcal{F}_t, & \text{if $t$ is isolated on the right in the order topology}; \\
@@ -208,11 +216,11 @@ $$\mathcal{F}_{t+} =
   \end{cases}
 $$
 
-Note that $\bigsqcap$ and $\bigsqcup$ denote the infimum and supremum in the lattice of sigma-algebras on $\Omega$.
+Note that $\bigsqcap$ denotes the infimum in the lattice of sigma-algebras on $\Omega$.
 \end{definition}
 
 \begin{lemma}\label{lem:filtrationRightCont}
-  \uses{def:filtration, def:leftRightLimitFiltration}
+  \uses{def:filtration, def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont}
 The right continuation of $\mathcal{F}$ is a filtration.
@@ -237,7 +245,7 @@ Turn now to the proof that for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathc
 \end{proof}
 
 \begin{lemma}\label{lem:rightContDef}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_def}
 Suppose $T$ is a topological space with the topology being the order topology. For $t \in T$, the right continuation of $\mathcal{F}$ at $t$ is given by
@@ -250,12 +258,12 @@ $$
 \end{lemma}
 
 \begin{proof}
-  \uses{def:leftRightLimitFiltration}
-This follows from Definition~\ref{def:leftRightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
+  \uses{def:rightLimitFiltration}
+This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContIsolated}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_nhdsGT_eq_bot}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -267,7 +275,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContSuccOrder}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_self}
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
@@ -279,7 +287,7 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 \end{proof}
 
 \begin{lemma}\label{lem:rightContIsMax}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_isMax}
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -291,7 +299,7 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 \end{proof}
 
 \begin{lemma}\label{lem:rightContExistsGt}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_exists_gt}
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -303,7 +311,7 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 \end{proof}
 
 \begin{lemma}\label{lem:rightContNeBot}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_neBot_nhdsGT}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -315,7 +323,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContNotIsMax}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_not_isMax}
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -327,7 +335,7 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 \end{proof}
 
 \begin{lemma}\label{lem:rightContEq}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq}
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -339,7 +347,7 @@ For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNo
 \end{proof}
 
 \begin{lemma}\label{lem:leRightCont}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.le_rightCont}
 The filtration $\mathcal{F}$ is contained in its right continuation.
@@ -351,7 +359,7 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 \end{proof}
 
 \begin{lemma}\label{lem:rightContSelf}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_self}
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
@@ -367,14 +375,14 @@ thus $\mathcal{F}_{t++} \subseteq \bigsqcap_{s > t} \mathcal{F}_s = \mathcal{F}_
 \end{proof}
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
 
 \begin{lemma}\label{lem:eqRightCont}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous.eq}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
@@ -386,7 +394,7 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 \end{proof}
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.isRightContinuous_rightCont}
 The right continuation of $\mathcal{F}$ is right-continuous.
@@ -398,7 +406,7 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContinuousMeasurableSet}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous.measurableSet}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
