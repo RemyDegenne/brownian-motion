@@ -13,7 +13,7 @@ import BrownianMotion.Auxiliary.StoppedProcess
 
 -/
 
-open MeasureTheory Filter
+open MeasureTheory Filter Filtration
 open scoped ENNReal Topology
 
 namespace ProbabilityTheory

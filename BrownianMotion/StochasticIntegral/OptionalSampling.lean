@@ -19,6 +19,11 @@ variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
 def rightContinuous [PartialOrder ι] (X : ι → Ω → E) (μ : Measure Ω := by volume_tac) :=
     ∀ᵐ ω ∂μ, ∀ a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
 
+lemma rightContinuous_of_all [PartialOrder ι] {X : ι → Ω → E}
+    (h : ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a) (μ : Measure Ω) :
+    rightContinuous X μ :=
+  ae_of_all _ h
+
 variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
 
 structure DiscreteApproxSequence (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac)
@@ -138,7 +143,7 @@ lemma Adapted.progMeasurable_of_rightContinuous
     [TopologicalSpace ι] [MetrizableSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι]
     {f : Filtration ι mΩ} {u : ι → Ω → β}
-    (h : Adapted f u) (hu_cont : ∀ a, ContinuousWithinAt u (Set.Ioi a) a) :
+    (h : Adapted f u) (hu_cont : ∀ ω a, ContinuousWithinAt (u · ω) (Set.Ioi a) a) :
     ProgMeasurable f u :=
   sorry
 
@@ -154,7 +159,7 @@ variable [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelS
   [MetrizableSpace ι]
 
 theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
     stoppedValue X τ =ᵐ[μ] μ[X n|hτ.measurableSpace] := by
   set τn' := discreteApproxSequence_of 𝓕 μ hτ_le τn
@@ -166,29 +171,28 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
   have hintgbl : Integrable (stoppedValue X τ) μ := by
     refine UniformIntegrable.integrable_of_tendsto_in_measure ?_
       (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
-        (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn' m).1)
-        (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn') htends)
+        (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h
+          (rightContinuous_of_all hRC _) hτ hτ_le τn' m).1)
+        (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h
+          (rightContinuous_of_all hRC _) hτ hτ_le τn') htends)
     -- Need Martingale.uniformIntegrable_stoppedValue to take countable image
     sorry
   refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
-    (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_ ?_
-  · rintro s hs -
-    have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) = fun m ↦ ∫ ω in s, X n ω ∂μ := by
-      ext m
-      rw [← setIntegral_condExp (τn'.isStoppingTime m).measurableSpace_le (h.integrable _)
-        (hτ.measurableSpace_mono (τn'.isStoppingTime m) (τn'.le m) _ hs)]
-      refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
-      filter_upwards [hint m] with ω hω _ using hω
-    rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
-    refine tendsto_setIntegral_of_L1' _ hintgbl ?_ htends _
-    · rw [eventually_atTop]
-      refine ⟨0, fun m _ ↦ ?_⟩
-      rw [integrable_congr (hint m)]
-      exact integrable_condExp
-  · -- Note that this measurbaility is with respect to `hτ.measurableSpace`
-    refine Measurable.aestronglyMeasurable ?_
-    refine measurable_stoppedValue ?_ hτ
-    refine h.adapted.progMeasurable_of_rightContinuous ?_
-    sorry
+    (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_
+    (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
+      hτ).aestronglyMeasurable
+  rintro s hs -
+  have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) = fun m ↦ ∫ ω in s, X n ω ∂μ := by
+    ext m
+    rw [← setIntegral_condExp (τn'.isStoppingTime m).measurableSpace_le (h.integrable _)
+      (hτ.measurableSpace_mono (τn'.isStoppingTime m) (τn'.le m) _ hs)]
+    refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
+    filter_upwards [hint m] with ω hω _ using hω
+  rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
+  refine tendsto_setIntegral_of_L1' _ hintgbl ?_ htends _
+  rw [eventually_atTop]
+  refine ⟨0, fun m _ ↦ ?_⟩
+  rw [integrable_congr (hint m)]
+  exact integrable_condExp
 
 end MeasureTheory
