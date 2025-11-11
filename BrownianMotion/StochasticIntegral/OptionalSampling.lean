@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.UniformIntegrable
+import BrownianMotion.Auxiliary.Adapted
 import Mathlib.Probability.Martingale.OptionalSampling
 
 open Filter TopologicalSpace
@@ -136,17 +137,6 @@ lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn m).1)
     (ae_tendsto_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn)
 
--- Go in Process/Adapted
-omit [IsFiniteMeasure μ] in
-lemma Adapted.progMeasurable_of_rightContinuous
-    {β : Type*} [TopologicalSpace β] [PseudoMetrizableSpace β]
-    [TopologicalSpace ι] [MetrizableSpace ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι]
-    {f : Filtration ι mΩ} {u : ι → Ω → β}
-    (h : Adapted f u) (hu_cont : ∀ ω a, ContinuousWithinAt (u · ω) (Set.Ioi a) a) :
-    ProgMeasurable f u :=
-  sorry
-
 theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
     stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)
@@ -168,15 +158,15 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (τn'.discrete m)
   have htends : Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn' i) - stoppedValue X τ) 1 μ)
     atTop (𝓝 0) := by sorry -- this should also give integrability
-  have hintgbl : Integrable (stoppedValue X τ) μ := by
-    refine UniformIntegrable.integrable_of_tendsto_in_measure ?_
+  have hintgbl : Integrable (stoppedValue X τ) μ :=
+    UniformIntegrable.integrable_of_tendsto_in_measure
+      (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
+        (discreteApproxSequence_of_le hτ_le τn) τn'.discrete)
       (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
         (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h
           (rightContinuous_of_all hRC _) hτ hτ_le τn' m).1)
         (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h
           (rightContinuous_of_all hRC _) hτ hτ_le τn') htends)
-    -- Need Martingale.uniformIntegrable_stoppedValue to take countable image
-    sorry
   refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
     (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_
     (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
