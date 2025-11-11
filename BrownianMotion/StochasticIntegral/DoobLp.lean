@@ -3,7 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Jensen
+import BrownianMotion.Auxiliary.Martingale
 import Mathlib.Probability.Martingale.OptionalStopping
 
 /-! # Doob's Lᵖ inequality
