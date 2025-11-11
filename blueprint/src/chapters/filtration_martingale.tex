@@ -129,6 +129,45 @@ Let then $A \in \mathcal{F}_i$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
+  \uses{def:Martingale, def:Submartingale}
+Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
+Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+
+\begin{proof}
+  % See 1.4.12 Pascucci
+  By the conditional Jensen inequality (see \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953})
+  $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+
+\begin{corollary}\label{cor:Martingale.submartingale_norm}
+  \uses{def:Martingale, def:Submartingale}
+  Let $X : T \rightarrow \Omega \rightarrow E$ a martingale with values in a normed space $E$.
+  Then $\Vert X \Vert$ is a sub-martingale.
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:Martingale.submartingale_convex_comp}
+It is a consequence of Lemma~\ref{lem:Martingale.submartingale_convex_comp} with $\phi = \Vert \cdot \Vert$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:convex_of_submg_is_submg}
+  \uses{def:Submartingale}
+Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
+Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+
+\begin{proof}
+  By Jensen and the fact that $\phi$ is increasing
+  $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+
 \begin{definition}[Stopping time]\label{def:IsStoppingTime}
   \uses{def:filtration}
   \mathlibok
@@ -680,44 +719,6 @@ Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 \section{Doob's Lp inequality}
 
 In this section, we prove Doob's Lp inequality.
-
-\begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
-  \uses{def:Martingale, def:Submartingale}
-Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
-Let $\phi : E \rightarrow \mathbb{R}$ convex such that
-$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
-\end{lemma}
-
-\begin{proof}
-  % See 1.4.12 Pascucci
-  By the conditional Jensen inequality (see \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953})
-  $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
-\end{proof}
-
-
-\begin{corollary}\label{cor:Martingale.submartingale_norm}
-  \uses{def:Martingale, def:Submartingale}
-  Let $X : T \rightarrow \Omega \rightarrow E$ a martingale with values in a normed space $E$.
-  Then $\Vert X \Vert$ is a sub-martingale.
-\end{corollary}
-
-\begin{proof}
-  \uses{lem:Martingale.submartingale_convex_comp}
-It is a consequence of Lemma~\ref{lem:Martingale.submartingale_convex_comp} with $\phi = \Vert \cdot \Vert$.
-\end{proof}
-
-
-\begin{lemma}\label{lem:convex_of_submg_is_submg}
-  \uses{def:Submartingale}
-Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
-Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
-$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
-\end{lemma}
-
-\begin{proof}
-  By Jensen and the fact that $\phi$ is increasing
-  $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
-\end{proof}
 
 
 \begin{lemma}[Doob's maximal inequality for $\mathbb{N}$]\label{lem:maximal_ineq}

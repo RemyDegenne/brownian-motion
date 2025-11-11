@@ -204,6 +204,7 @@ MeasureTheory.Martingale.uniformIntegrable_stoppedValue
 MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range
 MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite
 MeasureTheory.Filtration.limitProcess
+MeasureTheory.maximal_ineq
 MeasureTheory.leastGE
 ProbabilityTheory.IsPreLocalizingSequence
 ProbabilityTheory.IsLocalizingSequence
@@ -249,6 +250,5 @@ MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
-MeasureTheory.maximal_ineq
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
