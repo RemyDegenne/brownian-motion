@@ -212,6 +212,19 @@ The stopped process with respect to $\tau$ is defined by
 \end{definition}
 
 
+\begin{lemma}\label{lem:Submartingale.stoppedProcess}
+  \uses{def:Submartingale, def:stoppedProcess}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.stoppedProcess}
+Let $X : \mathbb{N} \to \Omega \to \mathbb{R}$ be a sub-martingale and $\tau$ a stopping time with respect to the filtration $\mathcal{F}$.
+Then, the stopped process $X^{\tau}$ is a sub-martingale with respect to the filtration $\mathcal{F}$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Hitting time]\label{def:hittingAfter}
   \mathlibok
   \lean{MeasureTheory.hittingAfter}
@@ -807,8 +820,8 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 
 
 \begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
-  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
-  For every $T, \lambda>0$ and $p>1$ we have
+  Let $X: \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T \in \mathbb{R}_+$ and $\lambda>0$ we have
   \begin{align*}
     P\left( \sup_{t\in[0,T]}X_t \geq \lambda \right)
     \leq \frac{\mathbb{E}[X_T \mathbb{I}_{\sup_{i \le T}X_i \ge \lambda}]}{\lambda}
@@ -819,8 +832,12 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 
 \begin{proof}
   \uses{lem:doob_countable}
-  % TODO: put a sketch of the proof here
-  8.1.2 Pascucci.
+Since $X$ is right-continuous and $[0,T]$ is a compact interval, we have that
+\begin{align*}
+  \sup_{t\in[0,T]}X_t = \sup_{t\in[0,T] \cap \mathbb{Q}}X_t
+  \: .
+\end{align*}
+Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $M = T$.
 \end{proof}
 
 
@@ -855,9 +872,13 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 \end{theorem}
 
 \begin{proof}
-  \uses{thm:doob_ineq}
-% TODO: put a sketch of the proof here
-8.1.2 Pascucci.
+  \uses{lem:doob_Lp_countable}
+Since $X$ is right-continuous and $[0,T]$ is a compact interval, we have that
+\begin{align*}
+  \sup_{t\in[0,T]}X_t = \sup_{t\in[0,T] \cap \mathbb{Q}}X_t
+  \: .
+\end{align*}
+Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ and $M = T$.
 \end{proof}
 
 
@@ -882,13 +903,14 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 \end{proof}
 
 
-\begin{lemma}[Stopped Martingale]\label{lem:stop_of_mg_is_mg}
-  \uses{def:Martingale, def:stoppedProcess}
-  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a cadlag martingale and $\tau_0$ a stopping time.
-  Then the stopped process $(X_{t\wedge\tau_0})_{t\geq 0}$ is a martingale.
+\begin{lemma}[Stopped Submartingale]\label{lem:Submartingale.stoppedProcess_of_cadlag}
+  \uses{def:Submartingale, def:stoppedProcess}
+  Let $X:\mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a cadlag submartingale and $\tau$ a stopping time.
+  Then the stopped process $X^\tau$ is a submartingale.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:Submartingale.stoppedProcess}
 
 \end{proof}
 
@@ -900,8 +922,8 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
   $$
 \end{lemma}
 \begin{proof}
-  \uses{thm:doob_ineq, lem:stop_of_mg_is_mg}
-  Almost already in mathlib MeasureTheory.Submartingale.stoppedProcess.
+  \uses{thm:doob_ineq, lem:Submartingale.stoppedProcess_of_cadlag}
+
 \end{proof}
 
 \begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
@@ -925,7 +947,7 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
   $$
 \end{lemma}
 \begin{proof}
-  \uses{lem:doob_ineq_stop, lem:stop_of_mg_is_mg}
+  \uses{lem:doob_ineq_stop, lem:Submartingale.stoppedProcess_of_cadlag}
   8.1.3 Pascucci.
 \end{proof}
 

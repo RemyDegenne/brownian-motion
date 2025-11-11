@@ -175,6 +175,7 @@ MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
 MeasureTheory.stoppedProcess
+MeasureTheory.Submartingale.stoppedProcess
 MeasureTheory.hittingAfter
 MeasureTheory.Filtration.rightCont
 MeasureTheory.Filtration.rightCont
