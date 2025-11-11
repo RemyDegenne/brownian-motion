@@ -1,6 +1,8 @@
 \chapter{{Filtrations, processes and martingales}}\label{chap:filtration_martingale}
 
 
+\section{Basic definitions}
+
 First, recall the definitions of a filtration, an adapted process, a (sub)martingale, a stopping time and a stopped process, which are already in Mathlib.
 
 
@@ -127,6 +129,80 @@ Let then $A \in \mathcal{F}_i$.
 \end{proof}
 
 
+\begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
+  \notready
+Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
+Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
+\begin{align*}
+  \phi\left( \mathbb{E}[X \mid \mathcal{G}] \right)
+  &\le \mathbb{E}[\phi(X) \mid \mathcal{G}] \quad \text{a.s.}
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+Done in a Mathlib PR for finite measures: \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:norm_condExp_le}
+  \leanok
+  \lean{MeasureTheory.norm_condExp_le}
+Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$.
+Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
+\begin{align*}
+  \Vert \mathbb{E}[X \mid \mathcal{G}] \Vert
+  &\le \mathbb{E}[\Vert X \Vert \mid \mathcal{G}] \quad \text{a.s.}
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:conditional_jensen}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
+  \uses{def:Martingale, def:Submartingale}
+Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
+Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:conditional_jensen}
+  % See 1.4.12 Pascucci
+  By the conditional Jensen inequality (Lemma~\ref{lem:conditional_jensen}),
+  $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+
+\begin{corollary}\label{cor:Martingale.submartingale_norm}
+  \uses{def:Martingale, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.submartingale_norm}
+  Let $X : T \rightarrow \Omega \rightarrow E$ a martingale with values in a normed space $E$.
+  Then $\Vert X \Vert$ is a sub-martingale.
+\end{corollary}
+
+\begin{proof}
+  \uses{cor:norm_condExp_le}
+Same proof as Lemma~\ref{lem:Martingale.submartingale_convex_comp}, specialized to $\phi = \Vert \cdot \Vert$, for which we can use Corollary~\ref{cor:norm_condExp_le}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:convex_of_submg_is_submg}
+  \uses{def:Submartingale}
+Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
+Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+$\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
+\end{lemma}
+
+\begin{proof}
+  By Jensen and the fact that $\phi$ is increasing
+  $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
+\end{proof}
+
+
 \begin{definition}[Stopping time]\label{def:IsStoppingTime}
   \uses{def:filtration}
   \mathlibok
@@ -171,6 +247,19 @@ The stopped process with respect to $\tau$ is defined by
 \end{definition}
 
 
+\begin{lemma}\label{lem:Submartingale.stoppedProcess}
+  \uses{def:Submartingale, def:stoppedProcess}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.stoppedProcess}
+Let $X : \mathbb{N} \to \Omega \to \mathbb{R}$ be a sub-martingale and $\tau$ a stopping time with respect to the filtration $\mathcal{F}$.
+Then, the stopped process $X^{\tau}$ is a sub-martingale with respect to the filtration $\mathcal{F}$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Hitting time]\label{def:hittingAfter}
   \mathlibok
   \lean{MeasureTheory.hittingAfter}
@@ -182,12 +271,14 @@ in which the infimum is infinite if the set is empty.
 \end{definition}
 
 
+
+\section{Right-continuous filtrations}
+
 We now give the definition of a filtered probability space satisfying the usual conditions.
 
 
-\begin{definition}\label{def:leftRightLimitFiltration}
+\begin{definition}[Left continuation]\label{def:leftLimitFiltration}
   \uses{def:filtration}
-  \lean{MeasureTheory.Filtration.rightCont}
 Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{left continuation} as
 $$\mathcal{F}_{t-} =
   \begin{cases}
@@ -195,7 +286,16 @@ $$\mathcal{F}_{t-} =
     \bigsqcup_{s < t} \mathcal{F}_s, & \text{otherwise}.
   \end{cases}
 $$
-Similarly, we define the \emph{right continuation} as
+
+Note that $\bigsqcup$ denotes the supremum in the lattice of sigma-algebras on $\Omega$.
+\end{definition}
+
+
+\begin{definition}[Right continuation]\label{def:rightLimitFiltration}
+  \uses{def:filtration}
+  \leanok
+  \lean{MeasureTheory.Filtration.rightCont}
+Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{right continuation} as
 $$\mathcal{F}_{t+} =
   \begin{cases}
     \mathcal{F}_t, & \text{if $t$ is isolated on the right in the order topology}; \\
@@ -203,11 +303,11 @@ $$\mathcal{F}_{t+} =
   \end{cases}
 $$
 
-Note that $\bigsqcap$ and $\bigsqcup$ denote the infimum and supremum in the lattice of sigma-algebras on $\Omega$.
+Note that $\bigsqcap$ denotes the infimum in the lattice of sigma-algebras on $\Omega$.
 \end{definition}
 
 \begin{lemma}\label{lem:filtrationRightCont}
-  \uses{def:filtration, def:leftRightLimitFiltration}
+  \uses{def:filtration, def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont}
 The right continuation of $\mathcal{F}$ is a filtration.
@@ -232,7 +332,7 @@ Turn now to the proof that for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathc
 \end{proof}
 
 \begin{lemma}\label{lem:rightContDef}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_def}
 Suppose $T$ is a topological space with the topology being the order topology. For $t \in T$, the right continuation of $\mathcal{F}$ at $t$ is given by
@@ -245,12 +345,12 @@ $$
 \end{lemma}
 
 \begin{proof}
-  \uses{def:leftRightLimitFiltration}
-This follows from Definition~\ref{def:leftRightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
+  \uses{def:rightLimitFiltration}
+This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContIsolated}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_nhdsGT_eq_bot}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -262,7 +362,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContSuccOrder}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_self}
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
@@ -274,7 +374,7 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 \end{proof}
 
 \begin{lemma}\label{lem:rightContIsMax}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_isMax}
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -286,7 +386,7 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 \end{proof}
 
 \begin{lemma}\label{lem:rightContExistsGt}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_exists_gt}
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
@@ -298,7 +398,7 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 \end{proof}
 
 \begin{lemma}\label{lem:rightContNeBot}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_neBot_nhdsGT}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -310,7 +410,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContNotIsMax}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_not_isMax}
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -322,7 +422,7 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 \end{proof}
 
 \begin{lemma}\label{lem:rightContEq}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_eq}
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
@@ -334,7 +434,7 @@ For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNo
 \end{proof}
 
 \begin{lemma}\label{lem:leRightCont}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.le_rightCont}
 The filtration $\mathcal{F}$ is contained in its right continuation.
@@ -346,7 +446,7 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 \end{proof}
 
 \begin{lemma}\label{lem:rightContSelf}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.rightCont_self}
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
@@ -362,14 +462,14 @@ thus $\mathcal{F}_{t++} \subseteq \bigsqcap_{s > t} \mathcal{F}_s = \mathcal{F}_
 \end{proof}
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
-  \uses{def:leftRightLimitFiltration}
+  \uses{def:rightLimitFiltration}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
 
 \begin{lemma}\label{lem:eqRightCont}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous.eq}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
@@ -381,7 +481,7 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 \end{proof}
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.isRightContinuous_rightCont}
 The right continuation of $\mathcal{F}$ is right-continuous.
@@ -393,7 +493,7 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 \end{proof}
 
 \begin{lemma}\label{lem:rightContinuousMeasurableSet}
-  \uses{def:leftRightLimitFiltration, def:rightContinuous}
+  \uses{def:rightLimitFiltration, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous.measurableSet}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
@@ -410,6 +510,11 @@ This is a direct consequence of Definition~\ref{def:rightContinuous}.
   \lean{MeasureTheory.Filtration.HasUsualConditions}
 We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies the usual conditions if the filtration is right-continuous and if $\mathcal{F}_0$ contains all the $P$-null sets.
 \end{definition}
+
+
+
+
+\section{Predictable processes}
 
 
 \begin{definition}[Predictable $\sigma$-algebra]\label{def:predictableMeasurableSpace}
@@ -501,6 +606,10 @@ $$X^{-1}(S) = \bigcup_{n \in \mathbb{N}} \{n\} \times X_n^{-1}(S) = {0} \times X
 Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and $\{n + 1\} \times X_{n + 1}^{-1}(S) = (n, n + 1] \times X_{n + 1}^{-1}(S) \in \Sigma_{\mathcal{F}}$ by Lemma~\ref{lem:predictable_Ioc_prod} and the fact that $X_{n + 1}^{-1}(S) \in \mathcal{F}_n$, we have that $X^{-1}(S) \in \Sigma_{\mathcal{F}}$ as required.
 \end{proof}
 
+
+
+
+\section{Optional sampling}
 
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
   \uses{def:Martingale, def:IsStoppingTime}
@@ -635,4 +744,279 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+\end{proof}
+
+
+
+\section{Martingale convergence}
+
+\begin{definition}\label{def:limitProcess}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.limitProcess}
+Let $X : T \to \Omega \to E$ be a stochastic process, let $\mathcal{F}$ be a filtration on $\Omega$ indexed by $T$ and let $P$ be a measure on $\Omega$.
+If there exists a function $Y : \Omega \to E$ which is measurable with respect to $\mathcal{F}_\infty$ such that for $P$-almost surely, $X_t$ converges to $Y$ as $t$ goes to infinity, then we say that $Y$ is the limit of $X$.
+We denote it by $X_\infty$.
+\end{definition}
+
+
+In Mathlib, we have results about convergence of martingales to their limit in discrete time.
+
+
+\begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
+  \uses{def:Martingale, def:limitProcess}
+Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
+Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
+Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+
+
+\section{Doob's Lp inequality}
+
+In this section, we prove Doob's Lp inequality.
+
+
+\begin{lemma}[Doob's maximal inequality for $\mathbb{N}$]\label{lem:maximal_ineq}
+  \uses{def:Submartingale}
+  \mathlibok
+  \lean{MeasureTheory.maximal_ineq}
+Let $X : \mathbb{N} \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale.
+Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
+\begin{align*}
+  \mathbb{P}\left(\sup_{i \le n}X_i\geq\lambda \right)
+  \le \frac{\mathbb{E}\left[X_n \mathbb{I}_{\sup_{i \le n}X_i \ge \lambda}\right]}{\lambda}
+  \le \frac{\mathbb{E}[X_n]}{\lambda}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
+  \uses{def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq_countable}
+  Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
+  Then for every $M \in I,\lambda > 0$ and $p>1$ we have
+  \begin{align*}
+    P\left( \sup_{i\in I, i\leq M}X_i\geq\lambda \right)
+    \le \frac{\mathbb{E}\left[X_M \mathbb{I}_{\sup_{i \le M}X_i \ge \lambda}\right]}{\lambda}
+    \le \frac{\mathbb{E}[X_M]}{\lambda}
+    \: .
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:maximal_ineq}
+For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
+\begin{align*}
+  P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)
+  \le \frac{\mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J, i \le M}X_i \ge \lambda}\right]}{\lambda}
+  \: .
+\end{align*}
+Then we build a countable increasing sequence of finite sets $J_n$ with $\sup_{i\in I, i\leq M}X_i = \sup_n\sup_{i\in J_n, i \le M}X_i$ and conclude by monotone convergence.
+%See 8.1.1 Pascucci.
+\end{proof}
+
+
+\begin{lemma}[Doob Lp Inequality for countable]\label{lem:doob_Lp_countable}
+  Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale. Let $I$ be countable.
+  For every $M\in I,\lambda > 0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{i\in I, i \leq M}X_i^p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_M^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{i \le M}  X_i  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_M \right\Vert_p
+    \: .$
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:doob_countable}
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  = p \int_0^\infty \mathbb{P}\left( \sup_{i \le M}X_i \geq \lambda \right) \lambda^{p-1} d\lambda
+\end{align*}
+By Theorem~\ref{lem:doob_countable} and then Fubini's theorem, we have then
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  &\le p \int_0^\infty \mathbb{E}\left[X_M \mathbb{I}_{\sup_{i \le M}X_i \ge \lambda}\right] \lambda^{p-2} d\lambda
+  \\
+  &= p \mathbb{E}\left[X_M \int_0^{\sup_{i \le M}X_i} \lambda^{p-2} d\lambda\right]
+  \\
+  &= \frac{p}{p - 1} \mathbb{E}\left[X_M (\sup_{i \le M}X_i)^{p-1}\right]
+  \: .
+\end{align*}
+Then by Hölder's inequality,
+\begin{align*}
+  \mathbb{E}\left[ \sup_{i \le M}X_i^p \right]
+  &\le \frac{p}{p - 1} \left(\mathbb{E}[X_M^p]\right)^{1/p} \left(\mathbb{E}\left[\sup_{i \le M}X_i^p \right]\right)^{(p-1)/p}
+  \: .
+\end{align*}
+We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \right]\right)^{(p-1)/p}$ and raise to the power $p$ to conclude.
+%  8.1.1 Pascucci.
+\end{proof}
+
+
+\begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
+  \uses{def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq}
+  Let $X: \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T \in \mathbb{R}_+$ and $\lambda>0$ we have
+  \begin{align*}
+    P\left( \sup_{t\in[0,T]}X_t \geq \lambda \right)
+    \leq \frac{\mathbb{E}[X_T \mathbb{I}_{\sup_{i \le T}X_i \ge \lambda}]}{\lambda}
+    \leq \frac{\mathbb{E}[X_T]}{\lambda}
+    \: .
+  \end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:doob_countable}
+Since $X$ is right-continuous and $[0,T]$ is a compact interval, we have that
+\begin{align*}
+  \sup_{t\in[0,T]}X_t = \sup_{t\in[0,T] \cap \mathbb{Q}}X_t
+  \: .
+\end{align*}
+Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $M = T$.
+\end{proof}
+
+
+\begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq_norm}
+  \uses{def:Martingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq_norm}
+  Let $X:\mathbb{R}_+ \to \Omega \to E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $T$ and $\lambda>0$ we have
+  $$
+  P\left( \sup_{t\in[0,T]} \lVert X_t \rVert \geq \lambda \right)
+  \leq \frac{\mathbb{E}[\lVert X_T \rVert]}{\lambda}.
+  $$
+\end{corollary}
+
+\begin{proof}
+  \uses{cor:Martingale.submartingale_norm, thm:doob_ineq}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_ineq}.
+\end{proof}
+
+
+\begin{theorem}[Doob's Lp inequality in $\mathbb{R}$]\label{thm:doob_lp}
+  Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $T, \lambda>0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{t\in[0,T]}X_t^p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_T^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{t\in[0,T]}  X_t  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_T \right\Vert_p
+    \: .$
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:doob_Lp_countable}
+Since $X$ is right-continuous and $[0,T]$ is a compact interval, we have that
+\begin{align*}
+  \sup_{t\in[0,T]}X_t = \sup_{t\in[0,T] \cap \mathbb{Q}}X_t
+  \: .
+\end{align*}
+Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ and $M = T$.
+\end{proof}
+
+
+\begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp_norm}
+  Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $T, \lambda>0$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_{t\in[0,T]} \lVert X_t \rVert ^ p \right]
+    \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_T \rVert ^p]
+    \: .
+  \end{align*}
+  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
+  $\left\Vert \sup_{t\in[0,T]}  X_t  \right\Vert_p
+    \leq \frac{p}{p-1} \left\Vert X_T \right\Vert_p
+    \: .$
+\end{corollary}
+
+\begin{proof}
+  \uses{cor:Martingale.submartingale_norm, thm:doob_lp}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{thm:doob_lp}.
+\end{proof}
+
+
+\begin{lemma}[Stopped Submartingale]\label{lem:Submartingale.stoppedProcess_of_cadlag}
+  \uses{def:Submartingale, def:stoppedProcess}
+  Let $X:\mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a cadlag submartingale and $\tau$ a stopping time.
+  Then the stopped process $X^\tau$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.stoppedProcess}
+
+\end{proof}
+
+\begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}X_t\geq\lambda \right)\leq \frac{\mathbb{E}[X_\tau]}{\lambda}.
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{thm:doob_ineq, lem:Submartingale.stoppedProcess_of_cadlag}
+
+\end{proof}
+
+\begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  P\left( \sup_{t\in[0,\tau]}\lVert X_t \rVert \geq\lambda \right)\leq \frac{\mathbb{E}[\lVert X_\tau \rVert]}{\lambda}.
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{cor:Martingale.submartingale_norm, lem:doob_ineq_stop}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop}.
+\end{proof}
+
+\begin{lemma}[Doob's Lp Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}X_t^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[X_\tau^p].
+  $$
+\end{lemma}
+\begin{proof}
+  \uses{lem:doob_ineq_stop, lem:Submartingale.stoppedProcess_of_cadlag}
+  8.1.3 Pascucci.
+\end{proof}
+
+\begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
+  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
+  $$
+  \mathbb{E}\left[ \sup_{t\in[0,\tau]}\lVert X_t \rVert^p \right]\leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_\tau \rVert^p].
+  $$
+\end{corollary}
+\begin{proof}
+  \uses{cor:Martingale.submartingale_norm, lem:doob_ineq_stop_exp_val}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
+  Then apply Theorem~\ref{lem:doob_ineq_stop_exp_val}.
 \end{proof}
