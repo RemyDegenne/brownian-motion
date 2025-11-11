@@ -171,6 +171,7 @@ MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.Submartingale.integrable_stoppedValue
 MeasureTheory.Martingale.congr
 MeasureTheory.Submartingale.congr
+MeasureTheory.Martingale.submartingale_norm
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
@@ -206,6 +207,9 @@ MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range
 MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite
 MeasureTheory.Filtration.limitProcess
 MeasureTheory.maximal_ineq
+ProbabilityTheory.maximal_ineq_countable
+ProbabilityTheory.maximal_ineq
+ProbabilityTheory.maximal_ineq_norm
 MeasureTheory.leastGE
 ProbabilityTheory.IsPreLocalizingSequence
 ProbabilityTheory.IsLocalizingSequence

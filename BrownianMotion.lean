@@ -37,6 +37,7 @@ import BrownianMotion.Gaussian.StochasticProcesses
 import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.Centering
 import BrownianMotion.StochasticIntegral.ClassD
+import BrownianMotion.StochasticIntegral.DoobLp
 import BrownianMotion.StochasticIntegral.DoobMeyer
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad

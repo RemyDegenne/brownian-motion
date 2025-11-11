@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.Jensen
 import Mathlib.Probability.Martingale.Basic
 
 /-! # Properties of martingales and submartingales
@@ -21,6 +22,10 @@ lemma Martingale.congr (hX : Martingale X 𝓕 P) (hY : Adapted 𝓕 Y) (h_eq : 
 lemma Submartingale.congr [LE E] (hX : Submartingale X 𝓕 P) (hY : Adapted 𝓕 Y)
     (h_eq : ∀ t, X t =ᵐ[P] Y t) :
     Submartingale Y 𝓕 P := by
+  sorry
+
+lemma Martingale.submartingale_norm (hX : Martingale X 𝓕 P) :
+    Submartingale (fun t ω ↦ ‖X t ω‖) 𝓕 P := by
   sorry
 
 end MeasureTheory

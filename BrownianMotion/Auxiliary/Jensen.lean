@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 
-/-! # Quadratic variation of local martingales
+/-! # Jensen's inequality for conditional expectations
 
 -/
 

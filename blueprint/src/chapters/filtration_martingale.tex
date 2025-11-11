@@ -145,6 +145,8 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 
 \begin{corollary}\label{cor:Martingale.submartingale_norm}
   \uses{def:Martingale, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.submartingale_norm}
   Let $X : T \rightarrow \Omega \rightarrow E$ a martingale with values in a normed space $E$.
   Then $\Vert X \Vert$ is a sub-martingale.
 \end{corollary}
@@ -755,6 +757,8 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 
 \begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
   \uses{def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq_countable}
   Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
   Then for every $M \in I,\lambda > 0$ and $p>1$ we have
   \begin{align*}
@@ -820,6 +824,9 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 
 
 \begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
+  \uses{def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq}
   Let $X: \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $T \in \mathbb{R}_+$ and $\lambda>0$ we have
   \begin{align*}
@@ -842,7 +849,10 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 
 
 \begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq_norm}
-  Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  \uses{def:Martingale}
+  \leanok
+  \lean{ProbabilityTheory.maximal_ineq_norm}
+  Let $X:\mathbb{R}_+ \to \Omega \to E$ be a right-continuous martingale with values in a normed space $E$.
   For every $T$ and $\lambda>0$ we have
   $$
   P\left( \sup_{t\in[0,T]} \lVert X_t \rVert \geq \lambda \right)
