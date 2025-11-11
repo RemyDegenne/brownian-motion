@@ -129,6 +129,38 @@ Let then $A \in \mathcal{F}_i$.
 \end{proof}
 
 
+\begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
+  \notready
+Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
+Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
+\begin{align*}
+  \phi\left( \mathbb{E}[X \mid \mathcal{G}] \right)
+  &\le \mathbb{E}[\phi(X) \mid \mathcal{G}] \quad \text{a.s.}
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+Done in a Mathlib PR for finite measures: \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:norm_condExp_le}
+  \leanok
+  \lean{MeasureTheory.norm_condExp_le}
+Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$.
+Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
+\begin{align*}
+  \Vert \mathbb{E}[X \mid \mathcal{G}] \Vert
+  &\le \mathbb{E}[\Vert X \Vert \mid \mathcal{G}] \quad \text{a.s.}
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:conditional_jensen}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
   \uses{def:Martingale, def:Submartingale}
 Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
@@ -137,8 +169,9 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:conditional_jensen}
   % See 1.4.12 Pascucci
-  By the conditional Jensen inequality (see \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953})
+  By the conditional Jensen inequality (Lemma~\ref{lem:conditional_jensen}),
   $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
 \end{proof}
 
@@ -152,8 +185,8 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 \end{corollary}
 
 \begin{proof}
-  \uses{lem:Martingale.submartingale_convex_comp}
-It is a consequence of Lemma~\ref{lem:Martingale.submartingale_convex_comp} with $\phi = \Vert \cdot \Vert$.
+  \uses{cor:norm_condExp_le}
+Same proof as Lemma~\ref{lem:Martingale.submartingale_convex_comp}, specialized to $\phi = \Vert \cdot \Vert$, for which we can use Corollary~\ref{cor:norm_condExp_le}.
 \end{proof}
 
 

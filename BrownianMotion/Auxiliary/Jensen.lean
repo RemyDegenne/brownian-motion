@@ -25,7 +25,7 @@ theorem conditional_jensen (hm : m ≤ mα)
     φ ∘ μ[f | m] ≤ᵐ[μ] μ[φ ∘ f | m] :=
   sorry
 
-lemma norm_condexp_le (hm : m ≤ mα) (hf_int : Integrable f μ) :
+lemma norm_condExp_le (hm : m ≤ mα) (hf_int : Integrable f μ) :
     (fun x ↦ ‖μ[f | m] x‖) ≤ᵐ[μ] μ[fun x ↦ ‖f x‖ | m] := by
   sorry -- use conditional_jensen with φ = norm
 

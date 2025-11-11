@@ -171,6 +171,7 @@ MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.Submartingale.integrable_stoppedValue
 MeasureTheory.Martingale.congr
 MeasureTheory.Submartingale.congr
+MeasureTheory.norm_condExp_le
 MeasureTheory.Martingale.submartingale_norm
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
