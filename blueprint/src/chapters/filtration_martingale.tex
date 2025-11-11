@@ -572,6 +572,20 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
 \end{proof}
 
+\begin{lemma}\label{lem:memLp_of_tendsto_in_measure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.memLp_of_tendsto_in_measure}
+  Let $(X_n)_{n \in \mathbb{N}}$ be a sequence of $p$-uniformly integrable stochastic processes and suppose $X_n \to X$
+  in probability as $n \to \infty$. Then, $X$ is $L^p$.
+\end{lemma}
+
+\begin{proof}
+  Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
+  to $X$ almost surely. Thus, we have by Fatou's lemma that
+  \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
+  where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
+\end{proof}
+
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
   \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}

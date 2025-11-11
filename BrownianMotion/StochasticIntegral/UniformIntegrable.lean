@@ -12,6 +12,7 @@ import Mathlib.Probability.Martingale.OptionalSampling
 -/
 
 open scoped NNReal ENNReal
+open Filter
 
 namespace MeasureTheory
 
@@ -97,12 +98,28 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : 
     (fun i ↦ (hτ i).measurableSpace_le)).ae_eq <| fun m ↦
       (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
 
-omit [Countable ι] in
+omit [Countable ι]
+
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
     {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
   sorry
+
+lemma UniformIntegrable.memLp_of_tendsto_in_measure
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
+    (htends : TendstoInMeasure μ fn atTop f) :
+    MemLp f p μ := by
+  sorry
+
+lemma UniformIntegrable.integrable_of_tendsto_in_measure
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
+    (htends : TendstoInMeasure μ fn atTop f) :
+    Integrable f μ := by
+  rw [← memLp_one_iff_integrable]
+  exact hUI.memLp_of_tendsto_in_measure 1 htends
 
 end MeasureTheory
