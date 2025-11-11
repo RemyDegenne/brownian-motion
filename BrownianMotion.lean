@@ -6,6 +6,7 @@ import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Auxiliary.IsStoppingTime
+import BrownianMotion.Auxiliary.Jensen
 import BrownianMotion.Auxiliary.LinearAlgebra
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.Auxiliary.MeanInequalities
@@ -36,6 +37,7 @@ import BrownianMotion.Gaussian.StochasticProcesses
 import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.Centering
 import BrownianMotion.StochasticIntegral.ClassD
+import BrownianMotion.StochasticIntegral.DoobLp
 import BrownianMotion.StochasticIntegral.DoobMeyer
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
