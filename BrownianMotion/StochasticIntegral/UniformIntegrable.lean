@@ -120,6 +120,6 @@ lemma UniformIntegrable.integrable_of_tendstoInMeasure
     (htends : TendstoInMeasure μ fn atTop f) :
     Integrable f μ := by
   rw [← memLp_one_iff_integrable]
-  exact hUI.memLp_of_tendstoOnMeasure 1 htends
+  exact hUI.memLp_of_tendstoInMeasure 1 htends
 
 end MeasureTheory
