@@ -107,19 +107,19 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
   sorry
 
-lemma UniformIntegrable.memLp_of_tendsto_in_measure
+lemma UniformIntegrable.memLp_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
     {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
     (htends : TendstoInMeasure μ fn atTop f) :
     MemLp f p μ := by
   sorry
 
-lemma UniformIntegrable.integrable_of_tendsto_in_measure
+lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
     {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
     (htends : TendstoInMeasure μ fn atTop f) :
     Integrable f μ := by
   rw [← memLp_one_iff_integrable]
-  exact hUI.memLp_of_tendsto_in_measure 1 htends
+  exact hUI.memLp_of_tendstoOnMeasure 1 htends
 
 end MeasureTheory
