@@ -681,7 +681,7 @@ Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 
 In this section, we prove Doob's Lp inequality.
 
-\begin{lemma}\label{lem:convex_of_mg_is_submg}
+\begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
   \uses{def:Martingale, def:Submartingale}
 Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
 Let $\phi : E \rightarrow \mathbb{R}$ convex such that
@@ -702,8 +702,8 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 \end{corollary}
 
 \begin{proof}
-  \uses{lem:convex_of_mg_is_submg}
-It is a consequence of Lemma~\ref{lem:convex_of_mg_is_submg} with $\phi = \Vert \cdot \Vert$.
+  \uses{lem:Martingale.submartingale_convex_comp}
+It is a consequence of Lemma~\ref{lem:Martingale.submartingale_convex_comp} with $\phi = \Vert \cdot \Vert$.
 \end{proof}
 
 
@@ -911,8 +911,8 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
   $$
 \end{corollary}
 \begin{proof}
-  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop}
-  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  \uses{cor:Martingale.submartingale_norm, lem:doob_ineq_stop}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
   Then apply Theorem~\ref{lem:doob_ineq_stop}.
 \end{proof}
 
@@ -936,7 +936,7 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
   $$
 \end{corollary}
 \begin{proof}
-  \uses{lem:convex_of_mg_is_submg, lem:doob_ineq_stop_exp_val}
-  By Lemma~\ref{lem:convex_of_mg_is_submg}, $\lVert X \rVert$ is a sub-martingale.
+  \uses{cor:Martingale.submartingale_norm, lem:doob_ineq_stop_exp_val}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
   Then apply Theorem~\ref{lem:doob_ineq_stop_exp_val}.
 \end{proof}
