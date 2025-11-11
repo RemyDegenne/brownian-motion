@@ -203,9 +203,9 @@ variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
   {X : T → Ω → E} {c : ℝ≥0∞} {d p q : ℝ} {M β : ℝ≥0} {P : Measure Ω}
   {U : Set T}
 
-section EMetricSpace
+section PseudoEMetricSpace
 
-variable [PseudoEMetricSpace T] [EMetricSpace E]
+variable [PseudoEMetricSpace T] [PseudoEMetricSpace E]
 
 section HolderSet
 
@@ -336,11 +336,9 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     · simp [hε.ne', hε_top]
     · rw [ENNReal.div_eq_inv_mul]
 
-variable [hE : Nonempty E]
-
 section IndicatorProcess
 
-variable {A : Set Ω}
+variable {A : Set Ω} [hE : Nonempty E]
 
 /-- Process where we replace the values for `ω` outside of `A` with a constant value. -/
 noncomputable
@@ -348,14 +346,14 @@ def indicatorProcess (X : T → Ω → E) (A : Set Ω) : T → Ω → E :=
   haveI := Classical.decPred (· ∈ A)
   fun t ω ↦ if ω ∈ A then X t ω else hE.some
 
-omit [PseudoEMetricSpace T] [EMetricSpace E] in
+omit [PseudoEMetricSpace T] [PseudoEMetricSpace E] in
 @[simp]
 lemma indicatorProcess_apply (X : T → Ω → E) (A : Set Ω) (t : T) (ω : Ω)
     [Decidable (ω ∈ A)] :
     indicatorProcess X A t ω = if ω ∈ A then X t ω else hE.some := by
   simp [indicatorProcess]
 
-omit [PseudoEMetricSpace T] [EMetricSpace E] in
+omit [PseudoEMetricSpace T] [PseudoEMetricSpace E] in
 lemma measurable_indicatorProcess [MeasurableSpace E]
     (hA : MeasurableSet A) (hX : ∀ t, Measurable (X t)) (t : T) :
     Measurable (indicatorProcess X A t) :=
@@ -400,6 +398,158 @@ lemma measurable_edist_indicatorProcess {T₁ T₂ : Type*} [MeasurableSpace E] 
 
 end IndicatorProcess
 
+/-- A countable dense subset of a second-countable topological space. -/
+def denseCountable (T : Type*) [TopologicalSpace T] [SecondCountableTopology T] : Set T :=
+  (TopologicalSpace.exists_countable_dense T).choose
+
+lemma dense_denseCountable {T : Type*} [TopologicalSpace T] [SecondCountableTopology T] :
+    Dense (denseCountable T) :=
+  (TopologicalSpace.exists_countable_dense T).choose_spec.2
+
+lemma countable_denseCountable {T : Type*} [TopologicalSpace T] [SecondCountableTopology T] :
+    (denseCountable T).Countable :=
+  (TopologicalSpace.exists_countable_dense T).choose_spec.1
+
+variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] [hE : Nonempty E]
+  [SecondCountableTopology T]
+
+open Classical in
+/-- A class of processes built from an other. Used to ensure measurability. -/
+def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Prop :=
+  ∃ (A : Set Ω), MeasurableSet A ∧
+    (∀ᵐ ω ∂P, ω ∈ A) ∧
+    (∀ t ∈ U, ∀ ω ∈ A, ∃ c, Tendsto (fun t' : denseCountable T ↦ X t' ω)
+      (comap Subtype.val (𝓝 t)) (𝓝 c)) ∧
+    ∀ t ω, Y t ω = if t ∈ U then dense_denseCountable.extend
+      (fun t' : denseCountable T ↦ indicatorProcess X A t' ω) t else hE.some
+
+omit [CompleteSpace E] in
+lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
+    (hX : ∀ t, Measurable (X t)) (hY : IsLimitOfIndicator Y X P U) (t : T) :
+    Measurable (Y t) := by
+  obtain ⟨A, hA, hA_ae, hY_tendsto, hY_eq⟩ := hY
+  change Measurable (fun ω ↦ Y t ω)
+  simp_rw [hY_eq]
+  by_cases htU : t ∈ U
+  · simp only [htU, ↓reduceIte]
+    refine measurable_limUnder_of_exists_tendsto
+      (f := fun (t' : denseCountable T) ω ↦ indicatorProcess X A t' ω) (fun ω ↦ ?_) (fun t' ↦ ?_)
+    · by_cases hω : ω ∈ A
+      · simpa [hω, indicatorProcess] using hY_tendsto t htU ω hω
+      · simp only [indicatorProcess, hω, ↓reduceIte]
+        exact ⟨hE.some, tendsto_const_nhds⟩
+    · simp only
+      exact Measurable.ite hA (hX t') measurable_const
+  · simp only [htU, ↓reduceIte]
+    exact measurable_const
+
+/-- A Hölder continuous modification of a process `X`. -/
+noncomputable
+def holderModification (X : T → Ω → E) (β : ℝ≥0) (p : ℝ) (U : Set T) [DecidablePred (· ∈ U)] :
+    T → Ω → E :=
+  fun t ω ↦ if t ∈ U then limUnder (comap Subtype.val (𝓝 t))
+    (fun t' : denseCountable T ↦ indicatorProcess X (holderSet X (denseCountable T) p β U) t' ω)
+    else hE.some
+
+lemma isLimitOfIndicator_holderModification
+    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+    IsLimitOfIndicator (holderModification X β p U) X P U := by
+  let A := holderSet X (denseCountable T) p β U
+  have hA_meas : MeasurableSet A := hX.measurableSet_holderSet countable_denseCountable
+  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := ae_mem_holderSet hT hX hc hd_pos hdq_lt hβ_pos hβ_lt
+    countable_denseCountable
+  refine ⟨A, hA_meas, hA_ae, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
+  · exact exists_tendsto_of_mem_holderSet hT hU hd_pos hX.p_pos hβ_pos dense_denseCountable
+      hω t htU
+  · simp only [holderModification, indicatorProcess, A, Dense.extend, IsDenseInducing.extend]
+    rfl
+
+omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
+lemma exists_tendsto_indicatorProcess_holderSet
+    (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
+    {T' : Set T} (hT'_dense : Dense T') (t : T) (htU : t ∈ U) (ω : Ω) :
+    ∃ c, Tendsto (fun x : T' ↦ indicatorProcess X (holderSet X T' p β U) x ω)
+      (comap Subtype.val (𝓝 t)) (𝓝 c) := by
+  by_cases hω : ω ∈ holderSet X T' p β U
+  · have : (fun x : T' ↦ indicatorProcess X (holderSet X T' p β U) x ω)
+        =ᶠ[comap Subtype.val (𝓝 t)] (fun x : T' ↦ X x ω) := by
+      suffices ∀ᶠ (x : T') in (comap Subtype.val (𝓝 t)), ↑x ∈ U by
+        filter_upwards [this] with x hx
+        simp [hω, indicatorProcess]
+      simp only [eventually_comap, Subtype.forall]
+      suffices ∀ᶠ b in 𝓝 t, b ∈ U by
+        filter_upwards [this] with x hx
+        rintro x' hx' rfl
+        exact hx
+      rw [eventually_mem_set]
+      exact hU.mem_nhds htU
+    simp_rw [tendsto_congr' this]
+    exact exists_tendsto_of_mem_holderSet hT hU hd_pos hX.p_pos hβ_pos
+      hT'_dense hω t htU
+  · simp only [indicatorProcess, hω, ↓reduceIte]
+    exact ⟨hE.some, tendsto_const_nhds⟩
+
+lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
+    (t : T) :
+    Measurable (holderModification X β p U t) :=
+  IsLimitOfIndicator.measurable hX.measurable
+    (isLimitOfIndicator_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt) t
+
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma holderOnWith_holderModification
+    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
+    ∃ C : ℝ≥0, HolderOnWith C β (holderModification X β p U · ω) U := by
+  let C ω := ⨆ (s : (denseCountable T ∩ U : Set T)) (t : (denseCountable T ∩ U : Set T)),
+    edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
+  simp only [holderModification]
+  suffices ∃ C, HolderOnWith C β
+      (fun x ↦ limUnder (comap Subtype.val (𝓝 x))
+        fun t' : denseCountable T ↦ indicatorProcess X (holderSet X (denseCountable T) p β U) t' ω)
+      U by
+    obtain ⟨C, hHolder⟩ := this
+    refine ⟨C, ?_⟩
+    -- missing congr lemma?
+    intro s hs t ht
+    specialize hHolder s hs t ht
+    simpa only [hs, ↓reduceIte, ht]
+  by_cases hω : ω ∈ holderSet X (denseCountable T) p β U
+  · simp only [hω, ↓reduceIte,indicatorProcess]
+    refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
+    refine dense_denseCountable.holderOnWith_extend hU ?_ hβ_pos
+    exact holderOnWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
+  · simp only [hω, ↓reduceIte, indicatorProcess]
+    refine ⟨0, HolderWith.holderOnWith ?_ _⟩
+    exact dense_denseCountable.holderWith_extend (by simp [HolderWith]) hβ_pos
+
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma uniformContinuousOn_holderModification
+    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
+    (ω : Ω) :
+    UniformContinuousOn (fun t : T ↦ holderModification X β p U t ω) U := by
+  obtain ⟨C, hHolder⟩ := holderOnWith_holderModification hT hU hX hd_pos hβ_pos ω
+  exact hHolder.uniformContinuousOn hβ_pos
+
+omit [MeasurableSpace E] [BorelSpace E] in
+lemma continuousOn_holderModification
+    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
+    ContinuousOn (fun t : T ↦ holderModification X β p U t ω) U :=
+  (uniformContinuousOn_holderModification hT hU hX hd_pos hβ_pos ω).continuousOn
+
+end PseudoEMetricSpace
+
+section EMetricSpace
+
+variable [PseudoEMetricSpace T] [EMetricSpace E] [hE : Nonempty E]
+
 variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
   [SecondCountableTopology T]
 
@@ -432,26 +582,6 @@ lemma measurable_pair_limUnder_comap {X₁ X₂ : T → Ω → E} {T' : Set T} (
   apply Filter.Tendsto.prodMk
   · exact h₀.comp tendsto_fst
   · exact h₁.comp tendsto_snd
-
-/-- A countable dense subset of a second-countable topological space. -/
-def denseCountable (T : Type*) [TopologicalSpace T] [SecondCountableTopology T] : Set T :=
-  (TopologicalSpace.exists_countable_dense T).choose
-
-lemma dense_denseCountable : Dense (denseCountable T) :=
-  (TopologicalSpace.exists_countable_dense T).choose_spec.2
-
-lemma countable_denseCountable : (denseCountable T).Countable :=
-  (TopologicalSpace.exists_countable_dense T).choose_spec.1
-
-open Classical in
-/-- A class of processes built from an other. Used to ensure measurability. -/
-def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Prop :=
-  ∃ (A : Set Ω), MeasurableSet A ∧
-    (∀ᵐ ω ∂P, ω ∈ A) ∧
-    (∀ t ∈ U, ∀ ω ∈ A, ∃ c, Tendsto (fun t' : denseCountable T ↦ X t' ω)
-      (comap Subtype.val (𝓝 t)) (𝓝 c)) ∧
-    ∀ t ω, Y t ω = if t ∈ U then dense_denseCountable.extend
-      (fun t' : denseCountable T ↦ indicatorProcess X A t' ω) t else hE.some
 
 omit [CompleteSpace E] in
 lemma measurable_pair_limUnder_indicatorProcess {X X' : T → Ω → E}
@@ -525,26 +655,6 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
   · simp [hsU₁, htU₂]
 
 omit [CompleteSpace E] in
-lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
-    (hX : ∀ t, Measurable (X t)) (hY : IsLimitOfIndicator Y X P U) (t : T) :
-    Measurable (Y t) := by
-  obtain ⟨A, hA, hA_ae, hY_tendsto, hY_eq⟩ := hY
-  change Measurable (fun ω ↦ Y t ω)
-  simp_rw [hY_eq]
-  by_cases htU : t ∈ U
-  · simp only [htU, ↓reduceIte]
-    refine measurable_limUnder_of_exists_tendsto
-      (f := fun (t' : denseCountable T) ω ↦ indicatorProcess X A t' ω) (fun ω ↦ ?_) (fun t' ↦ ?_)
-    · by_cases hω : ω ∈ A
-      · simpa [hω, indicatorProcess] using hY_tendsto t htU ω hω
-      · simp only [indicatorProcess, hω, ↓reduceIte]
-        exact ⟨hE.some, tendsto_const_nhds⟩
-    · simp only
-      exact Measurable.ite hA (hX t') measurable_const
-  · simp only [htU, ↓reduceIte]
-    exact measurable_const
-
-omit [CompleteSpace E] in
 lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E} {U₁ U₂ : Set T}
     (hX : ∀ t, Measurable (X t)) (hX' : ∀ t, Measurable (X' t))
     (hX_pair : ∀ i j, Measurable[_, borel (E × E)] fun ω ↦ (X i ω, X' j ω))
@@ -575,29 +685,6 @@ lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
         exact tendsto_const_nhds
       · simp only [htU, ↓reduceIte]
 
-/-- A Hölder continuous modification of a process `X`. -/
-noncomputable
-def holderModification (X : T → Ω → E) (β : ℝ≥0) (p : ℝ) (U : Set T) [DecidablePred (· ∈ U)] :
-    T → Ω → E :=
-  fun t ω ↦ if t ∈ U then limUnder (comap Subtype.val (𝓝 t))
-    (fun t' : denseCountable T ↦ indicatorProcess X (holderSet X (denseCountable T) p β U) t' ω)
-    else hE.some
-
-lemma isLimitOfIndicator_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
-    IsLimitOfIndicator (holderModification X β p U) X P U := by
-  let A := holderSet X (denseCountable T) p β U
-  have hA_meas : MeasurableSet A := hX.measurableSet_holderSet countable_denseCountable
-  have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := ae_mem_holderSet hT hX hc hd_pos hdq_lt hβ_pos hβ_lt
-    countable_denseCountable
-  refine ⟨A, hA_meas, hA_ae, fun t htU ω hω ↦ ?_, fun t ω ↦ ?_⟩
-  · exact exists_tendsto_of_mem_holderSet hT hU hd_pos hX.p_pos hβ_pos dense_denseCountable
-      hω t htU
-  · simp only [holderModification, indicatorProcess, A, Dense.extend, IsDenseInducing.extend]
-    rfl
-
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
 lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
     [DecidablePred (· ∈ U)]
@@ -616,41 +703,6 @@ lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : 
   · refine IsOpen.mem_nhds ?_ ?_
     · exact Continuous.isOpen_preimage (by fun_prop) _ hU
     · simpa
-
-omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
-lemma exists_tendsto_indicatorProcess_holderSet
-    (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
-    {T' : Set T} (hT'_dense : Dense T') (t : T) (htU : t ∈ U) (ω : Ω) :
-    ∃ c, Tendsto (fun x : T' ↦ indicatorProcess X (holderSet X T' p β U) x ω)
-      (comap Subtype.val (𝓝 t)) (𝓝 c) := by
-  by_cases hω : ω ∈ holderSet X T' p β U
-  · have : (fun x : T' ↦ indicatorProcess X (holderSet X T' p β U) x ω)
-        =ᶠ[comap Subtype.val (𝓝 t)] (fun x : T' ↦ X x ω) := by
-      suffices ∀ᶠ (x : T') in (comap Subtype.val (𝓝 t)), ↑x ∈ U by
-        filter_upwards [this] with x hx
-        simp [hω, indicatorProcess]
-      simp only [eventually_comap, Subtype.forall]
-      suffices ∀ᶠ b in 𝓝 t, b ∈ U by
-        filter_upwards [this] with x hx
-        rintro x' hx' rfl
-        exact hx
-      rw [eventually_mem_set]
-      exact hU.mem_nhds htU
-    simp_rw [tendsto_congr' this]
-    exact exists_tendsto_of_mem_holderSet hT hU hd_pos hX.p_pos hβ_pos
-      hT'_dense hω t htU
-  · simp only [indicatorProcess, hω, ↓reduceIte]
-    exact ⟨hE.some, tendsto_const_nhds⟩
-
-lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
-    (t : T) :
-    Measurable (holderModification X β p U t) :=
-  IsLimitOfIndicator.measurable hX.measurable
-    (isLimitOfIndicator_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt) t
 
 lemma measurable_pair_holderModification
     {U₁ U₂ : Set T} [DecidablePred (· ∈ U₁)] [DecidablePred (· ∈ U₂)]
@@ -717,49 +769,6 @@ lemma measurable_edist_holderModification' {β₁ β₂ : ℝ≥0}
       (holderModification X β₂ p U t ω)) :=
   measurable_edist_holderModification hU hU hT hT hX hX hc hc hd_pos hd_pos hdq_lt hdq_lt
     hβ₁_pos hβ₂_pos hβ₁_lt hβ₂_lt hX.measurablePair s t
-
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma holderOnWith_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
-    ∃ C : ℝ≥0, HolderOnWith C β (holderModification X β p U · ω) U := by
-  let C ω := ⨆ (s : (denseCountable T ∩ U : Set T)) (t : (denseCountable T ∩ U : Set T)),
-    edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
-  simp only [holderModification]
-  suffices ∃ C, HolderOnWith C β
-      (fun x ↦ limUnder (comap Subtype.val (𝓝 x))
-        fun t' : denseCountable T ↦ indicatorProcess X (holderSet X (denseCountable T) p β U) t' ω)
-      U by
-    obtain ⟨C, hHolder⟩ := this
-    refine ⟨C, ?_⟩
-    -- missing congr lemma?
-    intro s hs t ht
-    specialize hHolder s hs t ht
-    simpa only [hs, ↓reduceIte, ht]
-  by_cases hω : ω ∈ holderSet X (denseCountable T) p β U
-  · simp only [hω, ↓reduceIte,indicatorProcess]
-    refine ⟨(C ω ^ p⁻¹).toNNReal, ?_⟩
-    refine dense_denseCountable.holderOnWith_extend hU ?_ hβ_pos
-    exact holderOnWith_of_mem_holderSet hT hd_pos hX.p_pos hβ_pos hω
-  · simp only [hω, ↓reduceIte, indicatorProcess]
-    refine ⟨0, HolderWith.holderOnWith ?_ _⟩
-    exact dense_denseCountable.holderWith_extend (by simp [HolderWith]) hβ_pos
-
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma uniformContinuousOn_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
-    (ω : Ω) :
-    UniformContinuousOn (fun t : T ↦ holderModification X β p U t ω) U := by
-  obtain ⟨C, hHolder⟩ := holderOnWith_holderModification hT hU hX hd_pos hβ_pos ω
-  exact hHolder.uniformContinuousOn hβ_pos
-
-omit [MeasurableSpace E] [BorelSpace E] in
-lemma continuousOn_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
-    ContinuousOn (fun t : T ↦ holderModification X β p U t ω) U :=
-  (uniformContinuousOn_holderModification hT hU hX hd_pos hβ_pos ω).continuousOn
 
 variable [IsFiniteMeasure P]
 
