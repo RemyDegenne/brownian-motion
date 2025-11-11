@@ -118,7 +118,8 @@ lemma UniformIntegrable.integrable_of_tendsto_in_measure
     {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
     (htends : TendstoInMeasure μ fn atTop f) :
     Integrable f μ := by
-  sorry
+  rw [← memLp_one_iff_integrable]
+  exact hUI.memLp_of_tendsto_in_measure 1 htends
 
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
