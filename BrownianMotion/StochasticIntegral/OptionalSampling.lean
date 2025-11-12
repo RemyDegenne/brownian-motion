@@ -87,22 +87,16 @@ variable [Nonempty ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
 
 #check Martingale.uniformIntegrable_stoppedValue
 
-lemma ae_tendsto_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
-    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    ∀ᵐ ω ∂μ, Tendsto (fun m ↦ stoppedValue X (τn m) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  sorry
-
 lemma uniformIntegrable_stoppedValue_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    UniformIntegrable (fun m ↦ stoppedValue X (τn m)) 1 μ := by
+    UniformIntegrable (fun m ↦ stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) 1 μ := by
   sorry
 
 lemma integrable_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
-    Integrable (stoppedValue X (τn m)) μ :=
+    Integrable (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) μ :=
   ((uniformIntegrable_stoppedValue_discreteApproxSequence h hRC hτ hτ_le τn).memLp m).integrable
     le_rfl
 
@@ -136,7 +130,7 @@ lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     AEStronglyMeasurable (stoppedValue X τ) μ :=
   aestronglyMeasurable_of_tendsto_ae _
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn m).1)
-    (ae_tendsto_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn)
+    (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 μ hτ_le τn) hRC)
 
 theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
@@ -163,7 +157,7 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
         (discreteApproxSequence_of_le hτ_le τn) τn'.discrete)
       (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
         (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h
-          (rightContinuous_of_all hRC _) hτ hτ_le τn' m).1)
+          (rightContinuous_of_all hRC _) hτ hτ_le τn m).1)
         (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h
           (rightContinuous_of_all hRC _) hτ hτ_le τn') <|
         tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h
