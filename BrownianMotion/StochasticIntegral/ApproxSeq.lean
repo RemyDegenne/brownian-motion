@@ -3,10 +3,7 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.UniformIntegrable
-import BrownianMotion.Auxiliary.Adapted
-import Mathlib.Probability.Martingale.OptionalSampling
 
 /-! # Discrete approximation of a stopping time
 
