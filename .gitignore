@@ -16,6 +16,7 @@ Manuscript/_minted/*
 /blueprint/print/
 ## Verso
 /verso/.lake/
+/verso/html/
 ## TeX
 *.aux
 *.lof
