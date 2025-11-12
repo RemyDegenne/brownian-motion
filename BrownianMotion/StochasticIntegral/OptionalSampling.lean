@@ -157,8 +157,6 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
   have hint (m : ℕ) : stoppedValue X (τn' m) =ᵐ[μ] μ[X n|(τn'.isStoppingTime m).measurableSpace] :=
     h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range (τn'.isStoppingTime m)
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (τn'.discrete m)
-  have htends : Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn' i) - stoppedValue X τ) 1 μ)
-    atTop (𝓝 0) := by sorry -- this should also give integrability
   have hintgbl : Integrable (stoppedValue X τ) μ :=
     UniformIntegrable.integrable_of_tendsto_in_measure
       (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
@@ -167,7 +165,9 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
         (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h
           (rightContinuous_of_all hRC _) hτ hτ_le τn' m).1)
         (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h
-          (rightContinuous_of_all hRC _) hτ hτ_le τn') htends)
+          (rightContinuous_of_all hRC _) hτ hτ_le τn') <|
+        tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h
+          (rightContinuous_of_all hRC _) hτ hτ_le τn')
   refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
     (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_
     (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
@@ -180,7 +180,9 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
     refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
     filter_upwards [hint m] with ω hω _ using hω
   rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
-  refine tendsto_setIntegral_of_L1' _ hintgbl ?_ htends _
+  refine tendsto_setIntegral_of_L1' _ hintgbl ?_
+    (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h
+      (rightContinuous_of_all hRC _) hτ hτ_le τn') _
   rw [eventually_atTop]
   refine ⟨0, fun m _ ↦ ?_⟩
   rw [integrable_congr (hint m)]
