@@ -12,7 +12,10 @@ Manuscript/_minted/*
 /blueprint/src/print.pdf
 /blueprint/src/web.paux
 /blueprint/src/web.bbl
+/blueprint/src/web.pdf
 /blueprint/print/
+## Verso
+/verso/.lake/
 ## TeX
 *.aux
 *.lof
