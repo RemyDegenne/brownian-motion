@@ -118,7 +118,9 @@ lemma UniformIntegrable.integrable_of_tendsto_in_measure
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X μ)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn i) - stoppedValue X τ) 1 μ) atTop (𝓝 0) := by
+    Tendsto (fun i ↦
+      eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn i) - stoppedValue X τ) 1 μ)
+      atTop (𝓝 0) := by
   sorry
 
 #check measurable_stoppedValue
@@ -161,7 +163,7 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
         (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h
           (rightContinuous_of_all hRC _) hτ hτ_le τn') <|
         tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h
-          (rightContinuous_of_all hRC _) hτ hτ_le τn')
+          (rightContinuous_of_all hRC _) hτ hτ_le τn)
   refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
     (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_
     (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
@@ -176,7 +178,7 @@ theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
   rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
   refine tendsto_setIntegral_of_L1' _ hintgbl ?_
     (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h
-      (rightContinuous_of_all hRC _) hτ hτ_le τn') _
+      (rightContinuous_of_all hRC _) hτ hτ_le τn) _
   rw [eventually_atTop]
   refine ⟨0, fun m _ ↦ ?_⟩
   rw [integrable_congr (hint m)]
