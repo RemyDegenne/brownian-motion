@@ -47,34 +47,19 @@ jobs:
           blueprint: true
           homepage: home_page
 
-  build_verso:
-    name: Build Verso Documentation
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout project
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          fetch-depth: 0 # Fetch all history for all branches and tags
-
-      - name: Build project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # v1.3.0
-        with:
-          use-github-cache: false
-
       - name: Build Verso Documentation
         run: |
           cd verso
           ./build_manual.sh
 
-      - name: Upload Artifact
+      - name: Upload Verso Artifact
         if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           path: "./verso/html"
           name: "verso-docs-artifact"
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy Verso to GitHub Pages
         if: github.event_name == 'push'
         uses: actions/deploy-pages@v4
         with:
