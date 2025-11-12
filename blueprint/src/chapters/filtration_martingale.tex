@@ -614,6 +614,19 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   \leanok
 \end{proof}
 
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{uniformIntegrable_stoppedValue_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:discreteApproxSequence_of, lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \leanok
+  Follows directly by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range} and Lemma~\ref{lem:discreteApproxSequence_of}.
+\end{proof}
+
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
   Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
