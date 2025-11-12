@@ -1,0 +1,118 @@
+/-
+Copyright (c) 2025 Kexing Ying. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kexing Ying
+-/
+import BrownianMotion.StochasticIntegral.UniformIntegrable
+
+/-! # Discrete approximation of a stopping time
+
+-- What kind of indices has `DiscreteApproxSequence`?
+
+-/
+
+open Filter TopologicalSpace
+open scoped NNReal ENNReal Topology
+
+namespace MeasureTheory
+
+variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
+  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {n : ι}
+
+-- Find better name, `RightContinuous` already exists for filtrations
+abbrev rightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
+  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
+
+variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
+
+structure DiscreteApproxSequence (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac)
+    (τ : Ω → WithTop ι) where
+  seq : ℕ → Ω → WithTop ι
+  isStoppingTime : ∀ n, IsStoppingTime 𝓕 (seq n)
+  discrete : ∀ n, (Set.range (seq n)).Countable
+  antitone : Antitone seq
+  le : ∀ n, τ ≤ seq n
+  tendsto : ∀ᵐ ω ∂μ, Tendsto (seq · ω) atTop (𝓝 (τ ω))
+
+instance : FunLike (DiscreteApproxSequence 𝓕 μ τ) ℕ (Ω → WithTop ι) where
+  coe s := s.seq
+  coe_injective' s t h := by
+    cases s; cases t; congr
+
+lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι]
+    (τn : DiscreteApproxSequence 𝓕 μ τ) (hX : rightContinuous X) :
+    ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
+  sorry
+
+def discreteApproxSequence_of (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac)
+    {n : ι} (hτ : ∀ ω, τ ω ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    DiscreteApproxSequence 𝓕 μ τ where
+  seq := fun m ↦ min (τn m) (Function.const _ n)
+  isStoppingTime := fun m ↦ (τn.isStoppingTime m).min (isStoppingTime_const _ _)
+  discrete := fun m ↦ by
+    have : Set.range ((τn m) ⊓ (Function.const _ n))
+      ⊆ Set.range (τn m) ∪ {(n : WithTop ι)} := fun _ ↦ by simp; grind
+    · refine Set.Countable.mono (this) ?_
+      rw [Set.union_singleton, Set.countable_insert]
+      exact τn.discrete m
+  antitone := τn.antitone.inf antitone_const
+  le := fun m ↦ le_inf (τn.le m) <| fun ω ↦ hτ ω
+  tendsto := by
+    filter_upwards [τn.tendsto] with ω hω
+    convert hω.min (tendsto_const_nhds (x := (n : WithTop ι)))
+    exact (min_eq_left (hτ ω)).symm
+
+lemma discreteApproxSequence_of_le {n : ι}
+    (hτ : ∀ ω, τ ω ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) (ω : Ω) :
+    discreteApproxSequence_of 𝓕 μ hτ τn m ω ≤ n :=
+  min_le_right _ _
+
+variable [Nonempty ι] [OrderBot ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
+
+lemma uniformIntegrable_stoppedValue_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    UniformIntegrable (fun m ↦ stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) 1 μ := by
+  refine h.uniformIntegrable_stoppedValue_of_countable_range _
+    (discreteApproxSequence_of 𝓕 μ hτ_le τn).isStoppingTime
+    (discreteApproxSequence_of_le hτ_le τn) (discreteApproxSequence_of 𝓕 μ hτ_le τn).discrete
+
+lemma integrable_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
+    Integrable (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) μ :=
+  ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).memLp m).integrable
+    le_rfl
+
+lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
+    (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    AEStronglyMeasurable (stoppedValue X τ) μ :=
+  aestronglyMeasurable_of_tendsto_ae _
+    (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
+    (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 μ hτ_le τn) hRC)
+
+theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+    (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
+    stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)
+    =ᵐ[μ] μ[X n|((discreteApproxSequence_of 𝓕 μ hτ_le τn).isStoppingTime m).measurableSpace] :=
+  h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range
+      (DiscreteApproxSequence.isStoppingTime _ m)
+      (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.discrete _ m)
+
+lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
+    (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    Tendsto (fun i ↦
+      eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn i) - stoppedValue X τ) 1 μ)
+      atTop (𝓝 0) :=
+  tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top
+    (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
+    ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le
+    τn).memLp_of_tendstoInMeasure 1 (tendstoInMeasure_of_tendsto_ae
+      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
+      tendsto_stoppedValue_discreteApproxSequence _ hRC))
+    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).2.1
+    (tendstoInMeasure_of_tendsto_ae
+      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
+      tendsto_stoppedValue_discreteApproxSequence _ hRC)
+
+end MeasureTheory
