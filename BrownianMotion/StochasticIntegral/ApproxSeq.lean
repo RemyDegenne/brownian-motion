@@ -95,7 +95,7 @@ lemma integrable_stoppedValue_of_discreteApproxSequence
 
 lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
-    (hτ_le :  ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 μ τ) :
     AEStronglyMeasurable (stoppedValue X τ) μ :=
   aestronglyMeasurable_of_tendsto_ae _
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
