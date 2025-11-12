@@ -582,6 +582,37 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 
 \end{proof}
 
+\begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
+  \uses{def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.DiscreteApproxSequence}
+  Given a stopping time \(\tau : \Omega \to T \cup \{\infty\}\), a sequence of stopping times \((\tau_n)_{n \in \mathbb{N}}\) is called an
+  discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
+\end{definition}
+
+\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
+  Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
+  \[\lim_{n \to \infty} X_{\tau_n} = X_\tau \text{ a.s.}\]
+\end{lemma}
+
+\begin{proof}
+  This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
+\end{proof}
+
+\begin{lemma}\label{lem:discreteApproxSequence_of}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.discreteApproxSequence_of}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, the sequence of stopping times \(\tau_n \wedge t\) is also a discrete approximation sequence of \(\tau\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+\end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -597,7 +628,6 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
     \in \mathcal{F}_{2^{-n} \lfloor 2^n t\rfloor} \subseteq \mathcal{F}_t\]
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
-
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}

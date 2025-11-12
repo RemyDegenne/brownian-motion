@@ -45,8 +45,6 @@ instance : FunLike (DiscreteApproxSequence 𝓕 μ τ) ℕ (Ω → WithTop ι) w
 lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι]
     (τn : DiscreteApproxSequence 𝓕 μ τ) (hX : rightContinuous X) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  filter_upwards [τn.tendsto] with ω hτ
-  simp_rw [stoppedValue]
   sorry
 
 def discreteApproxSequence_of (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac)
@@ -72,18 +70,13 @@ lemma discreteApproxSequence_of_le {n : ι}
     discreteApproxSequence_of 𝓕 μ hτ τn m ω ≤ n :=
   min_le_right _ _
 
-variable [Nonempty ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
-
-lemma ae_tendsto_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
-    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    ∀ᵐ ω ∂μ, Tendsto (fun m ↦ stoppedValue X (τn m) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  sorry
+variable [Nonempty ι] [OrderBot ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
 
 lemma uniformIntegrable_stoppedValue_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
     UniformIntegrable (fun m ↦ stoppedValue X (τn m)) 1 μ := by
+  -- refine h.uniformIntegrable_stoppedValue_of_countable_range τn τn.isStoppingTime hτ_le ?_
   sorry
 
 lemma integrable_stoppedValue_of_discreteApproxSequence
