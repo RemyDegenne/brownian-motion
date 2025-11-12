@@ -85,14 +85,6 @@ lemma integrable_stoppedValue_of_discreteApproxSequence
   ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).memLp m).integrable
     le_rfl
 
-lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
-    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    Tendsto (fun i ↦
-      eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn i) - stoppedValue X τ) 1 μ)
-      atTop (𝓝 0) := by
-  sorry
-
 lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
@@ -109,12 +101,21 @@ theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
       (DiscreteApproxSequence.isStoppingTime _ m)
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.discrete _ m)
 
-section Real
-
--- def DyadicApprox [LinearOrder ι] [OrderTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
---     (τ : Ω → WithTop ι) (n : ℕ) (ω : Ω) : WithTop ι :=
---   sorry
-
-end Real
+lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
+    (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    Tendsto (fun i ↦
+      eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn i) - stoppedValue X τ) 1 μ)
+      atTop (𝓝 0) :=
+  tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top
+    (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
+    ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le
+    τn).memLp_of_tendstoInMeasure 1 (tendstoInMeasure_of_tendsto_ae
+      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
+      tendsto_stoppedValue_discreteApproxSequence _ hRC))
+    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).2.1
+    (tendstoInMeasure_of_tendsto_ae
+      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
+      tendsto_stoppedValue_discreteApproxSequence _ hRC)
 
 end MeasureTheory
