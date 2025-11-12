@@ -14,213 +14,157 @@ notion of predictable processes. We prove that predictable processes are progres
 and adapted. We also give an equivalent characterization of predictability for discrete processes.
 
 ## Main definitions
-* `Filtration.Predictable` : The predictable σ-algebra associated to a filtration.
-* `Filtration.IsPredictable` : A process is predictable if it is measurable with respect to the
+
+* `Filtration.rightCont`: The right continuation of a filtration.
+* `Filtration.Predictable`: The predictable σ-algebra associated to a filtration.
+* `Filtration.IsPredictable`: A process is predictable if it is measurable with respect to the
   predictable σ-algebra.
 
 ## Main results
-* `Filtration.IsPredictable.progMeasurable` : A predictable process is progressively measurable.
-* `Filtration.IsPredictable.measurable_succ` : `u` is a discrete predictable process iff
+
+* `Filtration.IsPredictable.progMeasurable`: A predictable process is progressively measurable.
+* `Filtration.IsPredictable.measurable_succ`: `u` is a discrete predictable process iff
   `u (n + 1)` is `𝓕 n`-measurable and `u 0` is `𝓕 0`-measurable.
 
+## Implementation note
+
+To avoid requiring a `TopologicalSpace` instance on `ι` in the definition of `rightCont`,
+we endow `ι` with the order topology `Preorder.topology` inside the definition.
+Say you write a statement about `𝓕₊` which does not require a `TopologicalSpace` structure on `ι`,
+but you wish to use a statement which requires a topology (such as `rightCont_def`).
+Then you can endow `ι` with the order topology by writing
+```lean
+  letI := Preorder.topology ι
+  haveI : OrderTopology ι := ⟨rfl⟩
+```
+
+## Notation
+
+* Given a filtration `𝓕`, its right continuation is denoted `𝓕₊` (type `₊` with `;_+`).
 -/
 
 open Filter Order TopologicalSpace
 
 open scoped MeasureTheory NNReal ENNReal Topology
 
-namespace MeasureTheory
+namespace MeasureTheory.Filtration
 
 variable {Ω ι : Type*} {m : MeasurableSpace Ω} {E : Type*} [TopologicalSpace E]
 
-section
+open scoped Classical in
+/-- Given a filtration `𝓕`, its **right continuation** is the filtration `𝓕₊` defined as follows:
+- If `i` is isolated on the right, then `𝓕₊ i := 𝓕 i`;
+- Otherwise, `𝓕₊ i := ⨅ j > i, 𝓕 j`.
+It is sometimes simply defined as `𝓕₊ i := ⨅ j > i, 𝓕 j` when the index type is `ℝ`. In the
+general case this is not ideal however. If `i` is maximal for instance, then `𝓕₊ i = ⊤`, which
+is inconvenient because `𝓕₊` is not  a `Filtration ι m` anymore. If the index type
+is discrete (such as `ℕ`), then we would have `𝓕 = 𝓕₊` (i.e. `𝓕` is right-continuous) only if
+`𝓕` is constant.
 
-variable [Preorder ι]
+To avoid requiring a `TopologicalSpace` instance on `ι` in the definition, we endow `ι` with
+the order topology `Preorder.topology` inside the definition. Say you write a statement about
+`𝓕₊` which does not require a `TopologicalSpace` structure on `ι`,
+but you wish to use a statement which requires a topology (such as `rightCont_def`).
+Then you can endow `ι` with
+the order topology by writing
+```lean
+  letI := Preorder.topology ι
+  haveI : OrderTopology ι := ⟨rfl⟩
+``` -/
+noncomputable def rightCont [PartialOrder ι] (𝓕 : Filtration ι m) : Filtration ι m :=
+  letI : TopologicalSpace ι := Preorder.topology ι
+  { seq i := if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i
+    mono' i j hij := by
+      simp only [gt_iff_lt]
+      split_ifs with hi hj hj
+      · exact le_iInf₂ fun k hkj ↦ iInf₂_le k (hij.trans_lt hkj)
+      · obtain rfl | hj := eq_or_ne j i
+        · contradiction
+        · exact iInf₂_le j (lt_of_le_of_ne hij hj.symm)
+      · exact le_iInf₂ fun k hk ↦ 𝓕.mono (hij.trans hk.le)
+      · exact 𝓕.mono hij
+    le' i := by
+      split_ifs with hi
+      · obtain ⟨j, hj⟩ := (frequently_gt_nhds i).exists
+        exact iInf₂_le_of_le j hj (𝓕.le j)
+      · exact 𝓕.le i }
 
-/-- A filtration `𝓕` is right continuous if `𝓕 t = ⨅ j > i, 𝓕 j = 𝓕 i` for all `t`. -/
+@[inherit_doc] scoped postfix:max "₊" => rightCont
+
+open scoped Classical in
+lemma rightCont_def [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι m) (i : ι) :
+    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := sorry
+
+lemma rightCont_eq_of_nhdsGT_eq_bot [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι m) {i : ι} (hi : 𝓝[>] i = ⊥) :
+    𝓕₊ i = 𝓕 i := sorry
+
+/-- If the index type is a `SuccOrder`, then `𝓕₊ = 𝓕`. -/
+lemma rightCont_eq_self [LinearOrder ι] [SuccOrder ι] (𝓕 : Filtration ι m) :
+    𝓕₊ = 𝓕 := sorry
+
+lemma rightCont_eq_of_isMax [PartialOrder ι] (𝓕 : Filtration ι m) {i : ι} (hi : IsMax i) :
+    𝓕₊ i = 𝓕 i := sorry
+
+lemma rightCont_eq_of_exists_gt [LinearOrder ι] (𝓕 : Filtration ι m) {i : ι}
+    (hi : ∃ j > i, Set.Ioo i j = ∅) :
+    𝓕₊ i = 𝓕 i := sorry
+
+/-- If `i` is not isolated on the right, then `𝓕₊ i = ⨅ j > i, 𝓕 j`. This is for instance the case
+when `ι` is a densely ordered linear order with no maximal elements and equipped with the order
+topology, see `rightCont_eq`. -/
+lemma rightCont_eq_of_neBot_nhdsGT [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (𝓕 : Filtration ι m) (i : ι) [(𝓝[>] i).NeBot] :
+    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+
+lemma rightCont_eq_of_not_isMax [LinearOrder ι] [DenselyOrdered ι]
+    (𝓕 : Filtration ι m) {i : ι} (hi : ¬IsMax i) :
+    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+
+/-- If `ι` is a densely ordered linear order with no maximal elements, then no point is isolated
+on the right, so that `𝓕₊ i = ⨅ j > i, 𝓕 j` holds for all `i`. This is in particular the
+case when `ι := ℝ≥0`. -/
+lemma rightCont_eq [LinearOrder ι] [DenselyOrdered ι] [NoMaxOrder ι]
+    (𝓕 : Filtration ι m) (i : ι) :
+    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+
+variable [PartialOrder ι]
+
+lemma le_rightCont (𝓕 : Filtration ι m) : 𝓕 ≤ 𝓕₊ := sorry
+
+lemma rightCont_self (𝓕 : Filtration ι m) : 𝓕₊₊ = 𝓕₊ := sorry
+
+/-- A filtration `𝓕` is right continuous if it is equal to its right continuation `𝓕₊`. -/
 class IsRightContinuous (𝓕 : Filtration ι m) where
     /-- The right continuity property. -/
-    RC (i : ι) : ⨅ j > i, 𝓕 j = 𝓕 i
+    RC : 𝓕₊ ≤ 𝓕
 
-lemma measurableSet_of_isRightContinuous {𝓕 : Filtration ι m} [IsRightContinuous 𝓕] {i : ι}
-    {s : Set Ω} (hs : MeasurableSet[⨅ j > i, 𝓕 j] s) :
-    MeasurableSet[𝓕 i] s := by
-  convert hs
-  rw [IsRightContinuous.RC i]
+lemma IsRightContinuous.eq {𝓕 : Filtration ι m} [h : IsRightContinuous 𝓕] :
+    𝓕 = 𝓕₊ := sorry
+
+lemma isRightContinuous_rightCont (𝓕 : Filtration ι m) : 𝓕₊.IsRightContinuous := sorry
+
+lemma IsRightContinuous.measurableSet {𝓕 : Filtration ι m} [IsRightContinuous 𝓕] {i : ι}
+    {s : Set Ω} (hs : MeasurableSet[𝓕₊ i] s) :
+    MeasurableSet[𝓕 i] s := sorry
 
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
   and consequently `𝓕 t` is complete (i.e. contains all null sets) for all `t`. -/
-class Filtration.UsualConditions [OrderBot ι] (𝓕 : Filtration ι m) (μ : Measure Ω := by volume_tac)
+class HasUsualConditions [OrderBot ι] (𝓕 : Filtration ι m) (μ : Measure Ω := by volume_tac)
     extends IsRightContinuous 𝓕 where
     /-- `𝓕 ⊥` contains all the null sets. -/
     IsComplete ⦃s : Set Ω⦄ (hs : μ s = 0) : MeasurableSet[𝓕 ⊥] s
 
 variable [OrderBot ι]
 
-namespace Filtration
-
-instance {𝓕 : Filtration ι m} {μ : Measure Ω} [u : UsualConditions 𝓕 μ] {i : ι} :
+instance {𝓕 : Filtration ι m} {μ : Measure Ω} [u : HasUsualConditions 𝓕 μ] {i : ι} :
     @Measure.IsComplete Ω (𝓕 i) (μ.trim <| 𝓕.le _) :=
   ⟨fun _ hs ↦ 𝓕.mono bot_le _ <| u.2 (measure_eq_zero_of_trim_eq_zero (Filtration.le 𝓕 _) hs)⟩
 
-lemma UsualConditions.measurableSet_of_null
-    (𝓕 : Filtration ι m) {μ : Measure Ω} [u : UsualConditions 𝓕 μ] (s : Set Ω) (hs : μ s = 0) :
+lemma HasUsualConditions.measurableSet_of_null
+    (𝓕 : Filtration ι m) {μ : Measure Ω} [u : HasUsualConditions 𝓕 μ] (s : Set Ω) (hs : μ s = 0) :
     MeasurableSet[𝓕 ⊥] s :=
   u.2 hs
 
-/-- Given a filtration `𝓕`, the predictable σ-algebra is the σ-algebra on `ι × Ω` generated by
-sets of the form `(t, ∞) × A` for `t ∈ ι` and `A ∈ 𝓕 t` and `{⊥} × A` for `A ∈ 𝓕 ⊥`. -/
-def predictable (𝓕 : Filtration ι m) : MeasurableSpace (ι × Ω) :=
-    MeasurableSpace.generateFrom <|
-      {s | ∃ A, MeasurableSet[𝓕 ⊥] A ∧ s = {⊥} ×ˢ A} ∪
-      {s | ∃ i A, MeasurableSet[𝓕 i] A ∧ s = Set.Ioi i ×ˢ A}
-
-end Filtration
-
-/-- A process is said to be predictable if it is measurable with respect to the predictable
-σ-algebra. -/
-def IsPredictable (𝓕 : Filtration ι m) (u : ι → Ω → E) :=
-    StronglyMeasurable[𝓕.predictable] <| Function.uncurry u
-
-end
-
-/-- Sets of the form `(i, j] × A` for any `A ∈ 𝓕 i` are measurable with respect to the predictable
-σ-algebra. -/
-lemma measurableSet_predictable_Ioc_prod [LinearOrder ι] [OrderBot ι]
-    {𝓕 : Filtration ι m} (i j : ι) {s : Set Ω} (hs : MeasurableSet[𝓕 i] s) :
-    MeasurableSet[𝓕.predictable] <| Set.Ioc i j ×ˢ s := by
-  by_cases hji : j ≤ i
-  · rw [Set.Ioc_eq_empty_of_le hji, Set.empty_prod]
-    simp only [MeasurableSet.empty]
-  · rw [not_le] at hji
-    rw [← Set.Ioi_diff_Ioi, (by simp : (Set.Ioi i \ Set.Ioi j) ×ˢ s
-      = Set.Ioi i ×ˢ (s \ s) ∪ (Set.Ioi i \ Set.Ioi j) ×ˢ s), ← Set.prod_diff_prod]
-    exact MeasurableSet.diff
-      (MeasurableSpace.measurableSet_generateFrom <| Or.inr ⟨i, s, hs, rfl⟩) <|
-      (MeasurableSpace.measurableSet_generateFrom <| Or.inr ⟨j, s, 𝓕.mono hji.le _ hs, rfl⟩)
-
-namespace IsPredictable
-
-open Filtration
-
-variable [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι]
-    [OpensMeasurableSpace ι] [OrderClosedTopology ι] [MeasurableSingletonClass ι]
-    [MetrizableSpace E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
-
-/-- A predictable process is progressively measurable. -/
-lemma progMeasurable {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : IsPredictable 𝓕 u) :
-    ProgMeasurable 𝓕 u := by
-  intro i
-  refine Measurable.stronglyMeasurable ?_
-  rw [IsPredictable, stronglyMeasurable_iff_measurable, measurable_iff_comap_le] at h𝓕
-  rw [measurable_iff_comap_le, (by aesop : (fun (p : Set.Iic i × Ω) ↦ u (p.1) p.2)
-      = Function.uncurry u ∘ (fun p ↦ (p.1, p.2))), ← MeasurableSpace.comap_comp]
-  refine (MeasurableSpace.comap_mono h𝓕).trans ?_
-  rw [predictable, MeasurableSpace.comap_generateFrom]
-  refine MeasurableSpace.generateFrom_le ?_
-  rintro - ⟨-, (⟨s, hs, rfl⟩ | ⟨j, A, hA, rfl⟩), rfl⟩
-  · rw [(by aesop : (fun (p : Set.Iic i × Ω) ↦ ((p.1 : ι), p.2)) ⁻¹' ({⊥} ×ˢ s) = {⊥} ×ˢ s)]
-    exact (measurableSet_singleton _).prod <| 𝓕.mono bot_le _ hs
-  · by_cases hji : j ≤ i
-    · rw [(_ : (fun (p : Set.Iic i × Ω) ↦ ((p.1 : ι), p.2)) ⁻¹' Set.Ioi j ×ˢ A
-        = (Subtype.val ⁻¹' (Set.Ioc j i)) ×ˢ A)]
-      · exact (measurable_subtype_coe measurableSet_Ioc).prod (𝓕.mono hji _ hA)
-      · aesop
-    · rw [(_ : (fun (p : Set.Iic i × Ω) ↦ ((p.1 : ι), p.2)) ⁻¹' Set.Ioi j ×ˢ A = ∅)]
-      · simp only [MeasurableSet.empty]
-      · ext p
-        simp only [Set.mem_preimage, Set.mem_prod, Set.mem_Ioi, Set.mem_empty_iff_false,
-          iff_false, not_and]
-        exact fun hj ↦ False.elim <| hji <| hj.le.trans p.1.2
-
-/-- A predictable process is adapted. -/
-lemma adapted {𝓕 : Filtration ι m} {u : ι → Ω → E} (h𝓕 : IsPredictable 𝓕 u) :
-    Adapted 𝓕 u :=
-  h𝓕.progMeasurable.adapted
-
-lemma measurableSet_prodMk_add_one_of_predictable {𝓕 : Filtration ℕ m} {s : Set (ℕ × Ω)}
-    (hs : MeasurableSet[𝓕.predictable] s) (n : ℕ) :
-    MeasurableSet[𝓕 n] {ω | (n + 1, ω) ∈ s} := by
-  rw [(by aesop : {ω | (n + 1, ω) ∈ s} = (Prod.mk (α := Set.singleton (n + 1)) (β := Ω)
-      (⟨n + 1, rfl⟩)) ⁻¹' ((fun (p : Set.singleton (n + 1) × Ω) ↦ ((p.1 : ℕ), p.2)) ⁻¹' s))]
-  refine measurableSet_preimage (mβ := Subtype.instMeasurableSpace.prod (𝓕 n))
-    measurable_prodMk_left <| measurableSet_preimage ?_ hs
-  rw [measurable_iff_comap_le, MeasurableSpace.comap_le_iff_le_map]
-  refine MeasurableSpace.generateFrom_le ?_
-  rintro - (⟨A, hA, rfl⟩ | ⟨i, A, hA, rfl⟩)
-  · rw [MeasurableSpace.map_def]
-    rw [(_ : (fun (p : Set.singleton (n + 1) × Ω) ↦ ((p.1 : ℕ), p.2)) ⁻¹' ({⊥} ×ˢ A) = ∅)]
-    · simp only [MeasurableSet.empty]
-    · ext p
-      simp only [Nat.bot_eq_zero, Set.mem_preimage, Set.mem_prod, Set.mem_singleton_iff,
-        Set.mem_empty_iff_false, iff_false, not_and]
-      exact fun hp1 ↦ False.elim <| Nat.succ_ne_zero n (hp1 ▸ p.1.2.symm)
-  · rw [MeasurableSpace.map_def]
-    by_cases hni : n < i
-    · rw [(_ : (fun (p : Set.singleton (n + 1) × Ω) ↦ ((p.1 : ℕ), p.2)) ⁻¹' (Set.Ioi i ×ˢ A) = ∅)]
-      · simp only [MeasurableSet.empty]
-      · ext p
-        simp only [Set.mem_preimage, Set.mem_prod, Set.mem_Ioi, Set.mem_empty_iff_false,
-          iff_false, not_and]
-        rw [p.1.2]
-        intro h
-        linarith
-    · rw [not_lt] at hni
-      rw [(_ : (fun (p : Set.singleton (n + 1) × Ω) ↦ ((p.1 : ℕ), p.2)) ⁻¹' (Set.Ioi i ×ˢ A)
-          = {⟨n + 1, rfl⟩} ×ˢ A)]
-      · exact MeasurableSet.prod (MeasurableSet.of_subtype_image trivial) (𝓕.mono hni _ hA)
-      · ext p
-        simp only [Set.mem_preimage, Set.mem_prod, Set.mem_Ioi, Set.mem_singleton_iff,
-          and_congr_left_iff]
-        intro hp2
-        rw [p.1.2]
-        exact ⟨fun _ ↦ by aesop, fun _ ↦ lt_add_one_iff.2 hni⟩
-
-omit [SecondCountableTopology E] in
-/-- If `u` is a discrete predictable process, then `u (n + 1)` is `𝓕 n`-measurable. -/
-lemma measurable_add_one {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} (h𝓕 : IsPredictable 𝓕 u) (n : ℕ) :
-    Measurable[𝓕 n] (u (n + 1)) := by
-  intro s hs
-  rw [(by aesop : u (n + 1) ⁻¹' s = {ω | (n + 1, ω) ∈ (Function.uncurry u) ⁻¹' s})]
-  exact measurableSet_prodMk_add_one_of_predictable (h𝓕.measurable hs) n
-
-end IsPredictable
-
-section
-
-variable [MetrizableSpace E] [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
-
-lemma measurableSet_predictable_singleton_prod
-    {𝓕 : Filtration ℕ m} {n : ℕ} {s : Set Ω} (hs : MeasurableSet[𝓕 n] s) :
-    MeasurableSet[𝓕.predictable] <| {n + 1} ×ˢ s := by
-  rw [(_ : {n + 1} = Set.Ioc n (n + 1))]
-  · exact measurableSet_predictable_Ioc_prod _ _ hs
-  · ext m
-    simp only [Set.mem_singleton_iff, Set.mem_Ioc]
-    refine ⟨fun hm ↦ ⟨hm ▸ lt_add_one n, hm ▸ le_rfl⟩, ?_⟩
-    rintro ⟨hm₁, hm₂⟩
-    linarith
-
-lemma isPredictable_of_measurable_add_one
-    {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E}
-    (h₀ : Measurable[𝓕 0] (u 0)) (h : ∀ n, Measurable[𝓕 n] (u (n + 1))) :
-    IsPredictable 𝓕 u := by
-  refine Measurable.stronglyMeasurable ?_
-  intro s hs
-  rw [(by aesop : Function.uncurry u ⁻¹' s = ⋃ n : ℕ, {n} ×ˢ (u n ⁻¹' s))]
-  refine MeasurableSet.iUnion <| fun n ↦ ?_
-  obtain (rfl | hn) := n.eq_zero_or_eq_succ_pred
-  · exact MeasurableSpace.measurableSet_generateFrom <| Or.inl ⟨u 0 ⁻¹' s, h₀ hs, rfl⟩
-  · rw [hn]
-    exact measurableSet_predictable_singleton_prod (h (n - 1) hs)
-
-/-- A discrete process `u` is predictable iff `u (n + 1)` is `𝓕 n`-measurable for all `n` and
-`u 0` is `𝓕 0`-measurable. -/
-lemma isPredictable_iff_measurable_add_one {𝓕 : Filtration ℕ m} {u : ℕ → Ω → E} :
-    IsPredictable 𝓕 u ↔ Measurable[𝓕 0] (u 0) ∧ ∀ n, Measurable[𝓕 n] (u (n + 1)) :=
-  ⟨fun h𝓕 ↦ ⟨(h𝓕.adapted 0).measurable, fun n ↦ h𝓕.measurable_add_one (n)⟩,
-   fun h ↦ isPredictable_of_measurable_add_one h.1 h.2⟩
-
-end
-
-end MeasureTheory
+end MeasureTheory.Filtration

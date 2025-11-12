@@ -1,0 +1,51 @@
+\chapter{Debut Theorem}
+\label{chap:debut_theorem}
+
+
+\begin{theorem}\label{thm:hitting_is_stopping_time}
+  \uses{def:IsStoppingTime, def:hittingAfter, def:ProgMeasurable, def:rightContinuous}
+  \notready
+If $X : T \to \Omega \to E$ is a progressively measurable process with respect to a right-continuous filtration and $B$ is a Borel-measurable subset of $E$, then the hitting time of $X$ in $B$ is a stopping time.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\section{Corollaries}
+
+TODO: need to generalize the \texttt{leastGE} definition to general index sets that are not necessarily $\mathbb{N}$.
+
+
+\begin{definition}\label{def:leastGE}
+  \mathlibok
+  \lean{MeasureTheory.leastGE}
+For a process $X : ι \to Ω \to ℝ$ and a real number $a$, define the random time
+\begin{align*}
+  \tau_{X \ge a} = \inf\{t \in ι \mid X_t \ge a\} \: ,
+\end{align*}
+in which the infimum is infinite if the set is empty.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isStoppingTime_leastGE}
+  \uses{def:IsStoppingTime, def:leastGE}
+If $X : ι \to Ω \to ℝ$ is a progressively measurable process with respect to a right-continuous filtration, then for any $a \in \mathbb{R}$, the random time $\tau_{X \ge a}$ is a stopping time.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:hitting_is_stopping_time}
+This is a direct application of Theorem~\ref{thm:hitting_is_stopping_time} with the set $B = [a, +\infty)$.
+\end{proof}
+
+
+\begin{corollary}\label{cor:isStoppingTime_leastGE_of_rightContinuous}
+  \uses{def:IsStoppingTime, def:leastGE, def:rightContinuous, def:adapted}
+If $X : ι \to Ω \to ℝ$ is a right-continuous and adapted process with respect to a right-continuous filtration, then for any $a \in \mathbb{R}$, the random time $\tau_{X \ge a}$ is a stopping time.
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:isStoppingTime_leastGE, lem:Adapted.progMeasurable_of_rightContinuous}
+This follows from Lemma~\ref{lem:isStoppingTime_leastGE} since $X$ is progressively measurable by Lemma~\ref{lem:Adapted.progMeasurable_of_rightContinuous}.
+\end{proof}

@@ -14,14 +14,52 @@ This chapter starts with a short review of the properties of the Doob decomposit
   \lean{MeasureTheory.predictablePart}
 Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
 Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
-The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined by $A_0 = 0$ and for $n \ge 0$,
-\begin{align*}
-  A_{n+1}
-  &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
-  \: .
-\end{align*}
+The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined for $n \ge 0$ by
+$$A_n = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k].$$
 \end{definition}
 
+In what follows, we fix a process $X : \mathbb{N} \to \Omega \to E$ and a filtration $(\mathcal{F}_n)_{n \in \mathbb{N}}$, and denote by $A$ the predictable part of $X$.
+
+\begin{lemma}\label{lem:predictablePart_zero}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart_zero}
+We have $A_0 = 0$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+\begin{lemma}\label{lem:predictablePart_add_one}
+  \uses{def:predictablePart}
+  \leanok
+  \lean{MeasureTheory.predictablePart_add_one}
+For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:predictablePart}
+Let $n \in \mathbb{N}$. Then
+\begin{align*}
+  A_{n+1}
+  & = \sum_{k=0}^n \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] \\
+  & = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] + \mathbb{E}[X_{n+1}-X_n \mid \mathcal{F}_n] \\
+  & = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n],
+\end{align*}
+which concludes the proof.
+\end{proof}
+
+\begin{lemma}\label{lem:adapted_predictablePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.adapted_predictablePart}
+The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \in \mathbb{N}}$.
+\end{lemma}
+
+\begin{proof}\mathlibok
+
+\end{proof}
 
 \begin{definition}\label{def:martingalePart}
   \uses{def:predictablePart}
@@ -34,12 +72,15 @@ The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defi
 
 
 \begin{lemma}\label{lem:predictable_predictablePart}
-  \uses{def:predictablePart, def:predictable, def:adapted}
-The predictable part of an adapted process is a predictable process.
+  \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.isPredictable_predictablePart}
+The predictable part of a process is predictable.
 \end{lemma}
 
-\begin{proof}
-This is almost \texttt{MeasureTheory.adapted\_predictablePart} but we need to formulate it with the new predictable definition.
+\begin{proof}\leanok
+  \uses{lem:predictable_nat_iff, lem:predictablePart_zero, lem:adapted_predictablePart}
+By Lemma~\ref{lem:predictable_nat_iff}, the process $A$ is predictable if $A_0$ is $\mathcal{F}_0$-measurable and for all integer $n$, $A_{n+1}$ is $\mathcal{F}_n$-measurable. As $A_0 = 0$ from Lemma~\ref{lem:predictablePart_zero}, it is $\mathcal{F}_0$-measurable. Lemma~\ref{lem:adapted_predictablePart} allows to conclude the proof.
 \end{proof}
 
 
@@ -58,97 +99,27 @@ Then the martingale part of an adapted process $X$ such that $X_n$ is integrable
 
 \begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
   \uses{def:predictablePart, def:Submartingale}
-The predictable part of a submartingale is a nondecreasing process.
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
+The predictable part of a real-valued submartingale is an almost surely nondecreasing process.
 \end{lemma}
 
-\begin{proof}
-  \uses{def:Submartingale}
-Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$,
+\begin{proof}\leanok
+  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
+Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
 \begin{align*}
   A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
   &\ge A_n
   \: .
 \end{align*}
-The last inequality follows from the submartingale property of $X$.
-Thus, $(A_n)_{n \in \mathbb{N}}$ is nondecreasing.
+The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
+Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 \end{proof}
 
-
-\section{Cadlag modifications of (local) martingales}
-
-
-
-\begin{definition}[Dyadics]\label{def:dyadics}
-For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$ be the set of dyadics at scale $n$ and let $\mathcal{D}^T=\bigcup_{n\in\mathbb{N}}\mathcal{D}_n^T$ be the set of all dyadics of $[0,T]$.
-\end{definition}
-
-
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
-
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
-
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:mg_is_cadlag}
-  \uses{def:usualConditions, def:Martingale}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
-  \uses{def:usualConditions, def:Submartingale}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:exists_cadlag_mod_of_local_mg}
-  \uses{def:usualConditions}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every local martingale $X$ admits a modification that is still a local martingale with cadlag trajectories.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:mg_is_cadlag}
-\end{proof}
 
 
 
 \section{Komlòs Lemma}
-
 
 
 Firstly we will need Komlos' Lemma.
@@ -596,6 +567,8 @@ Define
 
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
   \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalSubmartingale.doob_meyer}
 An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
 The processes $M$ and $A$ are uniquely determined by $X$ a.s.
 \end{theorem}

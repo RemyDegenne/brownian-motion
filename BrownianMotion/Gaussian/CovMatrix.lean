@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.MeasureTheory
+import Mathlib.Analysis.InnerProductSpace.Adjoint
 import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 import Mathlib.Probability.Distributions.Gaussian.Fernique
 import Mathlib.Probability.Moments.CovarianceBilinDual
@@ -19,18 +20,7 @@ open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
 
-@[simp]
-lemma covarianceBilinDual_self_nonneg {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
-    [IsFiniteMeasure μ]
-    (L : StrongDual ℝ E) :
-    0 ≤ covarianceBilinDual μ L L := by
-  by_cases h : MemLp id 2 μ
-  · rw [covarianceBilinDual_self_eq_variance h]
-    exact variance_nonneg ..
-  · simp [h]
-
-lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
+lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E]
     [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} [IsFiniteMeasure μ] :
     ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
   map_symm := covarianceBilinDual_comm
@@ -156,7 +146,7 @@ lemma covInnerBilin_apply_pi {ι Ω : Type*} [Fintype ι] {mΩ : MeasurableSpace
   have (i : ι) := (hX i).aemeasurable
   nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun, ← (EuclideanSpace.basisFun ι ℝ).sum_repr' x,
     ← (EuclideanSpace.basisFun ι ℝ).sum_repr' y]
-  · simp_rw [sum_inner, real_inner_smul_left, EuclideanSpace.basisFun_inner, PiLp.toLp_apply]
+  · simp_rw [sum_inner, real_inner_smul_left, EuclideanSpace.basisFun_inner]
     rw [covariance_fun_sum_fun_sum]
     · refine Finset.sum_congr rfl fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_
       rw [covariance_mul_left, covariance_mul_right]
@@ -170,12 +160,12 @@ lemma covInnerBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
     {μ : Measure Ω} [IsFiniteMeasure μ] {X Y : Ω → ℝ}
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (x y : WithLp 2 (ℝ × ℝ)) :
     covInnerBilin (μ.map (fun ω ↦ toLp 2 (X ω, Y ω))) x y =
-      x.1 * y.1 * Var[X; μ] + (x.1 * y.2 + x.2 * y.1) * cov[X, Y; μ] + x.2 * y.2 * Var[Y; μ] := by
+      x.fst * y.fst * Var[X; μ] + (x.fst * y.snd + x.snd * y.fst) * cov[X, Y; μ] +
+      x.snd * y.snd * Var[Y; μ] := by
   have := hX.aemeasurable
   have := hY.aemeasurable
   nth_rw 1 [covInnerBilin_apply_eq, covariance_map_fun]
-  · simp only [prod_inner_apply, ofLp_fst, ofLp_toLp, RCLike.inner_apply, conj_trivial, ofLp_snd,
-      mul_comm]
+  · simp only [prod_inner_apply, ofLp_fst, RCLike.inner_apply', conj_trivial, ofLp_snd]
     rw [covariance_fun_add_left, covariance_fun_add_right, covariance_fun_add_right]
     · simp_rw [covariance_mul_left, covariance_mul_right]
       rw [covariance_comm X Y, covariance_self, covariance_self]

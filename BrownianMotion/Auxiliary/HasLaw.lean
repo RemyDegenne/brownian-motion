@@ -181,7 +181,9 @@ instance IsGaussian.hasGaussianLaw_sub_eval {μ : Measure (ι → E)} [IsGaussia
 instance IsGaussian.hasGaussianLaw_sub_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)]
     {μ : Measure (PiLp p (fun _ ↦ E))} [IsGaussian μ] (i j : ι) :
     HasGaussianLaw (fun x ↦ x i - x j) μ :=
-  IsGaussian.hasGaussianLaw_sub_eval i j
+  HasGaussianLaw.sub
+    (h := IsGaussian.hasGaussianLaw_id.map_equiv (PiLp.continuousLinearEquiv p ℝ (fun _ : ι ↦ E)))
+    i j
 
 end Nondependent
 
@@ -208,7 +210,8 @@ instance IsGaussian.hasGaussianLaw_eval {μ : Measure (Π i, E i)} [IsGaussian �
 
 instance IsGaussian.hasGaussianLaw_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)]
     {μ : Measure (PiLp p E)} [IsGaussian μ] (i : ι) : HasGaussianLaw (fun x ↦ x i) μ :=
-  IsGaussian.hasGaussianLaw_eval i
+  HasGaussianLaw.eval
+    (h := IsGaussian.hasGaussianLaw_id.map_equiv (PiLp.continuousLinearEquiv p ℝ E)) i
 
 end Pi
 
