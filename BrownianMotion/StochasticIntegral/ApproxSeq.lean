@@ -75,14 +75,13 @@ variable [Nonempty ι] [OrderBot ι] [FirstCountableTopology ι] [IsFiniteMeasur
 lemma uniformIntegrable_stoppedValue_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    UniformIntegrable (fun m ↦ stoppedValue X (τn m)) 1 μ := by
-  -- refine h.uniformIntegrable_stoppedValue_of_countable_range τn τn.isStoppingTime hτ_le ?_
+    UniformIntegrable (fun m ↦ stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) 1 μ := by
   sorry
 
 lemma integrable_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
-    Integrable (stoppedValue X (τn m)) μ :=
+    Integrable (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)) μ :=
   ((uniformIntegrable_stoppedValue_discreteApproxSequence h hRC hτ hτ_le τn).memLp m).integrable
     le_rfl
 
@@ -106,6 +105,22 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
     Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn i) - stoppedValue X τ) 1 μ) atTop (𝓝 0) := by
   sorry
+
+lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
+    AEStronglyMeasurable (stoppedValue X τ) μ :=
+  aestronglyMeasurable_of_tendsto_ae _
+    (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hRC hτ hτ_le τn m).1)
+    (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 μ hτ_le τn) hRC)
+
+theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+    (h : Martingale X 𝓕 μ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) (m : ℕ) :
+    stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn m)
+    =ᵐ[μ] μ[X n|((discreteApproxSequence_of 𝓕 μ hτ_le τn).isStoppingTime m).measurableSpace] :=
+  h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range
+      (DiscreteApproxSequence.isStoppingTime _ m)
+      (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.discrete _ m)
 
 section Real
 
