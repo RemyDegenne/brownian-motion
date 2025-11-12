@@ -85,25 +85,12 @@ lemma integrable_stoppedValue_of_discreteApproxSequence
   ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).memLp m).integrable
     le_rfl
 
-lemma UniformIntegrable.memLp_of_tendsto_in_measure
-    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
-    (htends : TendstoInMeasure μ fn atTop f) :
-    MemLp f p μ := by
-  sorry
-
-lemma UniformIntegrable.integrable_of_tendsto_in_measure
-    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
-    (htends : TendstoInMeasure μ fn atTop f) :
-    Integrable f μ := by
-  rw [← memLp_one_iff_integrable]
-  exact hUI.memLp_of_tendsto_in_measure 1 htends
-
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 μ τ) :
-    Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn i) - stoppedValue X τ) 1 μ) atTop (𝓝 0) := by
+    Tendsto (fun i ↦
+      eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 μ hτ_le τn i) - stoppedValue X τ) 1 μ)
+      atTop (𝓝 0) := by
   sorry
 
 lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence

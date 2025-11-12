@@ -750,6 +750,13 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if
   Follows directly by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range} and Lemma~\ref{lem:discreteApproxSequence_of}.
 \end{proof}
 
+\begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any martingale \(X\), \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{lemma}
+
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
   Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
