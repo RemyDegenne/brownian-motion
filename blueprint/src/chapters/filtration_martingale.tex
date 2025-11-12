@@ -549,14 +549,14 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   \leanok
   \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue}
 Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSampling_discrete, lem:conExpUI}
   \leanok
 By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
-Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly integrable.
+Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is pUI.
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
@@ -564,7 +564,7 @@ Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly i
   \leanok
   \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range}
 Let $X$ be a martingale and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable if for each $k$, $\tau_k$ takes value in a countable set.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if for each $k$, $\tau_k$ takes value in a countable set.
 \end{lemma}
 
 \begin{proof}
@@ -575,7 +575,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
   \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
-  A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
+  A sequence of functions converges in $L^1$ if and only if it converges in probability and is pUI.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -618,7 +618,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   \leanok
   \lean{uniformIntegrable_stoppedValue_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
-  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is pUI.
 \end{lemma}
 
 \begin{proof}
@@ -660,7 +660,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
   we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] = P[X_{\tau_n} \mathbb{I}_A]$.
-  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
+  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are pUI.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
