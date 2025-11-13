@@ -67,29 +67,6 @@ end covariance
 
 end ProbabilityTheory
 
-namespace ContinuousLinearMap
-
-variable {𝕜 E F : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [NormedAddCommGroup F]
-    [NormedSpace 𝕜 E] [NormedSpace ℝ E] [NormedSpace 𝕜 F] [NormedSpace ℝ F] [CompleteSpace E]
-    [CompleteSpace F] [MeasurableSpace E] {μ : Measure E}
-
-lemma integral_comp_id_comm' (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
-    μ[L] = L μ[_root_.id] := by
-  change ∫ x, L (_root_.id x) ∂μ = _
-  rw [L.integral_comp_comm h]
-
-lemma integral_comp_id_comm (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
-    μ[L] = L (∫ x, x ∂μ) :=
-  L.integral_comp_id_comm' h
-
-variable [OpensMeasurableSpace E] [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
-
-lemma integral_id_map (h : Integrable _root_.id μ) (L : E →L[𝕜] F) :
-    ∫ x, x ∂(μ.map L) = L (∫ x, x ∂μ) := by
-  rw [integral_map (by fun_prop) (by fun_prop)]
-  simp [L.integral_comp_id_comm h]
-
-end ContinuousLinearMap
 
 lemma MeasurableEquiv.coe_toLp_symm_eq {ι : Type*} :
     ⇑(MeasurableEquiv.toLp 2 (ι → ℝ)).symm = ⇑(EuclideanSpace.equiv ι ℝ) := rfl
