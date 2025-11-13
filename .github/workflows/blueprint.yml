@@ -41,27 +41,13 @@ jobs:
       - name: Lint project
         run: env LEAN_ABORT_ON_PANIC=1 ~/.elan/bin/lake exe runLinter BrownianMotion
 
-      - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
-        with:
-          blueprint: true
-          homepage: home_page
-
       - name: Build Verso Documentation
         run: |
           cd verso
           ./build_manual.sh
 
-      - name: Upload Verso Artifact
-        if: github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v3
+      - name: Compile blueprint and documentation
+        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
         with:
-          path: "./verso/html"
-          name: "verso-docs-artifact"
-
-      # - name: Deploy Verso to GitHub Pages
-      #   if: github.event_name == 'push'
-      #   uses: actions/deploy-pages@v4
-      #   with:
-      #     token: ${{ github.token }}
-      #     artifact_name: "verso-docs-artifact"
+          blueprint: true
+          homepage: home_page
