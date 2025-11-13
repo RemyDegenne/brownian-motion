@@ -3,12 +3,11 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
-import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
+import Mathlib.Probability.Independence.BoundedContinuousFunction
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
@@ -16,7 +15,7 @@ import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 -/
 
-open MeasureTheory NNReal WithLp Finset MeasurableSpace Filtration
+open MeasureTheory NNReal WithLp Finset MeasurableSpace Filtration Filter
 open scoped ENNReal NNReal Topology BoundedContinuousFunction
 
 variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
@@ -562,40 +561,6 @@ lemma IsBrownian.tendsto_div_id_atTop [h : IsBrownian X P] :
   have : (fun t ↦ (X t ω) / t) = (fun t ↦ t * (X (1 / t) ω)) ∘ (fun t ↦ t⁻¹) := by ext; simp [field]
   rw [this]
   exact hω.comp tendsto_inv_atTop_zero
-
-open Metric Filter TopologicalSpace
-
-section Aux
-
--- Mathlib #31184
-
-variable {Ω S T : Type*} {m mΩ : MeasurableSpace Ω} {P : Measure Ω}
-
-variable {E : S → Type*} {F : T → Type*} {G H : Type*}
-  [∀ s, TopologicalSpace (E s)] [∀ s, MeasurableSpace (E s)] [∀ s, BorelSpace (E s)]
-  [∀ s, HasOuterApproxClosed (E s)]
-  [∀ t, TopologicalSpace (F t)] [∀ t, MeasurableSpace (F t)] [∀ t, BorelSpace (F t)]
-  [∀ t, HasOuterApproxClosed (F t)]
-  [TopologicalSpace G] [MeasurableSpace G] [BorelSpace G] [HasOuterApproxClosed G]
-  [TopologicalSpace H] [MeasurableSpace H] [BorelSpace H] [HasOuterApproxClosed H]
-  {X : (s : S) → Ω → E s} {Y : (t : T) → Ω → F t} {Z : Ω → G} {U : Ω → H}
-
-lemma indep_comap_process_of_bcf
-    (hm : m ≤ mΩ) (mX : ∀ s, Measurable (X s))
-    (h : ∀ A, MeasurableSet[m] A → ∀ (I : Finset S) (f : (Π s : I, E s) →ᵇ ℝ),
-      ∫ ω in A, f (X · ω) ∂P = P.real A * ∫ ω, f (X · ω) ∂P) :
-    Indep m (MeasurableSpace.pi.comap (fun ω s ↦ X s ω)) P := sorry
-
-end Aux
-
-lemma eventually_nhdsGT {α : Type*} [TopologicalSpace α] [LinearOrder α] [ClosedIciTopology α]
-    {a b : α} (hab : a < b) {p : α → Prop} (h : ∀ x ∈ Set.Ioc a b, p x) :
-    ∀ᶠ x in 𝓝[>] a, p x := by
-  simp_rw [Filter.Eventually]
-  refine sets_of_superset (x := Set.Ioo a b) ?_ ?_ ?_
-  · simp only [Filter.mem_sets]
-    apply Ioo_mem_nhdsGT hab
-  · grind
 
 /-- **Blumenthal's zero-one law**: Let `𝓕` be the canonical filtration associated to a Brownian
 motion. Then the `σ`-algebra `⨅ s > 0, 𝓕 s` is trivial. -/
