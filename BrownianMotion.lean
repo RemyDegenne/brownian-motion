@@ -47,4 +47,5 @@ import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.StochasticIntegral.QuadraticVariation
 import BrownianMotion.StochasticIntegral.SimpleProcess
 import BrownianMotion.StochasticIntegral.UniformIntegrable
+import BrownianMotion.Verso.Brownian
 import BrownianMotion.Verso.Processes

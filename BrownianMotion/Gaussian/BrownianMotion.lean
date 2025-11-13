@@ -107,7 +107,8 @@ section Increments
 
 /-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 1` and `t₁ ≤ ... ≤ tₙ`,
 the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω → E) (P : Measure Ω) :
+def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω → E)
+    (P : Measure Ω := by volume_tac) :
     Prop :=
   ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
     iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
