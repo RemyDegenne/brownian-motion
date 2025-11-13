@@ -180,14 +180,14 @@ class IsRightContinuous (𝓕 : Filtration ι m) where
     RC : 𝓕₊ ≤ 𝓕
 
 lemma IsRightContinuous.eq {𝓕 : Filtration ι m} [h : IsRightContinuous 𝓕] :
-  𝓕 = 𝓕₊ := le_antisymm 𝓕.le_rightCont h.RC
+    𝓕 = 𝓕₊ := le_antisymm 𝓕.le_rightCont h.RC
 
 lemma isRightContinuous_rightCont (𝓕 : Filtration ι m) : 𝓕₊.IsRightContinuous :=
   ⟨(rightCont_self 𝓕).le⟩
 
 lemma IsRightContinuous.measurableSet {𝓕 : Filtration ι m} [IsRightContinuous 𝓕] {i : ι}
     {s : Set Ω} (hs : MeasurableSet[𝓕₊ i] s) :
-  MeasurableSet[𝓕 i] s := IsRightContinuous.eq (𝓕 := 𝓕) ▸ hs
+    MeasurableSet[𝓕 i] s := IsRightContinuous.eq (𝓕 := 𝓕) ▸ hs
 
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
   and consequently `𝓕 t` is complete (i.e. contains all null sets) for all `t`. -/
