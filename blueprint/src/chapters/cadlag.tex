@@ -1,0 +1,165 @@
+\chapter{Modifications with cadlag paths}
+
+\section{Preliminaries}
+
+TODO: define cadlag.
+
+\section{Cadlag modifications of martingales}
+
+\subsection{Upcrossings}
+
+
+\begin{lemma}\label{lem:upcrossing_simpleProcess_le}
+  \uses{def:elemStochIntegral, def:simpleProcess}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process.
+Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary predictable set $A$ such that the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ satisfies
+\begin{align*}
+  (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
+  \:.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+\subsection{Cadlag modifications}
+
+\begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+  \uses{def:elemStochIntegral, def:modification}
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that one of the two following conditions hold:
+\begin{enumerate}
+  \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+  \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
+\end{enumerate}
+Then $X$ has a modification $Y$ which has left and right limits everywhere and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:upcrossing_simpleProcess_le}
+
+\end{proof}
+
+
+\begin{corollary}\label{cor:exists_caldag_modification}
+  \uses{def:elemStochIntegral, def:modification}
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that one of the two conditions of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
+Then $X$ has a cadlag modification.
+\end{corollary}
+
+\begin{proof}
+  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.exists_cadlag_modification_of_rightContinuous}
+  \uses{def:modification, def:Martingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale which is right-continuous in probability.
+Then $X$ has a cadlag modification.
+\end{lemma}
+
+\begin{proof}
+  \uses{cor:exists_caldag_modification}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.exists_modifications_limits}
+  \uses{def:modification, def:Martingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale.
+Then $X$ has a modification $Y$ such that for all $t \in T$, $Y$ has left and right limits at $t$ and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:Martingale.exists_cadlag_modification}
+  \uses{def:modification, def:Martingale, def:rightContinuous}
+Let $X : T \to \Omega \to \mathbb{R}$ be a martingale with respect to a right-continuous filtration.
+Then $X$ has a cadlag modification.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:Martingale.exists_modifications_limits}
+
+\end{proof}
+
+
+
+
+\section{Cadlag modifications of (local) martingales}
+
+
+TODO: this is partially or entirely redundant, consider removing this section (and moving the dyadics definition elsewhere).
+
+
+\begin{definition}[Dyadics]\label{def:dyadics}
+For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$ be the set of dyadics at scale $n$ and let $\mathcal{D}^T=\bigcup_{n\in\mathbb{N}}\mathcal{D}_n^T$ be the set of all dyadics of $[0,T]$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
+  \uses{def:dyadics, def:Martingale}
+  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
+  $$
+  \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
+  $$
+  exists and is finite.
+\end{lemma}
+
+\begin{proof}
+  See 8.2.1 of Pascucci.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
+  \uses{def:dyadics, def:Martingale}
+  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
+  $$
+  \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
+  $$
+  exists and is finite.
+\end{lemma}
+
+\begin{proof}
+  See 8.2.1 of Pascucci.
+\end{proof}
+
+
+\begin{lemma}\label{lem:mg_is_cadlag}
+  \uses{def:hasUsualConditions, def:Martingale}
+  Let the filtered probability space satisfy the usual conditions.
+  Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
+  See 8.2.3 of Pascucci.
+\end{proof}
+
+
+\begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
+  \uses{def:hasUsualConditions, def:Submartingale}
+  Let the filtered probability space satisfy the usual conditions.
+  Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
+  See 8.2.3 of Pascucci.
+\end{proof}
+
+
+\begin{lemma}\label{lem:exists_cadlag_mod_of_local_mg}
+  \uses{def:hasUsualConditions}
+  Let the filtered probability space satisfy the usual conditions.
+  Then every local martingale $X$ admits a modification that is still a local martingale with cadlag trajectories.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:mg_is_cadlag}
+\end{proof}

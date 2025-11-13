@@ -46,3 +46,22 @@ jobs:
         with:
           blueprint: true
           homepage: home_page
+
+      - name: Build Verso Documentation
+        run: |
+          cd verso
+          ./build_manual.sh
+
+      - name: Upload Verso Artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./verso/html"
+          name: "verso-docs-artifact"
+
+      # - name: Deploy Verso to GitHub Pages
+      #   if: github.event_name == 'push'
+      #   uses: actions/deploy-pages@v4
+      #   with:
+      #     token: ${{ github.token }}
+      #     artifact_name: "verso-docs-artifact"

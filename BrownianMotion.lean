@@ -1,3 +1,4 @@
+import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
@@ -5,7 +6,9 @@ import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw
 import BrownianMotion.Auxiliary.IsStoppingTime
+import BrownianMotion.Auxiliary.Jensen
 import BrownianMotion.Auxiliary.LinearAlgebra
+import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Metric
@@ -31,11 +34,17 @@ import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.MultivariateGaussian
 import BrownianMotion.Gaussian.ProjectiveLimit
 import BrownianMotion.Gaussian.StochasticProcesses
+import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.Centering
+import BrownianMotion.StochasticIntegral.ClassD
+import BrownianMotion.StochasticIntegral.DoobLp
+import BrownianMotion.StochasticIntegral.DoobMeyer
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
 import BrownianMotion.StochasticIntegral.Predictable
+import BrownianMotion.StochasticIntegral.QuadraticVariation
 import BrownianMotion.StochasticIntegral.SimpleProcess
 import BrownianMotion.StochasticIntegral.UniformIntegrable
+import BrownianMotion.Verso.Processes
