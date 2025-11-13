@@ -94,7 +94,13 @@ noncomputable def rightCont [PartialOrder ι] (𝓕 : Filtration ι m) : Filtrat
 open scoped Classical in
 lemma rightCont_def [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     (𝓕 : Filtration ι m) (i : ι) :
-    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := sorry
+    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := by
+      -- By definition of right continuation, we have (𝓕₊ i) = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i.
+      simp [rightCont];
+      convert rfl;
+      -- The topology on ι is indeed the order topology.
+      simp [Preorder.topology];
+      exact?
 
 lemma rightCont_eq_of_nhdsGT_eq_bot [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     (𝓕 : Filtration ι m) {i : ι} (hi : 𝓝[>] i = ⊥) :
