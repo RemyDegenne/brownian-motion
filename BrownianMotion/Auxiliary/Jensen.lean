@@ -26,7 +26,8 @@ theorem conditional_jensen (hm : m ≤ mα)
   sorry
 
 lemma norm_condExp_le (hm : m ≤ mα) (hf_int : Integrable f μ) :
-    (fun x ↦ ‖μ[f | m] x‖) ≤ᵐ[μ] μ[fun x ↦ ‖f x‖ | m] := by
-  sorry -- use conditional_jensen with φ = norm
+    (fun x ↦ ‖μ[f | m] x‖) ≤ᵐ[μ] μ[fun x ↦ ‖f x‖ | m] :=
+  conditional_jensen hm (convexOn_norm (convex_univ))
+    (continuous_norm.lowerSemicontinuous) hf_int hf_int.norm
 
 end MeasureTheory
