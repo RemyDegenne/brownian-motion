@@ -789,7 +789,8 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:vitali, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale}
+  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
@@ -802,7 +803,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
-  by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
 
