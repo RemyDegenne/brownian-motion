@@ -3,7 +3,9 @@ import BrownianMotion.Auxiliary.Metric
 import BrownianMotion.Auxiliary.WithLp
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Probability.Distributions.Gaussian.Real
+import Mathlib.Probability.Independence.ZeroOne
 import Mathlib.Probability.Moments.Covariance
+import Mathlib.Probability.Process.Filtration
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
@@ -254,5 +256,95 @@ lemma variance_fun_div (hX : AEMeasurable X μ) :
   field_simp
 
 end ProbabilityTheory
+
+open ProbabilityTheory MeasurableSpace
+
+lemma MeasurableSpace.comap_process {Ω T : Type*} {𝓧 : T → Type*} [∀ t, MeasurableSpace (𝓧 t)]
+    (X : (t : T) → Ω → 𝓧 t) :
+    MeasurableSpace.comap (fun ω t ↦ X t ω) MeasurableSpace.pi =
+      ⨆ t, MeasurableSpace.comap (X t) inferInstance := by
+  simp_rw [MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
+  rfl
+
+lemma MeasurableSpace.comap_le_comap
+    {Ω 𝓧 𝓨 : Type*} [m𝓧 : MeasurableSpace 𝓧] [m𝓨 : MeasurableSpace 𝓨]
+    {X : Ω → 𝓧} {Y : Ω → 𝓨} (f : 𝓧 → 𝓨) (hf : Measurable f) (h : Y = f ∘ X) :
+    m𝓨.comap Y ≤ m𝓧.comap X := by
+  rw [h, ← MeasurableSpace.comap_comp]
+  exact MeasurableSpace.comap_mono hf.comap_le
+
+lemma MeasureTheory.Filtration.natural_eq_comap {Ω ι : Type*} {m : MeasurableSpace Ω}
+    {β : ι → Type*} [(i : ι) → TopologicalSpace (β i)]
+    [∀ (i : ι), TopologicalSpace.MetrizableSpace (β i)]
+    [mβ : (i : ι) → MeasurableSpace (β i)] [∀ (i : ι), BorelSpace (β i)] [Preorder ι]
+    (u : (i : ι) → Ω → β i)
+    (hum : ∀ (i : ι), StronglyMeasurable (u i)) (i : ι) :
+    Filtration.natural u hum i = .comap (fun ω (j : Set.Iic i) ↦ u j ω) inferInstance := by
+  simp_rw [Filtration.natural, comap_process, iSup_subtype']
+  rfl
+
+lemma ProbabilityTheory.measure_eq_zero_or_one_of_indep_self {Ω : Type*} {m mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsZeroOrProbabilityMeasure P]
+    (hm1 : m ≤ mΩ) (hm2 : Indep m m P) {A : Set Ω} (hA : MeasurableSet[m] A) :
+    P A = 0 ∨ P A = 1 := by
+  rw [Indep_iff_IndepSets, indepSets_iff_singleton_indepSets] at hm2
+  replace hm2 := indepSets_iff_singleton_indepSets.1 (hm2 A hA).symm A hA
+  exact measure_eq_zero_or_one_of_indepSet_self <|
+    (indepSet_iff_indepSets_singleton (hm1 A hA) (hm1 A hA) P).2 hm2
+
+lemma MeasurableSpace.generateFrom_singleton_eq_comap_indicator_one {Ω : Type*} {A : Set Ω} :
+    MeasurableSpace.generateFrom {A} =
+      MeasurableSpace.comap (A.indicator (1 : Ω → ℝ)) inferInstance := by
+  refine le_antisymm (MeasurableSpace.generateFrom_le fun s hs ↦ ?_)
+    (Measurable.comap_le ?_)
+  · simp only [Set.mem_singleton_iff] at hs
+    rw [hs, ← measurable_indicator_const_iff (1 : ℝ)]
+    exact comap_measurable _
+  · apply (measurable_indicator_const_iff 1).2 ?_
+    exact MeasurableSpace.measurableSet_generateFrom (by simp)
+
+lemma ProbabilityTheory.singleton_indepSets_comap_iff {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [IsZeroOrProbabilityMeasure P] {𝓧 : Type*}
+    {m𝓧 : MeasurableSpace 𝓧} {A : Set Ω} {X : Ω → 𝓧} (hX : Measurable X) (hA : MeasurableSet A) :
+    IndepSets {A} {s | MeasurableSet[m𝓧.comap X] s} P ↔
+      (A.indicator (1 : Ω → ℝ)) ⟂ᵢ[P] X := by
+  rw [IndepFun_iff_Indep, ← generateFrom_singleton_eq_comap_indicator_one]
+  constructor
+  · exact IndepSets.indep (generateFrom_le (by simpa)) hX.comap_le (by simp [IsPiSystem])
+      (@MeasurableSpace.isPiSystem_measurableSet _ (m𝓧.comap X)) rfl (by simp)
+  · refine fun h ↦ Indep.indepSets ?_
+    convert h
+    simp
+
+lemma IndepSets.setIntegral_eq_mul {Ω 𝓧 : Type*} {mΩ : MeasurableSpace Ω}
+    {μ : Measure Ω} {m𝓧 : MeasurableSpace 𝓧} {X : Ω → 𝓧} [IsZeroOrProbabilityMeasure μ]
+    {f : 𝓧 → ℝ} {A : Set Ω} (hA1 : IndepSets {A} {s | MeasurableSet[m𝓧.comap X] s} μ)
+    (hX : Measurable X) (hA2 : MeasurableSet A)
+    (hf : AEStronglyMeasurable f (μ.map X)) :
+    ∫ ω in A, f (X ω) ∂μ = μ.real A * ∫ ω, f (X ω) ∂μ :=
+  calc ∫ ω in A, f (X ω) ∂μ
+    = ∫ ω, (A.indicator 1 ω) * f (X ω) ∂μ := by
+        rw [← integral_indicator hA2]
+        congr with ω
+        by_cases hω : ω ∈ A <;> simp [hω]
+  _ = ∫ ω, id (A.indicator 1 ω) * f (X ω) ∂μ := by simp
+  _ = μ.real A * ∫ ω, f (X ω) ∂μ := by
+    rw [IndepFun.integral_fun_comp_mul_comp]
+    · simp [integral_indicator_one hA2]
+    · exact (singleton_indepSets_comap_iff hX hA2).1 hA1
+    · exact (aemeasurable_indicator_const_iff 1).2 hA2.nullMeasurableSet
+    · exact hX.aemeasurable
+    · fun_prop
+    · exact hf
+
+lemma Indep.singleton_indepSets {Ω : Type*} {m1 m2 mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} (h : Indep m1 m2 P) {A : Set Ω}
+    (hA : MeasurableSet[m1] A) : IndepSets {A} {s | MeasurableSet[m2] s} P := by
+  have := (Indep_iff_IndepSets m1 m2 P).1 h
+  apply indepSets_of_indepSets_of_le_left this
+  simpa
+
+lemma measurableSpace_le_iff {Ω : Type*} {m1 m2 : MeasurableSpace Ω} :
+    m1 ≤ m2 ↔ ∀ s, MeasurableSet[m1] s → MeasurableSet[m2] s := by aesop
 
 end covariance
