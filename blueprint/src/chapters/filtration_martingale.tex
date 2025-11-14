@@ -628,12 +628,12 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 \begin{lemma}\label{lem:conExpUI}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.condExp'}
-  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable (pUI) functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
-  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is pUI.
+  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
+  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}\leanok
-  Since $(X_i)_{i \in \iota}$ is pUI, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
+  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
   there exists some \(\delta > 0\) such that
   for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
 
@@ -649,7 +649,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
     & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
     & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
   \end{align*}
-  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is pUI.
+  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
 \end{proof}
 
 
@@ -705,6 +705,66 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 
 \end{proof}
 
+\begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
+  \uses{def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.DiscreteApproxSequence}
+  Given a stopping time \(\tau : \Omega \to T \cup \{\infty\}\), a sequence of stopping times \((\tau_n)_{n \in \mathbb{N}}\) is called an
+  discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
+\end{definition}
+
+\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
+  Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
+  \[\lim_{n \to \infty} X_{\tau_n} = X_\tau \text{ a.s.}\]
+\end{lemma}
+
+\begin{proof}
+  This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
+\end{proof}
+
+\begin{lemma}\label{lem:discreteApproxSequence_of}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.discreteApproxSequence_of}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, the sequence of stopping times \(\tau_n \wedge t\) is also a discrete approximation sequence of \(\tau\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:discreteApproxSequence_of, lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \leanok
+  Follows directly by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range} and Lemma~\ref{lem:discreteApproxSequence_of}.
+\end{proof}
+
+\begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any right continuous martingale \(X\), \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:tendsto_stoppedValue_discreteApproxSequence, lem:memLp_of_tendstoInMeasure, lem:vitali, lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  By Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}, as \(X\) is right continuous we have that \(X_{\tau_n \wedge t} \to X_{\tau}\) a.s. and so,
+  also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is uniformly integrable.
+  Thus, by Lemma~\ref{lem:memLp_of_tendstoInMeasure} and the Vitali convergence theorem (Lemma~\ref{lem:vitali}), it
+  follows that \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -721,7 +781,6 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
-
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
@@ -730,7 +789,8 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:vitali, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale}
+  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
@@ -743,7 +803,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
-  by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
 
