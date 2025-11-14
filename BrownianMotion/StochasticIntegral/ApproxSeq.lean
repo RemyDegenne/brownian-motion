@@ -17,7 +17,6 @@ namespace MeasureTheory
 variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
   {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
 
--- Find better name, `RightContinuous` already exists for filtrations
 /-- A stochastic process is right continuous if each of its realizations is right continuous. -/
 abbrev _root_.Function.rightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
   ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
