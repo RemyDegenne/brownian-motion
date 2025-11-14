@@ -628,12 +628,12 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 \begin{lemma}\label{lem:conExpUI}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.condExp'}
-  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable (pUI) functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
-  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is pUI.
+  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
+  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}\leanok
-  Since $(X_i)_{i \in \iota}$ is pUI, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
+  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
   there exists some \(\delta > 0\) such that
   for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
 
@@ -649,7 +649,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
     & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
     & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
   \end{align*}
-  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is pUI.
+  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
 \end{proof}
 
 
@@ -658,14 +658,14 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
   \leanok
   \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue}
 Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSampling_discrete, lem:conExpUI}
   \leanok
 By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
-Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is pUI.
+Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly integrable.
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
@@ -673,7 +673,7 @@ Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is pUI.
   \leanok
   \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range}
 Let $X$ be a martingale and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if for each $k$, $\tau_k$ takes value in a countable set.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable if for each $k$, $\tau_k$ takes value in a countable set.
 \end{lemma}
 
 \begin{proof}
@@ -698,7 +698,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
   \mathlibok
   \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
-  A sequence of functions converges in $L^1$ if and only if it converges in probability and is pUI.
+  A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -741,7 +741,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if
   \leanok
   \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
-  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is pUI.
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
@@ -761,7 +761,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if
   \leanok
   \uses{lem:tendsto_stoppedValue_discreteApproxSequence, lem:memLp_of_tendstoInMeasure, lem:vitali, lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
   By Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}, as \(X\) is right continuous we have that \(X_{\tau_n \wedge t} \to X_{\tau}\) a.s. and so,
-  also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is pUI.
+  also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is uniformly integrable.
   Thus, by Lemma~\ref{lem:memLp_of_tendstoInMeasure} and the Vitali convergence theorem (Lemma~\ref{lem:vitali}), it
   follows that \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
 \end{proof}
@@ -799,7 +799,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is pUI if
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
   we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] = P[X_{\tau_n} \mathbb{I}_A]$.
-  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are pUI.
+  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
   by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
