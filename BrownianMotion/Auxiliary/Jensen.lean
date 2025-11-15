@@ -5,13 +5,15 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.Analysis
 import BrownianMotion.Auxiliary.ENNReal
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+import Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
+import Mathlib.MeasureTheory.Function.UniformIntegrable
 
 /-!
 # Jensen's inequality for conditional expectations
 -/
 
 open MeasureTheory Filter ENNReal
+open scoped NNReal
 
 namespace MeasureTheory
 
@@ -114,5 +116,70 @@ theorem eLpNorm_condExp_le_eLpNorm {p : ℝ≥0∞} (hp : 1 ≤ p) (f : Ω → E
 theorem MemLp.condExp' {p : ℝ≥0∞} (hp : 1 ≤ p) (hf : MemLp f p μ) :
     MemLp μ[f|m] p μ :=
   ⟨integrable_condExp.aestronglyMeasurable, (eLpNorm_condExp_le_eLpNorm hp f).trans_lt hf.2⟩
+
+/-- If a function `f` is bounded almost everywhere by `R`, then so is its conditional
+expectation. -/
+theorem ae_bdd_condExp_of_ae_bdd {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ R) :
+    ∀ᵐ x ∂μ, ‖(μ[f|m]) x‖ ≤ R := by
+  obtain rfl | hμ := eq_or_ne μ 0
+  · simp
+  have hR : 0 ≤ R := by
+    have := ae_neBot.2 hμ
+    obtain ⟨ω, hω⟩ := hbdd.exists
+    exact (norm_nonneg _).trans hω
+  by_cases hm : m ≤ mΩ
+  swap; · simp [condExp_of_not_le hm, hR]
+  by_cases hf : Integrable f μ
+  swap; · simp [condExp_of_not_integrable hf, hR]
+  filter_upwards [norm_condExp_le (m := m) f, condExp_mono (m := m) hf.norm
+    (integrable_const _) hbdd] with ω hω1 hω2
+  grw [hω1, hω2, condExp_const hm]
+
+/-- Given an integrable function `g`, the conditional expectations of `g` with respect to
+a sequence of sub-σ-algebras is uniformly integrable. -/
+theorem Integrable.uniformIntegrable_condExp {ι : Type*} {g : Ω → E}
+    (hint : Integrable g μ) {ℱ : ι → MeasurableSpace Ω} (hℱ : ∀ i, ℱ i ≤ mΩ) :
+    UniformIntegrable (fun i => μ[g|ℱ i]) 1 μ := by
+  let A : MeasurableSpace Ω := mΩ
+  have hmeas : ∀ n, ∀ C, MeasurableSet {x | C ≤ ‖(μ[g|ℱ n]) x‖₊} := fun n C =>
+    stronglyMeasurable_const.measurableSet_le (stronglyMeasurable_condExp.mono (hℱ n)).nnnorm
+  have hg : MemLp g 1 μ := memLp_one_iff_integrable.2 hint
+  refine uniformIntegrable_of le_rfl ENNReal.one_ne_top
+    (fun n => (stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable) fun ε hε => ?_
+  by_cases hne : eLpNorm g 1 μ = 0
+  · rw [eLpNorm_eq_zero_iff hg.1 one_ne_zero] at hne
+    refine ⟨0, fun n => (le_of_eq <|
+      (eLpNorm_eq_zero_iff ((stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable.indicator
+        (hmeas n 0)) one_ne_zero).2 ?_).trans (zero_le _)⟩
+    filter_upwards [condExp_congr_ae (m := ℱ n) hne] with x hx
+    simp only [zero_le', Set.setOf_true, Set.indicator_univ, Pi.zero_apply, hx, condExp_zero]
+  obtain ⟨δ, hδ, h⟩ := hg.eLpNorm_indicator_le le_rfl ENNReal.one_ne_top hε
+  set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (eLpNorm g 1 μ).toNNReal with hC
+  have hCpos : 0 < C := mul_pos (inv_pos.2 hδ) (ENNReal.toNNReal_pos hne hg.eLpNorm_lt_top.ne)
+  have : ∀ n, μ {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} ≤ ENNReal.ofReal δ := by
+    intro n
+    have : C ^ ENNReal.toReal 1 * μ {x | ENNReal.ofNNReal C ≤ ‖μ[g|ℱ n] x‖₊} ≤
+        eLpNorm μ[g|ℱ n] 1 μ ^ ENNReal.toReal 1 := by
+      rw [ENNReal.toReal_one, ENNReal.rpow_one]
+      convert mul_meas_ge_le_pow_eLpNorm μ one_ne_zero ENNReal.one_ne_top
+        (stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable C
+      · rw [ENNReal.toReal_one, ENNReal.rpow_one, enorm_eq_nnnorm]
+    rw [ENNReal.toReal_one, ENNReal.rpow_one, mul_comm, ←
+      ENNReal.le_div_iff_mul_le (Or.inl (ENNReal.coe_ne_zero.2 hCpos.ne'))
+        (Or.inl ENNReal.coe_lt_top.ne)] at this
+    simp_rw [ENNReal.coe_le_coe] at this
+    refine this.trans ?_
+    rw [ENNReal.div_le_iff_le_mul (Or.inl (ENNReal.coe_ne_zero.2 hCpos.ne'))
+        (Or.inl ENNReal.coe_lt_top.ne),
+      hC, Nonneg.inv_mk, ENNReal.coe_mul, ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne, ← mul_assoc, ←
+      ENNReal.ofReal_eq_coe_nnreal, ← ENNReal.ofReal_mul hδ.le, mul_inv_cancel₀ hδ.ne',
+      ENNReal.ofReal_one, one_mul, ENNReal.rpow_one]
+    exact eLpNorm_condExp_le_eLpNorm le_rfl _
+  refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
+  have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=
+    @StronglyMeasurable.measurableSet_le _ _ (ℱ n) _ _ _ _ _ _ stronglyMeasurable_const
+      stronglyMeasurable_condExp.nnnorm
+  rw [← eLpNorm_congr_ae (condExp_indicator hint hmeasℱ)]
+  exact eLpNorm_condExp_le_eLpNorm le_rfl _
 
 end MeasureTheory
