@@ -123,21 +123,6 @@ If we also vary $t$, we get a stochastic process.
 
 \subsection{Itô isometry}
 
-\begin{lemma}\label{lem:sq_norm_elemStochIntegral}
-  \uses{def:elemStochIntegral, def:squareIntegrableMartingales, def:quadraticVariation}
-For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathcal{M}^2$ and
-\begin{align*}
-  \Vert V \bullet M \Vert_{\mathcal{M}^2}^2
-  &= \mathbb{E}\left[ \int_0^{\infty} V_t^2 \: d[M]_t \right]
-  \: .
-\end{align*}
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:Martingale.elemStochIntegral}
-
-\end{proof}
-
 \begin{definition}\label{def:L2M}
   \uses{def:squareIntegrableMartingales, def:quadraticVariation, def:predictableMeasurableSpace}
 Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
@@ -149,6 +134,29 @@ The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\i
 \end{definition}
 
 TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
+
+\begin{lemma}\label{lem:sq_norm_elemStochIntegral}
+  \uses{def:elemStochIntegral, def:squareIntegrableMartingales, def:quadraticVariation, def:L2M}
+For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathcal{M}^2$ and
+\begin{align*}
+  \Vert V \bullet M \Vert_{\mathcal{M}^2}^2
+  &= \Vert V \Vert_{L^2(M)}^2
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.elemStochIntegral}
+  There are two steps to the proof.
+
+  First, in order to make sense of $\Vert V \Vert_{L^2(M)}$,
+  we define the natural linear map from $\mathcal{E}$ to $L^2(M)$ via \texttt{SimpleProcess.toFun}.
+  (Informally, this is identifying $\mathcal{E}$ as a subset $\mathcal{E} \subseteq L^2(M)$.)
+  This induces the $L^2(M)$-norm on $\mathcal{E}$, using something like \texttt{NormedSpace.induced}.
+
+  Next, we show that integration $V \mapsto V \bullet M$ is an isometry from $\mathcal{E}$
+  with the $L^2(M)$-norm, to $\mathcal{M}^2$. The proof is TODO.
+\end{proof}
 
 
 \begin{lemma}\label{lem:integral_process_eq_zero}
@@ -224,6 +232,9 @@ Let $X \in L^2(M)$ such that for any simple process $V$, $\mathbb{E}\left[ \int_
 Let $A_t = \int_0^t X_s \: d[M]_s$.
 It suffices to show that $A = 0$ by Lemma~\ref{lem:integral_process_eq_zero}~.
 This is proved in Lemma~\ref{lem:integral_eq_zero_of_forall_eq_zero}~.
+
+In Lean, this is stated as: the natural linear map \texttt{toFun} from $\mathcal{E}$ to $L^2(M)$
+is \texttt{IsDenseInducing}. The Itô isometry is then defined using \texttt{IsDenseInducing.extend}.
 \end{proof}
 
 

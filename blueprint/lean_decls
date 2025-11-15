@@ -243,7 +243,7 @@ ProbabilityTheory.HasLocallyIntegrableSup
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable
 ProbabilityTheory.SimpleProcess.instAddCommGroup
-ProbabilityTheory.SimpleProcess.instModuleReal
+ProbabilityTheory.SimpleProcess.instModule
 ProbabilityTheory.SimpleProcess.integral
 ProbabilityTheory.SimpleProcess.integral_add_left
 ProbabilityTheory.SimpleProcess.integral_smul_left
