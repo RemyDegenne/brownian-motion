@@ -49,7 +49,8 @@ variable {𝓕 : Filtration ι mΩ}
 
 open scoped Function
 
-/-- A simple process. -/
+/-- A simple process is defined as a finite sum of indicator functions of intervals, each assigned
+to a random variable `value`, plus a `valueBot` at ⊥. -/
 @[ext]
 structure SimpleProcess (ι F : Type*) [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
     [NormedAddCommGroup F] [MeasurableSpace F] [NormedSpace ℝ F] [BorelSpace F]
