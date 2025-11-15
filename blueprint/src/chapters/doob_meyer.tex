@@ -126,22 +126,52 @@ Firstly we will need Komlos' Lemma.
 %technically a more general version with Cesaro sums exists, but it is not needed for this case
 %(see "J. Komlòs, A generalization of a problem of Steinhaus, Acta Math. Acad. Sci. Hungar. 18 (1967) 217–229").
 
+\begin{lemma}\label{lem:komlos_convex}
+  Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a convex function such that $\phi(f_n)$ is a bounded sequence.
+  For $\delta > 0$, let $S_\delta = \{(f, g) \mid \phi(f)/2 + \phi(g)/2 - \phi((f+g)/2) \ge \delta\}$.
+  Then there exist $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for $N$ large enough and $n, m \ge N$, $(g_n, g_m) \notin S_\delta$.
+\end{lemma}
+
+\begin{proof}
+Let $B$ be the bound of $(\phi(f_n))_{n\in\mathbb{N}}$.
+Then for all $n\in\mathbb{N}$ and $g\in convex(f_n,f_{n+1},\cdots)$ we have $\phi(g)\le B$ by convexity of $\phi$.
+Let $r_n = \inf(\phi(g) \mid g\in convex(f_n, f_{n+1},\ldots))$.
+By construction $(r_n)_{n\in\mathbb{N}}$ is nondecreasing.
+Let $A = \sup_{n \ge 1} r_n$, which is finite (as $A \le B$) and for each $n$ we may pick some $g_n\in convex(f_n, f_{n+1},\ldots)$ such that $\phi(g_n) \le A+1/n$ by $\inf$ and $\sup$ definitions.
+
+Let $\varepsilon \in (0, \delta/4)$.
+By properties of $\sup$ there exists $\bar{n}$ such that $r_{\bar{n}} \ge A-\varepsilon$ and such that $\frac{1}{\bar{n}} \le \varepsilon$.
+Let $m \ge k \ge \bar{n}$.
+We have $(g_k+g_m)/2 \in convex(f_k,f_{k+1},\ldots)$ and it follows since $(r_n)_{n\in\mathbb{N}}$ is nondecreasing that $\phi((g_k+g_m)/2) \ge A - \varepsilon$.
+Hence due to the ordering of $m,k,\bar{n}$,
+\begin{align*}
+  \phi(g_k)/2 + \phi(g_m)/2 - \phi((g_k+g_m)/2)
+  &\le 2(A + \frac{1}{\bar{n}}) - 2(A - \varepsilon)
+  \\
+  &\le 4 \varepsilon
+  \\
+  &< \delta
+  \: .
+\end{align*}
+Thus, for $n, m \ge \bar{n}$, $(g_n, g_m) \notin S_\delta$.
+\end{proof}
+
 
 \begin{lemma}\label{lem:komlos_aux}
   Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
 \end{lemma}
 
 \begin{proof}
-  Let $r_n = \inf(\|g\|_2:g\in convex(f_n, f_{n+1},\ldots))$.
-  Let $A=\sup_{n\geq1} r_n$. $A$ is finite by boundedness of $(f_n)_{n\in\mathbb{N}}$ and
-  for each $n$ we  may pick some $g_n\in convex(f_n, f_{n+1},\ldots)$ such that $ \|g_n\|_2\leq A+1/n$ by $\inf$ and $\sup$ definitions.
-  Let $\epsilon>0$.
-  By construction $(r_n)_{n\in\mathbb{N}}$ is increasing. By properties of $\sup$ there exists $\bar{n}$ such that $r_{\bar{n}}\geq A-\epsilon$ and such that $\frac{1}{\bar{n}}\leq\epsilon$.
-  Let $m\geq k\geq \bar{n}$. $(g_k+g_m)/2 \in convex(f_k,f_{k+1},\ldots)$. It follows since $(r_n)_{n\in\mathbb{N}}$ is increasing that
-  $\|(g_k+g_m)/2\|_2\geq A-\epsilon$.
-  Hence due to the ordering of $m,k,\bar{n}$
-  $$ \|g_k-g_m\|_2^2=2 \|g_k\|_2^2+2\|g_m\|_2^2- \|g_k+g_m\|_2^2
-  \leq 4(A+\frac{1}{\bar{n}})^2-4(A-\epsilon)^2\leq 16A\epsilon.$$ By completeness, $(g_n)_{n\geq1}$  converges in $\|.\|_2$.
+  \uses{lem:komlos_convex}
+Consider $\phi : H \to \mathbb{R}_+$ defined by $\phi(f) = \|f\|_2^2$, which is convex.
+Then Lemma \ref{lem:komlos_convex} applied to $(f_n)_{n\in\mathbb{N}}$ and $\phi$ gives us functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for every $\delta>0$ there exists $N$ such that for $n,m\geq N$, $(g_n,g_m)\notin S_\delta$.
+Thus for every $\delta>0$ there exists $N$ such that for $n,m\geq N$,
+\begin{align*}
+  \|g_n\|_2^2/2 + \|g_m\|_2^2/2 - \|(g_n+g_m)/2\|_2^2
+  &< \delta
+  \: .
+\end{align*}
+But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram identity, hence $(g_n)_{n\in\mathbb{N}}$ is a Cauchy sequence in $H$ and thus converges in $H$ by completeness.
 \end{proof}
 
 
