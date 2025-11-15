@@ -20,7 +20,7 @@ lemma komlos_convex [AddCommGroup E] [Module ℝ E]
   (hφ_bdd : ∃ M : ℝ, ∀ n, φ (f n) ≤ M) :
   ∃ g : ℕ → E, (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
     ∀ δ > 0, ∃ N, ∀ n m, N ≤ n → N ≤ m →
-      φ ((2 : ℝ)⁻¹ • g n) + φ ((2 : ℝ)⁻¹ • g m) - φ ((2 : ℝ)⁻¹ • (g n + g m)) < δ := by
+      2⁻¹ * φ (g n) + 2⁻¹ * φ (g m) - φ ((2 : ℝ)⁻¹ • (g n + g m)) < δ := by
   sorry
 
 lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E]
