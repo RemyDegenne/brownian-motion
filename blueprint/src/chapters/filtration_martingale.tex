@@ -130,7 +130,8 @@ Let then $A \in \mathcal{F}_i$.
 
 
 \begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
-  \notready
+  \leanok
+  \lean{MeasureTheory.conditional_jensen}
 Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
 Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \begin{align*}
@@ -157,19 +158,23 @@ Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
   \uses{def:Martingale, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.submartingale_convex_comp}
 Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
-Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+Let $\phi : E \rightarrow \mathbb{R}$ convex and continuous such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
   % See 1.4.12 Pascucci
   By the conditional Jensen inequality (Lemma~\ref{lem:conditional_jensen}),
   $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
@@ -186,18 +191,22 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 
 \begin{proof}
   \uses{cor:norm_condExp_le}
+  \leanok
 Same proof as Lemma~\ref{lem:Martingale.submartingale_convex_comp}, specialized to $\phi = \Vert \cdot \Vert$, for which we can use Corollary~\ref{cor:norm_condExp_le}.
 \end{proof}
 
 
 \begin{lemma}\label{lem:convex_of_submg_is_submg}
   \uses{def:Submartingale}
-Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
-Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_convex_comp}
+Let $X : T  \rightarrow \Omega \rightarrow E$ a sub-martingale.
+Let $\phi:E \rightarrow \mathbb{R}$ convex, continuous, and increasing such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   By Jensen and the fact that $\phi$ is increasing
   $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
 \end{proof}
