@@ -41,18 +41,19 @@ noncomputable section
 
 namespace ProbabilityTheory
 
-variable {ι Ω E F G : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-  [NormedAddCommGroup E] [NormedSpace ℝ E]
-  [NormedAddCommGroup F] [MeasurableSpace F]
-  [NormedAddCommGroup G] [NormedSpace ℝ G]
-  {𝓕 : Filtration ι mΩ}
+variable {ι Ω F : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
+variable [NormedAddCommGroup F] [MeasurableSpace F]
+-- These are needed for e.g. `ContinuousAdd.measurableMul₂` (which, by the way, has the wrong name).
+variable [NormedSpace ℝ F] [BorelSpace F] [SecondCountableTopology F]
+variable {𝓕 : Filtration ι mΩ}
 
 open scoped Function
 
 /-- A simple process. -/
 @[ext]
 structure SimpleProcess (ι F : Type*) [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
-    [NormedAddCommGroup F] [MeasurableSpace F] (𝓕 : Filtration ι mΩ) where
+    [NormedAddCommGroup F] [MeasurableSpace F] [NormedSpace ℝ F] [BorelSpace F]
+    [SecondCountableTopology F] (𝓕 : Filtration ι mΩ) where
   /-- The value on each interval. -/
   value : ι × ι →₀ Ω → F
   /-- The value at ⊥. -/
@@ -87,12 +88,6 @@ lemma measurable_value (V : SimpleProcess ι F 𝓕) (p : ι × ι) : Measurable
 namespace SimpleProcess
 
 section Module
-
--- These are needed for e.g. `ContinuousAdd.measurableMul₂` (which, by the way, has the wrong name).
--- Alternatively, for more generalized instances, we could just use `[Module ℝ F]`, with
--- `[MeasurableNeg F]`, `[MeasurableAdd₂ F]`, `[MeasurableSub₂ F]`, and/or
--- `[MeasurableConstSMul ℝ F]` directly.
-variable [NormedSpace ℝ F] [BorelSpace F] [SecondCountableTopology F]
 
 @[simps]
 instance instZero : Zero (SimpleProcess ι F 𝓕) where
@@ -151,20 +146,18 @@ instance instCoeFun : CoeFun (SimpleProcess ι F 𝓕) (fun _ ↦ ι → Ω → 
 
 @[simp] lemma coe_zero : ⇑(0 : SimpleProcess ι F 𝓕) = 0 := by ext; simp
 
-variable [BorelSpace F]
-
 @[simp] lemma coe_neg (V : SimpleProcess ι F 𝓕) : ⇑(-V) = -⇑V := by
   ext; simp [Set.indicator_neg, Finsupp.sum_neg_index]; abel
 
-@[simp] lemma coe_add [SecondCountableTopology F] (V W : SimpleProcess ι F 𝓕) :
+@[simp] lemma coe_add (V W : SimpleProcess ι F 𝓕) :
    ⇑(V + W) = ⇑V + ⇑W := by
   ext; simp [Set.indicator_add, Finsupp.sum_add_index]; abel
 
-@[simp] lemma coe_sub [SecondCountableTopology F] (V W : SimpleProcess ι F 𝓕) :
+@[simp] lemma coe_sub (V W : SimpleProcess ι F 𝓕) :
    ⇑(V - W) = ⇑V - ⇑W := by
   ext; simp [Set.indicator_sub, Finsupp.sum_sub_index]; abel
 
-@[simp] lemma coe_smul [NormedSpace ℝ F] (c : ℝ) (V : SimpleProcess ι F 𝓕) :
+@[simp] lemma coe_smul (c : ℝ) (V : SimpleProcess ι F 𝓕) :
    ⇑(c • V) = c • ⇑V := by
   ext; simp [Set.indicator_smul, Finsupp.sum_smul_index', Finsupp.smul_sum]
 
@@ -179,9 +172,8 @@ end Predictable
 
 section Integral
 
-variable {E F G : Type*}
+variable {E G : Type*}
 variable [NormedAddCommGroup E] [NormedSpace ℝ E]
-variable [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F]
 variable [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 /-- The elementary stochastic integral. -/
@@ -196,9 +188,10 @@ def integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimplePr
     integral B (fun _ ↦ 0) V = fun _ ↦ 0 := by
   ext; simp [integral]
 
-@[simp] lemma integral_zero_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E) :
-    integral B X (0 : SimpleProcess ι F 𝓕) = fun _ ↦ 0 := by
-  ext; simp [integral]
+@[simp] lemma integral_neg_left {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E)
+    (V : SimpleProcess ι F 𝓕) :
+    integral B (-X) V = -integral B X V := by
+  ext; simp [integral]; abel
 
 @[simp] lemma integral_add_left {B : E →L[ℝ] F →L[ℝ] G} (X Y : ι → Ω → E)
     (V : SimpleProcess ι F 𝓕) :
@@ -215,14 +208,21 @@ def integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimplePr
     integral B (c • X) V = c • integral B X V := by
   ext; simp [integral, Finsupp.smul_sum, smul_sub]
 
-variable [BorelSpace F]
+@[simp] lemma integral_zero_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E) :
+    integral B X (0 : SimpleProcess ι F 𝓕) = fun _ ↦ 0 := by
+  ext; simp [integral]
 
-@[simp] lemma integral_add_right [SecondCountableTopology F] {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E)
+@[simp] lemma integral_neg_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E)
+    (V : SimpleProcess ι F 𝓕) :
+    integral B X (-V) = -integral B X V := by
+  ext; simp [integral, Finsupp.sum_neg_index]; abel
+
+@[simp] lemma integral_add_right {B : E →L[ℝ] F →L[ℝ] G} (X : ι → Ω → E)
     (V W : SimpleProcess ι F 𝓕) :
     integral B X (V + W) = integral B X V + integral B X W := by
   ext; simp [integral, Finsupp.sum_add_index]; abel
 
-@[simp] lemma integral_sub_right [SecondCountableTopology F] {B : E →L[ℝ] F →L[ℝ] G}
+@[simp] lemma integral_sub_right {B : E →L[ℝ] F →L[ℝ] G}
     (X : ι → Ω → E) (V W : SimpleProcess ι F 𝓕) :
     integral B X (V - W) = integral B X V - integral B X W := by
   ext; simp [integral, Finsupp.sum_sub_index]; abel
