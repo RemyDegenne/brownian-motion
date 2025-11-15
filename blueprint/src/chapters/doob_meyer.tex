@@ -239,9 +239,11 @@ But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram id
 
 \paragraph{Komlòs lemma for nonnegative random variables}
 
-\begin{lemma}\label{lem:komlos_nonneg_L1}
+\begin{lemma}\label{lem:komlos_ennreal}
+  \leanok
+  \lean{komlos_ennreal}
 Let $(f_n)_{n\in\mathbb{N}}$ be a sequence of random variables with values in $[0, \infty]$.
-Then there exist functions $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges almost surely to a random variable $g$.
+Then there exist random variables $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges almost surely to a random variable $g$.
 \end{lemma}
 
 \begin{proof}

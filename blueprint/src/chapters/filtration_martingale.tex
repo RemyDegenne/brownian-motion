@@ -344,7 +344,7 @@ $$\mathcal{F}_{t+} =
 $$
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightLimitFiltration}
 This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
@@ -356,7 +356,7 @@ This follows from Definition~\ref{def:rightLimitFiltration} because the topology
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -368,7 +368,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. In a linear order with successor equipped with the order topology, every point is isolated on the right, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -380,7 +380,7 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the right for this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -392,7 +392,7 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated on the right in this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -404,7 +404,7 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -416,7 +416,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNeBot}
 Endow $T$ with the order topology. In a densely ordered linear order, a point which is not maximal is not isolated on the right, so we can conclude by Lemma~\ref{lem:rightContNeBot}.
 \end{proof}
@@ -428,7 +428,7 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNotIsMax}
 For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNotIsMax}.
 \end{proof}
@@ -440,7 +440,7 @@ For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNo
 The filtration $\mathcal{F}$ is contained in its right continuation.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:rightContDef}, we split into two cases. If $t$ is isolated on the right, then $\mathcal{F}_{t+} = \mathcal{F}_t \supseteq \mathcal{F}_t$ and we are done. Otherwise, for all $u > t$, $\mathcal{F}_t \subseteq \mathcal{F}_u$, therefore $\mathcal{F}_t \subseteq \bigsqcap_{u > t} \mathcal{F}_u$, and we are done.
 \end{proof}
@@ -452,7 +452,7 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:leRightCont, lem:rightContDef}
 Let $t \in T$. From Lemma~\ref{lem:leRightCont}, we already now that $\mathcal{F}_{t+} \subseteq \mathcal{F}_{t++}$. Endow $T$ with the order topology and split according to Lemma~\ref{lem:rightContDef}. If $t$ is isolated on the right, then $\mathcal{F}_{t++} = \mathcal{F}_{t+}$ and we are done. Otherwise consider $u > t$. Then there exists $v \in T$ such that $t < v < u$. If $v$ is not isolated on the right then
 $$\mathcal{F}_{t++} = \bigsqcap_{s > t} \mathcal{F}_{s+} \subseteq \mathcal{F}_{v+} = \bigsqcap_{s > v} \mathcal{F}_s \subseteq \mathcal{F}_u,$$
@@ -475,7 +475,7 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous, lem:leRightCont}
 This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\ref{lem:leRightCont}.
 \end{proof}
@@ -487,7 +487,7 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContSelf}
 This follows immediately from Lemma~\ref{lem:rightContSelf}.
 \end{proof}
@@ -499,7 +499,7 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous}
 This is a direct consequence of Definition~\ref{def:rightContinuous}.
 \end{proof}
