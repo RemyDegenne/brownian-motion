@@ -157,15 +157,23 @@ TODO: we are probably missing properties of stopped processes to make the follow
 \end{proof}
 
 
-\begin{lemma}\label{lem:submartingale_iff_integral_elemStochIntegral_nonneg}
-  \uses{def:elemStochIntegral, def:Submartingale}
-An adapted integrable process $X$ is a submartingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}_+$, $\mathbb{E}[(V \bullet X)_\infty] \ge 0$.
-
-TODO: $(V \bullet X)_t$ is constant for large $t$, so we can write $(V \bullet X)_\infty$ for that value. How to express that in Lean? Eventually for $t$ at top?
+\begin{lemma}\label{lem:tendsto_elemStochIntegral_limitProcess}
+  \uses{def:elemStochIntegral, def:limitProcess}
+For $V$ a simple process and $X$ a stochastic process, $(V \bullet X)_t$ tends to its limit process $(V \bullet X)_\infty$ as $t$ goes to infinity.
 \end{lemma}
 
 \begin{proof}
-  \uses{def:Submartingale}
+That process is eventually constant.
+\end{proof}
+
+
+\begin{lemma}\label{lem:submartingale_iff_integral_elemStochIntegral_nonneg}
+  \uses{def:elemStochIntegral, def:Submartingale, def:limitProcess}
+An adapted integrable process $X$ is a submartingale if and only if for every bounded simple process $V$ with values in $\mathbb{R}_+$, $\mathbb{E}[(V \bullet X)_\infty] \ge 0$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:Submartingale, lem:tendsto_elemStochIntegral_limitProcess}
 First suppose that $X$ is a submartingale.
 The simple process $V$ can be written as $V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)$ for nonnegative $\eta_k$. Then
 \begin{align*}
@@ -213,6 +221,7 @@ An adapted integrable process $X$ is a martingale if and only if for every bound
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:tendsto_elemStochIntegral_limitProcess, def:Martingale}
 There might not be an order on the type $E$ of values of $X$, so we cannot just say that $X$ is a martingale if and only if both $X$ and $-X$ are submartingales and conclude with Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg}.
 But we can use almost the same proof as in Lemma~\ref{lem:submartingale_iff_integral_elemStochIntegral_nonneg}, replacing inequalities by equalities?
 \end{proof}
