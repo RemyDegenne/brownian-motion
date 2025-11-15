@@ -127,9 +127,11 @@ Firstly we will need Komlos' Lemma.
 %(see "J. Komlòs, A generalization of a problem of Steinhaus, Acta Math. Acad. Sci. Hungar. 18 (1967) 217–229").
 
 \begin{lemma}\label{lem:komlos_convex}
-  Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a convex function such that $\phi(f_n)$ is a bounded sequence.
-  For $\delta > 0$, let $S_\delta = \{(f, g) \mid \phi(f)/2 + \phi(g)/2 - \phi((f+g)/2) \ge \delta\}$.
-  Then there exist $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for all $\delta > 0$, for $N$ large enough and $n, m \ge N$, $(g_n, g_m) \notin S_\delta$.
+  \leanok
+  \lean{komlos_convex}
+Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a convex function such that $\phi(f_n)$ is a bounded sequence.
+For $\delta > 0$, let $S_\delta = \{(f, g) \mid \phi(f)/2 + \phi(g)/2 - \phi((f+g)/2) \ge \delta\}$.
+Then there exist $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for all $\delta > 0$, for $N$ large enough and $n, m \ge N$, $(g_n, g_m) \notin S_\delta$.
 \end{lemma}
 
 \begin{proof}
@@ -158,7 +160,9 @@ Thus, for $n, m \ge \bar{n}$, $(g_n, g_m) \notin S_\delta$.
 
 
 \begin{lemma}\label{lem:komlos_aux}
-  Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
+  \leanok
+  \lean{komlos_norm}
+Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
 \end{lemma}
 
 \begin{proof}

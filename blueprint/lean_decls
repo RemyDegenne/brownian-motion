@@ -261,6 +261,8 @@ MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
+komlos_convex
+komlos_norm
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
