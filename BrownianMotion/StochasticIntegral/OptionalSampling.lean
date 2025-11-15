@@ -9,17 +9,18 @@ variable {Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {σ τ : Ω → WithTop ℕ} {X : ℕ → Ω → E} (𝓕 : Filtration ℕ mΩ)
 
-theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [IsOrderedModule ℝ E]
+theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
+    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
     (hX : Submartingale X 𝓕 P) {k : ℕ} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
     (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
   sorry
 
-theorem Supermartingale.condExp_ae_le_stoppedValue_min [PartialOrder E] [IsOrderedModule ℝ E]
-    [IsOrderedAddMonoid E]
+theorem Supermartingale.condExp_ae_le_stoppedValue_min [PartialOrder E] [OrderClosedTopology E]
+    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
     (hX : Supermartingale X 𝓕 P) {k : ℕ} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
     (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
-    P[stoppedValue X τ|hσ.measurableSpace] ≤ᵐ[P] stoppedValue X (τ ⊓ σ)  := by
+    P[stoppedValue X τ|hσ.measurableSpace] ≤ᵐ[P] stoppedValue X (τ ⊓ σ) := by
   sorry
 
 end MeasureTheory

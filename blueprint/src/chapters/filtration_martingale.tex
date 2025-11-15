@@ -611,8 +611,31 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \section{Optional sampling}
 
+\begin{definition}[Ordered Monoid]\label{def:isOrderedAddMonoid}
+  \mathlibok
+  \lean{IsOrderedAddMonoid}
+Let $(M, +)$ be a commutative monoid that is also a partial order. It is said to be an \emph{ordered monoid} if for all $a, b, c \in M$, we have the following implication:
+$$a \le b \implies a + c \le b + c.$$
+\end{definition}
+
+\begin{definition}[Ordered Module]\label{def:isOrderedModule}
+  \mathlibok
+  \lean{IsOrderedModule}
+Let $\alpha, \beta$ be preorders with $0$ elements and such that there is a scalar multiplication $(\_ \cdot \_) : \alpha \times \beta \to \beta$. Then $\beta$ is said to be an \emph{ordered $\alpha$-module} (or \emph{ordered module} if $\alpha$ is clear from the context) if the following hold:
+\begin{itemize}
+  \item $\forall a \in \alpha, \forall b_1, b_2 \in \beta, 0 \le a \implies b_1 \le b_2 \implies a \cdot b_1 \le a \cdot b_2$;
+  \item $\forall a_1, a_2 \in \alpha, \forall b \in \beta, 0 \le b \implies a_1 \le a_2 \implies a_1 \cdot b \le a_2 \cdot b$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Order-closed topology]\label{def:orderClosedTopology}
+  \mathlibok
+  \lean{OrderClosedTopology}
+Let $X$ be a topological space that is also a preorder. The space $X$ is set to be \emph{order-closed}, or to have \emph{order-closed topology}, if the set $\{(x, y) \in X \times X \mid x \le y\}$ is closed.
+\end{definition}
+
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
-  \uses{def:Martingale, def:IsStoppingTime}
+  \uses{def:def:Martingale, def:IsStoppingTime}
   \mathlibok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp}
   Let $X$ be a discrete time martingale with respect to the filtration $\mathcal{F}$ and let
@@ -625,12 +648,10 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 \end{proof}
 
 \begin{lemma}\label{lem:optionalSampling_discrete_submartingale}
-  \uses{def:Submartingale, def:IsStoppingTime}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is a partial order  Let
-  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
-  $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
 \begin{proof}
@@ -641,12 +662,10 @@ concluding the proof.
 \end{proof}
 
 \begin{lemma}\label{lem:optionalSampling_discrete_supermartingale}
-  \uses{def:Submartingale, def:IsStoppingTime}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min}
-  Let $X$ be a discrete time supermartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space which is also a partially ordered module and an ordered monoid. Let
-  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
-  $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
 \begin{proof}
