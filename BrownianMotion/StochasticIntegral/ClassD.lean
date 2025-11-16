@@ -70,6 +70,9 @@ lemma Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
 lemma Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
     ClassD 𝓕 X P ↔ UniformIntegrable X 1 P := sorry
 
+lemma isStable_classD : IsStable 𝓕 (ClassD (E := E) 𝓕 · P) := by
+  sorry
+
 end Classes
 
 end ProbabilityTheory
