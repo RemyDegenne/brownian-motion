@@ -16,7 +16,7 @@ open Filter MeasureTheory
 open scoped Topology NNReal ENNReal
 
 lemma komlos_convex [AddCommGroup E] [Module ℝ E]
-  {f : ℕ → E} {φ : E → ℝ} (hφ_nonneg : 0 ≤ φ) (_hφ_convex : ConvexOn ℝ Set.univ φ)
+  {f : ℕ → E} {φ : E → ℝ} (hφ_nonneg : 0 ≤ φ)
   (hφ_bdd : ∃ M : ℝ, ∀ n, φ (f n) ≤ M) :
   ∃ g : ℕ → E, (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
     ∀ δ > 0, ∃ N, ∀ n m, N ≤ n → N ≤ m →
