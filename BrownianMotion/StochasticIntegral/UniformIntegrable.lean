@@ -110,7 +110,7 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
 lemma Martingale.integrable_stoppedValue_of_countable_range
     {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
-    {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range <| τ).Countable) :
+    {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
     Integrable (stoppedValue X τ) μ := by
   rw [← memLp_one_iff_integrable]
   exact (hX.uniformIntegrable_stoppedValue_of_countable_range (fun _ ↦ τ)
