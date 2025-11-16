@@ -94,46 +94,85 @@ noncomputable def rightCont [PartialOrder ι] (𝓕 : Filtration ι m) : Filtrat
 open scoped Classical in
 lemma rightCont_def [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     (𝓕 : Filtration ι m) (i : ι) :
-    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := sorry
+    𝓕₊ i = if (𝓝[>] i).NeBot then ⨅ j > i, 𝓕 j else 𝓕 i := by
+  simp only [rightCont, OrderTopology.topology_eq_generate_intervals]
 
 lemma rightCont_eq_of_nhdsGT_eq_bot [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     (𝓕 : Filtration ι m) {i : ι} (hi : 𝓝[>] i = ⊥) :
-    𝓕₊ i = 𝓕 i := sorry
+    𝓕₊ i = 𝓕 i := by
+  rw [rightCont_def, hi, neBot_iff, ne_self_iff_false, if_false]
 
 /-- If the index type is a `SuccOrder`, then `𝓕₊ = 𝓕`. -/
 lemma rightCont_eq_self [LinearOrder ι] [SuccOrder ι] (𝓕 : Filtration ι m) :
-    𝓕₊ = 𝓕 := sorry
+    𝓕₊ = 𝓕 := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  ext _
+  rw [rightCont_eq_of_nhdsGT_eq_bot _ SuccOrder.nhdsGT]
 
 lemma rightCont_eq_of_isMax [PartialOrder ι] (𝓕 : Filtration ι m) {i : ι} (hi : IsMax i) :
-    𝓕₊ i = 𝓕 i := sorry
+    𝓕₊ i = 𝓕 i := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  exact rightCont_eq_of_nhdsGT_eq_bot _ (hi.Ioi_eq ▸ nhdsWithin_empty i)
 
 lemma rightCont_eq_of_exists_gt [LinearOrder ι] (𝓕 : Filtration ι m) {i : ι}
     (hi : ∃ j > i, Set.Ioo i j = ∅) :
-    𝓕₊ i = 𝓕 i := sorry
+    𝓕₊ i = 𝓕 i := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  obtain ⟨j, hij, hIoo⟩ := hi
+  have hcov : i ⋖ j := covBy_iff_Ioo_eq.mpr ⟨hij, hIoo⟩
+  exact rightCont_eq_of_nhdsGT_eq_bot _ <| CovBy.nhdsGT hcov
 
 /-- If `i` is not isolated on the right, then `𝓕₊ i = ⨅ j > i, 𝓕 j`. This is for instance the case
 when `ι` is a densely ordered linear order with no maximal elements and equipped with the order
 topology, see `rightCont_eq`. -/
 lemma rightCont_eq_of_neBot_nhdsGT [PartialOrder ι] [TopologicalSpace ι] [OrderTopology ι]
     (𝓕 : Filtration ι m) (i : ι) [(𝓝[>] i).NeBot] :
-    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+    𝓕₊ i = ⨅ j > i, 𝓕 j := by
+  rw [rightCont_def, if_pos ‹(𝓝[>] i).NeBot›]
 
 lemma rightCont_eq_of_not_isMax [LinearOrder ι] [DenselyOrdered ι]
     (𝓕 : Filtration ι m) {i : ι} (hi : ¬IsMax i) :
-    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+    𝓕₊ i = ⨅ j > i, 𝓕 j := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  have : (𝓝[>] i).NeBot := nhdsGT_neBot_of_exists_gt (not_isMax_iff.mp hi)
+  exact rightCont_eq_of_neBot_nhdsGT _ _
 
 /-- If `ι` is a densely ordered linear order with no maximal elements, then no point is isolated
 on the right, so that `𝓕₊ i = ⨅ j > i, 𝓕 j` holds for all `i`. This is in particular the
 case when `ι := ℝ≥0`. -/
 lemma rightCont_eq [LinearOrder ι] [DenselyOrdered ι] [NoMaxOrder ι]
     (𝓕 : Filtration ι m) (i : ι) :
-    𝓕₊ i = ⨅ j > i, 𝓕 j := sorry
+    𝓕₊ i = ⨅ j > i, 𝓕 j := 𝓕.rightCont_eq_of_not_isMax (not_isMax i)
 
 variable [PartialOrder ι]
 
-lemma le_rightCont (𝓕 : Filtration ι m) : 𝓕 ≤ 𝓕₊ := sorry
+lemma le_rightCont (𝓕 : Filtration ι m) : 𝓕 ≤ 𝓕₊ := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  intro i
+  by_cases hne : (𝓝[>] i).NeBot
+  · rw [rightCont_eq_of_neBot_nhdsGT]
+    exact le_iInf₂ fun _ he => 𝓕.mono he.le
+  · rw [rightCont_def, if_neg hne]
 
-lemma rightCont_self (𝓕 : Filtration ι m) : 𝓕₊₊ = 𝓕₊ := sorry
+lemma rightCont_self (𝓕 : Filtration ι m) : 𝓕₊₊ = 𝓕₊ := by
+  letI := Preorder.topology ι; haveI : OrderTopology ι := ⟨rfl⟩
+  apply le_antisymm _ 𝓕₊.le_rightCont
+  intro i
+  by_cases hne : (𝓝[>] i).NeBot
+  · have hineq : (⨅ j > i, 𝓕₊ j) ≤ ⨅ j > i, 𝓕 j := by
+      apply le_iInf₂ fun u hu => ?_
+      have hiou : Set.Ioo i u ∈ 𝓝[>] i := by
+        rw [mem_nhdsWithin_iff_exists_mem_nhds_inter]
+        exact ⟨Set.Iio u, (isOpen_Iio' u).mem_nhds hu, fun _ hx ↦ ⟨hx.2, hx.1⟩⟩
+      obtain ⟨v, hv⟩ := hne.nonempty_of_mem hiou
+      have hle₁ : (⨅ j > i, 𝓕₊ j) ≤ 𝓕₊ v := iInf₂_le_of_le v hv.1 le_rfl
+      have hle₂ : 𝓕₊ v ≤ 𝓕 u := by
+        by_cases hnv : (𝓝[>] v).NeBot
+        · simpa [rightCont_eq_of_neBot_nhdsGT] using iInf₂_le_of_le u hv.2 le_rfl
+        · simpa [rightCont_def, hnv] using 𝓕.mono hv.2.le
+      exact hle₁.trans hle₂
+    simpa [rightCont_eq_of_neBot_nhdsGT] using hineq
+  · rw [rightCont_def, if_neg hne]
 
 /-- A filtration `𝓕` is right continuous if it is equal to its right continuation `𝓕₊`. -/
 class IsRightContinuous (𝓕 : Filtration ι m) where
@@ -141,13 +180,14 @@ class IsRightContinuous (𝓕 : Filtration ι m) where
     RC : 𝓕₊ ≤ 𝓕
 
 lemma IsRightContinuous.eq {𝓕 : Filtration ι m} [h : IsRightContinuous 𝓕] :
-    𝓕 = 𝓕₊ := sorry
+    𝓕 = 𝓕₊ := le_antisymm 𝓕.le_rightCont h.RC
 
-lemma isRightContinuous_rightCont (𝓕 : Filtration ι m) : 𝓕₊.IsRightContinuous := sorry
+lemma isRightContinuous_rightCont (𝓕 : Filtration ι m) : 𝓕₊.IsRightContinuous :=
+  ⟨(rightCont_self 𝓕).le⟩
 
 lemma IsRightContinuous.measurableSet {𝓕 : Filtration ι m} [IsRightContinuous 𝓕] {i : ι}
     {s : Set Ω} (hs : MeasurableSet[𝓕₊ i] s) :
-    MeasurableSet[𝓕 i] s := sorry
+    MeasurableSet[𝓕 i] s := IsRightContinuous.eq (𝓕 := 𝓕) ▸ hs
 
 /-- A filtration `𝓕` is said to satisfy the usual conditions if it is right continuous and `𝓕 0`
   and consequently `𝓕 t` is complete (i.e. contains all null sets) for all `t`. -/

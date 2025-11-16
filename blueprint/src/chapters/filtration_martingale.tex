@@ -130,7 +130,8 @@ Let then $A \in \mathcal{F}_i$.
 
 
 \begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
-  \notready
+  \leanok
+  \lean{MeasureTheory.conditional_jensen}
 Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
 Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \begin{align*}
@@ -157,19 +158,23 @@ Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
   \uses{def:Martingale, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.submartingale_convex_comp}
 Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
-Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+Let $\phi : E \rightarrow \mathbb{R}$ convex and continuous such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
   % See 1.4.12 Pascucci
   By the conditional Jensen inequality (Lemma~\ref{lem:conditional_jensen}),
   $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
@@ -186,18 +191,22 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 
 \begin{proof}
   \uses{cor:norm_condExp_le}
+  \leanok
 Same proof as Lemma~\ref{lem:Martingale.submartingale_convex_comp}, specialized to $\phi = \Vert \cdot \Vert$, for which we can use Corollary~\ref{cor:norm_condExp_le}.
 \end{proof}
 
 
 \begin{lemma}\label{lem:convex_of_submg_is_submg}
   \uses{def:Submartingale}
-Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
-Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_convex_comp}
+Let $X : T  \rightarrow \Omega \rightarrow E$ a sub-martingale.
+Let $\phi:E \rightarrow \mathbb{R}$ convex, continuous, and increasing such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   By Jensen and the fact that $\phi$ is increasing
   $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
 \end{proof}
@@ -344,7 +353,7 @@ $$\mathcal{F}_{t+} =
 $$
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightLimitFiltration}
 This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
@@ -356,7 +365,7 @@ This follows from Definition~\ref{def:rightLimitFiltration} because the topology
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -368,7 +377,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. In a linear order with successor equipped with the order topology, every point is isolated on the right, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -380,7 +389,7 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the right for this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -392,7 +401,7 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated on the right in this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -404,7 +413,7 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -416,7 +425,7 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNeBot}
 Endow $T$ with the order topology. In a densely ordered linear order, a point which is not maximal is not isolated on the right, so we can conclude by Lemma~\ref{lem:rightContNeBot}.
 \end{proof}
@@ -428,9 +437,9 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNotIsMax}
-For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNotIsMax}.
+For all $t$, $t$ is not maximal, so we can conclude by Lemma~\ref{lem:rightContNotIsMax}.
 \end{proof}
 
 \begin{lemma}\label{lem:leRightCont}
@@ -440,7 +449,7 @@ For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNo
 The filtration $\mathcal{F}$ is contained in its right continuation.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:rightContDef}, we split into two cases. If $t$ is isolated on the right, then $\mathcal{F}_{t+} = \mathcal{F}_t \supseteq \mathcal{F}_t$ and we are done. Otherwise, for all $u > t$, $\mathcal{F}_t \subseteq \mathcal{F}_u$, therefore $\mathcal{F}_t \subseteq \bigsqcap_{u > t} \mathcal{F}_u$, and we are done.
 \end{proof}
@@ -452,7 +461,7 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:leRightCont, lem:rightContDef}
 Let $t \in T$. From Lemma~\ref{lem:leRightCont}, we already now that $\mathcal{F}_{t+} \subseteq \mathcal{F}_{t++}$. Endow $T$ with the order topology and split according to Lemma~\ref{lem:rightContDef}. If $t$ is isolated on the right, then $\mathcal{F}_{t++} = \mathcal{F}_{t+}$ and we are done. Otherwise consider $u > t$. Then there exists $v \in T$ such that $t < v < u$. If $v$ is not isolated on the right then
 $$\mathcal{F}_{t++} = \bigsqcap_{s > t} \mathcal{F}_{s+} \subseteq \mathcal{F}_{v+} = \bigsqcap_{s > v} \mathcal{F}_s \subseteq \mathcal{F}_u,$$
@@ -475,7 +484,7 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous, lem:leRightCont}
 This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\ref{lem:leRightCont}.
 \end{proof}
@@ -487,7 +496,7 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContSelf}
 This follows immediately from Lemma~\ref{lem:rightContSelf}.
 \end{proof}
@@ -499,7 +508,7 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous}
 This is a direct consequence of Definition~\ref{def:rightContinuous}.
 \end{proof}
@@ -628,12 +637,12 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 \begin{lemma}\label{lem:conExpUI}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.condExp'}
-  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable (pUI) functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
-  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is pUI.
+  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
+  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}\leanok
-  Since $(X_i)_{i \in \iota}$ is pUI, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
+  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
   there exists some \(\delta > 0\) such that
   for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
 
@@ -649,7 +658,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
     & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
     & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
   \end{align*}
-  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is pUI.
+  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
 \end{proof}
 
 
@@ -705,6 +714,66 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 
 \end{proof}
 
+\begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
+  \uses{def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.DiscreteApproxSequence}
+  Given a stopping time \(\tau : \Omega \to T \cup \{\infty\}\), a sequence of stopping times \((\tau_n)_{n \in \mathbb{N}}\) is called an
+  discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
+\end{definition}
+
+\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
+  Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
+  \[\lim_{n \to \infty} X_{\tau_n} = X_\tau \text{ a.s.}\]
+\end{lemma}
+
+\begin{proof}
+  This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
+\end{proof}
+
+\begin{lemma}\label{lem:discreteApproxSequence_of}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.discreteApproxSequence_of}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, the sequence of stopping times \(\tau_n \wedge t\) is also a discrete approximation sequence of \(\tau\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:discreteApproxSequence_of, lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \leanok
+  Follows directly by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range} and Lemma~\ref{lem:discreteApproxSequence_of}.
+\end{proof}
+
+\begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any right continuous martingale \(X\), \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:tendsto_stoppedValue_discreteApproxSequence, lem:memLp_of_tendstoInMeasure, lem:vitali, lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  By Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}, as \(X\) is right continuous we have that \(X_{\tau_n \wedge t} \to X_{\tau}\) a.s. and so,
+  also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is uniformly integrable.
+  Thus, by Lemma~\ref{lem:memLp_of_tendstoInMeasure} and the Vitali convergence theorem (Lemma~\ref{lem:vitali}), it
+  follows that \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -721,7 +790,6 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
-
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
@@ -730,7 +798,8 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:vitali, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale}
+  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
@@ -743,7 +812,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
-  by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
 
