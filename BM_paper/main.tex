@@ -59,7 +59,7 @@
 
 
 \begin{abstract}
-Brownian motion is a building block in modern probability theory. In this paper, we describe a formalization of Brownian motion using the Lean theorem prover. We build on the existing measure-theoretic foundations in Lean's mathematical library, Mathlib, and we develop several key components needed for the construction of Brownian motion, including the Carathéodory and Kolmogorov extension theorems, Gaussian measures in Banach spaces, and the Kolmogorov-Chentsov theorem for path continuity.
+Brownian motion is a building block in modern probability theory. In this paper, we describe a formalization of Brownian motion using the \Lean theorem prover. We build on the existing measure-theoretic foundations in Lean's mathematical library, Mathlib, and we develop several key components needed for the construction of Brownian motion, including the Carathéodory and Kolmogorov extension theorems, Gaussian measures in Banach spaces, and the Kolmogorov-Chentsov theorem for path continuity.
 \end{abstract}
 
 \begin{document}
@@ -83,27 +83,36 @@ Brownian motion is a building block in modern probability theory. In this paper,
 \section{Introduction}
 
 \subsection{Mathematical background}
-\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian Motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
+\sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
-Let us briefly describe Brownian motion $X = (X_t)_{t\geq 0}$. There are several interesting features (considering the one-dimensional version and $X_0=0$):
+The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
+\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
+A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
+\end{definition}
+Note that it is a highly non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
+and proving it satisfies these properties. Here are some other interesting facts about Brownian motion which we have formalized:
 \begin{itemize}
-\item it has a normal distribution at all times; more precisely, for any $t_1,...,t_n > 0$, we have that $(X_{t_1},...,X_{t_n})$ has a multivariate normal distribution, with mean $\mathbf E[X_{t_i}] = 0$ and covariance $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$, the minimum of $t_i$ and $t_j$ (in particular, $X$ is a Gaussian process);
-\item its states after time $t$ are independent of states before $t$ given $X_t$, or $\mathbb P(X_{t+s} \in . | (X_r)_{r\leq t}) = \mathbb P(X_{t+s} \in . | X_t)$ for $s,t \ge 0$, i.e.\ Brownian Motion is a Markov process;
-\item it has independent increments, which only depend on the evolved time, i.e.\ $X_s$ and $X_t - X_s$ are independent, and $X_t - X_s$ is a function of $t-s$, i.e.\ it is a Lévy process;
-\item it describes a fair game (usually denoted a martingale), i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; interestingly, it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are martingales;
-\item it has continuous paths (almost surely); more precisely, it has Hölder-continuous paths for any coefficient $\beta < \tfrac 12$; its paths are also nowhere differentiable, almost surely.
+\item $X_t$ has almost surely Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
+\item For any $t_0 \in \R_+$, the process $X_{t_0 + t} - X_{t_0}$ is a Brownian motion independent of ${(X_t)}_{t \leq t_0}$. In particular $X_t$ satisfies the weak Markov property.
+\item For $c > 0$, the process $X_{ct}/\sqrt{c}$ is a Brownian motion.
+\item $tX_{1/t}$ is a Brownian motion
+\item $X_t/t$ tends to $0$ almost surely as $t$ tends to infinity.
+\end{itemize}
+And here are some which we leave for future work:
+\begin{itemize}
+\item $X_t$ is almost surely nowhere differentiable.
+\item For every almost surely finite stopping time $T$, the process $X_{T + t} - X_{T}$ is a Brownian motion independent of $\mathcal{F}_T$ (the $\sigma$-field of events determined by time $T$). In particular $X_t$ satisfies the strong Markov property.
+\item Brownian motion is a martingale, i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; moreover it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are both martingales.
 \end{itemize}
 
-The goal of the present paper is to describe a formalization of Brownian Motion using Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}.
-That library has a solid foundation in measure theory, but at the start of the project it lacked other tools we needed like multivariate Gaussian distributions.
-Starting from what was available in \mathlib, we arrived at a fully formalized Brownian motion on $\mathbb{R}_+$ by following these steps:
+At the start of the project, \mathlib had a solid foundation in measure theory but lacked other tools we needed like multivariate Gaussian distributions. Starting from what was available, we arrived at a fully formalized construction of Brownian motion on $\mathbb{R}_+$ by following these steps:
 \begin{itemize}
 \item {\em The Carathéodory and Kolmogorov Extension Theorems.} Constructing a probability measure on an uncountable infinite product (i.e.\ the distribution of a stochastic process) is not straightforward, since the corresponding product of $\sigma$-algebras is too large.
 Rather, one uses the $\sigma$-algebra defined by all finite (or countably infinite) projections, and constructs a probability measure by extension from all finite dimensional possibilities, which is the content of the Kolmogorov Extension Theorem. This result is in fact an application of a more general result, the Carathéodory Extension Theorem. In this step, we need that the family of finite dimensional distributions has a consistency property (i.e.\ it forms a projective family).
 \item {\em Gaussian Measures and characteristic functions.} Defining a one-dimensional normal distribution is straight-forward using its density with respect to Lebesgue measure, and concrete calculations are often possible using the density. In the multi-dimensional case, which we have to work with extensively, it is often much more convenient to use characteristic functions, which are known to characterize probability measures uniquely.
-In particular, they can be used to show that linear maps (e.g.\ projections) of Gaussian measures are Gaussian. This approach is fundamental to show that the finite dimensional distributions of the Brownian Motion indeed form a projective family.
+In particular, they can be used to show that linear maps (e.g.\ projections) of Gaussian measures are Gaussian. This approach is fundamental to show that the finite dimensional distributions of the Brownian motion indeed form a projective family.
 \item {\em The Kolmogorov-Chentsov Theorem.} We are aiming for a stochastic process with continuous paths. The classical Kolmogorov Chentsov theorem gives a criterion in terms of some moment bounds if the set of times is a subset of $\mathbb R^d$; see e.g.\ \cite{kallenberg2021}. Here, we use a modern version for existence of a modification of a stochastic process with continuous paths, based on a more general set of times \cite{kratschmer2023kolmogorov}.
-\item {\em Construction of a Brownian motion and Wiener measure on $\R_+$.} Putting all of the above together gives a continuous Gaussian stochastic process with the correct distribution, i.e.\ Brownian Motion.
+\item {\em Construction of a Brownian motion and Wiener measure on $\R_+$.} Putting all of the above together gives a continuous Gaussian stochastic process with the correct distribution, i.e.\ Brownian motion.
 We show important properties of Brownian motion, such as the independent increments property.
 From this process, we can also define a probability measure on (the Polish space) of continuous functions $\mathbb R_+ \to \mathbb R$. This is usually called the Wiener measure.
 \end{itemize}
@@ -111,8 +120,6 @@ From this process, we can also define a probability measure on (the Polish space
 It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths).
 Our formalization led to the addition to \mathlib of new definitions and results that allow to manipulate random variables directly, without having to perform operations on their distributions all the time.
 %We account for this duality in our code by introducing in the assumptions that a certain law is required\todorm{I don't understand that last sentence}.
-
-
 
 \subsection{Related work}
 Stochastic processes have been formalized in several theorem provers.
@@ -176,7 +183,7 @@ We are going to formulate the main result in a modern fashion, as e.g.\ found in
 
 \subsection{Gaussian Measures and characteristic functions}
 \label{ss:char}
-Our goal in this subsection is to define the finite-dimensional distributions of Brownian Motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
+Our goal in this subsection is to define the finite-dimensional distributions of Brownian motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
 
 For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (\docs{MeasureTheory.Measure.ext_of_charFun}).
 For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$.
@@ -217,13 +224,13 @@ We will use a more general version of this statement, replacing $T = [0,1]$ by a
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 
-In order to finally construct Brownian Motion, we need to put everything together.
+In order to finally construct Brownian motion, we need to put everything together.
 We have constructed a projective family of finite-dimensional distributions given by $N(0,C_t)$ for $t = (t_1,...,t_n)$ with $(C_t)_{ij} = t_i \wedge t_j$.
 We can then invoke the Kolmogorov extension theorem to obtain a probability measure on $\mathbb{R}^{\mathbb{R}_+}$ and define a stochastic process $X = (X_t)_{t\geq 0}$ with that distribution.
 Finally, the assumption in the Kolmogorov-Chentsov Theorem can be verified by computing moments of Gaussian distributions.
 For example,
 \[ \mathbf E[|X_t - X_s|^4] = \mathbf E[X_{t-s}^4] = (t-s)^2 \mathbf E[X_{1}^4] < \infty.\]
-So, we obtain from that theorem a process with continuous paths and the correct finite dimensional distributions, which we call Brownian Motion.
+So, we obtain from that theorem a process with continuous paths and the correct finite dimensional distributions, which we call Brownian motion.
 This also gives a distribution on the continuous functions $\mathcal C(\mathbb R_+, \mathbb R)$, which is the Wiener measure.
 
 
