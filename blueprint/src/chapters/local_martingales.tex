@@ -293,6 +293,8 @@ A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t
 
 \begin{definition}[Doob-Meyer class, class D]\label{def:classD}
   \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.ClassD}
 A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
 \end{definition}
 
@@ -305,6 +307,8 @@ A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 
 
 \begin{lemma}\label{lem:Submartingale.classDL}
   \uses{def:Submartingale, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.ClassDL}
 Every positive cadlag submartingale is of class DL.
 \end{lemma}
 

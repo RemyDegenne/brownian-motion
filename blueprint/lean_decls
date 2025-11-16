@@ -171,8 +171,11 @@ MeasureTheory.Submartingale.condExp_sub_nonneg
 MeasureTheory.Submartingale.integrable_stoppedValue
 MeasureTheory.Martingale.congr
 MeasureTheory.Submartingale.congr
+MeasureTheory.conditional_jensen
 MeasureTheory.norm_condExp_le
+MeasureTheory.Martingale.submartingale_convex_comp
 MeasureTheory.Martingale.submartingale_norm
+MeasureTheory.Submartingale.monotone_convex_comp
 MeasureTheory.IsStoppingTime
 MeasureTheory.IsStoppingTime.measurableSpace
 MeasureTheory.IsStoppingTime.measurableSpace_mono
@@ -240,6 +243,8 @@ ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
 ProbabilityTheory.HasLocallyIntegrableSup
+ProbabilityTheory.ClassD
+ProbabilityTheory.ClassDL
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable
 ProbabilityTheory.SimpleProcess.instAddCommGroup
@@ -261,6 +266,9 @@ MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
+komlos_convex
+komlos_norm
+komlos_ennreal
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
