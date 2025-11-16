@@ -27,12 +27,12 @@ theorem Martingale.condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_count
     (h.integrable_stoppedValue_of_countable_range τ hτ hτ_le hτ_countable_range)
     (hτ.measurableSet_stopping_time_le hσ)).symm.trans ?_
   have h_int :
-      Integrable ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι => X n) τ)) μ :=
+      Integrable ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι ↦ X n) τ)) μ :=
     Integrable.indicator
       (h.integrable_stoppedValue_of_countable_range τ hτ hτ_le hτ_countable_range)
       <| hτ.measurableSpace_le _ (hτ.measurableSet_le_stopping_time hσ)
   have h_meas : AEStronglyMeasurable[hσ.measurableSpace]
-      ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι => X n) τ)) μ := by
+      ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι ↦ X n) τ)) μ := by
     refine StronglyMeasurable.aestronglyMeasurable ?_
     refine StronglyMeasurable.stronglyMeasurable_of_measurableSpace_le_on
       (hτ.measurableSet_le_stopping_time hσ) ?_ ?_ ?_
@@ -50,10 +50,10 @@ theorem Martingale.stoppedValue_min_ae_eq_condExp_of_countable_range
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (hτ_countable_range : (Set.range τ).Countable) (hσ_countable_range : (Set.range σ).Countable) :
-    (stoppedValue X fun x => min (σ x) (τ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
+    (stoppedValue X fun x ↦ min (σ x) (τ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
   refine
     (h.stoppedValue_ae_eq_condExp_of_le_of_countable_range hτ
-      (hσ.min hτ) (fun x => min_le_right _ _) hτ_le hτ_countable_range ?_).trans ?_
+      (hσ.min hτ) (fun x ↦ min_le_right _ _) hτ_le hτ_countable_range ?_).trans ?_
   · exact (hτ_countable_range.union hσ_countable_range).mono <| by grind
   refine ae_of_ae_restrict_of_ae_restrict_compl {x | σ x ≤ τ x} ?_ ?_
   · exact condExp_min_stopping_time_ae_eq_restrict_le hσ hτ
@@ -82,68 +82,63 @@ theorem Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
     [SigmaFiniteFiltration μ 𝓕] (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ) :
-    (stoppedValue X fun x => min (σ x) (τ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
-  set τn' := discreteApproxSequence_of 𝓕 hτ_le τn
-  have hint (m : ℕ) : stoppedValue X (τn' m) =ᵐ[μ] μ[X n|(τn'.isStoppingTime m).measurableSpace] :=
-    h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range (τn'.isStoppingTime m)
-      (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (τn'.countable m)
+    (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
+  set τn' := (discreteApproxSequence_of 𝓕 hτ_le τn).inf σn
+  have hint (m : ℕ) : stoppedValue X (τn' m) =ᵐ[μ]
+      μ[stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m) |
+        (σn.isStoppingTime m).measurableSpace] := by
+    refine EventuallyEq.trans (Eq.eventuallyEq ?_)
+      (h.stoppedValue_min_ae_eq_condExp_of_countable_range hRC
+        ((discreteApproxSequence_of 𝓕 hτ_le τn).isStoppingTime m)
+        (σn.isStoppingTime m) (discreteApproxSequence_of_le hτ_le τn m)
+        (DiscreteApproxSequence.countable _ _) (σn.countable m))
+    · congr 1; ext ω; rw [min_comm]; rfl
   have hintgbl : Integrable (stoppedValue X τ) μ :=
     integrable_stoppedValue_of_discreteApproxSequence' h hRC hτ_le τn
   refine ae_eq_condExp_of_forall_setIntegral_eq _ hintgbl ?_ ?_
     ((measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
-      (hσ.min hτ)).mono ((hσ.min hτ).measurableSpace_mono hσ <| fun ω ↦ min_le_left _ _)
+      (hτ.min hσ)).mono ((hτ.min hσ).measurableSpace_mono hσ <| fun ω ↦ min_le_right _ _)
       le_rfl).aestronglyMeasurable
   · exact fun s hs _ ↦ (integrable_stoppedValue_of_discreteApproxSequence' h hRC
-      (fun _ ↦ min_le_of_right_le <| hτ_le _) <| σn.inf τn).integrableOn
-  sorry
-  -- rintro s hs -
-  -- have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) = fun m ↦ ∫ ω in s, X n ω ∂μ := by
-  --   ext m
-  --   rw [← setIntegral_condExp (τn'.isStoppingTime m).measurableSpace_le (h.integrable _)
-  --     (hτ.measurableSpace_mono (τn'.isStoppingTime m) (τn'.le m) _ hs)]
-  --   refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
-  --   filter_upwards [hint m] with ω hω _ using hω
-  -- rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
-  -- refine tendsto_setIntegral_of_L1' _ hintgbl ?_
-  --   (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn) _
-  -- rw [eventually_atTop]
-  -- refine ⟨0, fun m _ ↦ ?_⟩
-  -- rw [integrable_congr (hint m)]
-  -- exact integrable_condExp
+      (fun _ ↦ min_le_of_left_le <| hτ_le _) <| τn.inf σn).integrableOn
+  rintro s hs -
+  have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) =
+    fun m ↦ ∫ ω in s, stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m) ω ∂μ := by
+    ext m
+    rw [setIntegral_congr_ae (g := μ[stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m) |
+        (σn.isStoppingTime m).measurableSpace]) (hσ.measurableSpace_le _ hs)
+        (by filter_upwards [hint m] with ω hω _ using hω)]
+    exact setIntegral_condExp _
+      (h.integrable_stoppedValue_of_countable_range _
+        (DiscreteApproxSequence.isStoppingTime _ _) (discreteApproxSequence_of_le hτ_le τn m)
+        (DiscreteApproxSequence.countable _ m))
+      (hσ.measurableSpace_mono (σn.isStoppingTime m) (σn.le m) _ hs)
+  refine tendsto_nhds_unique (f := (fun m ↦ ∫ (ω : Ω) in s, stoppedValue X (τn' m) ω ∂μ))
+    (l := atTop) ?_ (this ▸ ?_)
+  · refine tendsto_setIntegral_of_L1' _ (integrable_stoppedValue_of_discreteApproxSequence' h hRC
+        (fun _ ↦ min_le_of_left_le <| hτ_le _) τn') ?_
+      (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le h hRC τn'
+        (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le)) _
+    rw [eventually_atTop]
+    exact ⟨0, fun m _ ↦ (h.integrable_stoppedValue_of_countable_range _
+      (DiscreteApproxSequence.isStoppingTime _ _)
+      (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le m)
+      (DiscreteApproxSequence.countable _ m))⟩
+  · refine tendsto_setIntegral_of_L1' _ hintgbl ?_
+      (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn) _
+    rw [eventually_atTop]
+    exact ⟨0, fun m _ ↦ (h.integrable_stoppedValue_of_countable_range _
+        (DiscreteApproxSequence.isStoppingTime _ _) (discreteApproxSequence_of_le hτ_le τn m)
+        (DiscreteApproxSequence.countable _ m))⟩
 
 theorem Martingale.stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     stoppedValue X τ =ᵐ[μ] μ[X n|hτ.measurableSpace] := by
-  set τn' := discreteApproxSequence_of 𝓕 hτ_le τn
-  have hint (m : ℕ) : stoppedValue X (τn' m) =ᵐ[μ] μ[X n|(τn'.isStoppingTime m).measurableSpace] :=
-    h.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range (τn'.isStoppingTime m)
-      (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (τn'.countable m)
-  have hintgbl : Integrable (stoppedValue X τ) μ :=
-    UniformIntegrable.integrable_of_tendstoInMeasure
-      (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
-        (discreteApproxSequence_of_le hτ_le τn) τn'.countable)
-      (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
-        (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
-        (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn') <|
-        tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn)
-  refine ae_eq_condExp_of_forall_setIntegral_eq (hτ.measurableSpace_le)
-    (h.integrable _) (fun _ _ _ ↦ hintgbl.integrableOn) ?_
-    (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
-      hτ).aestronglyMeasurable
-  rintro s hs -
-  have : (fun m ↦ ∫ ω in s, stoppedValue X (τn' m) ω ∂μ) = fun m ↦ ∫ ω in s, X n ω ∂μ := by
-    ext m
-    rw [← setIntegral_condExp (τn'.isStoppingTime m).measurableSpace_le (h.integrable _)
-      (hτ.measurableSpace_mono (τn'.isStoppingTime m) (τn'.le m) _ hs)]
-    refine setIntegral_congr_ae (hτ.measurableSpace_le _ hs) ?_
-    filter_upwards [hint m] with ω hω _ using hω
-  rw [eq_comm, ← tendsto_const_nhds_iff (l := (atTop : Filter ℕ)), ← this]
-  refine tendsto_setIntegral_of_L1' _ hintgbl ?_
-    (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn) _
-  rw [eventually_atTop]
-  refine ⟨0, fun m _ ↦ ?_⟩
-  rw [integrable_congr (hint m)]
-  exact integrable_condExp
+  convert stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC
+    (isStoppingTime_const 𝓕 n) hτ (fun _ ↦ le_rfl) (discreteApproxSequence_const 𝓕 n) τn using 2
+  ext ω
+  rw [eq_comm, min_eq_right_iff]
+  exact hτ_le ω
 
 end MeasureTheory
