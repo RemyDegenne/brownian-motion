@@ -1,7 +1,8 @@
+import BrownianMotion.StochasticIntegral.ApproxSeq
 import BrownianMotion.StochasticIntegral.Centering
 import Mathlib.Probability.Martingale.Basic
 
-open ProbabilityTheory
+open ProbabilityTheory TopologicalSpace Function
 
 namespace MeasureTheory
 
@@ -28,12 +29,13 @@ theorem Supermartingale.condExp_ae_le_stoppedValue_min_nat [PartialOrder E] [Ord
 
 end Nat
 
-variable {ι : Type*} [LinearOrder ι] [Nonempty ι]
+variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+  [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [MetrizableSpace ι]
   {σ τ : Ω → WithTop ι} {X : ι → Ω → E} (𝓕 : Filtration ι mΩ)
 
 theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
     [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX : Submartingale X 𝓕 P) {k : ι} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
+    (hX1 : Submartingale X 𝓕 P) (hX2 : RightContinuous X) {k : ι} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
     (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
   sorry
