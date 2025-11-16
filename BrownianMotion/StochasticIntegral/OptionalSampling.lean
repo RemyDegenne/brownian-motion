@@ -78,6 +78,8 @@ theorem Martingale.stoppedValue_min_ae_eq_condExp_of_countable_range
       exact (h.condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range hRC hτ_le
         hτ hσ hτ_countable_range).symm
 
+/-- **Optional sampling theorem** for general time indices
+(assuming existence of `DiscreteApproxSequence`). -/
 theorem Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
     [SigmaFiniteFiltration μ 𝓕] (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
