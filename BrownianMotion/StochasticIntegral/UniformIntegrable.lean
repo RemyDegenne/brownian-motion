@@ -112,7 +112,17 @@ lemma UniformIntegrable.memLp_of_tendstoInMeasure
     {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
     (htends : TendstoInMeasure μ fn atTop f) :
     MemLp f p μ := by
-  sorry
+  obtain ⟨g, hg⟩ := htends.exists_seq_tendsto_ae
+  refine ⟨aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (g i)) hg.2, ?_⟩
+  obtain ⟨C, hC⟩ := hUI.2.2
+  calc
+    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (fn (g n)) p μ) :=
+      Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => hUI.1 (g i)) f hg.2
+    _ ≤ C := by
+      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
+      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
+      exact LE.le.trans (hn n (by linarith)) (hC (g n))
+    _ < ⊤ := by simp
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
