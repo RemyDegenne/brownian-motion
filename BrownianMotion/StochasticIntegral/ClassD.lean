@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.ApproxSeq
 import BrownianMotion.StochasticIntegral.Locally
+import Mathlib.Probability.Process.HittingTime
 
 /-! # Locally integrable, class D, class DL
 
@@ -94,6 +95,9 @@ variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 lemma isStable_classD [OrderBot ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   sorry
 
+lemma isStable_classDL [OrderBot ι] : IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
+  sorry
+
 lemma Integrable.classDL [Nonempty ι] (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖) P) :
     (ClassDL X 𝓕 P) := by
   sorry
@@ -108,11 +112,33 @@ lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology 
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   sorry
 
+lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
+    Locally (ClassD · 𝓕 P) 𝓕 X P := by
+  sorry
+
+-- TODO: The assumptions should be refined with those of Début theorem.
+lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
+    [OrderTopology ι] [InfSet ι] [Bot ι] (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι)
+    {X : ι → Ω → ℝ} (hX1 : Adapted 𝓕 X) (hX2 : RightContinuous X) (h𝓕 : 𝓕.IsRightContinuous) :
+    IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
+
+-- TODO: The assumptions should be refined with those of Début theorem.
+lemma sup_stoppedProcess_hittingAfter_Ici_le {ι : Type*} [LinearOrder ι] [InfSet ι] [Bot ι]
+    {X : ι → Ω → ℝ} (t : ι) (K : ℝ) (ω : Ω) :
+    ⨆ s ≤ t, |stoppedProcess X (hittingAfter X (Set.Ici K) ⊥) s ω| ≤
+    K + Set.indicator {ω | hittingAfter X (Set.Ici K) ⊥ ω ≤ t}
+      (fun ω ↦ |stoppedValue X (hittingAfter X (Set.Ici K) ⊥) ω|) ω := sorry
+
 lemma ClassD.HasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     (hX1 : RightContinuous X) (hX2 : ClassD X 𝓕 P) :
     HasLocallyIntegrableSup X 𝓕 P := by
   sorry
 
+lemma hasLocallyIntegrableSup_of_locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    (hX1 : RightContinuous X) (hX2 : Locally (ClassD · 𝓕 P) 𝓕 X P) :
+    HasLocallyIntegrableSup X 𝓕 P := by
+  sorry
 
 end LinearOrder
 
