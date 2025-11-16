@@ -263,6 +263,7 @@ ProbabilityTheory.ClassD.classDL
 MeasureTheory.Submartingale.classDL
 MeasureTheory.Submartingale.classD_iff_uniformIntegrable
 MeasureTheory.Martingale.classDL
+MeasureTheory.Martingale.classD_iff_uniformIntegrable
 ProbabilityTheory.isStable_classD
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable

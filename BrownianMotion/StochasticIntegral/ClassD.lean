@@ -58,20 +58,21 @@ section Order
 
 variable [PartialOrder E] [OrderClosedTopology E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
 
-lemma Submartingale.classDL (hX1 : Submartingale X 𝓕 P) (hX2 : RightContinuous X)
-    (hX3 : 0 ≤ X) :
+lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
+    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
     ClassDL 𝓕 X P := sorry
 
-lemma Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
+lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
     (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
     ClassD 𝓕 X P ↔ UniformIntegrable X 1 P := sorry
 
 end Order
 
-lemma Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
+lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
     ClassDL 𝓕 X P := sorry
 
-lemma Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
+lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
+    (hX2 : RightContinuous X) :
     ClassD 𝓕 X P ↔ UniformIntegrable X 1 P := sorry
 
 lemma isStable_classD : IsStable 𝓕 (ClassD (E := E) 𝓕 · P) := by
