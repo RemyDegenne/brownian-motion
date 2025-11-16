@@ -118,7 +118,7 @@ theorem MemLp.condExp' {p : ℝ≥0∞} (hp : 1 ≤ p) (hf : MemLp f p μ) :
 
 /-- If a function `f` is bounded almost everywhere by `R`, then so is its conditional
 expectation. -/
-theorem ae_bdd_condExp_of_ae_bdd {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ R) :
+theorem ae_bdd_condExp_of_ae_bdd' {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ R) :
     ∀ᵐ x ∂μ, ‖(μ[f|m]) x‖ ≤ R := by
   obtain rfl | hμ := eq_or_ne μ 0
   · simp
@@ -136,7 +136,7 @@ theorem ae_bdd_condExp_of_ae_bdd {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂�
 
 /-- Given an integrable function `g`, the conditional expectations of `g` with respect to
 a sequence of sub-σ-algebras is uniformly integrable. -/
-theorem Integrable.uniformIntegrable_condExp {ι : Type*} {g : Ω → E}
+theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     (hint : Integrable g μ) {ℱ : ι → MeasurableSpace Ω} (hℱ : ∀ i, ℱ i ≤ mΩ) :
     UniformIntegrable (fun i => μ[g|ℱ i]) 1 μ := by
   let A : MeasurableSpace Ω := mΩ
