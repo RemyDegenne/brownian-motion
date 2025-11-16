@@ -5,13 +5,18 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω β : Type*} [LinearOrder ι] [TopologicalSpace ι] [MetrizableSpace ι]
-  [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι]
-  [TopologicalSpace β] [PseudoMetrizableSpace β]
+variable {ι Ω β : Type*} [TopologicalSpace ι] [TopologicalSpace β]
+
+/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
+abbrev _root_.Function.rightContinuous [PartialOrder ι] (X : ι → Ω → β) :=
+  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
+
+variable [LinearOrder ι] [MetrizableSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+  [OpensMeasurableSpace ι] [PseudoMetrizableSpace β]
   {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → β} {τ : Ω → WithTop ι} {n : ι}
 
 lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
-    (h : Adapted 𝓕 X) (hu_cont : ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a) :
+    (h : Adapted 𝓕 X) (hu_cont : Function.rightContinuous X) :
     ProgMeasurable 𝓕 X :=
   sorry
 
