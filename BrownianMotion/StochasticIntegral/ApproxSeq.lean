@@ -17,7 +17,7 @@ namespace MeasureTheory
 
 variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E] [LinearOrder ι]
   [OrderTopology ι] {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {𝓕 : Filtration ι mΩ}
-  {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
+  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
@@ -65,6 +65,24 @@ def discreteApproxSequence_of {i : ι}
     filter_upwards [τn.tendsto] with ω hω
     convert hω.min (tendsto_const_nhds (x := (i : WithTop ι)))
     exact (min_eq_left (hτ ω)).symm
+
+/-- The minimum of two discrete approximation sequences is a discrete approximation sequence of the
+minimum of the two stopping times. -/
+def DiscreteApproxSequence.inf
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ) :
+    DiscreteApproxSequence 𝓕 (τ ⊓ σ) μ where
+  seq := fun m ↦ min (τn m) (σn m)
+  isStoppingTime := fun m ↦ (τn.isStoppingTime m).min (σn.isStoppingTime m)
+  countable := fun m ↦ by
+    refine ((τn.countable m).union (σn.countable m)).mono <| fun i ↦ ?_
+    simp only [Set.mem_range, Pi.inf_apply, Set.mem_union, forall_exists_index, min_eq_iff]
+    rintro ω (⟨rfl, -⟩ | ⟨rfl, -⟩)
+    · exact Or.inl ⟨ω, rfl⟩
+    · exact Or.inr ⟨ω, rfl⟩
+  antitone := τn.antitone.inf σn.antitone
+  le := fun m ↦ inf_le_inf (τn.le m) (σn.le m)
+  tendsto := by
+    filter_upwards [τn.tendsto, σn.tendsto] with ω hωτ hωσ using hωτ.min hωσ
 
 lemma discreteApproxSequence_of_le {i : ι}
     (hτ : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) (m : ℕ) (ω : Ω) :
@@ -118,5 +136,18 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC)
+
+lemma integrable_stoppedValue_of_discreteApproxSequence'
+    (h : Martingale X 𝓕 μ) (hRC : rightContinuous X)
+    (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
+    Integrable (stoppedValue X τ) μ :=
+  let τn' := discreteApproxSequence_of 𝓕 hτ_le τn
+  UniformIntegrable.integrable_of_tendstoInMeasure
+      (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
+        (discreteApproxSequence_of_le hτ_le τn) τn'.countable)
+      (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
+        (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
+        (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn') <|
+        tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn)
 
 end MeasureTheory
