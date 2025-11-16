@@ -795,8 +795,9 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   \leanok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any bounded stopping times $\sigma, \tau$, we have that
+  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$ and let
+  $\sigma, \tau$ be stopping times such that $\tau$ is bounded and there exist discrete
+  approximation sequences for both $\sigma$ and $\tau$. Then, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
