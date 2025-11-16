@@ -38,8 +38,7 @@ theorem norm_condExp_le (f : Ω → E) :
     condExp_nonneg (ae_of_all _ fun _ ↦ by positivity)
   by_cases hf : Integrable f μ
   swap; · filter_upwards [this]; simp [condExp_of_not_integrable, hf]
-  filter_upwards [conditional_jensen hm convexOn_univ_norm continuous_norm.lowerSemicontinuous
-    hf hf.norm] with _ h using h
+  exact conditional_jensen hm convexOn_univ_norm continuous_norm.lowerSemicontinuous hf hf.norm
 
 theorem enorm_condExp_le (f : Ω → E) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ₑ ≤ .ofReal (μ[fun ω ↦ ‖f ω‖|m] ω) := by
