@@ -293,17 +293,23 @@ A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t
 
 \begin{definition}[Doob-Meyer class, class D]\label{def:classD}
   \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.ClassD}
 A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
 \end{definition}
 
 
 \begin{definition}[Class DL]\label{def:classDL}
   \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.ClassDL}
 A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
 \begin{lemma}\label{lem:classDLOfClassD}
   \uses{def:classD, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.ClassD.classDL}
 A stochastic process of class S is of class DL.
 \end{lemma}
 
@@ -314,6 +320,8 @@ This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 
 \begin{lemma}\label{lem:Submartingale.classDL}
   \uses{def:Submartingale, def:classDL}
+  \leanok
+  \lean{MeasureTheory.Submartingale.classDL}
 Every nonnegative càdlàg submartingale is of class DL.
 \end{lemma}
 
@@ -325,33 +333,39 @@ Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSam
 
 \begin{lemma}\label{lem:Submartingale.classD_iff_uniformIntegrable}
   \uses{def:Submartingale, def:classD}
+  \leanok
+  \lean{MeasureTheory.Submartingale.classD_iff_uniformIntegrable}
 A nonnegative càdlàg submartingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL}
+  \uses{lem:Submartingale.classDL, lem:uniformIntegrable_of_tendstoInMeasure, lem:uniformIntegrableComp}
+Assume that $X$ is uniformly integrable. We know from Lemma~\ref{lem:Submartingale.classDL} that $X$ is of class DL. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendstoInMeasure}, we deduce that $X$ is of class D.
 
+Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.classDL}
   \uses{def:Martingale, def:classDL}
-Every cadlag martingale is of class DL.
+  \leanok
+  \lean{MeasureTheory.Martingale.classDL}
+Every càdlàg martingale is of class DL.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL}
-
+  \uses{lem:Submartingale.classDL, lem:Martingale.submartingale_convex_comp, lem:uniformIntegrableIffNorm}
+Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_convex_comp}, $(|X_t|)_{t \in T}$ is a nonnegative càdlàg submartingale, and the result follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:uniformIntegrableIffNorm}.
 \end{proof}
 
 \begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
   \uses{def:Martingale, def:classD}
-A cadlag martingale is of class D if and only if it is uniformly integrable.
+A càdlàg martingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Martingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable}
-
+  \uses{lem:Submartingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm}
+Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
 \end{proof}
 
 
