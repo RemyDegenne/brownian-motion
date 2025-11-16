@@ -30,12 +30,16 @@ section Classes
 
 variable {ι : Type*} [Preorder ι] [Nonempty ι]
 
+/-- A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted
+and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable. -/
 structure ClassD (𝓕 : Filtration ι mΩ) (X : ι → Ω → E) (P : Measure Ω) :
     Prop where
   adapted : Adapted 𝓕 X
   uniformIntegrable : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦ stoppedValue X τ.1) 1 P
 
+/-- A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t$, the set
+$\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. -/
 structure ClassDL (𝓕 : Filtration ι mΩ) (X : ι → Ω → E) (P : Measure Ω) :
     Prop where
   adapted : Adapted 𝓕 X
