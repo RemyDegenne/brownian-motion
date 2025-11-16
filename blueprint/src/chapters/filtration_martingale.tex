@@ -698,6 +698,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
+  \leanok
   Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
@@ -767,6 +768,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:tendsto_stoppedValue_discreteApproxSequence, lem:memLp_of_tendstoInMeasure, lem:vitali, lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
   By Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}, as \(X\) is right continuous we have that \(X_{\tau_n \wedge t} \to X_{\tau}\) a.s. and so,
   also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is uniformly integrable.
@@ -790,6 +792,8 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{proof}
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
+  \leanok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
   any bounded stopping times $\sigma, \tau$, we have that
@@ -797,6 +801,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
