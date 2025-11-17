@@ -66,8 +66,11 @@ attribute [local measurability]
 Note that we require the union to be disjoint. This is not necessary, but makes it easier to define
 the indicator function of an elementary predictable set as a `SimpleProcess`. -/
 structure ElementaryPredictableSet (𝓕 : Filtration ι mΩ) where
+  /-- The set over `⊥`. -/
   setBot : Set Ω
+  /-- The finite index for sets over `(s, t]`. -/
   I : Finset (ι × ι)
+  /-- The sets over `(s, t]`. -/
   set : ι × ι → Set Ω
   measurableSet_setBot : MeasurableSet[𝓕 ⊥] setBot
   measurableSet_set : ∀ p ∈ I, MeasurableSet[𝓕 p.1] (set p)
@@ -77,12 +80,14 @@ namespace ElementaryPredictableSet
 
 attribute [measurability] measurableSet_setBot measurableSet_set
 
+/-- Coercion from an `ElementaryPredictableSet 𝓕` to a `Set (ι × Ω)`. -/
 @[coe] def toSet (S : ElementaryPredictableSet 𝓕) : Set (ι × Ω) :=
     {⊥} ×ˢ S.setBot ∪ ⋃ p ∈ S.I, (Set.Ioc p.1 p.2) ×ˢ S.set p
 
 instance : CoeOut (ElementaryPredictableSet 𝓕) (Set (ι × Ω)) where
   coe := toSet
 
+/-- The set `{⊥} × B₀` as an `ElementaryPredictableSet`. -/
 def singletonBotProd {B₀ : Set Ω} (hB₀ : MeasurableSet[𝓕 ⊥] B₀) :
     ElementaryPredictableSet 𝓕 where
   setBot := B₀
@@ -96,6 +101,7 @@ def singletonBotProd {B₀ : Set Ω} (hB₀ : MeasurableSet[𝓕 ⊥] B₀) :
     ↑(singletonBotProd hB₀) = {(⊥ : ι)} ×ˢ B₀ := by
   simp [toSet, singletonBotProd]
 
+/-- The set `(i, j] × B` as an `ElementaryPredictableSet`. -/
 def IocProd (i j : ι) {B : Set Ω} (hB : MeasurableSet[𝓕 i] B) :
     ElementaryPredictableSet 𝓕 where
   setBot := ∅
