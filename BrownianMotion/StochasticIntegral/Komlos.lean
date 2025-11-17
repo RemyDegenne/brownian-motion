@@ -23,22 +23,21 @@ lemma komlos_convex [AddCommMonoid E] [Module ℝ≥0 E]
       2⁻¹ * φ (g n) + 2⁻¹ * φ (g m) - φ ((2 : ℝ≥0)⁻¹ • (g n + g m)) < δ := by
   obtain ⟨M, hM⟩ := hφ_bdd
   let r : ℕ → ℝ := fun n ↦ sInf (Set.image φ (convexHull ℝ≥0 (Set.range (fun m ↦ f (n + m)))))
-  have hr_nondec : ∀ n, r n ≤ r (n + 1) := by
-    intro n
+  have hr_nondec n : r n ≤ r (n + 1) := by
     apply_rules [csInf_le_csInf]
     · exact ⟨0, Set.forall_mem_image.2 fun x hx ↦ hφ_nonneg x⟩
     · exact ⟨_, ⟨ _, subset_convexHull ℝ≥0 _ ⟨0, rfl⟩, rfl⟩⟩
     · refine Set.image_mono <| convexHull_min ?_ (convex_convexHull ℝ≥0 _)
       rintro _ ⟨m, rfl⟩; exact subset_convexHull ℝ≥0 _ ⟨m + 1, by simp [add_comm, add_left_comm]⟩
   obtain ⟨A, hA⟩ : ∃ A, Filter.Tendsto r Filter.atTop (nhds A) := by
-    refine ⟨_, tendsto_atTop_ciSup ( monotone_nat_of_le_succ hr_nondec ) ?_⟩
+    refine ⟨_, tendsto_atTop_ciSup (monotone_nat_of_le_succ hr_nondec) ?_⟩
     exact ⟨M, Set.forall_mem_range.mpr fun n ↦ csInf_le
       ⟨0, Set.forall_mem_image.mpr fun x hx ↦ hφ_nonneg x⟩
         (Set.mem_image_of_mem _ <| subset_convexHull ℝ≥0 _
-          <| Set.mem_range_self 0 ) |> le_trans <| by simpa using hM n ⟩
+          <| Set.mem_range_self 0) |> le_trans <| by simpa using hM n⟩
   obtain ⟨g, hg⟩ :
       ∃ g : ℕ → E, (∀ n, g n ∈ convexHull ℝ≥0 (Set.range (fun m ↦ f (n + m))))
-          ∧ (∀ n, (φ (g n)) ≤ A + 1 / (n + 1)) := by
+          ∧ (∀ n, φ (g n) ≤ A + 1 / (n + 1)) := by
     have h_exists_g :
         ∀ n, ∃ g ∈ convexHull ℝ≥0 (Set.range (fun m ↦ f (n + m))), φ g ≤ A + 1 / (n + 1) := by
       intro n
