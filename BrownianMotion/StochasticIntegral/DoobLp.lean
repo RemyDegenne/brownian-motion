@@ -18,12 +18,14 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [Preorder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} {s : Set ι}
 
+/-- The restriction of a filtration to a subset is still a filtration. -/
 def _root_.MeasureTheory.Filtration.subset (𝓕 : Filtration ι mΩ) :
     Filtration s mΩ where
   seq := 𝓕.seq ∘ Subtype.val
   mono' := fun _ _ h => 𝓕.mono' (Subtype.coe_le_coe.mpr h)
   le' := fun _ => 𝓕.le' _
 
+/-- The restriction of a submartingale to a subset is still a submartingale. -/
 def _root_.MeasureTheory.Submartingale.subset [LE E] (hsub : Submartingale X 𝓕 P) :
     Submartingale (X ∘ Subtype.val : s → Ω → E) 𝓕.subset P :=
   ⟨fun _ => hsub.1 _, fun _ _ h => hsub.2.1 _ _ h, fun _ => hsub.2.2 _⟩
@@ -39,10 +41,16 @@ theorem maximal_ineq_countable [Countable ι]
 theorem maximal_ineq_norm_countable [Countable ι]
     (hsub : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
     ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
-  sorry
+     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖}, ‖X n ω‖ ∂P) :=
+  maximal_ineq_countable hsub.submartingale_norm (fun t ω => norm_nonneg (X t ω)) ε n
 
-variable [TopologicalSpace ι] [SecondCountableTopology ι]
+variable [TopologicalSpace ι] [OrderTopology ι]
+
+lemma right_continuous_supremum_countable {f : ι → ℝ} (n : ι)
+    (hY_cont : ∀ a, ContinuousWithinAt f (Set.Ioi a) a) :
+    (⨆ i ≤ n, f i = ⨆ s ≤ n, (f ∘ Subtype.val : S → ℝ) s) := by sorry
+
+variable [SecondCountableTopology ι]
 
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι)
     (hY_cont : ∀ (ω : Ω) (a : ι), ContinuousWithinAt (fun (y : ι) => Y y ω) (Set.Ioi a) a) :
