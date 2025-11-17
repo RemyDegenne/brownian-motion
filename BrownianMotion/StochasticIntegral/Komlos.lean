@@ -100,9 +100,8 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
       intro x y
       have : (2 : ℝ≥0)⁻¹ • (x + y) = (2 : ℝ)⁻¹ • (x + y) := by rfl
       rw [this, norm_smul_of_nonneg (by norm_num), mul_pow, add_comm x y]
-      let test := parallelogram_law_with_norm ℝ y x
-      ring_nf at test
-      linear_combination -test/4
+      let para := parallelogram_law_with_norm ℝ y x
+      linear_combination -para/4
   have g_cauchy : CauchySeq g := by
     rw [Metric.cauchySeq_iff]
     intro δ δpos
