@@ -82,28 +82,10 @@ lemma komlos_convex [AddCommMonoid E] [Module ℝ≥0 E]
 
 lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     {f : ℕ → E} (h_bdd : ∃ M : ℝ, ∀ n, ‖f n‖ ≤ M) :
-    ∃ (g : ℕ → E) (x : E), (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
+    ∃ (g : ℕ → E) (x : E), (∀ n, g n ∈ convexHull ℝ≥0 (Set.range fun m ↦ f (n + m))) ∧
     Tendsto g atTop (𝓝 x) := by
   let φ : E → ℝ := fun f ↦ ‖f‖^2
   have φ_nonneg : 0 ≤ φ := (fun f ↦ sq_nonneg ‖f‖)
-  have sq_convex : ConvexOn ℝ Set.univ (fun (x : ℝ) ↦ x^2) := by
-    use convex_univ
-    intro x _ y _ a b a_nneg b_nneg ab1
-    dsimp
-    have : a * x^2 + (1 - a) * y^2  =  (a * x + (1 - a) * y)^2 + (1 - a) * a * (y - x)^2 := by
-      ring_nf
-    rw [←ab1, add_comm a b, add_sub_cancel_right b a] at this
-    rw [this, le_add_iff_nonneg_right]
-    positivity
-  have φ_convex : ConvexOn ℝ Set.univ φ := by
-    use convex_univ
-    intro x _ y _ a b a_nneg b_nneg ab1
-    calc
-      ‖a • x + b • y‖^2 ≤ (‖a • x‖ + ‖b • y‖)^2 := by
-        apply pow_le_pow_left₀ (norm_nonneg (a • x + b • y))
-        apply norm_add_le
-      _ = (a * ‖x‖ + b * ‖y‖)^2 := by rw [norm_smul_of_nonneg a_nneg, norm_smul_of_nonneg b_nneg]
-      _ ≤ a * ‖x‖ ^ 2 + b * ‖y‖ ^ 2 := sq_convex.2 trivial trivial a_nneg b_nneg ab1
   have φ_bdd : ∃ M : ℝ, ∀ n, φ (f n) ≤ M := by
     rcases h_bdd with ⟨M, hM⟩
     use M^2
@@ -111,8 +93,16 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
     apply pow_le_pow_left₀
     · apply norm_nonneg
     exact hM n
-  rcases komlos_convex φ_nonneg φ_convex φ_bdd with ⟨g, hg, h⟩
+  rcases komlos_convex φ_nonneg φ_bdd with ⟨g, hg, h⟩
   use g
+  have parallelogram_identity : ∀ x y : E,
+      2⁻¹ * ‖x‖ ^ 2 + 2⁻¹ * ‖y‖ ^ 2 - ‖(2 : ℝ≥0)⁻¹ • (x + y)‖ ^ 2 = ‖y - x‖ ^ 2 / 4 := by
+      intro x y
+      have : (2 : ℝ≥0)⁻¹ • (x + y) = (2 : ℝ)⁻¹ • (x + y) := by rfl
+      rw [this, norm_smul_of_nonneg (by norm_num), mul_pow, add_comm x y]
+      let test := parallelogram_law_with_norm ℝ y x
+      ring_nf at test
+      linear_combination -test/4
   have g_cauchy : CauchySeq g := by
     rw [Metric.cauchySeq_iff]
     intro δ δpos
@@ -121,13 +111,6 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
     intro m mgeN n ngeN
     specialize hn n m ngeN mgeN
     dsimp [φ] at hn
-    have parallelogram_identity : ∀ x y : E,
-      2⁻¹ * ‖x‖ ^ 2 + 2⁻¹ * ‖y‖ ^ 2 - ‖(2 : ℝ)⁻¹ • (x + y)‖ ^ 2 = ‖y - x‖ ^ 2 / 4 := by
-      intro x y
-      rw [norm_smul_of_nonneg (by norm_num), mul_pow, add_comm x y]
-      let test := parallelogram_law_with_norm ℝ y x
-      ring_nf at test
-      linear_combination -test/4
     rw [parallelogram_identity (g n) (g m)] at hn
     have : ‖g m - g n‖ ^ 2 < δ ^ 2 := by linarith
     rw [dist_eq_norm]
