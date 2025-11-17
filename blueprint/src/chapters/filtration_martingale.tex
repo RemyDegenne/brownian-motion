@@ -807,14 +807,12 @@ This is immediate from the definition.
   \uses{def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
-Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
 Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
   \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
-  \leanok
-  \ref{lem:nondecreasing_predictablePart_of_submartingale}
 Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
 We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
 \end{proof}
