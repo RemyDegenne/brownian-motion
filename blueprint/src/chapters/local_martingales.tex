@@ -122,7 +122,7 @@ Similarly, by the stability of $Q$, $X^{\sigma_n \wedge \tau_n} \mathbb{I}_{\sig
 \end{proof}
 
 \begin{lemma}\label{lem:isLocalizingSequence_of_isPreLocalizingSequence}
-  \uses{def:localizingSequence, def:rightContinuous}
+  \uses{def:localizingSequence, lem:rightContinuous_basic}
   \leanok
   \lean{ProbabilityTheory.isLocalizingSequence_of_isPreLocalizingSequence}
 If $(\tau_n)_{n \in \mathbb{N}}$ is a pre-localizing sequence, then the sequence defined by $\tau'_n = \inf_{m \ge n} \tau_m$ is a localizing sequence.
@@ -134,7 +134,7 @@ If $(\tau_n)_{n \in \mathbb{N}}$ is a pre-localizing sequence, then the sequence
 
 
 \begin{lemma}\label{lem:locally_of_isPreLocalizingSequence}
-  \uses{def:locally, def:localizingSequence, def:stable, def:rightContinuous, def:preLocalizingSequence}
+  \uses{def:locally, def:localizingSequence, def:stable, lem:rightContinuous_basic, def:preLocalizingSequence}
   \leanok
   \lean{ProbabilityTheory.locally_of_isPreLocalizingSequence}
 Let $P$ be a stable class of processes and let $(\tau_n)_{n \in \mathbb{N}}$ be a pre-localizing sequence such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$.
