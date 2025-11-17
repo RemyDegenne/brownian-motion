@@ -254,6 +254,8 @@ ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
 ProbabilityTheory.HasLocallyIntegrableSup
+ProbabilityTheory.ClassD
+ProbabilityTheory.ClassDL
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.SimpleProcess.isPredictable
 ProbabilityTheory.SimpleProcess.instAddCommGroup
