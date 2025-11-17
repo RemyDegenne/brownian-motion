@@ -77,7 +77,7 @@ namespace ElementaryPredictableSet
 
 attribute [measurability] measurableSet_setBot measurableSet_set
 
-@[coe, simp] def toSet (S : ElementaryPredictableSet 𝓕) : Set (ι × Ω) :=
+@[coe] def toSet (S : ElementaryPredictableSet 𝓕) : Set (ι × Ω) :=
     {⊥} ×ˢ S.setBot ∪ ⋃ p ∈ S.I, (Set.Ioc p.1 p.2) ×ˢ S.set p
 
 instance : CoeOut (ElementaryPredictableSet 𝓕) (Set (ι × Ω)) where
@@ -94,7 +94,7 @@ def singletonBotProd {B₀ : Set Ω} (hB₀ : MeasurableSet[𝓕 ⊥] B₀) :
 
 @[simp] lemma coe_singletonBotProd {B₀ : Set Ω} (hB₀ : MeasurableSet[𝓕 ⊥] B₀) :
     ↑(singletonBotProd hB₀) = {(⊥ : ι)} ×ˢ B₀ := by
-  simp [singletonBotProd]
+  simp [toSet, singletonBotProd]
 
 def IocProd (i j : ι) {B : Set Ω} (hB : MeasurableSet[𝓕 i] B) :
     ElementaryPredictableSet 𝓕 where
@@ -107,7 +107,7 @@ def IocProd (i j : ι) {B : Set Ω} (hB : MeasurableSet[𝓕 i] B) :
 
 @[simp] lemma coe_IocProd (i j : ι) {B : Set Ω} (hB : MeasurableSet[𝓕 i] B) :
     ↑(IocProd i j hB) = (Set.Ioc i j) ×ˢ B := by
-  simp [IocProd]
+  simp [toSet, IocProd]
 
 end ElementaryPredictableSet
 
@@ -258,32 +258,32 @@ section ToFun
 instance instCoeFun : CoeFun (SimpleProcess F 𝓕) (fun _ ↦ ι → Ω → F) where
   coe := toFun
 
-@[simp] lemma coe_apply (V : SimpleProcess F 𝓕) (i : ι) (ω : Ω) :
+lemma apply_eq (V : SimpleProcess F 𝓕) (i : ι) (ω : Ω) :
   ⇑V i ω = ({⊥} : Set ι).indicator (fun _ ↦ V.valueBot ω) i
     + V.value.sum fun p v => (Set.Ioc p.1 p.2).indicator (fun _ ↦ v ω) i := rfl
 
-@[simp] lemma coe_zero : ⇑(0 : SimpleProcess F 𝓕) = 0 := by ext; simp
+@[simp] lemma coe_zero : ⇑(0 : SimpleProcess F 𝓕) = 0 := by ext; simp [apply_eq]
 
 @[simp] lemma coe_neg (V : SimpleProcess F 𝓕) : ⇑(-V) = -⇑V := by
-  ext; simp [Set.indicator_neg, Finsupp.sum_neg_index]; abel
+  ext; simp [apply_eq, Set.indicator_neg, Finsupp.sum_neg_index]; abel
 
 @[simp] lemma coe_add (V W : SimpleProcess F 𝓕) :
    ⇑(V + W) = ⇑V + ⇑W := by
-  ext; simp [Set.indicator_add, Finsupp.sum_add_index]; abel
+  ext; simp [apply_eq, Set.indicator_add, Finsupp.sum_add_index]; abel
 
 @[simp] lemma coe_sub (V W : SimpleProcess F 𝓕) :
    ⇑(V - W) = ⇑V - ⇑W := by
-  ext; simp [Set.indicator_sub, Finsupp.sum_sub_index]; abel
+  ext; simp [apply_eq, Set.indicator_sub, Finsupp.sum_sub_index]; abel
 
 @[simp] lemma coe_smul (c : ℝ) (V : SimpleProcess F 𝓕) :
    ⇑(c • V) = c • ⇑V := by
-  ext; simp [Set.indicator_smul, Finsupp.sum_smul_index', Finsupp.smul_sum]
+  ext; simp [apply_eq, Set.indicator_smul, Finsupp.sum_smul_index', Finsupp.smul_sum]
 
-@[simp] lemma coe_bounded (V : SimpleProcess F 𝓕) :
+lemma coe_bounded (V : SimpleProcess F 𝓕) :
     ∃ C : ℝ, ∀ i : ι, ∀ ω : Ω, ‖⇑V i ω‖ ≤ C := by
   use V.valueBotBound + #V.value.support * V.valueBound
   intro i ω
-  dsimp
+  dsimp [apply_eq]
   grw [norm_add_le, Finsupp.sum, norm_sum_le, norm_indicator_le_norm_self,
     V.valueBot_le_valueBotBound, Finset.sum_le_card_nsmul _ _ V.valueBound]
   · simp
@@ -385,7 +385,7 @@ def indicator [One F] (S : ElementaryPredictableSet 𝓕) :
   classical
   ext i ω
   rw [ElementaryPredictableSet.toSet, Set.indicator_union_of_disjoint, Finset.indicator_biUnion]
-  · simp only [ElementaryPredictableSet.indicator, SimpleProcess.coe_apply, Pi.zero_apply,
+  · simp only [ElementaryPredictableSet.indicator, SimpleProcess.apply_eq, Pi.zero_apply,
       Set.indicator_zero, implies_true, Finsupp.onFinset_sum, Function.curry_apply]
     congr 1
     · simp [Set.indicator, ite_and]
