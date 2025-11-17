@@ -137,10 +137,6 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
   exact ⟨hg, hx⟩
 
 
-
-
-
-
 -- todo: check measurability hypothesis/conclusion
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
     {P : Measure Ω} [IsProbabilityMeasure P] :
