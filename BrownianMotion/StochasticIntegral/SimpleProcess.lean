@@ -432,9 +432,9 @@ theorem measurableSet_predictable (S : ElementaryPredictableSet 𝓕) :
 
 variable (ι Ω) in
 /-- The elementary predictable sets generate the predictable σ-algebra. Note that we require the
-time index space to be `Archimedean` so that each `(t, ∞]` can be written as a countable union of
-intervals `(t, n • t]`. -/
-theorem generateFrom_eq_predictable [AddCommMonoid ι] [Archimedean ι] [CanonicallyOrderedAdd ι] :
+time domain to have countably generated `atTop` so that each `(t, ∞]` can be written as a countable
+union of intervals `(t, s]`. -/
+theorem generateFrom_eq_predictable [(atTop : Filter ι).IsCountablyGenerated] :
     MeasurableSpace.generateFrom {↑S | S : ElementaryPredictableSet 𝓕} = 𝓕.predictable := by
   apply le_antisymm
   · apply MeasurableSpace.generateFrom_le
@@ -445,25 +445,16 @@ theorem generateFrom_eq_predictable [AddCommMonoid ι] [Archimedean ι] [Canonic
       apply MeasurableSpace.measurableSet_generateFrom
       use singletonBotProd hB₀, coe_singletonBotProd hB₀
     · intro t B hB
-      rcases eq_zero_or_pos t with rfl | ht₀
-      · -- (0, ∞] is a union of (a, b]
-        rcases subsingleton_or_nontrivial ι with hι | hι
-        · -- If ι is subsingleton, then (0, ∞] = ∅
-          simp [Set.Ioi_eq_empty_iff.2 (hι.isMax 0)]
-        · -- Otherwise, take some positive s, and then (0, ∞] = ⋃ n : ℕ, (0, n • s]
-          obtain ⟨s₀, hs₀⟩ := exists_ne (0 : ι)
-          have : Set.Ioi (0 : ι) = ⋃ n : ℕ, Set.Ioc 0 (n • s₀) := by
-            ext s
-            simpa using fun _ ↦ Archimedean.arch s (by positivity)
-          rw [this, Set.iUnion_prod_const]
-          refine MeasurableSet.iUnion fun n ↦ MeasurableSpace.measurableSet_generateFrom ?_
-          use IocProd 0 (n • s₀) hB, coe_IocProd _ _ hB
-      · have : Set.Ioi t = ⋃ n : ℕ, Set.Ioc t (n • t) := by
-          ext s
-          simpa using fun _ ↦ Archimedean.arch s ht₀
-        rw [this, Set.iUnion_prod_const]
-        refine MeasurableSet.iUnion fun n ↦ MeasurableSpace.measurableSet_generateFrom ?_
-        use IocProd t (n • t) hB, coe_IocProd _ _ hB
+      obtain ⟨seq, _, tendsto⟩ := Filter.exists_seq_monotone_tendsto_atTop_atTop ι
+      have : Set.Ioi t = ⋃ n : ℕ, Set.Ioc t (seq n) := by
+        ext s
+        suffices ∃ n, s ≤ seq n by simpa using fun _ ↦ this
+        rw [Filter.tendsto_atTop_atTop] at tendsto
+        obtain ⟨n, h⟩ := tendsto s
+        exact ⟨n, h n le_rfl⟩
+      rw [this, Set.iUnion_prod_const]
+      refine MeasurableSet.iUnion fun n ↦ MeasurableSpace.measurableSet_generateFrom ?_
+      use IocProd t (seq n) hB, coe_IocProd _ _ hB
 
 end ElementaryPredictableSet
 
@@ -500,7 +491,7 @@ theorem isPredictable (V : SimpleProcess F 𝓕) : IsPredictable 𝓕 V := by
     · measurability
 
 variable (F 𝓕) in
-theorem iSup_comap_eq_predictable [AddCommMonoid ι] [Archimedean ι] [CanonicallyOrderedAdd ι]
+theorem iSup_comap_eq_predictable [(atTop : Filter ι).IsCountablyGenerated]
     [One F] [NeZero (1 : F)] :
     (⨆ V : SimpleProcess F 𝓕, mF.comap (Function.uncurry ⇑V)) = 𝓕.predictable := by
   apply le_antisymm
