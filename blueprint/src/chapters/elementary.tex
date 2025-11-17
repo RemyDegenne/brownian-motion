@@ -16,17 +16,22 @@ Let $\mathcal{E}_{T, F}$ be the set of simple processes indexed by $T$ with valu
 
 
 \begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
+  \leanok
+  \lean{ProbabilityTheory.ElementaryPredictableSet}
 A set $A \subseteq T \times \Omega$ is an \emph{elementary predictable set} if it is a finite union of sets of the form ${0} \times B$ for $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $0 \le s < t$ in $T$ and $B \in \mathcal{F}_s$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:predictableSet_elementaryPredictableSet}
   \uses{def:elementaryPredictableSet, def:predictableMeasurableSpace}
+  \leanok
+  \lean{ProbabilityTheory.ElementaryPredictableSet.measurableSet_predictable}
 An elementary predictable set is measurable with respect to the predictable $\sigma$-algebra.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:predictable_Ioc_prod}
+  \leanok
 It is a union of sets of the form ${0} \times B$ with $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $B \in \mathcal{F}_s$, which are measurable by Lemma~\ref{lem:predictable_Ioc_prod}.
 \end{proof}
 
@@ -39,28 +44,32 @@ A simple process is predictable.
 \end{lemma}
 
 \begin{proof}
-
+  \leanok
 \end{proof}
 
 
 \begin{lemma}\label{lem:iSup_comap_simpleProcess}
   \uses{def:simpleProcess, def:predictableMeasurableSpace}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.iSup_comap_eq_predictable}
 Real simple processes generate the predictable $\sigma$-algebra, i.e., the predictable $\sigma$-algebra is the supremum of the comaps by simple processes (seen as maps from $T \times \Omega$ to $\mathbb{R}$) of the Borel $\sigma$-algebra.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:predictable_simpleProcess}
-
+  \leanok
 \end{proof}
 
 
 \begin{lemma}\label{lem:elementaryPredictableSet_iff_indicator}
   \uses{def:elementaryPredictableSet, def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.ElementaryPredictableSet.indicator}
 A set $A \subseteq T \times \Omega$ is an elementary predictable set if and only if the indicator function $\mathbb{1}_A$ is a simple process.
 \end{lemma}
 
 \begin{proof}
-
+  Currently only proved the forward direction, because the backward direction is not easy to state.
 \end{proof}
 
 
@@ -123,7 +132,7 @@ Immediate from the definition.
   \uses{def:elemStochIntegral}
 $V \bullet (W \bullet X) = (V \times W) \bullet X$ for simple processes $V, W$ and stochastic process $X$.
 
-TODO: that's for $B$ the multiplication. What is the right statement for general $B$?
+TODO: that's for $B$ the scalar multiplication. What is the right statement for general $B$?
 \end{lemma}
 
 \begin{proof}
