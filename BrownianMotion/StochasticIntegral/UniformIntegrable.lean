@@ -16,11 +16,28 @@ open Filter
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ}
+variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
+
+lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
+    (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
+    UniformIntegrable (X + Y) p μ := sorry
+
+lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
+    {X : ι → Ω → E} {Y : ι → Ω → F} {p : ℝ≥0∞}
+    (hp : 1 ≤ p) (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
+    (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y j ω‖) :
+    UniformIntegrable X p μ := sorry
+
+lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
+    {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
+    (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
+    UniformIntegrable X p μ := sorry
+
+variable {X : ι → Ω → ℝ}
 
 -- todo: `X` takes values in `ℝ` because
 -- `MeasureTheory.Integrable.uniformIntegrable_condExp` is written only for `ℝ`. Investigate why.
-lemma UniformIntegrable.condExp' {κ : Type*} (hX : UniformIntegrable X 1 μ)
+lemma UniformIntegrable.condExp' (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun (p : ι × κ) ↦ μ[X p.1 | 𝓕 p.2]) 1 μ := by
   have hX' := hX
@@ -97,6 +114,13 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : 
     (fun _ ↦ memLp_one_iff_integrable.2 <| hX.integrable n)).condExp'
     (fun i ↦ (hτ i).measurableSpace_le)).ae_eq <| fun m ↦
       (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
+
+lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+    [SigmaFiniteFiltration μ 𝓕]
+    (hX : Submartingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
+    {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
+    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
+  sorry
 
 omit [Countable ι]
 

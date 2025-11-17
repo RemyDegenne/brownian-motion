@@ -620,12 +620,35 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \section{Optional sampling}
 
+\begin{definition}[Ordered Monoid]\label{def:isOrderedAddMonoid}
+  \mathlibok
+  \lean{IsOrderedAddMonoid}
+Let $(M, +)$ be a commutative monoid that is also a partial order. It is said to be an \emph{ordered monoid} if for all $a, b, c \in M$, we have the following implication:
+$$a \le b \implies a + c \le b + c.$$
+\end{definition}
+
+\begin{definition}[Ordered Module]\label{def:isOrderedModule}
+  \mathlibok
+  \lean{IsOrderedModule}
+Let $\alpha, \beta$ be preorders with $0$ elements and such that there is a scalar multiplication $(\_ \cdot \_) : \alpha \times \beta \to \beta$. Then $\beta$ is said to be an \emph{ordered $\alpha$-module} (or \emph{ordered module} if $\alpha$ is clear from the context) if the following hold:
+\begin{itemize}
+  \item $\forall a \in \alpha, \forall b_1, b_2 \in \beta, 0 \le a \implies b_1 \le b_2 \implies a \cdot b_1 \le a \cdot b_2$;
+  \item $\forall a_1, a_2 \in \alpha, \forall b \in \beta, 0 \le b \implies a_1 \le a_2 \implies a_1 \cdot b \le a_2 \cdot b$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Order-closed topology]\label{def:orderClosedTopology}
+  \mathlibok
+  \lean{OrderClosedTopology}
+Let $X$ be a topological space that is also a preorder. The space $X$ is set to be \emph{order-closed}, or to have \emph{order-closed topology}, if the set $\{(x, y) \in X \times X \mid x \le y\}$ is closed.
+\end{definition}
+
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
   \uses{def:Martingale, def:IsStoppingTime}
   \mathlibok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp}
   Let $X$ be a discrete time martingale with respect to the filtration $\mathcal{F}$ and let
-  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that
+  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
   $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
@@ -633,8 +656,34 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \end{proof}
 
+\begin{lemma}\label{lem:optionalSampling_discrete_submartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp_nat}
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
 
-\begin{lemma}\label{lem:conExpUI}
+\begin{proof}
+  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}). By Lemma~\ref{lem:optionalSampling_discrete}, we have that almost surely, $M_{\tau \wedge \sigma} = P[M_{\tau} \mid \mathcal{F}_{\sigma}]$. Because $A$ is predictable and $\tau \wedge \sigma \le \sigma$, we deduce that almost surely, $A_{\tau \wedge \sigma} = P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma]$. Moreover, by Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}, we know that almost surely, $A$ is nondecreasing. Therefore, using the fact $\tau \wedge \sigma \le \tau$, we get that $P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma] \le P[A_\tau \mid \mathcal{F}_\sigma]$. We deduce that almost surely,
+$$X_{\tau \wedge \sigma} = M_{\tau \wedge \sigma} + A_{\tau \wedge \sigma} \le P[M_\tau \mid \mathcal{F}_\sigma] + P[A_\tau \mid \mathcal{F}_\sigma] = P[X_\tau \mid \mathcal{F}_\sigma],$$
+concluding the proof.
+\end{proof}
+
+\begin{lemma}\label{lem:optionalSampling_discrete_supermartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min_nat}
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSampling_discrete_submartingale}
+We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_discrete_submartingale} we obtain that almost surely, $-X_{\tau \wedge \sigma} \le P[-X_{\tau} \mid \mathcal{F}_{\sigma}]$. Multiplying by $-1$ yields the desired result.
+\end{proof}
+
+
+\begin{lemma}\label{lem:condExpUI}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.condExp'}
   If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
@@ -671,10 +720,10 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:conExpUI}
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
   \leanok
 By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
-Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly integrable.
+Thus, the result follows by Lemma~\ref{lem:condExpUI} as $\{X_n\}$ is uniformly integrable.
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
@@ -686,8 +735,66 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:conExpUI}
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
   Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableAdd}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.add}
+Let $(X_t)_{t \in T}$ and $(Y_t)_{t \in T}$ be two families of uniformly integrable random variables.
+Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableDominated}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated}
+Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables.. If for all $s$, there exists $t$ such that $\|X_t\| \le \|Y s\|$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C \ge 0$ such that for $t \in T$, $P[\|Y_t\|^p \mathbb{I}_{\|Y_t\| \ge C}]^{1/p} \le \epsilon$. For all $s$, there exists $t$ such that $\|X_s\|^p \le \|Y_t\|^p$, so $P[\|X_s\|^p \mathbb{I}_{\|X_s\| \ge C}]^{1/p} \le \epsilon$. Thus $X$ is uniformly integrable.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableDominatedSingleton}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated}
+Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{lemma}\label{lem:uniformIntegrableComp}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.comp}
+If $(X_t)_{t \in T}$ is uniformly integrable and $\phi : S \to T$, then $(X_{\phi(s)})_{s \in S}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+This is immediate from the definition.
+\end{proof}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableDominated}
+Because $Y$ is in $L^p$, we deduce that ${Y}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_submartingale}
+  \uses{def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
+Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
+  \leanok
+  \ref{lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
+We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
 \end{proof}
 
 \begin{lemma}\label{lem:memLp_of_tendstoInMeasure}
@@ -793,7 +900,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any bounded stopping times $\sigma, \tau$, we have that
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
@@ -815,7 +922,32 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+\begin{lemma}\label{lem:optionalSamplingSubmartingale}
+  \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
+  Let $X$ be a right-continuous submartingale with respect to the filtration $\mathcal{F}$. Then for
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
+\end{lemma}
 
+\begin{proof}
+  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete_submartingale, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_submartingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
+
+  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
+  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
+  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
+  $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
+  and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
+  we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] \le P[X_{\tau_n} \mathbb{I}_A]$.
+  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_submartingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
+  Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
+  We have $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
+\end{proof}
 
 \section{Martingale convergence}
 
