@@ -766,6 +766,11 @@ Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C
 Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
 \end{lemma}
 
+\begin{proof}
+  \uses{lem:uniformIntegrableDominated}
+Because $Y$ is in $L^p$, we deduce that ${Y}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+\end{proof}
+
 \begin{lemma}\label{lem:uniformIntegrableComp}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.comp}
@@ -776,16 +781,11 @@ If $(X_t)_{t \in T}$ is uniformly integrable and $\phi : S \to T$, then $(X_{\ph
 This is immediate from the definition.
 \end{proof}
 
-\begin{proof}
-  \uses{lem:uniformIntegrableDominated}
-Because $Y$ is in $L^p$, we deduce that ${Y}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
-\end{proof}
-
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_submartingale}
   \uses{def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
-Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
 Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
 \end{lemma}
 
