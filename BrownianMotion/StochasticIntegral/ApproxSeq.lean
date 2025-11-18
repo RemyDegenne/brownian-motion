@@ -3,6 +3,7 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.UniformIntegrable
 
 /-! # Discrete approximation of a stopping time
@@ -21,16 +22,11 @@ variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
 abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
   ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
 
-/-- A stochastic process has left limits if each of its realizations has left limits
-at all point. -/
-abbrev _root_.Function.HasLeftLimits [Preorder ι] (X : ι → Ω → E) :=
-  ∀ ω a, ∃ x, Filter.Tendsto (X · ω) (𝓝[<] a) (𝓝 x)
-
-/-- A càdlàg stochastic process maps compact sets to bounded sets. -/
-lemma _root_.isBounded_image_of_cadlag_of_isCompact {E : Type*} [LinearOrder ι]
-    [FirstCountableTopology ι] [PseudoMetricSpace E] {X : ι → Ω → E} (hX1 : RightContinuous X)
-    (hX2 : HasLeftLimits X) (ω : Ω) {s : Set ι} (hs : IsCompact s) :
-    IsBounded ((X · ω) '' s) := by
+/-- A càdlàg function maps compact sets to bounded sets. -/
+lemma _root_.isBounded_image_of_isCadlag_of_isCompact {E : Type*} [LinearOrder ι]
+    [FirstCountableTopology ι] [PseudoMetricSpace E] {f : ι → E}
+    (hf : IsCadlag f) {s : Set ι} (hs : IsCompact s) :
+    IsBounded (f '' s) := by
   sorry
 
 variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
