@@ -719,6 +719,7 @@ Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
+  \leanok
 The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
 \end{proof}
 
@@ -740,7 +741,29 @@ Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random v
 
 \begin{proof}
   \uses{lem:uniformIntegrableDominated}
-Because $Y$ is in $L^p$, we deduce that ${Y}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+Because $Y$ is in $L^p$, we deduce that $\{Y\}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableNorm}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.norm}
+If $(X_t)_{t \in T}$ is a family of uniformly integrable random variables, then so is $(\|X_t\|)_{t \in T}$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableDominated}
+Apply Lemma~\ref{lem:uniformIntegrableDominated} with $Y := X$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableIffNorm}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_iff_norm}
+Let $(X_t)_{t \in T}$ be a family of uniformly integrable random variables. It is uniformly integrable if and only if $(\|X_t\|)_{t \in T}$ is.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableNorm, lem:uniformIntegrableDominated}
+The forward direction is Lemma~\ref{lem:uniformIntegrableNorm}. The converse direction follows from Lemma~\ref{lem:uniformIntegrableDominated} with $Y := (\|X_t\|)_{t \in T}$.
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrableComp}
@@ -763,8 +786,6 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 
 \begin{proof}
   \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
-  \leanok
-  \ref{lem:nondecreasing_predictablePart_of_submartingale}
 Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
 We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
 \end{proof}
@@ -781,6 +802,18 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
   where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+Let $\epsilon > 0$. There exists $C \ge 0$ such that for all $t \in T$, $P[\|X_t\|^p \mathbb{I}_{\|X_t\| \ge C}]^{1/p} \le \epsilon$. Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
+\[P[\|Y\|^p \mathbb{I}_{\|Y\|^p \ge C}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \epsilon.\]
+This concludes the proof.
 \end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}

@@ -20,13 +20,28 @@ variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 
 lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
     (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
-    UniformIntegrable (X + Y) p μ := sorry
+    UniformIntegrable (X + Y) p μ := by
+  refine ⟨fun _ ↦ (hX.1 _).add (hY.1 _), ?_, ?_⟩
+  · rcases hX with ⟨hX₁, hX₂, hX₃⟩
+    rcases hY with ⟨hY₁, hY₂, hY₃⟩
+    exact hX₂.add hY₂ hp hX₁ hY₁
+  · obtain ⟨C_X, hC_X⟩ := hX.2.2
+    obtain ⟨C_Y, hC_Y⟩ := hY.2.2
+    exact ⟨C_X + C_Y,
+      fun i ↦ le_trans (eLpNorm_add_le (hX.1 i) (hY.1 i) hp) (add_le_add (hC_X i) (hC_Y i))⟩
 
 lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
     {X : ι → Ω → E} {Y : ι → Ω → F} {p : ℝ≥0∞}
     (hp : 1 ≤ p) (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
     (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y j ω‖) :
     UniformIntegrable X p μ := sorry
+
+lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
+    (hp : 1 ≤ p) (hY : UniformIntegrable X p μ) :
+    UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
+
+lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p) :
+    UniformIntegrable X p μ ↔ UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
 
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
     {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
@@ -147,6 +162,13 @@ lemma UniformIntegrable.memLp_of_tendstoInMeasure
       obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
       exact LE.le.trans (hn n (by linarith)) (hC (g n))
     _ < ⊤ := by simp
+
+lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
+    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
+    UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
+      TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
+  sorry
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
