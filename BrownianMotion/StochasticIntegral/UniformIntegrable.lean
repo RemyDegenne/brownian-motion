@@ -168,7 +168,23 @@ lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
     {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
     UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
       TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
-  sorry
+  refine ⟨fun f => ?_, ?_, ?_⟩
+  · obtain ⟨s, hs⟩ := f.property
+    obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
+    exact aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (s (u i))) hu.2
+  · refine fun ε hε => ?_
+    sorry
+  · obtain ⟨C, hC⟩ := hUI.2.2
+    refine ⟨C, fun f => ?_⟩
+    obtain ⟨s, hs⟩ := f.property
+    obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
+    calc
+    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (fn (s (u n))) p μ) :=
+      Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => hUI.1 (s (u i))) f hu.2
+    _ ≤ C := by
+      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
+      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
+      exact LE.le.trans (hn n (by linarith)) (hC (s (u n)))
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
