@@ -280,6 +280,165 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \section{Doob-Meyer class}
 
+\begin{definition}\label{def:locallyIntegrableSup}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.HasLocallyIntegrableSup}
+We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
+A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
+\end{definition}
+
+
+\begin{definition}[Doob-Meyer class, class D]\label{def:classD}
+  \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.ClassD}
+A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
+\end{definition}
+
+
+\begin{definition}[Class DL]\label{def:classDL}
+  \uses{def:IsStoppingTime}
+A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
+\end{definition}
+
+\begin{lemma}\label{lem:classDLOfClassD}
+  \uses{def:classD, def:classDL}
+A stochastic process of class D is of class DL.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:classD, def:classDL, lem:uniformIntegrableComp}
+This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
+\end{proof}
+
+\begin{lemma}\label{lem:Submartingale.classDL}
+  \uses{def:Submartingale, def:classDL}
+Every nonnegative right continuous submartingale is of class DL.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSamplingSubmartingale}
+Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. Thus, we conclude by applying Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.classD_iff_uniformIntegrable}
+  \uses{def:Submartingale, def:classD}
+A nonnegative càdlàg submartingale is of class D if and only if it is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.classDL}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.classDL}
+  \uses{def:Martingale, def:classDL}
+Every cadlag martingale is of class DL.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.classDL}
+
+\end{proof}
+
+\begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
+  \uses{def:Martingale, def:classD}
+A cadlag martingale is of class D if and only if it is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isStable_classD}
+  \uses{def:stable, def:classD}
+The class D is stable.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+% todo: this and the next lemma are proved together, with whatever chain of implications is easiest
+\begin{lemma}\label{lem:locally_classD_iff_locallyIntegrableSup}
+  \uses{def:classD, def:locallyIntegrableSup, def:locally}
+A cadlag adapted process is locally of class D if and only if it has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+% todo: this and the previous lemma are proved together, with whatever chain of implications is easiest
+\begin{lemma}\label{lem:locally_classD_iff_locally_classDL}
+  \uses{def:classD, def:classDL, def:locally}
+A cadlag adapted process is locally of class D if and only if it is locally of class DL.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:sup_stoppedProcess_le}
+  \uses{def:stoppedProcess}
+For $Y$ a stochastic process, let $Y^*_t = \sup_{s \le t} \Vert Y_s \Vert$.
+Let $X$ be a stochastic process and let $\tau = \inf \{t \mid \Vert X_t \Vert \ge n\}$ for some $n \in \mathbb{R}$.
+Then
+\begin{align*}
+  (X^{\tau})^*_t
+  \le n + \mathbb{1}_{\tau \le t} \Vert X_{\tau} \Vert
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.locallyIntegrableSup}
+  \uses{def:Submartingale, def:locallyIntegrableSup}
+Every cadlag submartingale for a right-continuous filtration has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:sup_stoppedProcess_le, lem:Submartingale.integrable_stoppedValue, cor:isStoppingTime_leastGE_of_rightContinuous}
+Define the stopping times $\sigma_n = \inf\{t \mid \Vert X_t \Vert \ge n\}$ and set $\tau_n = \sigma_n \wedge n$.
+$\sigma_n$ is a stopping time by Lemma~\ref{cor:isStoppingTime_leastGE_of_rightContinuous} and so $\tau_n$ is also a stopping time.
+The times $(\tau_n)_{n \in \mathbb{N}}$ form a localizing sequence.
+By Lemma~\ref{lem:sup_stoppedProcess_le}, we have that
+\begin{align*}
+  (X^{\tau_n})^*_t
+  & \le n + \mathbb{1}_{\tau_n \le t} \Vert X_{\tau_n} \Vert \\
+  & \le n + \Vert X_{\tau_n} \Vert
+  \: .
+\end{align*}
+It remains to show that $X_{\tau_n}$ is integrable for each $n$.
+This follows by Lemma~\ref{lem:Submartingale.integrable_stoppedValue} as $\tau_n$ is a bounded stopping time.
+\end{proof}
+
+
+
+\begin{lemma}\label{lem:Submartingale.locally_classD}
+  \uses{def:Submartingale, def:classD, def:locally}
+Every cadlag submartingale is locally of class D.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.locallyIntegrableSup, lem:locally_classD_iff_locallyIntegrableSup}
+By Lemma~\ref{lem:locally_classD_iff_locallyIntegrableSup}, it suffices to show that every cadlag submartingale has locally integrable supremum.
+This is done in Lemma~\ref{lem:Submartingale.locallyIntegrableSup}.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsLocalSubmartingale.locally_classD}
   \uses{def:IsLocalSubmartingale, def:classD, def:locally}
 Every local submartingale is locally of class D.
