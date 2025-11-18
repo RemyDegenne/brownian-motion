@@ -122,7 +122,7 @@ Similarly, by the stability of $Q$, $X^{\sigma_n \wedge \tau_n} \mathbb{I}_{\sig
 \end{proof}
 
 \begin{lemma}\label{lem:isLocalizingSequence_of_isPreLocalizingSequence}
-  \uses{def:localizingSequence, def:rightContinuous}
+  \uses{def:localizingSequence, lem:rightContinuous_basic}
   \leanok
   \lean{ProbabilityTheory.isLocalizingSequence_of_isPreLocalizingSequence}
 If $(\tau_n)_{n \in \mathbb{N}}$ is a pre-localizing sequence, then the sequence defined by $\tau'_n = \inf_{m \ge n} \tau_m$ is a localizing sequence.
@@ -134,7 +134,7 @@ If $(\tau_n)_{n \in \mathbb{N}}$ is a pre-localizing sequence, then the sequence
 
 
 \begin{lemma}\label{lem:locally_of_isPreLocalizingSequence}
-  \uses{def:locally, def:localizingSequence, def:stable, def:rightContinuous, def:preLocalizingSequence}
+  \uses{def:locally, def:localizingSequence, def:stable, lem:rightContinuous_basic, def:preLocalizingSequence}
   \leanok
   \lean{ProbabilityTheory.locally_of_isPreLocalizingSequence}
 Let $P$ be a stable class of processes and let $(\tau_n)_{n \in \mathbb{N}}$ be a pre-localizing sequence such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$.
@@ -301,11 +301,15 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
 
 \begin{definition}[Class DL]\label{def:classDL}
   \uses{def:IsStoppingTime}
+  \leanok
+  \lean{ProbabilityTheory.ClassDL}
 A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
 \begin{lemma}\label{lem:classDLOfClassD}
   \uses{def:classD, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.ClassD.classDL}
 A stochastic process of class D is of class DL.
 \end{lemma}
 
@@ -316,6 +320,8 @@ This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 
 \begin{lemma}\label{lem:Submartingale.classDL}
   \uses{def:Submartingale, def:classDL}
+  \leanok
+  \lean{MeasureTheory.Submartingale.classDL}
 Every nonnegative càdlàg submartingale is of class DL.
 \end{lemma}
 
@@ -327,43 +333,208 @@ Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSam
 
 \begin{lemma}\label{lem:Submartingale.classD_iff_uniformIntegrable}
   \uses{def:Submartingale, def:classD}
+  \leanok
+  \lean{MeasureTheory.Submartingale.classD_iff_uniformIntegrable}
 A nonnegative càdlàg submartingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL}
+  \uses{lem:Submartingale.classDL, lem:uniformIntegrable_of_tendstoInMeasure, lem:uniformIntegrableComp}
+Assume that $X$ is uniformly integrable. We know from Lemma~\ref{lem:Submartingale.classDL} that $X$ is of class DL. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendstoInMeasure}, we deduce that $X$ is of class D.
 
+Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.classDL}
   \uses{def:Martingale, def:classDL}
-Every cadlag martingale is of class DL.
+  \leanok
+  \lean{MeasureTheory.Martingale.classDL}
+Every càdlàg martingale is of class DL.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL}
-
+  \uses{lem:Submartingale.classDL, lem:Martingale.submartingale_convex_comp, lem:uniformIntegrableIffNorm}
+Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_convex_comp}, $(|X_t|)_{t \in T}$ is a nonnegative càdlàg submartingale, and the result follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:uniformIntegrableIffNorm}.
 \end{proof}
 
 \begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
   \uses{def:Martingale, def:classD}
-A cadlag martingale is of class D if and only if it is uniformly integrable.
+  \leanok
+  \lean{MeasureTheory.Martingale.classD_iff_uniformIntegrable}
+A càdlàg martingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Martingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable}
+  \uses{lem:Submartingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm}
+Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
+\end{proof}
 
+
+\begin{lemma}\label{lem:isStable_hasLocallyIntegrableSup}
+  \uses{def:stable, def:locallyIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.isStable_hasLocallyIntegrableSup}
+The class of process with locally integrable supremum is stable.
+\end{lemma}
+
+\begin{proof}
+Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
 \end{proof}
 
 
 \begin{lemma}\label{lem:isStable_classD}
   \uses{def:stable, def:classD}
+  \leanok
+  \lean{ProbabilityTheory.isStable_classD}
 The class D is stable.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
+Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite stopping time $\sigma$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is finite and $X$ is of class D, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, which concludes the proof.
+\end{proof}
 
+
+\begin{lemma}\label{lem:isStable_classDL}
+  \uses{def:stable, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.isStable_classDL}
+The class DL is stable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
+Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For any stopping time $\sigma \le t$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is bounded by $t$ and $X$ is of class DL, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, which concludes the proof.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Integrable.classDL}
+  \uses{def:classDL}
+  \leanok
+  \lean{MeasureTheory.Integrable.classDL}
+Let $X$ be a stochastic process such that for all $t \in T$, $X^*_t := \sup_{s \le t} \|X_t\|$ is integrable. Then $X$ is of class DL.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableDominatedSingleton}
+Let $t \in T$. For every stopping time $\tau$ with $\tau \le t$, we have $\|X_\tau\| \le X^*_t$. Because by hypothesis $X^*_t$ is integrable, we deduce from Lemma~\ref{lem:uniformIntegrableDominatedSingleton} that $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. This proves that $X$ is of class DL.
+\end{proof}
+
+
+\begin{lemma}\label{lem:HasLocallyIntegrableSup.locally_classDL}
+  \uses{def:locallyIntegrableSup, def:locally, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.HasLocallyIntegrableSup.locally_classDL}
+Assume that the filtration is right-continuous. Let $X$ be a stochastic process with locally integrable supremum. Then $X$ is locally of class DL.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Integrable.classDL, lem:locally_mono}
+Combine Lemma~\ref{lem:Integrable.classDL} and Lemma~\ref{lem:locally_mono}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:ClassDL.locally_classD}
+  \uses{def:classDL, def:locally, def:classD}
+  \leanok
+  \lean{ProbabilityTheory.ClassDL.locally_classD}
+If $X$ is of class DL then it is locally of class D.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
+Take $\tau_n := n$. Then
+\begin{align*}
+  \{X^{\tau_n}_\sigma \mid \sigma \text{ is a finite stopping time}\} & = \{X_{\sigma \land n} \mid \sigma \text{ is a finite stopping time}\} \\
+  & \subseteq \{X_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le n\}.
+\end{align*}
+Because $X$ is of class DL, that last set is uniformly integrable, thus
+$$\{X^{\tau_n}_\sigma \mid \sigma \text{ is a finite stopping time}\}$$
+is uniformly integrable thanks to Lemma~\ref{lem:uniformIntegrableComp}. Lemma~\ref{lem:uniformIntegrableDominated} allows to conclude that
+$$\{X^{\tau_n}_\sigma \mathbb{I}_{\tau_n > 0} \mid \sigma \text{ is a finite stopping time}\}$$
+is uniformly integrable, thus $X^{\tau_n} \mathbb{I}_{\tau_n > 0}$ is of class D. Obviously $\tau_n \rightarrow +\infty$ as $n$ goes to infinity, so $X$ is locally of class D.
+\end{proof}
+
+
+\begin{lemma}\label{lem:locally_classD_of_locally_classDL}
+  \uses{def:rightContinuous, def:locally, def:classD, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.locally_classD_of_locally_classDL}
+If the filtration is right-continuous and $X$ is locally of class DL then it is locally of class D.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:local_induction, lem:ClassDL.locally_classD, lem:isStable_classD}
+Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.locally_classD} and Lemma~\ref{lem:isStable_classD}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isBounded_image_of_isCadlag_of_isCompact}
+  \leanok
+  \lean{isBounded_image_of_isCadlag_of_isCompact}
+Assume $T$ is a linear order endowed with a topology making it first countable and $E$ is a pseudometric space. If $X$ is a càdlàg process then it maps compact sets to bounded sets.
+\end{lemma}
+
+\begin{proof}
+Let $K \subseteq T$ be a compact set and $\omega \in \Omega$. Assume that $X(\omega)(K)$ is not bounded. Then there exists a sequence $(t_n)$ in $K$ such that for all $n \in N$, $d(X_{t_n}(\omega), x) \ge n$, for some arbitrary $x \in E$. Because $K$ is compact, there is a subsequence $(t_{\phi(n)})$ that converges. Then one can extract a subsequence $(t_{\phi(\psi(n))})$ which either converges from below or from above. In both cases the sequence $(X_{t_{\phi(\psi(n))}})$ will converge, contradicting the hypotheses.
+\end{proof}
+
+TODO: refine the hypotheses with those of Début theorem.
+\begin{lemma}\label{lem:isLocalizingSequence_hittingAfter_Ici}
+  \uses{def:leastGE, def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.isLocalizingSequence_hittingAfter_Ici}
+Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a real-valued càdlàg and adapted process, and if the filtration is right-continuous, then the sequence $\tau_n := \inf \{t | X_t \ge n\}$ is a localizing sequence.
+\end{lemma}
+
+\begin{proof}
+By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ is a stopping time. Moreover, for all $n \in \mathbb{N}$, $X_t \ge n+1 \implies X_t \ge n$, thus $\tau_n \le \tau_{n+1}$. Finally, for every $\omega \in \Omega$ and $t_0 \in T$ there exists $N \in \mathbb{N}$ such that for all $s \le t_0$, $X_s \le N$ thanks to Lemma~\ref{lem:isBounded_image_of_cadlag_of_isCompact}. Thus for all $n \ge N$, $\tau_n(\omega) \ge t_0$, proving that $\tau_n$ tends to infinity as n goes to infinity.
+\end{proof}
+
+
+\begin{lemma}\label{lem:sup_stoppedProcess_le}
+  \uses{def:stoppedProcess}
+  \leanok
+  \lean{ProbabilityTheory.sup_stoppedProcess_hittingAfter_Ici_le}
+For $Y$ a stochastic process, let $Y^*_t = \sup_{s \le t} \Vert Y_s \Vert$.
+Let $X$ be a stochastic process and let $\tau = \inf \{t \mid \Vert X_t \Vert \ge n\}$ for some $n \in \mathbb{R}$.
+Then
+\begin{align*}
+  (X^{\tau})^*_t
+  \le n + \mathbb{1}_{\tau \le t} \Vert X_{\tau} \Vert
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+If $\tau > t$, then for all $s \le t$, $\|X_s\| \le n$, and thus $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le n = n + \mathbb{1}_{\tau \le t} \|X_{\tau}\|$. Otherwise $(X^\tau)^*_t = \sup_{s \le \tau} \|X_s\|$. For $s < \tau$, $\|X_s\| \le n$, and $\|X_\tau\| \le \|X_\tau\|$ so $\sup_{s \le \tau} \|X_s\| \le n \lor \|X_\tau\| \le n + \|X_\tau\| = n + \mathbb{I}_{\tau \le t} \|X_\tau\|$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:ClassDL.hasLocallyIntegrableSup}
+  \uses{def:classD, def:locallyIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.ClassDL.hasLocallyIntegrableSup}
+Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process of class DL has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isLocalizingSequence_hittingAfter_Ici, lem:sup_stoppedProcess_le}
+Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_hittingAfter_Ici}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
+\end{proof}
+
+
+\begin{lemma}\label{lem:hasLocallyIntegrableSup_of_locally_classDL}
+  \uses{def:classD, def:locallyIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.hasLocallyIntegrableSup_of_locally_classDL}
+Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process locally of class DL has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
+Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
 \end{proof}
 
 
@@ -382,23 +553,6 @@ A cadlag adapted process is locally of class D if and only if it has locally int
 \begin{lemma}\label{lem:locally_classD_iff_locally_classDL}
   \uses{def:classD, def:classDL, def:locally}
 A cadlag adapted process is locally of class D if and only if it is locally of class DL.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:sup_stoppedProcess_le}
-  \uses{def:stoppedProcess}
-For $Y$ a stochastic process, let $Y^*_t = \sup_{s \le t} \Vert Y_s \Vert$.
-Let $X$ be a stochastic process and let $\tau = \inf \{t \mid \Vert X_t \Vert \ge n\}$ for some $n \in \mathbb{R}$.
-Then
-\begin{align*}
-  (X^{\tau})^*_t
-  \le n + \mathbb{1}_{\tau \le t} \Vert X_{\tau} \Vert
-  \: .
-\end{align*}
 \end{lemma}
 
 \begin{proof}

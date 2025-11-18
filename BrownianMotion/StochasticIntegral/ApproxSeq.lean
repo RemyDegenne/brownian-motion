@@ -3,21 +3,34 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
+import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.UniformIntegrable
-import BrownianMotion.Auxiliary.Adapted
+-- import BrownianMotion.Auxiliary.Adapted
 
 /-! # Discrete approximation of a stopping time
 
 -/
 
-open Filter TopologicalSpace Function
+open Filter TopologicalSpace Function Bornology
 open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E] [LinearOrder ι]
-  [OrderTopology ι] {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {𝓕 : Filtration ι mΩ}
-  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
+variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
+  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
+
+/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
+abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
+  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
+
+/-- A càdlàg function maps compact sets to bounded sets. -/
+lemma _root_.isBounded_image_of_isCadlag_of_isCompact {E : Type*} [LinearOrder ι]
+    [FirstCountableTopology ι] [PseudoMetricSpace E] {f : ι → E}
+    (hf : IsCadlag f) {s : Set ι} (hs : IsCompact s) :
+    IsBounded (f '' s) := by
+  sorry
+
+variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
