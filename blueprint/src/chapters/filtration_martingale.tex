@@ -865,6 +865,11 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
 \end{definition}
 
+\begin{definition}[Approximatable time index]\label{def:approximatableTimeIndex}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  A time index set \(T\) is said to be approximatable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
+\end{definition}
+
 \begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
   \uses{def:IsStoppingTime, def:approxSeq}
   \leanok
@@ -919,10 +924,10 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
-  \uses{def:IsStoppingTime}
-  Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
-  Then defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
-  we have that for each $n$, $\tau_n$ is a stopping time and $\tau_n \downarrow \tau$ as $n \to \infty$.
+  \uses{def:IsStoppingTime, def:approximatableTimeIndex}
+  $T = \mathbb{R}_+$ is an approximatable time index. In particular,
+  for any stopping time $\tau$ on $\overline{\mathbb{R}_+}$, defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
+  we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
 
 \begin{proof}
@@ -933,9 +938,17 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
+\begin{lemma}\label{lem:stoppingTime_approximationNat}
+  \uses{def:IsStoppingTime, def:approximatableTimeIndex}
+  $T = \mathbb{N}$ is an approximatable time index.
+\end{lemma}
+\begin{proof}
+  Immediate as we can take \(\tau_n = \tau\) for all \(n\).
+\end{proof}
+
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
+  Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximatable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
@@ -945,9 +958,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete}) that
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
@@ -962,7 +974,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a right-continuous submartingale with respect to the filtration $\mathcal{F}$. Then for
+  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximatable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
@@ -972,9 +984,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
   $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},

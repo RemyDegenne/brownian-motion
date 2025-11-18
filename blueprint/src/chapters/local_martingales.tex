@@ -228,7 +228,7 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
   \uses{def:IsLocalMartingale}
   \leanok
   \lean{ProbabilityTheory.Martingale.IsLocalMartingale}
-Every martingale is a local martingale.
+Every (right continuous) martingale is a (right continuous) local martingale.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -241,7 +241,7 @@ This follows from Lemma \ref{lem:implies_locally}.
   \uses{def:Martingale, def:stable}
   \leanok
   \lean{ProbabilityTheory.isStable_martingale}
-The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a martingale.
+The class of right continuous martingales is stable. That is, if $M$ is a right continuous martingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a right continuous martingale.
 \end{lemma}
 
 \begin{proof}
@@ -258,7 +258,7 @@ The class of martingales is stable. That is, if $M$ is a martingale and $\tau$ i
   \uses{def:Submartingale, def:stable}
   \leanok
   \lean{ProbabilityTheory.isStable_submartingale}
-The class of submartingales is stable. That is, if $M$ is a submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a submartingale.
+The class of right continuous submartingales is stable. That is, if $M$ is a right continuous submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a right continuous submartingale.
 \end{lemma}
 
 \begin{proof}
