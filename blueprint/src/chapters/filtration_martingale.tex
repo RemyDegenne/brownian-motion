@@ -865,9 +865,9 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
 \end{definition}
 
-\begin{definition}[Approximatable time index]\label{def:approximatableTimeIndex}
+\begin{definition}[Approximable time index]\label{def:approximableTimeIndex}
   \uses{def:IsStoppingTime, def:approxSeq}
-  A time index set \(T\) is said to be approximatable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
+  A time index set \(T\) is said to be approximable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
 \end{definition}
 
 \begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
@@ -924,8 +924,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
-  \uses{def:IsStoppingTime, def:approximatableTimeIndex}
-  $T = \mathbb{R}_+$ is an approximatable time index. In particular,
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  $T = \mathbb{R}_+$ is an approximable time index. In particular,
   for any stopping time $\tau$ on $\overline{\mathbb{R}_+}$, defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
   we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
@@ -939,8 +939,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximationNat}
-  \uses{def:IsStoppingTime, def:approximatableTimeIndex}
-  $T = \mathbb{N}$ is an approximatable time index.
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  $T = \mathbb{N}$ is an approximable time index.
 \end{lemma}
 \begin{proof}
   Immediate as we can take \(\tau_n = \tau\) for all \(n\).
@@ -948,7 +948,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximatable time index. Then, for
+  Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
@@ -974,7 +974,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximatable time index. Then, for
+  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
