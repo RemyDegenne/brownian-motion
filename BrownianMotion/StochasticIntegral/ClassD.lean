@@ -49,15 +49,11 @@ structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure 
 
 lemma ClassD.classDL {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ClassD X 𝓕 P) :
     ClassDL X 𝓕 P := by
-  have (t : ι) (τ : ↑{T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t}) :
-    τ.val ∈ ↑{T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤} :=
-    ⟨τ.property.1, fun ω => ne_of_lt (lt_of_le_of_lt (τ.property.2 ω) (WithTop.coe_lt_top t))⟩
-  refine ⟨hX.1, fun t => ⟨fun τ => hX.2.1 ⟨τ.val, this t τ⟩, ?_, ?_⟩⟩
-  · refine fun _ hε => ?_
-    obtain ⟨_, hδ, hδ'⟩ := hX.2.2.1 hε
-    exact ⟨_, hδ, fun τ => hδ' ⟨τ.val, this t τ⟩⟩
-  · obtain ⟨C, hC⟩ := hX.2.2.2
-    exact ⟨C, fun τ => hC ⟨τ.val, this t τ⟩⟩
+  let f (t : ι) : ↑{T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} →
+    ↑{T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤} :=
+    fun τ => ⟨τ, τ.property.1, fun ω => ne_of_lt
+      (lt_of_le_of_lt (τ.property.2 ω) (WithTop.coe_lt_top t))⟩
+  exact ⟨hX.1, fun t => hX.2.comp (f t)⟩
 
 end Defs
 
