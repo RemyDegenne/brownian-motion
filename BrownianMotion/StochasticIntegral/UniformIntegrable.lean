@@ -22,7 +22,7 @@ lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : 
     (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
     UniformIntegrable (X + Y) p μ := by
   refine ⟨fun _ ↦ (hX.1 _).add (hY.1 _), ?_, ?_⟩
-  · rcases hX with ⟨hX₁,hX₂, hX₃⟩
+  · rcases hX with ⟨hX₁, hX₂, hX₃⟩
     rcases hY with ⟨hY₁, hY₂, hY₃⟩
     exact hX₂.add hY₂ hp hX₁ hY₁
   · obtain ⟨C_X, hC_X⟩ := hX.2.2
