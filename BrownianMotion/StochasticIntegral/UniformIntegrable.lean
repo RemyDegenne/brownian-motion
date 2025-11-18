@@ -20,7 +20,15 @@ variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 
 lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
     (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
-    UniformIntegrable (X + Y) p μ := sorry
+    UniformIntegrable (X + Y) p μ := by
+  refine ⟨fun _ ↦ (hX.1 _).add (hY.1 _), ?_, ?_⟩
+  · rcases hX with ⟨hX₁, hX₂, hX₃⟩
+    rcases hY with ⟨hY₁, hY₂, hY₃⟩
+    exact hX₂.add hY₂ hp hX₁ hY₁
+  · obtain ⟨C_X, hC_X⟩ := hX.2.2
+    obtain ⟨C_Y, hC_Y⟩ := hY.2.2
+    exact ⟨C_X + C_Y,
+      fun i ↦ le_trans (eLpNorm_add_le (hX.1 i) (hY.1 i) hp) (add_le_add (hC_X i) (hC_Y i))⟩
 
 lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
     {X : ι → Ω → E} {Y : ι → Ω → F} {p : ℝ≥0∞}
