@@ -36,6 +36,13 @@ lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup 
     (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y j ω‖) :
     UniformIntegrable X p μ := sorry
 
+lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
+    (hp : 1 ≤ p) (hY : UniformIntegrable X p μ) :
+    UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
+
+lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p) :
+    UniformIntegrable X p μ ↔ UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
+
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
     {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
     (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
@@ -155,6 +162,13 @@ lemma UniformIntegrable.memLp_of_tendstoInMeasure
       obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
       exact LE.le.trans (hn n (by linarith)) (hC (g n))
     _ < ⊤ := by simp
+
+lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
+    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
+    UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
+      TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
+  sorry
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
