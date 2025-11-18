@@ -17,7 +17,7 @@ open scoped NNReal ENNReal Topology
 namespace MeasureTheory
 
 variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
-  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
+  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 
 /-- A stochastic process is right continuous if each of its realizations is right continuous. -/
 abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
