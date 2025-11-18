@@ -51,9 +51,8 @@ lemma ClassD.classDL {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : Clas
     ClassDL X 𝓕 P := by
   let f (t : ι) : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} →
       {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤} :=
-    fun τ => ⟨τ, τ.property.1, fun ω => ne_of_lt
-      (lt_of_le_of_lt (τ.property.2 ω) (WithTop.coe_lt_top t))⟩
-  exact ⟨hX.1, fun _ => hX.2.comp (f _)⟩
+    fun τ => ⟨τ, τ.2.1, fun ω => ne_of_lt
+      (lt_of_le_of_lt (τ.2.2 ω) (WithTop.coe_lt_top t))⟩
 
 end Defs
 
