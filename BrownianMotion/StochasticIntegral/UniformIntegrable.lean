@@ -173,7 +173,22 @@ lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
     obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
     exact aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (s (u i))) hu.2
   · refine fun ε hε => ?_
-    sorry
+    obtain ⟨_, hδ, hδ'⟩ := hUI.2.1 hε
+    refine ⟨_, hδ, fun f t ht ht' => ?_⟩
+    obtain ⟨s, hs⟩ := f.property
+    obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
+    calc
+    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (t.indicator (fn (s (u n)))) p μ) := by
+      refine Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => ?_) (t.indicator f.val) ?_
+      · exact (hUI.1 (s (u i))).indicator ht
+      · filter_upwards [hu.2] with a ha
+        by_cases memt : a ∈ t
+        · simpa [memt]
+        · simp [memt]
+    _ ≤ ENNReal.ofReal ε := by
+      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
+      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
+      exact LE.le.trans (hn n (by linarith)) (hδ' (s (u n)) t ht ht')
   · obtain ⟨C, hC⟩ := hUI.2.2
     refine ⟨C, fun f => ?_⟩
     obtain ⟨s, hs⟩ := f.property

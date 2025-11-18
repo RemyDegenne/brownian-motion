@@ -864,6 +864,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
+  \leanok
   Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
@@ -877,6 +878,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
+  \leanok
 Let $\epsilon > 0$. There exists $C \ge 0$ such that for all $t \in T$, $P[\|X_t\|^p \mathbb{I}_{\|X_t\| \ge C}]^{1/p} \le \epsilon$. Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
 \[P[\|Y\|^p \mathbb{I}_{\|Y\|^p \ge C}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \epsilon.\]
 This concludes the proof.
