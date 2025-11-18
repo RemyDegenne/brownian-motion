@@ -900,6 +900,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{definition}[Approximable time index]\label{def:approximableTimeIndex}
   \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.Approximable}
   A time index set \(T\) is said to be approximable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
 \end{definition}
 
@@ -958,6 +960,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{NNReal.approximable}
   $T = \mathbb{R}_+$ is an approximable time index. In particular,
   for any stopping time $\tau$ on $\overline{\mathbb{R}_+}$, defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
   we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
@@ -973,6 +977,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{lemma}\label{lem:stoppingTime_approximationNat}
   \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{Nat.approximable}
   $T = \mathbb{N}$ is an approximable time index.
 \end{lemma}
 \begin{proof}

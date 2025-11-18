@@ -131,4 +131,21 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC)
 
+/-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
+a discrete approximation sequence of `τ`. -/
+class Approximable (ι Ω : Type*) {mΩ : MeasurableSpace Ω} [TopologicalSpace ι] [LinearOrder ι]
+    [OrderTopology ι] (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac) where
+  /-- For any stopping time `τ`, there exists a discrete approximation sequence of `τ`. -/
+  approxSeq :
+    ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
+
+/-- Given a stopping time `τ` on an approximable time index, we obtain an associated discrete
+approximation sequence. -/
+def IsStoppingTime.approxSeq (h : IsStoppingTime 𝓕 τ) (μ : Measure Ω) [Approximable ι Ω 𝓕 μ] :
+    DiscreteApproxSequence 𝓕 τ μ := Approximable.approxSeq τ h
+
+instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable ℕ Ω 𝓕 μ := sorry
+
+instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable ℝ≥0 Ω 𝓕 μ := sorry
+
 end MeasureTheory
