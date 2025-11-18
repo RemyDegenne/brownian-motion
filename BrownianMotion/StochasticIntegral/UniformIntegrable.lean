@@ -38,10 +38,15 @@ lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup 
 
 lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
     (hp : 1 ≤ p) (hY : UniformIntegrable X p μ) :
-    UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
+    UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
+  refine uniformIntegrable_of_dominated hp hY ?_ (fun i ↦ ⟨i, by simp⟩)
+  exact fun i ↦ (UniformIntegrable.aestronglyMeasurable hY i).norm
 
-lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p) :
-    UniformIntegrable X p μ ↔ UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := sorry
+lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
+    (mX : ∀ i, AEStronglyMeasurable (X i) μ) :
+    UniformIntegrable X p μ ↔ UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
+  refine ⟨UniformIntegrable.norm hp, fun hNorm ↦ uniformIntegrable_of_dominated hp hNorm mX ?_⟩
+  exact fun i ↦ ⟨i, by simp⟩
 
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
     {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
