@@ -22,13 +22,6 @@ variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
 abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
   ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
 
-/-- A càdlàg function maps compact sets to bounded sets. -/
-lemma _root_.isBounded_image_of_isCadlag_of_isCompact {E : Type*} [LinearOrder ι]
-    [FirstCountableTopology ι] [PseudoMetricSpace E] {f : ι → E}
-    (hf : IsCadlag f) {s : Set ι} (hs : IsCompact s) :
-    IsBounded (f '' s) := by
-  sorry
-
 variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of

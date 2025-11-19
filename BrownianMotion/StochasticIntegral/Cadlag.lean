@@ -3,13 +3,14 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import Mathlib.Topology.Defs.Filter
+import Mathlib.Topology.Bases
+import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 /-! # cadlag functions
 
 -/
 
-open Filter
+open Filter TopologicalSpace Bornology
 open scoped Topology
 
 variable {ι E : Type*} [LinearOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
@@ -18,3 +19,10 @@ variable {ι E : Type*} [LinearOrder ι] [TopologicalSpace ι] [TopologicalSpace
 structure IsCadlag (f : ι → E) : Prop where
   right_continuous : ∀ x, ContinuousWithinAt f (Set.Ici x) x
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
+
+/-- A càdlàg function maps compact sets to bounded sets. -/
+lemma isBounded_image_of_isCadlag_of_isCompact {E : Type*}
+    [FirstCountableTopology ι] [PseudoMetricSpace E] {f : ι → E}
+    (hf : IsCadlag f) {s : Set ι} (hs : IsCompact s) :
+    IsBounded (f '' s) := by
+  sorry
