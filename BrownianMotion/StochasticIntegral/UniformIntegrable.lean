@@ -157,7 +157,7 @@ lemma seq_tendsto_ae_bounded
     _ ≤ C := by
       refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
       obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
-      exact LE.le.trans (hn n (by linarith)) (bound n)
+      exact le_trans (hn n (by linarith)) (bound n)
 
 lemma UniformIntegrable.memLp_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
