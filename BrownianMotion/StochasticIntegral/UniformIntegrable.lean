@@ -163,43 +163,58 @@ lemma UniformIntegrable.memLp_of_tendstoInMeasure
       exact LE.le.trans (hn n (by linarith)) (hC (g n))
     _ < ⊤ := by simp
 
+lemma TendstoInMeasure.aestronglyMeasurable
+    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace β]
+    {u : Filter ι} [NeBot u] [IsCountablyGenerated u]
+    {f : ι → α → β} {g : α → β} (hf : ∀ n, AEStronglyMeasurable (f n) μ)
+    (h_tendsto : TendstoInMeasure μ f u g) : AEStronglyMeasurable g μ := by
+  obtain ⟨ns, -, hns⟩ := h_tendsto.exists_seq_tendsto_ae'
+  exact aestronglyMeasurable_of_tendsto_ae atTop (fun n => hf (ns n)) hns
+
+lemma seq_tendsto_ae_bounded
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {f : ℕ → α → β} {g : α → β} {C : ℝ≥0∞} (p : ℝ≥0∞) (bound : ∀ n, eLpNorm (f n) p μ ≤ C)
+    (h_tendsto : ∀ᵐ (x : α) ∂μ, Tendsto (fun n => f n x) atTop (nhds (g x)))
+    (hf : ∀ n, AEStronglyMeasurable (f n) μ) : eLpNorm g p μ ≤ C := by
+  calc
+    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (f n) p μ) :=
+      Lp.eLpNorm_lim_le_liminf_eLpNorm (fun n => hf n) g h_tendsto
+    _ ≤ C := by
+      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
+      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
+      exact LE.le.trans (hn n (by linarith)) (bound n)
+
+lemma UnifIntegrable.unifIntegrable_of_tendstoInMeasure
+    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UnifIntegrable fn p μ)
+    (hfn : ∀ (i : ι), AEStronglyMeasurable (fn i) μ) :
+    UnifIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
+      TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
+  refine fun ε hε => ?_
+  obtain ⟨_, hδ, hδ'⟩ := hUI hε
+  refine ⟨_, hδ, fun f t ht ht' => ?_⟩
+  obtain ⟨s, hs⟩ := f.2
+  obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
+  refine seq_tendsto_ae_bounded p (fun n => hδ' (s (u n)) t ht ht') ?_ ?_
+  · filter_upwards [hu.2] with a ha
+    by_cases memt : a ∈ t
+    · simpa [memt]
+    · simp [memt]
+  · exact fun i => (hfn (s (u i))).indicator ht
+
 lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
     {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
     {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
     UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
       TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
-  refine ⟨fun f => ?_, ?_, ?_⟩
-  · obtain ⟨s, hs⟩ := f.property
-    obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
-    exact aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (s (u i))) hu.2
-  · refine fun ε hε => ?_
-    obtain ⟨_, hδ, hδ'⟩ := hUI.2.1 hε
-    refine ⟨_, hδ, fun f t ht ht' => ?_⟩
-    obtain ⟨s, hs⟩ := f.property
-    obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
-    calc
-    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (t.indicator (fn (s (u n)))) p μ) := by
-      refine Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => ?_) (t.indicator f.val) ?_
-      · exact (hUI.1 (s (u i))).indicator ht
-      · filter_upwards [hu.2] with a ha
-        by_cases memt : a ∈ t
-        · simpa [memt]
-        · simp [memt]
-    _ ≤ ENNReal.ofReal ε := by
-      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
-      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
-      exact LE.le.trans (hn n (by linarith)) (hδ' (s (u n)) t ht ht')
+  refine ⟨fun f => ?_, hUI.2.1.unifIntegrable_of_tendstoInMeasure p (fun i => hUI.1 i), ?_⟩
+  · obtain ⟨s, hs⟩ := f.2
+    exact hs.aestronglyMeasurable (fun n => hUI.1 (s n))
   · obtain ⟨C, hC⟩ := hUI.2.2
     refine ⟨C, fun f => ?_⟩
-    obtain ⟨s, hs⟩ := f.property
+    obtain ⟨s, hs⟩ := f.2
     obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
-    calc
-    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (fn (s (u n))) p μ) :=
-      Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => hUI.1 (s (u i))) f hu.2
-    _ ≤ C := by
-      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
-      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
-      exact LE.le.trans (hn n (by linarith)) (hC (s (u n)))
+    exact seq_tendsto_ae_bounded p (fun n => hC (s (u n))) hu.2 (fun i => hUI.1 (s (u i)))
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
