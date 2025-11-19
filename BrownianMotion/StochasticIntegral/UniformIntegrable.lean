@@ -194,7 +194,7 @@ lemma UnifIntegrable.unifIntegrable_of_tendstoInMeasure
     by_cases memt : a ∈ t
     · simpa [memt]
     · simp [memt]
-  · exact fun i => (hfn (s (u i))).indicator ht
+  · exact fun _ => (hfn (s (u _))).indicator ht
 
 lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
     {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
@@ -208,7 +208,7 @@ lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
     refine ⟨C, fun f => ?_⟩
     obtain ⟨s, hs⟩ := f.2
     obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
-    exact seq_tendsto_ae_bounded p (fun n => hC (s (u n))) hu.2 (fun i => hUI.1 (s (u i)))
+    exact seq_tendsto_ae_bounded p (fun _ => hC (s (u _))) hu.2 (fun _ => hUI.1 (s (u _)))
 
 lemma UniformIntegrable.integrable_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
