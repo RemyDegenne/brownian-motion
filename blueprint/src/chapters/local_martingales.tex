@@ -210,7 +210,7 @@ Thus $X \in Q_{\mathrm{loc}}$.
   \uses{def:Martingale, def:locally}
   \leanok
   \lean{ProbabilityTheory.IsLocalMartingale}
-  We say a stochastic process $(M_t)_{t \in T}$ is a local martingale if it is locally cadlag and martingale in the sense of
+  We say a stochastic process $(M_t)_{t \in T}$ is a local martingale if it is locally a cadlag martingale in the sense of
   Definition~\ref{def:locally}. That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a cadlag martingale.
 \end{definition}
 
@@ -219,8 +219,8 @@ Thus $X \in Q_{\mathrm{loc}}$.
   \uses{def:Submartingale, def:localizingSequence, def:stoppedProcess}
   \leanok
   \lean{ProbabilityTheory.IsLocalSubmartingale}
-A stochastic process is a local submartingale if it is locally a submartingale in the sense of Definition~\ref{def:locally}.
-That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a submartingale.
+A stochastic process is a local submartingale if it is locally cadlag a cadlag submartingale in the sense of Definition~\ref{def:locally}.
+That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a cadlag submartingale.
 \end{definition}
 
 
