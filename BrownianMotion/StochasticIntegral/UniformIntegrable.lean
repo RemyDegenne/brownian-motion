@@ -49,14 +49,11 @@ lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p
   exact fun i ↦ ⟨i, by simp⟩
 
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
-    {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
-    (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
-    UniformIntegrable X p μ :=
+    {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
+    (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
+    UniformIntegrable X p μ := by
     let Y' : ι → Ω → ℝ := fun _ ↦ Y
-    have Y'_ui : UniformIntegrable Y' p μ := by
-      by_cases pinf : p = ∞
-      · sorry
-      · exact uniformIntegrable_const hp pinf hY
+    have Y'_ui : UniformIntegrable Y' p μ := uniformIntegrable_const hp hp_ne_top hY
     have hX' : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y' j ω‖ := by
       intro i
       use i
@@ -70,7 +67,7 @@ lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι �
         push_neg
         exact lt_of_abs_lt ha
       exact measure_mono_null h_sub hX
-    uniformIntegrable_of_dominated hp Y'_ui mX hX'
+    exact uniformIntegrable_of_dominated hp Y'_ui mX hX'
 
 variable {X : ι → Ω → ℝ}
 
