@@ -5,7 +5,6 @@ Authors: Kexing Ying
 -/
 import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.UniformIntegrable
--- import BrownianMotion.Auxiliary.Adapted
 
 /-! # Discrete approximation of a stopping time
 
