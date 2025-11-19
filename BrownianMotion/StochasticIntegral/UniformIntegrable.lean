@@ -155,7 +155,6 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
       (hX.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range (hτ _) (hτ_le _)
       (hτ_countable _)).symm).comp (fun i ↦ ((), i))
 
-
 lemma UniformIntegrable.memLp_of_tendstoInMeasure
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
     {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
