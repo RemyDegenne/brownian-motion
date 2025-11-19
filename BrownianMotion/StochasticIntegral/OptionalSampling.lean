@@ -29,12 +29,12 @@ theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
     (h.integrable_stoppedValue_of_countable_range τ hτ hτ_le hτ_countable_range)
     (hτ.measurableSet_stopping_time_le hσ)).symm.trans ?_
   have h_int :
-      Integrable ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι ↦ X n) τ)) μ :=
+      Integrable ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue X τ)) μ :=
     Integrable.indicator
       (h.integrable_stoppedValue_of_countable_range τ hτ hτ_le hτ_countable_range)
       <| hτ.measurableSpace_le _ (hτ.measurableSet_le_stopping_time hσ)
   have h_meas : AEStronglyMeasurable[hσ.measurableSpace]
-      ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue (fun n : ι ↦ X n) τ)) μ := by
+      ({ω : Ω | τ ω ≤ σ ω}.indicator (stoppedValue X τ)) μ := by
     refine StronglyMeasurable.aestronglyMeasurable ?_
     refine StronglyMeasurable.stronglyMeasurable_of_measurableSpace_le_on
       (hτ.measurableSet_le_stopping_time hσ) ?_ ?_ ?_
@@ -96,7 +96,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
         ((discreteApproxSequence_of 𝓕 hτ_le τn).isStoppingTime m)
         (σn.isStoppingTime m) (discreteApproxSequence_of_le hτ_le τn m)
         (DiscreteApproxSequence.countable _ _) (σn.countable m))
-    · congr 1; ext ω; rw [min_comm]; rfl
+    congr 1; ext ω; rw [min_comm]; rfl
   have hintgbl : Integrable (stoppedValue X τ) μ :=
     integrable_stoppedValue_of_discreteApproxSequence' h hRC hτ_le τn
   refine ae_eq_condExp_of_forall_setIntegral_eq _ hintgbl ?_ ?_

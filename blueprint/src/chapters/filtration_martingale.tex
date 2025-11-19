@@ -970,9 +970,9 @@ This concludes the proof.
 \end{proof}
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
+  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
-  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$ and let
   $\sigma, \tau$ be stopping times such that $\tau$ is bounded and there exist discrete
   approximation sequences for both $\sigma$ and $\tau$. Then, we have that
