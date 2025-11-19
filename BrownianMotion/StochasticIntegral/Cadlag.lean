@@ -13,11 +13,15 @@ import Mathlib.Topology.MetricSpace.Pseudo.Defs
 open Filter TopologicalSpace Bornology
 open scoped Topology
 
-variable {ι E : Type*} [LinearOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
+variable {ι E : Type*} [PartialOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
+
+/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
+abbrev Function.RightContinuous (f : ι → E) :=
+  ∀ a, ContinuousWithinAt f (Set.Ioi a) a
 
 /-- A function is cadlag if it is right-continuous and has left limits. -/
 structure IsCadlag (f : ι → E) : Prop where
-  right_continuous : ∀ x, ContinuousWithinAt f (Set.Ici x) x
+  right_continuous : Function.RightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
 /-- A càdlàg function maps compact sets to bounded sets. -/

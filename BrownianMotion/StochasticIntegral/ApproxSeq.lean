@@ -15,14 +15,9 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
-  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
-
-/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
-abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
-  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
-
-variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
+variable {ι Ω E : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [TopologicalSpace E]
+  {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} {X : ι → Ω → ℝ}
+  {τ : Ω → WithTop ι} {i : ι}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
@@ -47,7 +42,7 @@ instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) w
     cases s; cases t; congr
 
 lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι]
-    (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : RightContinuous X) :
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, RightContinuous (X · ω)) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
   sorry
 
@@ -92,7 +87,7 @@ lemma integrable_stoppedValue_of_discreteApproxSequence
     le_rfl
 
 lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : RightContinuous X)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     AEStronglyMeasurable (stoppedValue X τ) μ :=
   aestronglyMeasurable_of_tendsto_ae _
@@ -108,7 +103,7 @@ theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.countable _ m)
 
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : RightContinuous X)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     Tendsto (fun i ↦
       eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn i) - stoppedValue X τ) 1 μ)

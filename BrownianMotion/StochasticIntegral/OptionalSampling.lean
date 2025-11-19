@@ -35,8 +35,8 @@ variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
 
 theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
     [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX1 : Submartingale X 𝓕 P) (hX2 : RightContinuous X) {k : ι} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
-    (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) {k : ι}
+    (hτk : ∀ᵐ ω ∂P, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
   sorry
 
