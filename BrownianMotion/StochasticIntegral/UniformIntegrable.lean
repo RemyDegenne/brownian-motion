@@ -146,31 +146,6 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
   sorry
 
-lemma UniformIntegrable.memLp_of_tendstoInMeasure
-    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
-    (htends : TendstoInMeasure μ fn atTop f) :
-    MemLp f p μ := by
-  obtain ⟨g, hg⟩ := htends.exists_seq_tendsto_ae
-  refine ⟨aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (g i)) hg.2, ?_⟩
-  obtain ⟨C, hC⟩ := hUI.2.2
-  calc
-    _ ≤ atTop.liminf (fun (n : ℕ) => eLpNorm (fn (g n)) p μ) :=
-      Lp.eLpNorm_lim_le_liminf_eLpNorm (fun i => hUI.1 (g i)) f hg.2
-    _ ≤ C := by
-      refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
-      obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
-      exact LE.le.trans (hn n (by linarith)) (hC (g n))
-    _ < ⊤ := by simp
-
-lemma TendstoInMeasure.aestronglyMeasurable
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace β]
-    {u : Filter ι} [NeBot u] [IsCountablyGenerated u]
-    {f : ι → α → β} {g : α → β} (hf : ∀ n, AEStronglyMeasurable (f n) μ)
-    (h_tendsto : TendstoInMeasure μ f u g) : AEStronglyMeasurable g μ := by
-  obtain ⟨ns, -, hns⟩ := h_tendsto.exists_seq_tendsto_ae'
-  exact aestronglyMeasurable_of_tendsto_ae atTop (fun n => hf (ns n)) hns
-
 lemma seq_tendsto_ae_bounded
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
     {f : ℕ → α → β} {g : α → β} {C : ℝ≥0∞} (p : ℝ≥0∞) (bound : ∀ n, eLpNorm (f n) p μ ≤ C)
@@ -183,6 +158,25 @@ lemma seq_tendsto_ae_bounded
       refine liminf_le_of_le (by isBoundedDefault) (fun b hb => ?_)
       obtain ⟨n, hn⟩ := Filter.eventually_atTop.mp hb
       exact LE.le.trans (hn n (by linarith)) (bound n)
+
+lemma UniformIntegrable.memLp_of_tendstoInMeasure
+    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
+    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
+    (htends : TendstoInMeasure μ fn atTop f) :
+    MemLp f p μ := by
+  obtain ⟨g, hg⟩ := htends.exists_seq_tendsto_ae
+  refine ⟨aestronglyMeasurable_of_tendsto_ae atTop (fun i => hUI.1 (g i)) hg.2, ?_⟩
+  obtain ⟨C, hC⟩ := hUI.2.2
+  exact lt_of_le_of_lt (seq_tendsto_ae_bounded p (fun i => hC (g i)) hg.2 (fun i => hUI.1 (g i)))
+    ENNReal.coe_lt_top
+
+lemma TendstoInMeasure.aestronglyMeasurable
+    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace β]
+    {u : Filter ι} [NeBot u] [IsCountablyGenerated u]
+    {f : ι → α → β} {g : α → β} (hf : ∀ n, AEStronglyMeasurable (f n) μ)
+    (h_tendsto : TendstoInMeasure μ f u g) : AEStronglyMeasurable g μ := by
+  obtain ⟨ns, -, hns⟩ := h_tendsto.exists_seq_tendsto_ae'
+  exact aestronglyMeasurable_of_tendsto_ae atTop (fun n => hf (ns n)) hns
 
 lemma UnifIntegrable.unifIntegrable_of_tendstoInMeasure
     {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
