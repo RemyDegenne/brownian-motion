@@ -31,7 +31,26 @@ lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup 
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
     {p : ℝ≥0∞} (hp : 1 ≤ p) (hY : MemLp Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
     (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
-    UniformIntegrable X p μ := sorry
+    UniformIntegrable X p μ := by
+    let Y' : ι → Ω → ℝ := fun _ ↦ Y
+    have Y'_ui : UniformIntegrable Y' p μ := by
+      by_cases pinf : p = ∞
+      · sorry
+      · exact uniformIntegrable_const hp pinf hY
+    have hX' : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y' j ω‖ := by
+      intro i
+      use i
+      specialize hX i
+      rw [ae_iff]
+      rw [ae_iff] at hX
+      have h_sub : {a | ¬ ‖X i a‖ ≤ ‖Y' i a‖} ⊆ {a | ¬ ‖X i a‖ ≤ Y a} := by
+        intro a ha
+        push_neg at ha
+        dsimp [Y'] at ha
+        push_neg
+        exact lt_of_abs_lt ha
+      exact measure_mono_null h_sub hX
+    exact uniformIntegrable_of_dominated hp Y'_ui mX hX'
 
 variable {X : ι → Ω → ℝ}
 
