@@ -8,6 +8,7 @@ import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.Auxiliary.WithTop
 import BrownianMotion.Auxiliary.IsStoppingTime
 import BrownianMotion.Auxiliary.StoppedProcess
+import BrownianMotion.StochasticIntegral.Cadlag
 
 /-! # Local properties of processes
 
@@ -354,5 +355,73 @@ lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
 end
 
 end ConditionallyCompleteLinearOrderBot
+
+section cadlag
+
+variable [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
+
+open Classical in noncomputable
+def LocalizingSequence_of_prop (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
+  fun _ ω ↦ if p (X · ω) then ⊤ else ⊥
+
+lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
+    (τ : Ω → WithTop ι) (c : WithTop ι) (hτ : τ =ᵐ[P] Function.const _ c) :
+    IsStoppingTime 𝓕 τ := by
+  sorry
+
+lemma isLocalizingSequence_ae
+    (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
+    {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
+    IsLocalizingSequence 𝓕 (LocalizingSequence_of_prop X p) P where
+  isStoppingTime n := by
+    refine isStoppingTime_ae_const 𝓕 P _ ⊤ ?_
+    filter_upwards [hpX] with ω hω
+    rw [LocalizingSequence_of_prop, if_pos hω]
+    rfl
+  mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequence_of_prop]
+  tendsto_top := by
+    filter_upwards [hpX] with ω hω
+    simp [LocalizingSequence_of_prop, if_pos hω]
+
+variable [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [HasUsualConditions 𝓕 P]
+
+lemma Locally.rightContinuous
+    (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
+  sorry
+
+lemma locally_rightContinuous_iff :
+    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
+    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
+  sorry
+
+lemma Locally.left_limit
+    (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
+  sorry
+
+lemma locally_left_limit_iff :
+    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
+  sorry
+
+lemma Locally.isCadlag
+    (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
+  filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
+    (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
+
+lemma locally_isCadlag_iff :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
+  sorry
+
+lemma locally_isCadlag_iff_locally_ae (𝓕 : Filtration ι mΩ) (X : ι → Ω → E) (P : Measure Ω) :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
+    ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
+  refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, ?_⟩
+  sorry
+
+end cadlag
 
 end ProbabilityTheory

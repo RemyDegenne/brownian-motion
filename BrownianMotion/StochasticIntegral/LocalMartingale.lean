@@ -11,8 +11,8 @@ import Mathlib.Probability.Martingale.Basic
 
 -/
 
-open MeasureTheory Filter
-open scoped ENNReal
+open MeasureTheory Filter Filtration
+open scoped ENNReal Topology
 
 namespace ProbabilityTheory
 
