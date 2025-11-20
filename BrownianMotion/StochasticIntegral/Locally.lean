@@ -371,7 +371,7 @@ open Classical in
 localizing sequence by setting the stopping time to be ∞ whenever the property holds. -/
 noncomputable
 def LocalizingSequence_of_prop (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
-  fun _ ω ↦ if p (X · ω) then ⊤ else ⊥
+  Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
 
 lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
     (τ : Ω → WithTop ι) (c : WithTop ι) (hτ : τ =ᵐ[P] Function.const _ c) :
@@ -399,8 +399,7 @@ lemma isLocalizingSequence_ae
   isStoppingTime n := by
     refine isStoppingTime_ae_const 𝓕 P _ ⊤ ?_
     filter_upwards [hpX] with ω hω
-    rw [LocalizingSequence_of_prop, if_pos hω]
-    rfl
+    rw [LocalizingSequence_of_prop, Function.const_apply, Function.const_apply, if_pos hω]
   mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequence_of_prop]
   tendsto_top := by
     filter_upwards [hpX] with ω hω
