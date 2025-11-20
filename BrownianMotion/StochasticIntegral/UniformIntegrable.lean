@@ -198,7 +198,7 @@ lemma UnifIntegrable.unifIntegrable_of_tendstoInMeasure
   obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
   refine seq_tendsto_ae_bounded p (fun n => hδ' (s (u n)) t ht ht') ?_ ?_
   · filter_upwards [hu.2] with a ha
-    by_cases memt : a ∈
+    by_cases memt : a ∈ t
     · simpa [memt]
     · simp [memt]
   · exact fun n => (hfn (s (u n))).indicator ht
