@@ -202,9 +202,32 @@ By Lemma \ref{lem:locally_locally}, $(Q_{\mathrm{loc}})_{\mathrm{loc}} = Q_{\mat
 Thus $X \in Q_{\mathrm{loc}}$.
 \end{proof}
 
+\section{Locally Cadlag}
+
+We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. complete and right-continuous).
+
+\begin{lemma}\label{lem:isLocalizingSequence_ae}
+  \uses{def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.isLocalizingSequence_ae}
+  Let $P$ be a predicate on paths and suppose $X$ is a stochastic process satisfying $P$ a.s. Then, defining
+  $$\tau_n(\omega) =
+  \begin{cases}
+    \infty & \text{if } X(\omega) \text{ satisfies } P \\
+    0 & \text{otherwise}
+  \end{cases}
+  $$
+  for all $n \in \mathbb{N}$, the sequence $(\tau_n)_{n \in \mathbb{N}}$ is a localizing sequence.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{lemma}
+
+\end{lemma}
 
 \section{Local martingales}
-
 
 \begin{definition}[Local martingale]\label{def:IsLocalMartingale}
   \uses{def:Martingale, def:locally}
