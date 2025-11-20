@@ -108,15 +108,21 @@ lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X
 
 end Locally
 
+variable [Zero E]
+
 /-- A property of stochastic processes is said to be stable if it is preserved under taking
 the stopped process by a stopping time. -/
-def IsStable [Zero E]
+def IsStable
     (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
     ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
       p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
+lemma IsStable.and (p q : (ι → Ω → E) → Prop)
+    (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
+    IsStable 𝓕 (fun X ↦ p X ∧ q X) :=
+  fun _ hX τ hτ ↦ ⟨hp _ hX.left τ hτ, hq _ hX.right τ hτ⟩
 
-variable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
+variable [TopologicalSpace ι] [OrderTopology ι]
 
 lemma IsStable.isStable_locally (hp : IsStable 𝓕 p) :
     IsStable 𝓕 (fun Y ↦ Locally p 𝓕 Y P) := by
@@ -456,6 +462,20 @@ lemma locally_isCadlag_iff_locally_ae (𝓕 : Filtration ι mΩ) (X : ι → Ω 
     ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
   refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, ?_⟩
   sorry
+
+lemma isStable_rightContinuous :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
+  sorry
+
+lemma isStable_left_limit :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
+  sorry
+
+lemma isStable_isCadlag :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω)) :=
+  fun X hX τ hτ ω ↦
+    ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
+      isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
 
 end cadlag
 
