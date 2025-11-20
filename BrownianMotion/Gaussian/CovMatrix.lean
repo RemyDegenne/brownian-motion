@@ -46,7 +46,7 @@ lemma covInnerBilin_eq_covarianceBilin (x y : E) :
 lemma covInnerBilin_apply [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
     covInnerBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ := by
   simp_rw [covInnerBilin, ContinuousLinearMap.bilinearComp_apply, covarianceBilinDual_apply' h]
-  simp only [LinearIsometry.coe_toContinuousLinearMap, id_eq, toDualMap_apply]
+  simp only [LinearIsometry.coe_toContinuousLinearMap, id_eq, toDualMap_apply_apply]
 
 nonrec
 lemma IsGaussian.covInnerBilin_apply [IsGaussian μ] [SecondCountableTopology E] [CompleteSpace E]
