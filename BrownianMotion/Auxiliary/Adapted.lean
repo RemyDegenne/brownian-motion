@@ -1,23 +1,19 @@
 import Mathlib.Probability.Process.Adapted
+import BrownianMotion.StochasticIntegral.Cadlag
 
 open Filter TopologicalSpace Function
 open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
-  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
+variable {ι Ω β : Type*} [TopologicalSpace ι] [TopologicalSpace β]
 
-/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
-abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
-  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
-
-variable [LinearOrder ι] [TopologicalSpace ι] [MetrizableSpace ι]
-  [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι]
-  [PseudoMetrizableSpace E] {X : ι → Ω → E}
+variable [LinearOrder ι] [MetrizableSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+  [OpensMeasurableSpace ι] [PseudoMetrizableSpace β]
+  {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → β} {τ : Ω → WithTop ι} {n : ι}
 
 lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
-    (h : Adapted 𝓕 X) (hu_cont : RightContinuous X) :
+    (h : Adapted 𝓕 X) (hu_cont : ∀ ω, RightContinuous (X · ω)) :
     ProgMeasurable 𝓕 X :=
   sorry
 
