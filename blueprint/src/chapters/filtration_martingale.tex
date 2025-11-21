@@ -993,7 +993,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
+   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
   Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
