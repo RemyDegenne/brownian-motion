@@ -866,6 +866,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
+  \leanok
   Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
@@ -879,9 +880,12 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
-Let $\epsilon > 0$. There exists $C \ge 0$ such that for all $t \in T$, $P[\|X_t\|^p \mathbb{I}_{\|X_t\| \ge C}]^{1/p} \le \epsilon$. Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
-\[P[\|Y\|^p \mathbb{I}_{\|Y\|^p \ge C}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \epsilon.\]
-This concludes the proof.
+  \leanok
+  Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
+  \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
+  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
+  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
+  This proves that the family of limits in probability of sequences of $X$ is uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma and the existence of an almost everywhere convergent subsequence in a similar way.
 \end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
@@ -959,7 +963,7 @@ This concludes the proof.
   \uses{def:IsStoppingTime}
   Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
   Then defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
-  we have that for each $n$, $\tau_n$ is a stopping time and $\tau_n \downarrow \tau$ as $n \to \infty$.
+  we have that $(\tau_n)$ is a discrete approximation sequence of \(\tau\).
 \end{lemma}
 
 \begin{proof}
@@ -972,12 +976,16 @@ This concludes the proof.
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  \leanok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
+  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$ and let
+  $\sigma, \tau$ be stopping times such that $\tau$ is bounded and there exist discrete
+  approximation sequences for both $\sigma$ and $\tau$. Then, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
