@@ -1,0 +1,57 @@
+:root {
+  --accent: #657ed4;
+  --accent-compl: #d4bb65;
+  --background: #eef0f2;
+  --background-lighter: #fafafa;
+}
+
+@font-face {
+  font-family: "LigaMenlo";
+  src: url("LigaMenlo-Regular.ttf");
+}
+
+body {
+  text-align: justify;
+  background-color: var(--background);
+}
+
+p a:visited,
+p a:link {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+.toc {
+  background-color: var(--background-lighter);
+}
+
+.keyword {
+  color: var(--accent) !important;
+}
+
+.hl.lean .token.binding-hl,
+.hl.lean .literal.string:hover,
+.hl.lean .token.typed:hover {
+  background-color: var(--accent-compl) !important;
+  border-radius: 2px !important;
+}
+
+.block {
+  background-color: var(--background-lighter);
+  padding: 0.4em;
+  border: 2px solid black;
+  border-radius: 0.5em;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: var(--background-lighter) !important;
+}
+
+code {
+  font-family: "LigaMenlo";
+  font-variant-ligatures: normal;
+}

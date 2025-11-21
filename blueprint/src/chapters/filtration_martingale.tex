@@ -130,7 +130,8 @@ Let then $A \in \mathcal{F}_i$.
 
 
 \begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
-  \notready
+  \leanok
+  \lean{MeasureTheory.conditional_jensen}
 Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
 Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \begin{align*}
@@ -157,19 +158,23 @@ Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.submartingale_convex_comp}
   \uses{def:Martingale, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.submartingale_convex_comp}
 Let $X : T \rightarrow \Omega\rightarrow E$ a martingale with values in a normed space $E$.
-Let $\phi : E \rightarrow \mathbb{R}$ convex such that
+Let $\phi : E \rightarrow \mathbb{R}$ convex and continuous such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:conditional_jensen}
+  \leanok
   % See 1.4.12 Pascucci
   By the conditional Jensen inequality (Lemma~\ref{lem:conditional_jensen}),
   $\phi(X_t) = \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
@@ -186,18 +191,22 @@ $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingal
 
 \begin{proof}
   \uses{cor:norm_condExp_le}
+  \leanok
 Same proof as Lemma~\ref{lem:Martingale.submartingale_convex_comp}, specialized to $\phi = \Vert \cdot \Vert$, for which we can use Corollary~\ref{cor:norm_condExp_le}.
 \end{proof}
 
 
 \begin{lemma}\label{lem:convex_of_submg_is_submg}
   \uses{def:Submartingale}
-Let $X : T  \rightarrow \Omega \rightarrow \mathbb{R}^d$ a sub-martingale.
-Let $\phi:\mathbb{R^d} \rightarrow \mathbb{R}$ convex increasing such that
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_convex_comp}
+Let $X : T  \rightarrow \Omega \rightarrow E$ a sub-martingale.
+Let $\phi:E \rightarrow \mathbb{R}$ convex, continuous, and increasing such that
 $\phi(X_t)\in L^1(\Omega)$ for every $t\in T$. Then $\phi(X)$ is a sub-martingale.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   By Jensen and the fact that $\phi$ is increasing
   $\phi(X_t) \leq \phi\left( \mathbb{E}[X_T\ |\ \mathcal{F}_t] \right)\leq \mathbb{E}[\phi(X_T)\ |\ \mathcal{F}_t]$.
 \end{proof}
@@ -306,6 +315,7 @@ $$
 Note that $\bigsqcap$ denotes the infimum in the lattice of sigma-algebras on $\Omega$.
 \end{definition}
 
+
 \begin{lemma}\label{lem:filtrationRightCont}
   \uses{def:filtration, def:rightLimitFiltration}
   \leanok
@@ -331,6 +341,7 @@ We endow $T$ with the order topology. Let us first prove that the right continua
 Turn now to the proof that for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{A}$. Let $t \in T$. If $t$ is isolated on the right, then $\mathcal{F}_{t+} = \mathcal{F}_t \subseteq \mathcal{A}$ by definition of a filtration. Otherwise there exists $u > t$, and $\mathcal{F}_{t+} \subseteq \mathcal{F}_u \subseteq \mathcal{A}$, so we are done.
 \end{proof}
 
+
 \begin{lemma}\label{lem:rightContDef}
   \uses{def:rightLimitFiltration}
   \leanok
@@ -344,10 +355,11 @@ $$\mathcal{F}_{t+} =
 $$
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightLimitFiltration}
 This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContIsolated}
   \uses{def:rightLimitFiltration}
@@ -356,10 +368,11 @@ This follows from Definition~\ref{def:rightLimitFiltration} because the topology
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContSuccOrder}
   \uses{def:rightLimitFiltration}
@@ -368,10 +381,11 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. In a linear order with successor equipped with the order topology, every point is isolated on the right, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContIsMax}
   \uses{def:rightLimitFiltration}
@@ -380,10 +394,11 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the right for this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContExistsGt}
   \uses{def:rightLimitFiltration}
@@ -392,10 +407,11 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated on the right in this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContNeBot}
   \uses{def:rightLimitFiltration}
@@ -404,10 +420,11 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContNotIsMax}
   \uses{def:rightLimitFiltration}
@@ -416,10 +433,11 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNeBot}
 Endow $T$ with the order topology. In a densely ordered linear order, a point which is not maximal is not isolated on the right, so we can conclude by Lemma~\ref{lem:rightContNeBot}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContEq}
   \uses{def:rightLimitFiltration}
@@ -428,10 +446,11 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContNotIsMax}
-For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNotIsMax}.
+For all $t$, $t$ is not maximal, so we can conclude by Lemma~\ref{lem:rightContNotIsMax}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:leRightCont}
   \uses{def:rightLimitFiltration}
@@ -440,10 +459,11 @@ For all $t$, $t$ is not maximal, so we can conlude by Lemma~\ref{lem:rightContNo
 The filtration $\mathcal{F}$ is contained in its right continuation.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContDef}
 Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:rightContDef}, we split into two cases. If $t$ is isolated on the right, then $\mathcal{F}_{t+} = \mathcal{F}_t \supseteq \mathcal{F}_t$ and we are done. Otherwise, for all $u > t$, $\mathcal{F}_t \subseteq \mathcal{F}_u$, therefore $\mathcal{F}_t \subseteq \bigsqcap_{u > t} \mathcal{F}_u$, and we are done.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContSelf}
   \uses{def:rightLimitFiltration}
@@ -452,7 +472,7 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:leRightCont, lem:rightContDef}
 Let $t \in T$. From Lemma~\ref{lem:leRightCont}, we already now that $\mathcal{F}_{t+} \subseteq \mathcal{F}_{t++}$. Endow $T$ with the order topology and split according to Lemma~\ref{lem:rightContDef}. If $t$ is isolated on the right, then $\mathcal{F}_{t++} = \mathcal{F}_{t+}$ and we are done. Otherwise consider $u > t$. Then there exists $v \in T$ such that $t < v < u$. If $v$ is not isolated on the right then
 $$\mathcal{F}_{t++} = \bigsqcap_{s > t} \mathcal{F}_{s+} \subseteq \mathcal{F}_{v+} = \bigsqcap_{s > v} \mathcal{F}_s \subseteq \mathcal{F}_u,$$
@@ -461,12 +481,25 @@ $$\mathcal{F}_{t++} = \bigsqcap_{s > t} \mathcal{F}_{s+} \subseteq \mathcal{F}_{
 thus $\mathcal{F}_{t++} \subseteq \bigsqcap_{s > t} \mathcal{F}_s = \mathcal{F}_{t+}$, which concludes the proof.
 \end{proof}
 
+
+\begin{lemma}[Basic properties of the right continuation]\label{lem:rightLimitFiltration_basic}
+  \uses{lem:filtrationRightCont, lem:rightContDef, lem:rightContIsolated, lem:rightContSuccOrder, lem:rightContIsMax, lem:rightContExistsGt,lem:rightContNeBot, lem:rightContNotIsMax, lem:rightContEq, lem:leRightCont, lem:rightContSelf}
+  \leanok
+Fake lemma for the dependency graph. Import this to depend on Definition~\ref{def:rightLimitFiltration}.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
-  \uses{def:rightLimitFiltration}
+  \uses{def:rightLimitFiltration, lem:rightLimitFiltration_basic}
   \leanok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
+
 
 \begin{lemma}\label{lem:eqRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
@@ -475,10 +508,11 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous, lem:leRightCont}
 This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\ref{lem:leRightCont}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
@@ -487,10 +521,11 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:rightContSelf}
 This follows immediately from Lemma~\ref{lem:rightContSelf}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:rightContinuousMeasurableSet}
   \uses{def:rightLimitFiltration, def:rightContinuous}
@@ -499,13 +534,25 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:rightContinuous}
 This is a direct consequence of Definition~\ref{def:rightContinuous}.
 \end{proof}
 
+
+\begin{lemma}[Basic properties of right continuous filtrations]\label{lem:rightContinuous_basic}
+  \uses{lem:eqRightCont, lem:rightContinuousRightCont, lem:rightContinuousMeasurableSet}
+  \leanok
+Fake lemma for the dependency graph. Import this to depend on Definition~\ref{def:rightContinuous}.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{definition}[Usual conditions]\label{def:hasUsualConditions}
-  \uses{def:rightContinuous}
+  \uses{def:rightContinuous, lem:rightContinuous_basic}
   \leanok
   \lean{MeasureTheory.Filtration.HasUsualConditions}
 We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies the usual conditions if the filtration is right-continuous and if $\mathcal{F}_0$ contains all the $P$-null sets.
@@ -611,12 +658,35 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \section{Optional sampling}
 
+\begin{definition}[Ordered Monoid]\label{def:isOrderedAddMonoid}
+  \mathlibok
+  \lean{IsOrderedAddMonoid}
+Let $(M, +)$ be a commutative monoid that is also a partial order. It is said to be an \emph{ordered monoid} if for all $a, b, c \in M$, we have the following implication:
+$$a \le b \implies a + c \le b + c.$$
+\end{definition}
+
+\begin{definition}[Ordered Module]\label{def:isOrderedModule}
+  \mathlibok
+  \lean{IsOrderedModule}
+Let $\alpha, \beta$ be preorders with $0$ elements and such that there is a scalar multiplication $(\_ \cdot \_) : \alpha \times \beta \to \beta$. Then $\beta$ is said to be an \emph{ordered $\alpha$-module} (or \emph{ordered module} if $\alpha$ is clear from the context) if the following hold:
+\begin{itemize}
+  \item $\forall a \in \alpha, \forall b_1, b_2 \in \beta, 0 \le a \implies b_1 \le b_2 \implies a \cdot b_1 \le a \cdot b_2$;
+  \item $\forall a_1, a_2 \in \alpha, \forall b \in \beta, 0 \le b \implies a_1 \le a_2 \implies a_1 \cdot b \le a_2 \cdot b$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Order-closed topology]\label{def:orderClosedTopology}
+  \mathlibok
+  \lean{OrderClosedTopology}
+Let $X$ be a topological space that is also a preorder. The space $X$ is set to be \emph{order-closed}, or to have \emph{order-closed topology}, if the set $\{(x, y) \in X \times X \mid x \le y\}$ is closed.
+\end{definition}
+
 \begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
   \uses{def:Martingale, def:IsStoppingTime}
   \mathlibok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp}
   Let $X$ be a discrete time martingale with respect to the filtration $\mathcal{F}$ and let
-  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that
+  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
   $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
@@ -624,16 +694,42 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
 
 \end{proof}
 
+\begin{lemma}\label{lem:optionalSampling_discrete_submartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp_nat}
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
 
-\begin{lemma}\label{lem:conExpUI}
+\begin{proof}
+  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}). By Lemma~\ref{lem:optionalSampling_discrete}, we have that almost surely, $M_{\tau \wedge \sigma} = P[M_{\tau} \mid \mathcal{F}_{\sigma}]$. Because $A$ is predictable and $\tau \wedge \sigma \le \sigma$, we deduce that almost surely, $A_{\tau \wedge \sigma} = P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma]$. Moreover, by Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}, we know that almost surely, $A$ is nondecreasing. Therefore, using the fact $\tau \wedge \sigma \le \tau$, we get that $P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma] \le P[A_\tau \mid \mathcal{F}_\sigma]$. We deduce that almost surely,
+$$X_{\tau \wedge \sigma} = M_{\tau \wedge \sigma} + A_{\tau \wedge \sigma} \le P[M_\tau \mid \mathcal{F}_\sigma] + P[A_\tau \mid \mathcal{F}_\sigma] = P[X_\tau \mid \mathcal{F}_\sigma],$$
+concluding the proof.
+\end{proof}
+
+\begin{lemma}\label{lem:optionalSampling_discrete_supermartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min_nat}
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSampling_discrete_submartingale}
+We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_discrete_submartingale} we obtain that almost surely, $-X_{\tau \wedge \sigma} \le P[-X_{\tau} \mid \mathcal{F}_{\sigma}]$. Multiplying by $-1$ yields the desired result.
+\end{proof}
+
+
+\begin{lemma}\label{lem:condExpUI}
   \leanok
   \lean{MeasureTheory.UniformIntegrable.condExp'}
-  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable (pUI) functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
-  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is pUI.
+  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
+  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}\leanok
-  Since $(X_i)_{i \in \iota}$ is pUI, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
+  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
   there exists some \(\delta > 0\) such that
   for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
 
@@ -649,7 +745,7 @@ Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and
     & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
     & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
   \end{align*}
-  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is pUI.
+  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
 \end{proof}
 
 
@@ -662,10 +758,10 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:conExpUI}
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
   \leanok
 By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
-Thus, the result follows by Lemma~\ref{lem:conExpUI} as $\{X_n\}$ is uniformly integrable.
+Thus, the result follows by Lemma~\ref{lem:condExpUI} as $\{X_n\}$ is uniformly integrable.
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
@@ -677,8 +773,89 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:conExpUI}
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
   Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableAdd}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.add}
+Let $(X_t)_{t \in T}$ and $(Y_t)_{t \in T}$ be two families of uniformly integrable random variables.
+Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableDominated}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated}
+Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables.. If for all $s$, there exists $t$ such that $\|X_t\| \le \|Y s\|$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C \ge 0$ such that for $t \in T$, $P[\|Y_t\|^p \mathbb{I}_{\|Y_t\| \ge C}]^{1/p} \le \epsilon$. For all $s$, there exists $t$ such that $\|X_s\|^p \le \|Y_t\|^p$, so $P[\|X_s\|^p \mathbb{I}_{\|X_s\| \ge C}]^{1/p} \le \epsilon$. Thus $X$ is uniformly integrable.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableDominatedSingleton}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated_singleton}
+Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableDominated}
+Because $Y$ is in $L^p$, we deduce that $\{Y\}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableNorm}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.norm}
+If $(X_t)_{t \in T}$ is a family of uniformly integrable random variables, then so is $(\|X_t\|)_{t \in T}$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:uniformIntegrableDominated}
+Apply Lemma~\ref{lem:uniformIntegrableDominated} with $Y := X$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableIffNorm}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_iff_norm}
+Let $(X_t)_{t \in T}$ be a family of uniformly integrable random variables. It is uniformly integrable if and only if $(\|X_t\|)_{t \in T}$ is.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:uniformIntegrableNorm, lem:uniformIntegrableDominated}
+The forward direction is Lemma~\ref{lem:uniformIntegrableNorm}. The converse direction follows from Lemma~\ref{lem:uniformIntegrableDominated} with $Y := (\|X_t\|)_{t \in T}$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableComp}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.comp}
+If $(X_t)_{t \in T}$ is uniformly integrable and $\phi : S \to T$, then $(X_{\phi(s)})_{s \in S}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+This is immediate from the definition.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_submartingale}
+  \uses{def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
+Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
+We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
 \end{proof}
 
 \begin{lemma}\label{lem:memLp_of_tendstoInMeasure}
@@ -689,10 +866,26 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
+  \leanok
   Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
   where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
+  \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
+  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
+  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
+  This proves that the family of limits in probability of sequences of $X$ is uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma and the existence of an almost everywhere convergent subsequence in a similar way.
 \end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
@@ -705,6 +898,66 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 
 \end{proof}
 
+\begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
+  \uses{def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.DiscreteApproxSequence}
+  Given a stopping time \(\tau : \Omega \to T \cup \{\infty\}\), a sequence of stopping times \((\tau_n)_{n \in \mathbb{N}}\) is called an
+  discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
+\end{definition}
+
+\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
+  Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
+  \[\lim_{n \to \infty} X_{\tau_n} = X_\tau \text{ a.s.}\]
+\end{lemma}
+
+\begin{proof}
+  This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
+\end{proof}
+
+\begin{lemma}\label{lem:discreteApproxSequence_of}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.discreteApproxSequence_of}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, the sequence of stopping times \(\tau_n \wedge t\) is also a discrete approximation sequence of \(\tau\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any martingale \(X\), the sequence of stopped values \((X_{\tau_n \wedge t})\) is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:discreteApproxSequence_of, lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \leanok
+  Follows directly by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range} and Lemma~\ref{lem:discreteApproxSequence_of}.
+\end{proof}
+
+\begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \leanok
+  \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
+  Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
+  Then, for any right continuous martingale \(X\), \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:tendsto_stoppedValue_discreteApproxSequence, lem:memLp_of_tendstoInMeasure, lem:vitali, lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  By Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}, as \(X\) is right continuous we have that \(X_{\tau_n \wedge t} \to X_{\tau}\) a.s. and so,
+  also in probability. Moreover, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}, the sequence \((X_{\tau_n \wedge t})\) is uniformly integrable.
+  Thus, by Lemma~\ref{lem:memLp_of_tendstoInMeasure} and the Vitali convergence theorem (Lemma~\ref{lem:vitali}), it
+  follows that \(X_{\tau} \in L^1\) and \(X_{\tau_n \wedge t} \to X_{\tau}\) in \(L^1\) as \(n \to \infty\).
+\end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
   \uses{def:IsStoppingTime}
@@ -721,16 +974,16 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
-
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
   Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any bounded stopping times $\sigma, \tau$, we have that
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:vitali, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale}
+  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
   Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
@@ -743,10 +996,35 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
   On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
   Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
   We have $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
-  by the Vitali convergence theorem (Lemma~\ref{lem:vitali}) as desired.
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+\begin{lemma}\label{lem:optionalSamplingSubmartingale}
+  \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
+  Let $X$ be a right-continuous submartingale with respect to the filtration $\mathcal{F}$. Then for
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
+\end{lemma}
 
+\begin{proof}
+  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete_submartingale, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_submartingale,
+    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
+
+  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
+  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
+  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
+  $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
+  and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
+  we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] \le P[X_{\tau_n} \mathbb{I}_A]$.
+  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_submartingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
+  Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
+  We have $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
+  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
+\end{proof}
 
 \section{Martingale convergence}
 

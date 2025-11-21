@@ -4,6 +4,11 @@ open Bornology Filter
 
 open scoped NNReal ENNReal Topology
 
+lemma eventually_nhdsGT {α : Type*} [TopologicalSpace α] [LinearOrder α] [ClosedIciTopology α]
+    {a b : α} (hab : a < b) {p : α → Prop} (h : ∀ x ∈ Set.Ioc a b, p x) :
+    ∀ᶠ x in 𝓝[>] a, p x :=
+  sets_of_superset (x := Set.Ioo a b) _ (Ioo_mem_nhdsGT hab) (by grind)
+
 variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] [CompleteSpace Y]
     {C r : ℝ≥0} {s : Set X} {f : s → Y}
 

@@ -15,6 +15,6 @@ open scoped Topology
 variable {ι E : Type*} [LinearOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
 
 /-- A function is cadlag if it is right-continuous and has left limits. -/
-structure cadlag (f : ι → E) : Prop where
+structure IsCadlag (f : ι → E) : Prop where
   right_continuous : ∀ x, ContinuousWithinAt f (Set.Ici x) x
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
