@@ -963,7 +963,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   \uses{def:IsStoppingTime}
   Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
   Then defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
-  we have that for each $n$, $\tau_n$ is a stopping time and $\tau_n \downarrow \tau$ as $n \to \infty$.
+  we have that $(\tau_n)$ is a discrete approximation sequence of \(\tau\).
 \end{lemma}
 
 \begin{proof}
@@ -976,12 +976,16 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
-  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  \leanok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
+  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$ and let
+  $\sigma, \tau$ be stopping times such that $\tau$ is bounded and there exist discrete
+  approximation sequences for both $\sigma$ and $\tau$. Then, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
