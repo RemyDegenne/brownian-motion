@@ -485,10 +485,8 @@ lemma locally_isCadlag_iff_locally_ae :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
     ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
   refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, fun h ↦ ?_⟩
-  rwa [(by simp [locally_isCadlag_iff] :
-    (fun (X : ι → Ω → E) ↦ ∀ᵐ (ω : Ω) ∂P, IsCadlag fun x ↦ X x ω) =
-    fun (X : ι → Ω → E) ↦ Locally (fun Y ↦ ∀ ω, IsCadlag (Y · ω)) 𝓕 X P),
-    (locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag)] at h
+  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P)] at h
+  rwa [(locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag)] at h
 
 end ConditionallyCompleteLinearOrderBot
 
