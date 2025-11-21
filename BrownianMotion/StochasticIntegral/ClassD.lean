@@ -61,7 +61,7 @@ end Defs
 
 section PartialOrder
 
-variable [NormedSpace ℝ E] [CompleteSpace E] [LinearOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
+variable [NormedSpace ℝ E] [CompleteSpace E] [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
 section RightContinuous
 
