@@ -484,9 +484,8 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
 lemma locally_isCadlag_iff_locally_ae :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
     ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
-  refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, fun h ↦ ?_⟩
-  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P)] at h
-  rwa [(locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag)] at h
+  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P),
+    locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag]
 
 end ConditionallyCompleteLinearOrderBot
 
