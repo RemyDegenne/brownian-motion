@@ -545,7 +545,7 @@ lemma continuousOn_holderModification
   (uniformContinuousOn_holderModification hT hU hX hd_pos hβ_pos ω).continuousOn
 
 omit [CompleteSpace E] hE in
-lemma Measurable.of_edist_eq_zero {X Y : Ω → E} (hX : Measurable X)
+lemma _root_.Measurable.of_edist_eq_zero {X Y : Ω → E} (hX : Measurable X)
     (h_eq_zero : ∀ ω, edist (Y ω) (X ω) = 0) :
     Measurable Y := by
   refine measurable_of_isOpen fun U hU ↦ ?_
@@ -558,14 +558,26 @@ lemma Measurable.of_edist_eq_zero {X Y : Ω → E} (hX : Measurable X)
   rw [EMetric.inseparable_iff]
   exact h_eq_zero ω
 
-end PseudoEMetricSpace
-
-section EMetricSpace
-
-variable [PseudoEMetricSpace T] [EMetricSpace E] [hE : Nonempty E]
-
-variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
-  [SecondCountableTopology T]
+omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
+lemma edist_limUnder_prod_eq_zero {α β : Type*} {l₁ : Filter α} {l₂ : Filter β}
+    [l₁.NeBot] [l₂.NeBot]
+    {f : α → E} {g : β → E} (hf : ∃ c, Tendsto f l₁ (𝓝 c)) (hg : ∃ c, Tendsto g l₂ (𝓝 c)) :
+    edist (limUnder (l₁ ×ˢ l₂) fun p : α × β ↦ (f p.1, g p.2))
+      (limUnder l₁ f, limUnder l₂ g) = 0 := by
+  have h_prod : ∃ c, Tendsto (fun p : α × β ↦ (f p.1, g p.2)) (l₁ ×ˢ l₂) (𝓝 c) := by
+    obtain ⟨c₀, h₀⟩ := hf
+    obtain ⟨c₁, h₁⟩ := hg
+    use (c₀, c₁)
+    rw [nhds_prod_eq]
+    apply Filter.Tendsto.prodMk
+    · exact h₀.comp tendsto_fst
+    · exact h₁.comp tendsto_snd
+  rw [← EMetric.inseparable_iff]
+  refine tendsto_nhds_unique_inseparable (f := fun p : α × β ↦ (f p.1, g p.2)) (l := l₁ ×ˢ l₂) ?_ ?_
+  · exact tendsto_nhds_limUnder h_prod
+  · refine Tendsto.prodMk_nhds ?_ ?_
+    · exact (tendsto_nhds_limUnder hf).comp tendsto_fst
+    · exact (tendsto_nhds_limUnder hg).comp tendsto_snd
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] [SecondCountableTopology T] in
 lemma measurable_pair_limUnder_comap {X₁ X₂ : T → Ω → E} {T' : Set T} (hT'_dense : Dense T')
@@ -580,23 +592,25 @@ lemma measurable_pair_limUnder_comap {X₁ X₂ : T → Ω → E} {T' : Set T} (
     apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
   have : @NeBot { x // x ∈ T' } (comap Subtype.val (𝓝 t)) := by
     apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
+  let f (x : T' × T') (ω : Ω) := (X₁ x.1 ω, X₂ x.2 ω)
+  have hf_tendsto ω : ∃ c,
+      Tendsto (f · ω) (comap Subtype.val (𝓝 s) ×ˢ comap Subtype.val (𝓝 t)) (𝓝 c) := by
+    obtain ⟨c₀, h₀⟩ := hX₁_tendsto ω
+    obtain ⟨c₁, h₁⟩ := hX₂_tendsto ω
+    use (c₀, c₁)
+    rw [nhds_prod_eq]
+    apply Filter.Tendsto.prodMk
+    · exact h₀.comp tendsto_fst
+    · exact h₁.comp tendsto_snd
   have h_edist_zero ω : edist ((limUnder (comap Subtype.val (𝓝 s)) fun (t' : T') ↦ X₁ t' ω,
         limUnder (comap Subtype.val (𝓝 t)) fun (t' : T') ↦ X₂ t' ω))
       (limUnder ((comap Subtype.val (𝓝 s)) ×ˢ (comap Subtype.val (𝓝 t)))
         fun (p : T' × T') ↦ (X₁ p.1 ω, X₂ p.2 ω)) = 0 := by
-    -- todo: generalize beyond EMetricSpace
-    rw [← limUnder_prod (hX₁_tendsto ω) (hX₂_tendsto ω), edist_self]
+    have h := edist_limUnder_prod_eq_zero (hX₁_tendsto ω) (hX₂_tendsto ω)
+    rwa [edist_comm] at h
   borelize (E × E)
   refine Measurable.of_edist_eq_zero ?_ h_edist_zero
-  let f (x : T' × T') (ω : Ω) := (X₁ x.1 ω, X₂ x.2 ω)
-  refine measurable_limUnder_of_exists_tendsto (f := f) (fun ω ↦ ?_) (fun i ↦ hX₁₂ i.1 i.2)
-  obtain ⟨c₀, h₀⟩ := hX₁_tendsto ω
-  obtain ⟨c₁, h₁⟩ := hX₂_tendsto ω
-  use (c₀, c₁)
-  rw [nhds_prod_eq]
-  apply Filter.Tendsto.prodMk
-  · exact h₀.comp tendsto_fst
-  · exact h₁.comp tendsto_snd
+  exact measurable_limUnder_of_exists_tendsto hf_tendsto (fun i ↦ hX₁₂ i.1 i.2)
 
 omit [CompleteSpace E] in
 lemma measurable_pair_limUnder_indicatorProcess {X X' : T → Ω → E}
@@ -650,10 +664,21 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
         (limUnder (comap Subtype.val (𝓝 s)) fun t' : denseCountable T ↦ indicatorProcess X A₁ t' ω,
         limUnder (comap Subtype.val (𝓝 t))
           fun t' : denseCountable T ↦ indicatorProcess X' ∅ t' ω) by
-      convert this
-      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte]
-      rw [Tendsto.limUnder_eq]
-      exact tendsto_const_nhds
+      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
+      borelize (E × E)
+      refine this.of_edist_eq_zero fun ω ↦ ?_
+      suffices edist (limUnder (comap Subtype.val (𝓝 t)) fun (t' : denseCountable T) ↦ hE.some)
+          hE.some = 0 by
+        rw [Prod.edist_eq]
+        simp only [ENNReal.max_eq_zero_iff]
+        rw [edist_comm hE.some, this]
+        simp only [and_true]
+        exact edist_self _
+      rw [← EMetric.inseparable_iff]
+      refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
+        (l := comap Subtype.val (𝓝 t)) ?_ ?_
+      · exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+      · exact tendsto_const_nhds
     exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair hA₁ MeasurableSet.empty s t
       (hY_tendsto s hsU₁) (by simp)
   · simp only [hsU₁, ↓reduceIte, htU₂]
@@ -661,10 +686,21 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
         (limUnder (comap Subtype.val (𝓝 s)) fun t' : denseCountable T ↦ indicatorProcess X ∅ t' ω,
         limUnder (comap Subtype.val (𝓝 t))
           fun t' : denseCountable T ↦ indicatorProcess X' A₂ t' ω) by
-      convert this
-      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte]
-      rw [Tendsto.limUnder_eq]
-      exact tendsto_const_nhds
+      simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
+      borelize (E × E)
+      refine this.of_edist_eq_zero fun ω ↦ ?_
+      suffices edist (limUnder (comap Subtype.val (𝓝 s)) fun (t' : denseCountable T) ↦ hE.some)
+          hE.some = 0 by
+        rw [Prod.edist_eq]
+        simp only [ENNReal.max_eq_zero_iff]
+        rw [edist_comm hE.some, this]
+        simp only [true_and]
+        exact edist_self _
+      rw [← EMetric.inseparable_iff]
+      refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
+        (l := comap Subtype.val (𝓝 s)) ?_ ?_
+      · exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+      · exact tendsto_const_nhds
     exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair MeasurableSet.empty hA₂ s t
       (by simp) (hZ_tendsto t htU₂)
   · simp [hsU₁, htU₂]
@@ -680,6 +716,15 @@ lemma IsLimitOfIndicator.measurable_edist {Y X Z X' : T → Ω → E} {U₁ U₂
   refine StronglyMeasurable.measurable ?_
   exact continuous_edist.stronglyMeasurable.comp_measurable
     (hY.measurable_pair hX hX' hX_pair hZ s t)
+
+end PseudoEMetricSpace
+
+section EMetricSpace
+
+variable [PseudoEMetricSpace T] [EMetricSpace E] [hE : Nonempty E]
+
+variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
+  [SecondCountableTopology T]
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
 lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
