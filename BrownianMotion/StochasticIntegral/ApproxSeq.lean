@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.UniformIntegrable
+import BrownianMotion.Auxiliary.Adapted
 
 /-! # Discrete approximation of a stopping time
 
@@ -17,10 +18,6 @@ namespace MeasureTheory
 
 variable {ι Ω E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
   {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} {i : ι}
-
-/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
-abbrev _root_.Function.RightContinuous [PartialOrder ι] (X : ι → Ω → E) :=
-  ∀ ω a, ContinuousWithinAt (X · ω) (Set.Ioi a) a
 
 /-- A càdlàg function maps compact sets to bounded sets. -/
 lemma _root_.isBounded_image_of_isCadlag_of_isCompact {E : Type*} [LinearOrder ι]
