@@ -33,6 +33,7 @@ variable [LinearOrder ι] [OrderTopology ι] {𝓕 : Filtration ι mΩ}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
+@[ext]
 structure DiscreteApproxSequence (𝓕 : Filtration ι mΩ) (τ : Ω → WithTop ι)
     (μ : Measure Ω := by volume_tac) where
   /-- The sequence of stopping times approximating `τ`. -/
@@ -102,7 +103,6 @@ lemma discreteApproxSequence_of_le {i : ι}
     discreteApproxSequence_of 𝓕 hτ τn m ω ≤ i :=
   min_le_right _ _
 
--- Maybe show it forms a semilattice
 /-- The minimum of two discrete approximation sequences is a discrete approximation sequence of the
 minimum of the two stopping times. -/
 def DiscreteApproxSequence.inf
@@ -120,6 +120,48 @@ def DiscreteApproxSequence.inf
   le := fun m ↦ inf_le_inf (τn.le m) (σn.le m)
   tendsto := by
     filter_upwards [τn.tendsto, σn.tendsto] with ω hωτ hωσ using hωτ.min hωσ
+
+/-- The minimum of two discrete approximation sequence of the same stopping time. -/
+def DiscreteApproxSequence.inf'
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (τn' : DiscreteApproxSequence 𝓕 τ μ) :
+    DiscreteApproxSequence 𝓕 τ μ where
+  seq := fun m ↦ min (τn m) (τn' m)
+  isStoppingTime := fun m ↦ (τn.isStoppingTime m).min (τn'.isStoppingTime m)
+  countable := fun m ↦ by
+    refine ((τn.countable m).union (τn'.countable m)).mono <| fun i ↦ ?_
+    simp only [Set.mem_range, Pi.inf_apply, Set.mem_union, forall_exists_index, min_eq_iff]
+    rintro ω (⟨rfl, -⟩ | ⟨rfl, -⟩)
+    · exact Or.inl ⟨ω, rfl⟩
+    · exact Or.inr ⟨ω, rfl⟩
+  antitone := τn.antitone.inf τn'.antitone
+  le := fun m ↦ le_inf (τn.le m) (τn'.le m)
+  tendsto := by
+    filter_upwards [τn.tendsto, τn'.tendsto] with ω hωτ hωσ using min_self (a := τ ω) ▸ hωτ.min hωσ
+
+@[simp] lemma DiscreteApproxSequence.inf'_eq
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (τn' : DiscreteApproxSequence 𝓕 τ μ) (n : ℕ) :
+    τn.inf' τn' n = min (τn n) (τn' n) :=
+  rfl
+
+@[simp] lemma DiscreteApproxSequence.inf'_apply
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (τn' : DiscreteApproxSequence 𝓕 τ μ) (n : ℕ) (ω : Ω) :
+    τn.inf' τn' n ω = min (τn n ω) (τn' n ω) :=
+  rfl
+
+instance : LE (DiscreteApproxSequence 𝓕 τ μ) :=
+  ⟨fun τn σn ↦ ∀ n, τn n ≤ σn n⟩
+
+instance : PartialOrder (DiscreteApproxSequence 𝓕 τ μ) where
+  le_refl := fun τn n ↦ le_rfl
+  le_trans := fun τn σn ρn h₁ h₂ n ↦ (h₁ n).trans (h₂ n)
+  le_antisymm := fun τn σn h₁ h₂ ↦ by
+    ext n ω; exact le_antisymm (h₁ n ω) (h₂ n ω)
+
+instance : SemilatticeInf (DiscreteApproxSequence 𝓕 τ μ) where
+  inf := DiscreteApproxSequence.inf'
+  inf_le_left := fun a₁ a₂ n ω ↦ by simp
+  inf_le_right := fun a₁ a₂ n ω ↦ by simp
+  le_inf := fun a₁ a₂ a₃ h₁ h₂ n ω ↦ by aesop
 
 lemma DiscreteApproxSequence.discreteApproxSequence_of_le_inf_le_of_left {i : ι}
     (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ)
