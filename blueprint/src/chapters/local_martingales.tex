@@ -328,7 +328,7 @@ Every nonnegative right-continuous submartingale is of class DL.
 
 \begin{proof}
   \uses{lem:optionalSamplingSubmartingale}
-Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:condExpUI}.
+Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
 \end{proof}
 
 
