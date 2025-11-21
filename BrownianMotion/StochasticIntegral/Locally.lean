@@ -364,6 +364,8 @@ end ConditionallyCompleteLinearOrderBot
 
 section cadlag
 
+section LinearOrder
+
 variable [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
 
 open Classical in
@@ -456,12 +458,6 @@ lemma locally_isCadlag_iff :
   ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
     ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
 
-lemma locally_isCadlag_iff_locally_ae (𝓕 : Filtration ι mΩ) (X : ι → Ω → E) (P : Measure Ω) :
-    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
-    ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
-  refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, ?_⟩
-  sorry
-
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
   sorry
@@ -475,6 +471,27 @@ lemma isStable_isCadlag :
   fun X hX τ hτ ω ↦
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
+
+end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [IsFiniteMeasure P]
+  {𝓕 : Filtration ι mΩ} [HasUsualConditions 𝓕 P] {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
+
+lemma locally_isCadlag_iff_locally_ae :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
+    ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
+  refine ⟨fun h ↦ h.mono <| fun _ hX ↦ ae_of_all _ hX, fun h ↦ ?_⟩
+  rw [(by simp [locally_isCadlag_iff] :
+    (fun (X : ι → Ω → E) ↦ ∀ᵐ (ω : Ω) ∂P, IsCadlag fun x ↦ X x ω) =
+    fun (X : ι → Ω → E) ↦ Locally (fun Y ↦ ∀ ω, IsCadlag (Y · ω)) 𝓕 X P)] at h
+  exact (locally_locally (p := fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω))
+    (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag).1 h
+
+end ConditionallyCompleteLinearOrderBot
 
 end cadlag
 
