@@ -144,7 +144,7 @@ lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕
 omit [Countable ι]
 
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
-    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [SigmaFinite μ]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -155,7 +155,7 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
       (hτ_countable _)).symm).comp (fun i ↦ ((), i))
 
 lemma Martingale.integrable_stoppedValue_of_countable_range
-    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [SigmaFinite μ]
     (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
     {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
     Integrable (stoppedValue X τ) μ := by
