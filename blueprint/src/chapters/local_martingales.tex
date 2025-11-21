@@ -210,8 +210,8 @@ Thus $X \in Q_{\mathrm{loc}}$.
   \uses{def:Martingale, def:locally}
   \leanok
   \lean{ProbabilityTheory.IsLocalMartingale}
-A stochastic process is a local martingale if it is locally a martingale in the sense of Definition~\ref{def:locally}.
-That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a martingale.
+  We say a stochastic process $(M_t)_{t \in T}$ is a local martingale if it is locally a cadlag martingale in the sense of
+  Definition~\ref{def:locally}. That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a cadlag martingale.
 \end{definition}
 
 
@@ -219,8 +219,8 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
   \uses{def:Submartingale, def:localizingSequence, def:stoppedProcess}
   \leanok
   \lean{ProbabilityTheory.IsLocalSubmartingale}
-A stochastic process is a local submartingale if it is locally a submartingale in the sense of Definition~\ref{def:locally}.
-That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a submartingale.
+A stochastic process is a local submartingale if it is locally a cadlag submartingale in the sense of Definition~\ref{def:locally}.
+That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $M^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is a cadlag submartingale.
 \end{definition}
 
 
@@ -228,7 +228,7 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
   \uses{def:IsLocalMartingale}
   \leanok
   \lean{ProbabilityTheory.Martingale.IsLocalMartingale}
-Every (right continuous) martingale is a (right continuous) local martingale.
+Every cadlag martingale is a local martingale.
 \end{lemma}
 
 \begin{proof}\leanok
@@ -241,11 +241,13 @@ This follows from Lemma \ref{lem:implies_locally}.
   \uses{def:Martingale, def:stable}
   \leanok
   \lean{ProbabilityTheory.isStable_martingale}
-The class of right continuous martingales is stable. That is, if $M$ is a right continuous martingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a right continuous martingale.
+The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingale and $\tau$ is a stopping time, then the stopped process cadlag $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a martingale.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSampling}
+  Clearly, the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is cadlag and it remains to show that it is a martingale.
+
   Fixing $s \le t \in T$, as $\{\tau > 0\} \in \mathcal{F}_0 \subseteq \mathcal{F}_s$, we have
   $$P[M^{\tau}_t \mathbb{I}_{\tau > 0} \mid \mathcal{F}_s] = \mathbb{I}_{\tau > 0}P[M_{\tau \wedge t} \mid \mathcal{F}_{s}].$$
   Thus, as $\tau \wedge t$ is a bounded stopping time, we have by the optional stopping theorem
@@ -313,6 +315,7 @@ A stochastic process of class D is of class DL.
 
 \begin{proof}
   \uses{def:classD, def:classDL, lem:uniformIntegrableComp}
+  \leanok
 This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 \end{proof}
 

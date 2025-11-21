@@ -17,9 +17,7 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*}
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
@@ -51,13 +49,17 @@ structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure 
 
 lemma ClassD.classDL {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ClassD X 𝓕 P) :
     ClassDL X 𝓕 P := by
-  sorry
+  let f (t : ι) : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} →
+      {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤} :=
+    fun τ => ⟨τ, τ.2.1, fun ω => ne_of_lt
+      (lt_of_le_of_lt (τ.2.2 ω) (WithTop.coe_lt_top t))⟩
+  exact ⟨hX.1, fun t => hX.2.comp (f t)⟩
 
 end Defs
 
 section PartialOrder
 
-variable [PartialOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
+variable [NormedSpace ℝ E] [CompleteSpace E] [PartialOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
 
 section RightContinuous
 
@@ -68,20 +70,20 @@ section Order
 variable [PartialOrder E] [OrderClosedTopology E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
 
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := sorry
 
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
-    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
+lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassDL X 𝓕 P := sorry
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
-    (hX2 : RightContinuous X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
 
 end RightContinuous
@@ -126,7 +128,7 @@ lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [Ord
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
     [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι] [CompactIccSpace ι]
     (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) {X : ι → Ω → ℝ} (hX1 : Adapted 𝓕 X)
-    (hX2 : RightContinuous X) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
     IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
 
 lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] [InfSet ι] [Bot ι]
