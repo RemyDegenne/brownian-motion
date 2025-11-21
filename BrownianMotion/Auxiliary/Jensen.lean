@@ -15,7 +15,7 @@ open scoped ENNReal
 namespace MeasureTheory
 
 variable {α E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {m mα : MeasurableSpace α} {μ : Measure α}
+  {m mα : MeasurableSpace α} {μ : Measure α} [SigmaFinite μ]
   {s : Set E} {f : α → E} {φ : E → ℝ}
 
 -- Proved in Mathlib PR #27953 for finite measures. Here written for σ-finite measures.
