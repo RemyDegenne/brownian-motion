@@ -544,6 +544,20 @@ lemma continuousOn_holderModification
     ContinuousOn (fun t : T ↦ holderModification X β p U t ω) U :=
   (uniformContinuousOn_holderModification hT hU hX hd_pos hβ_pos ω).continuousOn
 
+omit [CompleteSpace E] hE in
+lemma Measurable.of_edist_eq_zero {X Y : Ω → E} (hX : Measurable X)
+    (h_eq_zero : ∀ ω, edist (Y ω) (X ω) = 0) :
+    Measurable Y := by
+  refine measurable_of_isOpen fun U hU ↦ ?_
+  suffices Y ⁻¹' U = X ⁻¹' U by rw [this]; exact hX hU.measurableSet
+  ext ω
+  simp only [Set.mem_preimage, ← hU.mem_nhds_iff]
+  suffices 𝓝 (X ω) = 𝓝 (Y ω) by rw [this]
+  symm
+  refine Inseparable.nhds_eq ?_
+  rw [EMetric.inseparable_iff]
+  exact h_eq_zero ω
+
 end PseudoEMetricSpace
 
 section EMetricSpace
@@ -566,14 +580,15 @@ lemma measurable_pair_limUnder_comap {X₁ X₂ : T → Ω → E} {T' : Set T} (
     apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
   have : @NeBot { x // x ∈ T' } (comap Subtype.val (𝓝 t)) := by
     apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val hT'_dense)
-  conv =>
-    enter [1, ω]
-    rw [← limUnder_prod]
-    rfl
-    tactic => exact hX₁_tendsto ω
-    tactic => exact hX₂_tendsto ω
-  let f (x : T' × T') (ω : Ω) := (X₁ x.1 ω, X₂ x.2 ω)
+  have h_edist_zero ω : edist ((limUnder (comap Subtype.val (𝓝 s)) fun (t' : T') ↦ X₁ t' ω,
+        limUnder (comap Subtype.val (𝓝 t)) fun (t' : T') ↦ X₂ t' ω))
+      (limUnder ((comap Subtype.val (𝓝 s)) ×ˢ (comap Subtype.val (𝓝 t)))
+        fun (p : T' × T') ↦ (X₁ p.1 ω, X₂ p.2 ω)) = 0 := by
+    -- todo: generalize beyond EMetricSpace
+    rw [← limUnder_prod (hX₁_tendsto ω) (hX₂_tendsto ω), edist_self]
   borelize (E × E)
+  refine Measurable.of_edist_eq_zero ?_ h_edist_zero
+  let f (x : T' × T') (ω : Ω) := (X₁ x.1 ω, X₂ x.2 ω)
   refine measurable_limUnder_of_exists_tendsto (f := f) (fun ω ↦ ?_) (fun i ↦ hX₁₂ i.1 i.2)
   obtain ⟨c₀, h₀⟩ := hX₁_tendsto ω
   obtain ⟨c₁, h₁⟩ := hX₂_tendsto ω
