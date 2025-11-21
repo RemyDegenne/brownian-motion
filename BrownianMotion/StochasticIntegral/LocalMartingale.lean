@@ -11,7 +11,7 @@ import Mathlib.Probability.Martingale.Basic
 
 -/
 
-open MeasureTheory Filter Filtration
+open MeasureTheory Filter Filtration TopologicalSpace
 open scoped ENNReal Topology
 
 namespace ProbabilityTheory
@@ -40,15 +40,20 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
-variable [Approximable 𝓕 P]
+variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+  [Approximable 𝓕 P]
 
 /-- Martingales are a stable class. -/
 lemma isStable_martingale :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
   intro X ⟨hX, hC⟩ τ hτ
-  refine ⟨?_, ?_⟩
-  sorry
-  sorry
+  refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
+    isStable_isCadlag X hC τ hτ⟩
+  · refine Adapted.progMeasurable_of_rightContinuous
+      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _)
+      (fun ω ↦ ?_) -- Make separate lemma `(fun ω ↦ (hC ω).right_continuous)`
+    sorry
+  · sorry
 
 /-- Submartingales are a stable class. -/
 lemma isStable_submartingale :
