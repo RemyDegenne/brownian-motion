@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.StochasticIntegral.Cadlag
+import BrownianMotion.StochasticIntegral.OptionalSampling
 import Mathlib.Probability.Martingale.Basic
 
 /-! # Local (sub)martingales
@@ -40,9 +40,14 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
+variable [Approximable 𝓕 P]
+
 /-- Martingales are a stable class. -/
 lemma isStable_martingale :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
+  intro X ⟨hX, hC⟩ τ hτ
+  refine ⟨?_, ?_⟩
+  sorry
   sorry
 
 /-- Submartingales are a stable class. -/
