@@ -73,7 +73,7 @@ section Order
 variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [SigmaFinite P]
 
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : RightContinuous X) (hX3 : 0 ≤ X)
+    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
   refine ⟨hX1.1, fun t => ?_⟩
   have : UniformIntegrable (fun (i : ι) => X t) 1 P := uniformIntegrable_const le_rfl
