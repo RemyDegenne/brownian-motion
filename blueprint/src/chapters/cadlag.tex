@@ -11,7 +11,7 @@ TODO: define cadlag.
 
 \begin{lemma}\label{lem:upcrossing_simpleProcess_le}
   \uses{def:elemStochIntegral, def:simpleProcess}
-Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process.
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process on a finite time domain $T$.
 Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary predictable set $A$ such that the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ satisfies
 \begin{align*}
   (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
@@ -20,6 +20,19 @@ Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary p
 \end{lemma}
 
 \begin{proof}
+
+  See \href{https://almostsuremath.com/2009/12/06/upcrossings-downcrossings-and-martingale-convergence/}{this chapter} of \cite{almostsuremath}.
+
+  In the proof, note that $A$ can be written as a finite disjoint union of sets of the form
+  $\{(t, \omega) \mid \sigma(\omega) < t \le \tau(\omega)\}$ for stopping times $\sigma, \tau$.
+  To see that each is an elementary predictable set, note that if $T = \{t_0, \ldots, t_n\}$ where
+  $t_0 < \cdots < t_n$, then it can be written as a finite disjoint union of sets
+  \begin{align*}
+    \{\sigma(\omega) < t \le \tau(\omega)\} &= \bigcup_{k=1}^{n} {t_k} \times \{\sigma < t_k \le \tau\}
+    \\ &= \bigcup_{k=1}^{n} (t_{k-1}, t_k] \times \{\sigma \le t_{k-1} < \tau\}
+  \end{align*}
+  where $\{\sigma \le t_{k-1} < \tau\} \in \mathcal{F}_{t_{k-1}}$.
+  Therefore $A$ is an elementary predictable set.
 
 \end{proof}
 

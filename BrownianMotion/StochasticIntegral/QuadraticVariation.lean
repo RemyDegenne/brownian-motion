@@ -19,18 +19,18 @@ variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] 
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 lemma IsLocalMartingale.isLocalSubmartingale_sq_norm
-    (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, cadlag (X · ω)) :
+    (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
     IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := by
   sorry
 
 /-- The quadratic variation of a local martingale, defined as the predictable part of the Doob-Meyer
 decomposition of its squared norm. -/
 noncomputable
-def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, cadlag (X · ω)) :
+def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
     ι → Ω → ℝ :=
   have hX2 : IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P :=
     hX.isLocalSubmartingale_sq_norm hX_cadlag
-  have hX2_cadlag : ∀ ω, cadlag (fun t ↦ ‖X t ω‖ ^ 2) := sorry
+  have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X t ω‖ ^ 2) := sorry
   hX2.predictablePart (fun t ω ↦ ‖X t ω‖ ^ 2) hX2_cadlag
 
 end ProbabilityTheory
