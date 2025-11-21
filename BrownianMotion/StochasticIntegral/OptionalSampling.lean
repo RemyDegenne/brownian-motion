@@ -19,7 +19,7 @@ variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology
   {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {n : ι}
 
 theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
-    (h : Martingale X 𝓕 μ) (hRC : RightContinuous X) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω)) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ)
     (hτ_countable_range : (Set.range τ).Countable) :
     μ[stoppedValue X τ|hσ.measurableSpace] =ᵐ[μ.restrict {x : Ω | τ x ≤ σ x}] stoppedValue X τ := by
@@ -49,7 +49,7 @@ theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
   exact condExp_of_aestronglyMeasurable' hσ.measurableSpace_le h_meas h_int
 
 theorem stoppedValue_min_ae_eq_condExp_of_countable_range
-    (h : Martingale X 𝓕 μ) (hRC : RightContinuous X)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (hτ_countable_range : (Set.range τ).Countable) (hσ_countable_range : (Set.range σ).Countable) :
     (stoppedValue X fun x ↦ min (σ x) (τ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
@@ -83,7 +83,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_countable_range
 /-- **Optional sampling theorem** for general time indices
 (assuming existence of `DiscreteApproxSequence`). -/
 theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
-    [SigmaFiniteFiltration μ 𝓕] (h : Martingale X 𝓕 μ) (hRC : RightContinuous X)
+    [SigmaFiniteFiltration μ 𝓕] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ) :
     (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
@@ -136,7 +136,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
         (DiscreteApproxSequence.countable _ m))⟩
 
 theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : RightContinuous X)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     stoppedValue X τ =ᵐ[μ] μ[X n|hτ.measurableSpace] := by
   convert stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC
@@ -178,8 +178,8 @@ variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
 
 theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
     [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX1 : Submartingale X 𝓕 P) (hX2 : RightContinuous X) {k : ι} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
-    (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) {k : ι}
+    (hτk : ∀ᵐ ω ∂P, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
   sorry
 
