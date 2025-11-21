@@ -15,7 +15,7 @@ open scoped Topology
 
 variable {ι E : Type*} [PartialOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
 
-/-- A stochastic process is right continuous if each of its realizations is right continuous. -/
+/-- The predicate that a function is right continuous. -/
 abbrev Function.RightContinuous (f : ι → E) :=
   ∀ a, ContinuousWithinAt f (Set.Ioi a) a
 
