@@ -202,9 +202,118 @@ By Lemma \ref{lem:locally_locally}, $(Q_{\mathrm{loc}})_{\mathrm{loc}} = Q_{\mat
 Thus $X \in Q_{\mathrm{loc}}$.
 \end{proof}
 
+\section{Locally Cadlag}
+
+We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. complete and right-continuous).
+
+\begin{lemma}\label{lem:isLocalizingSequence_ae}
+  \uses{def:localizingSequence}
+  \leanok
+  \lean{ProbabilityTheory.isLocalizingSequence_ae}
+  Let $P$ be a predicate on paths and suppose $X$ is a stochastic process satisfying $P$ a.s. Then, defining
+  $$\tau_n(\omega) =
+  \begin{cases}
+    \infty & \text{if } X(\omega) \text{ satisfies } P \\
+    0 & \text{otherwise}
+  \end{cases}
+  $$
+  for all $n \in \mathbb{N}$, the sequence $(\tau_n)_{n \in \mathbb{N}}$ is a localizing sequence.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{lemma}\label{lem:locally_of_ae}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.locally_of_ae}
+  If $P$ be a predicate on paths such that the constant path $0$ satisfies $P$ and $X$ is a stochastic process satisfying $P$ a.s. then, $X$ satisfies $P$ locally.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isLocalizingSequence_ae}
+  Follows directly by using the localizing sequence defined in Lemma~\ref{lem:isLocalizingSequence_ae}.
+\end{proof}
+
+\begin{lemma}\label{lem:locally_rightContinuous}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.Locally.rightContinuous}
+  A stochastic process $X$ is locally right continuous if and only if it is right continuous almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:locally_of_ae}
+  If $X$ is a.s. right continuous, then it is locally right continuous by Lemma~\ref{lem:locally_of_ae}.
+
+  On the other hand, assuming $X$ is locally right continuous, there exists a localizing sequence
+  $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$ and $\omega \in \Omega$, $(X^{\tau_n}\mathbb{I}_{\tau_n > 0})(\omega)$ is right continuous.
+  Thus, for almost surely every $\omega$ and any $t \in T$ there exists $N \in \mathbb{N}$ such that $\tau_N(\omega) > t + 1$ (not that the ordering of a.s. and for all is important). Hence, as
+  $X_s(\omega) = (X^{\tau_N}\mathbb{I}_{\tau_N > 0})_s(\omega)$ on a neighborhood of $t$, we have that $X(\omega)$ is right continuous at $t$.
+  Consequently, as $t$ was arbitrary, $X$ is a.s. right continuous.
+\end{proof}
+
+\begin{lemma}\label{lem:locally_leftLimit}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.Locally.left_limit}
+  A stochastic process $X$ has left limits locally if and only if it has left limits almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:locally_of_ae}
+  Same proof as in Lemma~\ref{lem:locally_rightContinuous}.
+\end{proof}
+
+\begin{lemma}\label{lem:locally_isCadlag}
+  \uses{def:locally}
+  \leanok
+  \lean{ProbabilityTheory.Locally.isCadlag}
+  A stochastic process $X$ is locally cadlag if and only if it is cadlag almost surely.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:locally_of_ae, lem:locally_rightContinuous, lem:locally_leftLimit}
+  The forward direction follows from Lemmas~\ref{lem:locally_rightContinuous} and \ref{lem:locally_leftLimit}
+  while the reverse direction follows from Lemma~\ref{lem:locally_of_ae}.
+\end{proof}
+
+\begin{lemma}\label{lem:isStable_rightContinuous}
+  \uses{def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_rightContinuous}
+  The class of right continuous processes is stable.
+\end{lemma}
+
+\begin{proof}
+  Trivial.
+\end{proof}
+
+\begin{lemma}\label{lem:isStable_left_limit}
+  \uses{def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_left_limit}
+  The class of processes with left limits is stable.
+\end{lemma}
+
+\begin{proof}
+  Trivial.
+\end{proof}
+
+\begin{lemma}\label{lem:isStable_isCadlag}
+  \uses{def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_isCadlag}
+  The class of cadlag processes is stable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:isStable_rightContinuous, lem:isStable_left_limit}
+  Follows from Lemmas~\ref{lem:isStable_rightContinuous} and \ref{lem:isStable_left_limit}.
+\end{proof}
 
 \section{Local martingales}
-
 
 \begin{definition}[Local martingale]\label{def:IsLocalMartingale}
   \uses{def:Martingale, def:locally}
