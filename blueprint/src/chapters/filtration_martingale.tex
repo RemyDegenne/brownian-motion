@@ -817,6 +817,7 @@ If $(X_t)_{t \in T}$ is a family of uniformly integrable random variables, then 
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:uniformIntegrableDominated}
 Apply Lemma~\ref{lem:uniformIntegrableDominated} with $Y := X$.
 \end{proof}
@@ -828,6 +829,7 @@ Let $(X_t)_{t \in T}$ be a family of uniformly integrable random variables. It i
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:uniformIntegrableNorm, lem:uniformIntegrableDominated}
 The forward direction is Lemma~\ref{lem:uniformIntegrableNorm}. The converse direction follows from Lemma~\ref{lem:uniformIntegrableDominated} with $Y := (\|X_t\|)_{t \in T}$.
 \end{proof}
@@ -878,9 +880,12 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
-Let $\epsilon > 0$. There exists $C \ge 0$ such that for all $t \in T$, $P[\|X_t\|^p \mathbb{I}_{\|X_t\| \ge C}]^{1/p} \le \epsilon$. Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
-\[P[\|Y\|^p \mathbb{I}_{\|Y\|^p \ge C}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{\|X_{t_{n_k}}\| \ge C}]^{1/p} \le \epsilon.\]
-This concludes the proof.
+  \leanok
+  Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
+  \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
+  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
+  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
+  This proves that the family of limits in probability of sequences of $X$ is uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma and the existence of an almost everywhere convergent subsequence in a similar way.
 \end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
