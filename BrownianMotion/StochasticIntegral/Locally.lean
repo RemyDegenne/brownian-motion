@@ -8,6 +8,7 @@ import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.Auxiliary.WithTop
 import BrownianMotion.Auxiliary.IsStoppingTime
 import BrownianMotion.Auxiliary.StoppedProcess
+import BrownianMotion.StochasticIntegral.Cadlag
 
 /-! # Local properties of processes
 
@@ -107,15 +108,21 @@ lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X
 
 end Locally
 
+variable [Zero E]
+
 /-- A property of stochastic processes is said to be stable if it is preserved under taking
 the stopped process by a stopping time. -/
-def IsStable [Zero E]
+def IsStable
     (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
     ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
       p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
 
+lemma IsStable.and (p q : (ι → Ω → E) → Prop)
+    (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
+    IsStable 𝓕 (fun X ↦ p X ∧ q X) :=
+  fun _ hX τ hτ ↦ ⟨hp _ hX.left τ hτ, hq _ hX.right τ hτ⟩
 
-variable [TopologicalSpace ι] [OrderTopology ι] [Zero E]
+variable [TopologicalSpace ι] [OrderTopology ι]
 
 lemma IsStable.isStable_locally (hp : IsStable 𝓕 p) :
     IsStable 𝓕 (fun Y ↦ Locally p 𝓕 Y P) := by
@@ -354,5 +361,134 @@ lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
 end
 
 end ConditionallyCompleteLinearOrderBot
+
+section cadlag
+
+section LinearOrder
+
+variable [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
+
+open Classical in
+/-- Given a property on paths which holds almost surely for a stochastic process, we construct a
+localizing sequence by setting the stopping time to be ∞ whenever the property holds. -/
+noncomputable
+def LocalizingSequence_of_prop (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
+  Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
+
+lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
+    (τ : Ω → WithTop ι) (c : WithTop ι) (hτ : τ =ᵐ[P] Function.const _ c) :
+    IsStoppingTime 𝓕 τ := by
+  intros i
+  suffices P {ω | τ ω ≤ i} = 0 ∨ P {ω | τ ω ≤ ↑i}ᶜ = 0 by
+    obtain h | h := this
+    · exact 𝓕.mono bot_le _ <| HasUsualConditions.IsComplete h
+    · exact (𝓕.mono bot_le _ <| HasUsualConditions.IsComplete h).of_compl
+  obtain hle | hgt := le_or_gt c i
+  · refine Or.inr <| ae_iff.1 ?_
+    filter_upwards [hτ] with ω rfl using hle
+  · refine Or.inl ?_
+    rw [← compl_compl {ω | τ ω ≤ i}]
+    refine ae_iff.1 ?_
+    filter_upwards [hτ] with ω hω
+    simp [hω, hgt]
+
+variable [TopologicalSpace ι] [OrderTopology ι]
+
+lemma isLocalizingSequence_ae
+    (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
+    {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
+    IsLocalizingSequence 𝓕 (LocalizingSequence_of_prop X p) P where
+  isStoppingTime n := by
+    refine isStoppingTime_ae_const 𝓕 P _ ⊤ ?_
+    filter_upwards [hpX] with ω hω
+    rw [LocalizingSequence_of_prop, Function.const_apply, Function.const_apply, if_pos hω]
+  mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequence_of_prop]
+  tendsto_top := by
+    filter_upwards [hpX] with ω hω
+    simp [LocalizingSequence_of_prop, if_pos hω]
+
+variable [NormedAddCommGroup E] [HasUsualConditions 𝓕 P]
+
+open Classical in
+lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) (hp₀ : p (0 : ι → E)) :
+    Locally (fun X ↦ ∀ ω, p (X · ω)) 𝓕 X P := by
+  refine ⟨_, isLocalizingSequence_ae 𝓕 P hpX, fun _ ω ↦ ?_⟩
+  by_cases hω : p (X · ω)
+  · convert hω using 2
+    rw [stoppedProcess_eq_of_le, Set.indicator_of_mem]
+    · simp [LocalizingSequence_of_prop, if_pos hω]
+    · simp [LocalizingSequence_of_prop, if_pos hω]
+  · convert hp₀ using 2
+    rw [stoppedProcess_eq_of_ge, Set.indicator_of_notMem]
+    · rfl
+    · simp [LocalizingSequence_of_prop, if_neg hω]
+    · simp [LocalizingSequence_of_prop, if_neg hω]
+
+variable [NormedSpace ℝ E] [CompleteSpace E]
+
+lemma Locally.rightContinuous
+    (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
+  sorry
+
+lemma locally_rightContinuous_iff :
+    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
+    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
+  ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
+
+lemma Locally.left_limit
+    (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
+  sorry
+
+lemma locally_left_limit_iff :
+    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
+  ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
+    (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
+
+lemma Locally.isCadlag
+    (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
+  filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
+    (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
+
+lemma locally_isCadlag_iff :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
+  ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
+    ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
+
+lemma isStable_rightContinuous :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
+  sorry
+
+lemma isStable_left_limit :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
+  sorry
+
+lemma isStable_isCadlag :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω)) :=
+  fun X hX τ hτ ω ↦
+    ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
+      isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
+
+end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [IsFiniteMeasure P]
+  {𝓕 : Filtration ι mΩ} [HasUsualConditions 𝓕 P] {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
+
+lemma locally_isCadlag_iff_locally_ae :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
+    ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
+  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P),
+    locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag]
+
+end ConditionallyCompleteLinearOrderBot
+
+end cadlag
 
 end ProbabilityTheory
