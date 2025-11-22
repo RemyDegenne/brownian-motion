@@ -7,6 +7,7 @@ import BrownianMotion.StochasticIntegral.Cadlag
 import BrownianMotion.StochasticIntegral.UniformIntegrable
 
 /-! # Discrete approximation of a stopping time
+
 -/
 
 open Filter TopologicalSpace Function Bornology
