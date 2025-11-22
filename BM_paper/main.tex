@@ -86,10 +86,10 @@ Brownian motion is a building block in modern probability theory. In this paper,
 \sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
-\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
+\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian_preview}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$ (the minimum of $t_i$ and $t_j$).
 \end{definition}
-Note that it is a highly non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
+Note that it is a non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
 and proving it satisfies these properties. Here are some other interesting facts about Brownian motion which we have formalized:
 \begin{itemize}
 \item $X_t$ has almost surely locally Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
@@ -291,7 +291,8 @@ The statement requires $((X_s)_{s \in S}, (Y_t)_{t \in T})$ to be Gaussian. Howe
   T \ni t & \mapsto Y_t
 \end{align*}
 
-We formalized more results about Gaussian processes that we present in the next section to see how they were applied to prove properties of the Brownian motion. This idea of defining predicates on random variables rather than measures proved to be really nice to work with, landing a formalization process of basic properties of Brownian motion which felt quite close to the paper proofs. This demonstrates that it is possible to mimick basic reasoning on random variables in \Lean without suffering of some obstacles due to formalization.
+We formalized more results about Gaussian processes that we present in the next section to see how they were applied to prove properties of the Brownian motion. This idea of defining predicates on random variables rather than measures proved to be really nice to work with, landing a formalization process of basic properties of Brownian motion which felt quite close to the paper proofs.
+This demonstrates that it is possible to mimic basic reasoning on random variables in \Lean without suffering of some obstacles due to formalization.
 
 
 
@@ -344,7 +345,7 @@ Our goal in this project is thus to build a process with given finite-dimensiona
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 \label{S:extension}
-We describe our implementation of the Kolmogorov Extension Theorem, and rely on basic notions from topology, such as a metric space, and the Borel $\sigma$-algebra.
+We describe our implementation of the Kolmogorov Extension Theorem, which relies on basic notions from topology such as metric spaces and the Borel $\sigma$-algebra.
 We begin by defining set systems we will need, which correspond to the definitions \docs{MeasureTheory.IsSetSemiring} and \docs{MeasureTheory.IsSetRing} (which we added to \mathlib).
 
 \begin{definition}[Semi-ring, ring]\label{def:semi}
