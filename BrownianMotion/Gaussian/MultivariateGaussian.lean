@@ -99,7 +99,7 @@ lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- �
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   refine isGaussian_iff_gaussian_charFun.2 ?_
   use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
-  simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
+  simp [charFun_stdGaussian, neg_div]
 
 lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
@@ -110,7 +110,7 @@ lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
 lemma covInnerBilin_stdGaussian :
     covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
   refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
-  simp [charFun_stdGaussian, real_inner_self_eq_norm_sq, neg_div]
+  simp [charFun_stdGaussian, neg_div]
 
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
@@ -177,10 +177,10 @@ lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
   simp only [toEuclideanCLM, AddHom.toFun_eq_coe, LinearMap.coe_toAddHom, LinearEquiv.coe_coe,
     LinearEquiv.invFun_eq_symm, LinearMap.coe_toContinuousLinearMap_symm, StarAlgEquiv.trans_apply,
     LinearMap.toMatrixOrthonormal_symm_apply, LinearMap.toMatrix_symm, StarAlgEquiv.coe_mk,
-    RingEquiv.coe_mk, Equiv.coe_fn_mk, LinearMap.coe_toContinuousLinearMap', toLin_apply,
-    mulVec_eq_sum, OrthonormalBasis.coe_toBasis_repr_apply, EuclideanSpace.basisFun_repr,
-    op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply, transpose_apply, smul_eq_mul,
-    OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply, PiLp.inner_apply,
+    StarRingEquiv.coe_mk, RingEquiv.coe_mk, Equiv.coe_fn_mk, LinearMap.coe_toContinuousLinearMap',
+    toLin_apply, mulVec_eq_sum, OrthonormalBasis.coe_toBasis_repr_apply,
+    EuclideanSpace.basisFun_repr, op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply, transpose_apply,
+    smul_eq_mul, OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply, PiLp.inner_apply,
     RCLike.inner_apply, conj_trivial, dotProduct]
   congr with i
   rw [mul_comm, ← WithLp.linearEquiv_apply 2 ℝ]

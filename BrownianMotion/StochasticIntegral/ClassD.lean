@@ -79,7 +79,8 @@ lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Sub
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
+lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P)
+    (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassDL X 𝓕 P := sorry
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
