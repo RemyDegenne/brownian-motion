@@ -70,9 +70,9 @@ variable [TopologicalSpace ι] [OrderTopology ι] [OrderBot ι] [MeasurableSpace
 
 section Order
 
-variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [SigmaFinite P]
+variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
 
-lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
+lemma _root_.MeasureTheory.Submartingale.classDL [SigmaFinite P] (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
   refine ⟨hX1.1, fun t => ?_⟩
@@ -100,7 +100,8 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     rw [← abs_of_nonneg p1, ← p2] at hω
     exact hω
 
-lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
+lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
+    [IsFiniteMeasure P] (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
 
