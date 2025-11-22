@@ -31,6 +31,18 @@
 \leanlink{https://remydegenne.github.io/brownian-motion/docs/find/?pattern=#1\#doc}
 {#1}}
 
+\newcommand{\mllink}[3]{%
+\leanlink{https://github.com/leanprover-community/mathlib4/blob/82d756ea359cfa0f2c10bc00b8a997822c3b32ea/Mathlib/#1.lean\##2}
+{#3}}
+
+\newcommand{\kelink}[3]{%
+\leanlink{https://github.com/RemyDegenne/kolmogorov_extension4/blob/master/KolmogorovExtension4/#1.lean\##2}
+{#3}}
+
+\newcommand{\bmlink}[3]{%
+\leanlink{https://github.com/RemyDegenne/brownian-motion/blob/aae12b7f25e401a52c60546a8ff0e3390e81b87b/BrownianMotion/#1.lean\##2}
+{#3}}
+
 \lstset{escapeinside={(*}{*)}, language=lean}
 
 \title[Formalization of Brownian motion in Lean]{Formalization of Brownian motion in Lean}
@@ -86,7 +98,8 @@ Brownian motion is a building block in modern probability theory. In this paper,
 \sloppy Brownian motion is arguably one of the most important stochastic processes (e.g.\ \cite{karatzas1991brownian, morters2010brownian}), and is used as a modeling tool across all sciences (physics: e.g.\ \cite{einstein1906theorie, bian2016111}; biology: e.g.\ \cite{erban2014molecular}; finance: e.g.\ \cite{davis2006louis}). Mathematically, Brownian motion led to the Wiener measure \cite{wiener1923differential}, which is the first instance of a probability measure on a function space, but also to developments such as Stochastic (Partial) Differential equations (see e.g.\ \cite{hairer2009introduction}).
 
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
-\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian_preview}
+
+\begin{definition}[\bmlink{Gaussian/BrownianMotion}{L490-L493}{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian_preview}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$ (the minimum of $t_i$ and $t_j$).
 \end{definition}
 Note that it is a non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
@@ -160,10 +173,9 @@ Finally, Section~\ref{S:BM} contains the final construction of Brownian motion a
 
 \section{Formalization overview}\label{S:overview}
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
-We refer to the implementation using links, like \docs{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
+We refer to the implementation using links, like \bmlink{Gaussian/BrownianMotion}{L490-L493}{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
 Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
-All links point to commit {\tt xxx} for \mathlib (xxx date), and commit {\tt xxx} for our repository (xxx date).
-\todorm{pin all links to specific commits before final submission}
+All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and commit {\tt aae12b7f25e401a52c60546a8ff0e3390e81b87b} for our repository, which correspond to their state on November 22, 2025.
 
 Let us start with notation. Any stochastic process has an index set $T$ (usually called {\em time}, usually uncountably infinite), and a state space.
 While the general use of the word {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$.
@@ -184,9 +196,9 @@ We are going to formulate the main result in a modern fashion, as e.g.\ found in
 
 \subsection{Gaussian Measures and characteristic functions}
 \label{ss:char}
-Our goal in this subsection is to define the finite-dimensional distributions of Brownian motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely the implementation of the one-dimensional normal distribution (\docs{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
+Our goal in this subsection is to define the finite-dimensional distributions of Brownian motion. For times $t := (t_1, ..., t_n)$, this is given by the multi-dimensional Gaussian distribution $N(0, C_t)$, where $0$ is the vector of expectations, and $C_t$ is the covariance matrix, given by $(C_t)_{ij} = t_i \wedge t_j$. In order to do so, we rely on two tools that were already in \mathlib, namely the implementation of the one-dimensional normal distribution (\mllink{Probability/Distributions/Gaussian/Real}{L198-L201}{ProbabilityTheory.gaussianReal}) and characteristic functions of probability (or finite) measures.
 
-For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (\docs{MeasureTheory.Measure.ext_of_charFun}).
+For any probability measure $P$ on $\mathbb R^n$, its characteristic function is given by $\psi: t \mapsto \int e^{it^\top x} P(dx)$, where the integral takes values in $\mathbb C$. We use the fact that $\psi$ characterizes $P$ uniquely (\mllink{MeasureTheory/Measure/CharacteristicFunction}{L235-L244}{MeasureTheory.Measure.ext_of_charFun}).
 For the standard normal distribution $N(0,1)$ this is $\psi_{N(0,1)}(t) = \exp(-t^2/2)$.
 Moreover, by independence, we can as well define the $n$-fold product measure $N(0, I_n)$, where $I_n$ is the unit matrix with characteristic function $\psi_{N(0,I_n)}(t) = \exp\big(-\tfrac 12 t^\top I_n t\big)$.
 In addition, we call a probability measure $P$ on $\R^n$ Gaussian if there is some non-negative definite matrix $C$ with $\psi_P(t) = \exp\big( - \tfrac 12 t^\top C t\big)$. For any such $C$, such a measure exists, since there is $A$ with $C = A^\top A$ and we can take the image of $N(0,I_n)$ under the map $f : x\mapsto Ax$. It has the characteristic function
@@ -253,16 +265,18 @@ For instance, say $X$ has law $\mu$ under $P$ and one wants to compute $P[f(X)]$
 and then because one must also provide a proof that $X$ is measurable.
 When this occurs many times in a proof, it becomes increasingly tedious.
 
-To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This is a bundled statement that contains both the fact that \lean{P.map X = µ} and the fact that $X$ is measurable. The computation above can the be contained in only one lemma, namely \docs{ProbabilityTheory.HasLaw.integral_comp}. But it goes further than that, because capturing this concept into a predicate also allows one to manipulate random variables without ever referring to the pushforward of a measure, but only manipulating the laws of the random variables. For instance, if the function $f$ maps the measure $\mu$ to a measure $\nu$, we have the lemma \docs{ProbabilityTheory.HasLaw.comp} which states \lean{HasLaw (f ∘ X) ν P}. We can likewise state that the law of the sum of two independent random variables is the convolution of their laws. This gives a nice framework for computations with random variables.
+To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This is a bundled statement that contains both the fact that \lean{P.map X = µ} and the fact that $X$ is measurable. The computation above can the be contained in only one lemma, namely \mllink{Probability/HasLaw}{L100-L104}{ProbabilityTheory.HasLaw.integral_comp}. But it goes further than that, because capturing this concept into a predicate also allows one to manipulate random variables without ever referring to the pushforward of a measure, but only manipulating the laws of the random variables. For instance, if the function $f$ maps the measure $\mu$ to a measure $\nu$, we have the lemma \mllink{Probability/HasLaw}{L72-L77}{ProbabilityTheory.HasLaw.comp} which states \lean{HasLaw (f ∘ X) ν P}. We can likewise state that the law of the sum of two independent random variables is the convolution of their laws. This gives a nice framework for computations with random variables.
 
 
 \paragraph{Gaussian random variables}
 
-Part of the work in this project is to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}. This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\docs{ProbabilityTheory.HasGaussianLaw.map}). Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
+Part of the work in this project is to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}.
+This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\bmlink{Auxiliary/HasLaw}{L118-L122}{ProbabilityTheory.HasGaussianLaw.map}).
+Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
 
 One of the great properties of Gaussian random variables is their relation to independence. Proving that two random variables are independent can be quite involved sometimes. But when it comes to Gaussian random variables, we have the following result. If $X$ and $Y$ are two real random variables such that the pair $(X, Y)$ is Gaussian and such that $\mathbf{cov}(X, Y) = 0$, then $X$ and $Y$ are independent. In other words, independence can be checked by only computing a covariance. This is not only true for real variables and can be generalized. The most general form we formalized is stated below.
 
-\begin{lemma}[\docs{HasGaussianLaw.iIndepFun_of_cov}]\label{lem:gauss-indep}
+\begin{lemma}[\bmlink{Auxiliary/HasGaussianLaw}{L97-L103}{HasGaussianLaw.iIndepFun_of_cov}]\label{lem:gauss-indep}
   Consider $(E_i)_{1 \le i \le n}$ a family of second countable Banach spaces, and a family of random variables $X_i : \Omega \to E_i$. Assume that the joint random variable $(X_i)_{1 \le i \le n}$ is Gaussian. Then to check that the $X_i$ are mutually independent, it is enough to check that for any $1 \le i \ne j \le n$ and any $L_1 \in E_i'$, $L_2 \in E_j'$, we have $\mathbf{cov}(L_1(X_i), L_2(X_j)) = 0$.
 \end{lemma}
 
@@ -272,19 +286,19 @@ This statement follows actually quite easily from the general results we formali
 
 We end this section by presenting our formalization of Gaussian processes. These are of course crucial if we want to talk about the Brownian motion beyond the measure theoretic aspects, as the Brownian motion is itself a Gaussian process.
 
-\begin{definition}[\docs{ProbabilityTheory.IsGaussianProcess}]\label{def:guass-proc}
+\begin{definition}[\bmlink{Gaussian/GaussianProcess}{L27-L30}{ProbabilityTheory.IsGaussianProcess}]\label{def:guass-proc}
   Consider $E$ a Banach space and $(X_t)_{t \in T}$ a stochastic process taking values in $E$. Then $X$ is a \emph{Gaussian process} if for all $t_1, ..., t_n \in T$, the variable $(X_{t_1}, ..., X_{t_n})$ is Gaussian.
 \end{definition}
 
 This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illustrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
 
-\begin{lemma}[\docs{IsGaussianProcess.indepFun''}]\label{lem:indepGaussProc}
+\begin{lemma}[\bmlink{Gaussian/GaussianProcess}{L201-L204}{IsGaussianProcess.indepFun''}]\label{lem:indepGaussProc}
   Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $E$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
 \end{lemma}
 
-This lemma reduces the independence of stochastic processes to a very simple computation, and will prove to be a blessing to show that a Brownian motion enjoys the weak Markov property. It is the result of a combination of Lemma~\ref{lem:gauss-indep} and of some results about independence of processes which were added to \mathlib for this purpose (notably \docs{ProbabilityTheory.IndepFun.process_indepFun_process}).
+This lemma reduces the independence of stochastic processes to a very simple computation, and will prove to be a blessing to show that a Brownian motion enjoys the weak Markov property. It is the result of a combination of Lemma~\ref{lem:gauss-indep} and of some results about independence of processes which were added to \mathlib for this purpose (notably \mllink{Probability/Independence/Process}{L164-172}{ProbabilityTheory.IndepFun.process_indepFun_process}).
 
-The statement requires $((X_s)_{s \in S}, (Y_t)_{t \in T})$ to be Gaussian. However, written like that, it is not technically a process, but a pair of processes. To state it cleanly in \Lean we consider the disjoint sum $S \oplus T$. This is the set where each element is either an element of $S$, or an element of $T$, both options being exclusive. It corresponds to \docs{Sum} in \mathlib. We can then consider the process
+The statement requires $((X_s)_{s \in S}, (Y_t)_{t \in T})$ to be Gaussian. However, written like that, it is not technically a process, but a pair of processes. To state it cleanly in \Lean we consider the disjoint sum $S \oplus T$. This is the set where each element is either an element of $S$, or an element of $T$, both options being exclusive. It corresponds to \texttt{Sum} in \Lean. We can then consider the process
 \begin{align*}
   X \oplus Y : S \oplus T & \to E \\
   S \ni s & \mapsto X_s. \\
@@ -318,7 +332,7 @@ The paths of the process are the maps $(t : T) \to E_t$ defined by $t \mapsto X_
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
 $X$ and $Y$ are said to be indistinguishable if almost surely, $X_t = Y_t$ for all $t \in T$ simultaneously.
 Being indistinguishable implies being a modification, which in turn implies equality of laws (that last part is proved through finite dimensional distributions, see below).
-We will use repeatedly that if $T$ is a second-countable topological space, $E$ is Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\docs{indistinguishable_of_modification}).
+We will use repeatedly that if $T$ is a second-countable topological space, $E$ is Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\bmlink{Gaussian/StochasticProcesses}{L14-L18}{indistinguishable_of_modification}).
 
 
 \paragraph{Measurability}
@@ -338,7 +352,7 @@ In the following, a \emph{stochastic process} will always mean an almost everywh
 \paragraph{Finite dimensional distributions}
 
 The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $P$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
-Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in \docs{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures described further down.
+Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in \mllink{Probability/Process/FiniteDimensionalLaws}{L75-L81}{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures described further down.
 Indeed the law of a process is the projective limit of its finite-dimensional distributions.
 Our goal in this project is thus to build a process with given finite-dimensional distributions and continuous paths.
 
@@ -346,7 +360,7 @@ Our goal in this project is thus to build a process with given finite-dimensiona
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 \label{S:extension}
 We describe our implementation of the Kolmogorov Extension Theorem, which relies on basic notions from topology such as metric spaces and the Borel $\sigma$-algebra.
-We begin by defining set systems we will need, which correspond to the definitions \docs{MeasureTheory.IsSetSemiring} and \docs{MeasureTheory.IsSetRing} (which we added to \mathlib).
+We begin by defining set systems we will need, which correspond to the definitions \mllink{MeasureTheory/SetSemiring}{L61-L67}{MeasureTheory.IsSetSemiring} and \mllink{MeasureTheory/SetSemiring}{L453-L458}{MeasureTheory.IsSetRing} (which we added to \mathlib).
 
 \begin{definition}[Semi-ring, ring]\label{def:semi}
   Let $E$ be some set. We call a set of sets $\mathcal H \subseteq 2^E$ a
@@ -362,7 +376,7 @@ We begin by defining set systems we will need, which correspond to the definitio
 Any ring is a semi-ring since $A\cap B = A \setminus (A \setminus B)$, i.e.\ every ring is a $\pi$-system, and the second condition is satisfied with $\mathcal{K}=\{B \setminus A\}$.
 Let us state two important lemmas on semi-rings.
 
-\begin{lemma}[\docs{MeasureTheory.IsSetSemiring.disjointOfDiffUnion}]\label{l1}
+\begin{lemma}[\mllink{MeasureTheory/SetSemiring}{L221-L228}{MeasureTheory.IsSetSemiring.disjointOfDiffUnion}]\label{l1}
   Let $\mathcal H$ be a semi-ring, $\mathcal I \subseteq_f \mathcal H$,
   $A \in \mathcal H$. Then, there is $\mathcal K \subseteq_f \mathcal
   H$ such that $\mathcal K$ contains pairwise disjoint sets and $A
@@ -370,7 +384,7 @@ Let us state two important lemmas on semi-rings.
   K$.
 \end{lemma}
 
-\begin{lemma}[\docs{MeasureTheory.IsSetSemiring.disjointOfUnion}]\label{l2}
+\begin{lemma}[\mllink{MeasureTheory/SetSemiring}{L405-L411}{MeasureTheory.IsSetSemiring.disjointOfUnion}]\label{l2}
   Let $\mathcal H$ be a semi-ring and $A_1,...,A_m \in \mathcal
   H$. Then, there are $\mathcal K_1,...,\mathcal K_m \subseteq_f
   \mathcal H$ disjoint such that $\bigcup_{n=1}^m \mathcal K_n$
@@ -378,7 +392,7 @@ Let us state two important lemmas on semi-rings.
   \biguplus_{K \in \mathcal K_n} K$.
 \end{lemma}
 
-Given an additive content $m : \mathcal H \to [0,\infty]$ for some semi-ring $\mathcal H$ (see Definition~\ref{def:content} as well as \docs{MeasureTheory.AddContent}), the goal of Carathéodory's extension theorem is to define a measure $\mu : \sigma(\mathcal H) \to [0,\infty]$ extending $m$ to the $\sigma$-algebra $\sigma(\mathcal H)$ generated by $\mathcal H$. More precisely, the Carathéodory extension gives a measure on an even larger $\sigma$-algebra; see Theorem~\ref{T:cara} in conjunction with Theorem~\ref{T:masseind} below. We will follow this abstract construction, and start by stating some basic concepts; see \docs{MeasureTheory.Measure}, \docs{MeasureTheory.OuterMeasure}.
+Given an additive content $m : \mathcal H \to [0,\infty]$ for some semi-ring $\mathcal H$ (see Definition~\ref{def:content} as well as \mllink{MeasureTheory/Measure/AddContent}{L66-L74}{MeasureTheory.AddContent}), the goal of Carathéodory's extension theorem is to define a measure $\mu : \sigma(\mathcal H) \to [0,\infty]$ extending $m$ to the $\sigma$-algebra $\sigma(\mathcal H)$ generated by $\mathcal H$. More precisely, the Carathéodory extension gives a measure on an even larger $\sigma$-algebra; see Theorem~\ref{T:cara} in conjunction with Theorem~\ref{T:masseind} below. We will follow this abstract construction, and start by stating some basic concepts; see \mllink{MeasureTheory/Measure/MeasureSpaceDef}{L71-L81}{MeasureTheory.Measure}, \mllink{MeasureTheory/OuterMeasure/Defs}{L50-L57}{MeasureTheory.OuterMeasure}.
 
 \begin{definition}\label{def:content}
   For some set $E$, let $\mathcal H \subseteq 2^E$
@@ -394,7 +408,7 @@ Given an additive content $m : \mathcal H \to [0,\infty]$ for some semi-ring $\m
 \end{definition}
 
 \subsubsection{Carathéodory's Extension Theorem}
-An additive, $\sigma$-sub-additive content on a semi-ring induces an outer measure by approximating sets from above (see \docs{MeasureTheory.inducedOuterMeasure_eq}):
+An additive, $\sigma$-sub-additive content on a semi-ring induces an outer measure by approximating sets from above (see \mllink{MeasureTheory/OuterMeasure/Induced}{L293-L295}{MeasureTheory.inducedOuterMeasure_eq}):
 
 \begin{proposition}[Outer measure induced by a set function on a semi-ring] %\mbox{}
   Let \label{P:auss} $\mathcal H$ be a semi-ring and $m: \mathcal H\to\mathbb R_+$ additive and $\sigma$-sub-additive. For $A\subseteq E$ let
@@ -403,7 +417,7 @@ An additive, $\sigma$-sub-additive content on a semi-ring induces an outer measu
   is the set of countable coverings of $A$. Then, $\mu$ is an outer measure.
 \end{proposition}
 
-Moreover, we call a set Carathéodory with respect to some outer measure, if it is measurable in the following sense (see \docs{MeasureTheory.OuterMeasure.IsCaratheodory}):
+Moreover, we call a set Carathéodory with respect to some outer measure, if it is measurable in the following sense (see \mllink{MeasureTheory/OuterMeasure/Caratheodory}{L53-L56}{MeasureTheory.OuterMeasure.IsCaratheodory}):
 
 \begin{theorem}[\boldmath $\mu$-measurable sets are a
     $\sigma$-algebra]\label{T:cara} Let $\mu$ be an outer measure on
@@ -416,7 +430,7 @@ Moreover, we call a set Carathéodory with respect to some outer measure, if it 
   a measure.
 \end{theorem}
 
-In the construction above, since all sets in the semi-ring $\mathcal H$ are Carathéodory (see \docs{MeasureTheory.AddContent.isCaratheodory_ofFunction_of_mem}), the $\sigma$-algebra from Theorem~\ref{T:cara} is at least as large as the $\sigma$-algebra generated by $\mathcal H$. The resulting measure is \docs{MeasureTheory.AddContent.measureCaratheodory} and agrees with the additive content on $\mathcal H$ (see \docs{MeasureTheory.AddContent.measure_eq}). Let us summarize this:
+In the construction above, since all sets in the semi-ring $\mathcal H$ are Carathéodory (see \mllink{MeasureTheory/OuterMeasure/OfAddContent}{L86-L88}{MeasureTheory.AddContent.isCaratheodory_ofFunction_of_mem}), the $\sigma$-algebra from Theorem~\ref{T:cara} is at least as large as the $\sigma$-algebra generated by $\mathcal H$. The resulting measure is \mllink{MeasureTheory/OuterMeasure/OfAddContent}{L134-L138}{MeasureTheory.AddContent.measureCaratheodory} and agrees with the additive content on $\mathcal H$ (see \mllink{MeasureTheory/OuterMeasure/OfAddContent}{L171-L176}{MeasureTheory.AddContent.measure_eq}). Let us summarize this:
 
 \begin{theorem}[Carathéodory extension]\label{T:masseind}
   Let $\mathcal H$ be a semi-ring and $m: \mathcal H\to\mathbb R_+$
@@ -442,13 +456,13 @@ extends $m$ to $\mathcal R$.
 \end{lemma}
 
 Actually, $\sigma$-additivity and $\sigma$-sub-additivity are close relatives.
-We first have the result \docs{MeasureTheory.addContent_iUnion_eq_sum_of_tendsto_zero}, which states that $\sigma$-additivity is implied by continuity of the content at the empty set, and \docs{MeasureTheory.isSigmaSubadditive_of_addContent_iUnion_eq_tsum}, which states that -- if the additive content is defined on a ring -- it is $\sigma$-sub-additive if it is $\sigma$-additive.
+We first have the result \mllink{MeasureTheory/Measure/AddContent}{L388-L397}{MeasureTheory.addContent_iUnion_eq_sum_of_tendsto_zero}, which states that $\sigma$-additivity is implied by continuity of the content at the empty set, and \mllink{MeasureTheory/Measure/AddContent}{L437-L441}{MeasureTheory.isSigmaSubadditive_of_addContent_iUnion_eq_tsum}, which states that -- if the additive content is defined on a ring -- it is $\sigma$-sub-additive if it is $\sigma$-additive.
 Therefore, a convenient way to show $\sigma$-additivity of a content (in order for example to apply Carathéodory's extension theorem) is to show continuity in $\emptyset$.
 For this, we require the notion of inner regularity with respect to a compact system.
 
 We recall the definition of inner regularity of set functions, which was already in \mathlib.
 
-\begin{definition}[Inner regularity \docs{MeasureTheory.Measure.InnerRegularWRT}] \label{def:innerreg}
+\begin{definition}[Inner regularity \mllink{MeasureTheory/Measure/Regular}{L203-L210}{MeasureTheory.Measure.InnerRegularWRT}] \label{def:innerreg}
   Let $E$ be some set, equipped with a topology, and $m$ be a
   set-function on some $\mathcal H \subseteq 2^E$.
   \begin{enumerate}
@@ -467,7 +481,7 @@ $\bigcap_{n=1}^\infty C_n = \emptyset$, there is some $N$ with
 $\bigcap_{n=1}^N C_n = \emptyset$. More generally, compact sets form a
 compact system, which is defined as follows.
 
-\begin{definition}[Compact system, \docs{IsCompactSystem}]
+\begin{definition}[Compact system, \kelink{CompactSystem}{L17-L18}{IsCompactSystem}]
   Let $\mathcal C \subseteq 2^E$. If, for all $C_1, C_2,...$ with
   $\bigcap_{n=1}^\infty C_n = \emptyset$, there is some $N$ with
   $\bigcap_{n=1}^N C_n = \emptyset$, we call $\mathcal C$ a {\em
@@ -475,14 +489,14 @@ compact system, which is defined as follows.
 \end{definition}
 
 \noindent
-Such compact systems are important since they allow for a proof of continuity at $\emptyset$ (hence $\sigma$-additivity) of a content on a ring, which is the missing piece for applying the Carathéodory Theorem in the proof of the Kolmogorov extension theorem; see \docs{MeasureTheory.tendsto_zero_of_regular_addContent}.
+Such compact systems are important since they allow for a proof of continuity at $\emptyset$ (hence $\sigma$-additivity) of a content on a ring, which is the missing piece for applying the Carathéodory Theorem in the proof of the Kolmogorov extension theorem; see \kelink{RegularContent}{L17-L21}{MeasureTheory.tendsto_zero_of_regular_addContent}.
 
 \begin{lemma}\label{l:stetigcompact}
   Let $\mu$ be an additive set function on a ring $\mathcal R$, which contains the compact system $\mathcal C$. If $\mu$ is inner regular with respect to $\mathcal C$, then $\mu$ is continuous at $\emptyset$.
 \end{lemma}
 
 \subsubsection{Kolmogorov's Extension Theorem}
-We aim to apply Theorems~\ref{T:cara} and~\ref{T:masseind} on product spaces. The resulting Kolmogorov's extension theorem is a statement about extending a set-function on a product space to a (finite) measure, where the product space can come with an arbitrary index set.  The next definition covers the important concept of a projective family of measures. In short, we define measures on any finite subset of indices in a consistent way; see \docs{MeasureTheory.IsProjectiveMeasureFamily}.
+We aim to apply Theorems~\ref{T:cara} and~\ref{T:masseind} on product spaces. The resulting Kolmogorov's extension theorem is a statement about extending a set-function on a product space to a (finite) measure, where the product space can come with an arbitrary index set.  The next definition covers the important concept of a projective family of measures. In short, we define measures on any finite subset of indices in a consistent way; see \mllink{MeasureTheory/Constructions/Projective}{L43-L47}{MeasureTheory.IsProjectiveMeasureFamily}.
 
 \begin{definition}[Projective family and projective limit] \mbox{}
   \begin{enumerate}
@@ -512,7 +526,7 @@ We aim to apply Theorems~\ref{T:cara} and~\ref{T:masseind} on product spaces. Th
 \end{definition}
 
 In order to apply this result and show the extension theorem, we need to show that $\{\pi_J^{-1} C: C \in \prod_{j\in J} E_j \text{ compact and closed}\}$ is a compact system. Note that compact sets are closed in Hausdorff spaces, but we do not have this property since we are working with pseudo-metric spaces, which do not have this property.\footnote{Recall, that a pseudo-metric $r(.,.)$ can have $r(x,y) = 0$ for $x\neq y$, and therefore is not a $T2$-space.}
-Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive content \docs{MeasureTheory.projectiveFamilyContent}, which is defined through the projective family $P$, we have a proof of the Kolmogorov Extension Theorem \docs{MeasureTheory.projectiveLimitWithWeakestHypotheses}.
+Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive content \mllink{MeasureTheory/Constructions/ProjectiveFamilyContent}{L114-L120}{MeasureTheory.projectiveFamilyContent}, which is defined through the projective family $P$, we have a proof of the Kolmogorov Extension Theorem \kelink{KolmogorovExtension}{L95-L99}{MeasureTheory.projectiveLimitWithWeakestHypotheses}.
 
 \begin{theorem}[Kolmogorov extension]\label{T1}
   For all $t\in T$, let $E_t$ be a second-countable, complete
@@ -528,10 +542,8 @@ The uniqueness of the projective limit implies in particular that the finite dim
 
 Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $E$ is a dependent type, i.e.\ for every index $t \in T$, the state space $E_t$ might be different. Second, all $E_t$ are not necessarily second-countable, complete metric spaces (or Polish, i.e.\ second-countable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or T2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap.
 While the first generalization did not require any change in the proof, the second generalization was possible since underlying results in \mathlib were already provided on the same level of generality.
-More precisely, the \mathlib lemma \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space.
-This is a weaker topological notion than a pseudo-metric space but in the case of a second-countable space (as is the case in our formalization), a uniform space can also be turned into a pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace}).
-%(recall that every pseudo-metric space is uniform, and a second-countable uniform space can be made into a pseudo-metric space).
-%We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph. What is the point of the last sentence?}.
+More precisely, the \mathlib lemma \mllink{Topology/UniformSpace/Cauchy}{L637-L638}{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space.
+This is a weaker topological notion than a pseudo-metric space but in the case of a second-countable space (as is the case in our formalization), a uniform space can also be turned into a pseudo-metric space (\mllink{Topology/Metrizable/Uniformity}{L256-L258}{UniformSpace.pseudoMetrizableSpace}).
 
 
 
@@ -539,29 +551,29 @@ This is a weaker topological notion than a pseudo-metric space but in the case o
 \label{S:gaussian}
 
 Our goal is to define a process with Gaussian finite-dimensional distributions.
-Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \docs{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures.
+Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \mllink{Probability/Distributions/Gaussian/Real}{L198-L201}{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures.
 We will denote by $N(m, \sigma^2)$ the normal distribution on $\mathbb{R}$ with mean $m$ and variance $\sigma^2$.
 In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need definitions and properties of multivariate Gaussian distributions.
 We did not however define Gaussians only for that setting, but first introduced a general definition for Banach spaces, and then specialized to Hilbert and finally finite dimensional spaces.
-Our formalization uses many results from \mathlib and we relied on characteristic functions \docs{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \docs{MeasureTheory.Measure.ext_of_charFunDual}.
+Our formalization uses many results from \mathlib and we relied on characteristic functions \mllink{MeasureTheory/Measure/CharacteristicFunction}{L322-L325}{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \mllink{MeasureTheory/Measure/CharacteristicFunction}{L435-L439}{MeasureTheory.Measure.ext_of_charFunDual}.
 
 
 \subsubsection{Gaussian distributions}
 
 We start by recalling the definition of the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
 
-\begin{definition}
-	The \emph{dual characteristic function} (\docs{MeasureTheory.charFunDual}) osf $\mu$ is the map $\phi_\mu : E' \to \mathbb{C}$ defined by
+\begin{definition}[\mllink{MeasureTheory/Measure/CharacteristicFunction}{L322-L325}{MeasureTheory.charFunDual}]
+	The \emph{dual characteristic function} of $\mu$ is the map $\phi_\mu : E' \to \mathbb{C}$ defined by
 	$$\phi_\mu(L) = \int_E e^{i L(x)} \mu(\mathrm dx),$$
 	where $i$ is the imaginary unit.
 \end{definition}
 
-This function is quite useful because if $E$ is second-countable and equipped with the Borel $\sigma$-algebra, and if $\mu$ is finite, then it is characterized by $\phi_\mu$ (\docs{MeasureTheory.Measure.ext_of_charFunDual}). Thus it is a great tool to deduce certain properties of the measure and we formalized several of its properties.
-For instance, two random variables are independent if and only if the dual characteristic function of their joint law is the product of the dual characteristic functions of the marginal laws (\docs{ProbabilityTheory.indepFun_iff_charFunDual_prod}).
+This function is quite useful because if $E$ is second-countable and equipped with the Borel $\sigma$-algebra, and if $\mu$ is finite, then it is characterized by $\phi_\mu$ (\mllink{MeasureTheory/Measure/CharacteristicFunction}{L435-L439}{MeasureTheory.Measure.ext_of_charFunDual}). Thus it is a great tool to deduce certain properties of the measure and we formalized several of its properties.
+For instance, two random variables are independent if and only if the dual characteristic function of their joint law is the product of the dual characteristic functions of the marginal laws (\mllink{Probability/Independence/CharacteristicFunction}{L58-L64}{ProbabilityTheory.indepFun_iff_charFunDual_prod}).
 
 In the special case where $E$ is a Hilbert space, Riesz's representation theorem implies that each $L \in E'$ can be uniquely represented by an element $t \in E$. This motivates the following definition.
 
-\begin{definition}[\docs{MeasureTheory.charFun}]
+\begin{definition}[\mllink{MeasureTheory/Measure/CharacteristicFunction}{L128-L129}{MeasureTheory.charFun}]
   If $E$ is an inner product space, the \emph{characteristic function} of $\mu$ is the map $\psi_\mu : E \to \R$ defined by
   $$\psi_\mu(t) = \int_E e^{i \langle t, x \rangle} \mu(\mathrm dx).$$
 \end{definition}
@@ -570,7 +582,7 @@ This in some sense is a more convenient way to use the dual characteristic funct
 
 Let us now turn to Gaussian measures, which are defined through their one-dimensional projections.
 
-\begin{definition}[\docs{ProbabilityTheory.IsGaussian}]\label{def:gaussian}
+\begin{definition}[\mllink{Probability/Distributions/Gaussian/Basic}{L43-L46}{ProbabilityTheory.IsGaussian}]\label{def:gaussian}
   The measure $\mu$ is called \emph{Gaussian} if for each $L \in E'$, the pushforward measure $L_* \mu$ is the Gaussian measure $N\left(\mathbf E_\mu[L], \mathrm{var}_\mu(L)\right)$.
 \end{definition}
 
@@ -579,14 +591,14 @@ $$\psi_{N(m, \sigma^2)}(t) = \exp(im - \sigma^2/2).$$
 This proves in particular that a real Gaussian measure is determined by its mean and covariance. The same statement is actually true for any Gaussian measure, if we generalize the notion of covariance.
 As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a second-countable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
 
-\begin{definition}[\docs{ProbabilityTheory.covarianceBilin}]
+\begin{definition}[\mllink{Probability/Moments/CovarianceBilin}{L48-L52}{ProbabilityTheory.covarianceBilin}]
   The \emph{covariance bilinear form} of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert \cdot \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
   $$C_\mu(s, t) = \mathbf{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
 
 The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures.
 
-\begin{theorem}[\docs{ProbabilityTheory.isGaussian_iff_charFun_eq}]\label{thm:gaussian_charFun}
+\begin{theorem}[\bmlink{Gaussian/Gaussian}{L207-L109}{ProbabilityTheory.isGaussian_iff_charFun_eq}]\label{thm:gaussian_charFun}
   The measure $\mu$ is Gaussian if and only if its characteristic function is given by
   $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
 \end{theorem}
@@ -595,7 +607,7 @@ This simple description of Gaussian measures allows to easily formalize several 
 Another result is that if two Gaussian random variables have covariance zero, then they are independent.
 
 Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite first and second moments $\mathbf E_\mu[\lVert \cdot \rVert]$ and $\mathbf{E}_\mu[\lVert \cdot \rVert^2]$.
-While we would only need to prove this result in finite dimension to define a Brownian motion on $\mathbb{R}_+$, we proved a more general theorem applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\docs{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
+While we would only need to prove this result in finite dimension to define a Brownian motion on $\mathbb{R}_+$, we proved a more general theorem applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\mllink{Probability/Distributions/Gaussian/Fernique}{L161-L164}{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
 It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $C > 0$ such that
 \begin{align*}
   \int_E \exp\left( C \|x\|^2 \right) \mu(\mathrm dx) < \infty.
@@ -608,7 +620,7 @@ As stated before, any Gaussian measure is uniquely determined by its mean and co
 The answer is yes if $E$ is a Euclidean space, and we formalized this construction in the project.
 As a bilinear form over a finite-dimensional vector-space can be represented by a matrix, we will use the \emph{covariance matrix} to represent the covariance of a measure.
 
-Assume now that $E$ is a Euclidean space with a basis $(e_1, \dots, e_n)$. We define the \emph{standard Gaussian measure} (\docs{ProbabilityTheory.stdGaussian}) as the pushforward measure
+Assume now that $E$ is a Euclidean space with a basis $(e_1, \dots, e_n)$. We define the \emph{standard Gaussian measure} (\bmlink{Gaussian/MultivariateGaussian}{L33-L37}{ProbabilityTheory.stdGaussian}) as the pushforward measure
 $$\left(x \mapsto \sum_{i=1}^n x_i e_i\right)_* N(0, 1)^{\otimes n}.$$
 
 As stated above, $N(0, 1)^{\otimes n}$ is a Gaussian measure because it is a product of Gaussian measures, and the map $x \mapsto \sum_{i=1}^n x_i e_i$ is a linear form over $E$, so that this measure is indeed Gaussian. It is easy to see that its mean is $0$ and its covariance matrix is the identity matrix $I_n$.
@@ -617,7 +629,7 @@ We denote it $N(0, I_n)$.
 
 Now from Definition~\ref{def:gaussian} it is clear that the pushforward of a Gaussian measure by a continuous affine map is again a Gaussian measure. In particular, given $A$ an $n \times n$ matrix, $b \in E$ and $\mu$ a Gaussian measure over $E$ with mean $m$ and covariance $C$, we have that $(x \mapsto Ax + b)_* \mu$ is a Gaussian measure with mean $Am + b$ and covariance matrix $A^\top C A$.
 Consider thus $b \in E$ and $A$ a positive semidefinite $n \times n$ matrix.
-There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Sx + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \docs{ProbabilityTheory.multivariateGaussian}.
+There exist $S \in \mathcal{M}_n(\R)$ such that $A = S^\top S$, and thus $(x \mapsto Sx + b)_* N(0, I_n)$ is a Gaussian measure with mean $m$ and covariance matrix $A$. This proves that for any $m \in E$ and any covariance matrix $A$, there exist a Gaussian measure over $E$ with mean $m$ and covariance matrix $A$. This measure is denoted $N(m, A)$, and is formalized as \bmlink{Gaussian/MultivariateGaussian}{L150-L155}{ProbabilityTheory.multivariateGaussian}.
 
 
 
@@ -662,7 +674,7 @@ That is, $T$ is equipped with a ``distance'' $d_T$ with values in $[0,+\infty]$ 
 $T$ will denote the index set of a stochastic process, and $E$ the space of values of that process.
 The space $E$ is equipped with the Borel $\sigma$-algebra $\mathcal{B}(E)$ generated by the open sets of $E$.
 
-The key assumption of the Kolmogorov-Chentsov theorem that gives the existence of a continuous modification is that the process satisfies the Kolmogorov condition, \docs{ProbabilityTheory.IsKolmogorovProcess}.
+The key assumption of the Kolmogorov-Chentsov theorem that gives the existence of a continuous modification is that the process satisfies the Kolmogorov condition, \mllink{Probability/Process/Kolmogorov}{L52-L60}{ProbabilityTheory.IsKolmogorovProcess}.
 
 \begin{definition}[Kolmogorov condition]\label{def:kolmogorov_condition}
 Let $p, q, M$ be non-negative real numbers with $p,q>0$.
@@ -698,7 +710,7 @@ Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d
 If furthermore $E$ is an extended metric space (not pseudo-metric: $d_E(x,y) = 0$ implies $x = y$) and is complete, and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
-In our formalization, the two parts of this theorem correspond to the statements \docs{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \docs{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
+In our formalization, the two parts of this theorem correspond to the statements \bmlink{Continuity/KolmogorovChentsovInequality}{L405-L410}{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \bmlink{Continuity/KolmogorovChentsov}{L1011-L1016}{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
 We adopt here \Lean's convention that $0/0 = 0$, which means that the expression under the expectation is well-defined even if we allow $d_T(s, t) = 0$ in the supremum.
 Indeed, if $d_T(s, t) = 0$, then the Kolmogorov condition implies that $d_E(X_s, X_t) = 0$ almost surely, so the ratio is then $0/0 = 0$ and the expectation is well-defined.
 
@@ -733,7 +745,7 @@ The following localized version of the theorem fulfills this need, and also uses
 The conclusion of the theorem is not Hölder continuity of the paths, but local Hölder continuity.
 A function $f : T \to E$ is said to be locally Hölder continuous of order $\gamma$ if for all $t \in T$, there exists a neighborhood $U$ of $t$ such that $f$ is $\gamma$-Hölder continuous on $U$.
 
-\begin{theorem}[\docs{ProbabilityTheory.exists_modification_holder_iSup}]\label{thm:localized_holder_modification_sup}
+\begin{theorem}[\bmlink{Continuity/KolmogorovChentsov}{L1239-L1245}{ProbabilityTheory.exists_modification_holder_iSup}]\label{thm:localized_holder_modification_sup}
 Suppose that $T$ can be covered by an increasing sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ such that each $T_n$ has bounded covering number with constant $c_n > 0$ and exponent $d > 0$ (the same exponent for all $n$).
 Let $(p_m, q_m)_{m \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_m > d$ for all $m \in \mathbb{N}$.
 Let $(X_t)_{t \in T}$ be a process that satisfies the Kolmogorov condition with exponents $(p_m, q_m)$ for all $m \in \mathbb{N}$.
@@ -763,7 +775,7 @@ Our formalization also includes definitions of external covers and covering numb
 
 The main hypothesis of the Kolmogorov-Chentsov theorem on the index set is that $T$ has bounded covering number, defined as follows.
 
-\begin{definition}[\docs{HasBoundedInternalCoveringNumber}]\label{def:bounded_covering_number}
+\begin{definition}[\bmlink{Continuity/HasBoundedInternalCoveringNumber}{L18-L19}{HasBoundedInternalCoveringNumber}]\label{def:bounded_covering_number}
 A set $T$ has bounded covering number with constant $c > 0$ and exponent $d \ge 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
 \end{definition}
 
@@ -771,7 +783,7 @@ The exponent is a measure of dimensionality of the space $T$.
 For instance, for $T = [0,1]^m$ with the Euclidean distance, $T$ has bounded covering number with exponent $d = m$.
 Covering numbers are not monotone for set inclusion, but if $A \subseteq B$ then $N_\varepsilon(A) \le N_{\varepsilon/2}(B)$, which implies the following lemma on bounded covering numbers of subsets.
 
-\begin{lemma}[\docs{HasBoundedInternalCoveringNumber.subset}]\label{lem:covering_number_subset}
+\begin{lemma}[\bmlink{Continuity/HasBoundedInternalCoveringNumber}{L48-L50}{HasBoundedInternalCoveringNumber.subset}]\label{lem:covering_number_subset}
 Let $T' \subseteq T$ be a subset of a set $T$ with bounded covering number with constant $c$ and exponent $d$.
 Then $T'$ has bounded covering number with the constant $2^d c$ and exponent $d$.
 \end{lemma}
@@ -785,7 +797,7 @@ In order to do so, we will move to a coarser scale $m < N$.
 For $x \in C_N$, we define a chaining sequence $\bar{x}_0, \bar{x}_1, \ldots, \bar{x}_N$ by letting $\bar{x}_N = x$ and for $n < N$, $\bar{x}_n$ be a point in $C_n$ closest to $\bar{x}_{n+1}$.
 That sequence satisfies $d_T(\bar{x}_n, \bar{x}_{n+1}) \le \varepsilon_n$ for all $n < N$, by the cover property of $C_n$.
 
-The change of scale from $C_N$ to $C_m$ is done through the following decomposition, due to the triangle inequality and the fact that $(a + b)^p \le 2^p (a^p + b^p)$ for $a, b \ge 0$ (\docs{scale_change_rpow}):
+The change of scale from $C_N$ to $C_m$ is done through the following decomposition, due to the triangle inequality and the fact that $(a + b)^p \le 2^p (a^p + b^p)$ for $a, b \ge 0$ (\bmlink{Continuity/Chaining}{L257-L262}{scale_change_rpow}):
 \begin{align*}
   \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p
   &\le 2^p \sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_{\bar{s}_m}, X_{\bar{t}_m})^p + 4^p \sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p
@@ -809,7 +821,7 @@ Essentially, we bound the expectation of a supremum over pairs by the number of 
 A bound on the cardinality of $\{(s, t) \in C_m^2 \mid d_T(s, t) \le \delta'\}$ would be $\lvert C_m \rvert^2$, which as we explain in the main proof below is too large for our needs.
 The pair reduction lemma below allows us to reduce the number of pairs we need to consider to a quantity of order $\lvert C_m \rvert$ instead of quadratic, at the cost of increasing the distance threshold from $\delta'$ to a larger value $\delta' \log \lvert C_m \rvert$.
 
-\begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, B.2.7, \docs{EMetric.pair_reduction}]\label{lem:pair_reduction}
+\begin{lemma}[\cite{kratschmer2023kolmogorov} Lemma 6.1, extension of \cite{talagrand2014}, B.2.7, \mllink{Topology/EMetricSpace/PairReduction}{L468-L482}{EMetric.pair_reduction}]\label{lem:pair_reduction}
 Let $T$ be a pseudo-metric space, $c \ge 0$, $J$ a finite subset of $T$, $a \ge 0$ and $n \in \mathbb{N}$ such that $\lvert J \rvert \le a^n$.
 Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space $E$ and any map $f: T \to E$~,
 \begin{enumerate}
@@ -852,7 +864,7 @@ $
 $
 We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
 
-\begin{lemma}[\docs{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
+\begin{lemma}[\bmlink{Continuity/IsKolmogorovProcess}{L994-L1000}{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
 For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
 \begin{align*}
   \mathbf{E}\left[ \sup_{\substack{s, t \in J \\ d_T(s, t) \le \delta}} d_E(X_s, X_t)^p \right]
@@ -879,7 +891,7 @@ The supremum over the set $J$ is thus equal to the supremum over minimal cover $
 Let more generally $C_n$ be a minimal cover of $J$ by balls of radius $\varepsilon_n$ for all $n \in \{0, \dots, N\}$.
 
 We change scale using Equation~\eqref{eq:scale_change}, with $m \in \{0, \dots, N-1\}$ chosen such that $\varepsilon_m \le \delta \le 4 \varepsilon_m$.
-Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and where the proof is a simpler version of what follows (\docs{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
+Note that this needs $\delta \le 4 \mathrm{diam}(T)$, and we omit here the case $\delta > 4 \mathrm{diam}(T)$ for which we change the scale to the singleton cover $C_0$ and where the proof is a simpler version of what follows (\bmlink{Continuity/IsKolmogorovProcess}{L674-L678}{ProbabilityTheory.finite_set_bound_of_edist_le_of_diam_le}).
 \begin{align*}
   \mathbf{E}\left[\sup_{s, t \in C_N, d_T(s, t) \le \delta} d_E(X_s, X_t)^p\right]
   &\le 2^p \mathbf{E}\left[\sup_{s', t' \in C_m, d_T(s', t') \le 8 \varepsilon_m} d_E(X_{s'}, X_{t'})^p\right] + 4^p \mathbf{E}\left[\sup_{s \in C_N} d_E(X_s, X_{\bar{s}_m})^p\right]
@@ -977,7 +989,7 @@ That is why that part of the theorem requires $E$ to be metric and not pseudo-me
 We refer to \cite{kratschmer2023kolmogorov} for the proof that $Y$ is a modification of $X$, and only note that it uses convergence in probability, which we had to generalize in \mathlib from pseudo-metric to extended pseudo-metric spaces.
 
 Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
-Since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \docs{HolderOnWith.mono_right}).
+Since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \bmlink{Auxiliary/Topology}{L85-L87}{HolderOnWith.mono_right}).
 
 Let $(\beta_n)_{n \in \mathbb{N}}$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
 For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
@@ -995,7 +1007,7 @@ We use continuity to reduce to equality of the processes on a countable subset o
 Rewriting the equality as $d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0$, we see that this is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
 However, as currently stated, Theorem~\ref{thm:kolmogorov_chentsov} does not guarantee that the two modifications $Y^1$ and $Y^n$ satisfy that property (unless $E$ is second-countable, in which case that follows from the measurability of each $Y^i$).
 The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
-To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event (\docs{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
+To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event (\bmlink{Continuity/KolmogorovChentsov}{L447-L454}{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
 The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
@@ -1026,7 +1038,7 @@ The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\
 
 Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus, as previewed in the introduction, we introduced a predicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
 
-\begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
+\begin{definition}[\bmlink{Gaussian/BrownianMotion}{L490-L493}{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
 \end{definition}
 
@@ -1035,7 +1047,7 @@ To check the soundness of our formalization, we then formalized a few basic prop
 
 Definition~\ref{def:IsBrownian} is not necessarily the most convenient way to prove that a stochastic process is a Brownian motion. Therefore we also formalized the two following characterizations.
 
-\begin{lemma}[\docs{ProbabilityTheory.IsGaussianProcess.isPreBrownian_of_covariance}]\label{lem:isBrownianOfCov}
+\begin{lemma}[\bmlink{Gaussian/BrownianMotion}{L355-L357}{ProbabilityTheory.IsGaussianProcess.isPreBrownian_of_covariance}]\label{lem:isBrownianOfCov}
 A centered and almost surely continuous Gaussian process $X$ such that for all $s \le t$, $\mathbf{cov}(X_s, X_t) = s$ is a Brownian motion.
 \end{lemma}
 
@@ -1053,7 +1065,7 @@ Consider $B$ a Brownian motion. Then:
 
 Let us focus on the first three statements, the fourth one being an easy consequence of the third. Computing the expectation and the variance is quite easy. On paper, proving that these are Gaussian processes is also straightforward, because a linear combination of marginals of any of theses processes is also clearly a linear combination of marginals of the process $B$, and thus has Gaussian law. This is not as obvious to formalize, because the notion of "being a linear combination of marginals" is a bit messy to work with. What we were able to formalize nicely however is the following lemma.
 
-\begin{lemma}[\docs{ProbabilityTheory.IsGaussianProcess.of_isGaussianProcess}]\label{lem:isGaussOfIsGauss}
+\begin{lemma}[\bmlink{Gaussian/GaussianProcess}{L217-L223}{ProbabilityTheory.IsGaussianProcess.of_isGaussianProcess}]\label{lem:isGaussOfIsGauss}
 Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be an $F$-valued stochastic process. If for all $s \in S$, there exists $I$ a finite subset of $T$ and $L \in \mathcal{L}(E^I, F)$ such that $Y_s = L((X_t)_{t \in I})$, then $Y$ is a Gaussian process.
 \end{lemma}
 
@@ -1062,13 +1074,13 @@ It is even more impressive in the case of (2). To prove independence, we rely on
 
 It remains to discuss the continuity. It is immediate in (1) and (2), and in (3) it is also obvious on $(0, +\infty)$, but the continuity at $0$ is more involved. Because we proved that the process has the law of the Brownian motion, we can apply Theorem~\ref{thm:kolmogorov_chentsov} to obtain a Brownian motion which is a modification of $t B_{1/t}$. Then we can exploit continuity to conclude. To formalize this argument, we took inspiration in the way measurable functions are formalized in \Lean.
 
-Integration is defined for measurable functions, but if $f$ is measurable and $g$ is almost everywhere equal to $f$, then it also makes sense to integrate $g$, even though $g$ is not necessarily measurable. This motivates the notion of \emph{almost-everywhere measurability} (\docs{AEMeasurable}), which proved to be a very convenient way to manipulate almost everywhere equality in \Lean. In particular, if $f$ is an almost-everywhere measurable function, and this fact is registered in \Lean as an hypothesis \lean{hf}, then \lean{hf.mk f} is a measurable function that is almost everywhere equal to $f$. This mechanism allows to transport properties of measurable functions to almost everywhere measurable functions.
+Integration is defined for measurable functions, but if $f$ is measurable and $g$ is almost everywhere equal to $f$, then it also makes sense to integrate $g$, even though $g$ is not necessarily measurable. This motivates the notion of \emph{almost-everywhere measurability} (\mllink{MeasureTheory/Measure/MeasureSpaceDef}{L403-L407}{AEMeasurable}), which proved to be a very convenient way to manipulate almost everywhere equality in \Lean. In particular, if $f$ is an almost-everywhere measurable function, and this fact is registered in \Lean as an hypothesis \lean{hf}, then \lean{hf.mk f} is a measurable function that is almost everywhere equal to $f$. This mechanism allows to transport properties of measurable functions to almost everywhere measurable functions.
 
-Mimicking this process, we introduced a predicate \lean{IsPreBrownian X P}, which registers that the finite dimensional laws of $X$ are those of a Brownian motion, but without assuming continuity. Then, building on Theorem~\ref{thm:kolmogorov_chentsov}, we defined \docs{IsPreBrownian.mk}, which to a pre-Brownian motion associates a Brownian motion satisfying all the properties we can expect. In particular it is \emph{everywhere} locally $\alpha$-Hölder when $\alpha \in (0, 1/2)$.
+Mimicking this process, we introduced a predicate \lean{IsPreBrownian X P}, which registers that the finite dimensional laws of $X$ are those of a Brownian motion, but without assuming continuity. Then, building on Theorem~\ref{thm:kolmogorov_chentsov}, we defined \bmlink{Gaussian/BrownianMotion}{L298-L300}{IsPreBrownian.mk}, which to a pre-Brownian motion associates a Brownian motion satisfying all the properties we can expect. In particular it is \emph{everywhere} locally $\alpha$-Hölder when $\alpha \in (0, 1/2)$.
 
 The second characterization of the Brownian motion we formalized is the one below.
 
-\begin{lemma}[\docs{ProbabilityTheory.HasIndepIncrements.isPreBrownian_of_hasLaw}]\label{lem:isBrownianOfIndep}
+\begin{lemma}[\bmlink{Gaussian/BrownianMotion}{L391-L393}{ProbabilityTheory.HasIndepIncrements.isPreBrownian_of_hasLaw}]\label{lem:isBrownianOfIndep}
 An almost surely continuous stochastic process with independent increments such that for all $t$, $X_t$ has law $N(0,t)$ is a Brownian motion.
 \end{lemma}
 
@@ -1078,7 +1090,7 @@ The main issue is that we manipulate finite-dimensional laws as distributions ov
 
 In particular, the way to prove Lemma~\ref{lem:isBrownianOfIndep} is to first show that the hypotheses imply that the process is Gaussian, and then apply Lemma~\ref{lem:isBrownianOfCov}. To do that we prove this more general result:
 
-\begin{lemma}[\docs{ProbabilityTheory.HasIndepIncrements.isGaussianProcess}]
+\begin{lemma}[\bmlink{Gaussian/BrownianMotion}{L161-L168}{ProbabilityTheory.HasIndepIncrements.isGaussianProcess}]
 Let $E$ be a second-countable Banach space and $T$ be an index set with a least element $\bot$. Consider $(X_t)_{t \in T}$ an $E$-valued stochastic process with independent increments, and such that for all $t$, $X_t$ has a Gaussian law. Further assume that $X_\bot$ is almost surely equal to $0$. Then $X$ is a Gaussian process.
 \end{lemma}
 
@@ -1101,10 +1113,10 @@ It also has continuous paths, and thus is a random variable on the subspace of c
 
 We may want to consider instead the space of continuous functions $\mathcal{C}(\mathbb{R}_+, \mathbb{R})$, equipped with the Borel $\sigma$-algebra generated the topology of uniform convergence on compact sets.
 
-We prove in \docs{ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval} that those two $\sigma$-algebras on continuous functions from a topological space $X$ to another $Y$ are equal whenever $X$ is a second-countable, locally compact space and $Y$ is second-countable and regular, equipped with the Borel $\sigma$-algebra.
+We prove in \bmlink{Gaussian/BrownianMotion}{L813-L815}{ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval} that those two $\sigma$-algebras on continuous functions from a topological space $X$ to another $Y$ are equal whenever $X$ is a second-countable, locally compact space and $Y$ is second-countable and regular, equipped with the Borel $\sigma$-algebra.
 These assumptions are satisfied for $X = \mathbb{R}_+$ and $Y = \mathbb{R}$.
 Thus $B$ is a random variable on $(\mathcal{C}(\mathbb{R}_+, \mathbb{R}), \mathcal{B}(\mathcal{C}(\mathbb{R}_+, \mathbb{R})))$.
-The law of $B$ in that space is called the Wiener measure (\docs{ProbabilityTheory.wienerMeasure}).
+The law of $B$ in that space is called the Wiener measure (\bmlink{Gaussian/BrownianMotion}{L970-L971}{ProbabilityTheory.wienerMeasure}).
 
 
 \section*{Acknowledgments}
