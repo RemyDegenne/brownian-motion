@@ -451,8 +451,8 @@ A nonnegative càdlàg submartingale is of class D if and only if it is uniforml
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL, lem:uniformIntegrable_of_tendstoInMeasure, lem:uniformIntegrableComp}
-Assume that $X$ is uniformly integrable. We know from Lemma~\ref{lem:Submartingale.classDL} that $X$ is of class DL. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendstoInMeasure}, we deduce that $X$ is of class D.
+  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp}
+Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
 
 Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
 \end{proof}
