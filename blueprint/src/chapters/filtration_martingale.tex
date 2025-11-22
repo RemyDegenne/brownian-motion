@@ -653,73 +653,7 @@ $$X^{-1}(S) = \bigcup_{n \in \mathbb{N}} \{n\} \times X_n^{-1}(S) = {0} \times X
 Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and $\{n + 1\} \times X_{n + 1}^{-1}(S) = (n, n + 1] \times X_{n + 1}^{-1}(S) \in \Sigma_{\mathcal{F}}$ by Lemma~\ref{lem:predictable_Ioc_prod} and the fact that $X_{n + 1}^{-1}(S) \in \mathcal{F}_n$, we have that $X^{-1}(S) \in \Sigma_{\mathcal{F}}$ as required.
 \end{proof}
 
-
-
-
-\section{Optional sampling}
-
-\begin{definition}[Ordered Monoid]\label{def:isOrderedAddMonoid}
-  \mathlibok
-  \lean{IsOrderedAddMonoid}
-Let $(M, +)$ be a commutative monoid that is also a partial order. It is said to be an \emph{ordered monoid} if for all $a, b, c \in M$, we have the following implication:
-$$a \le b \implies a + c \le b + c.$$
-\end{definition}
-
-\begin{definition}[Ordered Module]\label{def:isOrderedModule}
-  \mathlibok
-  \lean{IsOrderedModule}
-Let $\alpha, \beta$ be preorders with $0$ elements and such that there is a scalar multiplication $(\_ \cdot \_) : \alpha \times \beta \to \beta$. Then $\beta$ is said to be an \emph{ordered $\alpha$-module} (or \emph{ordered module} if $\alpha$ is clear from the context) if the following hold:
-\begin{itemize}
-  \item $\forall a \in \alpha, \forall b_1, b_2 \in \beta, 0 \le a \implies b_1 \le b_2 \implies a \cdot b_1 \le a \cdot b_2$;
-  \item $\forall a_1, a_2 \in \alpha, \forall b \in \beta, 0 \le b \implies a_1 \le a_2 \implies a_1 \cdot b \le a_2 \cdot b$.
-\end{itemize}
-\end{definition}
-
-\begin{definition}[Order-closed topology]\label{def:orderClosedTopology}
-  \mathlibok
-  \lean{OrderClosedTopology}
-Let $X$ be a topological space that is also a preorder. The space $X$ is set to be \emph{order-closed}, or to have \emph{order-closed topology}, if the set $\{(x, y) \in X \times X \mid x \le y\}$ is closed.
-\end{definition}
-
-\begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
-  \uses{def:Martingale, def:IsStoppingTime}
-  \mathlibok
-  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp}
-  Let $X$ be a discrete time martingale with respect to the filtration $\mathcal{F}$ and let
-  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
-  $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
-
-\begin{lemma}\label{lem:optionalSampling_discrete_submartingale}
-  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
-  \leanok
-  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp_nat}
-Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:nondecreasing_predictablePart_of_submartingale}
-Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}). By Lemma~\ref{lem:optionalSampling_discrete}, we have that almost surely, $M_{\tau \wedge \sigma} = P[M_{\tau} \mid \mathcal{F}_{\sigma}]$. Because $A$ is predictable and $\tau \wedge \sigma \le \sigma$, we deduce that almost surely, $A_{\tau \wedge \sigma} = P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma]$. Moreover, by Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}, we know that almost surely, $A$ is nondecreasing. Therefore, using the fact $\tau \wedge \sigma \le \tau$, we get that $P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma] \le P[A_\tau \mid \mathcal{F}_\sigma]$. We deduce that almost surely,
-$$X_{\tau \wedge \sigma} = M_{\tau \wedge \sigma} + A_{\tau \wedge \sigma} \le P[M_\tau \mid \mathcal{F}_\sigma] + P[A_\tau \mid \mathcal{F}_\sigma] = P[X_\tau \mid \mathcal{F}_\sigma],$$
-concluding the proof.
-\end{proof}
-
-\begin{lemma}\label{lem:optionalSampling_discrete_supermartingale}
-  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
-  \leanok
-  \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min_nat}
-Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:optionalSampling_discrete_submartingale}
-We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_discrete_submartingale} we obtain that almost surely, $-X_{\tau \wedge \sigma} \le P[-X_{\tau} \mid \mathcal{F}_{\sigma}]$. Multiplying by $-1$ yields the desired result.
-\end{proof}
-
+\section{Uniformly integrable}
 
 \begin{lemma}\label{lem:condExpUI}
   \leanok
@@ -792,7 +726,7 @@ The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense
 \begin{lemma}\label{lem:uniformIntegrableDominated}
   \leanok
   \lean{MeasureTheory.uniformIntegrable_of_dominated}
-Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables.. If for all $s$, there exists $t$ such that $\|X_t\| \le \|Y s\|$ almost surely, then $X$ is uniformly integrable.
+Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables.. If for all $s$, there exists $t$ such that $\|X_t\| \le \|Y_s\|$ almost surely, then $X$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
@@ -898,12 +832,83 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 
 \end{proof}
 
+\section{Optional sampling}
+
+\begin{definition}[Ordered Monoid]\label{def:isOrderedAddMonoid}
+  \mathlibok
+  \lean{IsOrderedAddMonoid}
+Let $(M, +)$ be a commutative monoid that is also a partial order. It is said to be an \emph{ordered monoid} if for all $a, b, c \in M$, we have the following implication:
+$$a \le b \implies a + c \le b + c.$$
+\end{definition}
+
+\begin{definition}[Ordered Module]\label{def:isOrderedModule}
+  \mathlibok
+  \lean{IsOrderedModule}
+Let $\alpha, \beta$ be preorders with $0$ elements and such that there is a scalar multiplication $(\_ \cdot \_) : \alpha \times \beta \to \beta$. Then $\beta$ is said to be an \emph{ordered $\alpha$-module} (or \emph{ordered module} if $\alpha$ is clear from the context) if the following hold:
+\begin{itemize}
+  \item $\forall a \in \alpha, \forall b_1, b_2 \in \beta, 0 \le a \implies b_1 \le b_2 \implies a \cdot b_1 \le a \cdot b_2$;
+  \item $\forall a_1, a_2 \in \alpha, \forall b \in \beta, 0 \le b \implies a_1 \le a_2 \implies a_1 \cdot b \le a_2 \cdot b$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Order-closed topology]\label{def:orderClosedTopology}
+  \mathlibok
+  \lean{OrderClosedTopology}
+Let $X$ be a topological space that is also a preorder. The space $X$ is set to be \emph{order-closed}, or to have \emph{order-closed topology}, if the set $\{(x, y) \in X \times X \mid x \le y\}$ is closed.
+\end{definition}
+
+\begin{lemma}[Optional sampling (discrete time)]\label{lem:optionalSampling_discrete}
+  \uses{def:Martingale, def:IsStoppingTime}
+  \mathlibok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp}
+  Let $X$ be a discrete time martingale with respect to the filtration $\mathcal{F}$ and let
+  $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely,
+  $X_{\tau \wedge \sigma} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+\begin{lemma}\label{lem:optionalSampling_discrete_submartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp_nat}
+Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}). By Lemma~\ref{lem:optionalSampling_discrete}, we have that almost surely, $M_{\tau \wedge \sigma} = P[M_{\tau} \mid \mathcal{F}_{\sigma}]$. Because $A$ is predictable and $\tau \wedge \sigma \le \sigma$, we deduce that almost surely, $A_{\tau \wedge \sigma} = P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma]$. Moreover, by Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}, we know that almost surely, $A$ is nondecreasing. Therefore, using the fact $\tau \wedge \sigma \le \tau$, we get that $P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma] \le P[A_\tau \mid \mathcal{F}_\sigma]$. We deduce that almost surely,
+$$X_{\tau \wedge \sigma} = M_{\tau \wedge \sigma} + A_{\tau \wedge \sigma} \le P[M_\tau \mid \mathcal{F}_\sigma] + P[A_\tau \mid \mathcal{F}_\sigma] = P[X_\tau \mid \mathcal{F}_\sigma],$$
+concluding the proof.
+\end{proof}
+
+\begin{lemma}\label{lem:optionalSampling_discrete_supermartingale}
+  \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min_nat}
+Let $X$ be a discrete time supermartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSampling_discrete_submartingale}
+We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_discrete_submartingale} we obtain that almost surely, $-X_{\tau \wedge \sigma} \le P[-X_{\tau} \mid \mathcal{F}_{\sigma}]$. Multiplying by $-1$ yields the desired result.
+\end{proof}
+
 \begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
   \uses{def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.DiscreteApproxSequence}
   Given a stopping time \(\tau : \Omega \to T \cup \{\infty\}\), a sequence of stopping times \((\tau_n)_{n \in \mathbb{N}}\) is called an
   discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
+\end{definition}
+
+\begin{definition}[Approximable time index]\label{def:approximableTimeIndex}
+  \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.Approximable}
+  A time index set \(T\) is said to be approximable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
 \end{definition}
 
 \begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
@@ -960,10 +965,12 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
-  \uses{def:IsStoppingTime}
-  Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
-  Then defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
-  we have that $(\tau_n)$ is a discrete approximation sequence of \(\tau\).
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{NNReal.approximable}
+  $T = \mathbb{R}_+$ is an approximable time index. In particular,
+  for any stopping time $\tau$ on $\overline{\mathbb{R}_+}$, defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
+  we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
 
 \begin{proof}
@@ -974,13 +981,21 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
+\begin{lemma}\label{lem:stoppingTime_approximationNat}
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{Nat.approximable}
+  $T = \mathbb{N}$ is an approximable time index.
+\end{lemma}
+\begin{proof}
+  Immediate as we can take \(\tau_n = \tau\) for all \(n\).
+\end{proof}
+
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  \leanok
-  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$ and let
-  $\sigma, \tau$ be stopping times such that $\tau$ is bounded and there exist discrete
-  approximation sequences for both $\sigma$ and $\tau$. Then, we have that
+   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
+  Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
@@ -990,9 +1005,8 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete}) that
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
@@ -1007,7 +1021,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a right-continuous submartingale with respect to the filtration $\mathcal{F}$. Then for
+  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
@@ -1017,9 +1031,8 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
   $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
