@@ -4,6 +4,11 @@ open Bornology Filter
 
 open scoped NNReal ENNReal Topology
 
+lemma eventually_nhdsGT {α : Type*} [TopologicalSpace α] [LinearOrder α] [ClosedIciTopology α]
+    {a b : α} (hab : a < b) {p : α → Prop} (h : ∀ x ∈ Set.Ioc a b, p x) :
+    ∀ᶠ x in 𝓝[>] a, p x :=
+  sets_of_superset (x := Set.Ioo a b) _ (Ioo_mem_nhdsGT hab) (by grind)
+
 variable {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y] [CompleteSpace Y]
     {C r : ℝ≥0} {s : Set X} {f : s → Y}
 
@@ -28,16 +33,6 @@ lemma Dense.holderWith_extend (hs : Dense s) (hf : HolderWith C r f) (hr : 0 < r
     refine (Continuous.tendsto ?_ (x, y)).comp ?_
     · fun_prop (disch := exact ENNReal.coe_ne_top)
     exact Tendsto.prodMk_nhds (tendsto_comap.comp tendsto_fst) (tendsto_comap.comp tendsto_snd)
-
-lemma Metric.boundedSpace_iff {X : Type*} [PseudoMetricSpace X] :
-    BoundedSpace X ↔ ∃ C, ∀ x y : X, dist x y ≤ C := by
-  rw [← isBounded_univ, Metric.isBounded_iff]
-  simp
-
-lemma Metric.boundedSpace_iff_nndist {X : Type*} [PseudoMetricSpace X] :
-    BoundedSpace X ↔ ∃ C, ∀ x y : X, nndist x y ≤ C := by
-  rw [← isBounded_univ, Metric.isBounded_iff_nndist]
-  simp
 
 lemma PseudoEMetricSpace.boundedSpace_toPseudoMetricSpace {C : ℝ≥0}
     (hX : ∀ x y : X, edist x y ≤ C) :

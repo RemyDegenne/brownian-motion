@@ -15,7 +15,12 @@ BM_paper/main.pdf
 /blueprint/src/web.pdf
 /blueprint/src/web.paux
 /blueprint/src/web.bbl
+/blueprint/src/web.pdf
 /blueprint/print/
+## Verso
+/verso/.lake/
+/verso/html/
+/home_page/verso/
 ## TeX
 *.aux
 *.lof
