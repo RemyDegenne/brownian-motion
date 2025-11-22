@@ -87,12 +87,12 @@ Brownian motion is a building block in modern probability theory. In this paper,
 
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
 \begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
-A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
+A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$ (the minimum of $t_i$ and $t_j$).
 \end{definition}
 Note that it is a highly non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
 and proving it satisfies these properties. Here are some other interesting facts about Brownian motion which we have formalized:
 \begin{itemize}
-\item $X_t$ has almost surely Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
+\item $X_t$ has almost surely locally Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
 \item For any $t_0 \in \R_+$, the process $X_{t_0 + t} - X_{t_0}$ is a Brownian motion independent of ${(X_t)}_{t \leq t_0}$. In particular $X_t$ satisfies the weak Markov property.
 \item For $c > 0$, the process $X_{ct}/\sqrt{c}$ is a Brownian motion.
 \item $tX_{1/t}$ is a Brownian motion
@@ -101,7 +101,7 @@ and proving it satisfies these properties. Here are some other interesting facts
 And here are some which we leave for future work:
 \begin{itemize}
 \item $X_t$ is almost surely nowhere differentiable.
-\item For every almost surely finite stopping time $T$, the process $X_{T + t} - X_{T}$ is a Brownian motion independent of $\mathcal{F}_T$ (the $\sigma$-field of events determined by time $T$). In particular $X_t$ satisfies the strong Markov property.
+\item For every almost surely finite stopping time $T$, the process $X_{T + t} - X_{T}$ is a Brownian motion independent of $\mathcal{F}_T$ (the $\sigma$-algebra of events determined by time $T$). In particular $X_t$ satisfies the strong Markov property.
 \item Brownian motion is a martingale, i.e.\ $\mathbb E[X_{t+s} | (X_r)_{r\leq t}] = X_t$ for $s,t \geq 0$; moreover it is the only stochastic process with continuous paths such that $(X_t)_{t\geq 0}$ and $(X_t^2 - t)_{t\geq 0}$ are both martingales.
 \end{itemize}
 
@@ -125,7 +125,7 @@ Our formalization led to the addition to \mathlib of new definitions and results
 Stochastic processes have been formalized in several theorem provers.
 Within Isabelle/HOL, the Kolmogorov extension theorem has been previously formalized \cite{Immler2012}. This formalization only works on Polish spaces (rather than on spaces where every finite measure is inner regular with respect to compact sets, see below), and only in the case where the state spaces for all times are identical. As for the Kolmogorov-Chentsov Theorem (showing continuity of paths), there is an Isabelle/HOL formalization as well \cite{Kolmogorov_Chentsov-AFP}.
 It uses the index set  $\R_+$ (rather than a more general type) with the usual dyadics proof, as e.g. outlined in \cite{kallenberg2021}. Last, an implementation of
-Brownian motion for Isabelle/HOL is described at \cite{laursen2024brownian} (the code is on \href{https://github.com/cplaursen/Brownian_Motion}{github} and seems to be a work in progress)\todorm{How do we refer to this incomplete formalization? Do we even cite it?}.
+Brownian motion for Isabelle/HOL is described at \cite{laursen2024brownian} \footnote{the code, which is on \href{https://github.com/cplaursen/Brownian_Motion}{github}, seems to be a work in progress}.
 
 For the Lean theorem prover, \cite{ying2023formalization} formalized theorems about discrete time martingales (see e.g.\ \cite{kallenberg2021}) and was the first implementation of stochastic processes.
 Our work shares little with that formalization, apart from the general setting of stochastic processes. We however depend extensively on the measure theory content of \cite{mathlib}.
@@ -135,7 +135,7 @@ Our work shares little with that formalization, apart from the general setting o
 
 This project started as a traditional collaboration between researchers, in which two of the authors (R.D. and P.P.) formalized the Kolmogorov extension theorem.
 In a second phase however, we decided to transform the project into a collaborative effort, open to anyone interested in contributing.
-We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a detailed \href{https://remydegenne.github.io/brownian-motion/blueprint/}{\emph{blueprint}}, a collaboration tool introduced for the Sphere Eversion project \cite{sphere_eversion} (used here through the LeanProject github template \cite{Monticone_LeanProject_2025}).
+We wrote first a succinct description of the proof we intended to follow for the Brownian motion definition, before expanding it into a \href{https://remydegenne.github.io/brownian-motion/blueprint/}{blueprint}, a collaboration tool introduced for the Sphere Eversion project \cite{sphere_eversion} (used here through the LeanProject github template \cite{Monticone_LeanProject_2025}).
 This is a website that accompanies the github repository on which the code is hosted, and that contains pages with detailed descriptions of the sequence of lemmas and definitions needed to prove the main theorems.
 The dependency of each lemma on the previous ones is made explicit, and the blueprint tool automatically generates a color-coded graph of dependencies.
 The graph is useful to visualize the structure of the proof, and to identify which lemmas are proved, which are ready to be proved, and which are still missing prerequisites.
@@ -167,7 +167,8 @@ All links point to commit {\tt xxx} for \mathlib (xxx date), and commit {\tt xxx
 
 Let us start with notation. Any stochastic process has an index set $T$ (usually called {\em time}, usually uncountably infinite), and a state space.
 While the general use of the word {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$.
-This is interesting, since virtually no standard textbook treats the case of a time-dependent state space. We only found a few examples of time-dependent stochastic processes in the literature (one of which is \cite{arnaudon2008brownian})\todorm{undefined citation}. Extending the usual hypothesis on the state space, we require that $E_t$ is a complete and second-countable metric space, for all $t \in T$. Probability measures are denoted $P_.$.
+This is interesting, since virtually no standard textbook treats the case of a time-dependent state space. We only found a few examples of time-dependent stochastic processes in the literature (one of which is \cite{arnaudon2008brownian}).
+Extending the usual hypothesis on the state space, we require that $E_t$ is a complete and second-countable metric space, for all $t \in T$. Probability measures are denoted $P_.$.
 
 \subsection{The Carathéodory and Kolmogorov Extension Theorems}
 The usual approach to construct (the distribution of) a stochastic process works as follows: describe properties of the distribution of the stochastic process $P_J$ at some arbitrary but finite number of times $J = \{t_1,...,t_n\} \subseteq T$.
@@ -311,7 +312,7 @@ There is no \Lean definition for a stochastic process: we use a function \lstinl
 
 The goal of our formalization of Brownian motion is to define a process with a given law and continuous paths.
 The law of a stochastic process is the pushforward of the measure $P$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
-The paths of the process are the maps \todopp{Is there a better mathematical notation for such a dependent type?}$(t : T) \to E_t$ defined by $t \mapsto X_t(\omega)$ for each $\omega \in \Omega$.
+The paths of the process are the maps $(t : T) \to E_t$ defined by $t \mapsto X_t(\omega)$ for each $\omega \in \Omega$.%\todopp{Is there a better mathematical notation for such a dependent type?}
 
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
 $X$ and $Y$ are said to be indistinguishable if almost surely, $X_t = Y_t$ for all $t \in T$ simultaneously.
@@ -524,9 +525,12 @@ Since Lemma~\ref{l:stetigcompact} gives the $\sigma$-additivity of an additive c
 
 The uniqueness of the projective limit implies in particular that the finite dimensional distributions of a stochastic process define a unique law.
 
-Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $E$ is a dependent type, i.e.\ for every index $t \in T$, the state space $E_t$ might be different. Second, all $E_t$ are not necessarily second-countable, complete metric spaces (or Polish, i.e.\ second-countable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or t2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap.
-While the first generalization did not require any change in the proof, the second generalization was only possible since underlying results in \mathlib were already provided on the same level of generality.  More precisely, \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space (recall that every metric space is uniform).
-We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph. What is the point of the last sentence?}.
+Note that we extend standard assumptions (see e.g.\ \cite{Billingsley1995,bogachev2007measure}) in two directions. First, we allow that $E$ is a dependent type, i.e.\ for every index $t \in T$, the state space $E_t$ might be different. Second, all $E_t$ are not necessarily second-countable, complete metric spaces (or Polish, i.e.\ second-countable and metrizable through a complete metric), but extended pseudo-metric spaces. Such spaces do not satisfy the frequently used Hausdorff (or T2) property, i.e.\ there can be $x\neq y$ such that all open balls around $x$ and $y$ overlap.
+While the first generalization did not require any change in the proof, the second generalization was possible since underlying results in \mathlib were already provided on the same level of generality.
+More precisely, the \mathlib lemma \docs{isCompact_iff_totallyBounded_isComplete}, which shows that a set $A \subseteq E$ is compact iff it is complete and totally bounded, requires $E$ to be a uniform space.
+This is a weaker topological notion than a pseudo-metric space but in the case of a second-countable space (as is the case in our formalization), a uniform space can also be turned into a pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace}).
+%(recall that every pseudo-metric space is uniform, and a second-countable uniform space can be made into a pseudo-metric space).
+%We also require the underlying space(s) to be second-countable. A second-countable uniform space can be made into an (extended) pseudo-metric space (\docs{UniformSpace.pseudoMetrizableSpace})\todorm{clarify the message of that last paragraph. What is the point of the last sentence?}.
 
 
 
@@ -575,7 +579,7 @@ This proves in particular that a real Gaussian measure is determined by its mean
 As our work primarily focuses on the case where $E$ is a Euclidean space, in what follows we assume that $E$ is a second-countable Hilbert space equipped with its Borel $\sigma$-algebra. However most results remain true if $E$ is a Banach space by only changing definitions to refer to the dual space.
 
 \begin{definition}[\docs{ProbabilityTheory.covarianceBilin}]
-  The \emph{covariance bilinear form} of a measure $\mu$ with finite second moment \todopp{Below we write $id$ instead of $X$. I think we should go for either one.}$\mathbf{E}_\mu[\Vert X \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
+  The \emph{covariance bilinear form} of a measure $\mu$ with finite second moment $\mathbf{E}_\mu[\Vert \cdot \Vert^2]$ is the bilinear form $C_{\mu} : E \times E \to \R$ defined by
   $$C_\mu(s, t) = \mathbf{cov}_\mu(\langle s, \cdot \rangle, \langle t, \cdot \rangle).$$
 \end{definition}
 
@@ -589,7 +593,7 @@ The properties of the covariance allow to easily deduce that $C_\mu$ is actually
 This simple description of Gaussian measures allows to easily formalize several important facts about them. For instance, the product $N(0, 1)^{\otimes n}$ of $n \in \mathbb{N}$ times many Gaussian measures $N(0, 1)$ is a Gaussian measure.
 Another result is that if two Gaussian random variables have covariance zero, then they are independent.
 
-Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite first and second moments $\mathbf E_\mu[\lVert X \rVert]$ and $\mathbf{E}_\mu[\lVert X \rVert^2]$.
+Theorem~\ref{thm:gaussian_charFun} used implicitly the fact that Gaussian measures have finite first and second moments $\mathbf E_\mu[\lVert \cdot \rVert]$ and $\mathbf{E}_\mu[\lVert \cdot \rVert^2]$.
 While we would only need to prove this result in finite dimension to define a Brownian motion on $\mathbb{R}_+$, we proved a more general theorem applicable to Banach spaces, called Fernique's theorem \cite{fernique1970integrabilite} (\docs{ProbabilityTheory.IsGaussian.exists_integrable_exp_sq}).
 It states that if $\mu$ is a Gaussian measure over a Banach space $E$, then there exists $C > 0$ such that
 \begin{align*}
@@ -1019,14 +1023,13 @@ The process $B$ is a Brownian motion indexed by $\mathbb{R}_+$ with values in $\
 
 \paragraph{Properties of the Brownian motion}
 
-Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus we introduced a predicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
+Following the ideas exposed in Section~\ref{S:RV-formalism}, we do not just want to build an actual process which is a Brownian motion, we also want to be able to state that some stochastic process is a Brownian motion. Thus, as previewed in the introduction, we introduced a predicate \lean{IsBrownian X P}, similar to \lean{IsGaussianProcess X P}.
 
 \begin{definition}[\docs{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$.
 \end{definition}
 
 The process $B$ we constructed satisfies that property, with continuous paths (not just almost surely).
-
 To check the soundness of our formalization, we then formalized a few basic properties of the Brownian motion, which one can for example find in \cite{LeGall2016}.
 
 Definition~\ref{def:IsBrownian} is not necessarily the most convenient way to prove that a stochastic process is a Brownian motion. Therefore we also formalized the two following characterizations.
