@@ -91,7 +91,7 @@ lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike
 theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : StrongDual ℝ E) :
     ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
-  have := FiniteDimensional.of_fintype_basis b.toBasis
+  have := Module.Basis.finiteDimensional_of_finite b.toBasis
   simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
     InnerProductSpace.toDual_symm_apply]
 

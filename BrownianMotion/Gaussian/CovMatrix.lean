@@ -21,7 +21,7 @@ open scoped ENNReal NNReal Matrix
 namespace ProbabilityTheory
 
 lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} [IsFiniteMeasure μ] :
+    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} :
     ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
   map_symm := covarianceBilinDual_comm
   nonneg_re_apply_self := covarianceBilinDual_self_nonneg
@@ -46,7 +46,7 @@ lemma covInnerBilin_eq_covarianceBilin (x y : E) :
 lemma covInnerBilin_apply [CompleteSpace E] [IsFiniteMeasure μ] (h : MemLp id 2 μ) (x y : E) :
     covInnerBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ := by
   simp_rw [covInnerBilin, ContinuousLinearMap.bilinearComp_apply, covarianceBilinDual_apply' h]
-  simp only [LinearIsometry.coe_toContinuousLinearMap, id_eq, toDualMap_apply]
+  simp only [LinearIsometry.coe_toContinuousLinearMap, id_eq, toDualMap_apply_apply]
 
 nonrec
 lemma IsGaussian.covInnerBilin_apply [IsGaussian μ] [SecondCountableTopology E] [CompleteSpace E]
@@ -54,7 +54,7 @@ lemma IsGaussian.covInnerBilin_apply [IsGaussian μ] [SecondCountableTopology E]
     covInnerBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ :=
   covInnerBilin_apply IsGaussian.memLp_two_id x y
 
-lemma covInnerBilin_comm [IsFiniteMeasure μ] (x y : E) :
+lemma covInnerBilin_comm (x y : E) :
     covInnerBilin μ x y = covInnerBilin μ y x := by
   rw [covInnerBilin_eq_covarianceBilin, covarianceBilinDual_comm, covInnerBilin_eq_covarianceBilin]
 
