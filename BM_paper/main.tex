@@ -105,10 +105,10 @@ A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said t
 Note that it is a non-trivial fact that a process exists which satisfies the above definition, and most of the formalization is dedicated to constructing such a process (or developing the necessary prerequisites)
 and proving it satisfies these properties. Here are some other interesting facts about Brownian motion which we have formalized:
 \begin{itemize}
-\item $X_t$ has almost surely locally Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
+\item $X_t$ has almost surely locally $\beta$-Hölder-continuous paths for any coefficient $\beta < \tfrac 12$.
 \item For any $t_0 \in \R_+$, the process $X_{t_0 + t} - X_{t_0}$ is a Brownian motion independent of ${(X_t)}_{t \leq t_0}$. In particular $X_t$ satisfies the weak Markov property.
 \item For $c > 0$, the process $X_{ct}/\sqrt{c}$ is a Brownian motion.
-\item $tX_{1/t}$ is a Brownian motion
+\item $tX_{1/t}$ is a Brownian motion.
 \item $X_t/t$ tends to $0$ almost surely as $t$ tends to infinity.
 \end{itemize}
 And here are some which we leave for future work:
@@ -127,7 +127,7 @@ In particular, they can be used to show that linear maps (e.g.\ projections) of 
 \item {\em The Kolmogorov-Chentsov Theorem.} We are aiming for a stochastic process with continuous paths. The classical Kolmogorov Chentsov theorem gives a criterion in terms of some moment bounds if the set of times is a subset of $\mathbb R^d$; see e.g.\ \cite{kallenberg2021}. Here, we use a modern version for existence of a modification of a stochastic process with continuous paths, based on a more general set of times \cite{kratschmer2023kolmogorov}.
 \item {\em Construction of a Brownian motion and Wiener measure on $\R_+$.} Putting all of the above together gives a continuous Gaussian stochastic process with the correct distribution, i.e.\ Brownian motion.
 We show important properties of Brownian motion, such as the independent increments property.
-From this process, we can also define a probability measure on (the Polish space) of continuous functions $\mathbb R_+ \to \mathbb R$. This is usually called the Wiener measure.
+From this process, we can also define a probability measure on the (Polish) space of continuous functions $\mathbb R_+ \to \mathbb R$. This is usually called the Wiener measure.
 \end{itemize}
 
 It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths).
@@ -157,7 +157,7 @@ Before making the project public, we thus spent time detailing every step of the
 We started by implementing in \Lean several key definitions and statements (without proofs): there are always several ways to turn a mathematical concept into a \Lean definition, and in order to collaborate on a project it is important to decide early on a unique way to talk about any concept to ensure compatibility of the code produced, even if the definition chosen can then be refined.
 Different parts of the blueprint had different levels of details: we wrote a precise description of the technical Kolmogorov-Chentsov proof, but omitted many proofs for more standard results on Gaussian distributions.
 
-The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L., and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
+The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L. and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress.
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
 The blueprint continued to evolve during the formalization, as new lemmas were added (once because a small gap was identified in the blueprint proof), definitions were changed to better fit the needs of writing in \Lean, and small mistakes were corrected (particularly in the exact value of constants used in the Kolmogorov-Chentsov proof).
 
@@ -173,7 +173,7 @@ Finally, Section~\ref{S:BM} contains the final construction of Brownian motion a
 
 \section{Formalization overview}\label{S:overview}
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
-We refer to the implementation using links, like \bmlink{Gaussian/BrownianMotion}{L490-L493}{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
+We refer to the implementation using links, like \mllink{Probability/Distributions/Gaussian/Basic}{L43-L46}{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
 Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
 All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and commit {\tt aae12b7f25e401a52c60546a8ff0e3390e81b87b} for our repository, which correspond to their state on November 22, 2025.
 
