@@ -24,6 +24,9 @@ variable [Nonempty ι] [LinearOrder ι]
 @[simp] lemma stoppedProcess_const_smul {β : Type*} [SMul ℝ β] (c : ℝ) {u : ι → Ω → β}
     {τ : Ω → WithTop ι} : stoppedProcess (c • u) τ = c • stoppedProcess u τ := rfl
 
+@[simp] lemma stoppedProcess_top {E} (X : ι → Ω → E) :
+    stoppedProcess X (fun _ ↦ ⊤) = X := by ext; simp [stoppedProcess]
+
 lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} (i : ι) :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ i

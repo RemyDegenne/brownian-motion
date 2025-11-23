@@ -403,8 +403,7 @@ end ToFun
 
 section Integral
 
-variable {E : Type*}
-variable [AddCommGroup E] [Module F E]
+variable {E : Type*} [AddCommGroup E] [Module F E]
 
 /-- The elementary stochastic integral. -/
 def integral (X : ι → Ω → E) (V : SimpleProcess F 𝓕) :
@@ -461,6 +460,9 @@ def integral (X : ι → Ω → E) (V : SimpleProcess F 𝓕) :
     (V : SimpleProcess F 𝓕) :
     integral X (c • V) = c • integral X V := by
   ext; simp [integral, Finsupp.sum_smul_index', Finsupp.smul_sum, smul_sub]
+
+@[simp] lemma integral_top (X : ι → Ω → E) (V : SimpleProcess F 𝓕) (ω : Ω) :
+    integral X V ⊤ ω = V.value.sum fun p v ↦ v ω • (X p.2 ω - X p.1 ω) := by simp [integral]
 
 theorem stoppedProcess_integral (X : ι → Ω → E) (V : SimpleProcess F 𝓕) (τ : Ω → WithTop ι) :
     stoppedProcess (integral X V ∘ WithTop.some) τ =
@@ -545,8 +547,7 @@ def indicator (S : ElementaryPredictableSet 𝓕) :
     intro (i, ω)
     simp +contextual
 
-variable {E : Type*}
-variable [AddCommGroup E] [Module F E]
+variable {E : Type*} [AddCommGroup E] [Module F E]
 
 /-- Explicit formula for `1_S ● X` where `S` is an elementary predictable set. -/
 lemma integral_indicator_apply (S : ElementaryPredictableSet 𝓕)
@@ -658,5 +659,36 @@ theorem iSup_comap_eq_predictable [(atTop : Filter ι).IsCountablyGenerated]
 end SimpleProcess
 
 end Predictable
+
+variable {P : Measure Ω} [SigmaFiniteFiltration P 𝓕]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+variable [Module F E] [IsScalarTower ℝ F E]
+
+section Submartingale
+
+/-- A stochastic process `X` is a submartingale if and only if for all nonnegative simple processes
+`V`, their integral `V ● X` evaluated at time ⊤ is nonnegative.
+Note that by nonnegative, we mean `V.value` and `V.valueBot` are nonnegative, and not that
+`⇑V` is nonnegative. -/
+lemma Submartingale.simpleProcess_integral_nonneg {X : ι → Ω → ℝ} (h : Submartingale X 𝓕 P)
+    {V : SimpleProcess ℝ 𝓕} (hv : 0 ≤ V.value) (hvB : 0 ≤ V.valueBot) (i : WithTop ι) :
+    0 ≤ P[V.integral X i] := by
+  erw [integral_finset_sum]
+  refine Finset.sum_nonneg fun p hp ↦ ?_
+  rw [← integral_condExp (𝓕.le ((p.1 : WithTop ι) ⊓ i).untopA)]
+  apply integral_nonneg_of_ae
+  dsimp [stoppedProcess]
+  change 0 ≤ᵐ[P] P[V.value p * _ | _]
+  have := h.condExp_sub_nonneg
+    (show ((p.1 : WithTop ι) ⊓ i).untopA ≤ ((p.2 : WithTop ι) ⊓ i).untopA by
+      simp [WithTop.untopA_mono, V.le_of_mem_support_value p hp])
+  all_goals sorry
+  -- grw [condExp_mul_of_stronglyMeasurable_left]
+  -- have := condExp_mul_of_stronglyMeasurable_left (V.measurable_value p).stronglyMeasurable
+  --   ?_ ?_
+  -- apply EventuallyLE.mul_nonneg (.of_forall (hv p))
+
+
+end Submartingale
 
 end ProbabilityTheory
