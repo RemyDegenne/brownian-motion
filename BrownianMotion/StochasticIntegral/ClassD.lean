@@ -20,12 +20,24 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
+  -- Define the Running Supremum Process S
+
+noncomputable def supProcess [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    (X : ι → Ω → E) (p : ι × Ω) : ℝ≥0∞ :=
+  ⨆ s ≤ p.1, ‖X s p.2‖ₑ
+
+def HasStronglyMeasureableIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι]
+    [OrderTopology ι] [MeasurableSpace ι] (X : ι → Ω → E)
+    (P : Measure Ω := by volume_tac) : Prop :=
+  StronglyMeasurable (supProcess X) ∧ ∀ t, Integrable (fun ω ↦ supProcess X (t, ω)) P
+
+
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
 for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrable. -/
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
+    [MeasurableSpace ι] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
     (P : Measure Ω := by volume_tac) : Prop :=
-  Locally (fun Y ↦ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖Y s ω‖ₑ) P) 𝓕 X P
+  Locally (HasStronglyMeasureableIntegrableSup · P) 𝓕 X P
 
 section Defs
 
@@ -95,13 +107,15 @@ section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
-lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
-    IsStable 𝓕 (fun Z : ι → Ω → E => (∀ t, Integrable (fun ω => ⨆ s ≤ t, ‖Z s ω‖ₑ) P)) := by
-  sorry
+lemma isStable_hasStronglyMeasurableIntegrableSup [OrderBot ι] [TopologicalSpace ι]
+    [OrderTopology ι] [MeasurableSpace ι] :
+    IsStable 𝓕 (HasStronglyMeasureableIntegrableSup (E := E) · P) := by
+      sorry
 
-lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
-    IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) := by
-  sorry
+lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [MeasurableSpace ι] :
+    IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
+  IsStable.isStable_locally isStable_hasStronglyMeasurableIntegrableSup
 
 lemma isStable_classD [OrderBot ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   sorry
@@ -115,6 +129,7 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι]
   sorry
 
 lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [MeasurableSpace ι]
     (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
@@ -143,7 +158,7 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] 
       (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := sorry
 
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι]
+    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [MeasurableSpace ι]
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
@@ -154,20 +169,16 @@ end LinearOrder
 section ConditionallyCompleteLinearOrderBot
 
 
-
-
 variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
-  [Filtration.HasUsualConditions 𝓕 P]
-
-
-lemma hasLocallyIntegrableSup_of_locally_classDL [TopologicalSpace ι] [OrderTopology ι]
-    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
+  [Filtration.HasUsualConditions 𝓕 P] [TopologicalSpace ι] [OrderTopology ι]
+    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [MeasurableSpace ι]
     [IsFiniteMeasure P] [CompleteSpace E] [NormedSpace ℝ E]
-    (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
-    (h𝓕 : 𝓕.IsRightContinuous) :
+
+lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω))
+    (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  locally_induction h𝓕 (fun _ ⟨hDL, hCad⟩ ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-    isStable_hasIntegrableSup
+  locally_induction h𝓕  (fun _ ⟨hDL, hCad⟩ ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+    isStable_hasStronglyMeasurableIntegrableSup
     ((locally_and isStable_classDL isStable_isCadlag).mpr ⟨hX2, locally_isCadlag_iff.mpr hX1⟩)
 
 end ConditionallyCompleteLinearOrderBot
