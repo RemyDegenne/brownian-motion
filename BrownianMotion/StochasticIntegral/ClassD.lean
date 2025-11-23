@@ -95,6 +95,10 @@ section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
+lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
+    IsStable 𝓕 (fun Z : ι → Ω → E => (∀ t, Integrable (fun ω => ⨆ s ≤ t, ‖Z s ω‖ₑ) P)) := by
+  sorry
+
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) := by
   sorry
@@ -145,13 +149,27 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     HasLocallyIntegrableSup X 𝓕 P := by
   sorry
 
-lemma hasLocallyIntegrableSup_of_locally_classDL [TopologicalSpace ι] [OrderTopology ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι]
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
-    (h𝓕 : 𝓕.IsRightContinuous) :
-    HasLocallyIntegrableSup X 𝓕 P := by
-  sorry
-
 end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+
+
+
+variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
+  [Filtration.HasUsualConditions 𝓕 P]
+
+
+lemma hasLocallyIntegrableSup_of_locally_classDL [TopologicalSpace ι] [OrderTopology ι]
+    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
+    [IsFiniteMeasure P] [CompleteSpace E] [NormedSpace ℝ E]
+    (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
+    (h𝓕 : 𝓕.IsRightContinuous) :
+    HasLocallyIntegrableSup X 𝓕 P :=
+  locally_induction h𝓕 (fun _ ⟨hDL, hCad⟩ ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+    isStable_hasIntegrableSup
+    ((locally_and isStable_classDL isStable_isCadlag).mpr ⟨hX2, locally_isCadlag_iff.mpr hX1⟩)
+
+end ConditionallyCompleteLinearOrderBot
 
 end ProbabilityTheory
