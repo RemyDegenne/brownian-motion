@@ -131,7 +131,7 @@ From this process, we can also define a probability measure on the (Polish) spac
 \end{itemize}
 
 It is important to realize that probability theory comes with a duality between random variables (or stochastic processes) and their distributions (or laws), which are probability measures. In the case of stochastic processes, the latter are defined on the (often uncountable infinite) product on the state space. While some properties of a stochastic process are only dependent on their distribution (e.g.\ being a Gaussian process), other properties depend on more refined properties (e.g.\ having continuous paths).
-Our formalization led to the addition to \mathlib of new definitions and results that allow to manipulate random variables directly, without having to perform operations on their distributions all the time.
+Our formalization led to the addition to \mathlib of new definitions and results that allow to manipulate random variables directly, without having to perform operations on their distributions all the time; see Section~\ref{S:RV-formalism} for more details.
 %We account for this duality in our code by introducing in the assumptions that a certain law is required\todorm{I don't understand that last sentence}.
 
 \subsection{Related work}
@@ -271,7 +271,7 @@ To tackle this issue, we introduced a new predicate \lean{HasLaw X µ P}. This i
 
 \paragraph{Gaussian random variables}
 
-Part of the work in this project is to prove many results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}.
+Part of the work in this project is to prove results about Gaussian measures. However in the end what we want is to manipulate Gaussian \emph{random variables}, and it would be inconvenient to have to write \lean{IsGaussian (P.map X)} and deal with pushforward measures once again. This is why we introduced another predicate on random variables: \lean{HasGaussianLaw X P}.
 This is precisely the same statement, but written in a more natural way which avoids mentioning pushforward of measures. We can then prove for instance that if \lean{HasGaussianLaw X P} and and we consider \lean{L} a continuous linear map, then \lean{HasGaussianLaw (L ∘ X) P} (\bmlink{Auxiliary/HasLaw}{L118-L122}{ProbabilityTheory.HasGaussianLaw.map}).
 Specializing this statement to different values for \lean{L} allows for instance to prove that if $(X_i)_{1 \le i \le n}$ is a Gaussian vector, i.e.\ \lean{HasGaussianLaw (fun ω ↦ (X · ω)) P}, then each $X_i$ is also Gaussian, i.e.\ \lean{HasGaussianLaw (X i) P}.
 
@@ -324,7 +324,7 @@ Let $\Omega$ be a measurable space, on which we define a probability measure $P$
 Let $T$ be a set, and for each $t \in T$, let $E_t$ be a measurable space.
 A stochastic process indexed by $T$ with values in $(E_t)_{t \in T}$ is a collection $(X_t)_{t \in T}$ of random variables $X_t : \Omega \to E_t$, which satisfies a measurability condition (see further down).
 We will often take $E_t = E$ for all $t \in T$ for some fixed measurable space $E$, but we first prove general results about processes with values in different spaces.
-There is no \Lean definition for a stochastic process: we use a function \lstinline|X : (t : T) → Ω → E t| together with appropriate measurability conditions.
+There is no \Lean definition for a stochastic process: we use a function \lstinline|X : (t : T) → Ω →| $E_t$ together with appropriate measurability conditions.
 
 The goal of our formalization of Brownian motion is to define a process with a given law and continuous paths.
 The law of a stochastic process is the pushforward of the measure $P$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
@@ -352,8 +352,8 @@ In the following, a \emph{stochastic process} will always mean an almost everywh
 
 \paragraph{Finite dimensional distributions}
 
-The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $P$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
-Their importance comes from the fact that two stochastic processes have same law if and only if they have the same finite-dimensional distributions, which we prove in \mllink{Probability/Process/FiniteDimensionalLaws}{L75-L81}{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures described further down.
+\sloppy The finite dimensional distributions of a stochastic process $(X_t)_{t \in T}$ are the pushforwards of $P$ by the maps $\Omega \to \prod_{i=1}^n E_{t_i}$ defined by $\omega \mapsto (X_{t_1}(\omega),...,X_{t_n}(\omega))$ for all $n \in \mathbb{N}$ and all choices of $t_1,...,t_n \in T$.
+Their importance comes from the fact that two stochastic processes have the same law if and only if they have the same finite-dimensional distributions, which we prove in \mllink{Probability/Process/FiniteDimensionalLaws}{L75-L81}{ProbabilityTheory.identDistrib_iff_forall_finset_identDistrib} by using the uniqueness of the projective limit of a family of measures described further down.
 Indeed the law of a process is the projective limit of its finite-dimensional distributions.
 Our goal in this project is thus to build a process with given finite-dimensional distributions and continuous paths.
 
@@ -1012,7 +1012,7 @@ The fact that all $Y^i$ satisfy that property is sufficient to ensure the measur
 
 
 
-\section{Construction of a Brownian motion and a Wiener measure}
+\section{Construction of a Brownian motion and Wiener measure}
 \label{S:BM}
 
 All the results presented so far can be used together to construct a Brownian motion indexed by $\mathbb{R}_+$ with values in $\mathbb{R}$.
@@ -1023,7 +1023,7 @@ We build a stochastic process $(B_t)_{t \in \mathbb{R}_+}$ such that
   \item for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(B_{t_1}, \ldots, B_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(B_{t_i}, B_{t_j}) = t_i \wedge t_j$.
 \end{itemize}
 
-We build the finite-dimensional distributions of $B$ using the multivariate normal distribution defined in section~\ref{S:gaussian}: the prescribed covariance matrix is positive semi-definite since it can be written as a Gram matrix, which means that the multivariate normal distribution with mean 0 and that covariance matrix is well-defined.
+We build the finite-dimensional distributions of $B$ using the multivariate normal distribution defined in Section~\ref{S:gaussian}: the prescribed covariance matrix is positive semi-definite since it can be written as a Gram matrix, which means that the multivariate normal distribution with mean 0 and that covariance matrix is well-defined.
 We then check that they form a projective family and apply the Kolmogorov extension theorem (Theorem~\ref{T1}) to obtain a measure $P_B$ on $\mathbb{R}^{\mathbb{R}_+}$ which is the projective limit of that family.
 
 Let $(C_t)_{t \in \mathbb{R}_+}$ be the canonical process on $\mathbb{R}^{\mathbb{R}_+}$, defined by $C_t(\omega) = \omega(t)$ for all $\omega \in \mathbb{R}^{\mathbb{R}_+}$.
@@ -1125,7 +1125,7 @@ We would like to thank Markus Himmel for his many contributions to the formaliza
 We are also grateful to Jonas Bayer, Lorenzo Luccioli, Alessio Rondelli, Jérémy Scanvic for their contributions to various parts of the formalization and to Pietro Monticone for his help with technical aspects of setting up the project.
 
 This project would not have been possible without the foundational work of the \Lean and \mathlib community.
-We would also like to thank the \mathlib reviewers, who provided very useful feedback on the parts of the formalization that we incorporated to \mathlib.
+We would also like to thank the \mathlib reviewers, who provided very useful feedback on the parts of the formalization that we incorporated to \mathlib. PP thanks the Vector foundation for partial funding (LeanAI, P2022-0241).
 
 %%
 %% Bibliography
