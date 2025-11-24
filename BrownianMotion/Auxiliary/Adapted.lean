@@ -83,7 +83,18 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
   -- create a partition of (Iic t) × Ω
   let P (n : ℕ) : IndexedPartition (f n) := by
     refine IndexedPartition.mk' (f n) ?_ (fun i => ?_) (fun a => ?_)
-    · sorry
+    · simp only [pairwise_disjoint_on]
+      intro i j hij
+      by_cases hi0 : i = ⟨0, by simp [r]⟩
+      · have hj0 : ⟨0, by simp [r]⟩ ≠ j := by simp [← hi0, hij.ne]
+        simp [f, hi0, hj0.symm]
+      · have hj0 : 0 < j.val := by grind
+        have hj1 : ⟨0, by simp [r]⟩ ≠ j := by grind
+        simp only [hi0, ↓reduceDIte, hj1.symm, Set.disjoint_prod, Ioc_disjoint_Ioc, le_sup_iff,
+          inf_le_iff, OrderEmbedding.le_iff_le, disjoint_self, bot_eq_empty, univ_eq_empty_iff,
+          not_isEmpty_of_nonempty, or_false, f]
+        simp only [Fin.lt_def, ← Nat.le_sub_one_iff_lt hj0] at hij
+        exact Or.inr (Or.inl hij)
     · by_cases h0 : i = ⟨0, by simp [r]⟩
       · simp [f, h0]
       · simp [f, h0, Fin.lt_def, Nat.sub_one_lt (fun j => h0 (Fin.eq_of_val_eq j))]
