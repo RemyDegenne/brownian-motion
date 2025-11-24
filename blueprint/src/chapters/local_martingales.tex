@@ -202,6 +202,19 @@ By Lemma \ref{lem:locally_locally}, $(Q_{\mathrm{loc}})_{\mathrm{loc}} = Q_{\mat
 Thus $X \in Q_{\mathrm{loc}}$.
 \end{proof}
 
+\begin{lemma}\label{lem:locally_induction2}
+  \uses{def:locally, def:stable}
+  \leanok
+  \lean{ProbabilityTheory.locally_induction₂}
+  Suppose that the filtration is right-continuous.
+  Let \(P, Q, R\) be three stable classes of stochastic processes such that \(R \cap P \subseteq Q_{\mathrm{loc}}\). Then, \(R_{\mathrm{loc}} \cap P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}\).
+\end{lemma}
+
+\begin{proof}\leanok
+  By Lemma~\ref{lem:locally_inter}, we have \(R_{\mathrm{loc}} \cap P_{\mathrm{loc}} = (R \cap P)_{\mathrm{loc}}\).
+  Thus, applying Lemma~\ref{lem:local_induction} to the inclusion \(R \cap P \subseteq Q_{\mathrm{loc}}\) concludes the proof.
+\end{proof}
+
 \section{Locally Cadlag}
 
 We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. complete and right-continuous).
@@ -670,7 +683,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 \begin{proof}
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
   \leanok
-Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup}, Lemma~\ref{lem:isStable_hasLocallyIntegrableSup} and Lemma~\ref{lem:locally_isCadlag}.
+Apply Lemma~\ref{lem:local_induction2} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup}, Lemma~\ref{lem:isStable_hasLocallyIntegrableSup} and Lemma~\ref{lem:locally_isCadlag}.
 \end{proof}
 
 
