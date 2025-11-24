@@ -95,9 +95,13 @@ section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
-lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
-    IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) := by
+lemma isStable_integrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) := by
   sorry
+
+lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] :
+    IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
+  isStable_integrableSup.isStable_locally
 
 lemma isStable_classD [OrderBot ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   sorry
@@ -163,8 +167,7 @@ lemma hasLocallyIntegrableSup_of_locally_classDL
   refine locally_induction₂ (P := P) (r := fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω))
     (p := (ClassDL · 𝓕 P)) (HasUsualConditions.toIsRightContinuous P)
     (fun _ h₁ h₂ ↦ ClassDL.hasLocallyIntegrableSup h₁ h₂ (HasUsualConditions.toIsRightContinuous P))
-    isStable_isCadlag isStable_classDL ?_ ?_ hX2
-  · sorry
-  · rwa [locally_isCadlag_iff]
+    isStable_isCadlag isStable_classDL isStable_integrableSup ?_ hX2
+  rwa [locally_isCadlag_iff]
 
 end ProbabilityTheory
