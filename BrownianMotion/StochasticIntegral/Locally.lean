@@ -432,8 +432,6 @@ lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)
     · simp [LocalizingSequence_of_prop, if_neg hω]
     · simp [LocalizingSequence_of_prop, if_neg hω]
 
--- variable [NormedSpace ℝ E] [CompleteSpace E]
-
 lemma Locally.rightContinuous
     (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
