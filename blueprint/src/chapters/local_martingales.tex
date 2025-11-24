@@ -501,7 +501,7 @@ The class of process with integrable supremum is stable.
 \end{lemma}
 
 \begin{proof}
-Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
+Let $X$ be a process with integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
 \end{proof}
 
 \begin{lemma}\label{lem:isStable_hasLocallyIntegrableSup}
@@ -683,7 +683,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 \begin{proof}
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
   \leanok
-Apply Lemma~\ref{lem:local_induction2} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup}, Lemma~\ref{lem:isStable_hasLocallyIntegrableSup} and Lemma~\ref{lem:locally_isCadlag}.
+Apply Lemma~\ref{lem:locally_induction2} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup}, Lemma~\ref{lem:isStable_hasLocallyIntegrableSup} and Lemma~\ref{lem:locally_isCadlag}.
 \end{proof}
 
 
