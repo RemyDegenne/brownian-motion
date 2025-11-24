@@ -12,7 +12,7 @@ import Mathlib.Probability.Process.HittingTime
 
 -/
 
-open MeasureTheory Filter Function TopologicalSpace
+open MeasureTheory Filter Function TopologicalSpace Filtration
 open scoped ENNReal
 
 namespace ProbabilityTheory
@@ -125,6 +125,11 @@ lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [Ord
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   sorry
 
+lemma locally_classDL_iff_locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    (h𝓕 : 𝓕.IsRightContinuous) :
+    Locally (ClassDL · 𝓕 P) 𝓕 X P ↔ Locally (ClassD · 𝓕 P) 𝓕 X P :=
+  ⟨(locally_classD_of_locally_classDL · h𝓕), Locally.mono <| fun _ ↦ ClassD.classDL⟩
+
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
     [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι] [CompactIccSpace ι]
@@ -145,13 +150,21 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     HasLocallyIntegrableSup X 𝓕 P := by
   sorry
 
-lemma hasLocallyIntegrableSup_of_locally_classDL [TopologicalSpace ι] [OrderTopology ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι]
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
-    (h𝓕 : 𝓕.IsRightContinuous) :
-    HasLocallyIntegrableSup X 𝓕 P := by
-  sorry
-
 end LinearOrder
+
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [IsFiniteMeasure P]
+  {𝓕 : Filtration ι mΩ}
+
+lemma hasLocallyIntegrableSup_of_locally_classDL
+    (hX1 : ∀ᵐ ω ∂P, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
+    [𝓕.HasUsualConditions P] :
+    HasLocallyIntegrableSup X 𝓕 P := by
+  refine locally_induction₂ (P := P) (r := fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω))
+    (p := (ClassDL · 𝓕 P)) (HasUsualConditions.toIsRightContinuous P)
+    (fun _ h₁ h₂ ↦ ClassDL.hasLocallyIntegrableSup h₁ h₂ (HasUsualConditions.toIsRightContinuous P))
+    isStable_isCadlag isStable_classDL ?_ ?_ hX2
+  · sorry
+  · rwa [locally_isCadlag_iff]
 
 end ProbabilityTheory

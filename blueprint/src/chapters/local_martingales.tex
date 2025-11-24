@@ -579,6 +579,19 @@ If the filtration is right-continuous and $X$ is locally of class DL then it is 
 Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.locally_classD} and Lemma~\ref{lem:isStable_classD}.
 \end{proof}
 
+\begin{lemma}\label{lem:locally_classDL_iff_locally_classD}
+  \uses{def:rightContinuous, def:locally, def:classD, def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.locally_classDL_iff_locally_classD}
+  If the filtration is right-continuous and $X$ is locally of class DL if and only if it is locally of class D.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:locally_classD_of_locally_classDL, lem:classDLOfClassD, lem:locally_mono}
+  \leanok
+  The forward direction is Lemma~\ref{lem:locally_classD_of_locally_classDL} while the reverse
+  direction follows by applying Lemma~\ref{lem:locally_mono} to Lemma~\ref{lem:classDLOfClassD}.
+\end{proof}
 
 \begin{lemma}\label{lem:isBounded_image_of_isCadlag_of_isCompact}
   \leanok
@@ -595,11 +608,11 @@ TODO: refine the hypotheses with those of Début theorem.
   \uses{def:leastGE, def:localizingSequence}
   \leanok
   \lean{ProbabilityTheory.isLocalizingSequence_hittingAfter_Ici}
-Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a real-valued càdlàg and adapted process, and if the filtration is right-continuous, then the sequence $\tau_n := \inf \{t | X_t \ge n\}$ is a localizing sequence.
+Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a real-valued càdlàg and adapted process, and if the filtration is right-continuous, then the sequence $\tau_n := \inf \{t \mid X_t \ge n\}$ is a localizing sequence.
 \end{lemma}
 
 \begin{proof}
-By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ is a stopping time. Moreover, for all $n \in \mathbb{N}$, $X_t \ge n+1 \implies X_t \ge n$, thus $\tau_n \le \tau_{n+1}$. Finally, for every $\omega \in \Omega$ and $t_0 \in T$ there exists $N \in \mathbb{N}$ such that for all $s \le t_0$, $X_s \le N$ thanks to Lemma~\ref{lem:isBounded_image_of_cadlag_of_isCompact}. Thus for all $n \ge N$, $\tau_n(\omega) \ge t_0$, proving that $\tau_n$ tends to infinity as n goes to infinity.
+By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ is a stopping time. Moreover, for all $n \in \mathbb{N}$, $X_t \ge n+1 \implies X_t \ge n$, thus $\tau_n \le \tau_{n+1}$. Finally, for every $\omega \in \Omega$ and $t_0 \in T$ there exists $N \in \mathbb{N}$ such that for all $s \le t_0$, $X_s \le N$ thanks to Lemma~\ref{lem:isBounded_image_of_isCadlag_of_isCompact}. Thus for all $n \ge N$, $\tau_n(\omega) \ge t_0$, proving that $\tau_n$ tends to infinity as \(n\) goes to infinity.
 \end{proof}
 
 
@@ -631,7 +644,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 
 \begin{proof}
   \uses{lem:isLocalizingSequence_hittingAfter_Ici, lem:sup_stoppedProcess_le}
-Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_hittingAfter_Ici}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
+Set $\tau_n := \inf \{t \mid X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_hittingAfter_Ici}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because $X$ is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
 \end{proof}
 
 
@@ -639,12 +652,12 @@ Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\
   \uses{def:classD, def:locallyIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.hasLocallyIntegrableSup_of_locally_classDL}
-Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process locally of class DL has locally integrable supremum.
+Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is an a.s. càdlàg and adapted process, and if the filtration is right-continuous, then any process locally of class DL has locally integrable supremum.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
-Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
+Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup}, Lemma~\ref{lem:isStable_hasLocallyIntegrableSup} and Lemma~\ref{lem:locally_isCadlag}.
 \end{proof}
 
 
