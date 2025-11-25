@@ -323,7 +323,7 @@ Let $\Omega$ be a measurable space, on which we define a probability measure $P$
 Let $T$ be a set, and for each $t \in T$, let $E_t$ be a measurable space.
 A stochastic process indexed by $T$ with values in $(E_t)_{t \in T}$ is a collection $(X_t)_{t \in T}$ of random variables $X_t : \Omega \to E_t$, which satisfies a measurability condition (see further down).
 We will often take $E_t = E$ for all $t \in T$ for some fixed measurable space $E$, but we first prove general results about processes with values in different spaces.
-There is no \Lean definition for a stochastic process: we use a function \lstinline|X : (t : T) → Ω →| $E_t$ together with appropriate measurability conditions.
+There is no \Lean definition for a stochastic process: we use a function $X : (t : T) \to \Omega \to E_t$ together with appropriate measurability conditions.
 
 The goal of our formalization of Brownian motion is to define a process with a given law and continuous paths.
 The law of a stochastic process is the pushforward of the measure $P$ by the map $\Omega \to \prod_{t \in T} E_t$ defined by $\omega \mapsto (X_t(\omega))_{t \in T}$.
