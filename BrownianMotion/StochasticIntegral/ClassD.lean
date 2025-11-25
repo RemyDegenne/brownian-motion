@@ -20,8 +20,13 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
-def HasIntegrableSup [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
-    (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
+
+/-- A stochastic process has integrable supremum if the function `(t, ω) ↦ sup_{s ≤ t} ‖X s ω‖`
+is strongly measurable and if for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖`
+is integrable. -/
+def HasIntegrableSup [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    [MeasurableSpace ι] (X : ι → Ω → E)
+    (P : Measure Ω := by volume_tac) : Prop :=
   (StronglyMeasurable (fun (tω : ι × Ω) ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ)) ∧
      (∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P)
 
