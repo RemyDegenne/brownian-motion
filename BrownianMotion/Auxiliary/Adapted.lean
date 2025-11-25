@@ -32,6 +32,7 @@ theorem Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (
   rw [indexedPartition_piecewise_preimage]
   exact MeasurableSet.iUnion (fun i => (hms i).inter (measurableSet_preimage (hmf i) ht))
 
+/-- This is the analogue of `SimpleFunc.piecewise` for `IndexedPartition`. -/
 def SimpleFunc.IndexedPartition [Finite ι] (hms : ∀ i, MeasurableSet (s i)) (f : ι → Ω →ₛ β) :
     Ω →ₛ β :=
   ⟨hs.piecewise (fun i => f i), fun _ =>
