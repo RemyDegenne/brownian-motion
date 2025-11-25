@@ -18,7 +18,7 @@ namespace ProbabilityTheory
 
 variable {ι Ω : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-
+  [MeasurableSpace ι]
 namespace IsLocalSubmartingale
 
 -- the sorry is locally integrable
