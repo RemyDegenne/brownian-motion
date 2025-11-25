@@ -20,15 +20,8 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
-  -- Define the Running Supremum Process S
-
-noncomputable def supProcess [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    (X : ι → Ω → E) (p : ι × Ω) : ℝ≥0∞ :=
-  ⨆ s ≤ p.1, ‖X s p.2‖ₑ
-
-def HasIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] (X : ι → Ω → E)
-    (P : Measure Ω := by volume_tac) : Prop :=
+def HasIntegrableSup [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
   (StronglyMeasurable (fun (tω : ι × Ω) ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ)) ∧
      (∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P)
 
