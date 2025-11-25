@@ -174,9 +174,8 @@ variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
 lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω))
     (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  locally_induction h𝓕  (fun _ ⟨hDL, hCad⟩ ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-    isStable_hasIntegrableSup
-    ((locally_and isStable_classDL isStable_isCadlag).mpr ⟨hX2, locally_isCadlag_iff.mpr hX1⟩)
+  locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+    isStable_isCadlag isStable_classDL isStable_hasIntegrableSup (locally_isCadlag_iff.mpr hX1) hX2
 
 end ConditionallyCompleteLinearOrderBot
 

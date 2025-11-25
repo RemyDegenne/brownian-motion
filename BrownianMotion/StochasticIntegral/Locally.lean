@@ -358,6 +358,14 @@ lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
     Locally q 𝓕 X P :=
   (locally_locally h𝓕 hq).1 <| hpX.mono hpq
 
+lemma locally_induction₂ {r : (ι → Ω → E) → Prop} (h𝓕 : IsRightContinuous 𝓕)
+    (hrpq : ∀ Y, r Y → p Y → Locally q 𝓕 Y P)
+    (hr : IsStable 𝓕 r) (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q)
+    (hrX : Locally r 𝓕 X P) (hpX : Locally p 𝓕 X P) :
+    Locally q 𝓕 X P :=
+  locally_induction (p := fun Y ↦ r Y ∧ p Y) h𝓕 (and_imp.2 <| hrpq ·) hq
+    <| (locally_and hr hp).2 ⟨hrX, hpX⟩
+
 end
 
 end ConditionallyCompleteLinearOrderBot
