@@ -109,14 +109,10 @@ section LinearOrder
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
-  [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-  IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
-      sorry
-
-lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι]
-    [OrderTopology ι] [MeasurableSpace ι] :
-    IsStable 𝓕 (HasIntegrableSup (E := E) · P) := by
+    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
+    IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
   intro X hX τ hτ
+  unfold HasStronglyMeasurableSupProcess at hX ⊢
   let M : ι × Ω → ι × Ω := fun p ↦ ((min ↑p.1 (τ p.2)).untopA, p.2)
   have hM : Measurable M := (WithTop.measurable_coe.comp measurable_fst).min
       (hτ.measurable'.comp measurable_snd) |>.untopA.prodMk measurable_snd
@@ -132,54 +128,38 @@ lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι]
       · simp only [le_refl]
       · rw [WithTop.le_untopA_iff, WithTop.untopA_eq_untop, WithTop.coe_untop]
         · exact min_le_min (WithTop.coe_le_coe.mpr hst) le_rfl
-        · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top s))
-        · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top t))
+        all_goals simp
     · apply iSup₂_le
       intro u hu
-      apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
-      · rw [min_eq_left]
-        · exact le_rfl
-        · rw [WithTop.le_untopA_iff] at hu
-          · exact le_trans hu (min_le_right _ _)
-          · simp only [ne_eq, inf_eq_top_iff, WithTop.coe_ne_top, false_and, not_false_eq_true]
-      · rw [WithTop.le_untopA_iff] at hu
-        · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
-        · simp only [ne_eq, inf_eq_top_iff, WithTop.coe_ne_top, false_and, not_false_eq_true]
-  constructor
-  · rw [key_eq]
-    exact StronglyMeasurable.indicator (hX.1.comp_measurable hM)
-      (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
-  · intro t
-    constructor
-    · rw [show (fun ω ↦ ⨆ s ≤ t, ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ s ω‖ₑ) =
-            (fun ω ↦ {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) (t, ω)) by
-            ext ω; exact congr_fun key_eq (t, ω)]
-      exact (StronglyMeasurable.indicator (hX.1.comp_measurable hM)
-        (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))).comp_measurable
-        (measurable_const.prodMk measurable_id) |>.aestronglyMeasurable
-    · have h_bound := (hX.2 t).hasFiniteIntegral
-      rw [hasFiniteIntegral_def] at h_bound ⊢; simp only [enorm_eq_self] at h_bound ⊢
-      refine lt_of_le_of_lt (lintegral_mono fun ω ↦ ?_) h_bound
-      rw [show (⨆ s ≤ t, ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ s ω‖ₑ) =
-            {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) (t, ω) by
-            exact congr_fun key_eq (t, ω)]
-      simp only [M, Set.indicator_apply, Set.mem_setOf_eq]
-      by_cases h : ⊥ < τ ω
-      · simp only [h, ↓reduceIte, iSup_le_iff]
-        intro i hi
-        apply le_iSup₂_of_le (min ↑i (τ ω)).untopA ?_
+      rw [WithTop.le_untopA_iff (by simp)] at hu
+      · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
         · rw [min_eq_left]
-          · simp only [WithTop.untopD_coe, le_refl]
-          · rw [WithTop.le_untopA_iff] at hi
-            · exact le_trans hi (min_le_right _ _)
-            · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top t))
-        · rw [WithTop.untopA_eq_untop, WithTop.untop_le_iff]
-          · rw [WithTop.le_untopA_iff] at hi
-            · exact le_trans (min_le_left _ _) (le_trans hi (min_le_left _ _))
-            · exact ne_of_lt (lt_of_le_of_lt (min_le_left (↑t) (τ ω)) (WithTop.coe_lt_top t))
-          · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top _))
-      · simp only [h, ↓reduceIte, zero_le]
+          · exact le_rfl
+          · exact le_trans hu (min_le_right _ _)
+        · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
+  rw [key_eq]
+  exact StronglyMeasurable.indicator (hX.comp_measurable hM)
+    (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
+
+lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
+    IsStable 𝓕 (HasIntegrableSup (E := E) · P) := by
+  refine (fun X hX τ hτ ↦ ⟨isStable_hasStronglyMeasurableSupProcess X hX.1 τ hτ, ?_⟩)
+  refine fun t ↦ ⟨ (isStable_hasStronglyMeasurableSupProcess X hX.1 τ hτ).comp_measurable
+      (measurable_const.prodMk measurable_id) |>.aestronglyMeasurable, ?_ ⟩
+  have h_bound := (hX.2 t).hasFiniteIntegral
+  simp_rw  [hasFiniteIntegral_def, enorm_eq_self] at h_bound ⊢
+  refine lt_of_le_of_lt (lintegral_mono fun ω ↦ ?_) h_bound
+  apply iSup₂_le
+  intro s hs
+  simp only [stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
+  split_ifs with h_bot
+  · refine le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_ (le_refl _)
+    · rw [WithTop.untopA_le_iff]
+      · exact le_trans (min_le_left _ _) (WithTop.coe_le_coe.mpr hs)
+      · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top s))
+  · simp only [enorm_zero, zero_le]
 
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι]:
