@@ -96,7 +96,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     rw [← abs_of_nonneg p1, ← p2] at hω
     exact norm_le_norm_of_abs_le_abs hω
 
-lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable [SigmaFinite P]
+lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
   let S := {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
