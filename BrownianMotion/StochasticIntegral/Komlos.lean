@@ -88,11 +88,7 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
   have φ_nonneg : 0 ≤ φ := (fun f ↦ sq_nonneg ‖f‖)
   have φ_bdd : ∃ M : ℝ, ∀ n, φ (f n) ≤ M := by
     rcases h_bdd with ⟨M, hM⟩
-    use M^2
-    intro n
-    apply pow_le_pow_left₀
-    · apply norm_nonneg
-    exact hM n
+    exact ⟨M ^ 2, fun n => pow_le_pow_left₀ (norm_nonneg _) (hM n) 2⟩
   rcases komlos_convex φ_nonneg φ_bdd with ⟨g, hg, h⟩
   use g
   have parallelogram_identity (x y : E) :
