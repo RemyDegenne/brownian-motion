@@ -98,7 +98,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
 
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
-    ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
+    ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := b
   let S := {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
   let G (T : S) : (Ω → E) := stoppedValue X T.1
   refine ⟨fun hp => ?_, fun hq => ?_⟩
