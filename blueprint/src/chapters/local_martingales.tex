@@ -369,7 +369,7 @@ The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingal
   \uses{def:Submartingale, def:stable}
   \leanok
   \lean{ProbabilityTheory.isStable_submartingale}
-The class of submartingales is stable. That is, if $M$ is a submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a submartingale.
+The class of cadlag submartingales is stable. That is, if $M$ is a cadlag submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a cadlag submartingale.
 \end{lemma}
 
 \begin{proof}
@@ -389,9 +389,7 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 
 
-
 \section{Doob-Meyer class}
-
 
 \begin{definition}\label{def:locallyIntegrableSup}
   \uses{def:locally}

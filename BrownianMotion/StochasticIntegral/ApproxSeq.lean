@@ -46,6 +46,24 @@ instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) w
 theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
     IsStoppingTime f fun _ => i := fun j => by simp only [MeasurableSet.const]
 
+/-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
+a discrete approximation sequence of `τ`. -/
+class Approximable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace ι] [LinearOrder ι]
+    [OrderTopology ι] (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac) where
+  /-- For any stopping time `τ`, there exists a discrete approximation sequence of `τ`. -/
+  approxSeq :
+    ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
+
+/-- Given a stopping time `τ` on an approximable time index, we obtain an associated discrete
+approximation sequence. -/
+def IsStoppingTime.discreteApproxSequence
+    (h : IsStoppingTime 𝓕 τ) (μ : Measure Ω) [Approximable 𝓕 μ] :
+    DiscreteApproxSequence 𝓕 τ μ := Approximable.approxSeq τ h
+
+instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := sorry
+
+instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable 𝓕 μ := sorry
+
 /-- The constant discrete approximation sequence. -/
 def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
     DiscreteApproxSequence 𝓕 (Function.const _ i) μ where
