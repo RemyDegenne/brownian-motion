@@ -95,7 +95,7 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
     exact hM n
   rcases komlos_convex φ_nonneg φ_bdd with ⟨g, hg, h⟩
   use g
-  have parallelogram_identity : ∀ x y : E,
+  have parallelogram_identity (x y : E) :
       2⁻¹ * ‖x‖ ^ 2 + 2⁻¹ * ‖y‖ ^ 2 - ‖(2 : ℝ≥0)⁻¹ • (x + y)‖ ^ 2 = ‖y - x‖ ^ 2 / 4 := by
       intro x y
       have : (2 : ℝ≥0)⁻¹ • (x + y) = (2 : ℝ)⁻¹ • (x + y) := by rfl
