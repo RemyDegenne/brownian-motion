@@ -115,8 +115,7 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
     rw [dist_eq_norm]
     exact (pow_lt_pow_iff_left₀ (norm_nonneg (g m - g n)) (by positivity) (by norm_num)).mp this
   rcases CompleteSpace.complete g_cauchy with ⟨x, hx⟩
-  use x
-  exact ⟨hg, hx⟩
+  exact ⟨x, g, hg, hx⟩
 
 
 -- todo: check measurability hypothesis/conclusion
