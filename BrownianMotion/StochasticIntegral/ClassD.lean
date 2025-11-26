@@ -71,19 +71,17 @@ variable [TopologicalSpace ι] [OrderTopology ι] [OrderBot ι] [MeasurableSpace
 section Order
 
 variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
+  [IsFiniteMeasure P]
 
-lemma _root_.MeasureTheory.Submartingale.classDL [SigmaFinite P] (hX1 : Submartingale X 𝓕 P)
+lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
   refine ⟨hX1.1, fun t => ?_⟩
-  have : UniformIntegrable (fun (i : ι) => X t) 1 P := uniformIntegrable_const le_rfl
-    (by simp) (memLp_one_iff_integrable.mpr (hX1.2.2 t))
-  have := this.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} =>
-    IsStoppingTime.measurableSpace_le T.2.1)
-  refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨⟨t, T⟩, ?_⟩)
-  · refine ((stronglyMeasurable_stoppedValue_of_le (β := E) ?_ T.2.1 T.2.2).mono
-      (𝓕.le' t)).aestronglyMeasurable
-    exact Adapted.progMeasurable_of_rightContinuous hX1.1 hX2
+  have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
+    {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
+  refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨T, ?_⟩)
+  · exact ((stronglyMeasurable_stoppedValue_of_le (Adapted.progMeasurable_of_rightContinuous
+      hX1.1 hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T.1) ≤ᵐ[P]
         P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] from by
@@ -93,12 +91,10 @@ lemma _root_.MeasureTheory.Submartingale.classDL [SigmaFinite P] (hX1 : Submarti
         (Eventually.of_forall (fun ω => le_rfl)) T.2.1 (isStoppingTime_const 𝓕 t)
     simp only [stoppedValue_const] at this
     filter_upwards [this] with ω hω
-    apply norm_le_norm_of_abs_le_abs
     have p1 : 0 ≤ stoppedValue X T.1 ω := by simpa [stoppedValue] using (hX3 (T.1 ω).untopA ω)
-    have p2 : |P[X t|T.2.1.measurableSpace] ω| = P[X t|T.2.1.measurableSpace] ω :=
-      abs_of_nonneg (le_trans p1 hω)
+    have p2 := abs_of_nonneg (le_trans p1 hω)
     rw [← abs_of_nonneg p1, ← p2] at hω
-    exact hω
+    exact norm_le_norm_of_abs_le_abs hω
 
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable [SigmaFinite P]
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
