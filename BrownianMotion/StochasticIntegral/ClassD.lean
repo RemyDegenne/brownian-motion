@@ -25,7 +25,7 @@ for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrab
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
     (P : Measure Ω := by volume_tac) : Prop :=
-  Locally (fun Y ↦ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖Y s ω‖) P) 𝓕 X P
+  Locally (fun Y ↦ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖Y s ω‖ₑ) P) 𝓕 X P
 
 section Defs
 
@@ -70,20 +70,21 @@ section Order
 variable [PartialOrder E] [OrderClosedTopology E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
 
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := sorry
 
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Submartingale X 𝓕 P)
-    (hX2 : RightContinuous X) (hX3 : 0 ≤ X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : RightContinuous X) :
+lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P)
+    (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassDL X 𝓕 P := sorry
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
-    (hX2 : RightContinuous X) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
 
 end RightContinuous
@@ -105,7 +106,7 @@ lemma isStable_classDL [OrderBot ι] : IsStable 𝓕 (ClassDL (E := E) · 𝓕 P
   sorry
 
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι]
-    (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖) P) :
+    (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
   sorry
 
@@ -128,7 +129,7 @@ lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [Ord
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
     [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι] [CompactIccSpace ι]
     (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) {X : ι → Ω → ℝ} (hX1 : Adapted 𝓕 X)
-    (hX2 : RightContinuous X) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
     IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
 
 lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] [InfSet ι] [Bot ι]
@@ -139,14 +140,14 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] 
 
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι]
-    (hX1 : ∀ᵐ ω ∂P, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
   sorry
 
 lemma hasLocallyIntegrableSup_of_locally_classDL [TopologicalSpace ι] [OrderTopology ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι]
-    (hX1 : ∀ᵐ ω ∂P, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
   sorry

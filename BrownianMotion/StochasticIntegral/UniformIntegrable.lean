@@ -148,8 +148,21 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
     {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
-    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
-  sorry
+    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
+  (((uniformIntegrable_subsingleton (f := fun _ : Unit ↦ X n) le_rfl (by simp)
+    (fun _ ↦ memLp_one_iff_integrable.2 <| hX.integrable n)).condExp'
+    (fun i ↦ (hτ i).measurableSpace_le)).ae_eq fun _ ↦
+      (hX.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range (hτ _) (hτ_le _)
+      (hτ_countable _)).symm).comp (fun i ↦ ((), i))
+
+lemma Martingale.integrable_stoppedValue_of_countable_range
+    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+    (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
+    {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
+    Integrable (stoppedValue X τ) μ := by
+  rw [← memLp_one_iff_integrable]
+  exact (hX.uniformIntegrable_stoppedValue_of_countable_range (fun _ ↦ τ)
+    (fun _ ↦ hτ) (fun _ _ ↦ hτ_le _) (fun _ ↦ hτ_countable)).memLp 0
 
 lemma TendstoInMeasure.aestronglyMeasurable
     {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace β]
