@@ -15,9 +15,9 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [TopologicalSpace E]
+variable {ι Ω E : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
-  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
+  {X : ι → Ω → E} {τ σ : Ω → WithTop ι} {i : ι}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
@@ -79,7 +79,7 @@ def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
   le := fun n ω ↦ le_rfl
   tendsto := by simp
 
-lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι]
+lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpace E]
     (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, RightContinuous (X · ω)) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
   sorry
@@ -176,6 +176,7 @@ lemma DiscreteApproxSequence.discreteApproxSequence_of_le_inf_le_of_left {i : ι
   (min_le_left _ _).trans <| discreteApproxSequence_of_le hτ τn m ω
 
 variable [Nonempty ι] [OrderBot ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
 
 lemma uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
     (h : Martingale X 𝓕 μ) (τn : DiscreteApproxSequence 𝓕 τ μ) (hτn_le : ∀ n ω, τn n ω ≤ i) :
