@@ -432,12 +432,12 @@ This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
   \uses{def:Submartingale, def:classDL}
   \leanok
   \lean{MeasureTheory.Submartingale.classDL}
-Every nonnegative càdlàg submartingale is of class DL.
+Every nonnegative right-continuous submartingale is of class DL.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSamplingSubmartingale}
-Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. Thus, we conclude by applying Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
+Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
 \end{proof}
 
 
@@ -643,6 +643,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
 Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
 \end{proof}
