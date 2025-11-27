@@ -113,4 +113,9 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
 
+lemma stoppedProcess_min_eq_stoppedProcess {ι Ω E : Type*} [Nonempty ι] [LinearOrder ι]
+    (X : ι → Ω → E) (τ : Ω → WithTop ι) {i j : ι} (hij : i ≤ j) :
+    stoppedProcess X (fun ω ↦ min j (τ ω)) i = stoppedProcess X τ i := by
+  simp [stoppedProcess_eq_stoppedValue, ← min_assoc, min_eq_left (WithTop.coe_le_coe.2 hij)]
+
 end MeasureTheory
