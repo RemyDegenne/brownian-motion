@@ -246,6 +246,14 @@ lemma exists_modification_on_of_edist_modification_on {T Ω E : Type*} {mΩ : Me
   filter_upwards [h_edist t ht] with ω hω
   simp [Z, hω]
 
+lemma edist_limUnder_const {T E : Type*} [PseudoEMetricSpace E] [Nonempty E]
+    {c : E} {l : Filter T} [l.NeBot] :
+    edist (limUnder l fun _ ↦ c) c = 0 := by
+  rw [← EMetric.inseparable_iff]
+  refine tendsto_nhds_unique_inseparable (f := fun t ↦ c) (l := l) ?_ ?_
+  · exact tendsto_nhds_limUnder (⟨c, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+  · exact tendsto_const_nhds
+
 end aux
 
 namespace ProbabilityTheory
@@ -800,18 +808,11 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
           fun t' : denseCountable T ↦ indicatorProcess X' ∅ t' ω) by
       simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
       refine this.of_edist_eq_zero fun ω ↦ ?_
-      suffices edist (limUnder (comap Subtype.val (𝓝 t)) fun (t' : denseCountable T) ↦ hE.some)
-          hE.some = 0 by
-        rw [Prod.edist_eq]
-        simp only [ENNReal.max_eq_zero_iff]
-        rw [edist_comm hE.some, this]
-        simp only [and_true]
-        exact edist_self _
-      rw [← EMetric.inseparable_iff]
-      refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
-        (l := comap Subtype.val (𝓝 t)) ?_ ?_
-      · exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
-      · exact tendsto_const_nhds
+      rw [Prod.edist_eq]
+      simp only [ENNReal.max_eq_zero_iff]
+      rw [edist_comm hE.some, edist_limUnder_const]
+      simp only [and_true]
+      exact edist_self _
     exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair hA₁ MeasurableSet.empty s t
       (hY_tendsto s hsU₁) (by simp)
   · specialize hYUc s hsU₁
@@ -828,17 +829,11 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
           fun t' : denseCountable T ↦ indicatorProcess X' A₂ t' ω) by
       simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
       refine this.of_edist_eq_zero fun ω ↦ ?_
-      suffices edist (limUnder (comap Subtype.val (𝓝 s)) fun (t' : denseCountable T) ↦ hE.some)
-          hE.some = 0 by
-        rw [Prod.edist_eq]
-        simp only [ENNReal.max_eq_zero_iff]
-        rw [edist_comm hE.some, this]
-        simp only [true_and]
-        exact edist_self _
-      rw [← EMetric.inseparable_iff]
-      refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
-        (l := comap Subtype.val (𝓝 s)) ?_ tendsto_const_nhds
-      exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+      rw [Prod.edist_eq]
+      simp only [ENNReal.max_eq_zero_iff]
+      rw [edist_comm hE.some, edist_limUnder_const]
+      simp only [true_and]
+      exact edist_self _
     exact measurable_pair_limUnder_indicatorProcess hX hX' hX_pair MeasurableSet.empty hA₂ s t
       (by simp) (hZ_tendsto t htU₂)
   · borelize (E × E)
@@ -874,13 +869,10 @@ lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
       simpa [indicatorProcess_apply, hω] using hYU
     · simp only [indicatorProcess_apply, hω, ↓reduceIte, Dense.extend, IsDenseInducing.extend,
         Set.mem_inter_iff, false_and]
-      rw [← EMetric.inseparable_iff]
-      refine Inseparable.nhds_eq ?_
-      have : @NeBot (denseCountable T) (comap Subtype.val (𝓝 t)) := by
+      rw [edist_comm]
+      have : @NeBot (Subtype (denseCountable T)) (comap Subtype.val (𝓝 t)) := by
         apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
-      refine tendsto_nhds_unique_inseparable (f := fun _ : denseCountable T ↦  hE.some)
-        (l := comap Subtype.val (𝓝 t)) tendsto_const_nhds ?_
-      exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+      exact edist_limUnder_const
   · by_cases hω : ω ∈ A
     · simpa [indicatorProcess_apply, hω] using hYUc t htUc ω
     · simp [indicatorProcess_apply, hω]
@@ -1342,13 +1334,10 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       by_cases hω : ω ∈ A ∩ ⋂ n, A' n
       swap
       · simp only [hω, ↓reduceIte, Y, Dense.extend, IsDenseInducing.extend]
-        rw [← EMetric.inseparable_iff]
-        have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 t)) := by
+        have : @NeBot (Subtype (denseCountable T)) (comap Subtype.val (𝓝 t)) := by
           apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
-        refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
-          (l := comap Subtype.val (𝓝 t)) ?_ ?_
-        · exact tendsto_const_nhds
-        · exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
+        rw [edist_comm]
+        exact edist_limUnder_const
       simp only [hω, ↓reduceIte, Y]
       specialize hZC_eq _ t (hnt t)
       simp only [Set.mem_inter_iff, Set.mem_iInter] at hω
