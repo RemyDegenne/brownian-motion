@@ -192,7 +192,7 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-  sorry
+      sorry
 
 end LinearOrder
 
@@ -208,7 +208,7 @@ lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, I
     (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P :=
   locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-    isStable_isCadlag isStable_classDL isStable_hasIntegrableSup (locally_isCadlag_iff.mpr hX1) hX2
+     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup (locally_isCadlag_iff.mpr hX1) hX2
 
 end ConditionallyCompleteLinearOrderBot
 
