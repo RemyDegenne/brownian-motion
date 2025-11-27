@@ -32,6 +32,12 @@ lemma Submartingale.congr [LE E] (hX : Submartingale X 𝓕 P) (hY : Adapted �
     exact (Filter.eventuallyLE_congr (h_eq i) hcond).mp (ae_le_condExp hX hij)
   · exact fun i ↦ (integrable_congr (h_eq i)).mp (hX.integrable i)
 
+lemma Martingale.indicator [OrderBot ι] {s : Set Ω}
+    (hX : Martingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
+    Martingale (fun t ↦ s.indicator (X t)) 𝓕 P :=
+  ⟨fun i ↦ (hX.adapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦
+    (condExp_indicator (hX.integrable _) (𝓕.mono bot_le _ hs)).trans (hX.2 i j hij).indicator⟩
+
 end
 
 variable {ι Ω E : Type*} [LinearOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]

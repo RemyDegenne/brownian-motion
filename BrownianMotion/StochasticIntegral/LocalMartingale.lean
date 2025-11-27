@@ -6,12 +6,13 @@ Authors: Rémy Degenne
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.OptionalSampling
 import Mathlib.Probability.Martingale.Basic
+import BrownianMotion.Auxiliary.Martingale
 
 /-! # Local (sub)martingales
 
 -/
 
-open MeasureTheory Filter Filtration TopologicalSpace
+open MeasureTheory Filter Filtration TopologicalSpace Function
 open scoped ENNReal Topology
 
 namespace ProbabilityTheory
@@ -50,10 +51,14 @@ lemma isStable_martingale :
   refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
     isStable_isCadlag X hC τ hτ⟩
   · refine Adapted.progMeasurable_of_rightContinuous
-      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _)
-      (fun ω ↦ ?_) -- Make separate lemma `(fun ω ↦ (hC ω).right_continuous)`
+      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _) (fun ω ↦ ?_)
+    by_cases hω : ω ∈ {ω | ⊥ < τ ω}
+    · simp_rw [Set.indicator_of_mem hω]
+      exact (hC ω).right_continuous
+    · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+  · have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
+      hX.indicator (hτ.measurableSet_gt _)
     sorry
-  · sorry
 
 /-- Submartingales are a stable class. -/
 lemma isStable_submartingale :
