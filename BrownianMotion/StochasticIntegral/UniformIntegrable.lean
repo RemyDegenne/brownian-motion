@@ -115,16 +115,17 @@ lemma UniformIntegrable.condExp {X : ι → Ω → E} [NormedAddCommGroup E] [No
   (hX.condExp' h𝓕).comp (fun i ↦ (i, i))
 
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] [Countable ι] [TopologicalSpace ι]
-  [OrderTopology ι] [FirstCountableTopology ι] {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
+  [OrderTopology ι] [FirstCountableTopology ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [CompleteSpace E] {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
 
-lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → ℝ}
+lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → E}
     (hX : Martingale X 𝓕 μ) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) {n : ι}
     (hτ_le : ∀ ω, τ ω ≤ n) :
     stoppedValue X τ =ᵐ[μ] μ[X n | hτ.measurableSpace] :=
   stoppedValue_ae_eq_condExp_of_le hX (isStoppingTime_const 𝓕 n) hτ (n := n) hτ_le
     (fun _ ↦ le_rfl)
 
-lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
@@ -144,7 +145,7 @@ lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕
 omit [Countable ι]
 
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
-    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -155,7 +156,7 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
       (hτ_countable _)).symm).comp (fun i ↦ ((), i))
 
 lemma Martingale.integrable_stoppedValue_of_countable_range
-    {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
     (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
     {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
     Integrable (stoppedValue X τ) μ := by
