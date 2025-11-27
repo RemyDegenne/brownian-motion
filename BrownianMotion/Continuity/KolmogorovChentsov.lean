@@ -195,6 +195,57 @@ lemma limUnder_prod {α β X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y
   · exact (tendsto_nhds_limUnder h₁).comp tendsto_fst
   · exact (tendsto_nhds_limUnder h₂).comp tendsto_snd
 
+lemma _root_.Measurable.of_edist_eq_zero {Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+    {X Y : Ω → E} (hX : Measurable X)
+    (h_eq_zero : ∀ ω, edist (Y ω) (X ω) = 0) :
+    Measurable Y := by
+  refine measurable_of_isOpen fun U hU ↦ ?_
+  suffices Y ⁻¹' U = X ⁻¹' U by rw [this]; exact hX hU.measurableSet
+  ext ω
+  simp only [Set.mem_preimage, ← hU.mem_nhds_iff]
+  suffices 𝓝 (X ω) = 𝓝 (Y ω) by rw [this]
+  symm
+  refine Inseparable.nhds_eq ?_
+  rw [EMetric.inseparable_iff]
+  exact h_eq_zero ω
+
+lemma exists_modification_of_edist_modification {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+    {X Y : T → Ω → E} (hY : ∀ t, Measurable (Y t))
+    (h_edist : ∀ t, ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0) :
+    ∃ Z : T → Ω → E, (∀ t, Measurable (Z t)) ∧ (∀ t ω, edist (Z t ω) (Y t ω) = 0) ∧
+      ∀ t, Z t =ᵐ[P] X t := by
+  let Z t ω := if ω ∈ {ω | edist (Y t ω) (X t ω) = 0} then X t ω else Y t ω
+  have h_edist_Z t ω : edist (Z t ω) (Y t ω) = 0 := by
+    simp only [Set.mem_setOf_eq, Z]
+    split_ifs with hω
+    · rw [edist_comm]
+      simp [hω]
+    · simp
+  have hZ_meas t : Measurable (Z t) := (hY t).of_edist_eq_zero (h_edist_Z t)
+  refine ⟨Z, hZ_meas, h_edist_Z, fun t ↦ ?_⟩
+  filter_upwards [h_edist t] with ω hω
+  simp [Z, hω]
+
+lemma exists_modification_on_of_edist_modification_on {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
+    {X Y : T → Ω → E} (hY : ∀ t, Measurable (Y t)) {U : Set T}
+    (h_edist : ∀ t ∈ U, ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0) :
+    ∃ Z : T → Ω → E, (∀ t, Measurable (Z t)) ∧ (∀ t, ∀ ω, edist (Z t ω) (Y t ω) = 0) ∧
+      ∀ t ∈ U, Z t =ᵐ[P] X t := by
+  let Z t ω := if ω ∈ {ω | edist (Y t ω) (X t ω) = 0} then X t ω else Y t ω
+  have h_edist_Z t ω : edist (Z t ω) (Y t ω) = 0 := by
+    simp only [Set.mem_setOf_eq, Z]
+    split_ifs with hω
+    · rw [edist_comm]
+      simp [hω]
+    · simp
+  have hZ_meas t : Measurable (Z t) := (hY t).of_edist_eq_zero (h_edist_Z t)
+  refine ⟨Z, hZ_meas, h_edist_Z, fun t ht ↦ ?_⟩
+  filter_upwards [h_edist t ht] with ω hω
+  simp [Z, hω]
+
 end aux
 
 namespace ProbabilityTheory
@@ -206,6 +257,86 @@ variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
 section PseudoEMetricSpace
 
 variable [PseudoEMetricSpace T] [PseudoEMetricSpace E]
+
+lemma _root_.IsCoverWithBoundedCoveringNumber.hasBoundedInternalCoveringNumber_univ
+    {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
+    (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d)) (n : ℕ) :
+    HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
+  have h := hC.hasBoundedCoveringNumber n
+  refine fun ε hε ↦ ?_
+  specialize h ε (hε.trans_eq ?_)
+  · unfold EMetric.diam
+    simp [iSup_subtype]
+  refine le_of_eq_of_le ?_ h
+  simp only [ENat.toENNReal_inj]
+  unfold internalCoveringNumber
+  simp only [Set.subset_univ, iInf_pos]
+  classical
+  refine le_antisymm ?_ ?_
+  · simp only [le_iInf_iff]
+    intro A hA hA_cover
+    refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
+    · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
+      exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
+    · simp only [Finset.card_subtype, Nat.cast_le]
+      exact Finset.card_filter_le _ _
+  · simp only [le_iInf_iff]
+    intro A hA_cover
+    refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
+    refine (iInf_le _ ?_).trans ?_
+    · intro x hx_mem
+      obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
+      exact ⟨c, by simpa using hc_mem, hc⟩
+    · exact mod_cast Finset.card_image_le
+
+lemma _root_.Measurable.measurableSet_edist_eq_zero_of_continuous [SecondCountableTopology T]
+    {f g : T → Ω → E} (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
+    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
+    MeasurableSet {ω | ∀ t, edist (f t ω) (g t ω) = 0} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ (t : T), edist (f t ω) (g t ω) = 0}
+      = {ω | ∀ (t : T'), edist (f t ω) (g t ω) = 0} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    rw [← funext_iff]
+    exact Continuous.ext_on hT'_dense ((hf ω).edist (hg ω)) (by fun_prop) h
+  rw [this]
+  have : {ω | ∀ (t : T'), edist (f t ω) (g t ω) = 0}
+      = ⋂ (t : T'), {ω | edist (f t ω ) (g t ω) = 0} := by ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
+
+lemma _root_.Measurable.measurableSet_edist_eqOn_zero_of_continuous [SecondCountableTopology T]
+    {f g : T → Ω → E} (hU : IsOpen U)
+    (hf : ∀ ω, ContinuousOn (f · ω) U) (hg : ∀ ω, ContinuousOn (g · ω) U)
+    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
+    MeasurableSet {ω | ∀ t ∈ U, edist (f t ω) (g t ω) = 0} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ t ∈ U, edist (f t ω) (g t ω) = 0}
+      = {ω | ∀ (t : T'), ↑t ∈ U → edist (f t ω) (g t ω) = 0} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    have h_eqOn : Set.EqOn (fun t ↦ edist (f t ω) (g t ω)) 0 (T' ∩ U) := by
+      intro t htU
+      exact h t htU.1 htU.2
+    refine Set.EqOn.of_subset_closure h_eqOn ?_ (by fun_prop) Set.inter_subset_right ?_
+    · intro x hx
+      exact (hf ω x hx).edist (hg ω x hx)
+    · exact subset_closure_dense_inter hT'_dense hU
+  rw [this]
+  have : {ω | ∀ (t : T'), ↑t ∈ U → edist (f t ω) (g t ω) = 0}
+      = ⋂ (t : T') (ht : ↑t ∈ U), {ω | edist (f t ω) (g t ω) = 0} := by ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  by_cases htU : ↑t ∈ U
+  · simp only [htU, Set.iInter_true]
+    exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
+  · simp [htU]
 
 section HolderSet
 
@@ -423,20 +554,6 @@ def IsLimitOfIndicator (Y X : T → Ω → E) (P : Measure Ω) (U : Set T) : Pro
     (∀ t ∈ U, ∀ ω, edist (Y t ω) (dense_denseCountable.extend
       (fun t' : denseCountable T ↦ indicatorProcess X A t' ω) t) = 0) ∧
     ∀ t ∉ U, ∀ ω, edist (Y t ω) hE.some = 0
-
-omit [CompleteSpace E] hE in
-lemma _root_.Measurable.of_edist_eq_zero {X Y : Ω → E} (hX : Measurable X)
-    (h_eq_zero : ∀ ω, edist (Y ω) (X ω) = 0) :
-    Measurable Y := by
-  refine measurable_of_isOpen fun U hU ↦ ?_
-  suffices Y ⁻¹' U = X ⁻¹' U by rw [this]; exact hX hU.measurableSet
-  ext ω
-  simp only [Set.mem_preimage, ← hU.mem_nhds_iff]
-  suffices 𝓝 (X ω) = 𝓝 (Y ω) by rw [this]
-  symm
-  refine Inseparable.nhds_eq ?_
-  rw [EMetric.inseparable_iff]
-  exact h_eq_zero ω
 
 omit [CompleteSpace E] in
 lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
@@ -942,35 +1059,27 @@ lemma edist_modification_holderModification (hT : HasBoundedInternalCoveringNumb
   exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
     (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
 
-end PseudoEMetricSpace
-
-section EMetricSpace
-
-variable [PseudoEMetricSpace T] [EMetricSpace E] [hE : Nonempty E]
-
-variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
-  [SecondCountableTopology T]
-
-omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
-lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
-    [DecidablePred (· ∈ U)]
-    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
-    (t' : denseCountable T) (ht'U : ↑t' ∈ U)
-    {ω : Ω} (hω : ω ∈ holderSet X (denseCountable T) p β U) :
-    holderModification X β p U t' ω = X t' ω := by
-  rw [← edist_eq_zero]
-  exact edist_holderModification_eq_zero hT hU hX hd_pos hβ_pos t' ht'U hω
-
-variable [IsFiniteMeasure P]
-
-lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_edist_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
-    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
-    (t : T) (htU : t ∈ U) :
-    holderModification X β p U t =ᵐ[P] X t := by
-  have h := edist_modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt t htU
-  filter_upwards [h] with ω hω using edist_eq_zero.1 hω
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
+    (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
+    ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0) ∧
+      (∀ ω, ∃ C : ℝ≥0, HolderOnWith C β (Y · ω) U) ∧ IsLimitOfIndicator Y X P U := by
+  refine ⟨holderModification X β p U, ?_, ?_, ?_, ?_⟩
+  · exact measurable_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
+  · exact edist_modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
+  · exact holderOnWith_holderModification hT hU hX hd_pos hβ_pos
+  · exact isLimitOfIndicator_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
+
+lemma _root_.HolderOnWith.congr_edist {T E : Type*} [PseudoEMetricSpace T] [PseudoEMetricSpace E]
+    {f g : T → E} {U : Set T} {C : ℝ≥0} {β : ℝ≥0}
+    (hfg : ∀ s t, s ∈ U → t ∈ U → edist (g s) (g t) = edist (f s) (f t))
+    (hf : HolderOnWith C β f U) :
+    HolderOnWith C β g U := by
+  rw [HolderOnWith] at hf ⊢
+  convert hf using 5 with s hsU t htU
+  exact hfg s t hsU htU
 
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
@@ -979,11 +1088,26 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, Y t =ᵐ[P] X t) ∧
       (∀ ω, ∃ C : ℝ≥0, HolderOnWith C β (Y · ω) U) ∧ IsLimitOfIndicator Y X P U := by
-  refine ⟨holderModification X β p U, ?_, ?_, ?_, ?_⟩
-  · exact measurable_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
-  · exact modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
-  · exact holderOnWith_holderModification hT hU hX hd_pos hβ_pos
-  · exact isLimitOfIndicator_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
+  obtain ⟨Y, hY_meas, hY_edist, hY_holder, hY_limit⟩ :=
+    exists_edist_modification_holder_aux' hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
+  obtain ⟨Z, hZ_meas, hZ_edist, hZ_eq⟩ :=
+    exists_modification_on_of_edist_modification_on hY_meas hY_edist
+  refine ⟨Z, hZ_meas, hZ_eq, fun ω ↦ ?_, ?_⟩
+  · specialize hY_holder ω
+    obtain ⟨C, hC⟩ := hY_holder
+    refine ⟨C, ?_⟩
+    refine hC.congr_edist fun s t hs ht ↦ ?_
+    rw [edist_congr_left (hZ_edist t ω), edist_congr_right (hZ_edist s ω)]
+  · obtain ⟨A, hA_meas, hA_ae, hY_tendsto, hYU, hYUc⟩ := hY_limit
+    refine ⟨A, hA_meas, hA_ae, hY_tendsto, fun t htU ω ↦ ?_, fun t htU ω ↦ ?_⟩
+    · specialize hYU t htU ω
+      refine le_antisymm ?_ zero_le'
+      refine (edist_triangle _ (Y t ω) _).trans ?_
+      simpa [hZ_edist]
+    · specialize hYUc t htU ω
+      refine le_antisymm ?_ zero_le'
+      refine (edist_triangle _ (Y t ω) _).trans ?_
+      simpa [hZ_edist]
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
@@ -998,78 +1122,35 @@ lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber U c 
   refine ⟨Y, hY_meas, fun t htU ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t htU] with ω hω1 hω2 using hω2.trans hω1.symm
 
-omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
-lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
-    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
-    (hf_meas : ∀ t, StronglyMeasurable (f t)) (hg_meas : ∀ t, StronglyMeasurable (g t)) :
-    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
-  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
-  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
-    ext ω
-    simp only [Set.mem_setOf_eq, Subtype.forall]
-    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
-    rw [← funext_iff]
-    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
-  rw [this]
-  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by
-    ext; simp
-  rw [this]
-  have : Countable T' := hT'_countable
-  refine MeasurableSet.iInter (fun t ↦ ?_)
-  exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
+open TopologicalSpace in
+lemma indistinguishable_of_edist_modification_on {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    [PseudoEMetricSpace E] [TopologicalSpace T]
+    [SeparableSpace T] {P : Measure Ω} {U : Set T} (hU : IsOpen U)
+    {X Y : T → Ω → E}
+    (hX : ∀ᵐ ω ∂P, ContinuousOn (X · ω) U) (hY : ∀ᵐ ω ∂P, ContinuousOn (Y · ω) U)
+    (h : ∀ t ∈ U, ∀ᵐ ω ∂P, edist (X t ω) (Y t ω) = 0) :
+    ∀ᵐ ω ∂P, ∀ t ∈ U, edist (X t ω) (Y t ω) = 0 := by
+  let ⟨D, D_countable, D_dense⟩ := ‹SeparableSpace T›
+  have DU_countable : (D ∩ U).Countable := D_countable.mono Set.inter_subset_left
+  have eq (ht : ∀ t ∈ (D ∩ U), ∀ᵐ ω ∂P, edist (X t ω) (Y t ω) = 0) :
+      ∀ᵐ ω ∂P, ∀ t ∈ (D ∩ U), edist (X t ω) (Y t ω) = 0 := (ae_ball_iff DU_countable).mpr ht
+  filter_upwards [hX, hY, eq (fun t ht ↦ h t ht.2)] with ω hX hY h t htU
+  suffices Set.EqOn (fun t ↦ edist (X t ω) (Y t ω)) 0 U from this htU
+  refine Set.EqOn.of_subset_closure h ?_ (by fun_prop) Set.inter_subset_right ?_
+  · intro s hsU
+    exact (hX s hsU).edist (hY s hsU)
+  exact subset_closure_dense_inter D_dense hU
 
-omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
-lemma Measurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
-    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
-    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
-    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
-  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
-  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
-    ext ω
-    simp only [Set.mem_setOf_eq, Subtype.forall]
-    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
-    rw [← funext_iff]
-    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
-  rw [this]
-  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by
-    ext; simp
-  rw [this]
-  have : Countable T' := hT'_countable
-  refine MeasurableSet.iInter (fun t ↦ ?_)
-  suffices MeasurableSet {ω | edist (f t ω) (g t ω) = 0} by
-    convert this with ω
-    simp
-  exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
-
-omit hE [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
-lemma Measurable.measurableSet_eqOn_of_continuous {f g : T → Ω → E} (hU : IsOpen U)
-    (hf : ∀ ω, ContinuousOn (f · ω) U) (hg : ∀ ω, ContinuousOn (g · ω) U)
-    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
-    MeasurableSet {ω | ∀ t ∈ U, f t ω = g t ω} := by
-  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
-  have : {ω | ∀ t ∈ U, f t ω = g t ω} = {ω | ∀ (t : T'), ↑t ∈ U → f t ω = g t ω} := by
-    ext ω
-    simp only [Set.mem_setOf_eq, Subtype.forall]
-    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
-    have h_eqOn : Set.EqOn (f · ω) (g · ω) (T' ∩ U) := by
-      intro t htU
-      exact h t htU.1 htU.2
-    refine Set.EqOn.of_subset_closure h_eqOn (hf ω) (hg ω) Set.inter_subset_right ?_
-    exact subset_closure_dense_inter hT'_dense hU
-  rw [this]
-  have : {ω | ∀ (t : T'), ↑t ∈ U → f t ω = g t ω}
-      = ⋂ (t : T') (ht : ↑t ∈ U), {ω | f t ω = g t ω} := by
-    ext; simp
-  rw [this]
-  have : Countable T' := hT'_countable
-  refine MeasurableSet.iInter (fun t ↦ ?_)
-  by_cases htU : ↑t ∈ U
-  · simp only [htU, Set.iInter_true]
-    suffices MeasurableSet {ω | edist (f t ω) (g t ω) = 0} by
-      convert this with ω
-      simp
-    exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
-  · simp [htU]
+open TopologicalSpace in
+lemma indistinguishable_of_edist_modification {T Ω E : Type*} {mΩ : MeasurableSpace Ω}
+    [PseudoEMetricSpace E] [TopologicalSpace T]
+    [SeparableSpace T] {P : Measure Ω}
+    {X Y : T → Ω → E}
+    (hX : ∀ᵐ ω ∂P, Continuous (X · ω)) (hY : ∀ᵐ ω ∂P, Continuous (Y · ω))
+    (h : ∀ t, ∀ᵐ ω ∂P, edist (X t ω) (Y t ω) = 0) :
+    ∀ᵐ ω ∂P, ∀ t, edist (X t ω) (Y t ω) = 0 := by
+  suffices ∀ᵐ ω ∂P, ∀ t ∈ Set.univ, edist (X t ω) (Y t ω) = 0 by simpa using this
+  exact indistinguishable_of_edist_modification_on isOpen_univ (by simpa) (by simpa) (by simpa)
 
 lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
@@ -1089,22 +1170,24 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
   have := fun n ↦ exists_modification_holder_aux' hT hU hX hc hd_pos hdq_lt
     (hβ_pos n) (mod_cast (hβ'_mem n).2)
   choose Z hZ_meas hZ_ae_eq hZ_holder hZ_isLimit using this
-  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t ∈ U, Z n t ω = Z 0 t ω := by
-    refine indistinguishable_of_modification_on hU
+  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t ∈ U, edist (Z n t ω) (Z 0 t ω) = 0 := by
+    refine indistinguishable_of_edist_modification_on hU
       (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
     · obtain ⟨_, h⟩ := hZ_holder n ω
       exact h.continuousOn (hβ_pos n)
     · obtain ⟨_, h⟩ := hZ_holder 0 ω
       exact h.continuousOn (hβ_pos 0)
     · intro t htU
-      filter_upwards [hZ_ae_eq n t htU, hZ_ae_eq 0 t htU] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+      filter_upwards [hZ_ae_eq n t htU, hZ_ae_eq 0 t htU] with ω hω₁ hω₂
+      simp [hω₁, hω₂]
   rw [← ae_all_iff] at hZ_ae_eq'
-  let A := {ω | ∀ n t, t ∈ U → Z n t ω = Z 0 t ω}
+  let A := {ω | ∀ n t, t ∈ U → edist (Z n t ω) (Z 0 t ω) = 0}
   have hA : MeasurableSet A := by
-    have : A = ⋂ n, {ω | ∀ t, t ∈ U → Z n t ω = Z 0 t ω} := by ext; simp [A]
+    have : A = ⋂ n, {ω | ∀ t, t ∈ U → edist (Z n t ω) (Z 0 t ω) = 0} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine Measurable.measurableSet_eqOn_of_continuous hU (fun ω ↦ ?_) (fun ω ↦ ?_) fun t ↦ ?_
+    refine Measurable.measurableSet_edist_eqOn_zero_of_continuous hU (fun ω ↦ ?_) (fun ω ↦ ?_)
+      fun t ↦ ?_
     · obtain ⟨_, h⟩ := hZ_holder n ω
       exact h.continuousOn (hβ_pos n)
     · obtain ⟨_, h⟩ := hZ_holder 0 ω
@@ -1133,7 +1216,9 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
     obtain ⟨C, hC⟩ := hZ_holder n ω
     refine ⟨C, fun s hs t ht ↦ ?_⟩
     specialize hC s hs t ht
-    simpa [← hω n s hs, ← hω n t ht]
+    simp only
+    rw [← edist_congr_left (hω n t ht), ← edist_congr_right (hω n s hs)]
+    exact hC
   · exact IsLimitOfIndicator.indicatorProcess (hZ_isLimit 0) A hA hA_ae
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber U c d)
@@ -1146,38 +1231,6 @@ lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber U c d)
     exists_modification_holder'' hT hU hX.IsKolmogorovProcess_mk hc hd_pos hdq_lt
   refine ⟨Y, hY_meas, fun t htU ↦ ?_, hY_holder⟩
   filter_upwards [hX.ae_eq_mk t, hY_eq t htU] with ω hω1 hω2 using hω2.trans hω1.symm
-
-omit [SecondCountableTopology T] in
-lemma _root_.IsCoverWithBoundedCoveringNumber.hasBoundedInternalCoveringNumber_univ
-    {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
-    (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d)) (n : ℕ) :
-    HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
-  have h := hC.hasBoundedCoveringNumber n
-  refine fun ε hε ↦ ?_
-  specialize h ε (hε.trans_eq ?_)
-  · unfold EMetric.diam
-    simp [iSup_subtype]
-  refine le_of_eq_of_le ?_ h
-  simp only [ENat.toENNReal_inj]
-  unfold internalCoveringNumber
-  simp only [Set.subset_univ, iInf_pos]
-  classical
-  refine le_antisymm ?_ ?_
-  · simp only [le_iInf_iff]
-    intro A hA hA_cover
-    refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
-    · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
-      exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
-    · simp only [Finset.card_subtype, Nat.cast_le]
-      exact Finset.card_filter_le _ _
-  · simp only [le_iInf_iff]
-    intro A hA_cover
-    refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
-    refine (iInf_le _ ?_).trans ?_
-    · intro x hx_mem
-      obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
-      exact ⟨c, by simpa using hc_mem, hc⟩
-    · exact mod_cast Finset.card_image_le
 
 lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
@@ -1196,10 +1249,10 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
   choose Z hZ hZ_eq hZ_holder hZ_extend
     using fun n ↦ exists_modification_holder'' (hC.hasBoundedCoveringNumber n) (hC.isOpen n) hX
       (hc n) hd_pos hdq_lt
-  have hZ_ae_eq : ∀ᵐ ω ∂P, ∀ n t (ht : t ∈ C n), Z n t ω = Z (n + 1) t ω := by
+  have hZ_ae_eq : ∀ᵐ ω ∂P, ∀ n t (ht : t ∈ C n), edist (Z n t ω) (Z (n + 1) t ω) = 0 := by
     rw [ae_all_iff]
     intro n
-    refine indistinguishable_of_modification_on (hC.isOpen n)
+    refine indistinguishable_of_edist_modification_on (hC.isOpen n)
       (ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_) ?_
     · obtain ⟨_, h⟩ := hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
       exact h.continuousOn hβ₀_pos
@@ -1210,22 +1263,23 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     · intro t htCn
       filter_upwards [hZ_eq n t htCn, hZ_eq (n + 1) t (hC.mono _ _ (Nat.le_succ _) htCn)]
         with ω hω₁ hω₂
-      exact hω₁.trans hω₂.symm
-  let A := {ω | ∀ n t (ht : t ∈ C n), Z n t ω = Z (n + 1) t ω}
-  have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) : Z n t ω = Z m t ω := by
+      simp [hω₁, hω₂]
+  let A := {ω | ∀ n t (ht : t ∈ C n), edist (Z n t ω) (Z (n + 1) t ω) = 0}
+  have hA_eq_le {ω} (hω : ω ∈ A) {n m} (hnm : n ≤ m) (t : C n) : edist (Z n t ω) (Z m t ω) = 0 := by
     induction m with
     | zero => simp only [nonpos_iff_eq_zero] at hnm; subst hnm; simp
     | succ m hm =>
       by_cases hnm' : n ≤ m
-      · exact (hm hnm').trans (hω m t (hC.mono _ _ hnm' t.2))
+      · specialize hm hnm'
+        rw [edist_congr_right hm]
+        exact hω m t (hC.mono _ _ hnm' t.2)
       · have : n = m + 1 := by omega
-        subst this
-        rfl
+        simp [this]
   have hA : MeasurableSet A := by
-    have : A = ⋂ n, {ω | ∀ t ∈ C n, Z n t ω = Z (n + 1) t ω} := by ext; simp [A]
+    have : A = ⋂ n, {ω | ∀ t ∈ C n, edist (Z n t ω) (Z (n + 1) t ω) = 0} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine Measurable.measurableSet_eqOn_of_continuous (hC.isOpen n)
+    refine Measurable.measurableSet_edist_eqOn_zero_of_continuous (hC.isOpen n)
       (fun ω ↦ ?_) (fun ω ↦ ?_) fun t ↦ ?_
     · obtain ⟨_, h⟩ :=  hZ_holder n β₀ hβ₀_pos hβ₀_lt ω
       exact h.continuousOn hβ₀_pos
@@ -1248,7 +1302,8 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
   have hnt t : t ∈ C (nt t) := Nat.find_spec (h_mem t)
   choose A' hA'_meas hA'_ae hZ_tendsto hZC_eq hZCc_eq using hZ_extend
   let Y (t : T) (ω : Ω) : E := if ω ∈ (A ∩ ⋂ n, A' n) then Z (nt t) t ω else hE.some
-  have hY_eq {ω} (hω : ω ∈ A ∩ ⋂ n, A' n) n (t : T) (ht : t ∈ C n) : Y t ω = Z n t ω := by
+  have hY_eq {ω} (hω : ω ∈ A ∩ ⋂ n, A' n) n (t : T) (ht : t ∈ C n) :
+      edist (Y t ω) (Z n t ω) = 0 := by
     simp only [hω, ↓reduceIte, Y]
     exact hA_eq_le hω.1 (Nat.find_le ht) ⟨t, hnt t⟩
   have hA_inter_meas : MeasurableSet (A ∩ ⋂ n, A' n) :=
@@ -1272,7 +1327,7 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     refine ⟨C', ?_⟩
     intro s hs s' hs'
     simp only
-    rw [hY_eq hω (nt t) s hs, hY_eq hω (nt t) s' hs']
+    rw [edist_congr_right (hY_eq hω (nt t) s hs), edist_congr_left (hY_eq hω (nt t) s' hs')]
     exact hC' s hs s' hs'
   · refine ⟨A ∩ ⋂ n, A' n, ?_, ?_, ?_, ?_, ?_⟩
     · exact hA.inter (MeasurableSet.iInter hA'_meas)
@@ -1286,9 +1341,14 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       simp only [indicatorProcess_apply]
       by_cases hω : ω ∈ A ∩ ⋂ n, A' n
       swap
-      · simp only [hω, Y]
-        rw [Dense.extend_eq_of_tendsto, edist_eq_zero]
-        exact tendsto_const_nhds
+      · simp only [hω, ↓reduceIte, Y, Dense.extend, IsDenseInducing.extend]
+        rw [← EMetric.inseparable_iff]
+        have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 t)) := by
+          apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
+        refine tendsto_nhds_unique_inseparable (f := fun t' : denseCountable T ↦ hE.some)
+          (l := comap Subtype.val (𝓝 t)) ?_ ?_
+        · exact tendsto_const_nhds
+        · exact tendsto_nhds_limUnder (⟨hE.some, tendsto_const_nhds⟩ : ∃ c, Tendsto _ _ _)
       simp only [hω, ↓reduceIte, Y]
       specialize hZC_eq _ t (hnt t)
       simp only [Set.mem_inter_iff, Set.mem_iInter] at hω
@@ -1340,17 +1400,18 @@ lemma exists_modification_holder_iSup' {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     · simp [β, h_ratio_pos]
     · obtain ⟨_, h⟩ := hU
       exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
-  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, Z n t ω = Z 0 t ω := by
-    refine indistinguishable_of_modification (ae_of_all _ (hZ_cont n)) (ae_of_all _ (hZ_cont 0)) ?_
-    intro t
-    filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂ using hω₁.trans hω₂.symm
+  have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, edist (Z n t ω) (Z 0 t ω) = 0 := by
+    refine indistinguishable_of_edist_modification (ae_of_all _ (hZ_cont n))
+      (ae_of_all _ (hZ_cont 0)) fun t ↦ ?_
+    filter_upwards [hZ_ae_eq n t, hZ_ae_eq 0 t] with ω hω₁ hω₂
+    simp [hω₁, hω₂]
   rw [← ae_all_iff] at hZ_ae_eq'
-  let A := {ω | ∀ n t, Z n t ω = Z 0 t ω}
+  let A := {ω | ∀ n t, edist (Z n t ω) (Z 0 t ω) = 0}
   have hA : MeasurableSet A := by
-    have : A = ⋂ n, {ω | ∀ t, Z n t ω = Z 0 t ω} := by ext; simp [A]
+    have : A = ⋂ n, {ω | ∀ t, edist (Z n t ω) (Z 0 t ω) = 0} := by ext; simp [A]
     rw [this]
     refine MeasurableSet.iInter (fun n ↦ ?_)
-    refine Measurable.measurableSet_eq_of_continuous (hZ_cont n) (hZ_cont 0) fun t ↦ ?_
+    refine Measurable.measurableSet_edist_eq_zero_of_continuous (hZ_cont n) (hZ_cont 0) fun t ↦ ?_
     refine IsLimitOfIndicator.measurable_edist (hX n).measurable (hX 0).measurable
       (hX 0).measurablePair (hZ_limit n) (hZ_limit 0) t t
   have hA_ae : ∀ᵐ ω ∂P, ω ∈ A := hZ_ae_eq'
@@ -1366,8 +1427,10 @@ lemma exists_modification_holder_iSup' {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     obtain ⟨n, hn⟩ : ∃ n, β₀ < β n := by
       rwa [lt_ciSup_iff h_bdd] at hβ₀_lt
     refine ⟨(hZ_holder n ω t).choose, (hZ_holder n ω t).choose_spec.1, ?_⟩
-    simp_rw [← hω n]
-    exact (hZ_holder n ω t).choose_spec.2 β₀ hβ₀_pos hn
+    obtain ⟨C, hC⟩ := (hZ_holder n ω t).choose_spec.2 β₀ hβ₀_pos hn
+    refine ⟨C, ?_⟩
+    refine hC.congr_edist fun s t hs ht ↦ ?_
+    rw [edist_congr_right (hω n s), edist_congr_left (hω n t)]
 
 lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
@@ -1391,6 +1454,106 @@ lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     exists_modification_holder_iSup' hC hX' hc hd_pos hdq_lt
   refine ⟨Y, hY_meas, fun t ↦ ?_, hY_holder⟩
   filter_upwards [ (hX 0).ae_eq_mk t, hY_eq t] with ω hω1 hω2 using hω2.trans hω1.symm
+
+end PseudoEMetricSpace
+
+section EMetricSpace
+
+variable [PseudoEMetricSpace T] [EMetricSpace E] [hE : Nonempty E]
+
+variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
+  [SecondCountableTopology T]
+
+omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
+lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+    [DecidablePred (· ∈ U)]
+    (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
+    (t' : denseCountable T) (ht'U : ↑t' ∈ U)
+    {ω : Ω} (hω : ω ∈ holderSet X (denseCountable T) p β U) :
+    holderModification X β p U t' ω = X t' ω := by
+  rw [← edist_eq_zero]
+  exact edist_holderModification_eq_zero hT hU hX hd_pos hβ_pos t' ht'U hω
+
+variable [IsFiniteMeasure P]
+
+lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hX : IsKolmogorovProcess X P p q M)
+    (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
+    (t : T) (htU : t ∈ U) :
+    holderModification X β p U t =ᵐ[P] X t := by
+  have h := edist_modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt t htU
+  filter_upwards [h] with ω hω using edist_eq_zero.1 hω
+
+omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
+lemma StronglyMeasurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
+    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
+    (hf_meas : ∀ t, StronglyMeasurable (f t)) (hg_meas : ∀ t, StronglyMeasurable (g t)) :
+    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    rw [← funext_iff]
+    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
+  rw [this]
+  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by
+    ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  exact StronglyMeasurable.measurableSet_eq_fun (hf_meas t) (hg_meas t)
+
+omit [MeasurableSpace E] [BorelSpace E] [Nonempty E] [CompleteSpace E] in
+lemma Measurable.measurableSet_eq_of_continuous {f g : T → Ω → E}
+    (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
+    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
+    MeasurableSet {ω | ∀ t, f t ω = g t ω} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ (t : T), f t ω = g t ω} = {ω | ∀ (t : T'), f t ω = g t ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    rw [← funext_iff]
+    exact Continuous.ext_on hT'_dense (hf ω) (hg ω) h
+  rw [this]
+  have : {ω | ∀ (t : T'), f t ω = g t ω} = ⋂ (t : T'), {ω | f t ω = g t ω} := by ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  suffices MeasurableSet {ω | edist (f t ω) (g t ω) = 0} by convert this with ω; simp
+  exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
+
+omit hE [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
+lemma Measurable.measurableSet_eqOn_of_continuous {f g : T → Ω → E} (hU : IsOpen U)
+    (hf : ∀ ω, ContinuousOn (f · ω) U) (hg : ∀ ω, ContinuousOn (g · ω) U)
+    (h_meas : ∀ t, Measurable (fun ω ↦ edist (f t ω) (g t ω))) :
+    MeasurableSet {ω | ∀ t ∈ U, f t ω = g t ω} := by
+  obtain ⟨T', hT'_countable, hT'_dense⟩ := TopologicalSpace.exists_countable_dense T
+  have : {ω | ∀ t ∈ U, f t ω = g t ω} = {ω | ∀ (t : T'), ↑t ∈ U → f t ω = g t ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Subtype.forall]
+    refine ⟨fun h t _ ↦ h t, fun h ↦ ?_⟩
+    have h_eqOn : Set.EqOn (f · ω) (g · ω) (T' ∩ U) := by
+      intro t htU
+      exact h t htU.1 htU.2
+    refine Set.EqOn.of_subset_closure h_eqOn (hf ω) (hg ω) Set.inter_subset_right ?_
+    exact subset_closure_dense_inter hT'_dense hU
+  rw [this]
+  have : {ω | ∀ (t : T'), ↑t ∈ U → f t ω = g t ω}
+      = ⋂ (t : T') (ht : ↑t ∈ U), {ω | f t ω = g t ω} := by
+    ext; simp
+  rw [this]
+  have : Countable T' := hT'_countable
+  refine MeasurableSet.iInter (fun t ↦ ?_)
+  by_cases htU : ↑t ∈ U
+  · simp only [htU, Set.iInter_true]
+    suffices MeasurableSet {ω | edist (f t ω) (g t ω) = 0} by
+      convert this with ω
+      simp
+    exact StronglyMeasurable.measurableSet_eq_fun (h_meas t).stronglyMeasurable (by fun_prop)
+  · simp [htU]
 
 end EMetricSpace
 
