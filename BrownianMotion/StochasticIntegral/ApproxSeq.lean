@@ -190,7 +190,6 @@ lemma uniformIntegrable_stoppedValue_discreteApproxSequence
   uniformIntegrable_stoppedValue_discreteApproxSequence_of_le h _
     (discreteApproxSequence_of_le hτ_le τn)
 
-
 lemma integrable_stoppedValue_of_discreteApproxSequence
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) (m : ℕ) :
     Integrable (stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m)) μ :=

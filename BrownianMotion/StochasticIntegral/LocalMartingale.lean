@@ -12,8 +12,8 @@ import BrownianMotion.Auxiliary.Martingale
 
 -/
 
-open MeasureTheory Filter Filtration TopologicalSpace Function
-open scoped ENNReal Topology
+open MeasureTheory Filter TopologicalSpace Function
+open scoped ENNReal
 
 namespace ProbabilityTheory
 
