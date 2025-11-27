@@ -42,6 +42,7 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
   locally_of_prop ⟨hX, hC⟩
 
 variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
 
 /-- Martingales are a stable class. -/
@@ -58,7 +59,15 @@ lemma isStable_martingale :
     · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
   · have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
       hX.indicator (hτ.measurableSet_gt _)
-    sorry
+    conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
+    refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
+      (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
+      (fun ω ↦ min_le_left _ _) i)
+    · rw [stoppedProcess_eq_stoppedValue]
+    · by_cases hω : ω ∈ {ω | ⊥ < τ ω}
+      · simp_rw [Set.indicator_of_mem hω]
+        exact (hC ω).right_continuous
+      · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
 
 /-- Submartingales are a stable class. -/
 lemma isStable_submartingale :

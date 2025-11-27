@@ -15,8 +15,10 @@ namespace Martingale
 
 variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
   [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [MetrizableSpace ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} [IsFiniteMeasure μ]
-  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {n : ι}
+  {X : ι → Ω → E} {τ σ : Ω → WithTop ι} {n : ι}
 
 theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
     (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω)) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
