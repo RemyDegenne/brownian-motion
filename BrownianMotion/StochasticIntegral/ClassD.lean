@@ -133,8 +133,8 @@ section LinearOrder
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
-  [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-  IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
+    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
+    IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
       sorry
 
 lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι]
