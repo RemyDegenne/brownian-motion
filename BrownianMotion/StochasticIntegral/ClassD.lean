@@ -187,7 +187,7 @@ lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCount
   · simp only [enorm_zero, zero_le]
 
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι]:
+    [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
