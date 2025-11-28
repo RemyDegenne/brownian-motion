@@ -19,7 +19,7 @@ open scoped ENNReal
 
 
 /-- Helper Lemma -/
-lemma WithTop.coe_untopA {α : Type*} [Preorder α] [Nonempty α] {σ : α} :
+lemma WithTop.coe_untopA {α : Type*} [Nonempty α] {σ : α} :
     (σ : WithTop α).untopA = σ := rfl
 
 namespace ProbabilityTheory
@@ -157,10 +157,8 @@ lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpa
 
 
 lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
-    [TopologicalSpace ι] [OrderTopology ι] [PseudoMetrizableSpace ι]
-    [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-    (hX : ProgMeasurable 𝓕 X) (t : ι) :
+    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) (t : ι) :
     JointlyStronglyMeasurable (mΩ := mΩ) (stoppedProcess X (fun _ ↦ t)) := by
   let g : ι × Ω → (Set.Iic t) × Ω := fun p ↦ (⟨min p.1 t, min_le_right p.1 t⟩, p.2)
   have hg_meas : @Measurable _ _ _
@@ -171,11 +169,8 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
 
 lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PseudoMetrizableSpace ι]
-    [MeasurableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι]
-    [IsCountablyGenerated (atTop : Filter ι)] [NeBot (atTop : Filter ι)]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-    (hX : ProgMeasurable 𝓕 X) :
-    (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
+    [MeasurableSpace ι] [BorelSpace ι] [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E}
+    {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
   rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
   refine stronglyMeasurable_of_tendsto atTop
     (fun n ↦ jointlyStronglyMeasurable_stoppedProcess_const hX (t n)) ?_
@@ -187,9 +182,8 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
   rw [←WithTop.coe_min, WithTop.coe_untopA, min_eq_left hn]
 
 private lemma ProgMeasurable.stoppedValue_stoppedProcess_aestronglyMeasurable
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
-    [NoMaxOrder ι] [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
-
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [NoMaxOrder ι]
+    [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
     {X : ι → Ω → E} (hX_prog : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
     (sigma : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤}) :
     AEStronglyMeasurable
@@ -293,13 +287,12 @@ lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCount
   · simp only [enorm_zero, zero_le]
 
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι]:
+    [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
 lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι]
-    [MeasurableSpace E] :
+    [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι] :
     IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, ?_⟩
   refine uniformIntegrable_of_dominated le_rfl hUI_X
