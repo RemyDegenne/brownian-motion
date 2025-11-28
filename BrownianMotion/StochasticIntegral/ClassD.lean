@@ -27,7 +27,8 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
-
+/-- The process `X` is jointly strongly measurable if it is strongly measurable as a function
+on the total space `ι × Ω`. -/
 def JointlyStronglyMeasurable [MeasurableSpace ι] (X : ι → Ω → E) : Prop :=
   StronglyMeasurable (uncurry X)
 
