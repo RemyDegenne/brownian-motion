@@ -992,7 +992,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
-  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
+  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous, def:approximableTimeIndex}
    \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
   Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
@@ -1001,7 +1001,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{proof}
   \leanok
-  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+  \uses{lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
