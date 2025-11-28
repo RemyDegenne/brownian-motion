@@ -392,12 +392,21 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \section{Doob-Meyer class}
 
+\begin{definition}\label{def:jointlyStronglyMeasurable}
+  \uses{def:jointlyStronglyMeasurable}
+  \leanok
+  \lean{ProbabilityTheory.JointlyStronglyMeasurable}
+We say that a stochastic process is jointly strongly measurable, if the associated map
+$(t,\omega)\mapsto X_t(\omega)$ is strongly measurable.
+\end{definition}
+
+
 \begin{definition}\label{def:locallyIntegrableSup}
   \uses{def:locally}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}
 We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
-A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
+A process has locally integrable supremum if it is jointly strongly measurable and $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
 \end{definition}
 
 
@@ -479,6 +488,19 @@ A càdlàg martingale is of class D if and only if it is uniformly integrable.
 \begin{proof}
   \uses{lem:Submartingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm}
 Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
+\end{proof}
+
+\begin{lemma}\label{lem:isStable_jointlyStronglyMeasurable}
+  \uses{def:stable, def:jointlyStronglyMeasurable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_jointlyStronglyMeasurable}
+The class of jointly strongly measurable processes is stable.
+\end{lemma}
+\begin{proof} \leanok
+Let $X$ be a jointly strongly measurable process and $\tau$ be a stopping time. The stopped process
+map $(\omega, t) \mapsto X_{t \wedge \tau(\omega)}(\omega)$ can be expressed as the composition $X \circ \phi$, where $\phi : \Omega \times [0, \infty) \to \Omega \times [0, \infty)$ is defined by:
+$\phi(\omega, t) = (\omega, t \wedge \tau(\omega))$. Since $\tau$ is measurable, the function $\phi$ is measurable.
+The composition of a strongly measurable function with a measurable function is strongly measurable.
 \end{proof}
 
 
