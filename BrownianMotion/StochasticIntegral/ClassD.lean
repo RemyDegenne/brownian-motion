@@ -168,9 +168,9 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
   exact StronglyMeasurable.comp_measurable (hX t) hg_meas
 
 lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PseudoMetrizableSpace ι]
-    [MeasurableSpace ι] [BorelSpace ι] [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E}
-    {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
+    [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+    (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
   rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
   refine stronglyMeasurable_of_tendsto atTop
     (fun n ↦ jointlyStronglyMeasurable_stoppedProcess_const hX (t n)) ?_
