@@ -501,7 +501,7 @@ Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping t
 The class D is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
 Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite stopping time $\sigma$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is finite and $X$ is of class D, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
@@ -510,7 +510,7 @@ Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite st
 \begin{lemma}\label{lem:isStable_classDL}
   \uses{def:stable, def:classDL}
   \leanok
-  \lean{ProbabilityTheory.isStable_classDL}
+  \lean{ProbabilityTheory.isStable_classDL}\leanok
 The class DL is stable.
 \end{lemma}
 
