@@ -498,10 +498,8 @@ lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
   intro X hX τ hτ ω x
   dsimp [stoppedProcess]
-  -- Split on whether x is less than τ ω
   by_cases h_stop : (x : WithTop ι) < τ ω
-  · -- Case: x < τ ω, so the stopped process equals X in a left neighborhood of x
-    obtain ⟨l, hl⟩ := hX ω x
+  · obtain ⟨l, hl⟩ := hX ω x
     use l
     let S := {y : ι | ↑y < τ ω}
     have hS_open : IsOpen S := isOpen_Iio.preimage WithTop.continuous_coe
@@ -516,10 +514,8 @@ lemma isStable_left_limit :
     rw [min_eq_left]
     · simp only [WithTop.untopD_coe]
     exact Std.le_of_lt h_ylt
-  · -- Case: x ≥ τ ω
-    by_cases h_eq : (x : WithTop ι) = τ ω
-    · -- Subcase: x = τ ω - use left limit of X at x
-      obtain ⟨l, hl⟩ := hX ω x
+  · by_cases h_eq : (x : WithTop ι) = τ ω
+    · obtain ⟨l, hl⟩ := hX ω x
       use l
       apply Filter.Tendsto.congr' _ hl
       have h_mem : {y : ι | ↑y < τ ω} ∈ 𝓝[<] x := by
@@ -535,27 +531,23 @@ lemma isStable_left_limit :
       rw [min_eq_left (Std.le_of_lt hy)]
       simp only [WithTop.untopD_coe]
       simp_all only [lt_self_iff_false, not_false_eq_true, Set.mem_setOf_eq, Set.indicator_of_mem]
-    · -- Subcase: x > τ ω - stopped process is constant, so limit exists trivially
-      have h_gt : τ ω < (x : WithTop ι) := lt_of_le_of_ne (not_lt.mp h_stop) (Ne.symm h_eq)
+    · have h_gt : τ ω < (x : WithTop ι) := lt_of_le_of_ne (not_lt.mp h_stop) (Ne.symm h_eq)
       by_cases ne_bot : ⊥ < τ ω
-      · -- τ ω is not ⊥, so we can take the constant value
-        use Set.indicator {ω' | ⊥ < τ ω'} (fun ω' ↦ X ( (τ ω').untopD ⊥) ω') ω
+      · use Set.indicator {ω' | ⊥ < τ ω'} (fun ω' ↦ X ((τ ω').untopD ⊥) ω') ω
         apply tendsto_const_nhds.congr'
-        -- Show the function is eventually constant: for y ≥ τ ω, min y (τ ω) = τ ω
         obtain ⟨t, ht⟩ := WithTop.ne_top_iff_exists.mp
             (WithTop.lt_top_iff_ne_top.mp <| lt_of_lt_of_le h_gt le_top)
-        have : {y : ι | t ≤ y} ∈ 𝓝[<] x := by
-          apply mem_nhdsWithin_of_mem_nhds
-          apply IsOpen.mem_nhds isOpen_Ici
-          rw [Set.mem_Ici]
+        have h_t_lt_x : t < x := by
           rw [← ht] at h_gt
           exact WithTop.coe_lt_coe.mp h_gt
-        filter_upwards [this] with y hy
-        simp only [Set.indicator_of_mem ne_bot]
-        rw [← ht] at hy
-        rw [min_eq_right hy]
-      · -- τ ω = ⊥, so indicator is always 0
-        use 0
+        have h_Ioi_mem : Set.Ioi t ∈ 𝓝[<] x :=
+          mem_nhdsWithin_of_mem_nhds (isOpen_Ioi.mem_nhds h_t_lt_x)
+        filter_upwards [h_Ioi_mem] with y hy
+        simp only [Set.mem_Ioi] at hy
+        simp_all only [not_lt, Set.mem_setOf_eq, Set.indicator_of_mem]
+        rw [← ht, min_eq_right <| WithTop.coe_mono hy.le]
+        simp only [WithTop.untopD_coe]
+      · use 0
         apply tendsto_const_nhds.congr'
         filter_upwards [self_mem_nhdsWithin] with y _
         simp [ne_bot]
