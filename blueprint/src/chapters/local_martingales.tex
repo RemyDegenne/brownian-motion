@@ -630,7 +630,7 @@ If $\tau > t$, then for all $s \le t$, $\|X_s\| \le n$, and thus $(X^\tau)^*_t =
 Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process of class DL has locally integrable supremum.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isLocalizingSequence_hittingAfter_Ici, lem:sup_stoppedProcess_le}
 Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_hittingAfter_Ici}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
 \end{proof}
