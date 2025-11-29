@@ -367,21 +367,6 @@ lemma MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialO
   sorry
 
 
-
-lemma iSup_le_eq_iSup_stopped_min_generic [LinearOrder ι] [OrderBot ι]
-    {α : Type*} [CompleteLattice α] {f : ι → α} (t : ι) :
-    (⨆ s, ⨆ (_ : s ≤ t), f s) = ⨆ s, f (min s t) := by
-  sorry
-
-lemma iSup_le_eq_iSup_stopped_min [LinearOrder ι] [OrderBot ι]
-    {α : Type*} [CompleteLattice α] {f : ι → α} (t : ι) :
-    (⨆ s, ⨆ (_ : s ≤ t), f s) = ⨆ s, f (min s t) := by
-  rw [iSup, iSup, sSup_eq_iSup, sSup_eq_iSup]
-  congr 1
-  ext x
-  simp only [Set.mem_range]
-  sorry
-
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [BorelSpace ι]
     [SecondCountableTopology ι] [PseudoMetrizableSpace ι] [IsFiniteMeasure P]
@@ -414,86 +399,48 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
     refine ProgMeasurable.jointlyStronglyMeasurable (𝓕 := 𝓕) ?_
     exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
   · intro t
-    -- 1. Define a dominating variable `dom` in ℝ.
-    -- We use (n + ‖X_{τ_n ⊓ t}‖) because ClassDL guarantees this is integrable.
-    -- The `rhs` you defined earlier is also a bound, but this one is easier to integrate.
     let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
     let σ : Ω → WithTop ι := (τ n) ⊓ (fun _ ↦ t : Ω → WithTop ι)
     have hσ : IsStoppingTime 𝓕 σ := (hτ.isStoppingTime n).min (isStoppingTime_const 𝓕 t)
-
-    -- 2. Use standard mono. We must prove:
-    --    a. dom is integrable
-    --    b. The sup process is AE measurable
-    --    c. The sup process ≤ dom
     refine Integrable.mono_enorm (g := dom) ?_ ?_ ?_
-
-    -- Goal 1: Prove dom is integrable
     · unfold dom
-
       change Integrable ((fun ω : Ω ↦ (n : ℝ)) + (fun ω ↦ ‖stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω‖)) P
       refine Integrable.add (integrable_const (n : ℝ)) ( ?_)
-
-
-      -- We observe that σ is bounded by t
       have h_le : σ ≤ (fun _ ↦ t : Ω → WithTop ι)  := by
         intro ω
         apply min_le_right
-
-
       rcases hX3 t with ⟨h_meas, _, ⟨C, h_bound⟩⟩
       have := hX3 t
-      -- Prove Integrable by checking its two fields manually
       constructor
-      · -- 1. Measurability
-        exact (h_meas ⟨σ, ⟨hσ, h_le⟩ ⟩).norm
-      · -- 2. Finite Integral (HasFiniteIntegral)
-        -- We map eLpNorm (p=1) to the integral
-        rw [HasFiniteIntegral]
+      · exact (h_meas ⟨σ, ⟨hσ, h_le⟩ ⟩).norm
+      · rw [HasFiniteIntegral]
         simp only [enorm_norm]
         rw [← eLpNorm_one_eq_lintegral_enorm]
-
-        -- Use the bound C provided by UniformIntegrable
         refine lt_of_le_of_lt (h_bound ⟨σ, ⟨ hσ , h_le ⟩⟩ ) ?_
-
         exact ENNReal.coe_lt_top
-    -- Goal 2: Prove the sup process is measurable
     · apply StronglyMeasurable.aestronglyMeasurable
       have hX6 := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess hX5
-      -- Use stability: stopped process preserves strongly measurable sup
       have h_stopped := isStable_hasStronglyMeasurableSupProcess X hX6 (τ n) (hτ.isStoppingTime n)
-      -- Compose with constant time t to get strong measurability at fixed t
       exact h_stopped.comp_measurable (measurable_const.prodMk measurable_id)
-     -- Goal 3: Prove the domination inequality
-    -- Goal 3: Prove the domination inequality
-    -- Goal 3: Prove the domination inequality
     · filter_upwards with ω
       have h_LE (ω : Ω): 0 ≤ dom ω := by
         refine add_nonneg ?_ ?_
         · exact Nat.cast_nonneg' n
         · exact norm_nonneg (stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω)
-      -- 1. Prove Boundedness (Necessary for Real.Sup logic)
-      -- The set of values {‖X_s‖ | s ≤ t} is bounded because X is Cadlag on a compact interval.
       have h_bdd_subtype : BddAbove (Set.range fun (u : {x // x ≤ t}) ↦
             ‖stoppedProcess X (τ n) u ω‖) := by
-        -- X is Cadlag on the compact set [0, t], so it is bounded.
-        -- Assuming standard topology/measure theory library availability:
         let S := Set.Icc (⊥ : ι) t
         have hS_compact : IsCompact S := isCompact_Icc
-
-        -- 2. Show the stopped process values are a subset of X's values on S
         have h_subset : (Set.range fun (u : {x // x ≤ t}) ↦ ‖stoppedProcess X (τ n) u ω‖) ⊆
                         (fun x ↦ ‖X x ω‖) '' S := by
           rintro _ ⟨u, rfl⟩
           simp only [stoppedProcess, Set.mem_image]
-          -- The time index used is min(τ, u)
           let time_idx := ((τ n ⊓ fun _ ↦ ↑u) ω).untopA
           refine ⟨time_idx, ?_, ?_⟩
           constructor
           · exact bot_le
-          · -- Show time_idx ≤ u ≤ t
-            apply le_trans _ u.2
+          · apply le_trans _ u.2
             simp only [time_idx]
-            -- Use generic property: min(a, b) ≤ b
             have h_le_u : (τ n ⊓ fun _ ↦ ↑u) ω ≤ (u : WithTop ι) := inf_le_right
             change (min (τ n ω) (↑↑u) ).untopA ≤ ↑u
             rw [WithTop.untopA_eq_untop, WithTop.untop_le_iff]
@@ -501,39 +448,23 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
             · exact ne_top_of_le_ne_top (WithTop.coe_ne_top) h_le_u
           · dsimp [time_idx]
             rw [min_comm]
-        -- 3. Use the fact that X is Cadlag -> Bounded on Compacts
         apply BddAbove.mono h_subset
-
-        -- This lemma states: "The image of a compact set under a Cadlag function is bounded"
         have h_metric_bdd :=
           isBounded_image_of_isCadlag_of_isCompact (hX1 ω) hS_compact
-
-        -- Convert from Bornology.IsBounded to BddAbove
-        -- A metrically bounded set has bounded norms
         obtain ⟨C, hC⟩ : ∃ C, ∀ x ∈ (X · ω) '' S, ‖x‖ ≤ C := by
-      -- "Bounded" means contained in a ball of radius C around 0
           rw [Metric.isBounded_iff_subset_ball (0 : E)] at h_metric_bdd
           rcases h_metric_bdd with ⟨C, h_subset_ball⟩
           use C
           intro x hx
-          -- Apply subset relation: x ∈ Ball(0, C)
           specialize h_subset_ball hx
-          -- Convert Ball definition to Norm: dist x 0 < C → ‖x‖ < C
           rw [Metric.mem_ball, dist_zero_right] at h_subset_ball
           exact le_of_lt h_subset_ball
         use C
         rintro y ⟨x, hx, rfl⟩
         exact hC _ (Set.mem_image_of_mem _ hx)
-
-      -- 2. Prove: For any specific s ≤ t, the value is ≤ rhs
-      -- We derive this from hX4.
       have h_val_le_rhs : ∀ (s : ι) (hs : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ ≤ rhs t ω := by
         intro s hs
-        -- We know the Nested Supremum is bounded by rhs (from hX4)
         apply le_trans ?_ (hX4 t ω)
-        -- We just need to show the specific term is ≤ Nested Supremum
-        -- Note: We need to assume the nested set is bounded for Real.le_ciSup to work.
-        -- Since the subtype version is bounded (h_bdd_subtype), the nested one is too.
         have h_bdd_nested :
             BddAbove (Set.range fun s ↦ ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖) := by
           obtain ⟨M, hM⟩ := h_bdd_subtype
@@ -541,48 +472,35 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
           intro y hy
           obtain ⟨s', rfl⟩ := hy
           by_cases hs' : s' ≤ t
-          · -- Case s' ≤ t: the supremum equals the norm at s'
-            calc ⨆ (_ : s' ≤ t), ‖stoppedProcess X (τ n) s' ω‖
+          · calc ⨆ (_ : s' ≤ t), ‖stoppedProcess X (τ n) s' ω‖
                 = ‖stoppedProcess X (τ n) s' ω‖ := ciSup_pos hs'
               _ ≤ M := hM ⟨⟨s', hs'⟩, rfl⟩
               _ ≤ max M 0 := le_max_left M 0
-          · -- Case s' > t: supremum over empty type equals 0, and 0 ≤ M
-            show (fun s ↦ ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖) s' ≤ max M 0
+          · show (fun s ↦ ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖) s' ≤ max M 0
             simp only []
             have : IsEmpty (s' ≤ t) := ⟨fun h => hs' h⟩
             rw [Real.iSup_of_isEmpty]
             exact le_max_right M 0
-
         refine le_ciSup_of_le h_bdd_nested s ?_
         refine le_ciSup_of_le (?_) hs le_rfl
         use ‖stoppedProcess X (τ n) s ω‖
         rintro _ ⟨_, rfl⟩
         exact le_rfl
-      -- 3. Establish RHS ≤ DOM (Standard Case Split)
       have h_rhs_le_dom : rhs t ω ≤ dom ω := by
         simp only [rhs, dom, add_le_add_iff_left]
         rw [Set.indicator]
         split_ifs with h
         · simp only [Set.mem_setOf_eq] at h
-          -- 2. Fold back to clean definitions
           change ‖stoppedValue X (τ n) ω‖ ≤ ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
-          -- 3. Evaluate the function infimum at ω
-          -- This turns (f ⊓ g) ω into (f ω ⊓ g ω)
           dsimp [stoppedValue]
-          -- 4. NOW you can use min_eq_left because we are dealing with values
           rw [min_eq_left h]
-          -- Since τ ≤ t, min(τ, t) = τ
         · simp only [norm_nonneg]
-      -- 4. Main Calculation
       calc
-        -- A. Remove the indicator (indicator ≤ 1)
         ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ
           ≤ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ := by
             apply iSup₂_mono; intro s hs
             simp only [stoppedProcess, Set.indicator, Set.mem_setOf_eq]
             split_ifs <;> simp
-
-        -- B. Switch to ENNReal and use the term-wise bound
         _ ≤ ENNReal.ofReal (rhs t ω) := by
             rw [iSup_subtype']
             simp only [iSup_le_iff, Subtype.forall]
@@ -591,7 +509,6 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
             · apply ENNReal.ofReal_le_ofReal
               exact h_val_le_rhs s hs
             · exact norm_nonneg (stoppedProcess X (τ n) s ω)
-        -- C. Apply rhs ≤ dom
         _ ≤ ENNReal.ofReal (dom ω) := by
             apply ENNReal.ofReal_le_ofReal
             exact h_rhs_le_dom
