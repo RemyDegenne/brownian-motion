@@ -139,10 +139,52 @@ lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 
-lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+omit [LinearOrder ι] in
+lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [TopologicalSpace ι]
     (hX : ClassDL X 𝓕 P) :
+    ClassD X 𝓕 P := by
+  let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+  let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ (⊤ : ι)}
+  let f : A → B := fun T => ⟨T, ⟨T.2.1, fun ω => ?_⟩⟩
+  · have : (fun T : A ↦ stoppedValue X T.1) = (fun T ↦ stoppedValue X T.1) ∘ f := by ext; simp [f]
+    refine ⟨hX.1, ?_⟩
+    rw [this]
+    exact UniformIntegrable.comp (hX.2 (⊤ : ι)) f
+  · have := T.2.2 ω
+    simp only [ne_eq, WithTop.ne_top_iff_exists] at this
+    obtain ⟨a, ha⟩ := this
+    exact ha ▸ WithTop.coe_le_coe.mpr (le_top (a := a))
+
+lemma ClassDL.locally_classD [ht : OrderBot ι] [TopologicalSpace ι]
+    [SecondCountableTopology ι] [OrderTopology ι] (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+  rcases topOrderOrNoTopOrder ι with ha | hb
+  · have : BoundedOrder ι := {}
+    exact locally_of_prop hX.classD
+  · obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+    refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
+    · simp [isStoppingTime_const]
+    · filter_upwards with ω
+      simp only [tendsto_atTop_atTop] at hv2
+      refine tendsto_atTop_isLUB (fun _ _ h => mod_cast hv1 h) ⟨?_, fun x hx => ?_⟩
+      · exact top_mem_upperBounds _
+      · simp only [top_le_iff, WithTop.eq_top_iff_forall_gt]
+        simp only [mem_upperBounds, Set.mem_range, forall_exists_index,
+          forall_apply_eq_imp_iff] at hx
+        intro a
+        obtain ⟨c, hc⟩ := (NoTopOrder.to_noMaxOrder ι).exists_gt a
+        obtain ⟨n, hn⟩ := hv2 c
+        have := WithTop.coe_lt_coe.mpr (lt_of_lt_of_le hc (hn n le_rfl))
+        exact lt_of_lt_of_le this (hx n)
+    · filter_upwards with ω
+      exact fun _ _ h => WithTop.coe_le_coe.mpr (hv1 h)
+    · sorry
+    · let Y := fun T : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} ↦
+        stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
+      refine uniformIntegrable_of_dominated (Y := Y) le_rfl ?_ (fun T => ?_) ?_
+      · sorry
+      · sorry
+      · sorry
 
 lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
