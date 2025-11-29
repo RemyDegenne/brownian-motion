@@ -155,12 +155,11 @@ lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [Top
     obtain ⟨a, ha⟩ := this
     exact ha ▸ WithTop.coe_le_coe.mpr (le_top (a := a))
 
-lemma ClassDL.locally_classD [ht : OrderBot ι] [TopologicalSpace ι]
-    [SecondCountableTopology ι] [OrderTopology ι] (hX : ClassDL X 𝓕 P) :
+lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rcases topOrderOrNoTopOrder ι with ha | hb
-  · have : BoundedOrder ι := {}
-    exact locally_of_prop hX.classD
+  · exact locally_of_prop hX.classD
   · obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
     refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
     · simp [isStoppingTime_const]
@@ -179,10 +178,15 @@ lemma ClassDL.locally_classD [ht : OrderBot ι] [TopologicalSpace ι]
     · filter_upwards with ω
       exact fun _ _ h => WithTop.coe_le_coe.mpr (hv1 h)
     · sorry
-    · let Y := fun T : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} ↦
-        stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
+    · let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+      let Y := fun T : A ↦ stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
       refine uniformIntegrable_of_dominated (Y := Y) le_rfl ?_ (fun T => ?_) ?_
-      · sorry
+      · let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ v n}
+        let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
+        have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
+          ext T; simpa [Y, f] using stoppedValue_stoppedProcess_apply (T.2.2 _)
+        rw [this]
+        exact UniformIntegrable.comp (hX.2 (v n)) f
       · sorry
       · sorry
 
