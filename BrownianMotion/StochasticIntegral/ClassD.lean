@@ -171,7 +171,7 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
 
 lemma ProgMeasurable.jointlyStronglyMeasurable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
-    [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+    [SecondCountableTopology ι] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
     (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
   rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
   refine stronglyMeasurable_of_tendsto atTop
@@ -403,6 +403,8 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
   intro n
   have hX4 := fun (t : ι) (ω : Ω) ↦
     sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n ω
+
+  have hX5 : JointlyStronglyMeasurable (mΩ := mΩ) X := ProgMeasurable.jointlyStronglyMeasurable hX2
   let rhs := fun (t : ι) (ω : Ω) ↦
     ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
     (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
@@ -458,20 +460,39 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
 
       have h_meas_sup := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess
         (ProgMeasurable.jointlyStronglyMeasurable (isStable_progMeasurable X hX2 σ hσ))
-      have h_eq : (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ) =
-                  (fun ω ↦ ⨆ s, ‖stoppedProcess X σ s ω‖ₑ) := by
+      have eq_indicator :
+        (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ) =
+        {ω | ⊥ < τ n ω}.indicator (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ) := by
         ext ω
-        -- Apply the helper lemma
-        rw [iSup_le_eq_iSup_stopped_min]
-        -- Show the stopped terms are identical
-        congr; ext s
-        dsimp [stoppedProcess, stoppedValue, σ]
-        -- Logic: X_{τ} at (s ∧ t) is the same as X_{τ ∧ t} at s
-        rw [min_assoc]
+        simp only [Set.indicator]
+        split_ifs with h
+        ·
+          congr
+          ext t
+          congr
+          ext x
+          congr 1
+          simp only [stoppedProcess, Set.indicator_of_mem h]
+        · have h_bot : τ n ω = ⊥ := not_bot_lt_iff.mp h
+          simp only [stoppedProcess, h_bot, bot_le, inf_of_le_right, Set.mem_setOf_eq,
+            lt_self_iff_false, not_false_eq_true, Set.indicator_of_notMem, enorm_zero,
+            ENNReal.iSup_zero, ciSup_const]
+
 
       -- 3. Rewrite and solve
-      rw [h_eq]
-      exact h_meas_sup.aestronglyMeasurable
+      rw [eq_indicator]
+      apply StronglyMeasurable.indicator
+
+      · simp [stoppedProcess]
+
+        have hX6 := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess hX5
+        unfold HasStronglyMeasurableSupProcess at hX6
+        sorry
+      · apply?
+        apply measurableSet_lt measurable_const
+        -- τ n is a stopping time, hence measurable
+        exact (hτ.isStoppingTime n).measurable
+
     -- Goal 3: Prove the domination inequality
     · apply eventually_of_forall
       intro ω
