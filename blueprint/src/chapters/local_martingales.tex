@@ -393,7 +393,6 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 \section{Doob-Meyer class}
 
 \begin{definition}\label{def:jointlyStronglyMeasurable}
-  \uses{def:jointlyStronglyMeasurable}
   \leanok
   \lean{ProbabilityTheory.JointlyStronglyMeasurable}
 We say that a stochastic process is jointly strongly measurable, if the associated map
@@ -402,7 +401,7 @@ $(t,\omega)\mapsto X_t(\omega)$ is strongly measurable.
 
 
 \begin{definition}\label{def:locallyIntegrableSup}
-  \uses{def:locally}
+  \uses{def:locally, def:jointlyStronglyMeasurable}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}
 We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
