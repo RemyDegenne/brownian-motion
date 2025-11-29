@@ -10,6 +10,7 @@ import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.StochasticIntegral.OptionalSampling
 import Mathlib.Probability.Process.HittingTime
 
+
 /-! # Locally integrable, class D, class DL
 
 -/
@@ -168,7 +169,7 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
     exact ((continuous_id.min continuous_const).measurable.comp measurable_fst).subtype_mk
   exact StronglyMeasurable.comp_measurable (hX t) hg_meas
 
-lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
+lemma ProgMeasurable.jointlyStronglyMeasurable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
     [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
     (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
@@ -190,7 +191,7 @@ private lemma ProgMeasurable.stoppedValue_stoppedProcess_aestronglyMeasurable
     AEStronglyMeasurable
     (stoppedValue (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) sigma.1) P := by
   have hY_prog := isStable_progMeasurable X hX_prog τ hτ
-  have hY_sm := ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable hY_prog
+  have hY_sm := ProgMeasurable.jointlyStronglyMeasurable hY_prog
   let idx_map : Ω → ι := fun ω ↦ (sigma.val ω).untop (sigma.property.2 ω)
   have h_idx_meas : @Measurable Ω ι mΩ _ idx_map := by
     have h_emb : MeasurableEmbedding (fun x : ι ↦ (x : WithTop ι)) := by
@@ -233,6 +234,11 @@ lemma isStable_jointlyStronglyMeasurable [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (JointlyStronglyMeasurable (E := E) (mΩ := mΩ) · ) := by
       sorry
+
+lemma JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
+    [MeasurableSpace ι] {X : ι → Ω → E} (hX : JointlyStronglyMeasurable (mΩ := mΩ) X) :
+      HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
+  sorry
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
@@ -347,18 +353,145 @@ lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [Topo
     (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
     IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
 
+
 lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] [InfSet ι] [Bot ι]
     {X : ι → Ω → E} (t : ι) (K : ℝ) (ω : Ω) :
     ⨆ s ≤ t, ‖stoppedProcess X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) s ω‖ ≤
     K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
       (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := sorry
 
-lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [MeasurableSpace ι]
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
-    (h𝓕 : 𝓕.IsRightContinuous) :
+lemma MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι]
+    [CompactIccSpace ι] (𝓕 : Filtration ι mΩ) {X : ι → Ω → E} (hX1 : Adapted 𝓕 X) :
+    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := by
+  sorry
+
+
+
+lemma iSup_le_eq_iSup_stopped_min_generic [LinearOrder ι] [OrderBot ι]
+    {α : Type*} [CompleteLattice α] {f : ι → α} (t : ι) :
+    (⨆ s, ⨆ (_ : s ≤ t), f s) = ⨆ s, f (min s t) := by
+  sorry
+
+lemma iSup_le_eq_iSup_stopped_min [LinearOrder ι] [OrderBot ι]
+    {α : Type*} [CompleteLattice α] {f : ι → α} (t : ι) :
+    (⨆ s, ⨆ (_ : s ≤ t), f s) = ⨆ s, f (min s t) := by
+  rw [iSup, iSup, sSup_eq_iSup, sSup_eq_iSup]
+  congr 1
+  ext x
+  simp only [Set.mem_range]
+  sorry
+
+lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [BorelSpace ι]
+    [SecondCountableTopology ι] [PseudoMetrizableSpace ι] [IsFiniteMeasure P]
+    (hX1 : ∀ ω, IsCadlag (X · ω))
+    (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-      sorry
+  unfold HasLocallyIntegrableSup
+  rcases hX2 with ⟨hX2, hX3⟩
+  let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
+  have hY1 : Adapted 𝓕 Y := by exact MeasureTheory.Adapted.norm 𝓕 hX2.adapted
+  have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) := by
+    intro ω
+    exact (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
+  let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
+  have hτ : IsLocalizingSequence 𝓕 τ P:= by
+    exact isLocalizingSequence_hittingAfter_Ici 𝓕 τ hY1 hY2 h𝓕
+  use τ
+  refine ⟨hτ, ?_⟩
+  intro n
+  have hX4 := fun (t : ι) (ω : Ω) ↦
+    sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n ω
+  let rhs := fun (t : ι) (ω : Ω) ↦
+    ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
+    (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
+  unfold HasIntegrableSup
+  constructor
+  · refine JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess ?_
+    refine ProgMeasurable.jointlyStronglyMeasurable (𝓕 := 𝓕) ?_
+    exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
+  · intro t
+    -- 1. Define a dominating variable `dom` in ℝ.
+    -- We use (n + ‖X_{τ_n ⊓ t}‖) because ClassDL guarantees this is integrable.
+    -- The `rhs` you defined earlier is also a bound, but this one is easier to integrate.
+    let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
+    let σ : Ω → WithTop ι := (τ n) ⊓ (fun _ ↦ t : Ω → WithTop ι)
+    have hσ : IsStoppingTime 𝓕 σ := (hτ.isStoppingTime n).min (isStoppingTime_const 𝓕 t)
+
+    -- 2. Use standard mono. We must prove:
+    --    a. dom is integrable
+    --    b. The sup process is AE measurable
+    --    c. The sup process ≤ dom
+    refine Integrable.mono_enorm (g := dom) ?_ ?_ ?_
+
+    -- Goal 1: Prove dom is integrable
+    · unfold dom
+
+      change Integrable ((fun ω : Ω ↦ (n : ℝ)) + (fun ω ↦ ‖stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω‖)) P
+      refine Integrable.add (integrable_const (n : ℝ)) ( ?_)
+
+
+      -- We observe that σ is bounded by t
+      have h_le : σ ≤ (fun _ ↦ t : Ω → WithTop ι)  := by
+        intro ω
+        apply min_le_right
+
+      rcases hX3 t with ⟨h_meas, _, ⟨C, h_bound⟩⟩
+      have := hX3 t
+      -- Prove Integrable by checking its two fields manually
+      constructor
+      · -- 1. Measurability
+        exact (h_meas ⟨σ, ⟨hσ, h_le⟩ ⟩).norm
+      · -- 2. Finite Integral (HasFiniteIntegral)
+        -- We map eLpNorm (p=1) to the integral
+        rw [HasFiniteIntegral]
+        simp only [enorm_norm]
+        rw [← eLpNorm_one_eq_lintegral_enorm]
+
+        -- Use the bound C provided by UniformIntegrable
+        refine lt_of_le_of_lt (h_bound ⟨σ, ⟨ hσ , h_le ⟩⟩ ) ?_
+
+        exact ENNReal.coe_lt_top
+    -- Goal 2: Prove the sup process is measurable
+    · apply StronglyMeasurable.aestronglyMeasurable
+
+      have h_meas_sup := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess
+        (ProgMeasurable.jointlyStronglyMeasurable (isStable_progMeasurable X hX2 σ hσ))
+      have h_eq : (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ) =
+                  (fun ω ↦ ⨆ s, ‖stoppedProcess X σ s ω‖ₑ) := by
+        ext ω
+        -- Apply the helper lemma
+        rw [iSup_le_eq_iSup_stopped_min]
+        -- Show the stopped terms are identical
+        congr; ext s
+        dsimp [stoppedProcess, stoppedValue, σ]
+        -- Logic: X_{τ} at (s ∧ t) is the same as X_{τ ∧ t} at s
+        rw [min_assoc]
+
+      -- 3. Rewrite and solve
+      rw [h_eq]
+      exact h_meas_sup.aestronglyMeasurable
+    -- Goal 3: Prove the domination inequality
+    · apply eventually_of_forall
+      intro ω
+      -- Apply the pointwise bound from the hitting time lemma (hX4)
+      specialize hX4 t ω
+      refine le_trans hX4 ?_
+
+      -- Now show hX4's rhs ≤ our dom
+      -- Logic:
+      -- If τ ≤ t: rhs = n + ‖X_τ‖, dom = n + ‖X_τ‖. Equal.
+      -- If τ > t: rhs = n, dom = n + ‖X_t‖. Since ‖X_t‖ ≥ 0, rhs ≤ dom.
+      dsimp [dom]
+      simp only [add_le_add_iff_left]
+      by_cases h : τ n ω ≤ t
+      · -- Hit happened
+        simp [h, Set.indicator_of_mem, stoppedValue]
+      · -- Hit didn't happen
+        simp [h, Set.indicator_of_not_mem, stoppedValue]
+        exact norm_nonneg _
+
 
 end LinearOrder
 
