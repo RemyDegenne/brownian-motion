@@ -208,8 +208,7 @@ lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι
   sorry
 
 omit [LinearOrder ι] in
-lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [TopologicalSpace ι]
-    [MeasurableSpace ι]
+lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [MeasurableSpace ι]
     (hX : ClassDL X 𝓕 P) :
     ClassD X 𝓕 P := by
   let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
