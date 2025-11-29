@@ -325,7 +325,7 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
     exact ⟨rho_bounded, h_dom⟩
 
 
-lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
+lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι] [MeasurableSpace ι]
     (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
   sorry
@@ -360,12 +360,11 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] 
     K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
       (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := sorry
 
+/-- The norm of an adapted process is adapted. (TODO: Into mathlib) -/
 lemma MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι]
-    [CompactIccSpace ι] (𝓕 : Filtration ι mΩ) {X : ι → Ω → E} (hX1 : Adapted 𝓕 X) :
-    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := by
-  sorry
-
+    [CompactIccSpace ι] (𝓕 : Filtration ι mΩ) {X : ι → Ω → E} (hX : Adapted 𝓕 X) :
+    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
 
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [BorelSpace ι]
