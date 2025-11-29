@@ -358,6 +358,14 @@ lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
     Locally q 𝓕 X P :=
   (locally_locally h𝓕 hq).1 <| hpX.mono hpq
 
+lemma locally_induction₂ {r : (ι → Ω → E) → Prop} (h𝓕 : IsRightContinuous 𝓕)
+    (hrpq : ∀ Y, r Y → p Y → Locally q 𝓕 Y P)
+    (hr : IsStable 𝓕 r) (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q)
+    (hrX : Locally r 𝓕 X P) (hpX : Locally p 𝓕 X P) :
+    Locally q 𝓕 X P :=
+  locally_induction (p := fun Y ↦ r Y ∧ p Y) h𝓕 (and_imp.2 <| hrpq ·) hq
+    <| (locally_and hr hp).2 ⟨hrX, hpX⟩
+
 end
 
 end ConditionallyCompleteLinearOrderBot
@@ -424,6 +432,8 @@ lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)
     · simp [LocalizingSequence_of_prop, if_neg hω]
     · simp [LocalizingSequence_of_prop, if_neg hω]
 
+section NormedSpace
+
 variable [NormedSpace ℝ E] [CompleteSpace E]
 
 lemma Locally.rightContinuous
@@ -458,13 +468,97 @@ lemma locally_isCadlag_iff :
   ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
     ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
 
+end NormedSpace
+
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
-  sorry
+  intro X hX τ hτ ω a
+  dsimp [stoppedProcess]
+  by_cases h_stop : (a : WithTop ι) < τ ω
+  · let S := {x : ι | ↑x < τ ω}
+    have hS_open : IsOpen S := isOpen_Iio.preimage WithTop.continuous_coe
+    have ne_bot : ⊥ < τ ω := by
+      rw [bot_lt_iff_ne_bot]
+      exact ne_bot_of_gt h_stop
+    have hS_mem : S ∈ 𝓝[>] a := mem_nhdsWithin_of_mem_nhds (hS_open.mem_nhds h_stop)
+    apply ContinuousWithinAt.congr_of_eventuallyEq (hX ω a)
+    · filter_upwards [hS_mem] with x hx
+      have h_xle : x < τ ω := by exact hx
+      simp_all only [Set.mem_setOf_eq, Set.indicator_of_mem, S]
+      rw [min_eq_left ]
+      · simp only [WithTop.untopD_coe]
+      exact Std.le_of_lt h_xle
+    · rw [min_eq_left h_stop.le]
+      simp only [WithTop.untopD_coe, Set.indicator_apply_eq_self, Set.mem_setOf_eq, not_lt,
+        le_bot_iff]
+      intro h_bot
+      simp_all only [not_lt_bot]
+  · apply continuousWithinAt_const.congr_of_eventuallyEq
+    · filter_upwards [self_mem_nhdsWithin] with x hx
+      simp only [Set.mem_Ioi] at hx
+      have h_bound : τ ω ≤ ↑x := le_trans (not_lt.mp h_stop) (le_of_lt (WithTop.coe_lt_coe.mpr hx))
+      simp_all only [not_lt, inf_of_le_right]
+      rfl
+    simp only [min_eq_right (not_lt.mp h_stop)]
+
 
 lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
-  sorry
+  intro X hX τ hτ ω x
+  dsimp [stoppedProcess]
+  by_cases h_stop : (x : WithTop ι) < τ ω
+  · obtain ⟨l, hl⟩ := hX ω x
+    use l
+    let S := {y : ι | ↑y < τ ω}
+    have hS_open : IsOpen S := isOpen_Iio.preimage WithTop.continuous_coe
+    have ne_bot : ⊥ < τ ω := by
+      rw [bot_lt_iff_ne_bot]
+      exact ne_bot_of_gt h_stop
+    have hS_mem : S ∈ 𝓝[<] x := mem_nhdsWithin_of_mem_nhds (hS_open.mem_nhds h_stop)
+    apply Filter.Tendsto.congr' _ hl
+    filter_upwards [hS_mem] with y hy
+    have h_ylt : y < τ ω := hy
+    simp_all only [Set.mem_setOf_eq, Set.indicator_of_mem, S]
+    rw [min_eq_left]
+    · simp only [WithTop.untopD_coe]
+    exact Std.le_of_lt h_ylt
+  · by_cases h_eq : (x : WithTop ι) = τ ω
+    · obtain ⟨l, hl⟩ := hX ω x
+      use l
+      apply Filter.Tendsto.congr' _ hl
+      have h_mem : {y : ι | ↑y < τ ω} ∈ 𝓝[<] x := by
+        have : {y : ι | ↑y < τ ω} = {y : ι | y < x} := by
+          ext y
+          simp only [Set.mem_setOf_eq]
+          rw [← h_eq, WithTop.coe_lt_coe]
+        rw [this]
+        exact self_mem_nhdsWithin
+      filter_upwards [h_mem] with y hy
+      have ne_bot : ⊥ < τ ω := by
+        exact bot_lt_of_lt hy
+      rw [min_eq_left (Std.le_of_lt hy)]
+      simp only [WithTop.untopD_coe]
+      simp_all only [lt_self_iff_false, not_false_eq_true, Set.mem_setOf_eq, Set.indicator_of_mem]
+    · have h_gt : τ ω < (x : WithTop ι) := lt_of_le_of_ne (not_lt.mp h_stop) (Ne.symm h_eq)
+      by_cases ne_bot : ⊥ < τ ω
+      · use Set.indicator {ω' | ⊥ < τ ω'} (fun ω' ↦ X ((τ ω').untopD ⊥) ω') ω
+        apply tendsto_const_nhds.congr'
+        obtain ⟨t, ht⟩ := WithTop.ne_top_iff_exists.mp
+            (WithTop.lt_top_iff_ne_top.mp <| lt_of_lt_of_le h_gt le_top)
+        have h_t_lt_x : t < x := by
+          rw [← ht] at h_gt
+          exact WithTop.coe_lt_coe.mp h_gt
+        have h_Ioi_mem : Set.Ioi t ∈ 𝓝[<] x :=
+          mem_nhdsWithin_of_mem_nhds (isOpen_Ioi.mem_nhds h_t_lt_x)
+        filter_upwards [h_Ioi_mem] with y hy
+        simp only [Set.mem_Ioi] at hy
+        simp_all only [not_lt, Set.mem_setOf_eq, Set.indicator_of_mem]
+        rw [← ht, min_eq_right <| WithTop.coe_mono hy.le]
+        simp only [WithTop.untopD_coe]
+      · use 0
+        apply tendsto_const_nhds.congr'
+        filter_upwards [self_mem_nhdsWithin] with y _
+        simp [ne_bot]
 
 lemma isStable_isCadlag :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω)) :=

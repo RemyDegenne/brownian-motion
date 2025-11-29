@@ -285,7 +285,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
   The class of right continuous processes is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Trivial.
 \end{proof}
 
@@ -296,7 +296,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
   The class of processes with left limits is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Trivial.
 \end{proof}
 
@@ -405,7 +405,7 @@ A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassD}
-A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is progressively measurable and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
 \end{definition}
 
 
@@ -413,7 +413,7 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassDL}
-A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class DL if it is progressively measurable and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
 \begin{lemma}\label{lem:classDLOfClassD}
@@ -489,7 +489,7 @@ Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{
 The class of process with locally integrable supremum is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
 \end{proof}
 
@@ -644,6 +644,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
 Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
 \end{proof}
