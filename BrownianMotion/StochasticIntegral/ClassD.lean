@@ -457,61 +457,51 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
         exact ENNReal.coe_lt_top
     -- Goal 2: Prove the sup process is measurable
     · apply StronglyMeasurable.aestronglyMeasurable
-
-      have h_meas_sup := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess
-        (ProgMeasurable.jointlyStronglyMeasurable (isStable_progMeasurable X hX2 σ hσ))
-      have eq_indicator :
-        (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ) =
-        {ω | ⊥ < τ n ω}.indicator (fun ω ↦ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ) := by
-        ext ω
-        simp only [Set.indicator]
-        split_ifs with h
-        ·
-          congr
-          ext t
-          congr
-          ext x
-          congr 1
-          simp only [stoppedProcess, Set.indicator_of_mem h]
-        · have h_bot : τ n ω = ⊥ := not_bot_lt_iff.mp h
-          simp only [stoppedProcess, h_bot, bot_le, inf_of_le_right, Set.mem_setOf_eq,
-            lt_self_iff_false, not_false_eq_true, Set.indicator_of_notMem, enorm_zero,
-            ENNReal.iSup_zero, ciSup_const]
-
-
-      -- 3. Rewrite and solve
-      rw [eq_indicator]
-      apply StronglyMeasurable.indicator
-
-      · simp [stoppedProcess]
-
-        have hX6 := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess hX5
-        unfold HasStronglyMeasurableSupProcess at hX6
-        sorry
-      · apply?
-        apply measurableSet_lt measurable_const
-        -- τ n is a stopping time, hence measurable
-        exact (hτ.isStoppingTime n).measurable
+      have hX6 := JointlyStronglyMeasurable.HasStronglyMeasurableSupProcess hX5
+      -- Use stability: stopped process preserves strongly measurable sup
+      have h_stopped := isStable_hasStronglyMeasurableSupProcess X hX6 (τ n) (hτ.isStoppingTime n)
+      -- Compose with constant time t to get strong measurability at fixed t
+      exact h_stopped.comp_measurable (measurable_const.prodMk measurable_id)
 
     -- Goal 3: Prove the domination inequality
-    · apply eventually_of_forall
+    · apply Filter.Eventually.of_forall
       intro ω
-      -- Apply the pointwise bound from the hitting time lemma (hX4)
-      specialize hX4 t ω
-      refine le_trans hX4 ?_
-
-      -- Now show hX4's rhs ≤ our dom
-      -- Logic:
-      -- If τ ≤ t: rhs = n + ‖X_τ‖, dom = n + ‖X_τ‖. Equal.
-      -- If τ > t: rhs = n, dom = n + ‖X_t‖. Since ‖X_t‖ ≥ 0, rhs ≤ dom.
-      dsimp [dom]
-      simp only [add_le_add_iff_left]
-      by_cases h : τ n ω ≤ t
-      · -- Hit happened
-        simp [h, Set.indicator_of_mem, stoppedValue]
-      · -- Hit didn't happen
-        simp [h, Set.indicator_of_not_mem, stoppedValue]
-        exact norm_nonneg _
+      -- Simplify enorm of supremum
+      simp only [enorm_eq_self]
+      simp only [iSup_le_iff]
+      intro s hs
+      -- Step 1: The indicator makes the stopped process smaller or equal
+      have h_indicator : ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ ≤
+                         ‖stoppedProcess X (τ n) s ω‖ := by
+        simp only [stoppedProcess, Set.indicator, Set.mem_setOf_eq]
+        split_ifs
+        · exact le_refl _
+        · simp only [norm_zero, norm_nonneg]
+      -- Step 2: Use hX4 to bound the stopped process by rhs
+      -- The supremum ⨆ s ≤ t, ‖stoppedProcess X (τ n) s ω‖ bounds each individual term
+      have h_sup : ‖stoppedProcess X (τ n) s ω‖ ≤ rhs t ω := by
+        sorry  -- This follows from hX4 and the fact that s ≤ t
+      -- Step 3: Show rhs t ω ≤ dom ω
+      have h_rhs_dom : rhs t ω ≤ dom ω := by
+        unfold rhs dom
+        by_cases h : τ n ω ≤ t
+        · -- When τ n ω ≤ t: indicator is 1 and τ n ⊓ t = τ n
+          simp only [Set.indicator, Set.mem_setOf_eq, h, ite_pos]
+          have eq1 : (τ n ⊓ fun _ ↦ t) ω = τ n ω := inf_eq_left.mpr h
+          simp only [stoppedValue, eq1]
+        · -- When τ n ω > t: indicator is 0, so rhs = n ≤ n + ‖...‖ = dom
+          push_neg at h
+          simp only [Set.indicator, Set.mem_setOf_eq, ite_cond_eq_false]
+          simp only [h, not_le, ite_false, add_zero]
+          exact le_add_of_nonneg_right (norm_nonneg _)
+      -- Combine all inequalities
+      calc ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ
+          ≤ ‖stoppedProcess X (τ n) s ω‖ₑ := by
+            rw [enorm_eq_self, enorm_eq_self]; exact ENNReal.coe_mono (Real.toNNReal_mono h_indicator)
+        _ ≤ ‖rhs t ω‖ₑ := by
+            rw [enorm_eq_self, enorm_eq_self]; exact ENNReal.coe_mono (Real.toNNReal_mono h_sup)
+        _ ≤ ‖dom ω‖ₑ := by
+            rw [enorm_eq_self, enorm_eq_self]; exact ENNReal.coe_mono (Real.toNNReal_mono h_rhs_dom)
 
 
 end LinearOrder
