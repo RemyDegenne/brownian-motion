@@ -44,13 +44,13 @@ def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι]
 
 section Defs
 
-variable [Preorder ι] [Nonempty ι]
+variable [Preorder ι] [Nonempty ι] [MeasurableSpace ι]
 
 /-- A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted
 and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable. -/
 structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     Prop where
-  adapted : Adapted 𝓕 X
+  progMeasurable : ProgMeasurable 𝓕 X
   uniformIntegrable : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦ stoppedValue X τ.1) 1 P
 
@@ -58,7 +58,7 @@ structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure �
 $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. -/
 structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     Prop where
-  adapted : Adapted 𝓕 X
+  progMeasurable : ProgMeasurable 𝓕 X
   uniformIntegrable (t : ι) : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t}) ↦ stoppedValue X τ.1) 1 P
 
@@ -89,7 +89,7 @@ variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule �
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
-  refine ⟨hX1.1, fun t => ?_⟩
+  refine ⟨Adapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
   refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨T, ?_⟩)
@@ -191,13 +191,13 @@ lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [Orde
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
-lemma isStable_classD [OrderBot ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
+lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   sorry
 
-lemma isStable_classDL [OrderBot ι] : IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
+lemma isStable_classDL [OrderBot ι] [MeasurableSpace ι] : IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
   sorry
 
-lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι]
+lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
   sorry
@@ -208,12 +208,13 @@ lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 
-lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
     (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   sorry
 
 lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [MeasurableSpace ι]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   sorry
