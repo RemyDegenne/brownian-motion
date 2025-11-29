@@ -135,15 +135,59 @@ variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
-      sorry
+  intro X hX τ hτ
+  unfold HasStronglyMeasurableSupProcess at hX ⊢
+  let M : ι × Ω → ι × Ω := fun p ↦ ((min ↑p.1 (τ p.2)).untopA, p.2)
+  have hM : Measurable M := (WithTop.measurable_coe.comp measurable_fst).min
+      (hτ.measurable'.comp measurable_snd) |>.untopA.prodMk measurable_snd
+  have key_eq : (fun p : ι × Ω ↦ ⨆ s ≤ p.1, ‖stoppedProcess
+          (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ s p.2‖ₑ) =
+      {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) := by
+    ext ⟨t, ω⟩; simp only [M, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
+    split_ifs with h
+    · apply le_antisymm
+      · apply iSup₂_le
+        intro s hst
+        apply le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_
+        · simp only [le_refl]
+        · rw [WithTop.le_untopA_iff, WithTop.untopA_eq_untop, WithTop.coe_untop]
+          · exact min_le_min (WithTop.coe_le_coe.mpr hst) le_rfl
+          all_goals simp
+      · apply iSup₂_le
+        intro u hu
+        rw [WithTop.le_untopA_iff (by simp)] at hu
+        · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
+          · rw [min_eq_left]
+            · exact le_rfl
+            · exact le_trans hu (min_le_right _ _)
+          · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
+    · simp
+  rw [key_eq]
+  exact StronglyMeasurable.indicator (hX.comp_measurable hM)
+    (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
-lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι]
-    [OrderTopology ι] [MeasurableSpace ι] :
+
+lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (HasIntegrableSup (E := E) · P) := by
-      sorry
+  refine (fun X hX τ hτ ↦ ⟨isStable_hasStronglyMeasurableSupProcess X hX.1 τ hτ, ?_⟩)
+  refine fun t ↦ ⟨ (isStable_hasStronglyMeasurableSupProcess X hX.1 τ hτ).comp_measurable
+      (measurable_const.prodMk measurable_id) |>.aestronglyMeasurable, ?_ ⟩
+  have h_bound := (hX.2 t).hasFiniteIntegral
+  simp_rw  [hasFiniteIntegral_def, enorm_eq_self] at h_bound ⊢
+  refine lt_of_le_of_lt (lintegral_mono fun ω ↦ ?_) h_bound
+  apply iSup₂_le
+  intro s hs
+  simp only [stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
+  split_ifs with h_bot
+  · refine le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_ (le_refl _)
+    · rw [WithTop.untopA_le_iff]
+      · exact le_trans (min_le_left _ _) (WithTop.coe_le_coe.mpr hs)
+      · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top s))
+  · simp only [enorm_zero, zero_le]
 
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] :
+    [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
@@ -200,8 +244,8 @@ section ConditionallyCompleteLinearOrderBot
 
 
 variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
-  [Filtration.HasUsualConditions 𝓕 P] [TopologicalSpace ι] [OrderTopology ι]
-    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [MeasurableSpace ι]
+  [Filtration.HasUsualConditions 𝓕 P] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
     [IsFiniteMeasure P] [CompleteSpace E] [NormedSpace ℝ E]
 
 lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω))
