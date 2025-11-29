@@ -336,7 +336,8 @@ lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology 
   sorry
 
 lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
+  [MeasurableSpace ι]
+    (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   sorry
 

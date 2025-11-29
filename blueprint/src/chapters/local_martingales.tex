@@ -405,7 +405,7 @@ A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassD}
-A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is progressively measurable and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
 \end{definition}
 
 
@@ -413,7 +413,7 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassDL}
-A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class DL if it is progressively measurable and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
 \begin{lemma}\label{lem:classDLOfClassD}
