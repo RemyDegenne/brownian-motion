@@ -481,6 +481,16 @@ A càdlàg martingale is of class D if and only if it is uniformly integrable.
 Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
 \end{proof}
 
+\begin{lemma}\label{lem:isStable_progMeasurable}
+  \uses{def:stable}
+  \leanok
+  \lean{ProbabilityTheory.isStable_progMeasurable}
+The class of progressively measurable processes with respect to a filtration $\mathcal{F}$ is stable.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
+
 
 \begin{lemma}\label{lem:isStable_hasLocallyIntegrableSup}
   \uses{def:stable, def:locallyIntegrableSup}
@@ -502,7 +512,7 @@ The class D is stable.
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_progMeasurable}
 Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite stopping time $\sigma$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is finite and $X$ is of class D, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
 
@@ -515,7 +525,7 @@ The class DL is stable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_progMeasurable}
 Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For any stopping time $\sigma \le t$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is bounded by $t$ and $X$ is of class DL, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
 
@@ -541,7 +551,7 @@ Assume that the filtration is right-continuous. Let $X$ be a stochastic process 
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Integrable.classDL, lem:locally_mono}
+  \uses{lem:Integrable.classDL, lem:locally_mono, lem:isStable_progMeasurable}
 Combine Lemma~\ref{lem:Integrable.classDL} and Lemma~\ref{lem:locally_mono}.
 \end{proof}
 
