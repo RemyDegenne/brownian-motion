@@ -136,6 +136,33 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     rw [← abs_of_nonneg p1, ← p2] at hω
     exact norm_le_norm_of_abs_le_abs hω
 
+lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X)
+    (hX4 : UniformIntegrable X 1 P) :
+    UniformIntegrable (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
+      ↦ stoppedValue X T) 1 P := by
+    have hcond := hX4.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
+        IsStoppingTime.measurableSpace_le T.2.1)
+    refine uniformIntegrable_of_dominated le_rfl hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
+      (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
+    · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
+        hX2) hT ht).mono (𝓕.le' t)).aestronglyMeasurable
+    · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
+        suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
+          P[stoppedValue X (fun ω => t)|hT.measurableSpace] from by
+          have : T ⊓ (fun ω => t) = T := by simpa [inf_eq_left] using ht
+          simpa [inf_comm, this] using lem
+        exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
+          (Eventually.of_forall (fun ω => le_rfl)) hT (isStoppingTime_const 𝓕 t)
+      simp only [stoppedValue_const] at this
+      filter_upwards [this] with ω hω
+      apply norm_le_norm_of_abs_le_abs
+      have p1 : 0 ≤ stoppedValue X T ω := by simpa [stoppedValue] using (hX3 (T ω).untopA ω)
+      have p2 : |P[X t|hT.measurableSpace] ω| = P[X t|hT.measurableSpace] ω :=
+        abs_of_nonneg (le_trans p1 hω)
+      rw [← abs_of_nonneg p1, ← p2] at hω
+      exact hω
+
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
@@ -146,27 +173,7 @@ lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
     have eq : X = G ∘ constT := by ext; simp [constT, G, stoppedValue]
     simpa [eq] using hp.2.comp constT
   · refine classD_of_uniformIntegrable_bounded_stoppingTime ?_ ?_
-    · have hcond := hq.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
-        IsStoppingTime.measurableSpace_le T.2.1)
-      refine uniformIntegrable_of_dominated le_rfl hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
-        (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
-      · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
-          hX2) hT ht).mono (𝓕.le' t)).aestronglyMeasurable
-      · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
-          suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
-            P[stoppedValue X (fun ω => t)|hT.measurableSpace] from by
-            have : T ⊓ (fun ω => t) = T := by simpa [inf_eq_left] using ht
-            simpa [inf_comm, this] using lem
-          exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
-            (Eventually.of_forall (fun ω => le_rfl)) hT (isStoppingTime_const 𝓕 t)
-        simp only [stoppedValue_const] at this
-        filter_upwards [this] with ω hω
-        apply norm_le_norm_of_abs_le_abs
-        have p1 : 0 ≤ stoppedValue X T ω := by simpa [stoppedValue] using (hX3 (T ω).untopA ω)
-        have p2 : |P[X t|hT.measurableSpace] ω| = P[X t|hT.measurableSpace] ω :=
-          abs_of_nonneg (le_trans p1 hω)
-        rw [← abs_of_nonneg p1, ← p2] at hω
-        exact hω
+    · exact hX1.uniformIntegrable_bounded_stoppingTime hX2 hX3 hq
     · exact hX1.1.progMeasurable_of_rightContinuous hX2
 
 end Order
