@@ -57,6 +57,9 @@ lemma ClassD.classDL {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : Clas
       (lt_of_le_of_lt (τ.2.2 ω) (WithTop.coe_lt_top t))⟩
   exact ⟨hX.1, fun t => hX.2.comp (f t)⟩
 
+lemma classD_of_uniformIntegrable_finite_stoppingTime {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
+    (hX : UniformIntegrable (fun T : B ↦ stoppedValue X T.1) 1 P) :
+
 end Defs
 
 section PartialOrder
