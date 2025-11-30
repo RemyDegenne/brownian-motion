@@ -129,12 +129,13 @@ Firstly we will need Komlos' Lemma.
 \begin{lemma}\label{lem:komlos_convex}
   \leanok
   \lean{komlos_convex}
-Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a convex function such that $\phi(f_n)$ is a bounded sequence.
+Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a function such that $\phi(f_n)$ is a bounded sequence.
 For $\delta > 0$, let $S_\delta = \{(f, g) \mid \phi(f)/2 + \phi(g)/2 - \phi((f+g)/2) \ge \delta\}$.
 Then there exist $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for all $\delta > 0$, for $N$ large enough and $n, m \ge N$, $(g_n, g_m) \notin S_\delta$.
 \end{lemma}
 
 \begin{proof}
+  \leanok
 Let $B$ be the bound of $(\phi(f_n))_{n\in\mathbb{N}}$.
 Then for all $n\in\mathbb{N}$ and $g\in convex(f_n,f_{n+1},\cdots)$ we have $\phi(g)\le B$ by convexity of $\phi$.
 Let $r_n = \inf(\phi(g) \mid g\in convex(f_n, f_{n+1},\ldots))$.

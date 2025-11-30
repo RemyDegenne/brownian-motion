@@ -1,5 +1,6 @@
 import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.Auxiliary.Algebra
+import BrownianMotion.Auxiliary.Analysis
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.FiniteInf
@@ -45,6 +46,7 @@ import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
+import BrownianMotion.StochasticIntegral.OptionalSampling
 import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.StochasticIntegral.QuadraticVariation
 import BrownianMotion.StochasticIntegral.SimpleProcess
