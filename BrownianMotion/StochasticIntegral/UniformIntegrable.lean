@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Auxiliary.ENNReal
 import Mathlib.Probability.Martingale.OptionalSampling
 import BrownianMotion.Auxiliary.Jensen
+import BrownianMotion.StochasticIntegral.Cadlag
 
 /-!
 # Uniform integrability
