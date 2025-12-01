@@ -80,17 +80,44 @@ end Defs
 
 section PartialOrder
 
-variable [NormedSpace ℝ E] [CompleteSpace E] [LinearOrder ι] {𝓕 : Filtration ι mΩ}
+variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
 section RightContinuous
 
 variable [TopologicalSpace ι] [OrderTopology ι] [OrderBot ι] [MeasurableSpace ι]
-  [SecondCountableTopology ι] [BorelSpace ι] [MetrizableSpace ι]
+  [SecondCountableTopology ι]
+
+/-- If `{stoppedValue X T : T is a bounded stopping time}` is uniformly integrable, then `X` is
+of class D. -/
+lemma classD_of_uniformIntegrable_bounded_stoppingTime {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
+    (hX : UniformIntegrable (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
+      ↦ stoppedValue X T) 1 P) (hm : ProgMeasurable 𝓕 X) :
+    ClassD X 𝓕 P := by
+  have (T : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) :
+    ∃ N : ℕ → {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t},
+    ∀ᵐ ω ∂P, Tendsto (fun n ↦ stoppedValue X (N n).1 ω) atTop (nhds (stoppedValue X T.1 ω)) := by
+    obtain ⟨v, hv⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+    refine ⟨fun n => ⟨(fun ω => v n) ⊓ T.1, ⟨IsStoppingTime.min ?_ T.2.1, ?_⟩⟩, ?_⟩
+    · exact (isStoppingTime_const 𝓕 (v n))
+    · exact ⟨v n, fun ω => by simp⟩
+    · filter_upwards with ω
+      simp_all only [tendsto_atTop_atTop, tendsto_atTop_nhds]
+      intro U hU _
+      obtain ⟨N, hN⟩ := hv.2 (T.1 ω).untopA
+      refine ⟨N, fun n hn => ?_⟩
+      have : (T.1 ω).untopA = T.1 ω := by simp [WithTop.untopA_eq_untop (T.2.2 ω)]
+      rw [stoppedValue, Pi.inf_apply, ← this, ← WithTop.coe_min (v n) (T.1 ω).untopA,
+        min_eq_right (hN n hn)]
+      simpa using hU
+  exact ⟨hm, (hX.uniformIntegrable_of_tendsto_ae 1).comp
+    (fun T : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} => ⟨stoppedValue X T.1, this T⟩)⟩
+
+variable [NormedSpace ℝ E] [CompleteSpace E]
 
 section Order
 
-variable [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
-  [IsFiniteMeasure P]
+variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
+  [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [IsFiniteMeasure P]
 
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
@@ -99,8 +126,8 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
   refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨T, ?_⟩)
-  · exact ((stronglyMeasurable_stoppedValue_of_le (Adapted.progMeasurable_of_rightContinuous
-      hX1.1 hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
+  · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
+      hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T.1) ≤ᵐ[P]
         P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] from by
@@ -115,10 +142,45 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     rw [← abs_of_nonneg p1, ← p2] at hω
     exact norm_le_norm_of_abs_le_abs hω
 
+lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X)
+    (hX4 : UniformIntegrable X 1 P) :
+    UniformIntegrable (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
+      ↦ stoppedValue X T) 1 P := by
+    have hcond := hX4.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
+        IsStoppingTime.measurableSpace_le T.2.1)
+    refine uniformIntegrable_of_dominated le_rfl hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
+      (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
+    · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
+        hX2) hT ht).mono (𝓕.le' t)).aestronglyMeasurable
+    · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
+        suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
+          P[stoppedValue X (fun ω => t)|hT.measurableSpace] from by
+          have : T ⊓ (fun ω => t) = T := by simpa [inf_eq_left] using ht
+          simpa [inf_comm, this] using lem
+        exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
+          (Eventually.of_forall (fun ω => le_rfl)) hT (isStoppingTime_const 𝓕 t)
+      simp only [stoppedValue_const] at this
+      filter_upwards [this] with ω hω
+      apply norm_le_norm_of_abs_le_abs
+      have p1 : 0 ≤ stoppedValue X T ω := by simpa [stoppedValue] using (hX3 (T ω).untopA ω)
+      have p2 : |P[X t|hT.measurableSpace] ω| = P[X t|hT.measurableSpace] ω :=
+        abs_of_nonneg (le_trans p1 hω)
+      rw [← abs_of_nonneg p1, ← p2] at hω
+      exact hω
+
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
-    [IsFiniteMeasure P] (hX1 : Submartingale X 𝓕 P)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
-    ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := sorry
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
+    ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
+  let S := {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+  let G (T : S) : (Ω → E) := stoppedValue X T.1
+  refine ⟨fun hp => ?_, fun hq => ?_⟩
+  · let constT (t : ι) : S := ⟨fun ω : Ω => t, ⟨isStoppingTime_const 𝓕 t, by simp⟩⟩
+    have eq : X = G ∘ constT := by ext; simp [constT, G, stoppedValue]
+    simpa [eq] using hp.2.comp constT
+  · refine classD_of_uniformIntegrable_bounded_stoppingTime ?_ ?_
+    · exact hX1.uniformIntegrable_bounded_stoppingTime hX2 hX3 hq
+    · exact hX1.1.progMeasurable_of_rightContinuous hX2
 
 end Order
 
@@ -269,7 +331,6 @@ lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace �
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
-
 lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (HasIntegrableSup (E := E) · P) := by
@@ -332,10 +393,70 @@ lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 
-lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+omit [LinearOrder ι] in
+lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [MeasurableSpace ι]
+    (hX : ClassDL X 𝓕 P) :
+    ClassD X 𝓕 P := by
+  let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+  let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ (⊤ : ι)}
+  let f : A → B := fun T => ⟨T, ⟨T.2.1, fun ω => ?_⟩⟩
+  · have : (fun T : A ↦ stoppedValue X T.1) = (fun T ↦ stoppedValue X T.1) ∘ f := by ext; simp [f]
+    refine ⟨hX.1, ?_⟩
+    rw [this]
+    exact UniformIntegrable.comp (hX.2 (⊤ : ι)) f
+  · have := T.2.2 ω
+    simp only [ne_eq, WithTop.ne_top_iff_exists] at this
+    obtain ⟨a, ha⟩ := this
+    exact ha ▸ WithTop.coe_le_coe.mpr (le_top (a := a))
+
+lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι] [OrderTopology ι]
     (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+  rcases topOrderOrNoTopOrder ι with ha | hb
+  · exact locally_of_prop hX.classD
+  · obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+    refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
+    · simp [isStoppingTime_const]
+    · filter_upwards with ω
+      simp only [tendsto_atTop_atTop] at hv2
+      refine tendsto_atTop_isLUB (fun _ _ h => mod_cast hv1 h) ⟨?_, fun x hx => ?_⟩
+      · exact top_mem_upperBounds _
+      · simp only [top_le_iff, WithTop.eq_top_iff_forall_gt]
+        simp only [mem_upperBounds, Set.mem_range, forall_exists_index,
+          forall_apply_eq_imp_iff] at hx
+        intro a
+        obtain ⟨c, hc⟩ := (NoTopOrder.to_noMaxOrder ι).exists_gt a
+        obtain ⟨n, hn⟩ := hv2 c
+        exact lt_of_lt_of_le (WithTop.coe_lt_coe.mpr (lt_of_lt_of_le hc (hn n le_rfl))) (hx n)
+    · filter_upwards with ω
+      exact fun _ _ h => WithTop.coe_le_coe.mpr (hv1 h)
+    · refine ProgMeasurable.stoppedProcess (fun t => ?_) (by simp [isStoppingTime_const])
+      by_cases hb : ⊥ < (v n : WithTop ι)
+      · simp [hb, hX.1 t]
+      · simp [hb, stronglyMeasurable_const]
+    · let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+      let Y := fun T : A ↦ stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
+      refine uniformIntegrable_of_dominated (Y := Y) le_rfl ?_ (fun T => ?_) (fun T => ?_)
+      · let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ v n}
+        let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
+        have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
+          ext T; simpa [Y, f] using stoppedValue_stoppedProcess_apply (T.2.2 _)
+        rw [this]
+        exact UniformIntegrable.comp (hX.2 (v n)) f
+      · by_cases hb : ⊥ < (v n : WithTop ι)
+        · simp only [hb, Set.setOf_true, Set.indicator_univ, ne_eq, Set.mem_setOf_eq]
+          refine AEStronglyMeasurable.congr ?_ (stoppedValue_stoppedProcess_ae_eq ?_).symm
+          · refine (StronglyMeasurable.mono ?_ (𝓕.le' (v n))).aestronglyMeasurable
+            refine stronglyMeasurable_stoppedValue_of_le hX.1 ((T.2.1).min_const _) (fun ω => ?_)
+            grind
+          · exact ae_of_all P T.2.2
+        · unfold stoppedValue
+          simp [hb]
+          measurability
+      · by_cases hb : ⊥ < (v n : WithTop ι)
+        · simpa [hb, Y] using ⟨T.1, T.2, ae_of_all P fun ω => rfl.le⟩
+        · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
 lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι] (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :

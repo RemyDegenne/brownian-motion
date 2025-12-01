@@ -813,19 +813,30 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
 \end{proof}
 
-\begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
+\begin{lemma}\label{lem:uniformIntegrable_of_tendsto_ae}
   \leanok
-  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
-  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is uniformly integrable.
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendsto_ae}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in almost everywhere convergence of sequences of $X$ is $p$-uniformly integrable.
 \end{lemma}
 
 \begin{proof}
   \leanok
   Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
   \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
-  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges in probability to $Y$. Then it has a subsequence $(X_{t_{n_k}})$ which converges to $Y$ almost surely. Thus, we have by Fatou's lemma that
-  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{k \to \infty} \|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{k \to \infty} P[\|X_{t_{n_k}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
-  This proves that the family of limits in probability of sequences of $X$ is uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma and the existence of an almost everywhere convergent subsequence in a similar way.
+  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges almost everywhere to $Y$. We have by Fatou's lemma that
+  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{n \to \infty} \|X_{t_{n}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{n \to \infty} P[\|X_{t_{n}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
+  This proves that the family of limits in a.e convergence of sequences of $X$ is $p$-uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma in a similar way.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is $p$-uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  A subfamily of a $p$-uniformly integrable family is $p$-uniformly integrable. As convergence in probability implies the existence of a subsequence that converges almost everywhere, the family of limits in probability is a subfamily of the family of limits in almost everywhere convergence, which is $p$-uniformly integrable by Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}.
 \end{proof}
 
 \begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
@@ -999,7 +1010,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
   \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous, def:approximableTimeIndex}
-   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
+  \leanok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
   Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
