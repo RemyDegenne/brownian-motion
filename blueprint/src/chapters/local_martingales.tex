@@ -397,7 +397,8 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}
 We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
-A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is locally integrable.
+We say that a process has integrable supremum if $(t, \omega) \mapsto \sup_{s \le t} \Vert X_s(\omega) \Vert$ is strongly measurable and $(\sup_{s \le t} \Vert X_s \Vert)_t$ is integrable for all $t$.
+A process has locally integrable supremum if it is locally a process with integrable supremum in the sense of Definition~\ref{def:locally}.
 \end{definition}
 
 
@@ -438,7 +439,7 @@ Every nonnegative right-continuous submartingale is of class DL.
 
 \begin{proof}
   \leanok
-  \uses{lem:optionalSamplingSubmartingale}
+  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrableDominated, lem:condExpUI}
 Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
 \end{proof}
 
@@ -522,15 +523,17 @@ Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For 
 
 
 \begin{lemma}\label{lem:Integrable.classDL}
-  \uses{def:classDL}
+  \uses{def:classDL, def:locallyIntegrableSup}
   \leanok
   \lean{MeasureTheory.Integrable.classDL}
-Let $X$ be a stochastic process such that for all $t \in T$, $X^*_t := \sup_{s \le t} \|X_t\|$ is integrable. Then $X$ is of class DL.
+Let $X$ be a stochastic process with integrable supremum (Definition~\ref{def:locallyIntegrableSup}). Then $X$ is of class DL.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:uniformIntegrableDominatedSingleton}
-Let $t \in T$. For every stopping time $\tau$ with $\tau \le t$, we have $\|X_\tau\| \le X^*_t$. Because by hypothesis $X^*_t$ is integrable, we deduce from Lemma~\ref{lem:uniformIntegrableDominatedSingleton} that $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. This proves that $X$ is of class DL.
+Let $t \in T$. For every stopping time $\tau$ with $\tau \le t$, we have $\|X_\tau\| \le X^*_t$.
+Because by hypothesis $X^*_t$ is integrable, we deduce from Lemma~\ref{lem:uniformIntegrableDominatedSingleton} that $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
+This proves that $X$ is of class DL.
 \end{proof}
 
 
@@ -586,23 +589,26 @@ Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.locally_class
 \begin{lemma}\label{lem:isBounded_image_of_isCadlag_of_isCompact}
   \leanok
   \lean{isBounded_image_of_isCadlag_of_isCompact}
-Assume $T$ is a linear order endowed with a topology making it first countable and $E$ is a pseudometric space. If $X$ is a càdlàg process then it maps compact sets to bounded sets.
+Assume $T$ is a linear order endowed with a topology making it first countable and $E$ is a pseudo-metric space. If $X$ is a càdlàg process then it maps compact sets of $T$ to bounded sets.
 \end{lemma}
 
 \begin{proof}
 Let $K \subseteq T$ be a compact set and $\omega \in \Omega$. Assume that $X(\omega)(K)$ is not bounded. Then there exists a sequence $(t_n)$ in $K$ such that for all $n \in N$, $d(X_{t_n}(\omega), x) \ge n$, for some arbitrary $x \in E$. Because $K$ is compact, there is a subsequence $(t_{\phi(n)})$ that converges. Then one can extract a subsequence $(t_{\phi(\psi(n))})$ which either converges from below or from above. In both cases the sequence $(X_{t_{\phi(\psi(n))}})$ will converge, contradicting the hypotheses.
 \end{proof}
 
+
 TODO: refine the hypotheses with those of Début theorem.
 \begin{lemma}\label{lem:isLocalizingSequence_hittingAfter_Ici}
   \uses{def:leastGE, def:localizingSequence}
   \leanok
   \lean{ProbabilityTheory.isLocalizingSequence_hittingAfter_Ici}
-Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a real-valued càdlàg and adapted process, and if the filtration is right-continuous, then the sequence $\tau_n := \inf \{t | X_t \ge n\}$ is a localizing sequence.
+Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
+If $X$ is a real-valued càdlàg and adapted process, then the sequence $\tau_n := \inf \{t | X_t \ge n\}$ is a localizing sequence.
 \end{lemma}
 
 \begin{proof}
-By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ is a stopping time. Moreover, for all $n \in \mathbb{N}$, $X_t \ge n+1 \implies X_t \ge n$, thus $\tau_n \le \tau_{n+1}$. Finally, for every $\omega \in \Omega$ and $t_0 \in T$ there exists $N \in \mathbb{N}$ such that for all $s \le t_0$, $X_s \le N$ thanks to Lemma~\ref{lem:isBounded_image_of_cadlag_of_isCompact}. Thus for all $n \ge N$, $\tau_n(\omega) \ge t_0$, proving that $\tau_n$ tends to infinity as n goes to infinity.
+  \uses{lem:isBounded_image_of_isCadlag_of_isCompact, cor:isStoppingTime_leastGE_of_rightContinuous}
+By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ is a stopping time. Moreover, for all $n \in \mathbb{N}$, $X_t \ge n+1 \implies X_t \ge n$, thus $\tau_n \le \tau_{n+1}$. Finally, for every $\omega \in \Omega$ and $t_0 \in T$ there exists $N \in \mathbb{N}$ such that for all $s \le t_0$, $X_s \le N$ thanks to Lemma~\ref{lem:isBounded_image_of_isCadlag_of_isCompact}. Thus for all $n \ge N$, $\tau_n(\omega) \ge t_0$, proving that $\tau_n$ tends to infinity as n goes to infinity.
 \end{proof}
 
 
@@ -629,7 +635,8 @@ If $\tau > t$, then for all $s \le t$, $\|X_s\| \le n$, and thus $(X^\tau)^*_t =
   \uses{def:classD, def:locallyIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.ClassDL.hasLocallyIntegrableSup}
-Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process of class DL has locally integrable supremum.
+Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
+If $X$ is a càdlàg process of class DL, then it has locally integrable supremum.
 \end{lemma}
 
 \begin{proof}
@@ -642,7 +649,9 @@ Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\
   \uses{def:classD, def:locallyIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.hasLocallyIntegrableSup_of_locally_classDL}
-Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact. If $X$ is a càdlàg and adapted process, and if the filtration is right-continuous, then any process locally of class DL has locally integrable supremum.
+Assume $T$ has a bottom element and that its closed intervals are compact.
+Assume that the filtration is right-continuous.
+If a process is càdlàg and locally of class DL, then it has locally integrable supremum.
 \end{lemma}
 
 \begin{proof}
@@ -652,25 +661,40 @@ Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyInt
 \end{proof}
 
 
-% todo: this and the next lemma are proved together, with whatever chain of implications is easiest
-\begin{lemma}\label{lem:locally_classD_iff_locallyIntegrableSup}
+\begin{lemma}\label{lem:locally_classDL_iff_locallyIntegrableSup}
   \uses{def:classD, def:locallyIntegrableSup, def:locally}
-A cadlag adapted process is locally of class D if and only if it has locally integrable supremum.
+Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
+If $X$ is a càdlàg process, then it is locally of class DL if and only if it has locally integrable supremum.
 \end{lemma}
 
 \begin{proof}
-
+  \uses{lem:hasLocallyIntegrableSup_of_locally_classDL, lem:HasLocallyIntegrableSup.locally_classDL}
+The two directions are proved in Lemmas~\ref{lem:hasLocallyIntegrableSup_of_locally_classDL} and \ref{lem:HasLocallyIntegrableSup.locally_classDL}.
 \end{proof}
 
 
-% todo: this and the previous lemma are proved together, with whatever chain of implications is easiest
 \begin{lemma}\label{lem:locally_classD_iff_locally_classDL}
   \uses{def:classD, def:classDL, def:locally}
-A cadlag adapted process is locally of class D if and only if it is locally of class DL.
+Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
+A càdlàg process is locally of class D if and only if it is locally of class DL.
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:locally_classD_of_locally_classDL, lem:classDLOfClassD, lem:locally_mono}
+The forward direction follows from Lemma~\ref{lem:classDLOfClassD} along with Lemma~\ref{lem:locally_mono}.
+The reverse direction is Lemma~\ref{lem:locally_classD_of_locally_classDL}.
+\end{proof}
 
+
+\begin{lemma}\label{lem:locally_classD_iff_locallyIntegrableSup}
+  \uses{def:classD, def:locallyIntegrableSup, def:locally}
+Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
+A càdlàg process is locally of class D if and only if it has locally integrable supremum.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:locally_classD_iff_locally_classDL, lem:locally_classDL_iff_locallyIntegrableSup}
+This follows from Lemmas~\ref{lem:locally_classD_iff_locally_classDL} and \ref{lem:locally_classDL_iff_locallyIntegrableSup}.
 \end{proof}
 
 
@@ -723,6 +747,7 @@ This is done in Lemma~\ref{lem:Submartingale.locally_classD}.
 
 \begin{lemma}\label{lem:IsLocalMartingale.locally_classD}
   \uses{def:IsLocalMartingale, def:classD, def:locally}
+  \notready
 Every local martingale is locally of class D.
 \end{lemma}
 
@@ -733,6 +758,7 @@ Every local martingale is locally of class D.
 
 \begin{lemma}\label{lem:IsLocalMartingale.martingale_iff_classDL}
   \uses{def:IsLocalMartingale, def:classDL, def:Martingale}
+  \notready
 A local martingale is a martingale if and only if it is of class DL.
 \end{lemma}
 
@@ -743,6 +769,7 @@ A local martingale is a martingale if and only if it is of class DL.
 
 \begin{lemma}\label{lem:IsLocalSubmartingale.submartingale_iff_classDL_of_nonnegative}
   \uses{def:IsLocalSubmartingale, def:classDL, def:Submartingale}
+  \notready
 A nonnegative local submartingale is a submartingale if and only if it is of class DL.
 \end{lemma}
 
