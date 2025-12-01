@@ -706,7 +706,7 @@ Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d
   \le M L(T, c, d, p, q, \beta)
   \: .
 \end{align*}
-If furthermore $E$ is an extended metric space (not pseudo-metric: $d_E(x,y) = 0$ implies $x = y$) and is complete, and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
+If furthermore $E$ is complete and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
 In our formalization, the two parts of this theorem correspond to the statements \bmlink{Continuity/KolmogorovChentsovInequality}{L405-L410}{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \bmlink{Continuity/KolmogorovChentsov}{L1011-L1016}{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
@@ -962,7 +962,7 @@ Also any improvement in a constant in a \Lean proof is easy to propagate through
 \subsubsection{Building a Hölder continuous process}
 \label{sub:holder_process}
 
-We discuss the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov}, which states that under additional assumptions on $E$ and $T$, the process $X$ has a modification with Hölder continuous paths.
+We discuss the proof of the second part of Theorem~\ref{thm:kolmogorov_chentsov}, which states that for $E$ complete and $T$ second-countable, the process $X$ has a modification with Hölder continuous paths.
 We first prove the result for a fixed $\beta \in (0, (q - d)/p)$, and will then deduce it for all $\beta$ in that interval simultaneously.
 An advantage of the formal proof is that it is easy to inspect the code to see which assumptions are used where.
 This part of the theorem requires $T$ to be second-countable because we first take a countable dense subset $T'$ of $T$, on which we apply the main inequality of Theorem~\ref{thm:kolmogorov_chentsov}.
@@ -982,31 +982,35 @@ Let $x_0 \in E$ be arbitrary and let $Y$ be the process defined by
   \end{cases}
 \end{align*}
 The limits in that definition are the reason for the completeness assumption on $E$.
-Then $Y$ has Hölder continuous paths of order $\beta$.
-We finally need to show that $Y$ is a modification of $X$, which we do by showing that for all $t \in T$, $d_E(X_t, Y_t) = 0$ almost surely.
-That is why that part of the theorem requires $E$ to be metric and not pseudo-metric.
-We refer to \cite{kratschmer2023kolmogorov} for the proof that $Y$ is a modification of $X$, and only note that it uses convergence in probability, which we had to generalize in \mathlib from pseudo-metric to extended pseudo-metric spaces.
+Then $Y$ has Hölder continuous paths of order $\beta$ and is measurable.
+We finally need to show that $Y$ is a modification of $X$.
+It is actually only a ``distance zero modification'', by which we mean that $d_E(X_t, Y_t) = 0$ almost surely.
+Since $E$ is only a pseudo-metric space, $Y$ might not satisfy the modification property $Y_t = X_t$ almost surely.
+We refer to \cite{kratschmer2023kolmogorov} for the proof that $Y$ is a distance zero modification of $X$\footnote{They use a metric space assumption for $E$ and prove that $Y$ is a true modification: replacing equalities with distance zero statements gives our proof for pseudo-metric spaces.}, and only note that it uses convergence in probability, which we had to generalize in \mathlib from pseudo-metric to extended pseudo-metric spaces.
+From a distance zero modification $Y$ of $X$, we can obtain a true modification in a pseudo-metric space as follows: for each $t \in T$, let $Z_t$ be equal to $X_t$ on the event where $d_E(X_t, Y_t) = 0$, and equal to $Y_0$ otherwise.
+Then $Z_t = X_t$ almost surely, and since $d_E(Z_t(\omega), Y_t(\omega)) = 0$ for all $t$ and all $\omega$, $Z$ has the same continuity properties as $Y$.
+Finally, $Z$ is measurable (that is, $Z_t$ is measurable for all $t$), since a random variable that is at distance zero from a measurable random variable is itself measurable.
 
-Now that we have a modification $Y$ with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
+Now that we have a modification with Hölder continuous paths of order $\beta$ for a fixed $\beta \in (0, (q - d)/p)$, we want to obtain a modification with Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$ simultaneously.
 Since $T$ has finite diameter, being Hölder continuous of order $\beta$ implies being Hölder continuous of order $\gamma$ for all $\gamma \in (0, \beta]$ (which we proved at \bmlink{Auxiliary/Topology}{L85-L87}{HolderOnWith.mono_right}).
 
 Let $(\beta_n)_{n \in \mathbb{N}}$ be an increasing sequence in $(0, (q - d)/p)$ converging to $(q - d)/p$.
 For each $n$, we obtain a modification $Y^n$ with Hölder continuous paths of order $\beta_n$.
-Those $Y^n$ are all modifications of each other and are continuous, hence indistinguishable.
-Thus almost surely, for all $t \in T$, $Y^n_t = Y^1_t$ for all $n$.
-We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is in the event where all $Y^n$ are equal, and $Z_t(\omega) = x_0$ otherwise.
+Those $Y^n$ are all distance zero modifications of each other and are continuous, hence indistinguishable (in the sense of having distance zero).
+Thus almost surely, for all $t \in T$, $d_E(Y^n_t, Y^1_t) = 0$ for all $n$.
+We can thus define a process $Z$ by $Z_t(\omega) = Y^1_t(\omega)$ if $\omega$ is in the event where all $Y^n$ are at distance zero, and $Z_t(\omega) = x_0$ otherwise.
 Then $Z$ is a modification of $X$ and has Hölder continuous paths of order $\beta_n$ for all $n$.
 It thus has Hölder continuous paths of order $\gamma$ for all $\gamma \in (0, (q - d)/p)$.
 
-That discussion is very close to the one in \cite{kratschmer2023kolmogorov}, and we omitted an aspect that proved more subtle than expected during the formalization: the measurability of $Z$.
+That discussion is very close to the one in \cite{kratschmer2023kolmogorov} (up to our use of distance zero instead of equality), and we omitted an aspect that proved more subtle than expected during the formalization: the measurability of $Z$.
 The process $Z$ is defined as being equal to one of two measurable processes depending on whether $\omega$ belongs to a certain event or not.
 In order to ensure that $Z$ is measurable, that event must be measurable.
-In particular we need the event $\{\omega \mid \forall t \in T, \: Y_t^1(\omega) = Y_t^n(\omega)\}$ that two processes are equal to be measurable.
-We use continuity to reduce to equality of the processes on a countable subset of $T$, and it suffices then to prove that the set $\{\omega \mid Y_t^1(\omega) = Y_t^n(\omega)\}$ is measurable for all $t \in T$.
-Rewriting the equality as $d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0$, we see that this is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
+In particular we need the event $\{\omega \mid \forall t \in T, \: d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0\}$ that two processes are at distance zero to be measurable.
+We use continuity to reduce to a countable subset of $T$, and it suffices then to prove that the set $\{\omega \mid d_E(Y_t^1(\omega), Y_t^n(\omega)) = 0\}$ is measurable for all $t \in T$.
+This is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
 However, as currently stated, Theorem~\ref{thm:kolmogorov_chentsov} does not guarantee that the two modifications $Y^1$ and $Y^n$ satisfy that property (unless $E$ is second-countable, in which case that follows from the measurability of each $Y^i$).
 The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
-To solve it, we introduced the property for a process $Y$ of being a limit of $X$ on an event of probability one, and a fixed arbitrary value outside of that event (\bmlink{Continuity/KolmogorovChentsov}{L447-L454}{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
+To solve it, we introduced the property for a process $Y$ of being at distance zero of a limit of $X$ on an event of probability one, and at distance zero of a fixed arbitrary value outside of that event (\bmlink{Continuity/KolmogorovChentsov}{L447-L454}{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
 The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
@@ -1120,7 +1124,7 @@ The law of $B$ in that space is called the Wiener measure (\bmlink{Gaussian/Brow
 
 \section*{Acknowledgments}
 
-We would like to thank Markus Himmel for his many contributions to the formalization of the Kolmogorov-Chentsov proof.
+We would like to thank Markus Himmel for his many contributions to the formalization of the Kolmogorov-Chentsov proof, as well as Sébastien Gouëzel, whose suggestions helped us greatly improve Theorem~\ref{thm:kolmogorov_chentsov} by removing any need for a metric space (instead of pseudo-metric space) assumption.
 We are also grateful to Jonas Bayer, Lorenzo Luccioli, Alessio Rondelli, Jérémy Scanvic for their contributions to various parts of the formalization and to Pietro Monticone for his help with technical aspects of setting up the project.
 
 This project would not have been possible without the foundational work of the \Lean and \mathlib community.
