@@ -285,7 +285,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
   The class of right continuous processes is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Trivial.
 \end{proof}
 
@@ -296,7 +296,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
   The class of processes with left limits is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Trivial.
 \end{proof}
 
@@ -355,6 +355,7 @@ The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingal
 
 \begin{proof}
   \uses{lem:optionalSampling}
+  \leanok
   Clearly, the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is cadlag and it remains to show that it is a martingale.
 
   Fixing $s \le t \in T$, as $\{\tau > 0\} \in \mathcal{F}_0 \subseteq \mathcal{F}_s$, we have
@@ -369,7 +370,7 @@ The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingal
   \uses{def:Submartingale, def:stable}
   \leanok
   \lean{ProbabilityTheory.isStable_submartingale}
-The class of submartingales is stable. That is, if $M$ is a submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a submartingale.
+The class of cadlag submartingales is stable. That is, if $M$ is a cadlag submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a cadlag submartingale.
 \end{lemma}
 
 \begin{proof}
@@ -389,9 +390,7 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 
 
-
 \section{Doob-Meyer class}
-
 
 \begin{definition}\label{def:locallyIntegrableSup}
   \uses{def:locally}
@@ -406,7 +405,7 @@ A process has locally integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassD}
-A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is progressively measurable and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable.
 \end{definition}
 
 
@@ -414,7 +413,7 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
   \uses{def:IsStoppingTime}
   \leanok
   \lean{ProbabilityTheory.ClassDL}
-A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
+A stochastic process $(X_t)$ is of class DL if it is progressively measurable and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
 \begin{lemma}\label{lem:classDLOfClassD}
@@ -434,12 +433,12 @@ This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
   \uses{def:Submartingale, def:classDL}
   \leanok
   \lean{MeasureTheory.Submartingale.classDL}
-Every nonnegative càdlàg submartingale is of class DL.
+Every nonnegative right-continuous submartingale is of class DL.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSamplingSubmartingale}
-Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:condExpUI}.
+Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
 \end{proof}
 
 
@@ -447,12 +446,12 @@ Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSam
   \uses{def:Submartingale, def:classD}
   \leanok
   \lean{MeasureTheory.Submartingale.classD_iff_uniformIntegrable}
-A nonnegative càdlàg submartingale is of class D if and only if it is uniformly integrable.
+A nonnegative right-continuous submartingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL, lem:uniformIntegrable_of_tendstoInMeasure, lem:uniformIntegrableComp}
-Assume that $X$ is uniformly integrable. We know from Lemma~\ref{lem:Submartingale.classDL} that $X$ is of class DL. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendstoInMeasure}, we deduce that $X$ is of class D.
+  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp}
+Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
 
 Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
 \end{proof}
@@ -490,7 +489,7 @@ Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{
 The class of process with locally integrable supremum is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
 \end{proof}
 
@@ -645,6 +644,7 @@ Assume $T$ has a bottom element $\bot$ and that its closed intervals are compact
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
 Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
 \end{proof}
