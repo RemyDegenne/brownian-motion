@@ -40,7 +40,7 @@
 {#3}}
 
 \newcommand{\bmlink}[3]{%
-\leanlink{https://github.com/RemyDegenne/brownian-motion/blob/aae12b7f25e401a52c60546a8ff0e3390e81b87b/BrownianMotion/#1.lean\##2}
+\leanlink{https://github.com/RemyDegenne/brownian-motion/blob/6a7a3141c6bc217484f635f3ab861316a37c0362/BrownianMotion/#1.lean\##2}
 {#3}}
 
 \lstset{escapeinside={(*}{*)}, language=lean}
@@ -175,7 +175,7 @@ Finally, Section~\ref{S:BM} contains the final construction of Brownian motion a
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
 We refer to the implementation using links, like \mllink{Probability/Distributions/Gaussian/Basic}{L43-L46}{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
 Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
-All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and commit {\tt aae12b7f25e401a52c60546a8ff0e3390e81b87b} for our repository, which correspond to their state on November 22, 2025.
+All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and to commit {\tt 6a7a3141c6bc217484f635f3ab861316a37c0362} for our repository, which correspond its state on December 1, 2025.
 
 Let us start with notation. Any stochastic process has an index set $T$ (usually called {\em time}, usually uncountably infinite), and a state space.
 While the general use of the word {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$.
@@ -709,7 +709,7 @@ Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d
 If furthermore $E$ is complete and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
-In our formalization, the two parts of this theorem correspond to the statements \bmlink{Continuity/KolmogorovChentsovInequality}{L405-L410}{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \bmlink{Continuity/KolmogorovChentsov}{L1011-L1016}{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
+In our formalization, the two parts of this theorem correspond to the statements \bmlink{Continuity/KolmogorovChentsovInequality}{L405-L410}{ProbabilityTheory.countable_kolmogorov_chentsov} for the inequality on the expectation and \bmlink{Continuity/KolmogorovChentsov}{L1216-L1221}{ProbabilityTheory.exists_modification_holder} for the existence of a Hölder modification.
 We adopt here \Lean's convention that $0/0 = 0$, which means that the expression under the expectation is well-defined even if we allow $d_T(s, t) = 0$ in the supremum.
 Indeed, if $d_T(s, t) = 0$, then the Kolmogorov condition implies that $d_E(X_s, X_t) = 0$ almost surely, so the ratio is then $0/0 = 0$ and the expectation is well-defined.
 
@@ -744,7 +744,7 @@ The following localized version of the theorem fulfills this need, and also uses
 The conclusion of the theorem is not Hölder continuity of the paths, but local Hölder continuity.
 A function $f : T \to E$ is said to be locally Hölder continuous of order $\gamma$ if for all $t \in T$, there exists a neighborhood $U$ of $t$ such that $f$ is $\gamma$-Hölder continuous on $U$.
 
-\begin{theorem}[\bmlink{Continuity/KolmogorovChentsov}{L1239-L1245}{ProbabilityTheory.exists_modification_holder_iSup}]\label{thm:localized_holder_modification_sup}
+\begin{theorem}[\bmlink{Continuity/KolmogorovChentsov}{L1362-L1368}{ProbabilityTheory.exists_modification_holder_iSup}]\label{thm:localized_holder_modification_sup}
 Suppose that $T$ can be covered by an increasing sequence of totally bounded open subsets $(T_n)_{n \in \mathbb{N}}$ such that each $T_n$ has bounded covering number with constant $c_n > 0$ and exponent $d > 0$ (the same exponent for all $n$).
 Let $(p_m, q_m)_{m \in \mathbb{N}}$ be a sequence of pairs of positive numbers such that $q_m > d$ for all $m \in \mathbb{N}$.
 Let $(X_t)_{t \in T}$ be a process that satisfies the Kolmogorov condition with exponents $(p_m, q_m)$ for all $m \in \mathbb{N}$.
@@ -1010,7 +1010,7 @@ We use continuity to reduce to a countable subset of $T$, and it suffices then t
 This is true if the distance $d_E(Y_t^1, Y_t^n)$ is a measurable function, which would follow from the measurability of the pairs $(Y_t^1, Y_t^n)$ with respect to $\mathcal{B}(E \times E)$.
 However, as currently stated, Theorem~\ref{thm:kolmogorov_chentsov} does not guarantee that the two modifications $Y^1$ and $Y^n$ satisfy that property (unless $E$ is second-countable, in which case that follows from the measurability of each $Y^i$).
 The particular construction of $Y$ we used in the proof will be important to ensure the measurability: this phenomenon of relying on the particular object constructed in the proof rather than purely on the statement of the theorem that gives existence is not ideal but also not uncommon in mathematics and is an often encountered challenge in formalization \cite{morelTalk}.
-To solve it, we introduced the property for a process $Y$ of being at distance zero of a limit of $X$ on an event of probability one, and at distance zero of a fixed arbitrary value outside of that event (\bmlink{Continuity/KolmogorovChentsov}{L447-L454}{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
+To solve it, we introduced the property for a process $Y$ of being at distance zero of a limit of $X$ on an event of probability one, and at distance zero of a fixed arbitrary value outside of that event (\bmlink{Continuity/KolmogorovChentsov}{L557-L564}{ProbabilityTheory.IsLimitOfIndicator}), and our formal statement of Theorem~\ref{thm:kolmogorov_chentsov} ensures that the modification we build satisfies that property.
 The fact that all $Y^i$ satisfy that property is sufficient to ensure the measurability of $Z$ and to prove that $Z$ itself has the same property, which can then be used in further constructions (needed for the localized Theorem~\ref{thm:localized_holder_modification_sup}).
 
 
