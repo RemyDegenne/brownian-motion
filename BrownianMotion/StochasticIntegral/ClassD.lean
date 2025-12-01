@@ -239,7 +239,7 @@ lemma ProgMeasurable.jointlyStronglyMeasurable
   apply tendsto_const_nhds.congr'
   filter_upwards [ht_lim.eventually (Filter.eventually_ge_atTop s)] with n hn
   simp only [uncurry_apply_pair, stoppedProcess]
-  rw [←WithTop.coe_min, WithTop.coe_untopA, min_eq_left hn]
+  rw [←WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
 
 private lemma ProgMeasurable.stoppedValue_stoppedProcess_aestronglyMeasurable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [NoMaxOrder ι]
@@ -623,7 +623,7 @@ section ConditionallyCompleteLinearOrderBot
 variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
   [Filtration.HasUsualConditions 𝓕 P] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
     [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
-    [PseudoMetrizableSpace ι] [IsFiniteMeasure P]
+    [PseudoMetrizableSpace ι] [IsFiniteMeasure P] [NormedSpace ℝ E] [CompleteSpace E]
 
 lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω))
     (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
