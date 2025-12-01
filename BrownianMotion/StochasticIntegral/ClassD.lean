@@ -28,11 +28,6 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X : ι → Ω → E}
 
-/-- The process `X` is jointly strongly measurable if it is strongly measurable as a function
-on the total space `ι × Ω`. -/
-def JointlyStronglyMeasurable [MeasurableSpace ι] (X : ι → Ω → E) : Prop :=
-  StronglyMeasurable (uncurry X)
-
 /-- The condition that the running supremum process `(t, ω) ↦ sup_{s ≤ t} ‖X s ω‖` is strongly
 measurable as a function on the product. -/
 def HasStronglyMeasurableSupProcess [LinearOrder ι] [MeasurableSpace ι] (X : ι → Ω → E) : Prop :=
@@ -223,7 +218,7 @@ lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpa
 lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) (t : ι) :
-    JointlyStronglyMeasurable (mΩ := mΩ) (stoppedProcess X (fun _ ↦ t)) := by
+    (StronglyMeasurable <| uncurry (stoppedProcess X (fun _ ↦ t))) := by
   let g : ι × Ω → (Set.Iic t) × Ω := fun p ↦ (⟨min p.1 t, min_le_right p.1 t⟩, p.2)
   have hg_meas : @Measurable _ _ _
       (MeasurableSpace.prod (inferInstance : MeasurableSpace (Set.Iic t)) (𝓕 t)) g := by
@@ -234,7 +229,7 @@ lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
 lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
     [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-    (hX : ProgMeasurable 𝓕 X) : (JointlyStronglyMeasurable (mΩ := mΩ) X) := by
+    (hX : ProgMeasurable 𝓕 X) : (StronglyMeasurable (uncurry X)) := by
   rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
   refine stronglyMeasurable_of_tendsto atTop
     (fun n ↦ jointlyStronglyMeasurable_stoppedProcess_const hX (t n)) ?_
@@ -294,7 +289,7 @@ private lemma stoppedValue_stoppedProcess_dominated_le
 
 lemma isStable_jointlyStronglyMeasurable [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-    IsStable 𝓕 (JointlyStronglyMeasurable (E := E) (mΩ := mΩ) · ) := by
+    @IsStable ι Ω E mΩ _ _ _ 𝓕 (fun X ↦ StronglyMeasurable (uncurry X) ) := by
       sorry
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
