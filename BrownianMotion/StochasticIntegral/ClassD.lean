@@ -19,7 +19,8 @@ open scoped ENNReal
 
 
 /-- Helper Lemma -/
-lemma WithTop.coe_untopA {α : Type*} [Nonempty α] {σ : α} :
+@[simp]
+lemma WithTop.untopA_coe {α : Type*} [Nonempty α] {σ : α} :
     (σ : WithTop α).untopA = σ := rfl
 
 namespace ProbabilityTheory
