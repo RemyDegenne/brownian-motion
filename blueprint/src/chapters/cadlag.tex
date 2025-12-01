@@ -9,6 +9,19 @@ TODO: define cadlag.
 \subsection{Upcrossings}
 
 
+\begin{lemma}\label{lem:tendsto_of_no_upcrossings}
+  \mathlibok
+  \lean{tendsto_of_no_upcrossings}
+Let $u : \beta \to \alpha$, for $\alpha$ a densely ordered, conditionally complete linear order equipped with the order topology.
+Let $S$ be a dense subset of $\alpha$ and $f$ a filter of $\beta$.
+If for all $a < b$ in $S$, the number of upcrossings of the interval $[a, b]$ by $u$ along $f$ is finite, then $u$ tends to a limit along $f$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:upcrossing_simpleProcess_le}
   \uses{def:elemStochIntegral, def:simpleProcess}
 Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process on a finite time domain $T$.
@@ -36,57 +49,155 @@ Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary p
 
 \end{proof}
 
+
 \subsection{Cadlag modifications}
+
+
+
+
 
 \begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
   \uses{def:elemStochIntegral, def:modification}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that one of the two following conditions hold:
-\begin{enumerate}
-  \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
-  \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
-\end{enumerate}
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+% \begin{enumerate}
+%   \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+%   \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
+% \end{enumerate}
 Then $X$ has a modification $Y$ which has left and right limits everywhere and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
 \end{theorem}
 
 \begin{proof}
   \uses{lem:upcrossing_simpleProcess_le}
+TODO
 
+% Let $t \in T$ and let $S$ be a finite subset of $[0, t]$.
+% By Lemma~\ref{lem:upcrossing_simpleProcess_le}, for all $a < b$ in $\mathbb{R}$, the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ in $S$ satisfies
+% \begin{align*}
+%   (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
+%   \:,
+% \end{align*}
+% for some elementary predictable set $A$.
 \end{proof}
 
 
 \begin{corollary}\label{cor:exists_caldag_modification}
   \uses{def:elemStochIntegral, def:modification}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that one of the two conditions of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
+Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
 Then $X$ has a cadlag modification.
 \end{corollary}
 
 \begin{proof}
   \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
-
+Let $Y$ be the modification of $X$ given by Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}.
+$Y$ has left and right limits everywhere and there is a countable set $S$ such that $Y$ is right-continuous on $T \setminus S$. It remains to show that $Y$ is right-continuous at the points of $S$.
+Let $Y_{t+}$ denote the right limit of $Y$ at $t$.
+Since $X$ is right-continuous in probability, for all $t \in S$, $Y_t = Y_{t+}$ almost surely.
+Therefore, since $S$ is countable, we have that almost surely $Y_t = Y_{t+}$ for all $t \in S$ (and hence for all $t \in T$).
+$Y$ is therefore almost surely cadlag.
+We can modify $Y$ on the null set to obtain a cadlag modification of $X$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:Martingale.exists_cadlag_modification_of_rightContinuous}
-  \uses{def:modification, def:Martingale}
-Let $X : T \to \Omega \to \mathbb{R}$ be a martingale which is right-continuous in probability.
+\begin{lemma}\label{lem:Submartingale.integral_elemStochIntegral_bounded}
+  \uses{def:elemStochIntegral, def:Submartingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale.
+Then for every $t \in T$, the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:submartingale_iff_integral_elemStochIntegral_nonneg, cor:Submartingale.integral_elemStochIntegral_le}
+Since $X$ is a submartingale, for any elementary predictable set $A$, we have (Corollary~\ref{cor:Submartingale.integral_elemStochIntegral_le})
+\begin{align*}
+  0 \le \mathbb{E}[(\mathbb{1}_A \bullet X)_t] \le \mathbb{E}[X_t - X_0]
+  \:.
+\end{align*}
+As $X_t$ and $X_0$ are integrable, the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.exists_cadlag_modification_of_rightContinuous}
+  \uses{def:modification, def:Submartingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale which is right-continuous in probability.
 Then $X$ has a cadlag modification.
 \end{lemma}
 
 \begin{proof}
-  \uses{cor:exists_caldag_modification}
-
+  \uses{cor:exists_caldag_modification, lem:Submartingale.integral_elemStochIntegral_bounded}
+We apply Corollary~\ref{cor:exists_caldag_modification}, in which the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds by Lemma~\ref{lem:Submartingale.integral_elemStochIntegral_bounded}.
 \end{proof}
 
 
-\begin{lemma}\label{lem:Martingale.exists_modifications_limits}
-  \uses{def:modification, def:Martingale}
-Let $X : T \to \Omega \to \mathbb{R}$ be a martingale.
+\begin{lemma}\label{lem:Submartingale.exists_modifications_limits}
+  \uses{def:modification, def:Submartingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale.
 Then $X$ has a modification $Y$ such that for all $t \in T$, $Y$ has left and right limits at $t$ and such that there is a countable set $S \subseteq T$ for which $Y$ is right-continuous on $T \setminus S$.
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
+  \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral, lem:Submartingale.integral_elemStochIntegral_bounded}
+Apply Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}, in which the boundedness condition holds by Lemma~\ref{lem:Submartingale.integral_elemStochIntegral_bounded}.
+\end{proof}
 
+
+\begin{lemma}\label{lem:Submartingale.uniformIntegrable_of_antitone_of_ge}
+  \uses{def:Submartingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale and let $t_n$ be a decreasing sequence in $T$ which is bounded below.
+Then the family $\{X_{t_n}\}_{n \in \mathbb{N}}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.le_condExp_of_tendsto}
+  \uses{def:Submartingale}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale and $t \in T$.
+Let $t_n$ be a decreasing sequence in $T$ converging to $t$, and such that $X_{t_n}$ tends to a limit $X_{t+}$ almost surely.
+Then $X_t \le P[X_{t+} \mid \mathcal{F}_t]$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.uniformIntegrable_of_antitone_of_ge}
+By the submartingale property, for all $n$ we have that $X_t \le P[X_{t_n} \mid \mathcal{F}_t]$ almost surely.
+By Lemma~\ref{lem:Submartingale.uniformIntegrable_of_antitone_of_ge}, the family $\{X_{t_n}\}_{n \in \mathbb{N}}$ is uniformly integrable.
+
+
+TODO: conclude that $P[X_{t+} \mid \mathcal{F}_t]$ is the limit of $P[X_{t_n} \mid \mathcal{F}_t]$.
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:Submartingale.exists_cadlag_modification_iff_rightContinuous}
+  \uses{def:modification, def:Submartingale, def:rightContinuous}
+Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale with respect to a right-continuous filtration.
+Then $X$ has a cadlag modification if and only if $t \mapsto \mathbb{E}[X_t]$ is right-continuous.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:Submartingale.exists_modifications_limits, lem:Submartingale.le_condExp_of_tendsto, lem:Submartingale.uniformIntegrable_of_antitone_of_ge}
+Let $Y$ be the modification of $X$ given by Lemma~\ref{lem:Submartingale.exists_modifications_limits}.
+$Y$ has left and right limits everywhere and there is a countable set $S$ such that $Y$ is right-continuous on $T \setminus S$.
+It remains to show that for each $t \in S$, $Y$ is right-continuous at $t$ almost surely. We will then be able to modify $Y$ on a null set to obtain a cadlag modification of $X$.
+Let $t \in S$ and let $Y_{t+}$ denote the right limit of $Y$ at $t$.
+
+We show that $Y_t = P[Y_{t+} \mid \mathcal{F}_t]$ almost surely, and that $P[Y_{t+} \mid \mathcal{F}_t] = Y_{t+}$ almost surely, which will conclude the proof.
+For the second equality it suffices to show that $Y_{t+}$ is $\mathcal{F}_t$-measurable, which follows from the right-continuity of the filtration.
+
+For the first equality, it suffices to show that $P[Y_{t+} \mid \mathcal{F}_t] - Y_t$ is an almost surely nonnegative random variable with zero expectation.
+Nonnegative follows from Lemma~\ref{lem:Submartingale.le_condExp_of_tendsto}.
+The expectation is $P[Y_{t+}] - P[Y_t]$. Let $t_n$ be a decreasing sequence in $T$ converging to $t$.
+By right-continuity of $t \mapsto \mathbb{E}[Y_t]$, we have that
+\begin{align*}
+  P[Y_t] = \lim_{n \to \infty} P[Y_{t_n}]
+  \: .
+\end{align*}
+By uniform integrability (Lemma~\ref{lem:Submartingale.uniformIntegrable_of_antitone_of_ge}), we have that
+\begin{align*}
+  P[Y_{t+}] = \lim_{n \to \infty} P[Y_{t_n}]
+  \: .
+\end{align*}
+Therefore $P[Y_{t+}] = P[Y_t]$, which concludes the proof.
 \end{proof}
 
 
@@ -97,8 +208,9 @@ Then $X$ has a cadlag modification.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:Martingale.exists_modifications_limits}
-
+  \uses{thm:Submartingale.exists_cadlag_modification_iff_rightContinuous}
+$X$ is in particular a submartingale, and for all $t \in T$, we have that $\mathbb{E}[X_t] = \mathbb{E}[X_0]$ by the martingale property.
+Therefore $t \mapsto \mathbb{E}[X_t]$ is right-continuous, and we can apply Theorem~\ref{thm:Submartingale.exists_cadlag_modification_iff_rightContinuous}.
 \end{proof}
 
 
@@ -115,44 +227,44 @@ For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^
 \end{definition}
 
 
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
+% \begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
+%   \uses{def:dyadics, def:Martingale}
+%   Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
+%   $$
+%   \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
+%   $$
+%   exists and is finite.
+% \end{lemma}
 
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
-
-
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
-  \uses{def:dyadics, def:Martingale}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite.
-\end{lemma}
-
-\begin{proof}
-  See 8.2.1 of Pascucci.
-\end{proof}
+% \begin{proof}
+%   See 8.2.1 of Pascucci.
+% \end{proof}
 
 
-\begin{lemma}\label{lem:mg_is_cadlag}
-  \uses{def:hasUsualConditions, def:Martingale}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
-\end{lemma}
+% \begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
+%   \uses{def:dyadics, def:Martingale}
+%   Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale indexed by the dyadics. Then almost surely, for every $t\geq 0$ the limit
+%   $$
+%   \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
+%   $$
+%   exists and is finite.
+% \end{lemma}
 
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
-\end{proof}
+% \begin{proof}
+%   See 8.2.1 of Pascucci.
+% \end{proof}
+
+
+% \begin{lemma}\label{lem:mg_is_cadlag}
+%   \uses{def:hasUsualConditions, def:Martingale}
+%   Let the filtered probability space satisfy the usual conditions.
+%   Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
+% \end{lemma}
+
+% \begin{proof}
+%   \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
+%   See 8.2.3 of Pascucci.
+% \end{proof}
 
 
 \begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
@@ -162,7 +274,7 @@ For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
+  %\uses{lem:martingale_exists_dyadic_limit_right,lem:martingale_exists_dyadic_limit_left}
   See 8.2.3 of Pascucci.
 \end{proof}
 
@@ -174,5 +286,5 @@ For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:mg_is_cadlag}
+  \uses{thm:Martingale.exists_cadlag_modification}
 \end{proof}
