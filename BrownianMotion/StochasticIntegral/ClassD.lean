@@ -240,7 +240,7 @@ lemma ProgMeasurable.stronglyMeasurable_uncurry_of_secondCountable
   simp only [uncurry_apply_pair, stoppedProcess]
   rw [←WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
 
-private lemma ProgMeasurable.stoppedValue_stoppedProcess_aestronglyMeasurable
+private lemma ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [NoMaxOrder ι]
     [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
     {X : ι → Ω → E} (hX_prog : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
