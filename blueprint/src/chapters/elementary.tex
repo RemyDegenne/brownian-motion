@@ -154,6 +154,41 @@ Immediate from the definition.
 \end{proof}
 
 
+\begin{lemma}\label{lem:elemStochIntegralBilin_zero}
+  \uses{def:elemStochIntegralBilin}
+$(V \bullet_B X)_0 = 0$ for every simple process $V$ and stochastic process $X$.
+\end{lemma}
+
+\begin{proof}
+\begin{align*}
+  (V \bullet_B X)_0
+  &= \sum_{k=1}^{n} B (X^0_{t_k} - X^0_{s_k}, \eta_k)
+  \\
+  &= \sum_{k=1}^{n} B (X_{0} - X_{0}, \eta_k)
+  \\
+  &= \sum_{k=1}^{n} B (0, \eta_k)
+  \\
+  &= 0
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegralBilin_const}
+  \uses{def:elemStochIntegralBilin}
+Let $X_c$ be a constant process (equal to the same random variable for all times).
+Then for every simple process $V$,
+\begin{align*}
+  V \bullet_B X_c = 0
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:elemStochIntegralBilin_assoc}
   \uses{def:elemStochIntegralBilin}
 Let $E, F, G, H, I, J$ be normed real vector spaces.
@@ -214,6 +249,16 @@ in which $V \circ W$ is the simple process defined by $(V \circ W)_t = V_t \circ
 \begin{proof}
   \uses{lem:elemStochIntegralBilin_assoc}
 Use Lemma~\ref{lem:elemStochIntegralBilin_assoc} with $B_1, B_2, B_4$ equal to the evaluation maps and $B_3$ the composition of continuous linear maps.
+\end{proof}
+
+
+\begin{lemma}\label{lem:cadlag_elemStochIntegralBilin}
+  \uses{def:elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, F}$, $X : T \to \Omega \to E$ a càdlàg process and a continuous bilinear map $B: E \times F \to G$, the elementary stochastic integral $V \bullet_B X$ is càdlàg.
+\end{lemma}
+
+\begin{proof}
+
 \end{proof}
 
 
