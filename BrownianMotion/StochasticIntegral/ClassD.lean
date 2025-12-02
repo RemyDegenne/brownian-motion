@@ -472,6 +472,12 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] 
     K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
       (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := sorry
 
+/-- The norm of an adapted process is adapted. (TODO: Into mathlib) -/
+lemma _root_.MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
+    (𝓕 : Filtration ι mΩ) {X : ι → Ω → E}
+    (hX : Adapted 𝓕 X) :
+    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
+
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [MeasurableSpace ι]
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
