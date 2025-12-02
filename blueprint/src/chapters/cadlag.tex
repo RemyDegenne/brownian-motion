@@ -50,14 +50,13 @@ Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary p
 \end{proof}
 
 
+
 \subsection{Cadlag modifications}
-
-
-
 
 
 \begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
   \uses{def:elemStochIntegral, def:modification}
+  \notready
 Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
 % \begin{enumerate}
 %   \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
@@ -67,7 +66,7 @@ Then $X$ has a modification $Y$ which has left and right limits everywhere and s
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:upcrossing_simpleProcess_le}
+  \uses{lem:upcrossing_simpleProcess_le, lem:tendsto_of_no_upcrossings}
 TODO
 
 % Let $t \in T$ and let $S$ be a finite subset of $[0, t]$.
