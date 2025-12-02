@@ -226,7 +226,7 @@ lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
     exact ((continuous_id.min continuous_const).measurable.comp measurable_fst).subtype_mk
   exact StronglyMeasurable.comp_measurable (hX t) hg_meas
 
-lemma ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable
+lemma ProgMeasurable.stronglyMeasurable_uncurry_of_secondCountable
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
     [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
     (hX : ProgMeasurable 𝓕 X) : (StronglyMeasurable (uncurry X)) := by
