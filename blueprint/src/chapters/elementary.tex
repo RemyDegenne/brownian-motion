@@ -2,6 +2,7 @@
 
 
 \begin{definition}[Simple process]\label{def:simpleProcess}
+  \uses{def:filtration}
   \leanok
   \lean{ProbabilityTheory.SimpleProcess}
 Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ be points in a linear order $T$ with a bottom element 0.
@@ -16,6 +17,7 @@ Let $\mathcal{E}_{T, F}$ be the set of simple processes indexed by $T$ with valu
 
 
 \begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
+  \uses{def:filtration}
   \leanok
   \lean{ProbabilityTheory.ElementaryPredictableSet}
 A set $A \subseteq T \times \Omega$ is an \emph{elementary predictable set} if it is a finite union of sets of the form ${0} \times B$ for $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $0 \le s < t$ in $T$ and $B \in \mathcal{F}_s$.
