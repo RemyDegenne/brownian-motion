@@ -215,7 +215,7 @@ lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpa
   exact StronglyMeasurable.indicator (hX i) <| measurable_snd h_prog
 
 
-lemma ProgMeasurable.jointlyStronglyMeasurable_stoppedProcess_const
+lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) (t : ι) :
     (StronglyMeasurable <| uncurry (stoppedProcess X (fun _ ↦ t))) := by
