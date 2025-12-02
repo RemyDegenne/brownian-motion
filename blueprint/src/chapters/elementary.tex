@@ -237,6 +237,30 @@ But we can use almost the same proof as in Lemma~\ref{lem:submartingale_iff_inte
 \end{proof}
 
 
+\begin{corollary}\label{cor:Submartingale.integral_elemStochIntegral_le}
+  \uses{def:elemStochIntegral, def:Submartingale}
+Let $X$ be a submartingale and $A$ be an elementary predictable set.
+Then for all $t \in T$,
+\begin{align*}
+  \mathbb{E}[(\mathbb{1}_A \bullet X)_t] \le \mathbb{E}[X_t - X_0]
+  \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{lem:submartingale_iff_integral_elemStochIntegral_nonneg}
+Let $A$ be an elementary predictable set and let $t \in T$.
+
+TODO:
+\begin{align*}
+  \mathbb{E}[(\mathbb{1}_A \bullet X)_t]
+  &= \mathbb{E}[X_t - X_0] - \mathbb{E}[(\mathbb{1}_{A^c} \bullet X)_t]
+  \le \mathbb{E}[X_t - X_0]
+  \: .
+\end{align*}
+\end{proof}
+
+
 \begin{lemma}\label{lem:Submartingale.elemStochIntegral}
   \uses{def:elemStochIntegral, def:Submartingale}
 Let $X$ be a submartingale and $V$ be a nonnegative bounded simple process.
