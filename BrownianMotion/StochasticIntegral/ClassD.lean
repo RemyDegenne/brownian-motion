@@ -287,7 +287,7 @@ private lemma stoppedValue_stoppedProcess_dominated_le
   · simp only [norm_zero]; exact norm_nonneg _
 
 
-lemma isStable_jointlyStronglyMeasurable [OrderBot ι] [TopologicalSpace ι]
+lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     @IsStable ι Ω E mΩ _ _ _ 𝓕 (fun X ↦ StronglyMeasurable (uncurry X) ) := by
       sorry
