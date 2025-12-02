@@ -304,23 +304,24 @@ lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace �
           (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ s p.2‖ₑ) =
       {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) := by
     ext ⟨t, ω⟩; simp only [M, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
-    by_cases h : ⊥ < τ ω <;> simp only [h, ↓reduceIte, enorm_zero, ENNReal.iSup_zero,
-      ciSup_const]; apply le_antisymm
-    · apply iSup₂_le
-      intro s hst
-      apply le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_
-      · simp only [le_refl]
-      · rw [WithTop.le_untopA_iff, WithTop.untopA_eq_untop, WithTop.coe_untop]
-        · exact min_le_min (WithTop.coe_le_coe.mpr hst) le_rfl
-        all_goals simp
-    · apply iSup₂_le
-      intro u hu
-      rw [WithTop.le_untopA_iff (by simp)] at hu
-      · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
-        · rw [min_eq_left]
-          · exact le_rfl
-          · exact le_trans hu (min_le_right _ _)
-        · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
+    split_ifs with h
+    · apply le_antisymm
+      · apply iSup₂_le
+        intro s hst
+        apply le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_
+        · simp only [le_refl]
+        · rw [WithTop.le_untopA_iff, WithTop.untopA_eq_untop, WithTop.coe_untop]
+          · exact min_le_min (WithTop.coe_le_coe.mpr hst) le_rfl
+          all_goals simp
+      · apply iSup₂_le
+        intro u hu
+        rw [WithTop.le_untopA_iff (by simp)] at hu
+        · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
+          · rw [min_eq_left]
+            · exact le_rfl
+            · exact le_trans hu (min_le_right _ _)
+          · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
+    · simp
   rw [key_eq]
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
