@@ -306,6 +306,7 @@ ProbabilityTheory.SimpleProcess.integral_sub_left
 ProbabilityTheory.SimpleProcess.integral_sub_right
 ProbabilityTheory.SimpleProcess.integral_zero_left
 ProbabilityTheory.SimpleProcess.integral_zero_right
+tendsto_of_no_upcrossings
 MeasureTheory.predictablePart
 MeasureTheory.predictablePart_zero
 MeasureTheory.predictablePart_add_one
