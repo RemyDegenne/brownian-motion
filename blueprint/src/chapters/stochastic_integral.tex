@@ -16,24 +16,127 @@ In this section, $E$ denotes a complete normed space.
 \begin{definition}[Square integrable martingales]\label{def:IsSquareIntegrable}
   \uses{def:Martingale}
 Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
-We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \mathbb{E}[\Vert M_t \Vert^2] < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
+We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
 We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of square integrable martingales with values in $E$.
 \end{definition}
 
-TODO: add results about $M_\infty$ for $M \in \mathcal{M}^2$~.
 
-\begin{theorem}\label{thm:hilbertSpace_isSquareIntegrable}
+\begin{lemma}\label{lem:IsSquareIntegrable.module}
+  \uses{def:IsSquareIntegrable}
+$\mathcal{M}^2(E)$ is a real vector space.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.submartingale_sq}
+  \uses{def:IsSquareIntegrable, def:Submartingale}
+If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.submartingale_convex_comp}
+Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex function $f: x \mapsto \Vert x \Vert^2$~.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.eLpNorm_two_mono}
+  \uses{def:IsSquareIntegrable}
+For $M \in \mathcal{M}^2(E)$, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.submartingale_sq}
+By Lemma~\ref{lem:IsSquareIntegrable.submartingale_sq}, $\Vert M_t \Vert^2$ is a submartingale.
+Thus, for $s \le t$~,
+\begin{align*}
+  \Vert M_s \Vert_{L^2}^2
+  &= \mathbb{E}[\Vert M_s \Vert^2]
+  \\
+  &\le \mathbb{E}[\Vert M_t \Vert^2]
+  \\
+  &= \Vert M_t \Vert_{L^2}^2
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
-The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
+For $M \in \mathcal{M}^2(E)$, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:tendsto_limitProcess_of_cadlag}
+TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tendsto_limitProcess_of_cadlag} is what we need.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+For $M \in \mathcal{M}^2(E)$, we have
+\begin{align*}
+  \sup_{t \in T} \Vert M_t \Vert_{L^2}
+  &= \Vert M_\infty \Vert_{L^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono}
+
+\end{proof}
+
+
+\begin{definition}\label{def:IsSquareIntegrable.norm}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+We define a norm on $\mathcal{M}^2$ by
+\begin{align*}
+  \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.norm_eq_zero}
+  \uses{def:IsSquareIntegrable.norm}
+For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M$ is the zero process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Vert M \Vert = 0$ if and only if for all $t \in T$, $\Vert M_t \Vert_{L^2} = 0$~.
+\end{proof}
+
+
+\begin{definition}\label{def:IsSquareIntegrable.inner}
+  \uses{def:IsSquareIntegrable.norm}
+We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
   \: .
 \end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:hilbertSpace_isSquareIntegrable}
+  \uses{def:IsSquareIntegrable.inner, lem:IsSquareIntegrable.norm_eq_zero}
+The space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm}
+  \uses{cor:doob_lp_norm, lem:IsSquareIntegrable.module}
+We already know that $\mathcal{M}^2$ is an inner product space.
+We need to show that it is complete.
 
+It suffices to show that every Cauchy sequence with a distance bound converges to a limit in $\mathcal{M}^2$.
+Namely, we can consider sequences $(M^n)_{n \in \mathbb{N}}$ in $\mathcal{M}^2$ such that for $n, m \ge N$, $\Vert M^n - M^m \Vert < 2^{-N}$ (See \texttt{Metric.complete\_of\_convergent\_controlled\_sequences}, or the \texttt{EMetric} version).
+
+Let then $(M^n)_{n \in \mathbb{N}}$ be such a Cauchy sequence.
+
+TODO
 \end{proof}
 
 
@@ -44,6 +147,7 @@ For $V \in \mathcal{E}_{T, F}$ bounded by a constant $D$, $M \in \mathcal{M}^2(E
   \Vert (V \bullet_B M)_t \Vert_{L^2}
   \le 2 D \: \Vert B \Vert \: \sup_t \Vert M_t \Vert_{L^2}
 \end{align*}
+TODO: this can be improved to $D \: \Vert B \Vert \: \Vert M_t \Vert_{L^2}$?
 \end{lemma}
 
 \begin{proof}
