@@ -100,7 +100,7 @@ Let $X$ be a submartingale. Then for all bounded stopping times $\tau$, the stop
 If $X$ is a martingale and $Y$ is an adapted modification of $X$, then $Y$ is a martingale.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] = Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP = \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -121,7 +121,7 @@ Let then $A \in \mathcal{F}_i$.
 If $X$ is a submartingale and $Y$ is an adapted modification of $X$, then $Y$ is a submartingale.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] \ge Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP \ge \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -1078,6 +1078,7 @@ In Mathlib, we have results about convergence of martingales to their limit in d
 
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
   \uses{def:Martingale, def:limitProcess}
+  \notready
 Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
 Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
 Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.

@@ -555,11 +555,11 @@ Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite st
 \begin{lemma}\label{lem:isStable_classDL}
   \uses{def:stable, def:classDL}
   \leanok
-  \lean{ProbabilityTheory.isStable_classDL}\leanok
+  \lean{ProbabilityTheory.isStable_classDL}
 The class DL is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_progMeasurable}
 Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For any stopping time $\sigma \le t$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is bounded by $t$ and $X$ is of class DL, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
