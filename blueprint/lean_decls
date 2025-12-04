@@ -319,5 +319,6 @@ komlos_convex
 komlos_norm
 komlos_ennreal
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
+ProbabilityTheory.IsSquareIntegrable
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation

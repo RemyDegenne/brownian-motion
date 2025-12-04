@@ -15,6 +15,8 @@ In this section, $E$ denotes a complete normed space.
 
 \begin{definition}[Square integrable martingales]\label{def:IsSquareIntegrable}
   \uses{def:Martingale}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable}
 Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
 We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
 We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of square integrable martingales with values in $E$.
