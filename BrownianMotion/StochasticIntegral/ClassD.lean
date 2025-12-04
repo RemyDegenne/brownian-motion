@@ -373,7 +373,7 @@ lemma hasLocallyIntegrableSup_of_locally_classDL {h𝓕 : 𝓕.IsRightContinuous
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
   locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup (hX1) hX2
+     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
 end ConditionallyCompleteLinearOrderBot
 
