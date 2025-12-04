@@ -386,6 +386,16 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
       ⟨rho.1, rho.2.1, fun ω ↦ le_trans (h_le_sigma ω) (sigma.2.2 ω)⟩
     exact ⟨rho_bounded, h_dom⟩
 
+/-- A progressively measurable process is necessarily a.e. strongly measurable at each time `i`. -/
+private lemma aestronglyMeasurable_of_progMeasurable [Nonempty ι] [MeasurableSpace ι]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hprog : ProgMeasurable 𝓕 X) :
+    ∀ i, AEStronglyMeasurable (X i) P := by
+  intro i
+  have hsm_f_i : StronglyMeasurable[𝓕 i] (X i) :=
+    hprog.adapted i
+  have hae_f_i : AEStronglyMeasurable[𝓕 i] (X i) P :=
+    MeasureTheory.StronglyMeasurable.aestronglyMeasurable hsm_f_i
+  exact hae_f_i.mono (𝓕.le' i)
 
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
