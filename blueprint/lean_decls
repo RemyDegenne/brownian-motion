@@ -269,6 +269,7 @@ ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
+ProbabilityTheory.HasIntegrableSup
 ProbabilityTheory.HasLocallyIntegrableSup
 ProbabilityTheory.ClassD
 ProbabilityTheory.ClassDL
@@ -277,6 +278,7 @@ MeasureTheory.Submartingale.classDL
 MeasureTheory.Submartingale.classD_iff_uniformIntegrable
 MeasureTheory.Martingale.classDL
 MeasureTheory.Martingale.classD_iff_uniformIntegrable
+ProbabilityTheory.isStable_hasIntegrableSup
 ProbabilityTheory.isStable_hasLocallyIntegrableSup
 ProbabilityTheory.isStable_classD
 ProbabilityTheory.isStable_classDL
