@@ -35,6 +35,8 @@ $\mathcal{M}^2(E)$ is a real vector space.
 
 \begin{lemma}\label{lem:IsSquareIntegrable.submartingale_sq}
   \uses{def:IsSquareIntegrable, def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm}
 If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submartingale.
 \end{lemma}
 
@@ -46,6 +48,8 @@ Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex funct
 
 \begin{lemma}\label{lem:IsSquareIntegrable.eLpNorm_two_mono}
   \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono}
 For $M \in \mathcal{M}^2(E)$, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
 \end{lemma}
 
