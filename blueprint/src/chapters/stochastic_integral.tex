@@ -13,29 +13,201 @@ We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.E
 
 In this section, $E$ denotes a complete normed space.
 
-\begin{definition}[Square integrable martingales]\label{def:squareIntegrableMartingales}
+\begin{definition}[Square integrable martingales]\label{def:IsSquareIntegrable}
   \uses{def:Martingale}
-Let $\mathcal{M}^2$ be the set of square integrable continuous martingales with respect to a filtration $\mathcal{F}$ indexed by $\mathbb{R}_+$,
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable}
+Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
+We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
+We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of square integrable martingales with values in $E$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.module}
+  \uses{def:IsSquareIntegrable}
+$\mathcal{M}^2(E)$ is a real vector space.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.submartingale_sq}
+  \uses{def:IsSquareIntegrable, def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm}
+If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.submartingale_convex_comp}
+Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex function $f: x \mapsto \Vert x \Vert^2$~.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.eLpNorm_two_mono}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono}
+For $M \in \mathcal{M}^2(E)$, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.submartingale_sq}
+By Lemma~\ref{lem:IsSquareIntegrable.submartingale_sq}, $\Vert M_t \Vert^2$ is a submartingale.
+Thus, for $s \le t$~,
 \begin{align*}
-  \mathcal{M}^2
-  = \{ M : \mathbb{R}_+ \to \Omega \to \mathbb{R} \mid M \text{ continuous martingale with } \sup_{t}\mathbb{E}[M_t^2] < \infty \}
+  \Vert M_s \Vert_{L^2}^2
+  &= \mathbb{E}[\Vert M_s \Vert^2]
+  \\
+  &\le \mathbb{E}[\Vert M_t \Vert^2]
+  \\
+  &= \Vert M_t \Vert_{L^2}^2
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+For $M \in \mathcal{M}^2(E)$, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:tendsto_limitProcess_of_cadlag}
+TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tendsto_limitProcess_of_cadlag} is what we need.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+For $M \in \mathcal{M}^2(E)$, we have
+\begin{align*}
+  \sup_{t \in T} \Vert M_t \Vert_{L^2}
+  &= \Vert M_\infty \Vert_{L^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono}
+
+\end{proof}
+
+
+\begin{definition}\label{def:IsSquareIntegrable.norm}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+We define a norm on $\mathcal{M}^2$ by
+\begin{align*}
+  \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
   \: .
 \end{align*}
 \end{definition}
 
-TODO: add results about $M_\infty$ for $M \in \mathcal{M}^2$~.
 
-\begin{theorem}\label{thm:hilbertSpace_squareIntegrableMartingales}
-  \uses{def:squareIntegrableMartingales, def:limitProcess}
-The space $\mathcal{M}^2$ is a Hilbert space with the inner product defined by
+\begin{lemma}\label{lem:IsSquareIntegrable.norm_eq_zero}
+  \uses{def:IsSquareIntegrable.norm}
+For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M$ is the zero process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Vert M \Vert = 0$ if and only if for all $t \in T$, $\Vert M_t \Vert_{L^2} = 0$~.
+\end{proof}
+
+
+\begin{definition}\label{def:IsSquareIntegrable.inner}
+  \uses{def:IsSquareIntegrable.norm}
+We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
   \: .
 \end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:hilbertSpace_isSquareIntegrable}
+  \uses{def:IsSquareIntegrable.inner, lem:IsSquareIntegrable.norm_eq_zero}
+The space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm}
+  \uses{cor:doob_lp_norm, lem:IsSquareIntegrable.module}
+We already know that $\mathcal{M}^2$ is an inner product space.
+We need to show that it is complete.
+
+It suffices to show that every Cauchy sequence with a distance bound converges to a limit in $\mathcal{M}^2$.
+Namely, we can consider sequences $(M^n)_{n \in \mathbb{N}}$ in $\mathcal{M}^2$ such that for $n, m \ge N$, $\Vert M^n - M^m \Vert < 2^{-N}$ (See \texttt{Metric.complete\_of\_convergent\_controlled\_sequences}, or the \texttt{EMetric} version).
+
+Let then $(M^n)_{n \in \mathbb{N}}$ be such a Cauchy sequence.
+
+TODO
+\end{proof}
+
+
+\begin{lemma}\label{lem:eLpNorm_elemStochIntegralBilin_le}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, F}$ bounded by a constant $D$, $M \in \mathcal{M}^2(E)$ and a continuous bilinear map $B: E \times F \to G$,
+\begin{align*}
+  \Vert (V \bullet_B M)_t \Vert_{L^2}
+  \le 2 D \: \Vert B \Vert \: \sup_t \Vert M_t \Vert_{L^2}
+\end{align*}
+TODO: this can be improved to $D \: \Vert B \Vert \: \Vert M_t \Vert_{L^2}$?
+\end{lemma}
+
+\begin{proof}
+Let $C$ be a bound on $\Vert M_t \Vert_{L^2}$ for all $t \in T$~.
+Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ and $\eta_k$ be the intervals and random variables defining $V$~.
+Let $D$ be a bound on $\Vert\eta_k\Vert$.
+Then, for all $t$~,
+\begin{align*}
+  \Vert (V \bullet_B M)_t \Vert_{L^2}
+  &\le \sum_{k=1}^n \Vert B(M^t_{t_k} - M^t_{s_k}, \eta_k) \Vert_{L^2}
+  \: .
+\end{align*}
+Since only at most one term of that sum is non-zero for each fixed $t$~, we can bound the sum by the maximum of its terms.
+It suffices then to bound each term of that sum.
+
+TODO: here we supposed that the intervals of the simple process are disjoint. Check with our Lean def.
+
+For each $k$~,
+\begin{align*}
+  \Vert B(M^t_{t_k} - M^t_{s_k}, \eta_k) \Vert_{L^2}
+  &\le \left\Vert \Vert B \Vert \: \Vert M^t_{t_k} - M^t_{s_k} \Vert  \: \Vert \eta_k \Vert \right\Vert_{L^2}
+  \\
+  &\le \Vert B \Vert \: \Vert M^t_{t_k} - M^t_{s_k} \Vert_{L^2} \: D
+  \\
+  &\le 2 \Vert B \Vert \: C \: D
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:isSquareIntegrable_elemStochIntegralBilin}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, F}$, $M \in \mathcal{M}^2(E)$ and a continuous bilinear map $B: E \times F \to G$, the elementary stochastic integral $V \bullet_B M$ is in $\mathcal{M}^2(G)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:cadlag_elemStochIntegralBilin, lem:Martingale.elemStochIntegral, lem:eLpNorm_elemStochIntegralBilin_le}
+By Lemma~\ref{lem:cadlag_elemStochIntegralBilin}, $V \bullet_B M$ is càdlàg, and we know that it is a martingale by Lemma~\ref{lem:Martingale.elemStochIntegral}~.
+It remains to show that $\sup_{t \in T} \Vert (V \bullet_B M)_t \Vert_{L^2} < \infty$~.
+By Lemma~\ref{lem:eLpNorm_elemStochIntegralBilin_le}, this supremum is bounded by $2 D \Vert B \Vert \sup_{t \in T} \Vert M_t \Vert_{L^2}$, which is finite since $M \in \mathcal{M}^2(E)$ and $V$ is bounded.
+\end{proof}
+
+
+\begin{lemma}\label{lem:inner_elemStochIntegral}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin, lem:isSquareIntegrable_elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
+\begin{align*}
+  \langle V \bullet_{\mathbb{R}} M, N \rangle_{\mathcal{M}^2}
+  &= V \bullet_{\mathbb{R}} \langle M, N \rangle_{\mathcal{M}^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
 
 \end{proof}
 
@@ -75,7 +247,7 @@ It can be defined by $[M, N]_t = \frac{1}{4}\left([M+N]_t - [M-N]_t \right)$~.
 
 
 \begin{lemma}\label{lem:covariation_eq_inner}
-  \uses{def:covariation, def:squareIntegrableMartingales}
+  \uses{def:covariation, def:IsSquareIntegrable}
 Let $M$ and $N$ be continuous square integrable martingales. Then
 \begin{align*}
   \mathbb{E}\left[[M,N]_\infty\right] = \langle M - M_0, N - N_0 \rangle_{\mathcal{M}^2}
@@ -124,7 +296,7 @@ If we also vary $t$, we get a stochastic process.
 \subsection{Itô isometry}
 
 \begin{definition}\label{def:L2M}
-  \uses{def:squareIntegrableMartingales, def:quadraticVariation, def:predictableMeasurableSpace}
+  \uses{def:IsSquareIntegrable, def:quadraticVariation, def:predictableMeasurableSpace}
 Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
 \begin{align*}
   L^2(M) = L^2(\Omega \times \mathbb{R}_+, \mathcal{P}, \mathbb{P} \times d[M])
@@ -136,8 +308,8 @@ The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\i
 TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
-  \uses{def:elemStochIntegral, def:squareIntegrableMartingales, def:quadraticVariation, def:L2M}
-For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathcal{M}^2$ and
+  \uses{def:elemStochIntegral, def:IsSquareIntegrable, def:quadraticVariation, def:L2M}
+For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathcal{M}^2$ (by Lemma~\ref{lem:isSquareIntegrable_elemStochIntegralBilin}) and
 \begin{align*}
   \Vert V \bullet M \Vert_{\mathcal{M}^2}^2
   &= \Vert V \Vert_{L^2(M)}^2
@@ -146,7 +318,7 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathca
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Martingale.elemStochIntegral}
+  \uses{lem:Martingale.elemStochIntegral, lem:isSquareIntegrable_elemStochIntegralBilin}
   There are two steps to the proof.
 
   First, in order to make sense of $\Vert V \Vert_{L^2(M)}$,
@@ -239,8 +411,8 @@ is \texttt{IsDenseInducing}. The Itô isometry is then defined using \texttt{IsD
 
 
 \begin{definition}[Itô isometry]\label{def:itoIsometry}
-  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_squareIntegrableMartingales}
-Let $M \in \mathcal{M}^2$. Then the elementary stochastic integral map $\mathcal{E} \to \mathcal{M}^2$ defined by $V \mapsto V \cdot M$ extends to an isometry $L^2(M) \to \mathcal{M}^2$.
+  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_isSquareIntegrable}
+Let $M \in \mathcal{M}^2$. Then the elementary stochastic integral map $\mathcal{E} \to \mathcal{M}^2$ defined by $V \mapsto V \bullet M$ extends to an isometry $L^2(M) \to \mathcal{M}^2$.
 \end{definition}
 
 
