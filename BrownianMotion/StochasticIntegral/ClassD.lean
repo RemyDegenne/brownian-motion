@@ -504,7 +504,7 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
 
   have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n ω
   have hX5 : StronglyMeasurable (uncurry X) :=
-    ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable hX2
+    ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hX2
   have hX6 := HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag hX5 hX1
 
   let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
@@ -516,7 +516,7 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
 
   constructor
   · refine HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag ?_ hX1s
-    refine ProgMeasurable.jointlyStronglyMeasurable_ofSecondCountable (𝓕 := 𝓕) ?_
+    refine ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop (𝓕 := 𝓕) ?_
     exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
   · intro t
     let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
