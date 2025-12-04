@@ -200,6 +200,22 @@ section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
+lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
+    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ StronglyMeasurable (uncurry X)) := by
+  intro X hX τ hτ
+  let M : ι × Ω → ι × Ω := fun p ↦ ((min ↑p.1 (τ p.2)).untopA, p.2)
+  have hM : Measurable M := (WithTop.measurable_coe.comp measurable_fst).min
+      (hτ.measurable'.comp measurable_snd) |>.untopA.prodMk measurable_snd
+  have h_eq : uncurry (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) =
+      {p | ⊥ < τ p.2}.indicator (uncurry X ∘ M) := by
+    ext ⟨t, ω⟩
+    simp only
+        [uncurry, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq, Function.comp_apply, M]
+  rw [h_eq]
+  exact StronglyMeasurable.indicator (hX.comp_measurable hM)
+    (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
+
 lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι]
   [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [OrderTopology ι] :
     IsStable (E := E) 𝓕 (ProgMeasurable 𝓕) := by
@@ -285,12 +301,6 @@ private lemma stoppedValue_stoppedProcess_dominated_le
     rw [WithTop.untopA_eq_untop, WithTop.coe_untop]
     exact sigma.prop.2 ω
   · simp only [norm_zero]; exact norm_nonneg _
-
-
-lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
-    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-    @IsStable ι Ω E mΩ _ _ _ 𝓕 (fun X ↦ StronglyMeasurable (uncurry X) ) := by
-      sorry
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
