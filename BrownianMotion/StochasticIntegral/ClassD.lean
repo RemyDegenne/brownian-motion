@@ -194,7 +194,7 @@ section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
-lemma isStable_jointlyStronglyMeasurable [OrderBot ι] [TopologicalSpace ι]
+lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ StronglyMeasurable (uncurry X)) := by
   intro X hX τ hτ
