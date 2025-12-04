@@ -302,12 +302,6 @@ private lemma stoppedValue_stoppedProcess_dominated_le
     exact sigma.prop.2 ω
   · simp only [norm_zero]; exact norm_nonneg _
 
-
-lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
-    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-    @IsStable ι Ω E mΩ _ _ _ 𝓕 (fun X ↦ StronglyMeasurable (uncurry X)) := by
-      sorry
-
 lemma HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag [OrderBot ι]
     [TopologicalSpace ι] [MeasurableSpace ι] {X : ι → Ω → E}
     (hX1 : StronglyMeasurable (uncurry X)) (hX2 : ∀ ω : Ω, IsCadlag (X · ω)) :
