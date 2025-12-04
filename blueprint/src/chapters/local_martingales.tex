@@ -392,8 +392,15 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \section{Doob-Meyer class}
 
+\begin{definition}\label{def:HasIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.HasIntegrableSup}
+We say that a stochastic process is integrable if the map $(t,\omega) \mapsto X_t(\omega)$ is strongly measurable and for all $t$, $X_t$ is integrable.
+A process has an integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is integrable.
+\end{definition}
+
 \begin{definition}\label{def:locallyIntegrableSup}
-  \uses{def:locally}
+  \uses{def:locally, ProbabilityTheory.HasIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}
 We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
@@ -656,8 +663,8 @@ If a process is càdlàg and locally of class DL, then it has locally integrable
 
 \begin{proof}
   \leanok
-  \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
-Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
+  \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasIntegrableSup}
+Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasIntegrableSup}.
 \end{proof}
 
 
