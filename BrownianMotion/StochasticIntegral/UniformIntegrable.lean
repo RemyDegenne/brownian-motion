@@ -33,42 +33,41 @@ lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : 
 
 lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
     {X : ι → Ω → E} {Y : κ → Ω → F} {p : ℝ≥0∞}
-    (hp : 1 ≤ p) (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
+    (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
     (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y j ω‖) :
-    UniformIntegrable X p μ := sorry
+    UniformIntegrable X p μ := by
+  refine ⟨mX, fun ε hε ↦ ?_, ?_⟩
+  · obtain ⟨δ, hδ, h⟩ := hY.2.1 hε
+    refine ⟨δ, hδ, fun i s hs hμs ↦ let ⟨j, hj⟩ := hX i
+      le_trans (eLpNorm_mono_ae ?_) <| h j s hs hμs⟩
+    filter_upwards [hj] with ω hω
+    rw [Set.indicator]
+    split_ifs with hmem
+    · rw [Set.indicator_of_mem hmem]
+      exact hω
+    · simp [Set.indicator_of_notMem hmem]
+  · obtain ⟨C, hC⟩ := hY.2.2
+    exact ⟨C, fun i ↦ let ⟨j, hj⟩ := hX i
+      le_trans (eLpNorm_mono_ae hj) <| hC j⟩
 
 lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
-    (hp : 1 ≤ p) (hY : UniformIntegrable X p μ) :
+    (hY : UniformIntegrable X p μ) :
     UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
-  refine uniformIntegrable_of_dominated hp hY ?_ (fun i ↦ ⟨i, by simp⟩)
+  refine uniformIntegrable_of_dominated hY ?_ (fun i ↦ ⟨i, by simp⟩)
   exact fun i ↦ (UniformIntegrable.aestronglyMeasurable hY i).norm
 
-lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
+lemma uniformIntegrable_iff_norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
     (mX : ∀ i, AEStronglyMeasurable (X i) μ) :
     UniformIntegrable X p μ ↔ UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
-  refine ⟨UniformIntegrable.norm hp, fun hNorm ↦ uniformIntegrable_of_dominated hp hNorm mX ?_⟩
+  refine ⟨UniformIntegrable.norm, fun hNorm ↦ uniformIntegrable_of_dominated hNorm mX ?_⟩
   exact fun i ↦ ⟨i, by simp⟩
 
 lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι → Ω → E} {Y : Ω → ℝ}
     {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
     (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ Y ω) :
-    UniformIntegrable X p μ := by
-    let Y' : ι → Ω → ℝ := fun _ ↦ Y
-    have Y'_ui : UniformIntegrable Y' p μ := uniformIntegrable_const hp hp_ne_top hY
-    have hX' : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ ≤ ‖Y' j ω‖ := by
-      intro i
-      use i
-      specialize hX i
-      rw [ae_iff]
-      rw [ae_iff] at hX
-      have h_sub : {a | ¬ ‖X i a‖ ≤ ‖Y' i a‖} ⊆ {a | ¬ ‖X i a‖ ≤ Y a} := by
-        intro a ha
-        push_neg at ha
-        dsimp [Y'] at ha
-        push_neg
-        exact lt_of_abs_lt ha
-      exact measure_mono_null h_sub hX
-    exact uniformIntegrable_of_dominated hp Y'_ui mX hX'
+    UniformIntegrable X p μ :=
+  uniformIntegrable_of_dominated (κ := ι) (uniformIntegrable_const hp hp_ne_top hY) mX
+    <| fun i ↦ ⟨i, by filter_upwards [hX i] with ω hω using hω.trans <| Real.le_norm_self _⟩
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
