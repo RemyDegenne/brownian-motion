@@ -397,6 +397,11 @@ private lemma aestronglyMeasurable_of_progMeasurable [Nonempty ι] [MeasurableSp
     MeasureTheory.StronglyMeasurable.aestronglyMeasurable hsm_f_i
   exact hae_f_i.mono (𝓕.le' i)
 
+private lemma ae_finite_of_integrable {f : Ω → ℝ≥0∞} (hf : Integrable f P) :
+    ∀ᵐ ω ∂P, f ω ≠ ∞ := by
+  refine (ae_lt_top' hf.1.aemeasurable (ne_of_lt hf.2)).mono ?_
+  intro ω hω; exact ne_of_lt hω
+
 private lemma ae_finite_sup_of_integrable_sup [Nonempty ι] [MeasurableSpace ι]
     {X : ι → Ω → E} (hX : HasIntegrableSup X P) (t : ι) :
     AEMeasurable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P ∧
@@ -417,9 +422,20 @@ private lemma ae_finite_sup_of_integrable_sup [Nonempty ι] [MeasurableSpace ι]
     exact ne_of_lt hω
   exact ⟨hsm.aemeasurable, haenoninf⟩
 
+private lemma norm_le'_of_enorm_le {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E} :
+    ‖x‖ₑ ≤ r → ‖x‖ ≤ r.toReal := by
+  intro hle
+  -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
+  have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
+  exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
+
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
-    (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
+    (hX1 : ProgMeasurable 𝓕 X)
+    (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
+  refine ⟨hX1, fun t ↦ ?_⟩
+  let supX_t := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
+  have hsupfinite : ∀ᵐ ω ∂P, supX_t ω ≠ ∞ := ae_finite_of_integrable (hX2 t)
   sorry
 
 lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
