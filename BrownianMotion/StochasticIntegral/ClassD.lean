@@ -397,6 +397,33 @@ private lemma aestronglyMeasurable_of_progMeasurable [Nonempty ι] [MeasurableSp
     MeasureTheory.StronglyMeasurable.aestronglyMeasurable hsm_f_i
   exact hae_f_i.mono (𝓕.le' i)
 
+private lemma ae_finite_sup_of_integrable_sup [Nonempty ι] [MeasurableSpace ι]
+    {X : ι → Ω → E} (hX : HasIntegrableSup X P) (t : ι) :
+    ∀ᵐ ω ∂P, (⨆ s ≤ t, ‖X s ω‖ₑ) ≠ ∞ := by
+  let Y := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
+  have hY_int : Integrable Y P := hX.2 t
+  have q := hX.1
+  dsimp [HasStronglyMeasurableSupProcess] at q
+  let Y2 := fun (tω : ι × Ω) ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ
+  have hY2_meas : StronglyMeasurable (Y2) := q
+  let f : ι → Ω → ℝ≥0∞ := fun u ω ↦ ⨆ s ≤ u, ‖X s ω‖ₑ
+  -- have hfy : Y2 = uncurry f := by
+  --   ext ⟨i, ω⟩
+  --   simp only [Y2, f, uncurry_apply_pair]
+  -- rw [hfy] at hY2_meas
+  have qq : StronglyMeasurable (f t) :=
+    hY2_meas.comp_measurable (measurable_const.prodMk measurable_id)
+  have hY_meas' : StronglyMeasurable (Y) := qq
+  have hY_aem : AEMeasurable Y P := hY_meas'.aemeasurable
+  have hY_int' : ∫⁻ (ω : Ω), Y ω ∂P ≠ ⊤ := by
+    exact ne_of_lt hY_int.hasFiniteIntegral
+  have my_goal_lt : ∀ᵐ ω ∂P, Y ω < ∞ := by
+    apply ae_lt_top' hY_aem hY_int'
+  have my_goal : ∀ᵐ ω ∂P, Y ω ≠ ∞ := by
+    filter_upwards [my_goal_lt] with ω hω
+    exact ne_of_lt hω
+  exact my_goal
+
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
