@@ -392,13 +392,19 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \section{Doob-Meyer class}
 
+\begin{definition}\label{def:HasIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.HasIntegrableSup}
+We say that a stochastic process is integrable if the map $(t,\omega) \mapsto X_t(\omega)$ is strongly measurable and for all $t$, $X_t$ is integrable.
+A process has an integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is integrable.
+\end{definition}
+
+
 \begin{definition}\label{def:locallyIntegrableSup}
-  \uses{def:locally}
+  \uses{def:locally, def:HasIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}
-We say that a stochastic process is integrable if for all $t$, $X_t$ is integrable.
-We say that a process has integrable supremum if $(t, \omega) \mapsto \sup_{s \le t} \Vert X_s(\omega) \Vert$ is strongly measurable and $(\sup_{s \le t} \Vert X_s \Vert)_t$ is integrable for all $t$.
-A process has locally integrable supremum if it is locally a process with integrable supremum in the sense of Definition~\ref{def:locally}.
+A process has locally integrable supremum if it is locally a process with integrable supremum.
 \end{definition}
 
 
@@ -484,6 +490,18 @@ Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{
 \end{proof}
 
 
+\begin{lemma}\label{lem:isStable_hasIntegrableSup}
+  \uses{def:stable, def:HasIntegrableSup}
+  \leanok
+  \lean{ProbabilityTheory.isStable_hasIntegrableSup}
+The class of process with integrable supremum is stable.
+\end{lemma}
+
+\begin{proof}\leanok
+Let $X$ be a process with integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
+\end{proof}
+
+
 \begin{lemma}\label{lem:isStable_hasLocallyIntegrableSup}
   \uses{def:stable, def:locallyIntegrableSup}
   \leanok
@@ -492,7 +510,8 @@ The class of process with locally integrable supremum is stable.
 \end{lemma}
 
 \begin{proof}\leanok
-Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping time. Let $t \in T$. Then $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le \sup_{s \le t} \|X_s\| = X^*_t$, and as $X^*_t$ is integrable, so is $(X^\tau)^*_t$. Thus $(X^\tau \mathbb{I}_{\tau > 0})^*_t$ is integrable, concluding the proof.
+  \uses{lem:isStable_hasIntegrableSup, lem:isStable_locally}
+Apply Lemma~\ref{lem:isStable_hasIntegrableSup} and Lemma~\ref{lem:isStable_locally}.
 \end{proof}
 
 
@@ -503,7 +522,7 @@ Let $X$ be a process with locally integrable supremum and $\tau$ be a stopping t
 The class D is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
 Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite stopping time $\sigma$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is finite and $X$ is of class D, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
@@ -516,7 +535,7 @@ Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite st
 The class DL is stable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated}
 Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For any stopping time $\sigma \le t$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is bounded by $t$ and $X$ is of class DL, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
@@ -656,8 +675,8 @@ If a process is càdlàg and locally of class DL, then it has locally integrable
 
 \begin{proof}
   \leanok
-  \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasLocallyIntegrableSup}
-Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasLocallyIntegrableSup}.
+  \uses{lem:local_induction, lem:ClassDL.hasLocallyIntegrableSup, lem:isStable_hasIntegrableSup}
+Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyIntegrableSup} and Lemma~\ref{lem:isStable_hasIntegrableSup}.
 \end{proof}
 
 
