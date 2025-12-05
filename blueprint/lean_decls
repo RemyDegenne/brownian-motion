@@ -321,6 +321,11 @@ komlos_convex
 komlos_norm
 komlos_ennreal
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
+eVariationOn
+BoundedVariationOn
+LocallyBoundedVariationOn
+LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn
+StieltjesFunction.measure
 ProbabilityTheory.IsSquareIntegrable
 ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm
 ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono

@@ -3,6 +3,8 @@
 The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
 Some of the proofs are taken from \cite{pascucci2024}.
 
+
+
 \section{Total variation and Lebesgue-Stieltjes integral}
 
 TODO: in Mathlib, we can integrate with respect to the measure given by a right-continuous monotone function (\texttt{StieltjesFunction.measure}). This will be useful to integrate against the quadratic variation of a local martingale.
@@ -10,7 +12,101 @@ However, we will also want to integrate with respect to a signed measure given b
 We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
 
 
+\begin{definition}\label{def:eVariationOn}
+  \mathlibok
+  \lean{eVariationOn}
+The (extended-real-valued) variation of a function $f : T \to E$ on a set $s$ inside a linear order is the supremum of $\sum_i \mathrm{edist}(f(u_{i+1}, f(u_i)))$ over all finite increasing sequences $u : N \to T$ in $s$.
+We denote it by $V_f(s)$~.
+\end{definition}
 
+
+\begin{definition}\label{def:BoundedVariationOn}
+  \uses{def:eVariationOn}
+  \mathlibok
+  \lean{BoundedVariationOn}
+A function $f : T \to E$ is of bounded variation on a set $s$ if its variation $V_f(s)$ is finite.
+\end{definition}
+
+
+\begin{definition}\label{def:LocallyBoundedVariationOn}
+  \uses{def:BoundedVariationOn}
+  \mathlibok
+  \lean{LocallyBoundedVariationOn}
+A function $f : T \to E$ is of locally bounded variation on a set $s$ if for every $a, b$ in $s$, the variation $V_f(s \cap [a, b])$ is finite.
+\end{definition}
+
+
+% \begin{lemma}\label{lem:MonotoneOn.locallyBoundedVariationOn}
+%   \uses{def:LocallyBoundedVariationOn}
+%   \mathlibok
+%   \lean{MonotoneOn.locallyBoundedVariationOn}
+% If $f : T \to ℝ$ is monotone on a set $s$, then it is of locally bounded variation on $s$~.
+% \end{lemma}
+
+% \begin{proof}\leanok
+
+% \end{proof}
+
+
+\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
+  \uses{def:LocallyBoundedVariationOn}
+  \mathlibok
+  \lean{LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
+If a real-valued function has bounded variation on a set, then it is a difference of monotone functions there.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}
+  \uses{def:LocallyBoundedVariationOn}
+If a real-valued right-continuous function has bounded variation on a set, then it is a difference of right-continuous monotone functions there.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:StieltjesFunction.measure}
+  \mathlibok
+  \lean{StieltjesFunction.measure}
+Let $f : T \to ℝ$ be a cadlag monotone function on a conditionally complete linear order $T$.
+We denote by $df$ the measure on $T$ defined by $df((a, b]) = f(b) - f(a)$ for all $a, b \in T$~.
+
+TODO: in Mathlib this is only for $T = \mathbb{R}$ for now, but will be generalized.
+\end{definition}
+
+
+\begin{definition}\label{def:LocallyBoundedVariationOn.signedMeasure}
+  \uses{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn, def:StieltjesFunction.measure}
+Let $f : T \to E$ be a cadlag function of locally bounded variation on a conditionally complete linear order $T$ (TODO: and probably more assumptions?).
+Then by Lemma~\ref{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}, $f$ can be written as a difference of two cadlag monotone functions, say $f = f_+ - f_-$~.
+We denote by $df$ the signed measure on $T$ associated to $f$ defined by $df = df_+ - df_-$, in which $df_+$ and $df_-$ are given by Definition~\ref{def:StieltjesFunction.measure}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:totalVariation_signedMeasure}
+  \uses{def:LocallyBoundedVariationOn.signedMeasure}
+$\vert df \vert = df_+ + df_-$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:eVariationOn_eq_totalVariation}
+  \uses{def:LocallyBoundedVariationOn.signedMeasure}
+$V_f([0, t]) = \vert df \vert([0, t])$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:totalVariation_signedMeasure}
+
+\end{proof}
 
 
 \section{Square integrable martingales}
@@ -328,7 +424,7 @@ For $M$ a local martingale, the process $\Vert M_t \Vert^2 - \langle M \rangle_t
 
 
 \begin{definition}\label{def:quadraticVariationMeasure}
-  \uses{def:quadraticVariation}
+  \uses{def:quadraticVariation, def:StieltjesFunction.measure}
 For $M$ a local martingale, we denote by $d\langle M \rangle$ the measure on $\mathbb{R}_+$ associated to the non-decreasing càdlàg function $\langle M \rangle$~.
 \end{definition}
 
