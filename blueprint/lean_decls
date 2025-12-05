@@ -326,3 +326,5 @@ ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm
 ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
+MeasureTheory.Filtration.predictable_le_prod
+ProbabilityTheory.L2Predictable

@@ -32,7 +32,7 @@ lemma _root_.MeasureTheory.Filtration.predictable_le_prod (𝓕 : Filtration T m
 
 -- this will be specialized to the measure coming from the quadratic variation of a martingale
 noncomputable
-def L2μ (μ : Measure T) :=
+def L2Predictable (μ : Measure T) (P : Measure Ω) :=
   MeasureTheory.Lp E (m := 𝓕.predictable) 2 ((μ.prod P).trim 𝓕.predictable_le_prod)
 
 end ProbabilityTheory

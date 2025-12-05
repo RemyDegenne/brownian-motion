@@ -320,22 +320,114 @@ By $\int_0^t X_s \: d[M]_s$, we mean the random variable $\omega \mapsto \int_0^
 If we also vary $t$, we get a stochastic process.
 
 
+
 \subsection{Itô isometry}
 
-\begin{definition}\label{def:L2M}
-  \uses{def:IsSquareIntegrable, def:quadraticVariation, def:predictableMeasurableSpace}
-Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
-\begin{align*}
-  L^2(M) = L^2(\Omega \times \mathbb{R}_+, \mathcal{P}, \mathbb{P} \times d[M])
-\end{align*}
-in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d[M]$ is the measure induced by the quadratic variation of $M$.
-The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\infty} X_t^2 \: d[M]_t \right]$~.
+
+\begin{lemma}\label{lem:Filtration.predictable_le_prod}
+  \uses{def:predictableMeasurableSpace}
+  \leanok
+  \lean{MeasureTheory.Filtration.predictable_le_prod}
+The predictable $\sigma$-algebra on $T \times \Omega$ is a sub-$\sigma$-algebra of the product $\sigma$-algebra $\mathcal{B}(T) \otimes \mathcal{F}$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[L2 space of predictable processes]\label{def:L2Predictable}
+  \uses{lem:Filtration.predictable_le_prod}
+  \leanok
+  \lean{ProbabilityTheory.L2Predictable}
+Let $\mu$ be a measure on $T$ and $P$ a measure on $\Omega$.
+We denote by $L^2(\mu, P)$ the space $L^2(T \times \Omega, \mathcal{P}, \mu \times P)$, in which $\mathcal{P}$ is the predictable $\sigma$-algebra, and the measure $\mu \times P$ is the restriction of the product measure on $\mathcal{B}(T) \otimes \mathcal{F}$ to $\mathcal{P}$~.
 \end{definition}
 
-TODO: what does $\mathbb{P} \times d[M]$ mean there? For Lean, that would be a measure on the product sigma-algebra, but we want the measure on the predictable sigma-algebra.
-Is it the restriction (\texttt{Measure.trim})? Or asked differently: is the predictable sigma-algebra a sub-sigma-algebra of the product sigma-algebra?
+TODO: the measures should be at least finite, I guess.
 
-TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
+TODO: we will write that a stochastic process $X : T \to \Omega \to E$ ``is in $L^2(\mu, P)$'', but this means that the L2 equivalence class of the function $(t, \omega) \mapsto X_t(\omega)$ is in $L^2(\mu, P)$~.
+In Lean, we can use \texttt{MemLp} for the uncurried function.
+
+
+\begin{lemma}\label{lem:L2Predictable.inner_eq}
+  \uses{def:L2Predictable}
+For $X, Y \in L^2(\mu, P)$, we have
+\begin{align*}
+  \langle X, Y \rangle_{L^2(\mu, P)} = P\left[ \int_0^{\infty} \langle X_t, Y_t\rangle \: d\mu \right]
+  \: .
+\end{align*}
+The norm is $\Vert X \Vert_{L^2(\mu, P)}^2 = P\left[ \int_0^{\infty} \Vert X_t \Vert^2 \: d\mu \right]$~.
+\end{lemma}
+
+\begin{proof}
+The inner product in $L^2$ spaces is defined as the integral of the pointwise inner products.
+\begin{align*}
+  \langle X, Y \rangle_{L^2(\mu, P)}
+  &= \int_{T \times \Omega} \langle X_t(\omega), Y_t(\omega) \rangle \: d(\mu \times P)(t, \omega)
+  \\
+  &= P\left[ \int_0^{\infty} \langle X_t, Y_t\rangle \: d\mu \right]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:simpleProcess_mem_L2Predictable}
+  \uses{def:simpleProcess, def:L2Predictable}
+Any simple process in $\mathcal{E}_{T, E}$ is in $L^2(\mu, P)$~.
+
+(Lean remark: we mean that the uncurried version of its coercion to a function satisfies \texttt{MemLp})
+\end{lemma}
+
+\begin{proof}
+A simple process is bounded by definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:L2Predictable.sq_norm_simpleProcess}
+  \uses{def:simpleProcess, def:L2Predictable, lem:simpleProcess_mem_L2Predictable}
+Let $V \in \mathcal{E}_{T, E}$ and $\mu$ a measure on $T$~.
+Let $f$ be a right-continuous non-decreasing function such that for all $s < t$, $\mu((s,t]) = f(t) - f(s)$ (the CDF of $\mu$, but that's only defined for $\mathbb{R}$ in Lean).
+Then
+\begin{align*}
+  \Vert V \Vert^2_{L^2(\mu, P)}
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: (f(t_k) - f(s_k)) \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:L2Predictable.inner_eq}
+TODO: this proof (and the result of the lemma) assumes that the intervals defining the simple process are disjoint.
+
+Let $V \in \mathcal{E}_{T, E}$~, with $V_t(\omega) = \sum_{k=1}^n \eta_k(\omega) \mathbf{1}_{(s_k, t_k]}(t)$~.
+\begin{align*}
+  \Vert V \Vert^2_{L^2(\mu, P)}
+  &= P\left[ \int_0^{\infty} \Vert V_t \Vert^2 \: d\mu \right]
+  \\
+  &= P\left[ \int_0^{\infty} \left\Vert \sum_{k=1}^n \eta_k \mathbf{1}_{(s_k, t_k]}(t) \right\Vert^2 \: d\mu \right]
+  \\
+  &= P\left[ \int_0^{\infty} \sum_{k=1}^n \Vert \eta_k \Vert^2 \mathbf{1}_{(s_k, t_k]}(t) \: d\mu \right]
+  \\
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: \mu((s_k, t_k]) \right]
+  \\
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: (f(t_k) - f(s_k)) \right]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}[L2 space with respect to a square integrable martingale]\label{def:L2M}
+  \uses{def:IsSquareIntegrable, def:quadraticVariation, def:L2Predictable}
+Let $M$ be a square integrable martingale. We define
+\begin{align*}
+  L^2(M)
+  = L^2(d[M], P)
+  = L^2(T \times \Omega, \mathcal{P}, d[M] \times P)
+\end{align*}
+in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d[M]$ is the measure induced by the quadratic variation of $M$.
+\end{definition}
+
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
   \uses{def:elemStochIntegral, def:IsSquareIntegrable, def:quadraticVariation, def:L2M}
@@ -348,7 +440,7 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathca
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Martingale.elemStochIntegral, lem:isSquareIntegrable_elemStochIntegralBilin}
+  \uses{lem:Martingale.elemStochIntegral, lem:isSquareIntegrable_elemStochIntegralBilin, lem:L2Predictable.sq_norm_simpleProcess}
   There are two steps to the proof.
 
   First, in order to make sense of $\Vert V \Vert_{L^2(M)}$,
