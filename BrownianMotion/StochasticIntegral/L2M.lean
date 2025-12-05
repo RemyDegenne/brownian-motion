@@ -30,9 +30,10 @@ lemma _root_.MeasureTheory.Filtration.predictable_le_prod (𝓕 : Filtration T m
     𝓕.predictable ≤ Prod.instMeasurableSpace := by
   sorry
 
--- this will be specialized to the measure coming from the quadratic variation of a martingale
+-- this will be specialized in a later definition to the measure
+-- coming from the quadratic variation of a martingale
+/-- L2 space of predictable processes with respect to a product measure. -/
 noncomputable
-def L2Predictable (μ : Measure T) (P : Measure Ω) :=
-  MeasureTheory.Lp E (m := 𝓕.predictable) 2 ((μ.prod P).trim 𝓕.predictable_le_prod)
+def L2Predictable (μ : Measure T) (P : Measure Ω) := Lp E 2 ((μ.prod P).trim 𝓕.predictable_le_prod)
 
 end ProbabilityTheory
