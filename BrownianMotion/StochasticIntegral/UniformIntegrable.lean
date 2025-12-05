@@ -69,6 +69,20 @@ lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι �
   uniformIntegrable_of_dominated (κ := ι) (uniformIntegrable_const hp hp_ne_top hY) mX
     <| fun i ↦ ⟨i, by filter_upwards [hX i] with ω hω using hω.trans <| Real.le_norm_self _⟩
 
+private lemma norm_le'_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E} :
+    ‖x‖ₑ ≤ r → ‖x‖ ≤ r.toReal := by
+  intro hle
+  -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
+  have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
+  exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
+
+lemma uniformIntegrable_of_dominated_singleton' [NormedAddCommGroup E] {X : ι → Ω → E}
+    {Y : Ω → ℝ≥0∞} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
+    (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ Y ω) :
+    UniformIntegrable X p μ := by
+    sorry
+
+
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :

@@ -422,13 +422,6 @@ private lemma ae_finite_sup_of_integrable_sup [Nonempty ι] [MeasurableSpace ι]
     exact ne_of_lt hω
   exact ⟨hsm.aemeasurable, haenoninf⟩
 
-private lemma norm_le'_of_enorm_le {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E} :
-    ‖x‖ₑ ≤ r → ‖x‖ ≤ r.toReal := by
-  intro hle
-  -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
-  have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
-  exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
-
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX1 : ProgMeasurable 𝓕 X)
     (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
