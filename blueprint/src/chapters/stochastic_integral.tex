@@ -9,6 +9,10 @@ TODO: in Mathlib, we can integrate with respect to the measure given by a right-
 However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
 We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
 
+
+
+
+
 \section{Square integrable martingales}
 
 In this section, $E$ denotes a complete normed space.
@@ -19,13 +23,12 @@ In this section, $E$ denotes a complete normed space.
   \lean{ProbabilityTheory.IsSquareIntegrable}
 Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
 We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
-We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of square integrable martingales with values in $E$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:IsSquareIntegrable.module}
   \uses{def:IsSquareIntegrable}
-$\mathcal{M}^2(E)$ is a real vector space.
+If $M$ and $N$ are square integrable martingales and $a \in \mathbb{R}$, then $M + N$ and $a M$ are square integrable martingales.
 \end{lemma}
 
 \begin{proof}
@@ -50,7 +53,7 @@ Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex funct
   \uses{def:IsSquareIntegrable}
   \leanok
   \lean{ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono}
-For $M \in \mathcal{M}^2(E)$, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
+For $M$ a square integrable martingale, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
 \end{lemma}
 
 \begin{proof}
@@ -71,7 +74,7 @@ Thus, for $s \le t$~,
 
 \begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
-For $M \in \mathcal{M}^2(E)$, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
+For $M$ a square integrable martingale, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
 \end{lemma}
 
 \begin{proof}
@@ -82,7 +85,7 @@ TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tends
 
 \begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
-For $M \in \mathcal{M}^2(E)$, we have
+For $M$ a square integrable martingale,
 \begin{align*}
   \sup_{t \in T} \Vert M_t \Vert_{L^2}
   &= \Vert M_\infty \Vert_{L^2}
@@ -91,13 +94,30 @@ For $M \in \mathcal{M}^2(E)$, we have
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono}
+  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono, lem:IsSquareIntegrable.tendsto_limitProcess}
 
 \end{proof}
 
 
-\begin{definition}\label{def:IsSquareIntegrable.norm}
-  \uses{def:IsSquareIntegrable, def:limitProcess}
+\begin{definition}\label{def:L2Martingales}
+  \uses{def:IsSquareIntegrable}
+We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of equivalence classes with respect to indistinguishability of square integrable martingales $T \to \Omega \to E$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:L2Martingales.module}
+  \uses{def:L2Martingales}
+The space $\mathcal{M}^2(E)$ is a real vector space.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.module}
+
+\end{proof}
+
+
+\begin{definition}\label{def:L2Martingales.norm}
+  \uses{def:L2Martingales, def:limitProcess}
 We define a norm on $\mathcal{M}^2$ by
 \begin{align*}
   \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
@@ -106,9 +126,9 @@ We define a norm on $\mathcal{M}^2$ by
 \end{definition}
 
 
-\begin{lemma}\label{lem:IsSquareIntegrable.norm_eq_zero}
-  \uses{def:IsSquareIntegrable.norm}
-For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M$ is the zero process.
+\begin{lemma}\label{lem:L2Martingales.norm_eq_zero}
+  \uses{def:L2Martingales.norm}
+For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M = 0$.
 \end{lemma}
 
 \begin{proof}
@@ -117,8 +137,8 @@ By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Ver
 \end{proof}
 
 
-\begin{definition}\label{def:IsSquareIntegrable.inner}
-  \uses{def:IsSquareIntegrable.norm}
+\begin{definition}\label{def:L2Martingales.inner}
+  \uses{def:L2Martingales.norm}
 We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
@@ -127,13 +147,13 @@ We define an inner product on $\mathcal{M}^2$ by
 \end{definition}
 
 
-\begin{theorem}\label{thm:hilbertSpace_isSquareIntegrable}
-  \uses{def:IsSquareIntegrable.inner, lem:IsSquareIntegrable.norm_eq_zero}
+\begin{theorem}\label{thm:hilbertSpace_L2Martingales}
+  \uses{def:L2Martingales.inner, lem:L2Martingales.norm_eq_zero}
 The space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm, lem:IsSquareIntegrable.module}
+  \uses{cor:doob_lp_norm, lem:L2Martingales.module}
 We already know that $\mathcal{M}^2$ is an inner product space.
 We need to show that it is complete.
 
@@ -212,6 +232,9 @@ For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
 \end{proof}
 
 
+
+
+
 \section{Local martingales}
 
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
@@ -282,6 +305,10 @@ The decomposition is a.s. unique.
 \end{definition}
 
 
+
+
+
+
 \section{Stochastic integral}
 
 TODO: relax continuity of the martingales, be clear about continuous quadratic variation vs general càdlàg quadratic variation.
@@ -304,6 +331,9 @@ Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We defin
 in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d[M]$ is the measure induced by the quadratic variation of $M$.
 The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\infty} X_t^2 \: d[M]_t \right]$~.
 \end{definition}
+
+TODO: what does $\mathbb{P} \times d[M]$ mean there? For Lean, that would be a measure on the product sigma-algebra, but we want the measure on the predictable sigma-algebra.
+Is it the restriction (\texttt{Measure.trim})? Or asked differently: is the predictable sigma-algebra a sub-sigma-algebra of the product sigma-algebra?
 
 TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
 
@@ -411,7 +441,7 @@ is \texttt{IsDenseInducing}. The Itô isometry is then defined using \texttt{IsD
 
 
 \begin{definition}[Itô isometry]\label{def:itoIsometry}
-  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_isSquareIntegrable}
+  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_L2Martingales}
 Let $M \in \mathcal{M}^2$. Then the elementary stochastic integral map $\mathcal{E} \to \mathcal{M}^2$ defined by $V \mapsto V \bullet M$ extends to an isometry $L^2(M) \to \mathcal{M}^2$.
 \end{definition}
 
