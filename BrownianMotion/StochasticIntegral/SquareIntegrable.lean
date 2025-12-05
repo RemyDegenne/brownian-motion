@@ -61,9 +61,39 @@ lemma IsSquareIntegrable.add (hX : IsSquareIntegrable X 𝓕 P)
 lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P) :
     Submartingale (fun i ω ↦ ‖X i ω‖ ^ 2) 𝓕 P := by
   sorry
+open Filter
 
-lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
-    eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
-  sorry
+
+lemma IsSquareIntegrable.eLpNorm_mono [IsFiniteMeasure P] (hX : IsSquareIntegrable X 𝓕 P)
+    {i j : ι} (hij : i ≤ j) : eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
+  have hX2 := IsSquareIntegrable.submartingale_sq_norm hX
+  have h_int : ∀ k, Integrable ((‖X · ·‖ ^ 2) k) P := hX2.2.2
+  have h_meas := fun k ↦ (h_int k).1
+  rw [← ENNReal.rpow_le_rpow_iff (by norm_num : (0 : ℝ) < 2)]
+  rw [(by rfl : ((2 : ℝ) = ((2 : NNReal): ℝ))) ]
+  change eLpNorm (X i) (2 : NNReal) P ^ ((2 : NNReal) : ℝ) ≤
+      eLpNorm (X j) (2 : NNReal) P ^ ((2 : NNReal) : ℝ)
+  rw [eLpNorm_nnreal_pow_eq_lintegral (p := 2) two_ne_zero]
+  rw [eLpNorm_nnreal_pow_eq_lintegral (p := 2) two_ne_zero]
+  have lintegral_sq_eq_ofReal_integral : ∀ k,
+      ∫⁻ a, ‖X k a‖ₑ ^ (2 : ℝ) ∂P = ENNReal.ofReal (∫ a, (‖X · ·‖ ^ 2) k a ∂P) := fun k ↦ by
+    have h_eq : ∀ᵐ a ∂P, ‖X k a‖ₑ ^ (2 : ℝ) = ENNReal.ofReal ((‖X · ·‖ ^ 2) k a) := by
+      filter_upwards with a
+      simp
+    rw [lintegral_congr_ae h_eq, integral_eq_lintegral_of_nonneg_ae _ (h_meas k)]
+    · rw [ENNReal.ofReal_toReal]
+      refine (lintegral_ofReal_ne_top_iff_integrable (h_meas k) ?_).mpr (h_int k)
+      filter_upwards with x
+      simp
+    filter_upwards
+    simp
+  norm_cast
+  rw [lintegral_sq_eq_ofReal_integral i, lintegral_sq_eq_ofReal_integral j]
+  apply ENNReal.ofReal_le_ofReal
+  have h_submart : (‖X · ·‖ ^ 2) i ≤ᵐ[P] P[(‖X · ·‖ ^ 2) j | 𝓕 i] := hX2.2.1 i j hij
+  calc ∫ ω, (‖X · ·‖ ^ 2) i ω ∂P
+    _ ≤ ∫ ω, (P[(‖X · ·‖ ^ 2) j | 𝓕 i]) ω ∂P :=
+      integral_mono_ae (h_int i) (integrable_condExp) h_submart
+    _ = ∫ ω, (‖X · ·‖ ^ 2) j ω ∂P := integral_condExp _
 
 end ProbabilityTheory
