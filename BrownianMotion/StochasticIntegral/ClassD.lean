@@ -463,11 +463,13 @@ lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountabl
         · simpa [hb, Y] using ⟨T.1, T.2, ae_of_all P fun ω => rfl.le⟩
         · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
-lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι]
+lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
+    [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
+    [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
-    Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+    Locally (ClassD · 𝓕 P) 𝓕 X P :=
+  locally_induction h𝓕 (fun _ ↦ ClassDL.locally_classD) isStable_classD hX
 
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
@@ -487,7 +489,7 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-      sorry
+  sorry
 
 end LinearOrder
 
