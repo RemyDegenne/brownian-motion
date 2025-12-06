@@ -76,11 +76,40 @@ private lemma norm_le'_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr :
   have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
   exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
 
+private lemma MemLp.enorm_ae_finite [TopologicalSpace E] [ContinuousENorm E]
+    {f : Ω → E} {p : ℝ≥0∞} (hlp : MemLp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+    ∀ᵐ x ∂μ, ‖f x‖ₑ < ∞ := by
+  classical
+  let f_to_p := fun x ↦ ‖f x‖ₑ ^ p.toReal
+  have hf : Integrable f_to_p μ :=
+    MemLp.integrable_enorm_rpow hlp hp_ne_zero hp_ne_top
+  have hfin : ∀ᵐ ω ∂μ, f_to_p ω ≠ ∞ := by
+    refine (ae_lt_top' hf.1.aemeasurable (ne_of_lt hf.2)).mono ?_
+    intro ω hω; exact ne_of_lt hω
+  have hpos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
+  have hpos_ne : p.toReal ≠ 0 := hpos.ne'
+  refine hfin.mono ?_
+  intro x hx
+  have hne : ‖f x‖ₑ ≠ ∞ := by
+    by_contra htop
+    have hpow : (∞ : ℝ≥0∞) ^ p.toReal = ∞ := ENNReal.top_rpow_of_pos hpos
+    have : f_to_p x = ∞ := by simpa [f_to_p, htop] using hpow
+    exact hx this
+  exact lt_of_le_of_ne le_top hne
+
 lemma uniformIntegrable_of_dominated_singleton' [NormedAddCommGroup E] {X : ι → Ω → E}
     {Y : Ω → ℝ≥0∞} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
     (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ Y ω) :
     UniformIntegrable X p μ := by
     sorry
+-- WC-TODO: need `MemLp.enorm_ae_finite` above to finish this proof
+
+
+
+
+
+
+
 
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
