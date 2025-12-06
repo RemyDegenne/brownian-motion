@@ -125,7 +125,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
   refine ⟨Adapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
-  refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨T, ?_⟩)
+  refine uniformIntegrable_of_dominated this (fun T => ?_) (fun T => ⟨T, ?_⟩)
   · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
       hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
@@ -149,7 +149,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
       ↦ stoppedValue X T) 1 P := by
     have hcond := hX4.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
         IsStoppingTime.measurableSpace_le T.2.1)
-    refine uniformIntegrable_of_dominated le_rfl hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
+    refine uniformIntegrable_of_dominated hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
       (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
     · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
         hX2) hT ht).mono (𝓕.le' t)).aestronglyMeasurable
@@ -370,7 +370,7 @@ lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι] [
     [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι] :
     IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, ?_⟩
-  refine uniformIntegrable_of_dominated le_rfl hUI_X
+  refine uniformIntegrable_of_dominated hUI_X
     (ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess hX_prog hτ) ?_
   intro sigma
   rcases stoppedValue_stoppedProcess_dominated_le X hτ sigma with ⟨rho, _, h_dom⟩
@@ -383,7 +383,7 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
   let embed : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ ↑t} →
               {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} :=
     fun σ ↦ ⟨σ.1, σ.2.1, fun ω ↦ ne_of_lt (lt_of_le_of_lt (σ.2.2 ω) (WithTop.coe_lt_top t))⟩
-  refine uniformIntegrable_of_dominated le_rfl (hUI_X t) ?_ ?_
+  refine uniformIntegrable_of_dominated (hUI_X t) ?_ ?_
   · intro sigma
     exact ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess hX_prog hτ (embed sigma)
   · intro sigma
@@ -448,7 +448,7 @@ lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountabl
       · simp [hb, stronglyMeasurable_const]
     · let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
       let Y := fun T : A ↦ stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
-      refine uniformIntegrable_of_dominated (Y := Y) le_rfl ?_ (fun T => ?_) (fun T => ?_)
+      refine uniformIntegrable_of_dominated (Y := Y) ?_ (fun T => ?_) (fun T => ?_)
       · let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ v n}
         let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
         have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
@@ -469,11 +469,13 @@ lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountabl
         · simpa [hb, Y] using ⟨T.1, T.2, ae_of_all P fun ω => rfl.le⟩
         · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
-lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι]
+lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
+    [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
+    [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
-    Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+    Locally (ClassD · 𝓕 P) 𝓕 X P :=
+  locally_induction h𝓕 (fun _ ↦ ClassDL.locally_classD) isStable_classD hX
 
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
