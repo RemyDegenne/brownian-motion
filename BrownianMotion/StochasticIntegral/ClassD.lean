@@ -386,50 +386,47 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
       ⟨rho.1, rho.2.1, fun ω ↦ le_trans (h_le_sigma ω) (sigma.2.2 ω)⟩
     exact ⟨rho_bounded, h_dom⟩
 
-/-- A progressively measurable process is necessarily a.e. strongly measurable at each time `i`. -/
-private lemma aestronglyMeasurable_of_progMeasurable [Nonempty ι] [MeasurableSpace ι]
-    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hprog : ProgMeasurable 𝓕 X) :
-    ∀ i, AEStronglyMeasurable (X i) P := by
-  intro i
-  have hsm_f_i : StronglyMeasurable[𝓕 i] (X i) :=
-    hprog.adapted i
-  have hae_f_i : AEStronglyMeasurable[𝓕 i] (X i) P :=
-    MeasureTheory.StronglyMeasurable.aestronglyMeasurable hsm_f_i
-  exact hae_f_i.mono (𝓕.le' i)
-
-private lemma ae_finite_of_integrable {f : Ω → ℝ≥0∞} (hf : Integrable f P) :
-    ∀ᵐ ω ∂P, f ω ≠ ∞ := by
-  refine (ae_lt_top' hf.1.aemeasurable (ne_of_lt hf.2)).mono ?_
-  intro ω hω; exact ne_of_lt hω
-
-private lemma ae_finite_sup_of_integrable_sup [Nonempty ι] [MeasurableSpace ι]
-    {X : ι → Ω → E} (hX : HasIntegrableSup X P) (t : ι) :
-    AEMeasurable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P ∧
-    ∀ᵐ ω ∂P, (⨆ s ≤ t, ‖X s ω‖ₑ) ≠ ∞ := by
-  let supX := fun (tω : ι × Ω) ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ
-  let supX_t := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
-  have hsm' : StronglyMeasurable supX := by
-    simpa [HasStronglyMeasurableSupProcess, supX] using hX.1
-  have hsm : StronglyMeasurable supX_t :=
-    hsm'.comp_measurable (measurable_const.prodMk measurable_id)
-  have hsupXt : Integrable supX_t P := hX.2 t
-  have hintsupXt : ∫⁻ (ω : Ω), supX_t ω ∂P ≠ ⊤ := by
-    exact ne_of_lt hsupXt.hasFiniteIntegral
-  have haefin : ∀ᵐ ω ∂P, supX_t ω < ∞ := by
-    apply ae_lt_top' (hsm.aemeasurable) hintsupXt
-  have haenoninf : ∀ᵐ ω ∂P, supX_t ω ≠ ∞ := by
-    filter_upwards [haefin] with ω hω
-    exact ne_of_lt hω
-  exact ⟨hsm.aemeasurable, haenoninf⟩
-
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
+  [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
+  [PseudoMetrizableSpace ι] [SecondCountableTopology ι]
     (hX1 : ProgMeasurable 𝓕 X)
     (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
-  refine ⟨hX1, fun t ↦ ?_⟩
-  let supX_t := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
-  have hsupfinite : ∀ᵐ ω ∂P, supX_t ω ≠ ∞ := ae_finite_of_integrable (hX2 t)
-  sorry
+  classical
+  refine ⟨hX1, fun t => ?_⟩
+  let supX_t : Ω → ℝ≥0∞ := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
+  have hY : MemLp supX_t 1 P :=
+    memLp_one_iff_integrable.mpr (hX2 t)
+  -- measurability of each stopped value
+  have mX :
+      ∀ τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t},
+        AEStronglyMeasurable (stoppedValue X τ.1) P :=
+    fun τ => ((stronglyMeasurable_stoppedValue_of_le hX1 τ.2.1 τ.2.2).mono
+      (𝓕.le' t)).aestronglyMeasurable
+  -- pointwise domination by the supremum process
+  have hDom :
+      ∀ τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t},
+        ∀ᵐ ω ∂P, ‖stoppedValue X τ.1 ω‖ₑ ≤ supX_t ω := by
+    intro τ
+    filter_upwards with ω
+    have hfin : τ.1 ω ≠ ⊤ :=
+      ne_of_lt (lt_of_le_of_lt (τ.2.2 ω) (by simp))
+    cases hτ : τ.1 ω with
+    | top => cases hfin hτ
+    | coe s =>
+      have hle' : s ≤ t := by
+        have : (s : WithTop ι) ≤ t := by simpa [hτ] using τ.2.2 ω
+        exact (WithTop.coe_le_coe).1 this
+      have hstopped : stoppedValue X τ.1 ω = X s ω := by simp [stoppedValue, hτ]
+      calc
+        ‖stoppedValue X τ.1 ω‖ₑ = ‖X s ω‖ₑ := by simp [hstopped]
+        _ ≤ supX_t ω := le_iSup_of_le s <| le_iSup_of_le hle' <| le_rfl
+  -- apply domination lemma with p = 1
+  have hp : (1 : ℝ≥0∞) ≤ 1 := le_rfl
+  have hp_ne_top : (1 : ℝ≥0∞) ≠ ∞ := by simp
+  exact _root_.MeasureTheory.uniformIntegrable_of_dominated_enorm_singleton
+    (X := fun (τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t}) ω ↦ stoppedValue X τ.1 ω)
+    (Y := supX_t) hp hp_ne_top hY mX hDom
 
 lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι]
