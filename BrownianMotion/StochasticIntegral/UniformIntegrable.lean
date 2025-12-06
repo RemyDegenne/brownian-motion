@@ -50,6 +50,23 @@ lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup 
     exact ⟨C, fun i ↦ let ⟨j, hj⟩ := hX i
       le_trans (eLpNorm_mono_ae hj) <| hC j⟩
 
+lemma uniformIntegrable_of_dominated_enorm [NormedAddCommGroup E] [NormedAddCommGroup F]
+    {X : ι → Ω → E} {Y : κ → Ω → F} {p : ℝ≥0∞}
+    (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
+    (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ ‖Y j ω‖ₑ) :
+    UniformIntegrable X p μ := by
+  classical
+  refine uniformIntegrable_of_dominated hY mX ?_
+  intro i
+  rcases hX i with ⟨j, hj⟩
+  refine ⟨j, hj.mono ?_⟩
+  intro ω hω
+  -- rewrite the `enorm` inequality to an ordinary norm inequality via `ofReal`
+  have h' : ENNReal.ofReal ‖X i ω‖ ≤ ENNReal.ofReal ‖Y j ω‖ := by
+    simpa [ofReal_norm'] using hω
+  have h'' : ‖X i ω‖ ≤ ‖Y j ω‖ := (ENNReal.ofReal_le_ofReal_iff (by exact norm_nonneg _)).1 h'
+  exact h''
+
 lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
     (hY : UniformIntegrable X p μ) :
     UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
@@ -68,6 +85,90 @@ lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι �
     UniformIntegrable X p μ :=
   uniformIntegrable_of_dominated (κ := ι) (uniformIntegrable_const hp hp_ne_top hY) mX
     <| fun i ↦ ⟨i, by filter_upwards [hX i] with ω hω using hω.trans <| Real.le_norm_self _⟩
+
+private lemma norm_le'_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E} :
+    ‖x‖ₑ ≤ r → ‖x‖ ≤ r.toReal := by
+  intro hle
+  -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
+  have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
+  exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
+
+private lemma MemLp.enorm_ae_finite [TopologicalSpace E] [ContinuousENorm E]
+    {f : Ω → E} {p : ℝ≥0∞} (hlp : MemLp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+    ∀ᵐ x ∂μ, ‖f x‖ₑ < ∞ := by
+  classical
+  let f_to_p := fun x ↦ ‖f x‖ₑ ^ p.toReal
+  have hf : Integrable f_to_p μ :=
+    MemLp.integrable_enorm_rpow hlp hp_ne_zero hp_ne_top
+  have hfin : ∀ᵐ ω ∂μ, f_to_p ω ≠ ∞ := by
+    refine (ae_lt_top' hf.1.aemeasurable (ne_of_lt hf.2)).mono ?_
+    intro ω hω; exact ne_of_lt hω
+  have hpos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
+  have hpos_ne : p.toReal ≠ 0 := hpos.ne'
+  refine hfin.mono ?_
+  intro x hx
+  have hne : ‖f x‖ₑ ≠ ∞ := by
+    by_contra htop
+    have hpow : (∞ : ℝ≥0∞) ^ p.toReal = ∞ := ENNReal.top_rpow_of_pos hpos
+    have : f_to_p x = ∞ := by simpa [f_to_p, htop] using hpow
+    exact hx this
+  exact lt_of_le_of_ne le_top hne
+
+lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X : ι → Ω → E}
+    {Y : Ω → ℝ≥0∞} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
+    (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ Y ω) :
+    UniformIntegrable X p μ := by
+  classical
+  have hp_ne_zero : p ≠ 0 := by exact ne_of_gt (lt_of_lt_of_le zero_lt_one hp)
+  -- `Y` is a.e. finite, so we can switch to `toReal`.
+  have hY_fin : ∀ᵐ ω ∂μ, Y ω < ∞ :=
+    MemLp.enorm_ae_finite (E := ℝ≥0∞) (f := Y) hY hp_ne_zero hp_ne_top
+  have hY_real : MemLp (fun ω => (Y ω).toReal) p μ := by
+    -- a.e. measurability
+    have h_meas : AEStronglyMeasurable (fun ω => (Y ω).toReal) μ :=
+      (hY.1.aemeasurable.ennreal_toReal).aestronglyMeasurable
+    -- identify the p-moment of `toReal ∘ Y` with that of `Y`, using a.e. finiteness
+    have hp_ne_top' : p ≠ ∞ := hp_ne_top
+    have hp_ne_zero' : p ≠ 0 := hp_ne_zero
+    have h_eq_integrand : ∀ᵐ ω ∂μ,
+        ‖(Y ω).toReal‖ₑ ^ p.toReal = ‖Y ω‖ₑ ^ p.toReal := by
+      filter_upwards [hY_fin] with ω hfin
+      have hne : Y ω ≠ ∞ := hfin.ne
+      -- for finite Y ω, toReal/ ofReal cancel
+      have hto : ENNReal.ofReal (Y ω).toReal = Y ω := ENNReal.ofReal_toReal hne
+      have hnonneg : 0 ≤ (Y ω).toReal := by
+        have h := ENNReal.toReal_nonneg (a := Y ω)
+        exact h
+      calc
+        ‖(Y ω).toReal‖ₑ ^ p.toReal
+            = (ENNReal.ofReal (Y ω).toReal) ^ p.toReal := by
+              simp [Real.enorm_eq_ofReal_abs, abs_of_nonneg hnonneg]
+        _ = (Y ω) ^ p.toReal := by simp [hto]
+    -- compare eLpNorm via the integral expressions
+    have h_eq_norm : eLpNorm (fun ω => (Y ω).toReal) p μ = eLpNorm Y p μ := by
+      have h1 := eLpNorm_eq_lintegral_rpow_enorm (μ := μ) (f := fun ω => (Y ω).toReal)
+        hp_ne_zero' hp_ne_top'
+      have h2 := eLpNorm_eq_lintegral_rpow_enorm (μ := μ) (f := Y) hp_ne_zero' hp_ne_top'
+      -- rewrite integrals using h_eq_integrand
+      have hlin :
+        (∫⁻ x, ‖(Y x).toReal‖ₑ ^ p.toReal ∂μ) = (∫⁻ x, ‖Y x‖ₑ ^ p.toReal ∂μ) :=
+        lintegral_congr_ae h_eq_integrand
+      -- assemble
+      have hp_pos : (1 / p.toReal) ≠ 0 := by
+        have hpos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero' hp_ne_top'
+        exact one_div_ne_zero hpos.ne'
+      calc
+        eLpNorm (fun ω => (Y ω).toReal) p μ
+            = (∫⁻ x, ‖(Y x).toReal‖ₑ ^ p.toReal ∂μ) ^ (1 / p.toReal) := by
+                simpa using h1
+        _ = (∫⁻ x, ‖Y x‖ₑ ^ p.toReal ∂μ) ^ (1 / p.toReal) := by simp [hlin]
+        _ = eLpNorm Y p μ := by simpa using h2.symm
+    exact ⟨h_meas, h_eq_norm.trans_lt hY.2⟩
+  refine uniformIntegrable_of_dominated_singleton hp hp_ne_top hY_real mX ?_
+  intro i
+  filter_upwards [hX i, hY_fin] with ω hbound hfin
+  -- Convert the `ℝ≥0∞`-bound to a real bound.
+  exact norm_le'_of_enorm_le hfin.ne hbound
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
