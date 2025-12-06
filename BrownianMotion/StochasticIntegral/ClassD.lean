@@ -388,7 +388,7 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
 
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
   [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
-  [PseudoMetrizableSpace ι] [SecondCountableTopology ι]
+  [SecondCountableTopology ι]
     (hX1 : ProgMeasurable 𝓕 X)
     (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
