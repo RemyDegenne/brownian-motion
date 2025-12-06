@@ -542,15 +542,16 @@ Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For 
 
 
 \begin{lemma}\label{lem:Integrable.classDL}
-  \uses{def:classDL, def:locallyIntegrableSup}
+  \uses{def:classDL, def:HasIntegrableSup}
   \leanok
   \lean{MeasureTheory.Integrable.classDL}
-Let $X$ be a progressively measurable stochastic process with integrable supremum (Definition~\ref{def:locallyIntegrableSup}). Then $X$ is of class DL.
+Let $X$ be a progressively measurable stochastic process with integrable supremum (Definition~\ref{def:HasIntegrableSup}). Then $X$ is of class DL.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:uniformIntegrableDominatedSingleton}
 Let $t \in T$. For every stopping time $\tau$ with $\tau \le t$, we have $\|X_\tau\| \le X^*_t$.
+Measurability of $X_\tau$ follows from progressive measurability of $X$.
 Because by hypothesis $X^*_t$ is integrable, we deduce from Lemma~\ref{lem:uniformIntegrableDominatedSingleton} that $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 This proves that $X$ is of class DL.
 \end{proof}
