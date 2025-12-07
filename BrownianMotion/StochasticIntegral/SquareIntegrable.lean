@@ -86,7 +86,7 @@ variable [SigmaFiniteFiltration P 𝓕]
 lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
     eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
   have : ∫ ω, ‖X i ω‖ ^ 2 ∂P ≤ ∫ ω, ‖X j ω‖ ^ 2 ∂P := by
-    simpa using hXsub.setIntegral_le hij MeasurableSet.univ
+    simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
   calc
   _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
     simp [eLpNorm_eq_lintegral_rpow_enorm]
