@@ -581,10 +581,6 @@ section Comp
 variable [SecondCountableTopology (F →L[ℝ] G)]
 variable [SecondCountableTopology (E →L[ℝ] F)]
 variable [SecondCountableTopology (E →L[ℝ] G)]
-
--- TODO: generalize to lem:elemStochIntegralBilin_assoc, and then the below should be
--- a special case.
-
 omit mF [SecondCountableTopology F]
 
 /-- Composition of simple processes taking values in continuous linear maps. -/
