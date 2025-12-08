@@ -59,5 +59,16 @@ def getUsedDecl (n : String) : MetaM (List Name) := do
 
 elab "#used_decls " n:ident : command => do
   liftTermElabM do
-    let decls ← getUsedDecl n.getId.toString
-    logInfo <| Format.joinSep decls "\n"
+    let nstr := n.getId.toString
+    logInfo <| nstr.append ":\n" ++ Format.joinSep (← getUsedDecl nstr) "\n"
+
+-- Only outputs the first goal
+elab "getGoal" : tactic => do
+  if let g::_ ← Tactic.getGoals then
+    logInfo <| m!"Current goal: {g}"
+  else
+    Tactic.done
+
+-- Outputs all goals as a list
+elab "getGoals" : tactic => do
+  logInfo <| m!"Current goal: {← Tactic.getGoals}"
