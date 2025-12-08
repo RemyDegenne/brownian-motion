@@ -487,6 +487,7 @@ lemma locally_left_limit_iff :
   ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
     (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
 
+omit [HasUsualConditions 𝓕 P] in
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
