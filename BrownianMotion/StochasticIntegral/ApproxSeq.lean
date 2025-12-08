@@ -87,15 +87,9 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
   by_cases hτ : τ ω = ⊤
   · have (n : ℕ) : τn.seq n ω = ⊤ := by simpa [hτ] using τn.le n ω
     simp [hτ, this, tendsto_const_nhds]
-  · have : Tendsto WithTop.untopA (𝓝 (τ ω)) (𝓝 (τ ω).untopA) := by
-      simp only [tendsto_nhds]
-      intro U hU hτU
-      have := IsOpen.mem_nhds hU hτU
-      simp [mem_nhds_iff]
-      sorry
-    have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
+  · have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
-        τn.seq x ω)) (this.comp hω) ?_
+        τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
       have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
         simp only [ne_eq, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
         by_contra!
@@ -109,7 +103,7 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
           grind
         exact hτ (tendsto_nhds_unique hω this)
       filter_upwards [this] with n hn
-      simpa [comp_apply, Set.mem_Ici] using WithTop.untopA_mono hn (τn.le n ω)
+      simpa using WithTop.untopA_mono hn (τn.le n ω)
     simpa using (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
 
 /-- For `τ` a time bounded by `i` and `τn` a discrete approximation sequence of `τ`,
