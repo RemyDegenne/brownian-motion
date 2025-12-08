@@ -587,6 +587,7 @@ variable [SecondCountableTopology (E →L[ℝ] G)]
 
 omit mF [SecondCountableTopology F]
 
+/-- Composition of simple processes taking values in continuous linear maps. -/
 @[simps!] def comp (V : SimpleProcess (F →L[ℝ] G) 𝓕) (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
     SimpleProcess (E →L[ℝ] G) 𝓕 :=
   integralSimpleProcess (ContinuousLinearMap.compL ℝ E F G) V W
