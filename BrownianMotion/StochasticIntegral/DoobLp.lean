@@ -16,9 +16,40 @@ open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-variable {ι α Ω E : Type*}
+def lowerLimit (ι : Type*) [Preorder ι] : TopologicalSpace ι :=
+  TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}
 
-variable [TopologicalSpace ι] [hα : TopologicalSpace α] [ConditionallyCompleteLattice α]
+def WithLowerLimit (ι : Type*) := ι
+
+variable (ι : Type*) [Preorder ι]
+
+instance : Preorder (WithLowerLimit ι) := ‹Preorder ι›
+instance : TopologicalSpace (WithLowerLimit ι) := lowerLimit (WithLowerLimit ι)
+
+theorem nhds_lowerLimit_eq (a : ι) :
+    @nhds ι (TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}) a =
+    ⨅ b > a, 𝓟 (Set.Ico a b) := by
+  by_contra h_not_eq
+  -- Since any interval [i, j) containing a must have i ≤ a and j > a, the infimum over all such intervals is the same as the infimum over the intervals [a, b) where b > a.
+  have h_inf_eq : ⨅ (i : ι), ⨅ (j : ι), ⨅ (_ : i ≤ a ∧ a < j), 𝓟 (Set.Ico i j) = ⨅ (b : ι), ⨅ (_ : b > a), 𝓟 (Set.Ico a b) := by
+    refine' le_antisymm _ _;
+    · refine' le_iInf fun b => le_iInf fun hb => _;
+      refine' le_trans ( iInf_le _ a ) _;
+      refine' le_trans ( iInf_le _ b ) _;
+      simp +decide [ hb ];
+    · simp +decide [ iInf_le_iff ];
+      intro i j hi hj b hb;
+      exact Filter.mem_of_superset ( hb j hj ) ( Set.Ico_subset_Ico hi le_rfl );
+  apply h_not_eq;
+  rw [ ← h_inf_eq, TopologicalSpace.nhds_generateFrom ];
+  refine' le_antisymm _ _;
+  · refine' le_iInf fun i => le_iInf fun j => le_iInf fun hij => _;
+    exact iInf₂_le _ ⟨ ⟨ hij.1, hij.2 ⟩, i, j, rfl ⟩;
+  · refine' le_iInf₂ fun s hs => _;
+    rcases hs with ⟨ has, ⟨ i, j, rfl ⟩ ⟩;
+    refine' iInf_le_of_le i ( iInf_le_of_le j ( iInf_le_of_le ⟨ has.1, has.2 ⟩ le_rfl ) )
+
+variable {α Ω E : Type*} [TopologicalSpace ι] [hα : TopologicalSpace α] [ConditionallyCompleteLattice α]
   [ClosedIicTopology α] {f : ι → α}
 
 theorem continuous_supremum_dense {S : Set ι} (hS : Dense S) (hf : Continuous f)
@@ -38,7 +69,7 @@ variable [PartialOrder ι]
 
 theorem continuous_of_rightContinuous (hf_cont : RightContinuous f) :
     @Continuous ι α (TopologicalSpace.generateFrom {s : Set ι | ∃ (i j : ι), s = Set.Ico i j})
-      hα f := by
+    hα f := by
   sorry
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
@@ -83,8 +114,7 @@ theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : �
   have : Countable S := by
     rw [countable_coe_iff]
     exact Countable.union (Countable.mono (by simp) hT_countable) (by simp)
-  have cont (ω : Ω) : @Continuous (Iic n) ℝ (TopologicalSpace.generateFrom {s | ∃ i j,
-      s = Set.Ico i j}) inferInstance fun s ↦ Y (↑s) ω := by sorry
+  have cont (ω : Ω) : @Continuous (Iic n) ℝ (lowerLimit (Iic n)) inferInstance fun s ↦ Y (↑s) ω := by sorry
   have denseS : @Dense (Iic n) (TopologicalSpace.generateFrom
     {s : Set (Iic n) | ∃ i j, s = Set.Ico i j}) S := by sorry
   have (ω : Ω) : ⨆ i ≤ n, Y i ω
