@@ -17,6 +17,12 @@ import Mathlib.Probability.Process.HittingTime
 open MeasureTheory Filter Function TopologicalSpace
 open scoped ENNReal
 
+
+/-- Helper Lemma -/
+@[simp]
+lemma WithTop.untopA_coe {α : Type*} [Nonempty α] {σ : α} :
+    (σ : WithTop α).untopA = σ := rfl
+
 namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
@@ -119,7 +125,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
   refine ⟨Adapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
-  refine uniformIntegrable_of_dominated le_rfl this (fun T => ?_) (fun T => ⟨T, ?_⟩)
+  refine uniformIntegrable_of_dominated this (fun T => ?_) (fun T => ⟨T, ?_⟩)
   · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
       hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
@@ -143,7 +149,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
       ↦ stoppedValue X T) 1 P := by
     have hcond := hX4.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
         IsStoppingTime.measurableSpace_le T.2.1)
-    refine uniformIntegrable_of_dominated le_rfl hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
+    refine uniformIntegrable_of_dominated hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
       (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
     · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.progMeasurable_of_rightContinuous
         hX2) hT ht).mono (𝓕.le' t)).aestronglyMeasurable
@@ -193,6 +199,108 @@ end PartialOrder
 section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
+
+lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
+    [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ StronglyMeasurable (uncurry X)) := by
+  intro X hX τ hτ
+  let M : ι × Ω → ι × Ω := fun p ↦ ((min ↑p.1 (τ p.2)).untopA, p.2)
+  have hM : Measurable M := (WithTop.measurable_coe.comp measurable_fst).min
+      (hτ.measurable'.comp measurable_snd) |>.untopA.prodMk measurable_snd
+  have h_eq : uncurry (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) =
+      {p | ⊥ < τ p.2}.indicator (uncurry X ∘ M) := by
+    ext ⟨t, ω⟩
+    simp only
+        [uncurry, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq, Function.comp_apply, M]
+  rw [h_eq]
+  exact StronglyMeasurable.indicator (hX.comp_measurable hM)
+    (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
+
+lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι]
+  [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [OrderTopology ι] :
+    IsStable (E := E) 𝓕 (ProgMeasurable 𝓕) := by
+  refine fun X hX τ hτ ↦ ProgMeasurable.stoppedProcess ?_ hτ
+  intro i
+  have h_prog : MeasurableSet[𝓕 i] {ω | ⊥ < τ ω} := by
+    have hw: {ω | ⊥ < τ ω} = {ω | τ ω ≤ ⊥}ᶜ := by
+      ext ω
+      simp only [Set.mem_setOf_eq, Set.mem_compl_iff]
+      exact lt_iff_not_ge
+    rw [hw]
+    convert (MeasurableSet.compl (𝓕.mono bot_le _ (hτ ⊥)))
+  exact StronglyMeasurable.indicator (hX i) <| measurable_snd h_prog
+
+
+lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
+    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) (t : ι) :
+    (StronglyMeasurable <| uncurry (stoppedProcess X (fun _ ↦ t))) := by
+  let g : ι × Ω → (Set.Iic t) × Ω := fun p ↦ (⟨min p.1 t, min_le_right p.1 t⟩, p.2)
+  have hg_meas : @Measurable _ _ _
+      (MeasurableSpace.prod (inferInstance : MeasurableSpace (Set.Iic t)) (𝓕 t)) g := by
+    apply Measurable.prodMk _ (measurable_snd.mono le_rfl (𝓕.le t))
+    exact ((continuous_id.min continuous_const).measurable.comp measurable_fst).subtype_mk
+  exact StronglyMeasurable.comp_measurable (hX t) hg_meas
+
+lemma ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]
+    [IsCountablyGenerated (atTop : Filter ι)] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+    (hX : ProgMeasurable 𝓕 X) : (StronglyMeasurable (uncurry X)) := by
+  rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
+  refine stronglyMeasurable_of_tendsto atTop
+    (fun n ↦ stronglyMeasurable_uncurry_stoppedProcess_const hX (t n)) ?_
+  rw [tendsto_pi_nhds]
+  intro ⟨s, ω⟩
+  apply tendsto_const_nhds.congr'
+  filter_upwards [ht_lim.eventually (Filter.eventually_ge_atTop s)] with n hn
+  simp only [uncurry_apply_pair, stoppedProcess]
+  rw [←WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
+
+private lemma ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [NoMaxOrder ι]
+    [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
+    {X : ι → Ω → E} (hX_prog : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
+    (sigma : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤}) :
+    AEStronglyMeasurable
+    (stoppedValue (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) sigma.1) P := by
+  have hY_prog := isStable_progMeasurable X hX_prog τ hτ
+  have hY_sm := ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hY_prog
+  let idx_map : Ω → ι := fun ω ↦ (sigma.val ω).untop (sigma.property.2 ω)
+  have h_idx_meas : @Measurable Ω ι mΩ _ idx_map := by
+    have h_emb : MeasurableEmbedding (fun x : ι ↦ (x : WithTop ι)) := by
+      apply Topology.IsEmbedding.measurableEmbedding WithTop.isEmbedding_coe
+      rw [WithTop.range_coe]
+      exact IsOpen.measurableSet isOpen_Iio
+    apply (MeasurableEmbedding.measurable_comp_iff h_emb).mp
+    convert IsStoppingTime.measurable' (m := mΩ) sigma.property.1
+    ext ω; simp only [Function.comp_apply]; rw [WithTop.coe_untop]
+  refine (hY_sm.comp_measurable (h_idx_meas.prodMk measurable_id)).aestronglyMeasurable.congr ?_
+  apply Filter.EventuallyEq.of_eq; ext ω
+  simp only [stoppedValue, uncurry, Function.comp_apply]
+  congr 2
+  rw [WithTop.untopA_eq_untop]
+
+private lemma stoppedValue_stoppedProcess_dominated_le
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    (X : ι → Ω → E) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
+    (sigma : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤}) :
+    ∃ rho : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤},
+      (∀ ω, rho.1 ω ≤ sigma.1 ω) ∧
+      ∀ᵐ ω ∂P, ‖stoppedValue (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) sigma.1 ω‖ ≤
+        ‖stoppedValue X rho.1 ω‖ := by
+  let rho_val := sigma.1 ⊓ τ
+  have h_rho_stop : IsStoppingTime 𝓕 rho_val := IsStoppingTime.min sigma.2.1 hτ
+  have h_rho_finite : ∀ ω, rho_val ω ≠ ⊤ :=
+    fun ω ↦ ne_of_lt (lt_of_le_of_lt inf_le_left (lt_top_iff_ne_top.mpr (sigma.2.2 ω)))
+  refine ⟨⟨rho_val, h_rho_stop, h_rho_finite⟩, fun ω ↦ inf_le_left, ?_⟩
+  filter_upwards with ω
+  simp only [stoppedValue, stoppedProcess, Set.indicator, Set.mem_setOf_eq, rho_val]
+  split_ifs with h_bot
+  · apply le_of_eq
+    congr
+    rw [WithTop.untopA_eq_untop, WithTop.coe_untop]
+    exact sigma.prop.2 ω
+  · simp only [norm_zero]; exact norm_nonneg _
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
@@ -252,11 +360,32 @@ lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [Orde
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
-lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] : IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
-  sorry
+lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι] :
+    IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
+  refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, ?_⟩
+  refine uniformIntegrable_of_dominated hUI_X
+    (ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess hX_prog hτ) ?_
+  intro sigma
+  rcases stoppedValue_stoppedProcess_dominated_le X hτ sigma with ⟨rho, _, h_dom⟩
+  exact ⟨rho, h_dom⟩
 
-lemma isStable_classDL [OrderBot ι] [MeasurableSpace ι] : IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
-  sorry
+lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    [NoMaxOrder ι] [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι] :
+    IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
+  refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, fun t ↦ ?_⟩
+  let embed : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ ↑t} →
+              {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} :=
+    fun σ ↦ ⟨σ.1, σ.2.1, fun ω ↦ ne_of_lt (lt_of_le_of_lt (σ.2.2 ω) (WithTop.coe_lt_top t))⟩
+  refine uniformIntegrable_of_dominated (hUI_X t) ?_ ?_
+  · intro sigma
+    exact ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess hX_prog hτ (embed sigma)
+  · intro sigma
+    rcases stoppedValue_stoppedProcess_dominated_le X hτ (embed sigma) with ⟨rho, h_le_sigma, h_dom⟩
+    let rho_bounded : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ ↑t} :=
+      ⟨rho.1, rho.2.1, fun ω ↦ le_trans (h_le_sigma ω) (sigma.2.2 ω)⟩
+    exact ⟨rho_bounded, h_dom⟩
+
 
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
@@ -269,16 +398,78 @@ lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 
-lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+omit [LinearOrder ι] in
+lemma ClassDL.classD [Preorder ι] {𝓕 : Filtration ι mΩ} [OrderTop ι] [MeasurableSpace ι]
+    (hX : ClassDL X 𝓕 P) :
+    ClassD X 𝓕 P := by
+  let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+  let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ (⊤ : ι)}
+  let f : A → B := fun T => ⟨T, ⟨T.2.1, fun ω => ?_⟩⟩
+  · have : (fun T : A ↦ stoppedValue X T.1) = (fun T ↦ stoppedValue X T.1) ∘ f := by ext; simp [f]
+    refine ⟨hX.1, ?_⟩
+    rw [this]
+    exact UniformIntegrable.comp (hX.2 (⊤ : ι)) f
+  · have := T.2.2 ω
+    simp only [ne_eq, WithTop.ne_top_iff_exists] at this
+    obtain ⟨a, ha⟩ := this
+    exact ha ▸ WithTop.coe_le_coe.mpr (le_top (a := a))
+
+lemma ClassDL.locally_classD [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι] [OrderTopology ι]
     (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+  rcases topOrderOrNoTopOrder ι with ha | hb
+  · exact locally_of_prop hX.classD
+  · obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+    refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
+    · simp [isStoppingTime_const]
+    · filter_upwards with ω
+      simp only [tendsto_atTop_atTop] at hv2
+      refine tendsto_atTop_isLUB (fun _ _ h => mod_cast hv1 h) ⟨?_, fun x hx => ?_⟩
+      · exact top_mem_upperBounds _
+      · simp only [top_le_iff, WithTop.eq_top_iff_forall_gt]
+        simp only [mem_upperBounds, Set.mem_range, forall_exists_index,
+          forall_apply_eq_imp_iff] at hx
+        intro a
+        obtain ⟨c, hc⟩ := (NoTopOrder.to_noMaxOrder ι).exists_gt a
+        obtain ⟨n, hn⟩ := hv2 c
+        exact lt_of_lt_of_le (WithTop.coe_lt_coe.mpr (lt_of_lt_of_le hc (hn n le_rfl))) (hx n)
+    · filter_upwards with ω
+      exact fun _ _ h => WithTop.coe_le_coe.mpr (hv1 h)
+    · refine ProgMeasurable.stoppedProcess (fun t => ?_) (by simp [isStoppingTime_const])
+      by_cases hb : ⊥ < (v n : WithTop ι)
+      · simp [hb, hX.1 t]
+      · simp [hb, stronglyMeasurable_const]
+    · let A := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+      let Y := fun T : A ↦ stoppedValue (stoppedProcess X (fun ω ↦ ↑(v n))) T
+      refine uniformIntegrable_of_dominated (Y := Y) ?_ (fun T => ?_) (fun T => ?_)
+      · let B := {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ v n}
+        let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
+        have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
+          ext T; simpa [Y, f] using stoppedValue_stoppedProcess_apply (T.2.2 _)
+        rw [this]
+        exact UniformIntegrable.comp (hX.2 (v n)) f
+      · by_cases hb : ⊥ < (v n : WithTop ι)
+        · simp only [hb, Set.setOf_true, Set.indicator_univ, ne_eq, Set.mem_setOf_eq]
+          refine AEStronglyMeasurable.congr ?_ (stoppedValue_stoppedProcess_ae_eq ?_).symm
+          · refine (StronglyMeasurable.mono ?_ (𝓕.le' (v n))).aestronglyMeasurable
+            refine stronglyMeasurable_stoppedValue_of_le hX.1 ((T.2.1).min_const _) (fun ω => ?_)
+            grind
+          · exact ae_of_all P T.2.2
+        · unfold stoppedValue
+          simp [hb]
+          measurability
+      · by_cases hb : ⊥ < (v n : WithTop ι)
+        · simpa [hb, Y] using ⟨T.1, T.2, ae_of_all P fun ω => rfl.le⟩
+        · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
-lemma locally_classD_of_locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι]
+lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
+    [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
+    [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
-    Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  sorry
+    Locally (ClassD · 𝓕 P) 𝓕 X P :=
+  locally_induction h𝓕 (fun _ ↦ ClassDL.locally_classD) isStable_classD hX
 
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
@@ -298,23 +489,22 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
     (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-      sorry
+  sorry
 
 end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
 
 
-variable [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ}
-  [Filtration.HasUsualConditions 𝓕 P] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
-    [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
-    [IsFiniteMeasure P] [CompleteSpace E] [NormedSpace ℝ E]
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [MeasurableSpace ι] [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
+  [PseudoMetrizableSpace ι] [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
-lemma hasLocallyIntegrableSup_of_locally_classDL (hX1 : ∀ᵐ (ω : Ω) ∂P, IsCadlag (X · ω))
-    (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
+lemma hasLocallyIntegrableSup_of_locally_classDL {h𝓕 : 𝓕.IsRightContinuous}
+    (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
   locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup (locally_isCadlag_iff.mpr hX1) hX2
+     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
 end ConditionallyCompleteLinearOrderBot
 

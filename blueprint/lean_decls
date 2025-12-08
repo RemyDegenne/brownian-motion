@@ -215,6 +215,7 @@ MeasureTheory.uniformIntegrable_iff_norm
 MeasureTheory.UniformIntegrable.comp
 MeasureTheory.Submartingale.uniformIntegrable_stoppedValue
 MeasureTheory.UniformIntegrable.memLp_of_tendstoInMeasure
+MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendsto_ae
 MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
 MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite
 IsOrderedAddMonoid
@@ -268,6 +269,7 @@ ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
 ProbabilityTheory.isStable_martingale
 ProbabilityTheory.isStable_submartingale
+ProbabilityTheory.HasIntegrableSup
 ProbabilityTheory.HasLocallyIntegrableSup
 ProbabilityTheory.ClassD
 ProbabilityTheory.ClassDL
@@ -276,6 +278,7 @@ MeasureTheory.Submartingale.classDL
 MeasureTheory.Submartingale.classD_iff_uniformIntegrable
 MeasureTheory.Martingale.classDL
 MeasureTheory.Martingale.classD_iff_uniformIntegrable
+ProbabilityTheory.isStable_hasIntegrableSup
 ProbabilityTheory.isStable_hasLocallyIntegrableSup
 ProbabilityTheory.isStable_classD
 ProbabilityTheory.isStable_classDL
@@ -305,6 +308,7 @@ ProbabilityTheory.SimpleProcess.integral_sub_left
 ProbabilityTheory.SimpleProcess.integral_sub_right
 ProbabilityTheory.SimpleProcess.integral_zero_left
 ProbabilityTheory.SimpleProcess.integral_zero_right
+tendsto_of_no_upcrossings
 MeasureTheory.predictablePart
 MeasureTheory.predictablePart_zero
 MeasureTheory.predictablePart_add_one
@@ -317,5 +321,15 @@ komlos_convex
 komlos_norm
 komlos_ennreal
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
+eVariationOn
+BoundedVariationOn
+LocallyBoundedVariationOn
+LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn
+StieltjesFunction.measure
+ProbabilityTheory.IsSquareIntegrable
+ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm
+ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono
 ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
+MeasureTheory.Filtration.predictable_le_prod
+ProbabilityTheory.L2Predictable
