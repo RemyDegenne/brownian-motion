@@ -85,9 +85,14 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
   filter_upwards [τn.tendsto] with ω hω
   simp only [stoppedValue]
   by_cases hτ : τ ω = ⊤
-  · have (n : ℕ) : τn.seq n ω = ⊤ := by sorry
+  · have (n : ℕ) : τn.seq n ω = ⊤ := by simpa [hτ] using τn.le n ω
     simp [hτ, this, tendsto_const_nhds]
-  · have : Tendsto WithTop.untopA (𝓝 (τ ω)) (𝓝 (τ ω).untopA) := by sorry
+  · have : Tendsto WithTop.untopA (𝓝 (τ ω)) (𝓝 (τ ω).untopA) := by
+      simp only [tendsto_nhds]
+      intro U hU hτU
+      have := IsOpen.mem_nhds hU hτU
+      simp [mem_nhds_iff]
+      sorry
     have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
         τn.seq x ω)) (this.comp hω) ?_
