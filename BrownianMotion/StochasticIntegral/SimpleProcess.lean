@@ -43,7 +43,7 @@ function of an elementary predictable set as a simple process by mapping respect
 - Generalize instance variables.
 -/
 
-open MeasureTheory Filter Finset TopologicalSpace
+open MeasureTheory Filter Finset
 open scoped ENNReal Topology
 
 noncomputable section
@@ -491,9 +491,45 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
   · simp
   · simp [W.value.sum_comm, min_comm, max_comm, and_comm]
 
-@[simp] lemma coe_integralSimpleProcess (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕)
-    (W : SimpleProcess F 𝓕) : ⇑(integralSimpleProcess B V W) = fun i ω ↦ B (⇑V i ω) (⇑W i ω) := by
-  sorry
+-- Analogous to LinearMap.coe_finsupp_sum and AddMonoidHom.coe_finsuppSum:
+@[simp]
+theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semiring R₁] [Semiring R₂]
+    {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [TopologicalSpace M₁] [AddCommMonoid M₁] {M₂ : Type*}
+    [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R₁ M₁] [Module R₂ M₂] [ContinuousAdd M₂]
+    {ι A : Type*} [Zero A] (g : ι →₀ A) (f : ι → A → M₁ →SL[σ₁₂] M₂) (b : M₁) :
+    g.sum f b = g.sum fun i a ↦ f i a b :=
+  ContinuousLinearMap.sum_apply _ _ _
+
+/-- Interpreted as functions, `integralSimpleProcess` is just applying `B` pointwise. -/
+@[simp] lemma coe_integralSimpleProcess (B : E →L[ℝ] F →L[ℝ] G) (W : SimpleProcess E 𝓕)
+    (V : SimpleProcess F 𝓕) : ⇑(integralSimpleProcess B W V) = fun i ω ↦ B (⇑W i ω) (⇑V i ω) := by
+  ext i ω
+  calc
+    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (W.valueBot ω) (V.valueBot ω)) i +
+      V.value.sum fun p v ↦ W.value.sum fun q w ↦
+        (Finsupp.single (p.1 ⊔ q.1, p.2 ⊓ q.2)
+          (if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then fun ω ↦ B (w ω) (v ω) else 0)).sum
+          fun p' v' ↦ (Set.Ioc p'.1 p'.2).indicator (fun _ ↦ v' ω) i := by
+      simp [apply_eq, Finsupp.sum_sum_index, Set.indicator_add]
+    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (W.valueBot ω) (V.valueBot ω)) i +
+      V.value.sum fun p v ↦ W.value.sum fun q w ↦
+        (Set.Ioc (p.1 ⊔ q.1) (p.2 ⊓ q.2)).indicator (fun _ ↦ B (w ω) (v ω)) i := by
+      congr! with p v q w
+      split_ifs with h_le
+      · simp
+      · have : p.2 < q.1 ∨ q.2 < p.1 := by contrapose! h_le; exact h_le
+        have : p.2 ⊓ q.2 < p.1 ⊔ q.1 := by simp; tauto
+        simp [Set.Ioc_eq_empty_of_le this.le]
+    _ = _ := by
+      have h1 (s t : Set ι) (f : ι → E) (g : ι → F) (i : ι) :
+          B (s.indicator f i) (t.indicator g i) = (s ∩ t).indicator (fun j ↦ B (f j) (g j)) i := by
+        rw [← Set.indicator_indicator]
+        unfold Set.indicator
+        split_ifs <;> simp
+      have h2 (i j : ι) : Set.Ioc i j ∩ {⊥} = ∅ := by simp
+      have h3 (i j : ι) : {⊥} ∩ Set.Ioc i j = ∅ := by simp
+      simp [apply_eq, map_finsuppSum, h1, h2, h3, Set.Ioc_inter_Ioc, min_comm, max_comm,
+        W.value.sum_comm]
 
 end integralSimpleProcess
 
@@ -502,14 +538,6 @@ variable {I : Type*} [NormedAddCommGroup I] [NormedSpace ℝ I]
 variable {J : Type*} [NormedAddCommGroup J] [NormedSpace ℝ J]
 variable [MeasurableSpace H] [BorelSpace H] [SecondCountableTopology H]
 variable [MeasurableSpace J] [BorelSpace J] [SecondCountableTopology J]
-
-@[simp, norm_cast]
-theorem _root_.ContinuousLinearMap.coe_finsuppSum {R₁ R₂ : Type*} [Semiring R₁] [Semiring R₂]
-    {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [TopologicalSpace M₁] [AddCommMonoid M₁] {M₂ : Type*}
-    [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R₁ M₁] [Module R₂ M₂] [ContinuousAdd M₂]
-    {ι A : Type*} [Zero A] (g : ι →₀ A) (f : ι → A → M₁ →SL[σ₁₂] M₂) :
-    ⇑(g.sum f) = g.sum fun i a ↦ ⇑(f i a) := by
-  simp [Finsupp.sum]
 
 /-- The most general case of associativity of the elementary stochastic integral. -/
 theorem integral_assoc {B₁ : E →L[ℝ] F →L[ℝ] G} {B₂ : G →L[ℝ] H →L[ℝ] I} {B₃ : F →L[ℝ] H →L[ℝ] J}
@@ -525,7 +553,7 @@ theorem integral_assoc {B₁ : E →L[ℝ] F →L[ℝ] G} {B₂ : G →L[ℝ] H 
         (B₃ (w ω) (v ω)) := by
       simp only [integral, stoppedProcess_integral, Function.comp_apply,
         stoppedProcess_stoppedProcess, map_sub, ContinuousLinearMap.coe_sub', Pi.sub_apply,
-        Finsupp.sum_sub, map_finsuppSum, ContinuousLinearMap.coe_finsuppSum, Finsupp.sum_apply']
+        Finsupp.sum_sub, map_finsuppSum, ContinuousLinearMap.finsuppSum_apply]
       congr! 6 with p v q w <;> simp [Xi, hB, stoppedProcess, min_left_comm, min_assoc]
     _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then
         B₄ (Xi (p.2 ⊓ q.2) ω - Xi (p.1 ⊔ q.1) ω) (B₃ (w ω) (v ω)) else 0 := by
