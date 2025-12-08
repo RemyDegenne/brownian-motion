@@ -485,30 +485,36 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E]
     K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
       (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := by
   let τ := hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥
+  have bound1 (i : ι) (hi : i < τ ω) : ‖X i ω‖ ≤ K := by
+    by_contra! h
+    have := Exists.intro i (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
+    simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, ↓reduceIte, WithTop.coe_lt_coe, τ]
+    have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
+    grind
   by_cases ht : ¬ τ ω ≤ t
   · calc
     _ ≤ K := by
       refine ciSup_le fun i => ?_
       by_cases hN : Nonempty (i ≤ t)
       · have hi : i < τ ω := lt_of_le_of_lt (WithTop.coe_le_coe.mpr hN.some) (not_le.mp ht)
-        have : ‖X i ω‖ ≤ K := by
-          by_contra! h
-          have := Exists.intro i (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
-          simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, nonempty_prop,
-            ↓reduceIte, WithTop.coe_lt_coe, τ]
-          have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
-          grind
         simp_all [stoppedProcess, τ, min_eq_left hi.le]
       · simp_all
-    _ ≤ K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
-      simp [Set.indicator, ht]
+    _ ≤ K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by simp [ht]
   · simp only [not_le, not_lt] at ht
+    have : τ ω ≠ ⊤ := by simpa [← WithTop.lt_top_iff_ne_top] using lt_of_le_of_lt ht (by simp)
+    have bound2 (i : ι) : ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖ ≤ K + ‖X (τ ω).untopA ω‖ := by
+      by_cases hNi : Nonempty (i ≤ (τ ω).untopA)
+      · refine ciSup_le fun q => ?_
+        rcases lt_or_eq_of_le q with ha | hb
+        · linarith [bound1 i ((WithTop.lt_untopA_iff this).mp ha), norm_nonneg (X (τ ω).untopA ω)]
+        · simp [hb, hK]
+      · simp_all
+        linarith [norm_nonneg (X (τ ω).untopA ω)]
     calc
     _ ≤ ⨆ s ≤ (τ ω).untopA, ‖X s ω‖ := by
       refine ciSup_le fun i => ?_
       by_cases hN : Nonempty (i ≤ t)
-      · have : τ ω ≠ ⊤ := by simpa [← WithTop.lt_top_iff_ne_top] using lt_of_le_of_lt ht (by simp)
-        by_cases hi : i ≤ τ ω
+      · by_cases hi : i ≤ τ ω
         · simp_all only [nonempty_prop, stoppedProcess, inf_of_le_left, WithTop.untopD_coe,
             ciSup_unique, τ]
           have : i ≤ (τ ω).untopA := (WithTop.le_untopA_iff this).mpr hi
@@ -516,64 +522,17 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E]
             refine le_ciSup (f := fun h : i ≤ (τ ω).untopA => ‖X i ω‖) ?_ this
             exact ⟨‖X i ω‖, fun _ _ => by grind⟩
           refine le_trans this (le_ciSup (f := fun i => ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖) ?_ i)
-          refine ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => ?_⟩
-          simp only [← hx]
-          by_cases hNx : Nonempty (x ≤ (τ ω).untopA)
-          · refine ciSup_le fun q => ?_
-            simp_all only [nonempty_prop, ciSup_unique]
-            rcases lt_or_eq_of_le q with ha | hb
-            · suffices ‖X x ω‖ ≤ K from by linarith [norm_nonneg (X (τ ω).untopA ω)]
-              by_contra! h
-              have := Exists.intro x (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
-              simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, WithTop.untopA_coe,
-                ↓reduceIte, τ]
-              rw [← hx] at h
-              have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
-              grind
-            · simp [← hx, hb, hK]
-          · simp_all
-            linarith [norm_nonneg (X (τ ω).untopA ω)]
+          exact ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => hx ▸ bound2 x⟩
         · simp_all only [nonempty_prop, not_le, stoppedProcess, τ]
           simp_all only [min_eq_right hi.le, ciSup_unique]
           refine le_trans (le_ciSup (f := fun h : (τ ω).untopA ≤ (τ ω).untopA =>
             ‖X (τ ω).untopA ω‖) ?_ le_rfl) (le_ciSup (f := fun i =>
             ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖) ?_ (τ ω).untopA)
           · exact ⟨‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => by simp [hx]⟩
-          · refine ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => ?_⟩
-            simp only [← hx]
-            by_cases hNx : Nonempty (x ≤ (τ ω).untopA)
-            · refine ciSup_le fun q => ?_
-              simp_all only [nonempty_prop, ciSup_unique]
-              rcases lt_or_eq_of_le q with ha | hb
-              · suffices ‖X x ω‖ ≤ K from by linarith [norm_nonneg (X (τ ω).untopA ω)]
-                by_contra! h
-                have := Exists.intro x (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K)
-                  ⟨by simp, by grind⟩
-                simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, WithTop.untopA_coe,
-                  ↓reduceIte, τ]
-                rw [← hx] at h
-                have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
-                grind
-              · simp [← hx, hb, hK]
-            · simp_all
-              linarith [norm_nonneg (X (τ ω).untopA ω)]
+          · exact ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => hx ▸ bound2 x⟩
       · simp_all only [nonempty_prop, Real.iSup_of_isEmpty]
         exact Real.iSup_nonneg fun i => Real.iSup_nonneg fun h => norm_nonneg _
-    _ ≤ K + ‖X (τ ω).untopA ω‖ := by
-      refine ciSup_le fun i => ?_
-      by_cases hi : Nonempty (i ≤ (τ ω).untopA)
-      · simp_all only [nonempty_prop, ciSup_unique]
-        rcases lt_or_eq_of_le hi with ha | hb
-        · suffices ‖X i ω‖ ≤ K from by linarith [norm_nonneg (X (τ ω).untopA ω)]
-          by_contra! h
-          have := Exists.intro i (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
-          simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, WithTop.untopA_coe,
-            ↓reduceIte, τ]
-          have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
-          grind
-        · simp [hb, hK]
-      · simp_all
-        linarith [norm_nonneg (X (τ ω).untopA ω)]
+    _ ≤ K + ‖X (τ ω).untopA ω‖ := ciSup_le fun i => bound2 i
     _ = K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
       simp [stoppedValue, ht]
 
