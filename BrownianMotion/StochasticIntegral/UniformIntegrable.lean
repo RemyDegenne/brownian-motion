@@ -50,23 +50,6 @@ lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup 
     exact ⟨C, fun i ↦ let ⟨j, hj⟩ := hX i
       le_trans (eLpNorm_mono_ae hj) <| hC j⟩
 
-lemma uniformIntegrable_of_dominated_enorm [NormedAddCommGroup E] [NormedAddCommGroup F]
-    {X : ι → Ω → E} {Y : κ → Ω → F} {p : ℝ≥0∞}
-    (hY : UniformIntegrable Y p μ) (mX : ∀ i, AEStronglyMeasurable (X i) μ)
-    (hX : ∀ i, ∃ j, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ ‖Y j ω‖ₑ) :
-    UniformIntegrable X p μ := by
-  classical
-  refine uniformIntegrable_of_dominated hY mX ?_
-  intro i
-  rcases hX i with ⟨j, hj⟩
-  refine ⟨j, hj.mono ?_⟩
-  intro ω hω
-  -- rewrite the `enorm` inequality to an ordinary norm inequality via `ofReal`
-  have h' : ENNReal.ofReal ‖X i ω‖ ≤ ENNReal.ofReal ‖Y j ω‖ := by
-    simpa [ofReal_norm'] using hω
-  have h'' : ‖X i ω‖ ≤ ‖Y j ω‖ := (ENNReal.ofReal_le_ofReal_iff (by exact norm_nonneg _)).1 h'
-  exact h''
-
 lemma UniformIntegrable.norm [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
     (hY : UniformIntegrable X p μ) :
     UniformIntegrable (fun t ω ↦ ‖X t ω‖) p μ := by
@@ -96,7 +79,6 @@ private lemma norm_le'_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr :
 private lemma MemLp.enorm_ae_finite [TopologicalSpace E] [ContinuousENorm E]
     {f : Ω → E} {p : ℝ≥0∞} (hlp : MemLp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
     ∀ᵐ x ∂μ, ‖f x‖ₑ < ∞ := by
-  classical
   let f_to_p := fun x ↦ ‖f x‖ₑ ^ p.toReal
   have hf : Integrable f_to_p μ :=
     MemLp.integrable_enorm_rpow hlp hp_ne_zero hp_ne_top
@@ -118,7 +100,6 @@ lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X :
     {Y : Ω → ℝ≥0∞} {p : ℝ≥0∞} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞) (hY : MemLp Y p μ)
     (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ Y ω) :
     UniformIntegrable X p μ := by
-  classical
   have hp_ne_zero : p ≠ 0 := by exact ne_of_gt (lt_of_lt_of_le zero_lt_one hp)
   -- `Y` is a.e. finite, so we can switch to `toReal`.
   have hY_fin : ∀ᵐ ω ∂μ, Y ω < ∞ :=

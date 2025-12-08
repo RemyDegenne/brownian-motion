@@ -392,7 +392,6 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
     (hX1 : ProgMeasurable 𝓕 X)
     (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
-  classical
   refine ⟨hX1, fun t => ?_⟩
   let supX_t : Ω → ℝ≥0∞ := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
   have hY : MemLp supX_t 1 P :=
@@ -406,30 +405,20 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
   -- pointwise domination by the supremum process
   have hDom :
       ∀ τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t},
-        ∀ᵐ ω ∂P, ‖stoppedValue X τ.1 ω‖ₑ ≤ supX_t ω := by
-    intro τ
-    filter_upwards with ω
-    have hfin : τ.1 ω ≠ ⊤ :=
-      ne_of_lt (lt_of_le_of_lt (τ.2.2 ω) (by simp))
-    cases hτ : τ.1 ω with
-    | top => cases hfin hτ
-    | coe s =>
-      have hle' : s ≤ t := by
-        have : (s : WithTop ι) ≤ t := by simpa [hτ] using τ.2.2 ω
-        exact (WithTop.coe_le_coe).1 this
-      have hstopped : stoppedValue X τ.1 ω = X s ω := by simp [stoppedValue, hτ]
-      calc
-        ‖stoppedValue X τ.1 ω‖ₑ = ‖X s ω‖ₑ := by simp [hstopped]
-        _ ≤ supX_t ω := le_iSup_of_le s <| le_iSup_of_le hle' <| le_rfl
+        ∀ᵐ ω ∂P, ‖stoppedValue X τ.1 ω‖ₑ ≤ supX_t ω :=
+        fun τ => Eventually.of_forall fun ω => calc
+          ‖stoppedValue X τ.1 ω‖ₑ = ‖X (τ.1 ω).untopA ω‖ₑ := by simp[stoppedValue]
+          _ ≤ supX_t ω := by
+            refine le_iSup_of_le (τ.1 ω).untopA (le_iSup_of_le ?_ le_rfl)
+            exact (WithTop.untopA_le_iff (ne_of_lt (lt_of_le_of_lt (τ.2.2 ω) (by simp)))).mpr
+              (τ.2.2 ω)
   -- apply domination lemma with p = 1
-  have hp : (1 : ℝ≥0∞) ≤ 1 := le_rfl
-  have hp_ne_top : (1 : ℝ≥0∞) ≠ ∞ := by simp
-  exact _root_.MeasureTheory.uniformIntegrable_of_dominated_enorm_singleton
-    (X := fun (τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t}) ω ↦ stoppedValue X τ.1 ω)
-    (Y := supX_t) hp hp_ne_top hY mX hDom
+  exact uniformIntegrable_of_dominated_enorm_singleton
+    le_rfl (by simp) hY mX hDom
 
-lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι]
+lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [Nonempty ι] [MeasurableSpace ι]
+  [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
+  [SecondCountableTopology ι]
     (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
