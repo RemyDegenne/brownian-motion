@@ -82,7 +82,30 @@ def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
 lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpace E]
     (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, RightContinuous (X · ω)) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  sorry
+  filter_upwards [τn.tendsto] with ω hω
+  simp only [stoppedValue]
+  by_cases hτ : τ ω = ⊤
+  · have (n : ℕ) : τn.seq n ω = ⊤ := by sorry
+    simp [hτ, this, tendsto_const_nhds]
+  · have : Tendsto WithTop.untopA (𝓝 (τ ω)) (𝓝 (τ ω).untopA) := by sorry
+    have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
+      refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
+        τn.seq x ω)) (this.comp hω) ?_
+      have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
+        simp only [ne_eq, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
+        by_contra!
+        have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
+          simp only [tendsto_atTop_nhds]
+          intro _ _ _
+          obtain ⟨N, hN⟩ := this 0
+          refine ⟨N, fun n hn => ?_⟩
+          obtain ⟨M, hM⟩ := this n
+          have : τn.seq n ω = ⊤ := by simpa [hM.2] using (τn.antitone hM.1 ω)
+          grind
+        exact hτ (tendsto_nhds_unique hω this)
+      filter_upwards [this] with n hn
+      simpa [comp_apply, Set.mem_Ici] using WithTop.untopA_mono hn (τn.le n ω)
+    simpa using (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
 
 /-- For `τ` a time bounded by `i` and `τn` a discrete approximation sequence of `τ`,
 `discreteApproxSequence_of` is the discrete approximation sequence of `τ` defined by `τn ∧ i`. -/
