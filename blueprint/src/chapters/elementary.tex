@@ -116,18 +116,23 @@ The \emph{general elementary stochastic integral} process $V \bullet_B X : T \to
 
 \begin{lemma}\label{lem:simpleProcess_elemStochIntegralBilin}
   \uses{def:elemStochIntegralBilin, def:simpleProcess}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integralSimpleProcess}
 The elementary stochastic integral $V \bullet_B W$ of two simple processes is a simple process.
 
 TODO: with the current Lean definition of simple process, this cannot be a lemma but has to be a definition of an elementary stochastic integral of two simple processes, with value in the simple processes.
 \end{lemma}
 
 \begin{proof}
+  \leanok
 It has values $B(\xi_j, \eta_i)$ on the intervals $(s_i, t_i] \cap (u_j, v_j]$ if $V$ and $W$ are defined by the sequences $(s_i, t_i, \eta_i)$ and $(u_j, v_j, \xi_j)$ respectively.
 \end{proof}
 
 
 \begin{definition}\label{def:elemStochIntegralLinear}
   \uses{def:elemStochIntegralBilin}
+  \lean{ProbabilityTheory.SimpleProcess.integralLinear}
+  \leanok
 Let $E$ and $G$ be normed real vector spaces.
 We call \emph{linear elementary stochastic integral} the general elementary stochastic integral of Definition~\ref{def:elemStochIntegralBilin} with $G = G$, $F = L(E, G)$ (the continuous linear maps from $E$ to $G$) and $B(x, L) = L(x)$ the evaluation map.
 We denote it by $V \bullet_L X$.
@@ -158,10 +163,13 @@ Immediate from the definition.
 
 \begin{lemma}\label{lem:elemStochIntegralBilin_zero}
   \uses{def:elemStochIntegralBilin}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral_bot}
 $(V \bullet_B X)_0 = 0$ for every simple process $V$ and stochastic process $X$.
 \end{lemma}
 
 \begin{proof}
+  \leanok
 \begin{align*}
   (V \bullet_B X)_0
   &= \sum_{k=1}^{n} B (X^0_{t_k} - X^0_{s_k}, \eta_k)
@@ -178,6 +186,8 @@ $(V \bullet_B X)_0 = 0$ for every simple process $V$ and stochastic process $X$.
 
 \begin{lemma}\label{lem:elemStochIntegralBilin_const}
   \uses{def:elemStochIntegralBilin}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral_const}
 Let $X_c$ be a constant process (equal to the same random variable for all times).
 Then for every simple process $V$,
 \begin{align*}
@@ -187,12 +197,14 @@ Then for every simple process $V$,
 \end{lemma}
 
 \begin{proof}
-
+  \leanok
 \end{proof}
 
 
 \begin{lemma}\label{lem:elemStochIntegralBilin_assoc}
-  \uses{def:elemStochIntegralBilin}
+  \uses{def:elemStochIntegralBilin, lem:simpleProcess_elemStochIntegralBilin}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess.integral_assoc}
 Let $E, F, G, H, I, J$ be normed real vector spaces.
 Let $B_1 : E \times F \to G$, $B_2 : G \times H \to I$, $B_3 : F \times H \to J$ and $B_4 : E \times J \to I$ be continuous bilinear maps such that for all $x \in E$, $y \in F$ and $z \in H$, $B_2(B_1(x, y), z) = B_4(x, B_3(y, z))$.
 Then for every simple process $W$ with values in $F$, simple process $V$ with values in $H$, and stochastic process $X$ with values in $E$, we have
@@ -204,7 +216,7 @@ Then for every simple process $W$ with values in $F$, simple process $V$ with va
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:elemStochIntegral_linear, lem:simpleProcess_elemStochIntegralBilin}
+  \uses{lem:elemStochIntegral_linear}
 Unfold definitions, use linearity.
 \end{proof}
 
@@ -239,6 +251,8 @@ Apply Corollary~\ref{cor:elemStochIntegral_assoc_real_bilin} with $B$ the scalar
 
 \begin{lemma}\label{lem:elemStochIntegralLinear_assoc}
   \uses{def:elemStochIntegralLinear}
+  \lean{ProbabilityTheory.SimpleProcess.integralLinear_assoc}
+  \leanok
 For simple process $W$ with values in $L(E, G)$, simple process $V$ with values in $L(G, H)$, and stochastic process $X$ with values in $E$, we have
 \begin{align*}
   V \bullet_L (W \bullet_L X)
@@ -250,6 +264,7 @@ in which $V \circ W$ is the simple process defined by $(V \circ W)_t = V_t \circ
 
 \begin{proof}
   \uses{lem:elemStochIntegralBilin_assoc}
+  \leanok
 Use Lemma~\ref{lem:elemStochIntegralBilin_assoc} with $B_1, B_2, B_4$ equal to the evaluation maps and $B_3$ the composition of continuous linear maps.
 \end{proof}
 
@@ -266,6 +281,8 @@ For $V \in \mathcal{E}_{T, F}$, $X : T \to \Omega \to E$ a càdlàg process and 
 
 \begin{lemma}\label{lem:elemStochIntegral_stoppedProcess}
   \uses{def:elemStochIntegral, def:stoppedProcess}
+  \lean{ProbabilityTheory.SimpleProcess.stoppedProcess_integral}
+  \leanok
 Let $X$ be a stochastic process, $V$ a simple process and $τ$ a stopping time.
 Then
 \begin{align*}
@@ -275,6 +292,7 @@ Then
 \end{lemma}
 
 \begin{proof}
+  \leanok
 \begin{align*}
   (V \bullet_B X)^\tau_t
   &= (V \bullet_B X)_{t \wedge \tau}
@@ -301,6 +319,8 @@ That process is eventually constant.
 
 \begin{lemma}\label{lem:limitProcess_elemStochIntegral}
   \uses{def:elemStochIntegralBilin, def:limitProcess}
+  \lean{ProbabilityTheory.SimpleProcess.integral_top}
+  \leanok
 \begin{align*}
   (V \bullet_B X)_\infty
   &= \sum_{k=1}^{n} B (X_{t_k} - X_{s_k}, \eta_k)
@@ -309,6 +329,7 @@ That process is eventually constant.
 \end{lemma}
 
 \begin{proof}
+  \leanok
 Immediate from the definition.
 \end{proof}
 
