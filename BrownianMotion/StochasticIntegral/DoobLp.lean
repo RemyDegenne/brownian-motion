@@ -89,7 +89,7 @@ theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : �
     {s : Set (Iic n) | ∃ i j, s = Set.Ico i j}) S := by sorry
   have (ω : Ω) : ⨆ i ≤ n, Y i ω
     = ⨆ s ≤ ⟨⟨n, le_rfl⟩, hn⟩, (Y ∘ Subtype.val ∘ Subtype.val: S → Ω → ℝ) s ω := by
-    by_cases h: BddAbove (Set.range fun i : Iic n ↦ Y (↑i) ω)
+    by_cases h : BddAbove (Set.range fun i : Iic n ↦ Y (↑i) ω)
     · calc
       _ = ⨆ s : Iic n, Y s ω := by
         have : Nonempty {i // i ≤ n} := Nonempty.intro ⟨n, le_rfl⟩

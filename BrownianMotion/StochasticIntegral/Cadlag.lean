@@ -13,7 +13,7 @@ import Mathlib.Topology.MetricSpace.Pseudo.Defs
 open Filter TopologicalSpace Bornology
 open scoped Topology
 
-variable {ι E : Type*} [PartialOrder ι] [TopologicalSpace ι] [TopologicalSpace E]
+variable {ι E : Type*} [Preorder ι] [TopologicalSpace ι] [TopologicalSpace E]
 
 /-- The predicate that a function is right continuous. -/
 abbrev Function.RightContinuous (f : ι → E) :=
