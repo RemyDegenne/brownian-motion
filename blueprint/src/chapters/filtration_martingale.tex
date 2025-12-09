@@ -1079,6 +1079,23 @@ We denote it by $X_\infty$.
 In Mathlib, we have results about convergence of martingales to their limit in discrete time.
 
 
+\begin{lemma}\label{lem:upcrossing_nat}
+  \uses{def:Submartingale}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part}
+Let $X$ be a real submartingale indexed by $\mathbb{N}$.
+Then, for every $a < b$, the number of upcrossings $U_t[a,b]$ of the interval $[a,b]$ before time $t$ by $X$ satisfies
+\begin{align*}
+  (b - a) \mathbb{E}[U_t[a,b]] \le \mathbb{E}[(X_t - a)^+]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
 \begin{lemma}\label{lem:upcrossing_countable}
   \uses{def:Submartingale}
 Suppose that $T$ is a countable time index with a bottom element $0$.
@@ -1091,7 +1108,8 @@ Then, for every $a < b$, the number of upcrossings $U_t[a,b]$ of the interval $[
 \end{lemma}
 
 \begin{proof}
-Build an increasing sequence of $\mathbb{N}$-indexed subsets of $T$ whose union is $T$ and apply Doob's upcrossing lemma on each of these subsets (TODO: it's in Mathlib).
+  \uses{lem:upcrossing_nat}
+Build an increasing sequence of $\mathbb{N}$-indexed subsets of $T$ whose union is $T$ and apply Doob's upcrossing lemma on each of these subsets (Lemma~\ref{lem:upcrossing_nat}).
 Then conclude by monotone convergence.
 \end{proof}
 
