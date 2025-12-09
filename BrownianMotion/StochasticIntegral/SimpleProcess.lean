@@ -21,17 +21,17 @@ import BrownianMotion.Gaussian.BrownianMotion
 
 ## Implementation notes
 
-`SimpleProcess` consists of a value function as a `Finsupp`: `value : ι × ι →₀ Ω → F` and a
-value at ⊥: `valueBot : Ω → F`. This allows the definition of operations like addition to be
+`SimpleProcess` consists of a value function as a `Finsupp`: `value : ι × ι →₀ Ω → E` and a
+value at ⊥: `valueBot : Ω → E`. This allows the definition of operations like addition to be
 defined naturally.
 
 However, this makes the function `SimpleProcess.toFun` non-injective, so `SimpleProcess` is not
-`FunLike`. In other words, two distinct elements `X Y : SimpleProcess F 𝓕` may produce the same
-function `(⇑X : ι → Ω → F) = (⇑Y : ι → Ω → F)`.
+`FunLike`. In other words, two distinct elements `X Y : SimpleProcess E 𝓕` may produce the same
+function `(⇑X : ι → Ω → E) = (⇑Y : ι → Ω → E)`.
 
 There are subtleties that are caused by this: for example, by a nonnegative simple
-process, we mean `X : SimpleProcess F 𝓕` with `0 ≤ X.valueBot` and `0 ≤ X.value`, which is not the
-same as `0 ≤ (⇑X : ι → Ω → F)`.
+process, we mean `X : SimpleProcess E 𝓕` with `0 ≤ X.valueBot` and `0 ≤ X.value`, which is not the
+same as `0 ≤ (⇑X : ι → Ω → E)`.
 
 Similarly, `ElementaryPredictableSet` is a data type that has a coercion to `Set (ι × Ω)`, but
 this coercion is not injective, so it is not `SetLike`. This makes it easy to define the indicator
@@ -43,17 +43,17 @@ function of an elementary predictable set as a simple process by mapping respect
 - Generalize instance variables.
 -/
 
-open MeasureTheory Filter Finset
+open MeasureTheory Finset Filter ContinuousLinearMap
 open scoped ENNReal Topology
 
 noncomputable section
 
 namespace ProbabilityTheory
 
-variable {ι Ω F : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
-variable [NormedAddCommGroup F] [mF : MeasurableSpace F]
+variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] {mΩ : MeasurableSpace Ω}
+variable [NormedAddCommGroup E] [mE : MeasurableSpace E]
 -- Note: separable space is needed for `ContinuousAdd.measurableMul₂` (which has the wrong name)
-variable [NormedSpace ℝ F] [BorelSpace F] [SecondCountableTopology F]
+variable [NormedSpace ℝ E] [BorelSpace E] [SecondCountableTopology E]
 variable {𝓕 : Filtration ι mΩ}
 
 attribute [local measurability]
@@ -163,14 +163,14 @@ namespace SimpleProcess
 attribute [fun_prop] measurable_valueBot
 
 /-- A bound on the value at ⊥. -/
-noncomputable def valueBotBound (V : SimpleProcess F 𝓕) : ℝ := max 0 V.bounded_valueBot.choose
+noncomputable def valueBotBound (V : SimpleProcess E 𝓕) : ℝ := max 0 V.bounded_valueBot.choose
 
 /-- The value at ⊥ is bounded by `valueBotBound`. -/
-@[simp] lemma valueBot_le_valueBotBound (V : SimpleProcess F 𝓕) (ω : Ω) :
+@[simp] lemma valueBot_le_valueBotBound (V : SimpleProcess E 𝓕) (ω : Ω) :
     ‖V.valueBot ω‖ ≤ V.valueBotBound :=
   le_max_of_le_right (V.bounded_valueBot.choose_spec ω)
 
-@[simp] lemma valueBotBound_nonneg (V : SimpleProcess F 𝓕) : 0 ≤ V.valueBotBound := le_max_left _ _
+@[simp] lemma valueBotBound_nonneg (V : SimpleProcess E 𝓕) : 0 ≤ V.valueBotBound := le_max_left _ _
 
 /-- The value of the simple process at the left endpoint of an interval is measurable
 with respect to the filtration at the left endpoint.
@@ -178,18 +178,18 @@ with respect to the filtration at the left endpoint.
 Note that we do not require `p ∈ V.value.support`, because the value is 0 otherwise,
 which is measurable. -/
 @[fun_prop]
-lemma measurable_value (V : SimpleProcess F 𝓕) (p : ι × ι) : Measurable[𝓕 p.1] (V.value p) := by
+lemma measurable_value (V : SimpleProcess E 𝓕) (p : ι × ι) : Measurable[𝓕 p.1] (V.value p) := by
   by_cases hp : p ∈ V.value.support
   · exact V.measurable_value' p hp
   · rw [show V.value p = 0 by simpa using hp]
     exact measurable_const
 
 /-- A nonnegative bound on the value on each interval. -/
-noncomputable def valueBound (V : SimpleProcess F 𝓕) : ℝ := max 0 (V.bounded_value.choose)
+noncomputable def valueBound (V : SimpleProcess E 𝓕) : ℝ := max 0 (V.bounded_value.choose)
 
 /-- The value on each interval is bounded by `valueBound`. Note that we do not require
 `p ∈ V.value.support`. -/
-@[simp] lemma value_le_valueBound (V : SimpleProcess F 𝓕) (p : ι × ι) (ω : Ω) :
+@[simp] lemma value_le_valueBound (V : SimpleProcess E 𝓕) (p : ι × ι) (ω : Ω) :
     ‖V.value p ω‖ ≤ V.valueBound := by
   by_cases hp : p ∈ V.value.support
   · exact le_max_of_le_right (V.bounded_value.choose_spec p hp ω)
@@ -197,12 +197,12 @@ noncomputable def valueBound (V : SimpleProcess F 𝓕) : ℝ := max 0 (V.bounde
     rw [show V.value p = 0 by simpa using hp]
     simp
 
-@[simp] lemma valueBound_nonneg (V : SimpleProcess F 𝓕) : 0 ≤ V.valueBound := le_max_left _ _
+@[simp] lemma valueBound_nonneg (V : SimpleProcess E 𝓕) : 0 ≤ V.valueBound := le_max_left _ _
 
 section Module
 
 @[simps]
-instance instZero : Zero (SimpleProcess F 𝓕) where
+instance instZero : Zero (SimpleProcess E 𝓕) where
   zero := {
     valueBot := 0,
     value := 0,
@@ -211,7 +211,7 @@ instance instZero : Zero (SimpleProcess F 𝓕) where
     bounded_value := ⟨0, by simp⟩ }
 
 @[simps]
-instance instNeg : Neg (SimpleProcess F 𝓕) where
+instance instNeg : Neg (SimpleProcess E 𝓕) where
   neg V := {
     valueBot := -V.valueBot,
     value := -V.value,
@@ -220,7 +220,7 @@ instance instNeg : Neg (SimpleProcess F 𝓕) where
     bounded_value := ⟨V.valueBound, by simp⟩ }
 
 @[simps]
-instance instAdd : Add (SimpleProcess F 𝓕) where
+instance instAdd : Add (SimpleProcess E 𝓕) where
   add V W := {
     valueBot := V.valueBot + W.valueBot,
     value := V.value + W.value,
@@ -234,7 +234,7 @@ instance instAdd : Add (SimpleProcess F 𝓕) where
       grw [norm_add_le, V.value_le_valueBound, W.value_le_valueBound]⟩ }
 
 @[simps]
-instance instSub : Sub (SimpleProcess F 𝓕) where
+instance instSub : Sub (SimpleProcess E 𝓕) where
   sub V W := {
     valueBot := V.valueBot - W.valueBot,
     value := V.value - W.value,
@@ -248,7 +248,7 @@ instance instSub : Sub (SimpleProcess F 𝓕) where
       grw [norm_sub_le, V.value_le_valueBound, W.value_le_valueBound]⟩ }
 
 @[simps]
-instance instSMul : SMul ℝ (SimpleProcess F 𝓕) where
+instance instSMul : SMul ℝ (SimpleProcess E 𝓕) where
   smul c V := {
     valueBot := c • V.valueBot,
     value := c • V.value,
@@ -260,7 +260,7 @@ instance instSMul : SMul ℝ (SimpleProcess F 𝓕) where
       dsimp
       grw [norm_smul, V.value_le_valueBound, Real.norm_eq_abs]⟩ }
 
-instance instAddCommGroup : AddCommGroup (SimpleProcess F 𝓕) where
+instance instAddCommGroup : AddCommGroup (SimpleProcess E 𝓕) where
   sub_eq_add_neg U V := by ext <;> apply sub_eq_add_neg
   add_assoc U V W := by ext <;> apply add_assoc
   add_comm U V := by ext <;> apply add_comm
@@ -270,7 +270,7 @@ instance instAddCommGroup : AddCommGroup (SimpleProcess F 𝓕) where
   nsmul := nsmulRec
   zsmul := zsmulRec
 
-instance instModule : Module ℝ (SimpleProcess F 𝓕) where
+instance instModule : Module ℝ (SimpleProcess E 𝓕) where
   zero_smul V := by ext <;> simp
   smul_zero V := by ext <;> simp
   add_smul U V W := by ext <;> simp [add_smul]
@@ -293,35 +293,35 @@ end Module
 section ToFun
 
 /-- Coercion from a simple process to a function. Note that this is not injective. -/
-@[coe] def toFun (V : SimpleProcess F 𝓕) (i : ι) (ω : Ω) : F :=
+@[coe] def toFun (V : SimpleProcess E 𝓕) (i : ι) (ω : Ω) : E :=
   ({⊥} : Set ι).indicator (fun _ ↦ V.valueBot ω) i
     + V.value.sum fun p v => (Set.Ioc p.1 p.2).indicator (fun _ ↦ v ω) i
 
-instance instCoeFun : CoeFun (SimpleProcess F 𝓕) (fun _ ↦ ι → Ω → F) where
+instance instCoeFun : CoeFun (SimpleProcess E 𝓕) (fun _ ↦ ι → Ω → E) where
   coe := toFun
 
-lemma apply_eq (V : SimpleProcess F 𝓕) (i : ι) (ω : Ω) :
+lemma apply_eq (V : SimpleProcess E 𝓕) (i : ι) (ω : Ω) :
   ⇑V i ω = ({⊥} : Set ι).indicator (fun _ ↦ V.valueBot ω) i
     + V.value.sum fun p v => (Set.Ioc p.1 p.2).indicator (fun _ ↦ v ω) i := rfl
 
-@[simp] lemma coe_zero : ⇑(0 : SimpleProcess F 𝓕) = 0 := by ext; simp [apply_eq]
+@[simp] lemma coe_zero : ⇑(0 : SimpleProcess E 𝓕) = 0 := by ext; simp [apply_eq]
 
-@[simp] lemma coe_neg (V : SimpleProcess F 𝓕) : ⇑(-V) = -⇑V := by
+@[simp] lemma coe_neg (V : SimpleProcess E 𝓕) : ⇑(-V) = -⇑V := by
   ext; simp [apply_eq, Set.indicator_neg, Finsupp.sum_neg_index]; abel
 
-@[simp] lemma coe_add (V W : SimpleProcess F 𝓕) :
+@[simp] lemma coe_add (V W : SimpleProcess E 𝓕) :
    ⇑(V + W) = ⇑V + ⇑W := by
   ext; simp [apply_eq, Set.indicator_add, Finsupp.sum_add_index]; abel
 
-@[simp] lemma coe_sub (V W : SimpleProcess F 𝓕) :
+@[simp] lemma coe_sub (V W : SimpleProcess E 𝓕) :
    ⇑(V - W) = ⇑V - ⇑W := by
   ext; simp [apply_eq, Set.indicator_sub, Finsupp.sum_sub_index]; abel
 
-@[simp] lemma coe_smul (c : ℝ) (V : SimpleProcess F 𝓕) :
+@[simp] lemma coe_smul (c : ℝ) (V : SimpleProcess E 𝓕) :
    ⇑(c • V) = c • ⇑V := by
   ext; simp [apply_eq, Set.indicator_smul, Finsupp.sum_smul_index', Finsupp.smul_sum]
 
-lemma coe_bounded (V : SimpleProcess F 𝓕) :
+lemma coe_bounded (V : SimpleProcess E 𝓕) :
     ∃ C : ℝ, ∀ i : ι, ∀ ω : Ω, ‖⇑V i ω‖ ≤ C := by
   use V.valueBotBound + #V.value.support • V.valueBound
   intro i ω
@@ -333,88 +333,75 @@ lemma coe_bounded (V : SimpleProcess F 𝓕) :
 
 end ToFun
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 section Integral
 
 /-- The **elementary stochastic integral** with respect to a continuous bilinear map `B`. -/
-def integral (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (V : SimpleProcess F 𝓕) :
+def integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
     WithTop ι → Ω → G :=
   fun i ω ↦ V.value.sum fun p v =>
-    B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) (v ω)
+    B (v ω) (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
 /-- The **linear elementary stochastic integral** where the simple process takes values in
-`E →L[ℝ] F`, as a special case of `integral` with `B = ContinuousLinearMap.apply ℝ F`. -/
-abbrev integralLinear [SecondCountableTopology (E →L[ℝ] F)] (X : ι → Ω → E)
-    (V : SimpleProcess (E →L[ℝ] F) 𝓕) :
-    WithTop ι → Ω → F :=
-  integral (ContinuousLinearMap.apply ℝ F) X V
+`E →L[ℝ] F`, as a special case of `integral` with `B` the evaluation map. -/
+abbrev integralEval [SecondCountableTopology (E →L[ℝ] F)] (V : SimpleProcess (E →L[ℝ] F) 𝓕)
+    (X : ι → Ω → E) : WithTop ι → Ω → F :=
+  integral (.id ℝ (E →L[ℝ] F)) V X
 
 -- TODO: possible notation V●X, possibly for more general integrals
 
 variable {B : E →L[ℝ] F →L[ℝ] G}
 
-@[simp] lemma integral_zero_left (V : SimpleProcess F 𝓕) :
-    integral B (fun _ ↦ (0 : Ω → E)) V = fun _ ↦ 0 := by
-  ext; simp [integral]
+@[simp] lemma integral_const_right (c : Ω → F) (V : SimpleProcess E 𝓕) :
+    integral B V (fun _ ↦ c) = fun _ ↦ 0 := by ext; simp [integral]
 
-@[simp] lemma integral_neg_left (X : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B (-X) V = -integral B X V := by
+@[simp] lemma integral_neg_right (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B V (-X) = -integral B V X := by
   ext; simp [integral]; abel
 
-@[simp] lemma integral_add_left (X Y : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B (X + Y) V = integral B X V + integral B Y V := by
+@[simp] lemma integral_add_right (V : SimpleProcess E 𝓕) (X Y : ι → Ω → F) :
+    integral B V (X + Y) = integral B V X + integral B V Y := by
   ext; simp [integral]; abel
 
-@[simp] lemma integral_sub_left (X Y : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B (X - Y) V = integral B X V - integral B Y V := by
+@[simp] lemma integral_sub_right (V : SimpleProcess E 𝓕) (X Y : ι → Ω → F) :
+    integral B V (X - Y) = integral B V X - integral B V Y := by
   ext; simp [integral]; abel
 
-@[simp] lemma integral_smul_left (c : ℝ) (X : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B (c • X) V = c • integral B X V := by
+@[simp] lemma integral_smul_right (c : ℝ) (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B V (c • X) = c • integral B V X := by
   ext; simp [integral, Finsupp.smul_sum, smul_sub]
 
-@[simp] lemma integral_zero_right (X : ι → Ω → E) :
-    integral B X (0 : SimpleProcess F 𝓕) = fun _ ↦ 0 := by
+@[simp] lemma integral_zero_left (X : ι → Ω → F) :
+    integral B (0 : SimpleProcess E 𝓕) X = fun _ ↦ 0 := by
   ext; simp [integral]
 
-@[simp] lemma integral_neg_right (X : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B X (-V) = -integral B X V := by
+@[simp] lemma integral_neg_left (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B (-V) X = -integral B V X := by
   ext; simp [integral, Finsupp.sum_neg_index]; abel
 
-@[simp] lemma integral_add_right (X : ι → Ω → E)
-    (V W : SimpleProcess F 𝓕) :
-    integral B X (V + W) = integral B X V + integral B X W := by
+@[simp] lemma integral_add_left (V W : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B (V + W) X = integral B V X + integral B W X := by
   ext; simp [integral, Finsupp.sum_add_index]; abel
 
-@[simp] lemma integral_sub_right (X : ι → Ω → E)
-    (V W : SimpleProcess F 𝓕) :
-    integral B X (V - W) = integral B X V - integral B X W := by
+@[simp] lemma integral_sub_left (V W : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B (V - W) X = integral B V X - integral B W X := by
   ext; simp [integral, Finsupp.sum_sub_index]; abel
 
-@[simp] lemma integral_smul_right (c : ℝ) (X : ι → Ω → E)
-    (V : SimpleProcess F 𝓕) :
-    integral B X (c • V) = c • integral B X V := by
+@[simp] lemma integral_smul_left (c : ℝ) (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B (c • V) X = c • integral B V X := by
   ext; simp [integral, Finsupp.sum_smul_index', Finsupp.smul_sum, smul_sub]
 
-@[simp] lemma integral_bot (X : ι → Ω → E) (V : SimpleProcess F 𝓕) :
-    integral B X V ⊥ = fun _ ↦ 0 := by ext; simp [integral]
+@[simp] lemma integral_bot (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
+    integral B V X ⊥ = fun _ ↦ 0 := by ext; simp [integral]
 
-@[simp] lemma integral_top (X : ι → Ω → E) (V : SimpleProcess F 𝓕) (ω : Ω) :
-    integral B X V ⊤ ω = V.value.sum fun p v ↦ B (X p.2 ω - X p.1 ω) (v ω) := by simp [integral]
+@[simp] lemma integral_top (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (ω : Ω) :
+    integral B V X ⊤ ω = V.value.sum fun p v ↦ B (v ω) (X p.2 ω - X p.1 ω) := by simp [integral]
 
-@[simp] lemma integral_const (c : Ω → E) (V : SimpleProcess F 𝓕) :
-    integral B (fun _ ↦ c) V = fun _ _ ↦ 0 := by ext; simp [integral]
-
-theorem stoppedProcess_integral (X : ι → Ω → E) (V : SimpleProcess F 𝓕) (τ : Ω → WithTop ι) :
-    stoppedProcess (integral B X V ∘ WithTop.some) τ =
-      integral B (stoppedProcess X τ) V ∘ WithTop.some := by
+theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (τ : Ω → WithTop ι) :
+    stoppedProcess (integral B V X ∘ WithTop.some) τ =
+      integral B V (stoppedProcess X τ) ∘ WithTop.some := by
   ext i ω
   rw [stoppedProcess]
   dsimp [integral]
@@ -427,19 +414,18 @@ section Assoc
 
 section Bilin
 
-section integralSimpleProcess
+section map₂
 
-variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+variable [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
 variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
 
-/-- Integral of a simple process with respect to a simple process as a simple process. -/
-@[simps] def integralSimpleProcess (B : E →L[ℝ] F →L[ℝ] G) (W : SimpleProcess E 𝓕)
-    (V : SimpleProcess F 𝓕) :
+/-- Application of a bounded bilinear map pointwise to two simple processes. -/
+@[simps] def map₂ (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (W : SimpleProcess F 𝓕) :
     SimpleProcess G 𝓕 where
-  valueBot := fun ω ↦ B (W.valueBot ω) (V.valueBot ω)
+  valueBot := fun ω ↦ B (V.valueBot ω) (W.valueBot ω)
   value := V.value.sum fun p v ↦ W.value.sum fun q w ↦
     Finsupp.single (p.1 ⊔ q.1, p.2 ⊓ q.2)
-      (if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then (fun ω ↦ B (w ω) (v ω)) else 0)
+      (if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then (fun ω ↦ B (v ω) (w ω)) else 0)
   le_of_mem_support_value := by
     intro p' hp'
     obtain ⟨p, hp, h⟩ := mem_biUnion.1 (Finsupp.support_sum hp')
@@ -449,14 +435,14 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
         ⟨⟨V.le_of_mem_support_value p hp, h_le.1⟩, ⟨h_le.2, W.le_of_mem_support_value q hq⟩⟩
     · simp at h
   bounded_valueBot := by
-    refine ⟨‖B‖ * W.valueBotBound * V.valueBotBound, fun ω ↦ ?_⟩
+    refine ⟨‖B‖ * V.valueBotBound * W.valueBotBound, fun ω ↦ ?_⟩
     dsimp
-    grw [B.le_opNorm₂, W.valueBot_le_valueBotBound, V.valueBot_le_valueBotBound]
-    exact mul_nonneg B.opNorm_nonneg W.valueBotBound_nonneg
+    grw [B.le_opNorm₂, V.valueBot_le_valueBotBound, W.valueBot_le_valueBotBound]
+    exact mul_nonneg B.opNorm_nonneg V.valueBotBound_nonneg
   bounded_value := by
-    refine ⟨#V.value.support • #W.value.support • (‖B‖ * W.valueBound * V.valueBound),
+    refine ⟨#V.value.support • #W.value.support • (‖B‖ * V.valueBound * W.valueBound),
       fun p _ ω ↦ ?_⟩
-    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finset_sum, sum_apply,
+    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finset_sum, Finset.sum_apply,
       Finsupp.indicator_apply, mem_singleton, dite_eq_ite]
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
     intro p hp
@@ -464,13 +450,13 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
     intro q hq
     split_ifs
     · dsimp
-      grw [B.le_opNorm₂, W.value_le_valueBound, V.value_le_valueBound]
-      exact mul_nonneg B.opNorm_nonneg W.valueBound_nonneg
+      grw [B.le_opNorm₂, V.value_le_valueBound, W.value_le_valueBound]
+      exact mul_nonneg B.opNorm_nonneg V.valueBound_nonneg
     all_goals
-      simpa using mul_nonneg (mul_nonneg B.opNorm_nonneg W.valueBound_nonneg) V.valueBound_nonneg
+      simpa using mul_nonneg (mul_nonneg B.opNorm_nonneg V.valueBound_nonneg) W.valueBound_nonneg
   measurable_valueBot := by
-    exact (show Continuous fun (w, v) ↦ B w v by fun_prop).measurable.comp
-      (W.measurable_valueBot.prodMk (V.measurable_valueBot))
+    exact (show Continuous fun (v, w) ↦ B v w by fun_prop).measurable.comp
+      (V.measurable_valueBot.prodMk (W.measurable_valueBot))
   measurable_value' := by
     simp only [Finsupp.sum_apply]
     refine fun p' hp' ↦ Finset.measurable_sum' _ fun p hp ↦ Finset.measurable_sum' _ fun q hq ↦ ?_
@@ -480,18 +466,17 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
         (V.measurable_value p).mono (𝓕.mono (by simp [← h])) le_rfl
       have hW : Measurable[𝓕 p'.1] (W.value q) :=
         (W.measurable_value q).mono (𝓕.mono (by simp [← h])) le_rfl
-      exact (show Continuous fun (w, v) ↦ B w v by fun_prop).measurable.comp (hW.prodMk hV)
+      exact (show Continuous fun (v, w) ↦ B v w by fun_prop).measurable.comp (hV.prodMk hW)
     · exact measurable_const
     · exact measurable_const
 
-@[simp] lemma integralSimpleProcess_flip (B : E →L[ℝ] F →L[ℝ] G) (W : SimpleProcess E 𝓕)
-    (V : SimpleProcess F 𝓕) :
-    integralSimpleProcess B.flip V W = integralSimpleProcess B W V := by
+lemma map₂_swap (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (W : SimpleProcess F 𝓕) :
+    map₂ B V W = map₂ B.flip W V := by
   ext
   · simp
   · simp [W.value.sum_comm, min_comm, max_comm, and_comm]
 
--- Analogous to LinearMap.coe_finsupp_sum and AddMonoidHom.coe_finsuppSum:
+-- Analogous to LinearMap.finsupp_sum_apply and AddMonoidHom.finsuppSum_apply:
 @[simp]
 theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semiring R₁] [Semiring R₂]
     {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [TopologicalSpace M₁] [AddCommMonoid M₁] {M₂ : Type*}
@@ -500,20 +485,20 @@ theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semirin
     g.sum f b = g.sum fun i a ↦ f i a b :=
   ContinuousLinearMap.sum_apply _ _ _
 
-/-- Interpreted as functions, `integralSimpleProcess` is just applying `B` pointwise. -/
-@[simp] lemma coe_integralSimpleProcess (B : E →L[ℝ] F →L[ℝ] G) (W : SimpleProcess E 𝓕)
-    (V : SimpleProcess F 𝓕) : ⇑(integralSimpleProcess B W V) = fun i ω ↦ B (⇑W i ω) (⇑V i ω) := by
+/-- Interpreted as functions, `map₂` is just applying `B` pointwise. -/
+@[simp] lemma coe_map₂ (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕)
+    (W : SimpleProcess F 𝓕) : ⇑(map₂ B V W) = fun i ω ↦ B (⇑V i ω) (⇑W i ω) := by
   ext i ω
   calc
-    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (W.valueBot ω) (V.valueBot ω)) i +
+    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (V.valueBot ω) (W.valueBot ω)) i +
       V.value.sum fun p v ↦ W.value.sum fun q w ↦
         (Finsupp.single (p.1 ⊔ q.1, p.2 ⊓ q.2)
-          (if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then fun ω ↦ B (w ω) (v ω) else 0)).sum
+          (if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then fun ω ↦ B (v ω) (w ω) else 0)).sum
           fun p' v' ↦ (Set.Ioc p'.1 p'.2).indicator (fun _ ↦ v' ω) i := by
       simp [apply_eq, Finsupp.sum_sum_index, Set.indicator_add]
-    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (W.valueBot ω) (V.valueBot ω)) i +
+    _ = ({⊥} : Set ι).indicator (fun _ ↦ B (V.valueBot ω) (W.valueBot ω)) i +
       V.value.sum fun p v ↦ W.value.sum fun q w ↦
-        (Set.Ioc (p.1 ⊔ q.1) (p.2 ⊓ q.2)).indicator (fun _ ↦ B (w ω) (v ω)) i := by
+        (Set.Ioc (p.1 ⊔ q.1) (p.2 ⊓ q.2)).indicator (fun _ ↦ B (v ω) (w ω)) i := by
       congr! with p v q w
       split_ifs with h_le
       · simp
@@ -528,35 +513,31 @@ theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semirin
         split_ifs <;> simp
       have h2 (i j : ι) : Set.Ioc i j ∩ {⊥} = ∅ := by simp
       have h3 (i j : ι) : {⊥} ∩ Set.Ioc i j = ∅ := by simp
-      simp [apply_eq, map_finsuppSum, h1, h2, h3, Set.Ioc_inter_Ioc, min_comm, max_comm,
-        W.value.sum_comm]
+      simp [apply_eq, map_finsuppSum, h1, h2, h3, Set.Ioc_inter_Ioc]
 
-end integralSimpleProcess
+end map₂
 
+variable [MeasurableSpace F] [BorelSpace F] [SecondCountableTopology F]
 variable {H : Type*} [NormedAddCommGroup H] [NormedSpace ℝ H]
 variable {I : Type*} [NormedAddCommGroup I] [NormedSpace ℝ I]
 variable {J : Type*} [NormedAddCommGroup J] [NormedSpace ℝ J]
-variable [MeasurableSpace H] [BorelSpace H] [SecondCountableTopology H]
 variable [MeasurableSpace J] [BorelSpace J] [SecondCountableTopology J]
 
 /-- The most general case of associativity of the elementary stochastic integral. -/
-theorem integral_assoc {B₁ : E →L[ℝ] F →L[ℝ] G} {B₂ : G →L[ℝ] H →L[ℝ] I} {B₃ : F →L[ℝ] H →L[ℝ] J}
-    {B₄ : E →L[ℝ] J →L[ℝ] I} (hB : ∀ x y z, B₂ (B₁ x y) z = B₄ x (B₃ y z)) (X : ι → Ω → E)
-    (V : SimpleProcess H 𝓕) (W : SimpleProcess F 𝓕) :
-    integral B₂ (integral B₁ X W ∘ WithTop.some) V =
-      integral B₄ X (integralSimpleProcess B₃ W V) := by
+theorem integral_assoc {B₁ : E →L[ℝ] H →L[ℝ] I} {B₂ : F →L[ℝ] G →L[ℝ] H} {B₃ : E →L[ℝ] F →L[ℝ] J}
+    {B₄ : J →L[ℝ] G →L[ℝ] I} (hB : ∀ x y z, B₁ x (B₂ y z) = B₄ (B₃ x y) z)
+    (V : SimpleProcess E 𝓕) (W : SimpleProcess F 𝓕) (X : ι → Ω → G) :
+    integral B₁ V (integral B₂ W X ∘ WithTop.some) = integral B₄ (map₂ B₃ V W) X := by
   ext i ω
   let Xi := stoppedProcess X (fun _ ↦ i)
   calc
-    _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ B₄
-        ((Xi (p.2 ⊓ q.2) ω - Xi (p.2 ⊓ q.1) ω) - (Xi (p.1 ⊓ q.2) ω - Xi (p.1 ⊓ q.1) ω))
-        (B₃ (w ω) (v ω)) := by
+    _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ B₄ (B₃ (v ω) (w ω))
+        ((Xi (p.2 ⊓ q.2) ω - Xi (p.2 ⊓ q.1) ω) - (Xi (p.1 ⊓ q.2) ω - Xi (p.1 ⊓ q.1) ω)) := by
       simp only [integral, stoppedProcess_integral, Function.comp_apply,
-        stoppedProcess_stoppedProcess, map_sub, ContinuousLinearMap.coe_sub', Pi.sub_apply,
-        Finsupp.sum_sub, map_finsuppSum, ContinuousLinearMap.finsuppSum_apply]
+        stoppedProcess_stoppedProcess, map_sub, Finsupp.sum_sub, map_finsuppSum]
       congr! 6 with p v q w <;> simp [Xi, hB, stoppedProcess, min_left_comm, min_assoc]
     _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then
-        B₄ (Xi (p.2 ⊓ q.2) ω - Xi (p.1 ⊔ q.1) ω) (B₃ (w ω) (v ω)) else 0 := by
+        B₄ (B₃ (v ω) (w ω)) (Xi (p.2 ⊓ q.2) ω - Xi (p.1 ⊔ q.1) ω) else 0 := by
       refine Finsupp.sum_congr fun p hp ↦ ?_
       refine Finsupp.sum_congr fun q hq ↦ ?_
       split_ifs with h_le
@@ -572,7 +553,8 @@ theorem integral_assoc {B₁ : E →L[ℝ] F →L[ℝ] G} {B₂ : G →L[ℝ] H 
             simp [h_le, W.le_of_mem_support_value q hq, V.le_of_mem_support_value p hp]
           simp [h, h.2.1.trans h.2.2, h.1.trans h.2.1, (h.1.trans h.2.1).trans h.2.2]
     _ = _ := by
-      simp [integral, Finsupp.sum_sum_index, Xi, -map_sub, ite_apply, apply_ite (α := J)]
+      simp [integral, Finsupp.sum_sum_index, Xi, -map_sub, ite_apply, apply_ite (α := J),
+        DFunLike.ite_apply]
 
 end Bilin
 
@@ -581,24 +563,22 @@ section Comp
 variable [SecondCountableTopology (F →L[ℝ] G)]
 variable [SecondCountableTopology (E →L[ℝ] F)]
 variable [SecondCountableTopology (E →L[ℝ] G)]
-omit mF [SecondCountableTopology F]
+omit mE [SecondCountableTopology E]
 
 /-- Composition of simple processes taking values in continuous linear maps. -/
 @[simps!] def comp (V : SimpleProcess (F →L[ℝ] G) 𝓕) (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
     SimpleProcess (E →L[ℝ] G) 𝓕 :=
-  integralSimpleProcess (ContinuousLinearMap.compL ℝ E F G) V W
+  map₂ (compL ℝ E F G) V W
 
 @[simp] lemma coe_comp (V : SimpleProcess (F →L[ℝ] G) 𝓕) (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
    ⇑(V.comp W) = fun i ω ↦ ⇑V i ω ∘L ⇑W i ω := by
   simp [comp]
 
-theorem integralLinear_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)
+theorem integralEval_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)
     (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
-    integralLinear (integralLinear X W ∘ WithTop.some) V = integralLinear X (V.comp W) := by
-  unfold integralLinear comp
-  rw [← integralSimpleProcess_flip]
+    integralEval V (integralEval W X ∘ WithTop.some) = integralEval (comp V W) X := by
   apply integral_assoc
-  intros; rfl
+  simp
 
 end Comp
 
@@ -616,18 +596,15 @@ section Indicator
 
 namespace ElementaryPredictableSet
 
-variable (F)
-
 /-- The indicator function of an elementary predictable set as a simple process.
-This takes value `0` at time not in `S`, and `f` at time `S`. -/
-def indicator (S : ElementaryPredictableSet 𝓕) (f : F) :
-    SimpleProcess F 𝓕 where
-  valueBot := S.setBot.indicator fun _ ↦ f
-  value := Finsupp.onFinset S.I (fun p ↦ if p ∈ S.I then (S.set p).indicator fun _ ↦ f else 0)
+This takes value `0` at time not in `S`, and `e` at time `S`. -/
+def indicator (S : ElementaryPredictableSet 𝓕) (e : E) : SimpleProcess E 𝓕 where
+  valueBot := S.setBot.indicator fun _ ↦ e
+  value := Finsupp.onFinset S.I (fun p ↦ if p ∈ S.I then (S.set p).indicator fun _ ↦ e else 0)
     (by simp +contextual)
   le_of_mem_support_value := fun p hp ↦ S.le_of_mem_I p (Finsupp.support_onFinset_subset hp)
-  bounded_valueBot := ⟨‖f‖, fun _ ↦ norm_indicator_le_norm_self _ _⟩
-  bounded_value := ⟨‖f‖, fun _ _ _ ↦ by
+  bounded_valueBot := ⟨‖e‖, fun _ ↦ norm_indicator_le_norm_self _ _⟩
+  bounded_value := ⟨‖e‖, fun _ _ _ ↦ by
     rw [Finsupp.onFinset_apply]
     split_ifs
     · exact norm_indicator_le_norm_self _ _
@@ -636,8 +613,8 @@ def indicator (S : ElementaryPredictableSet 𝓕) (f : F) :
     rw [Finsupp.onFinset_apply]
     measurability
 
-@[simp] lemma coe_indicator (S : ElementaryPredictableSet 𝓕) (f : F) :
-    ⇑(S.indicator F f) = Function.curry ((S : Set (ι × Ω)).indicator fun _ ↦ f) := by
+@[simp] lemma coe_indicator (S : ElementaryPredictableSet 𝓕) (e : E) :
+    ⇑(S.indicator e) = Function.curry ((S : Set (ι × Ω)).indicator fun _ ↦ e) := by
   classical
   ext i ω
   rw [ElementaryPredictableSet.toSet, Set.indicator_union_of_disjoint, Finset.indicator_biUnion]
@@ -653,14 +630,14 @@ def indicator (S : ElementaryPredictableSet 𝓕) (f : F) :
     intro (i, ω)
     simp +contextual
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 
 /-- Explicit formula for `1_S ● X` where `S` is an elementary predictable set. -/
 lemma integral_indicator_apply (S : ElementaryPredictableSet 𝓕)
-    (f : F) (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → E) (i : ι) (ω : Ω) :
-    (S.indicator F f).integral B X i ω = ∑ p ∈ S.I, (S.set p).indicator (fun ω ↦
-      B (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω) f) ω := by
+    (e : E) (B : E →L[ℝ] F →L[ℝ] G) (X : ι → Ω → F) (i : ι) (ω : Ω) :
+    (S.indicator e).integral B X i ω = ∑ p ∈ S.I, (S.set p).indicator (fun ω ↦
+      B e (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)) ω := by
   rw [SimpleProcess.integral, indicator, Finsupp.onFinset_sum]
   · apply Finset.sum_congr rfl
     intro p hp
@@ -688,7 +665,7 @@ variable (ι Ω) in
 /-- The elementary predictable sets generate the predictable σ-algebra. Note that we require the
 time domain to have countably generated `atTop` so that each `(t, ∞]` can be written as a countable
 union of intervals `(t, s]`. -/
-theorem generateFrom_eq_predictable [(atTop : Filter ι).IsCountablyGenerated] :
+theorem generateFrom_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated] :
     MeasurableSpace.generateFrom {↑S | S : ElementaryPredictableSet 𝓕} = 𝓕.predictable := by
   apply le_antisymm
   · apply MeasurableSpace.generateFrom_le
@@ -714,7 +691,7 @@ end ElementaryPredictableSet
 
 namespace SimpleProcess
 
-theorem isPredictable (V : SimpleProcess F 𝓕) : IsPredictable 𝓕 V := by
+theorem isPredictable (V : SimpleProcess E 𝓕) : IsPredictable 𝓕 V := by
   apply Measurable.stronglyMeasurable
   apply Measurable.add
   · apply Measurable.indicator
@@ -744,10 +721,10 @@ theorem isPredictable (V : SimpleProcess F 𝓕) : IsPredictable 𝓕 V := by
       measurability
     · measurability
 
-variable (F 𝓕) in
-theorem iSup_comap_eq_predictable [(atTop : Filter ι).IsCountablyGenerated]
-    [MeasurableSingletonClass F] [Nontrivial F] :
-    (⨆ V : SimpleProcess F 𝓕, mF.comap (Function.uncurry ⇑V)) = 𝓕.predictable := by
+variable (E 𝓕) in
+theorem iSup_comap_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated]
+    [MeasurableSingletonClass E] [Nontrivial E] :
+    (⨆ V : SimpleProcess E 𝓕, mE.comap (Function.uncurry ⇑V)) = 𝓕.predictable := by
   apply le_antisymm
   · rw [iSup_le_iff]
     intro V
@@ -757,8 +734,8 @@ theorem iSup_comap_eq_predictable [(atTop : Filter ι).IsCountablyGenerated]
     rintro _ ⟨S, rfl⟩
     simp_rw [MeasurableSpace.measurableSet_iSup, MeasurableSpace.measurableSet_comap]
     apply MeasurableSpace.GenerateMeasurable.basic
-    let ⟨(f : F), f_ne⟩ := exists_ne 0
-    use S.indicator F f, {f}, measurableSet_singleton f
+    let ⟨(e : E), f_ne⟩ := exists_ne 0
+    use S.indicator e, {e}, measurableSet_singleton e
     simp only [ElementaryPredictableSet.coe_indicator, ElementaryPredictableSet.toSet,
       Function.uncurry_curry]
     classical
