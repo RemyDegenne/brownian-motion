@@ -1061,6 +1061,9 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+
+
+
 \section{Martingale convergence}
 
 \begin{definition}\label{def:limitProcess}
@@ -1074,6 +1077,23 @@ We denote it by $X_\infty$.
 
 
 In Mathlib, we have results about convergence of martingales to their limit in discrete time.
+
+
+\begin{lemma}\label{lem:upcrossing_countable}
+  \uses{def:Submartingale}
+Suppose that $T$ is a countable time index with a bottom element $0$.
+Let $X$ be a real submartingale on that index set.
+Then, for every $a < b$, the number of upcrossings $U_t[a,b]$ of the interval $[a,b]$ before time $t$ by $X$ satisfies
+\begin{align*}
+  (b - a) \mathbb{E}[U_t[a,b]] \le \mathbb{E}[(X_t - a)^+]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+Build an increasing sequence of $\mathbb{N}$-indexed subsets of $T$ whose union is $T$ and apply Doob's upcrossing lemma on each of these subsets (TODO: it's in Mathlib).
+Then conclude by monotone convergence.
+\end{proof}
 
 
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
