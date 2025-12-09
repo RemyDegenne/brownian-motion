@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import BrownianMotion.StochasticIntegral.ApproxSeq
 import BrownianMotion.Auxiliary.Adapted
+import BrownianMotion.StochasticIntegral.Commands
 
 open Filter TopologicalSpace Function
 open scoped NNReal ENNReal Topology
@@ -49,6 +50,8 @@ theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
     · intro x hx
       simp only [hx, Set.indicator_of_notMem, not_false_iff]
   exact condExp_of_aestronglyMeasurable' hσ.measurableSpace_le h_meas h_int
+
+#print_section
 
 theorem stoppedValue_min_ae_eq_condExp_of_countable_range
     (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))

@@ -54,11 +54,10 @@ elab "#print_section" : command => do
   let cln (l : List String) : List String := ite (l = [""]) [] l
   if let h::t := cln ((← getScopes).map (·.header)).reverse then
     logInfo <| ("scope ".append <| h.append <| ".".intercalate t).append "\n\n"
-  else
-    logInfo <| ""
 
 def getUsedDecl (n : String) : MetaM (List Name) := do
   return (← getConstInfo n.toName).getUsedConstantsAsSet.toList
+
 elab "#used_decls " n:ident : command => do
   liftTermElabM do
     let nstr := n.getId.toString
