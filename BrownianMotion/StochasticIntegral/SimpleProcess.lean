@@ -589,7 +589,7 @@ omit mF [SecondCountableTopology F]
   integralSimpleProcess (ContinuousLinearMap.compL ℝ E F G) V W
 
 @[simp] lemma coe_comp (V : SimpleProcess (F →L[ℝ] G) 𝓕) (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
-   ⇑(V.comp W) = fun i ω ↦ (⇑V i ω).comp (⇑W i ω) := by
+   ⇑(V.comp W) = fun i ω ↦ ⇑V i ω ∘L ⇑W i ω := by
   simp [comp]
 
 theorem integralLinear_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)

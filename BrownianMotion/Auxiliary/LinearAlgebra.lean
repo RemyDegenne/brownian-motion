@@ -101,14 +101,3 @@ lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [Norme
     ⇑f.toLinearIsometry.toContinuousLinearMap = ⇑f := rfl
 
 end InnerProductSpace
-
-namespace ContinuousLinearMap
-
-instance {R₁ R₂ M₁ M₂ S₂ : Type*} [Semiring R₁] [Semiring R₂] {σ₁₂ : R₁ →+* R₂}
-    [TopologicalSpace M₁] [AddCommMonoid M₁] [TopologicalSpace M₂] [AddCommMonoid M₂]
-    [Module R₁ M₁] [Module R₂ M₂] [Semiring S₂] [Module S₂ M₂] [SMulCommClass R₂ S₂ M₂]
-    [ContinuousConstSMul S₂ M₂] [NoZeroSMulDivisors S₂ M₂] :
-    NoZeroSMulDivisors S₂ (M₁ →SL[σ₁₂] M₂) :=
-  ContinuousLinearMap.coe_injective.noZeroSMulDivisors _ rfl (by simp)
-
-end ContinuousLinearMap
