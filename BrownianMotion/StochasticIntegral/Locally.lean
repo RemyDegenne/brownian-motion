@@ -383,8 +383,8 @@ noncomputable
 def LocalizingSequence_of_prop (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
   Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
 
-lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
-    (τ : Ω → WithTop ι) (c : WithTop ι) (hτ : τ =ᵐ[P] Function.const _ c) :
+lemma isStoppingTime_ae_const [HasUsualConditions 𝓕 P] (τ : Ω → WithTop ι) (c : WithTop ι)
+    (hτ : τ =ᵐ[P] Function.const _ c) :
     IsStoppingTime 𝓕 τ := by
   intros i
   suffices P {ω | τ ω ≤ i} = 0 ∨ P {ω | τ ω ≤ ↑i}ᶜ = 0 by
@@ -402,12 +402,11 @@ lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUs
 
 variable [TopologicalSpace ι] [OrderTopology ι]
 
-lemma isLocalizingSequence_ae
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
-    {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
+lemma isLocalizingSequence_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop}
+    (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
     IsLocalizingSequence 𝓕 (LocalizingSequence_of_prop X p) P where
   isStoppingTime n := by
-    refine isStoppingTime_ae_const 𝓕 P _ ⊤ ?_
+    refine isStoppingTime_ae_const (P := P) _ ⊤ ?_
     filter_upwards [hpX] with ω hω
     rw [LocalizingSequence_of_prop, Function.const_apply, Function.const_apply, if_pos hω]
   mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequence_of_prop]
@@ -415,12 +414,13 @@ lemma isLocalizingSequence_ae
     filter_upwards [hpX] with ω hω
     simp [LocalizingSequence_of_prop, if_pos hω]
 
-variable [NormedAddCommGroup E] [HasUsualConditions 𝓕 P]
+variable [Zero E]
 
 open Classical in
-lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) (hp₀ : p (0 : ι → E)) :
+lemma locally_of_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω))
+    (hp₀ : p (0 : ι → E)) :
     Locally (fun X ↦ ∀ ω, p (X · ω)) 𝓕 X P := by
-  refine ⟨_, isLocalizingSequence_ae 𝓕 P hpX, fun _ ω ↦ ?_⟩
+  refine ⟨_, isLocalizingSequence_ae hpX, fun _ ω ↦ ?_⟩
   by_cases hω : p (X · ω)
   · convert hω using 2
     rw [stoppedProcess_eq_of_le, Set.indicator_of_mem]
@@ -432,43 +432,53 @@ lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)
     · simp [LocalizingSequence_of_prop, if_neg hω]
     · simp [LocalizingSequence_of_prop, if_neg hω]
 
-section NormedSpace
+section TopologicalSpace
 
-variable [NormedSpace ℝ E] [CompleteSpace E]
+variable [TopologicalSpace E]
 
 lemma Locally.rightContinuous
     (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
-  sorry
-
-lemma locally_rightContinuous_iff :
-    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
-    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
-  ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
+  obtain ⟨τ, hτ⟩ := hX
+  filter_upwards [hτ.1.tendsto_top] with ω hω i
+  simp only [tendsto_atTop_nhds] at hω
+  obtain ⟨N, hN⟩ := hω (Set.Ioi i) (by simp) isOpen_Ioi
+  have hNi := hN N (le_refl N)
+  by_cases hNω : τ N ω < ⊤
+  · have hs : Set.Iio (τ N ω).untopA ∈ 𝓝[Set.Ioi i] i := by
+      simp only [mem_nhdsWithin]
+      refine ⟨Set.Iio (τ N ω).untopA, isOpen_Iio, ?_, by grind⟩
+      exact (WithTop.lt_untopA_iff (ne_of_lt hNω)).mpr hNi
+    have (y : ι) (hy : y < τ N ω) : (MeasureTheory.stoppedProcess (fun i => ({ω |
+      ⊥ < τ N ω}.indicator (X i))) (τ N)) y ω = X y ω := by
+      simp [MeasureTheory.stoppedProcess, min_eq_left (hy.le)]; aesop
+    refine (continuousWithinAt_inter' hs).mp (((hτ.2 N ω i).mono (by grind)).congr ?_ ?_)
+    · exact fun y hy => (this y ((WithTop.lt_untopA_iff (ne_of_lt hNω)).mp hy.2)).symm
+    · exact (this i hNi).symm
+  · have := hτ.2 N ω i
+    simp_all [MeasureTheory.stoppedProcess]
 
 lemma Locally.left_limit
     (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
-  sorry
-
-lemma locally_left_limit_iff :
-    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
-      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
-  ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
-    (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
+  obtain ⟨τ, hτ⟩ := hX
+  filter_upwards [hτ.1.tendsto_top] with ω hω i
+  simp only [tendsto_atTop_nhds] at hω
+  obtain ⟨N, hN⟩ := hω (Set.Ioi i) (by simp) isOpen_Ioi
+  have hNi := hN N (le_refl N)
+  obtain ⟨l, hl⟩ := hτ.2 N ω i
+  have (y : ι) (hy : y ∈ Set.Iio i) : (MeasureTheory.stoppedProcess (fun i => ({ω |
+    ⊥ < τ N ω}.indicator (X i))) (τ N)) y ω = X y ω := by
+    have : y < τ N ω := lt_trans (by simpa using hy) hNi
+    simp [MeasureTheory.stoppedProcess, min_eq_left this.le]
+    aesop
+  exact ⟨l, tendsto_nhdsWithin_congr this hl⟩
 
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
-
-lemma locally_isCadlag_iff :
-    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
-  ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
-    ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
-
-end NormedSpace
 
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
@@ -500,7 +510,6 @@ lemma isStable_rightContinuous :
       simp_all only [not_lt, inf_of_le_right]
       rfl
     simp only [min_eq_right (not_lt.mp h_stop)]
-
 
 lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
@@ -566,13 +575,33 @@ lemma isStable_isCadlag :
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
 
+variable [HasUsualConditions 𝓕 P]
+
+lemma locally_rightContinuous_iff :
+    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
+    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
+  ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
+
+lemma locally_left_limit_iff :
+    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
+  ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
+    (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
+
+lemma locally_isCadlag_iff :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
+  ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
+    ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
+
+end TopologicalSpace
+
 end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι]
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [IsFiniteMeasure P]
+  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [NormedAddCommGroup E]
+  [IsFiniteMeasure P]
   {𝓕 : Filtration ι mΩ} [HasUsualConditions 𝓕 P] {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
 
 lemma locally_isCadlag_iff_locally_ae :
