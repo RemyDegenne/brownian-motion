@@ -28,9 +28,23 @@ A process $X : T \to \Omega \to E$ is said to be adapted with respect to a filtr
 A stochastic process $X$ is said to be progressively measurable with respect to a filtration $\mathcal{F}$ if at each point in time $i$, $X$ restricted to $(-\infty, i] \times \Omega$ is measurable with respect to the product $\sigma$-algebra where the $\sigma$-algebra used for $\Omega$ is $\mathcal{F}_i$.
 \end{definition}
 
+\begin{definition}[Right continuous function]\label{def:RightContinuous}
+  \leanok
+  \lean{Function.RightContinuous}
+  Let $T$ be equipped with a partial order and $f : T \to E$ be a function. Then $f$ is right
+  continuous if for all $t \in T$, $\lim_{s \downarrow t} f(s) = f(t)$.
+\end{definition}
+
+\begin{definition}[Cadlag function]\label{def:IsCadlag}
+  \uses{def:RightContinuous}
+  \leanok
+  \lean{IsCadlag}
+  A function $f : T \to E$ is cadlag if it is right continuous and the limit $\lim_{s \uparrow t} f(s)$ exists for all $t \in T$.
+\end{definition}
+
 
 \begin{lemma}\label{lem:Adapted.progMeasurable_of_rightContinuous}
-  \uses{def:adapted, def:ProgMeasurable}
+  \uses{def:adapted, def:ProgMeasurable, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.Adapted.progMeasurable_of_rightContinuous}
 Suppose $T$ is a linearly ordered set equipped with the order topology. If $T$ is second countable and a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
@@ -929,7 +943,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{definition}
 
 \begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
-  \uses{def:IsStoppingTime, def:approxSeq}
+  \uses{def:IsStoppingTime, def:approxSeq, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
   Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
@@ -937,6 +951,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{lemma}
 
 \begin{proof}
+  \leanok
   This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
 \end{proof}
 
@@ -953,6 +968,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
   \leanok
   \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
@@ -966,6 +982,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \uses{def:RightContinuous, def:IsStoppingTime, def:approxSeq}
   \leanok
   \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
@@ -1009,7 +1026,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
-  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous, def:approximableTimeIndex}
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
   \leanok
   \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
   Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
@@ -1036,7 +1053,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
 \end{proof}
 
 \begin{lemma}\label{lem:optionalSamplingSubmartingale}
-  \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
   Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximable time index. Then, for
@@ -1077,7 +1094,7 @@ In Mathlib, we have results about convergence of martingales to their limit in d
 
 
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
-  \uses{def:Martingale, def:limitProcess}
+  \uses{def:Martingale, def:limitProcess, def:IsCadlag}
   \notready
 Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
 Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
@@ -1185,7 +1202,7 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 
 
 \begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
-  \uses{def:Submartingale}
+  \uses{def:Submartingale, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.maximal_ineq}
   Let $X: \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a right-continuous non-negative sub-martingale.
@@ -1210,7 +1227,7 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 
 
 \begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq_norm}
-  \uses{def:Martingale}
+  \uses{def:Martingale, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.maximal_ineq_norm}
   Let $X:\mathbb{R}_+ \to \Omega \to E$ be a right-continuous martingale with values in a normed space $E$.
@@ -1229,6 +1246,7 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 
 
 \begin{theorem}[Doob's Lp inequality in $\mathbb{R}$]\label{thm:doob_lp}
+  \uses{def:Submartingale, def:RightContinuous}
   Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $T, \lambda>0$ and $p>1$ we have
   \begin{align*}
@@ -1254,6 +1272,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 
 
 \begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp_norm}
+  \uses{def:Martingale, def:RightContinuous}
   Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $T, \lambda>0$ and $p>1$ we have
   \begin{align*}
@@ -1275,7 +1294,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 
 
 \begin{lemma}[Stopped Submartingale]\label{lem:Submartingale.stoppedProcess_of_cadlag}
-  \uses{def:Submartingale, def:stoppedProcess}
+  \uses{def:Submartingale, def:stoppedProcess, def:IsCadlag, def:IsStoppingTime}
   Let $X:\mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a cadlag submartingale and $\tau$ a stopping time.
   Then the stopped process $X^\tau$ is a submartingale.
 \end{lemma}
@@ -1286,6 +1305,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1298,6 +1318,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1311,6 +1332,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{lemma}[Doob's Lp Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1323,6 +1345,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$

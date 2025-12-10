@@ -236,7 +236,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \end{proof}
 
 \begin{lemma}\label{lem:locally_rightContinuous}
-  \uses{def:locally}
+  \uses{def:locally, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.Locally.rightContinuous}
   A stochastic process $X$ is locally right continuous if and only if it is right continuous almost surely.
@@ -268,7 +268,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \end{proof}
 
 \begin{lemma}\label{lem:locally_isCadlag}
-  \uses{def:locally}
+  \uses{def:locally, def:IsCadlag}
   \leanok
   \lean{ProbabilityTheory.Locally.isCadlag}
   A stochastic process $X$ is locally cadlag if and only if it is cadlag almost surely.
@@ -281,7 +281,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \end{proof}
 
 \begin{lemma}\label{lem:isStable_rightContinuous}
-  \uses{def:stable}
+  \uses{def:stable, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.isStable_rightContinuous}
   The class of right continuous processes is stable.
@@ -303,7 +303,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \end{proof}
 
 \begin{lemma}\label{lem:isStable_isCadlag}
-  \uses{def:stable}
+  \uses{def:stable, def:IsCadlag}
   \leanok
   \lean{ProbabilityTheory.isStable_isCadlag}
   The class of cadlag processes is stable.
@@ -318,7 +318,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \section{Local martingales}
 
 \begin{definition}[Local martingale]\label{def:IsLocalMartingale}
-  \uses{def:Martingale, def:locally}
+  \uses{def:Martingale, def:locally, def:IsCadlag, def:stoppedProcess, def:localizingSequence}
   \leanok
   \lean{ProbabilityTheory.IsLocalMartingale}
   We say a stochastic process $(M_t)_{t \in T}$ is a local martingale if it is locally a cadlag martingale in the sense of
@@ -327,7 +327,7 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 
 
 \begin{definition}\label{def:IsLocalSubmartingale}
-  \uses{def:Submartingale, def:localizingSequence, def:stoppedProcess}
+  \uses{def:Submartingale, def:locally, def:IsCadlag, def:stoppedProcess, def:localizingSequence}
   \leanok
   \lean{ProbabilityTheory.IsLocalSubmartingale}
 A stochastic process is a local submartingale if it is locally a cadlag submartingale in the sense of Definition~\ref{def:locally}.
@@ -336,7 +336,7 @@ That is, there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such t
 
 
 \begin{lemma}\label{lem:Martingale.IsLocalMartingale}
-  \uses{def:IsLocalMartingale}
+  \uses{def:IsLocalMartingale, def:IsCadlag, def:Martingale}
   \leanok
   \lean{ProbabilityTheory.Martingale.IsLocalMartingale}
 Every cadlag martingale is a local martingale.
@@ -349,7 +349,7 @@ This follows from Lemma \ref{lem:implies_locally}.
 
 
 \begin{lemma}\label{lem:stable_IsMartingale}
-  \uses{def:Martingale, def:stable}
+  \uses{def:Martingale, def:stable, def:IsCadlag}
   \leanok
   \lean{ProbabilityTheory.isStable_martingale}
 The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingale and $\tau$ is a stopping time, then the stopped process cadlag $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a martingale.
@@ -369,7 +369,7 @@ The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingal
 
 
 \begin{lemma}\label{lem:stable_IsSubmartingale}
-  \uses{def:Submartingale, def:stable}
+  \uses{def:Submartingale, def:stable, def:IsCadlag}
   \leanok
   \lean{ProbabilityTheory.isStable_submartingale}
 The class of cadlag submartingales is stable. That is, if $M$ is a cadlag submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a cadlag submartingale.
@@ -439,7 +439,7 @@ This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 \end{proof}
 
 \begin{lemma}\label{lem:Submartingale.classDL}
-  \uses{def:Submartingale, def:classDL}
+  \uses{def:Submartingale, def:classDL, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.Submartingale.classDL}
 Every nonnegative right-continuous submartingale is of class DL.
@@ -453,7 +453,7 @@ Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSam
 
 
 \begin{lemma}\label{lem:Submartingale.classD_iff_uniformIntegrable}
-  \uses{def:Submartingale, def:classD}
+  \uses{def:Submartingale, def:classD, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.Submartingale.classD_iff_uniformIntegrable}
 A nonnegative right-continuous submartingale is of class D if and only if it is uniformly integrable.
@@ -468,7 +468,7 @@ Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrable
 
 
 \begin{lemma}\label{lem:Martingale.classDL}
-  \uses{def:Martingale, def:classDL}
+  \uses{def:Martingale, def:classDL, def:IsCadlag}
   \leanok
   \lean{MeasureTheory.Martingale.classDL}
 Every càdlàg martingale is of class DL.
@@ -480,7 +480,7 @@ Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_conve
 \end{proof}
 
 \begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
-  \uses{def:Martingale, def:classD}
+  \uses{def:Martingale, def:classD, def:IsCadlag}
   \leanok
   \lean{MeasureTheory.Martingale.classD_iff_uniformIntegrable}
 A càdlàg martingale is of class D if and only if it is uniformly integrable.
@@ -559,7 +559,7 @@ This proves that $X$ is of class DL.
 
 
 \begin{lemma}\label{lem:HasLocallyIntegrableSup.locally_classDL}
-  \uses{def:locallyIntegrableSup, def:locally, def:classDL}
+  \uses{def:locallyIntegrableSup, def:locally, def:classDL, def:rightContinuous}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup.locally_classDL}
 Assume that the filtration is right-continuous. Let $X$ be a stochastic process with locally integrable supremum. Then $X$ is locally of class DL.
@@ -609,6 +609,7 @@ Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.locally_class
 
 
 \begin{lemma}\label{lem:isBounded_image_of_isCadlag_of_isCompact}
+  \uses{def:IsCadlag}
   \leanok
   \lean{isBounded_image_of_isCadlag_of_isCompact}
 Assume $T$ is a linear order endowed with a topology making it first countable and $E$ is a pseudo-metric space. If $X$ is a càdlàg process then it maps compact sets of $T$ to bounded sets.
@@ -621,7 +622,7 @@ Let $K \subseteq T$ be a compact set and $\omega \in \Omega$. Assume that $X(\om
 
 TODO: refine the hypotheses with those of Début theorem.
 \begin{lemma}\label{lem:isLocalizingSequence_hittingAfter_Ici}
-  \uses{def:leastGE, def:localizingSequence}
+  \uses{def:leastGE, def:localizingSequence, def:IsCadlag, def:rightContinuous}
   \leanok
   \lean{ProbabilityTheory.isLocalizingSequence_hittingAfter_Ici}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
@@ -654,7 +655,7 @@ If $\tau > t$, then for all $s \le t$, $\|X_s\| \le n$, and thus $(X^\tau)^*_t =
 
 
 \begin{lemma}\label{lem:ClassDL.hasLocallyIntegrableSup}
-  \uses{def:classD, def:locallyIntegrableSup}
+  \uses{def:classD, def:locallyIntegrableSup, def:IsCadlag, def:rightContinuous}
   \leanok
   \lean{ProbabilityTheory.ClassDL.hasLocallyIntegrableSup}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
@@ -668,7 +669,7 @@ Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\
 
 
 \begin{lemma}\label{lem:hasLocallyIntegrableSup_of_locally_classDL}
-  \uses{def:classD, def:locallyIntegrableSup}
+  \uses{def:classDL, def:locallyIntegrableSup, def:locally, def:IsCadlag, def:rightContinuous}
   \leanok
   \lean{ProbabilityTheory.hasLocallyIntegrableSup_of_locally_classDL}
 Assume $T$ has a bottom element and that its closed intervals are compact.
@@ -684,7 +685,7 @@ Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.hasLocallyInt
 
 
 \begin{lemma}\label{lem:locally_classDL_iff_locallyIntegrableSup}
-  \uses{def:classD, def:locallyIntegrableSup, def:locally}
+  \uses{def:classDL, def:locallyIntegrableSup, def:locally, def:IsCadlag, def:rightContinuous}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
 If $X$ is a càdlàg process, then it is locally of class DL if and only if it has locally integrable supremum.
 \end{lemma}
@@ -696,7 +697,7 @@ The two directions are proved in Lemmas~\ref{lem:hasLocallyIntegrableSup_of_loca
 
 
 \begin{lemma}\label{lem:locally_classD_iff_locally_classDL}
-  \uses{def:classD, def:classDL, def:locally}
+  \uses{def:classD, def:classDL, def:locally, def:IsCadlag, def:rightContinuous}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
 A càdlàg process is locally of class D if and only if it is locally of class DL.
 \end{lemma}
@@ -709,7 +710,7 @@ The reverse direction is Lemma~\ref{lem:locally_classD_of_locally_classDL}.
 
 
 \begin{lemma}\label{lem:locally_classD_iff_locallyIntegrableSup}
-  \uses{def:classD, def:locallyIntegrableSup, def:locally}
+  \uses{def:classD, def:locallyIntegrableSup, def:locally, def:IsCadlag, def:rightContinuous}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
 A càdlàg process is locally of class D if and only if it has locally integrable supremum.
 \end{lemma}
@@ -721,7 +722,7 @@ This follows from Lemmas~\ref{lem:locally_classD_iff_locally_classDL} and \ref{l
 
 
 \begin{lemma}\label{lem:Submartingale.locallyIntegrableSup}
-  \uses{def:Submartingale, def:locallyIntegrableSup}
+  \uses{def:Submartingale, def:locallyIntegrableSup, def:IsCadlag, def:rightContinuous}
 Every cadlag submartingale for a right-continuous filtration has locally integrable supremum.
 \end{lemma}
 
@@ -744,7 +745,7 @@ This follows by Lemma~\ref{lem:Submartingale.integrable_stoppedValue} as $\tau_n
 
 
 \begin{lemma}\label{lem:Submartingale.locally_classD}
-  \uses{def:Submartingale, def:classD, def:locally}
+  \uses{def:Submartingale, def:classD, def:locally, def:IsCadlag}
 Every cadlag submartingale is locally of class D.
 \end{lemma}
 
@@ -779,9 +780,9 @@ Every local martingale is locally of class D.
 
 
 \begin{lemma}\label{lem:IsLocalMartingale.martingale_iff_classDL}
-  \uses{def:IsLocalMartingale, def:classDL, def:Martingale}
+  \uses{def:IsLocalMartingale, def:classDL, def:Martingale, def:IsCadlag}
   \notready
-A local martingale is a martingale if and only if it is of class DL.
+A local martingale is a cadlag martingale if and only if it is of class DL.
 \end{lemma}
 
 \begin{proof}
@@ -790,9 +791,9 @@ A local martingale is a martingale if and only if it is of class DL.
 
 
 \begin{lemma}\label{lem:IsLocalSubmartingale.submartingale_iff_classDL_of_nonnegative}
-  \uses{def:IsLocalSubmartingale, def:classDL, def:Submartingale}
+  \uses{def:IsLocalSubmartingale, def:classDL, def:Submartingale, def:IsCadlag}
   \notready
-A nonnegative local submartingale is a submartingale if and only if it is of class DL.
+A nonnegative local submartingale is a cadlag submartingale if and only if it is of class DL.
 \end{lemma}
 
 \begin{proof}
