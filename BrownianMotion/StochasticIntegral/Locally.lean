@@ -383,8 +383,8 @@ noncomputable
 def LocalizingSequence_of_prop (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
   Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
 
-lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
-    (τ : Ω → WithTop ι) (c : WithTop ι) (hτ : τ =ᵐ[P] Function.const _ c) :
+lemma isStoppingTime_ae_const [HasUsualConditions 𝓕 P] (τ : Ω → WithTop ι) (c : WithTop ι)
+    (hτ : τ =ᵐ[P] Function.const _ c) :
     IsStoppingTime 𝓕 τ := by
   intros i
   suffices P {ω | τ ω ≤ i} = 0 ∨ P {ω | τ ω ≤ ↑i}ᶜ = 0 by
@@ -402,12 +402,11 @@ lemma isStoppingTime_ae_const (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUs
 
 variable [TopologicalSpace ι] [OrderTopology ι]
 
-lemma isLocalizingSequence_ae
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) [HasUsualConditions 𝓕 P]
-    {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
+lemma isLocalizingSequence_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop}
+    (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
     IsLocalizingSequence 𝓕 (LocalizingSequence_of_prop X p) P where
   isStoppingTime n := by
-    refine isStoppingTime_ae_const 𝓕 P _ ⊤ ?_
+    refine isStoppingTime_ae_const (P := P) _ ⊤ ?_
     filter_upwards [hpX] with ω hω
     rw [LocalizingSequence_of_prop, Function.const_apply, Function.const_apply, if_pos hω]
   mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequence_of_prop]
@@ -415,12 +414,13 @@ lemma isLocalizingSequence_ae
     filter_upwards [hpX] with ω hω
     simp [LocalizingSequence_of_prop, if_pos hω]
 
-variable [Zero E] [HasUsualConditions 𝓕 P]
+variable [Zero E]
 
 open Classical in
-lemma locally_of_ae {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω)) (hp₀ : p (0 : ι → E)) :
+lemma locally_of_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω))
+    (hp₀ : p (0 : ι → E)) :
     Locally (fun X ↦ ∀ ω, p (X · ω)) 𝓕 X P := by
-  refine ⟨_, isLocalizingSequence_ae 𝓕 P hpX, fun _ ω ↦ ?_⟩
+  refine ⟨_, isLocalizingSequence_ae hpX, fun _ ω ↦ ?_⟩
   by_cases hω : p (X · ω)
   · convert hω using 2
     rw [stoppedProcess_eq_of_le, Set.indicator_of_mem]
@@ -436,7 +436,6 @@ section TopologicalSpace
 
 variable [TopologicalSpace E]
 
-omit [HasUsualConditions 𝓕 P] in
 lemma Locally.rightContinuous
     (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
@@ -459,12 +458,11 @@ lemma Locally.rightContinuous
   · have := hτ.2 N ω i
     simp_all [MeasureTheory.stoppedProcess]
 
-lemma locally_rightContinuous_iff :
+lemma locally_rightContinuous_iff [HasUsualConditions 𝓕 P] :
     Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
     ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
   ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
 
-omit [HasUsualConditions 𝓕 P] in
 lemma Locally.left_limit
     (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
@@ -481,20 +479,19 @@ lemma Locally.left_limit
     aesop
   exact ⟨l, tendsto_nhdsWithin_congr this hl⟩
 
-lemma locally_left_limit_iff :
+lemma locally_left_limit_iff [HasUsualConditions 𝓕 P] :
     Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
       ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
   ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
     (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
 
-omit [HasUsualConditions 𝓕 P] in
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
-lemma locally_isCadlag_iff :
+lemma locally_isCadlag_iff [HasUsualConditions 𝓕 P] :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
   ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
     ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
