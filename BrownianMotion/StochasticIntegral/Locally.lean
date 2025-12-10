@@ -458,11 +458,6 @@ lemma Locally.rightContinuous
   · have := hτ.2 N ω i
     simp_all [MeasureTheory.stoppedProcess]
 
-lemma locally_rightContinuous_iff [HasUsualConditions 𝓕 P] :
-    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
-    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
-  ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
-
 lemma Locally.left_limit
     (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
@@ -479,22 +474,11 @@ lemma Locally.left_limit
     aesop
   exact ⟨l, tendsto_nhdsWithin_congr this hl⟩
 
-lemma locally_left_limit_iff [HasUsualConditions 𝓕 P] :
-    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
-      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
-  ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
-    (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
-
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
-
-lemma locally_isCadlag_iff [HasUsualConditions 𝓕 P] :
-    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
-  ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
-    ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
 
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
@@ -590,6 +574,24 @@ lemma isStable_isCadlag :
   fun X hX τ hτ ω ↦
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
+
+variable [HasUsualConditions 𝓕 P]
+
+lemma locally_rightContinuous_iff :
+    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
+    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
+  ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
+
+lemma locally_left_limit_iff :
+    Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) :=
+  ⟨fun h ↦ h.left_limit, fun h ↦ locally_of_ae
+    (p := fun f ↦ ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)) h <| fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩
+
+lemma locally_isCadlag_iff :
+    Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
+  ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
+    ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
 
 end TopologicalSpace
 
