@@ -62,8 +62,23 @@ lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P
     Submartingale (fun i ω ↦ ‖X i ω‖ ^ 2) 𝓕 P := by
   sorry
 
+variable [SigmaFiniteFiltration P 𝓕]
+
 lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
     eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
-  sorry
+  have : ∫ ω, ‖X i ω‖ ^ 2 ∂P ≤ ∫ ω, ‖X j ω‖ ^ 2 ∂P := by
+    simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
+  calc
+  _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
+    simp [eLpNorm_eq_lintegral_rpow_enorm]
+  _ = (ENNReal.ofReal (∫ ω, ‖X i ω‖ ^ 2 ∂P)) ^ (1 / (2 : ℝ≥0∞).toReal) := by
+    congr
+    simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq i)).symm
+  _ ≤ (ENNReal.ofReal (∫ ω, ‖X j ω‖ ^ 2 ∂P)) ^ (1 / (2 : ℝ≥0∞).toReal) := by gcongr
+  _ = (∫⁻ ω, ‖X j ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
+    congr
+    simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq j))
+  _ = eLpNorm (X j) 2 P := by
+    simp [eLpNorm_eq_lintegral_rpow_enorm]
 
 end ProbabilityTheory
