@@ -5,9 +5,12 @@ open scoped ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [Nonempty ι]
 
-variable [Nonempty ι] [LinearOrder ι]
+@[simp] lemma stoppedValue_comp {F : Type*} {u : ι → Ω → E} {τ : Ω → WithTop ι} {f : E → F} :
+    stoppedValue (fun t ω => f (u t ω)) τ = f ∘ (stoppedValue u τ) := rfl
+
+variable [LinearOrder ι]
 
 @[simp] lemma stoppedProcess_const {β : Type*} {u₀ : Ω → β} {τ : Ω → WithTop ι} :
     stoppedProcess (fun _ ↦ u₀) τ = fun _ ↦ u₀ := rfl
@@ -27,19 +30,12 @@ variable [Nonempty ι] [LinearOrder ι]
 lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} (i : ι) :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ i
-      = s.indicator (stoppedProcess u τ i) := by
-  ext ω
-  rw [Set.indicator]
-  split_ifs with hω
-  · rw [stoppedProcess, Set.indicator_of_mem hω, stoppedProcess]
-  · rw [stoppedProcess, Set.indicator_of_notMem hω]
+      = s.indicator (stoppedProcess u τ i) := rfl
 
 lemma stoppedProcess_indicator_comm' {β : Type*} [Zero β] {u : ι → Ω → β}
     {τ : Ω → WithTop ι} {s : Set Ω} :
     stoppedProcess (fun i ↦ s.indicator (u i)) τ
-      = fun i ↦ s.indicator (stoppedProcess u τ i) := by
-  ext i ω
-  rw [stoppedProcess_indicator_comm]
+      = fun i ↦ s.indicator (stoppedProcess u τ i) := rfl
 
 theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
     {β : Type*} {ω : Ω} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (hω : σ ω ≠ ⊤) :

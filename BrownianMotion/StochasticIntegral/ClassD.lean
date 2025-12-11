@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.Martingale
+import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.StochasticIntegral.ApproxSeq
 import BrownianMotion.StochasticIntegral.Locally
 import Mathlib.Probability.Process.HittingTime
@@ -59,7 +60,7 @@ end Defs
 
 section PartialOrder
 
-variable [NormedSpace ℝ E] [CompleteSpace E] [PartialOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
+variable [NormedSpace ℝ E] [CompleteSpace E] [LinearOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
 
 section RightContinuous
 
@@ -79,8 +80,37 @@ lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable (hX1 : Sub
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
-    ClassDL X 𝓕 P := sorry
+#check Martingale.submartingale_convex_comp
+#check MeasureTheory.uniformIntegrable_iff_norm
+
+lemma _root_.MeasureTheory.Martingale.classDL [SecondCountableTopology ι] [MetrizableSpace ι]
+  [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [SigmaFinite P]
+  (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
+    ClassDL X 𝓕 P := by
+    constructor
+    · exact hX1.1
+    · intro t
+      refine (uniformIntegrable_iff_norm (le_refl _) ?_).mpr ?_
+      · intro τ
+        apply StronglyMeasurable.aestronglyMeasurable
+        have h := hX1.adapted.progMeasurable_of_rightContinuous hX2
+        have h' := stronglyMeasurable_stoppedValue_of_le h τ.2.1 τ.2.2
+        exact h'.mono (𝓕.le t)
+      have : UniformIntegrable (fun (t_1 : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ ↑t}) ω ↦ ‖stoppedValue X (↑t_1) ω‖) 1 P
+        ↔ UniformIntegrable (fun (t_1 : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ ↑t}) ω ↦ stoppedValue (fun t ω_1 ↦ ‖X t ω_1‖) (↑t_1) ω) 1 P
+        := by aesop
+      apply this.2
+      apply (Submartingale.classDL ?_ ?_ ?_).2
+      · exact hX1.submartingale_norm
+      · intro ω
+        specialize hX2 ω
+        unfold RightContinuous at *
+        intro a
+        specialize hX2 a
+        apply ContinuousAt.comp_continuousWithinAt _ hX2
+        fun_prop
+      intro t ω
+      positivity
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) :
