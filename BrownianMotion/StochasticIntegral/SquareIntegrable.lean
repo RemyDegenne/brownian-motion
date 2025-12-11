@@ -83,8 +83,6 @@ lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P
 
 variable [SigmaFiniteFiltration P 𝓕]
 
-variable [SigmaFiniteFiltration P 𝓕]
-
 lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
     eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
   have : ∫ ω, ‖X i ω‖ ^ 2 ∂P ≤ ∫ ω, ‖X j ω‖ ^ 2 ∂P := by
