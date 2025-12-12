@@ -386,14 +386,39 @@ lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [M
       ⟨rho.1, rho.2.1, fun ω ↦ le_trans (h_le_sigma ω) (sigma.2.2 ω)⟩
     exact ⟨rho_bounded, h_dom⟩
 
-
 lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
-    (hX : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X t ω‖ₑ) P) :
+  [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
+  [SecondCountableTopology ι]
+    (hX1 : ProgMeasurable 𝓕 X)
+    (hX2 : ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P) :
     ClassDL X 𝓕 P := by
-  sorry
+  refine ⟨hX1, fun t => ?_⟩
+  let supX_t : Ω → ℝ≥0∞ := fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ
+  have hY : MemLp supX_t 1 P :=
+    memLp_one_iff_integrable.mpr (hX2 t)
+  -- measurability of each stopped value
+  have mX :
+      ∀ τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t},
+        AEStronglyMeasurable (stoppedValue X τ.1) P :=
+    fun τ => ((stronglyMeasurable_stoppedValue_of_le hX1 τ.2.1 τ.2.2).mono
+      (𝓕.le' t)).aestronglyMeasurable
+  -- pointwise domination by the supremum process
+  have hDom :
+      ∀ τ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t},
+        ∀ᵐ ω ∂P, ‖stoppedValue X τ.1 ω‖ₑ ≤ supX_t ω :=
+        fun τ => Eventually.of_forall fun ω => calc
+          ‖stoppedValue X τ.1 ω‖ₑ = ‖X (τ.1 ω).untopA ω‖ₑ := by simp[stoppedValue]
+          _ ≤ supX_t ω := by
+            refine le_iSup_of_le (τ.1 ω).untopA (le_iSup_of_le ?_ le_rfl)
+            exact (WithTop.untopA_le_iff (ne_of_lt (lt_of_le_of_lt (τ.2.2 ω) (by simp)))).mpr
+              (τ.2.2 ω)
+  -- apply domination lemma with p = 1
+  exact uniformIntegrable_of_dominated_enorm_singleton
+    le_rfl (by simp) hY mX hDom
 
-lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι]
+lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [Nonempty ι] [MeasurableSpace ι]
+  [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
+  [SecondCountableTopology ι]
     (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
