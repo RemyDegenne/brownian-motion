@@ -55,11 +55,6 @@ lemma IsLocalizingSequence.min [TopologicalSpace ι] [OrderTopology ι] {τ σ :
 
 variable [OrderBot ι]
 
-@[simp]
-lemma stoppedProcess_const_top : stoppedProcess X (fun _ ↦ ⊤) = X := by
-  unfold stoppedProcess
-  simp
-
 /-- A stochastic process `X` is said to satisfy a property `p` locally with respect to a
 filtration `𝓕` if there exists a localizing sequence `(τ_n)` such that for all `n`, the stopped
 process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
