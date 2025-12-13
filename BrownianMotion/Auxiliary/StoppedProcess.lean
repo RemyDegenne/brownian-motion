@@ -10,6 +10,9 @@ variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [Nonempty
 @[simp] lemma stoppedValue_comp {F : Type*} {u : ι → Ω → E} {τ : Ω → WithTop ι} {f : E → F} :
     stoppedValue (fun t ω => f (u t ω)) τ = f ∘ (stoppedValue u τ) := rfl
 
+@[simp] lemma stoppedValue_norm [SeminormedAddCommGroup E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (fun t ω => ‖u t ω‖) τ = fun ω => ‖(stoppedValue u τ ω)‖ := rfl
+
 variable [LinearOrder ι]
 
 @[simp] lemma stoppedProcess_const {β : Type*} {u₀ : Ω → β} {τ : Ω → WithTop ι} :
