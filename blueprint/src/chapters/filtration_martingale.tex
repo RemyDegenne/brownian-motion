@@ -245,7 +245,7 @@ A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is 
   \mathlibok
   \lean{MeasureTheory.IsStoppingTime.measurableSpace}
   Given a stopping time $\tau$ on a time index $T$, define
-  $\mathcal{F}_\tau = \bigcup_{t \in T} \{A \in \mathcal{F} \mid A \cap \{\tau \le t\} \in \mathcal{F}_t\}.$
+  $\mathcal{F}_\tau = \bigcap_{t \in T} \{A \in \mathcal{F} \mid A \cap \{\tau \le t\} \in \mathcal{F}_t\}.$
 \end{definition}
 
 
