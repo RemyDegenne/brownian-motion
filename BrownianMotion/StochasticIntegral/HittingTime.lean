@@ -45,7 +45,6 @@ private lemma CCLO.sInf_sup_image_le_of_sInf_attained
   simpa using
     ConditionallyCompleteLattice.csInf_le t _ hbt (hfssubt (Set.mem_image_of_mem _ hatt))
 
-
 lemma hittingBtwn_not_earlier_when_restricting_index_set
   (f : ι → κ) (hmono : Monotone f)
   (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
@@ -82,3 +81,32 @@ lemma hittingBtwn_not_earlier_when_restricting_index_set
         exact this.trans hjIcc.2
       · -- both “empty”
         simp only [hittingBtwn, A, B, hA, hB]; rfl
+
+lemma hittingBtwn_mono_left (u : ι → Ω → β)
+    (s : Set β) (n₁ n₂ m : ι) (h : n₁ ≤ n₂) (ω : Ω)
+  : hittingBtwn u s n₁ m ω ≤ hittingBtwn u s n₂ m ω := by
+  set A₁ : Prop := ∃ j ∈ Set.Icc n₁ m, u j ω ∈ s with hA₁
+  set A₂ : Prop := ∃ j ∈ Set.Icc n₂ m, u j ω ∈ s with hA₂
+  rw [hittingBtwn, hittingBtwn, ← hA₁, ← hA₂]
+  set s₁ : Set ι := Set.Icc n₁ m ∩ { i | u i ω ∈ s } with hs₁
+  set s₂ : Set ι := Set.Icc n₂ m ∩ { i | u i ω ∈ s } with hs₂
+  have h12 : Set.Icc n₂ m ⊆ Set.Icc n₁ m := fun x hx => ⟨h.trans hx.1, hx.2⟩
+  have h2sub1 : s₂ ⊆ s₁ := fun x hx => ⟨h12 hx.1, hx.2⟩
+  by_cases hA₂ : A₂
+  · have hA₁ : A₁ := by
+      rcases hA₂ with ⟨j, hjIcc, hj_in_s⟩
+      exact ⟨j, h12 hjIcc, hj_in_s⟩
+    simp only [hA₁, hA₂]; simp only [if_true]
+    have : sInf s₁ ≤ sInf s₂ :=
+      csInf_le_csInf (BddBelow.inter_of_left bddBelow_Icc) hA₂ h2sub1
+    exact this
+  · by_cases hA₁ : A₁
+    · -- LHS “exists”, RHS “empty”
+      simp only [hA₁, hA₂]; simp only [if_true, if_false]
+      rcases hA₁ with ⟨j, hjIcc, hj_in_s⟩
+      have : sInf s₁ ≤ j := ConditionallyCompleteLattice.csInf_le
+        s₁ _ (BddBelow.inter_of_left bddBelow_Icc) ⟨hjIcc, hj_in_s⟩
+      exact this.trans hjIcc.2
+    · -- both “empty”
+      simp only [hA₁, hA₂]; rfl
+
