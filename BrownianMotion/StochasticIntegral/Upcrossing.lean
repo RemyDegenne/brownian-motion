@@ -20,7 +20,7 @@ namespace ProbabilityTheory
 #check Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part
 
 variable {ι Ω E : Type*} [ConditionallyCompleteLinearOrderBot ι]
-  [TopologicalSpace ι] [OrderTopology ι]
+  [TopologicalSpace ι] [OrderTopology ι] [Finite ι] [Nonempty ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
   {Y : ι → Ω → ℝ}
 
@@ -74,8 +74,35 @@ lemma restriction_to_Fin.map_lt_map_iff (n i j : ℕ) (hn : n ≠ 0)
   have h2 : restriction_to_Fin n j hn = j := restriction_to_Fin.eq_of_lt n j hn hj
   grind
 
+/- For every Finite, ConditionallyCompleteLinearOrderBot set ι,
+  there is a finite set α, such that ι ≃ WithTop α -/
+lemma Finite.isFiniteWithTop : ∃ α : Type*, ConditionallyCompleteLinearOrderBot α ∧ ι ≃o (WithTop α) :=
+  ⟨α, Equiv.refl _⟩
+
+lemma Finite.has_top : instFiniteWithTop ι
+  ∃ (f : Fin n), ∀ (k : Fin n), k ≤ f := by
+  use restriction_to_Fin n (n-1) hn
+  intro k
+  simp only [restriction_to_Fin]
+  refine Fin.mk_le_mk.mpr ?_
+  exact le_inf_right _ _
+
+def restriction_to_Finite (f : ℕ → ι)
+{ toFun := fun k => k.val,
+  invFun := fun k => restriction_to_Fin n k hn,
+  left_inv := by
+    intro k
+    simp only [restriction_to_Fin]
+    grind,
+  right_inv := by
+    intro k
+    simp only [restriction_to_Fin]
+    grind
+}
+
+
 theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
-    [Finite ι] [Nonempty ι] [IsFiniteMeasure P]
+    [IsFiniteMeasure P]
     (a b : ℝ) (hf : Submartingale X 𝓕 P) (N : ι) :
     (b - a) * P[upcrossingsBefore a b X N] ≤ P[fun ω => (X N ω - a)⁺] := by
   -- We reduce to the case where `ι = Fin n` for some `n : ℕ`.
@@ -83,10 +110,11 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
   have hfin := Fintype.ofFinite ι
   let n := Fintype.card ι
   have hn : n ≠ 0 := Fintype.card_ne_zero
+
   let i2N : ι ≃o Fin n := (Fintype.orderIsoFinOfCardEq ι (rfl)).symm
 
-  -- define a monotone map from `ℕ` to `ι` covering all
   let N2i : ℕ → ι := fun k => i2N.symm (restriction_to_Fin n k hn)
+
   have hN2imono : Monotone N2i := by
     intro i j hij
     refine i2N.symm.monotone ?_
@@ -231,6 +259,119 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
     intro s
     exact Set.toFinite s
 
+  have hN2isymm : ∀ m : ℕ, ∀ i : ι, m < n → (N2i m = i ↔ m = i2N i) := by
+    intro m i hm
+    constructor
+    · intro hN2imeqi
+      have hn0 : i2N (N2i m) = i2N i := by grind
+      rw[← hn0]
+      grind
+    · intro hmeqi2Ni
+      grind
+
+  #check Finite.ofBijective
+  /- Suppose there is a set s of indices in ι, which maps to a set t of indices in ℕ,
+  through a bijection f : t → s. Then t is finite, since s is finite.
+  -/
+  have hfiniteOfBijective :
+    ∀ (s : Set ι) (t : Set ℕ) (f : t → s), Function.Bijective f →
+      t.Finite := by
+    intro s t f hfbij
+    have hsfinite : s.Finite := hsfin s
+    let f0 := Equiv.ofBijective f hfbij
+    let g := f0.symm
+    have hgBijective : Function.Bijective g := by exact Equiv.bijective g
+    exact (Equiv.set_finite_iff g).mp (hsfin s)
+
+  #check Function.bijective_iff_has_inverse
+  /-
+  LeftInverse g f means that g is a left inverse to f. That is, g ∘ f = id.
+  -/
+  /- If the set s of indices in ι is such that i2N i < (n-1) for each i ∈ s,
+  and the set t of indices in ℕ is the preimage of s through N2i,
+  then f : t → s, given by f m = N2i m, is a bijection.
+  -/
+  have hbijectiveN2i :
+    ∀ s : Set ι, (∀ i ∈ s, i2N i < (n-1))
+      → Function.Bijective (fun m : { m | N2i m ∈ s } => N2i m) := by
+    intro s hsfin
+    let t := { m | N2i m ∈ s }
+    have htmem : ∀ m : t, N2i m ∈ s := by grind
+    let f0 := (fun m : t => N2i m)
+    have hffromts :  := by
+      intro m
+      have hm_in_s : N2i m ∈ s := m.prop
+      exact hm_in_s
+    have hffromttos : (f : t → s) := by
+      intro m
+      have hm_in_s : N2i m ∈ s := m.prop
+      exact hm_in_s
+    -- Let's show that f has left and right inverses.
+    -- The inverse candidate (left and right) is g:
+    let g := fun i : s => i2N i
+    /-
+    We have already shown:
+    have hN2ii2Nid {t : ι} : N2i (i2N t) = t
+    have hi2NN2iid {k : ℕ} (hk : k < n) : i2N (N2i k) = k
+    -/
+    have hleftinv : Function.LeftInverse g f := by
+      intro m
+      simp only [f, g]
+      have hN2imins : N2i m ∈ s := m.prop
+      have hN2i_lt_n1 : i2N (N2i m) < (n-1) := hsfin (N2i m) hN2imins
+      have hN2i_lt_n : i2N (N2i m) < n := by grind
+      have hN2i_eq_m : i2N (N2i m) = m := by grind
+      rw [hN2i_eq_m]
+
+
+  -- If s is a set of indices in ι, which map to indices < (n-1) through i2N,
+  -- then its preimage through N2i is finite.
+  have hfiniteN2ipreimage :
+  ∀ s : Set ι, (∀ i ∈ s, i2N i < (n-1)) → { m | N2i m ∈ s }.Finite) := by
+    intro s hsfin
+    let t := { x | (N2i x) ∈ s }
+    -- let's show that t is finite,
+    -- by proving that for x ∈ t, N2i is i2N.symm on x
+    let t0 := { x | (i2N.symm x) ∈ s }
+    let t1 := { i2N i | i ∈ s }
+    -- show that t0 and t1 are equal
+    have ht0eqt1 : t0 = t1 := by
+      ext x
+      constructor
+      · intro hxt0
+        have hN2isymmx : N2i x ∈ s := by
+
+        use N2i x
+        exact hN2isymmx
+      · intro hxt1
+
+    have ht0fin : t0.Finite := by
+      apply Finite.subset _ (Finite.univ n)
+      intro x hx
+      simp only [t0, Set.mem_setOf_eq]
+      exact hx.right
+    have htfin : t.Finite := by
+      apply Finite.subset _ (Finite.univ n)
+      intro x hx
+      simp only [t, Set.mem_setOf_eq]
+      exact hx.right
+    use t
+    constructor
+    · exact htfin
+    · intro x
+      simp only [t, Set.mem_setOf_eq]
+      constructor
+      · intro hN2ixins
+        have hxlt : x < n := by
+          obtain ⟨y, hys, hx⟩ := hN2ixins
+          have hylt : (i2N y) < n := by grind
+          have hN2iyeqx : N2i (i2N y) = y := by grind
+          rw[← hN2iyeqx] at hx
+          grind
+        exact ⟨hN2ixins, hxlt⟩
+      · intro htins
+        exact htins.left
+
   have hsSupeq : ∀ s : Set ι, ∀ t : Set ℕ,
   -- t is the preimage of s through N2i
   -- Even if s is {y} = {N2i (n-1)}, so that t is {n-1, n, n+1, ...},
@@ -268,6 +409,8 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
         intro x hx
         have hn2ixins : N2i x ∈ s := haux41 x hx
         exact csInf_le (hsfin s).bddBelow hn2ixins
+      -- Suppose N2i(sInf t) < (sInf s).
+      -- Now, for any x ∈ t, (sInf s) ≤ N2i x.
       sorry
 
     exact le_antisymm haux42 haux4
@@ -278,8 +421,7 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
     have hcondeq : ∀ s : Set ℝ, ∀ i ω, (X i ω ∈ s) ↔ (X' (i2N i) ω ∈ s) := by
       grind
     rw [hXhiteq]
-    sorry
-    -- split_ifs with h1
+    split_ifs with h1
 
     -- have hSetIcccapeq :
     --   Set.Icc i j ∩ {i | X i ω ∈ s}
@@ -341,3 +483,5 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
   rw [hupcrossings, hintegral]
 
   exact Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part a b hf' (N' : ℕ)
+
+#check Encodable
