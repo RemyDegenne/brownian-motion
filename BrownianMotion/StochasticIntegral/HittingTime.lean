@@ -54,15 +54,11 @@ lemma hittingBtwn_not_earlier_when_restricting_index_set
     intro ω
     let A := ∃ j ∈ Set.Icc n m, u j ω ∈ s
     let B := ∃ j ∈ Set.Icc (f n) (f m), v j ω ∈ s
-    have hfIcc : ∀ i, i ∈ Set.Icc n m → f i ∈ Set.Icc (f n) (f m) := by
-      intro i hi
-      exact ⟨hmono hi.1, hmono hi.2⟩
+    have hfIcc : ∀ ⦃i⦄, i ∈ Set.Icc n m → f i ∈ Set.Icc (f n) (f m) :=
+      fun _ ⟨h₁, h₂⟩ => ⟨hmono h₁, hmono h₂⟩
     have hAB : A → B := by
       rintro ⟨j, hj, hj_in_s⟩
-      use f j
-      refine ⟨?_, ?_⟩
-      · exact ⟨hmono hj.1, hmono hj.2⟩
-      · rw [hv j]; exact hj_in_s
+      exact ⟨f j, ⟨hmono hj.1, hmono hj.2⟩, by simpa [hv j] using hj_in_s⟩
     let s' := Set.Icc n m ∩ { i | u i ω ∈ s }
     let t' := Set.Icc (f n) (f m) ∩ { i | v i ω ∈ s }
     have s'finite : s'.Finite := Set.Finite.inter_of_left (hfinι n m) {i | u i ω ∈ s}
@@ -73,25 +69,16 @@ lemma hittingBtwn_not_earlier_when_restricting_index_set
       simp only [hittingBtwn, A, B, hA, hB]; simp only [if_true]
       have s'hatt : sInf s' ∈ s' := Set.Nonempty.csInf_mem hA s'finite
       have hfs'subt' : f '' s' ⊆ t' := by
-        rintro y ⟨x, hx_in_s', hy_eq⟩
-        have hyIcc : f x ∈ Set.Icc (f n) (f m) := hfIcc x hx_in_s'.1
-        have hy_in_s : v (f x) ω ∈ s := by
-          rw [hv x]; exact hx_in_s'.2
-        rw [← hy_eq]
-        exact ⟨hyIcc, hy_in_s⟩
+        rintro _ ⟨x, hx, rfl⟩
+        exact ⟨hfIcc hx.1, by simpa [hv x] using hx.2⟩
       have : sInf t' ≤ f (sInf s') :=
         CCLO.sInf_sup_image_le_of_sInf_attained f s' s'hatt t' hbt hfs'subt'
       exact this
     · by_cases hB : B
       · -- LHS “exists”, RHS “empty”
-        simp only [hittingBtwn, A, B, hA, hB]; simp only [if_true]
-        have ht'nonempty : t'.Nonempty := by
-          rcases hB with ⟨j, hjIcc, hj_in_s⟩
-          use j
-          exact ⟨hjIcc, hj_in_s⟩
-        obtain ⟨j0, hj0_in_t'⟩ := ht'nonempty
-        have hj0_le_fm : j0 ≤ f m := hj0_in_t'.1.2
-        have : sInf t' ≤ j0 := ConditionallyCompleteLattice.csInf_le t' _ hbt hj0_in_t'
-        exact csInf_le_of_le hbt hj0_in_t' hj0_le_fm
+        simp only [hittingBtwn, A, B, hA, hB]; simp only [if_true, if_false]
+        rcases hB with ⟨j, hjIcc, hj_in_s⟩
+        have : sInf t' ≤ j := ConditionallyCompleteLattice.csInf_le t' _ hbt ⟨hjIcc, hj_in_s⟩
+        exact this.trans hjIcc.2
       · -- both “empty”
         simp only [hittingBtwn, A, B, hA, hB]; rfl
