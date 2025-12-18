@@ -8,7 +8,7 @@ lemma sum_single_apply {ι : Type*} (φ : ι → Type*) [∀ i, AddCommMonoid (�
   ext i
   simp
 
-lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [Fintype n] [CommRing R] [PartialOrder R]
+lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [CommRing R] [PartialOrder R]
     [StarRing R] {M : Matrix n n R} (hM : M.PosSemidef) (i : n) : 0 ≤ M i i := by
   classical
   convert hM.2 (Finsupp.single i 1)

@@ -23,14 +23,6 @@ theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β
 
 namespace ProbabilityTheory
 
-@[simp]
-lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
-    [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : StrongDual ℝ E) :
-    charFun μ ((InnerProductSpace.toDual ℝ E).symm L) = charFunDual μ L := by
-  rw [charFun_eq_charFunDual_toDualMap]
-  congr with x
-  simp
-
 lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥0}
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
   simp [h]
