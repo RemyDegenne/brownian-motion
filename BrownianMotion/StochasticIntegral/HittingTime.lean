@@ -5,6 +5,7 @@ Authors: Rémy Degenne, Wojciech Czernous
 -/
 import Mathlib.Order.CompleteLattice.Defs
 import Mathlib.Probability.Process.HittingTime
+import Mathlib.Probability.Martingale.Upcrossing
 import Init.Data.Function
 
 /-!
@@ -17,7 +18,7 @@ import Init.Data.Function
 -/
 
 variable {Ω β ι κ : Type*} {m : MeasurableSpace Ω}
-  [ConditionallyCompleteLinearOrder ι] [ConditionallyCompleteLinearOrder κ]
+  [ConditionallyCompleteLinearOrderBot ι] [ConditionallyCompleteLinearOrderBot κ]
 
 open ProbabilityTheory MeasureTheory
 open scoped Classical in
@@ -45,7 +46,7 @@ private lemma CCLO.sInf_sup_image_le_of_sInf_attained
   simpa using
     ConditionallyCompleteLattice.csInf_le t _ hbt (hfssubt (Set.mem_image_of_mem _ hatt))
 
-lemma hittingBtwn_not_earlier_when_restricting_index_set
+lemma hittingBtwn_antimono_index_set
   (f : ι → κ) (hmono : Monotone f)
   (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
   (u : ι → Ω → β) (v : κ → Ω → β) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
@@ -110,3 +111,34 @@ lemma hittingBtwn_mono_left (u : ι → Ω → β)
     · -- both “empty”
       simp only [hA₁, hA₂]; rfl
 
+lemma lowerCrossingTimeAux_antimono_index_set
+  (f : ι → κ) (hmono : Monotone f)
+  (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
+  (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
+  (a : ℝ) (c N : ι)
+  : ∀ ω : Ω, lowerCrossingTimeAux a v (f c) (f N) ω ≤ f (lowerCrossingTimeAux a u c N ω) :=
+    hittingBtwn_antimono_index_set f hmono hfinι u v hv (Set.Iic a) c N
+
+lemma lowerCrossingTimeAux_mono_left (u : ι → Ω → ℝ)
+  (a : ℝ) (c₁ c₂ N : ι) (h : c₁ ≤ c₂) (ω : Ω)
+  : lowerCrossingTimeAux a u c₁ N ω ≤ lowerCrossingTimeAux a u c₂ N ω :=
+    hittingBtwn_mono_left u (Set.Iic a) c₁ c₂ N h ω
+
+
+#check lintegral_iSup' /-- Monotone convergence theorem, version with `AEMeasurable` functions. -/
+
+lemma upperCrossingTime_antimono_index_set
+  (f : ι → κ) (hmono : Monotone f)
+  (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
+  (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
+  (a b : ℝ) (N : ι) (n : ℕ)
+  : ∀ ω : Ω, upperCrossingTime a b v (f N) n ω ≤ f (upperCrossingTime a b u N n ω) := by
+    intro ω
+    induction n
+    case zero =>
+      simp only [upperCrossingTime]
+      have : ⊥ ≤ f (⊥ : ι) := bot_le
+      exact this
+    case succ n ih =>
+      simp only [upperCrossingTime]
+      set c : ι := upperCrossingTime a b u N n ω with hc
