@@ -157,14 +157,14 @@ section PseudoEMetricSpace
 
 variable [PseudoEMetricSpace T] [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
-lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
+lemma iSup_div_edist_le_sum_iSup_edist_le (hT : EMetric.diam U < ∞)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hβ : 0 < β) {J : Set T} [Countable J] (hJU : J ⊆ U) :
-    ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
-      ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
-          * ∫⁻ ω, ⨆ (s : J)
-              (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam U + 1)}),
-                edist (X s ω) (X t ω) ^p ∂P := by
+    ∀ᵐ ω ∂ P,
+      ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p)
+        ≤ ∑' (k : ℕ), 2 ^ (k * β * p) *
+          ⨆ (s : J) (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam U + 1)}),
+            edist (X s ω) (X t ω) ^ p := by
   let η k := 2⁻¹ ^ k * (EMetric.diam U + 1)
   have hp_pos := hX.p_pos
   have hq_pos := hX.q_pos
@@ -175,46 +175,52 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
     rw [← zero_mul (EMetric.diam U + 1)]
     apply ENNReal.Tendsto.mul_const (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num))
     simp [← lt_top_iff_ne_top, hT]
-  conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
-  rw [← lintegral_tsum fun i ↦ ?_]
-  swap
-  · have h_ae s t := hX.aemeasurable_edist (s := s) (t := t)
-    fun_prop
   have h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : J), edist s t = 0 → edist (X s ω) (X t ω) = 0 := by
-    rw [eventually_countable_forall]; intro s
-    rw [eventually_countable_forall]; intro t
-    by_cases h_dist : edist s t = 0
-    · apply Filter.Eventually.mp (IsAEKolmogorovProcess.edist_eq_zero hX h_dist)
-      filter_upwards with _ h _ using h
-    filter_upwards with _ using by simp [h_dist]
-  refine lintegral_mono_ae (Filter.Eventually.mp h_ae ?_)
-  filter_upwards with ω h
+    simp_rw [eventually_countable_forall]
+    intro s t hst
+    filter_upwards [hX.edist_eq_zero hst] with _ h using h
+  filter_upwards [h_ae] with ω h
   rw [iSup_le_iff]; rintro ⟨s, hs⟩
   rw [iSup_le_iff]; intro ⟨t, ht⟩
   wlog hst : 0 < edist s t
   · simp [(h ⟨s, hs⟩ ⟨t, ht⟩) <| nonpos_iff_eq_zero.mp (le_of_not_gt hst),
       ENNReal.zero_rpow_of_pos hX.p_pos]
   obtain ⟨k, lb, ub⟩ : ∃ k, (η k ≤ edist s t) ∧ (edist s t ≤ 2 * η k) := by
-    have hη_dist : ∃ k, η k ≤ edist s t :=
-      (Filter.Eventually.exists (Filter.Tendsto.eventually_le_const hst hη_lim))
+    have hη_dist : ∃ k, η k ≤ edist s t := (hη_lim.eventually_le_const hst).exists
     refine ⟨Nat.find hη_dist, Nat.find_spec hη_dist, ?_⟩
     match hk : Nat.find hη_dist with
     | 0 =>
-        apply le_trans (EMetric.edist_le_diam_of_mem (hJU hs) (hJU ht))
-        simp only [pow_zero, one_mul, η]
-        exact le_mul_of_one_le_of_le (by norm_num) (le_add_right (le_refl _))
+      apply le_trans (EMetric.edist_le_diam_of_mem (hJU hs) (hJU ht))
+      simp only [pow_zero, one_mul, η]
+      exact le_mul_of_one_le_of_le (by norm_num) (le_add_right (le_refl _))
     | k + 1 =>
-        rw [hη_succ k, ← mul_assoc, ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
-        refine le_of_not_ge (Nat.find_min hη_dist ?_)
-        simp [hk]
-  refine le_trans ?_ (Summable.le_tsum (ENNReal.summable) k (fun _ _ ↦ zero_le _))
+      rw [hη_succ k, ← mul_assoc, ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
+      refine le_of_not_ge (Nat.find_min hη_dist ?_)
+      simp [hk]
+  refine le_trans ?_ (Summable.le_tsum ENNReal.summable k fun _ _ ↦ zero_le')
   rw [ENNReal.div_eq_inv_mul]
-  refine mul_le_mul ?_ ?_ (zero_le _) (zero_le _)
+  refine mul_le_mul ?_ ?_ zero_le' zero_le'
   · rw [ENNReal.inv_le_iff_inv_le, ← ENNReal.inv_rpow, mul_assoc, ENNReal.rpow_mul,
       ENNReal.rpow_le_rpow_iff (by positivity)]
-    exact le_trans (hη_ge k) lb
+    exact (hη_ge k).trans lb
   apply le_iSup_of_le (i := ⟨s, hs⟩)
-  exact le_iSup_of_le (i := ⟨⟨t, ht⟩, by rwa [mul_assoc]⟩) (le_refl _)
+  exact le_iSup_of_le (i := ⟨⟨t, ht⟩, by rwa [mul_assoc]⟩) le_rfl
+
+lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
+    (hX : IsAEKolmogorovProcess X P p q M)
+    (hβ : 0 < β) {J : Set T} [Countable J] (hJU : J ⊆ U) :
+    ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
+      ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
+          * ∫⁻ ω, ⨆ (s : J)
+              (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam U + 1)}),
+                edist (X s ω) (X t ω) ^p ∂P := by
+  conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
+  rw [← lintegral_tsum fun i ↦ ?_]
+  swap
+  · have h_ae s t := hX.aemeasurable_edist (s := s) (t := t)
+    fun_prop
+  refine lintegral_mono_ae ?_
+  exact iSup_div_edist_le_sum_iSup_edist_le hT hX hβ hJU
 
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
