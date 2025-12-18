@@ -106,7 +106,7 @@ theorem nhds_lowerLimit_eq_nhdsWithin_Ici (a : ι) :
 
 end AristotleLemmas
 
-theorem continuous_of_rightContinuous (hf_cont : ∀ a, ContinuousWithinAt f (Set.Ioi a) a) :
+theorem continuous_of_rightContinuous [NoMaxOrder ι] (hf_cont : ∀ a, ContinuousWithinAt f (Set.Ioi a) a) :
     @Continuous ι α (TopologicalSpace.generateFrom {s : Set ι | ∃ (i j : ι), s = Set.Ico i j})
       hα f := by
   -- To prove continuity, it suffices to show that the neighborhood filter in the lower limit topology is equal to the neighborhood filter within [a, ∞) in the order topology.
@@ -114,6 +114,6 @@ theorem continuous_of_rightContinuous (hf_cont : ∀ a, ContinuousWithinAt f (Se
     intro a; rw [ nhds_lowerLimit_eq_nhdsWithin_Ici ] ;
   -- Since Set.Ici a = insert a (Set.Ioi a), and continuity within insert a s at a is equivalent to continuity within s at a (by `continuousWithinAt_insert_self`), this is equivalent to `ContinuousWithinAt f (Set.Ioi a) a`.
   have h_cont_eq : ∀ a : ι, ContinuousWithinAt f (Set.Ici a) a ↔ ContinuousWithinAt f (Set.Ioi a) a := by
-    exact?;
+    exact fun a ↦ Iff.symm continuousWithinAt_Ioi_iff_Ici;
   simp_all +decide [ ContinuousWithinAt ];
   simp_all +decide [ continuous_iff_continuousAt, ContinuousAt ]
