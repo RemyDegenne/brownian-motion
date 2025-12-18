@@ -31,6 +31,8 @@ def toBilinForm : LinearMap.BilinForm 𝕜 E where
   map_add' x y := by simp
   map_smul' m x := by simp
 
+lemma toBilinForm_eq : f.toBilinForm = ContinuousLinearMap.toBilinForm f := rfl
+
 @[simp]
 lemma toBilinForm_apply (x y : E) : f.toBilinForm x y = f x y := rfl
 
@@ -225,6 +227,12 @@ variable (f)
 lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
   mp h := ⟨h.isSymm, h.isPos⟩
   mpr := fun ⟨h₁, h₂⟩ ↦ ⟨h₁, h₂⟩
+
+lemma isPosSemidef_iff_bilinForm :
+    f.IsPosSemidef ↔ (f.toBilinForm).IsPosSemidef := by
+  rw [isPosSemidef_iff, LinearMap.BilinForm.isPosSemidef_def]
+  simp [ContinuousBilinForm.isSymm_def, LinearMap.BilinForm.isSymm_def,
+    ContinuousBilinForm.isPos_def, LinearMap.BilinForm.isNonneg_def]
 
 variable {f} [Fintype n] [DecidableEq n]
 

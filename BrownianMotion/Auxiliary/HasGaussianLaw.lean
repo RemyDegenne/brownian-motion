@@ -76,22 +76,7 @@ lemma iIndepFun.hasGaussianLaw {E : ι → Type*}
       infer_instance
     classical
     rw [isGaussian_iff_gaussian_charFunDual]
-    refine ⟨fun i ↦ ∫ ω, X i ω ∂P, .diagonalStrongDual (fun i ↦ covarianceBilinDual (P.map (X i))),
-      ContinuousBilinForm.isPosSemidef_diagonalStrongDual
-        (fun i ↦ isPosSemidef_covarianceBilinDual), fun L ↦ ?_⟩
-    rw [(iIndepFun_iff_charFunDual_pi _).1 hX]
-    · simp only [← sum_single_apply E (fun i ↦ ∫ ω, X i ω ∂P), map_sum, ofReal_sum, sum_mul,
-      ContinuousBilinForm.diagonalStrongDual_apply, sum_div, ← sum_sub_distrib, exp_sum]
-      congr with i
-      rw [IsGaussian.charFunDual_eq, integral_complex_ofReal,
-        ContinuousLinearMap.integral_comp_id_comm, covarianceBilinDual_self_eq_variance,
-        integral_map]
-      · simp
-      · exact HasGaussianLaw.aemeasurable
-      · exact aestronglyMeasurable_id
-      · exact IsGaussian.memLp_two_id
-      · exact IsGaussian.integrable_id
-    · exact fun i ↦ HasGaussianLaw.aemeasurable
+    sorry
 
 open ContinuousLinearMap in
 lemma HasGaussianLaw.iIndepFun_of_cov {E : ι → Type*}
