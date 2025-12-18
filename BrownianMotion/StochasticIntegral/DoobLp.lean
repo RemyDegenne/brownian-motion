@@ -11,27 +11,21 @@ import BrownianMotion.StochasticIntegral.Cadlag
 
 -/
 
-open MeasureTheory Filter Finset Set Function
+open MeasureTheory Filter Topology TopologicalSpace Finset Set Function
 open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-def lowerLimit (ι : Type*) [Preorder ι] : TopologicalSpace ι :=
-  TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}
-
-def WithLowerLimit (ι : Type*) := ι
-
-variable (ι : Type*) [Preorder ι]
-
-instance : Preorder (WithLowerLimit ι) := ‹Preorder ι›
-instance : TopologicalSpace (WithLowerLimit ι) := lowerLimit (WithLowerLimit ι)
+variable (ι α : Type*) [Preorder ι]
 
 theorem nhds_lowerLimit_eq (a : ι) :
     @nhds ι (TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}) a =
     ⨅ b > a, 𝓟 (Set.Ico a b) := by
   by_contra h_not_eq
-  -- Since any interval [i, j) containing a must have i ≤ a and j > a, the infimum over all such intervals is the same as the infimum over the intervals [a, b) where b > a.
-  have h_inf_eq : ⨅ (i : ι), ⨅ (j : ι), ⨅ (_ : i ≤ a ∧ a < j), 𝓟 (Set.Ico i j) = ⨅ (b : ι), ⨅ (_ : b > a), 𝓟 (Set.Ico a b) := by
+  -- Since any interval [i, j) containing a must have i ≤ a and j > a, the infimum over all such
+  -- intervals is the same as the infimum over the intervals [a, b) where b > a.
+  have h_inf_eq : ⨅ (i : ι), ⨅ (j : ι), ⨅ (_ : i ≤ a ∧ a < j), 𝓟 (Set.Ico i j) =
+    ⨅ (b : ι), ⨅ (_ : b > a), 𝓟 (Set.Ico a b) := by
     refine' le_antisymm _ _;
     · refine' le_iInf fun b => le_iInf fun hb => _;
       refine' le_trans ( iInf_le _ a ) _;
@@ -49,8 +43,27 @@ theorem nhds_lowerLimit_eq (a : ι) :
     rcases hs with ⟨ has, ⟨ i, j, rfl ⟩ ⟩;
     refine' iInf_le_of_le i ( iInf_le_of_le j ( iInf_le_of_le ⟨ has.1, has.2 ⟩ le_rfl ) )
 
-variable {α Ω E : Type*} [TopologicalSpace ι] [hα : TopologicalSpace α] [ConditionallyCompleteLattice α]
+variable [TopologicalSpace ι] {f : ι → α} [hα : TopologicalSpace α]
+
+theorem nhds_lowerLimit_eq_nhdsWithin_Ici (a : ι) :
+    @nhds ι (TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}) a = 𝓝[≥] a := by
+  sorry
+
+variable {α Ω E : Type*} [hα : TopologicalSpace α] [ConditionallyCompleteLattice α]
   [ClosedIicTopology α] {f : ι → α}
+
+theorem continuous_of_rightContinuous (hf_cont : ∀ a, ContinuousWithinAt f (Set.Ioi a) a) :
+    @Continuous ι α (TopologicalSpace.generateFrom {s : Set ι | ∃ (i j : ι), s = Set.Ico i j})
+      hα f := by
+  -- To prove continuity, it suffices to show that the neighborhood filter in the lower limit topology is equal to the neighborhood filter within [a, ∞) in the order topology.
+  have h_neighborhood : ∀ a : ι, @nhds ι (TopologicalSpace.generateFrom {s | ∃ i j, s = Set.Ico i j}) a = 𝓝[≥] a := by
+    intro a; rw [ nhds_lowerLimit_eq_nhdsWithin_Ici ] ;
+  -- Since Set.Ici a = insert a (Set.Ioi a), and continuity within insert a s at a is equivalent to continuity within s at a (by `continuousWithinAt_insert_self`), this is equivalent to `ContinuousWithinAt f (Set.Ioi a) a`.
+  have h_cont_eq : ∀ a : ι, ContinuousWithinAt f (Set.Ici a) a ↔ ContinuousWithinAt f (Set.Ioi a) a := by
+    exact?;
+  simp_all +decide [ ContinuousWithinAt ];
+  simp_all +decide [ continuous_iff_continuousAt, ContinuousAt ]
+
 
 theorem continuous_supremum_dense {S : Set ι} (hS : Dense S) (hf : Continuous f)
     (h : BddAbove (range f)) :
