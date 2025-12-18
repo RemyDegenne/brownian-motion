@@ -2,6 +2,7 @@ import BrownianMotion.Auxiliary.LinearAlgebra
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.SchurComplement
 import Mathlib.Analysis.InnerProductSpace.Positive
+import Mathlib.LinearAlgebra.SesquilinearForm.Star
 
 /-!
 # Continuous bilinear forms
@@ -110,15 +111,6 @@ noncomputable def toMatrix : Matrix n n 𝕜 :=
 @[simp]
 lemma toMatrix_apply (i j : n) : f.toMatrix b i j = f (b i) (b j) := by
   simp [toMatrix]
-
-lemma dotProduct_toMatrix_mulVec' (x y : n → 𝕜) :
-    x ⬝ᵥ (f.toMatrix b) *ᵥ y = f (b.equivFun.symm x) (b.equivFun.symm y) := by
-  simp only [dotProduct, Matrix.mulVec_eq_sum, op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply,
-    Matrix.transpose_apply, toMatrix_apply, smul_eq_mul, Finset.mul_sum, Basis.equivFun_symm_apply,
-    map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul']
-  rw [Finset.sum_comm]
-  refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
-  ring
 
 lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
     x ⬝ᵥ (f.toMatrix b) *ᵥ y = f (b.equivFun.symm x) (b.equivFun.symm y) := by
@@ -235,6 +227,14 @@ lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
   mpr := fun ⟨h₁, h₂⟩ ↦ ⟨h₁, h₂⟩
 
 variable {f} [Fintype n] [DecidableEq n]
+
+lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
+    (b : Basis n ℝ E) :
+    f.IsPosSemidef ↔ (BilinForm.toMatrix b f).PosSemidef := by
+  classical
+  rw [LinearMap.BilinForm.isPosSemidef_iff, BilinForm.toMatrix]
+  rw [LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
+  rfl
 
 lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
   rw [isPosSemidef_iff, Matrix.posSemidef_iff_dotProduct_mulVec]

@@ -114,7 +114,8 @@ lemma covarianceBilin_stdGaussian :
 
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covarianceBilin_stdGaussian] --  ContinuousBilinForm.inner_toMatrix_eq_one
-  sorry
+  ext i j
+  simp [(stdOrthonormalBasis ℝ E).inner_eq, Matrix.one_apply]
 
 lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
     [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :

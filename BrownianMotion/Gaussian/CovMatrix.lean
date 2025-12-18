@@ -110,9 +110,9 @@ lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
         (stdOrthonormalBasis ℝ E).repr (L.adjoint (stdOrthonormalBasis ℝ F j))) := by
   rw [covMatrix_apply, covarianceBilin_map h, covarianceBilin_eq_dotProduct_covMatrix_mulVec]
 
-lemma posSemidef_covMatrix [IsGaussian μ] : (covMatrix μ).PosSemidef :=
-  sorry
-    -- (ContinuousBilinForm.isPosSemidef_iff_posSemidef_toMatrix _).1
-    --   isPosSemidef_covarianceBilin
+lemma posSemidef_covMatrix [IsGaussian μ] : (covMatrix μ).PosSemidef := by
+  rw [covMatrix, ← LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix,
+    LinearMap.BilinForm.isPosSemidef_iff]
+  exact isPosSemidef_covarianceBilin
 
 end ProbabilityTheory

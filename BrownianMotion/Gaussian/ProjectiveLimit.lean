@@ -81,7 +81,7 @@ lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [Norm
       ∫ x, f (EuclideanSpace.equiv I ℝ x)
         ∂multivariateGaussian 0 (brownianCovMatrix I) := by
   simp only [gaussianProjectiveFamily, integral_map_equiv, MeasurableEquiv.toLp_symm_apply]
-  sorry
+  rfl
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) := by
