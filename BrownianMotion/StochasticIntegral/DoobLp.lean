@@ -67,9 +67,9 @@ theorem continuous_of_rightContinuous (hf_cont : f.RightContinuous) :
     nhds_lowerLimit_eq_nhdsWithin_Ici]
 
 variable {ι : Type*} [TopologicalSpace ι] {f : ι → α} [ConditionallyCompleteLattice α]
-  [ClosedIicTopology α]
+  [ClosedIicTopology α] {S : Set ι}
 
-theorem continuous_supremum_dense {S : Set ι} (hS : Dense S) (hf : Continuous f)
+theorem continuous_supremum_dense (hS : Dense S) (hf : Continuous f)
     (h : BddAbove (range f)) :
     ⨆ i, f i = ⨆ s : S, f s := by
   rw [← sSup_range, ← sSup_range]
@@ -81,6 +81,10 @@ theorem continuous_supremum_dense {S : Set ι} (hS : Dense S) (hf : Continuous f
     (hf.range_subset_closure_image_dense hS)]
   simpa [← Function.comp_def, range_comp] using
     isLUB_csSup (range_nonempty (fun x : S ↦ f x)) <| h.mono <| range_comp_subset_range ..
+
+theorem dense_of_dense [Preorder ι] (hS : Dense S) (hi : {x | 𝓝[>] x = ⊥} ⊆ S) :
+    @Dense ι (TopologicalSpace.generateFrom {s : Set ι | ∃ i j, s = Set.Ico i j}) S := by
+  sorry
 
 variable [PartialOrder ι]
 
@@ -113,27 +117,28 @@ theorem maximal_ineq_norm_countable [Countable ι]
      ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
   sorry
 
-variable {β : Type*} {X : β → Ω → E} {Y : β → Ω → ℝ} [PartialOrder β] {𝓕 : Filtration β mΩ}
-  [TopologicalSpace β] [SecondCountableTopology β]
+variable {β : Type*} {X : β → Ω → E} {Y : β → Ω → ℝ} [LinearOrder β] {𝓕 : Filtration β mΩ}
+  [TopologicalSpace β] [OrderTopology β] [SecondCountableTopology β]
 
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : β)
     (hY_cont : ∀ ω, RightContinuous (Y · ω)) :
     ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω} ≤
      ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω}, Y n ω ∂P) := by
   obtain ⟨T, hT_countable, hT_dense⟩ := TopologicalSpace.exists_countable_dense (Iic n)
-  let S := T ∪ {⟨n, le_rfl⟩}
-  have hn : ⟨n, le_rfl⟩ ∈ S := by simp [S]
+  let S := T ∪ {x : Iic n | 𝓝[>] x = ⊥}
+  have hn : ⟨n, le_rfl⟩ ∈ S := sorry
   have : Countable S := by
     rw [countable_coe_iff]
-    exact Countable.union (Countable.mono (by simp) hT_countable) (by simp)
+    exact Countable.union (Countable.mono (by simp) hT_countable) (countable_setOf_isolated_right)
   have cont (ω : Ω) : @Continuous (Iic n) ℝ (lowerLimit (Iic n)) inferInstance
     fun s ↦ ((Y · ω) ∘ (Subtype.val : Iic n → β)) s := by
-    refine continuous_of_rightContinuous fun s ↦ ContinuousWithinAt.comp (t := univ) ?_ ?_ ?_
-    · sorry
-    · sorry
-    · sorry
+    refine continuous_of_rightContinuous fun s ↦ ContinuousWithinAt.comp (t := Set.Ioi s) ?_ ?_ ?_
+    · simpa using hY_cont ω s
+    · fun_prop
+    · intro z hz; exact hz
   have denseS : @Dense (Iic n) (TopologicalSpace.generateFrom
-    {s : Set (Iic n) | ∃ i j, s = Set.Ico i j}) S := by sorry
+    {s : Set (Iic n) | ∃ i j, s = Set.Ico i j}) S :=
+    dense_of_dense (hT_dense.mono (by grind)) (by grind)
   have (ω : Ω) : ⨆ i ≤ n, Y i ω
     = ⨆ s ≤ ⟨⟨n, le_rfl⟩, hn⟩, (Y ∘ Subtype.val ∘ Subtype.val: S → Ω → ℝ) s ω := by
     by_cases h : BddAbove (Set.range fun i : Iic n ↦ Y (↑i) ω)
@@ -155,7 +160,13 @@ theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : �
         have : Nonempty S := Nonempty.intro ⟨⟨n, le_rfl⟩, hn⟩
         refine ciSup_subtype' ?_ ?_
         · sorry
-        · sorry
+        · simp only [Real.sSup_empty]
+          have : Y (⟨⟨⟨n, le_rfl⟩, hn⟩, le_rfl⟩ : {z : S // z ≤ ⟨⟨n, le_rfl⟩, hn⟩}).1.1.1 ω
+            = Y n ω := by grind
+          refine le_trans (hnonneg n ω) (this ▸ le_ciSup
+            (f := fun z : {z : S // z ≤ ⟨⟨n, le_rfl⟩, hn⟩} => Y z.1.1.1 ω)
+            ?_ ⟨⟨⟨n, le_rfl⟩, hn⟩, le_rfl⟩)
+          sorry
       _ = ⨆ s ≤ ⟨⟨n, le_rfl⟩, hn⟩, (Y ∘ Subtype.val ∘ Subtype.val: S → Ω → ℝ) s ω :=
         (cbiSup_eq_of_forall (ι := S) (fun s => s.1.2)).symm
     · sorry
