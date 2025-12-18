@@ -8,6 +8,7 @@ import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Gaussian.StochasticProcesses
 import Mathlib.Topology.EMetricSpace.Paracompact
 import Mathlib.Topology.Separation.CompletelyRegular
+import Mathlib.Data.Set.FiniteExhaustion
 
 /-!
 # Kolmogorov-Chentsov theorem
@@ -33,90 +34,10 @@ protected theorem Asymptotics.IsEquivalent.rpow_of_nonneg {α : Type*}
   filter_upwards [Filter.Tendsto.eventually_const_lt (zero_lt_one) hφ, htφu] with x hφ_pos htu'
   simp [← Real.mul_rpow (le_of_lt hφ_pos) (hu x), htu']
 
-theorem Set.iUnion_le_nat : ⋃ n : ℕ, {i | i ≤ n} = Set.univ :=
- subset_antisymm (Set.subset_univ _)
-  (fun i _ ↦ Set.mem_iUnion_of_mem i (Set.mem_setOf.mpr (le_refl _)))
-
--- modelled after `CompactExhaustion`
-structure FiniteExhaustion {α : Type*} (s : Set α) where
-  toFun : ℕ → Set α
-  Finite' : ∀ n, Finite (toFun n)
-  subset_succ' : ∀ n, toFun n ⊆ toFun (n + 1)
-  iUnion_eq' : ⋃ n, toFun n = s
-
-namespace FiniteExhaustion
-
-instance {α : Type*} {s : Set α} : FunLike (FiniteExhaustion s) ℕ (Set α) where
-  coe := toFun
-  coe_injective' | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
-
-instance {α : Type*} {s : Set α} : RelHomClass (FiniteExhaustion s) LE.le HasSubset.Subset where
-  map_rel K _ _ h := monotone_nat_of_le_succ (fun n ↦ K.subset_succ' n) h
-
-instance {α : Type*} {s : Set α} {K : FiniteExhaustion s} {n : ℕ} : Finite (K n) :=
-  K.Finite' n
-
-variable {α : Type*} {s : Set α} (K : FiniteExhaustion s)
-
-@[simp]
-theorem toFun_eq_coe : K.toFun = K := rfl
-
-protected theorem Finite (n : ℕ) : (K n).Finite := K.Finite' n
-
-theorem subset_succ (n : ℕ) : K n ⊆ K (n + 1) := K.subset_succ' n
-
-protected theorem subset {m n : ℕ} (h : m ≤ n) : K m ⊆ K n :=
-  OrderHomClass.mono K h
-
-theorem iUnion_eq : ⋃ n, K n = s :=
-  K.iUnion_eq'
-
-lemma subset' (n : ℕ) : K n ⊆ s := by
+lemma Set.FiniteExhaustion.subset {α : Type*} {s : Set α} (K : FiniteExhaustion s) (n : ℕ) :
+    K n ⊆ s := by
   simp_rw [← K.iUnion_eq]
   exact Set.subset_iUnion K n
-
-noncomputable def choice {α : Type*} (s : Set α) [Countable s] : FiniteExhaustion s := by
-    apply Classical.choice
-    by_cases h : Nonempty s
-    · obtain ⟨f, hf⟩ := exists_surjective_nat s
-      have : s → α := Subtype.val
-      refine ⟨fun n ↦ (Subtype.val ∘ f) '' {i | i ≤ n}, ?_, ?_, ?_⟩
-      · exact fun n ↦ Set.Finite.image _ (Set.finite_le_nat n)
-      · intro n
-        simp only [Function.comp_apply]
-        refine Set.image_mono fun _ h ↦ ?_
-        simp [le_trans h (Nat.le_succ _)]
-      · simp [← Set.image_image, ← Set.image_iUnion, Set.iUnion_le_nat, Set.range_eq_univ.mpr hf]
-    · refine ⟨fun _ ↦ ∅, by simp [Set.Finite.to_subtype], fun n ↦ by simp, ?_⟩
-      simp [Set.not_nonempty_iff_eq_empty'.mp h]
-
-section prod
-
-variable {β : Type*} {t : Set β} (K' : FiniteExhaustion t)
-
-protected def prod :
-    FiniteExhaustion (s ×ˢ t) :=
-  { toFun := fun n ↦ K n ×ˢ K' n
-    Finite' := fun n ↦ Set.Finite.prod (K.Finite n) (K'.Finite n)
-    subset_succ' := fun n ↦ Set.prod_mono (K.subset_succ n) (K'.subset_succ n)
-    iUnion_eq' := by
-      apply subset_antisymm
-      · rw [Set.iUnion_subset_iff]
-        refine fun i ↦ Set.prod_mono ?_ ?_
-        · simp [← K.iUnion_eq, Set.subset_iUnion]
-        · simp [← K'.iUnion_eq, Set.subset_iUnion]
-      rintro ⟨a, b⟩ h
-      simp only [← K.iUnion_eq, ← K'.iUnion_eq, Set.mem_prod, Set.mem_iUnion] at h
-      obtain ⟨⟨i,hi⟩, ⟨j, hj⟩⟩ := h
-      simp only [Set.mem_iUnion, Set.mem_prod]
-      exact ⟨max i j, K.subset (le_max_left _ _) hi, K'.subset (le_max_right _ _ ) hj⟩ }
-
-
-protected theorem prod_apply (n : ℕ) : (K.prod K') n = K n ×ˢ K' n := by rfl
-
-end prod
-
-end FiniteExhaustion
 
 lemma measure_add_ge_le_add_measure_ge {Ω : Type*} {_ : MeasurableSpace Ω} {P : Measure Ω}
     {f g : Ω → ℝ≥0∞} {x u : ℝ≥0∞} (hu : u ≤ x) :
@@ -265,7 +186,7 @@ lemma constL_lt_top (hT : EMetric.diam U < ∞)
   rw [← Asymptotics.isEquivalent_iff_tendsto_one]; swap
   · filter_upwards with _
     apply ne_of_gt
-    refine lt_of_le_of_lt ?_ <| (add_lt_add_left (ENNReal.toReal_pos (by positivity) hC)) _
+    refine lt_of_le_of_lt ?_ <| (add_lt_add_right (ENNReal.toReal_pos (by positivity) hC)) _
     positivity
   refine Asymptotics.IsEquivalent.add_add_of_nonneg
     (by intro _; positivity) (by intro _; positivity) ?_ .refl
@@ -353,7 +274,7 @@ theorem finite_kolmogorov_chentsov
       simp [this]
     · simp [le_of_lt hdq_lt]
   apply le_trans
-  · apply mul_le_mul_left'
+  · apply mul_le_mul_right
     refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hdq_lt ?_
     · exact hT.subset hT'U hd_pos.le
     · finiteness
@@ -405,24 +326,24 @@ theorem finite_kolmogorov_chentsov
 theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber U c d)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β)
-    (T' : Set T) [Countable T'] (hT'U : T' ⊆ U) :
+    (T' : Set T) [hT' : Countable T'] (hT'U : T' ⊆ U) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β U := by
-  let K := (FiniteExhaustion.choice T')
+  let K := (Set.Countable.finiteExhaustion hT')
   simp only [iSup_subtype, Subtype.edist_mk_mk, ← biSup_prod', ← (K.prod K).iUnion_eq,
     Set.mem_iUnion, iSup_exists, K.prod_apply, iSup_comm (ι' := ℕ)]
   simp only [biSup_prod]
   simp only [← iSup_subtype'']
   rw [MeasureTheory.lintegral_iSup', iSup_le_iff]
   · exact fun n ↦ finite_kolmogorov_chentsov hT hX hd_pos hdq_lt hβ_pos (K n)
-      ((K.subset' _).trans hT'U)
+      ((K.subset n).trans hT'U)
   · intro n
     have h_ae s t := hX.aemeasurable_edist (s := s) (t := t)
     fun_prop
   · filter_upwards with ω
     intro _ _ h
     simp only [iSup_subtype, ← biSup_prod']
-    exact iSup_le_iSup_of_subset (Set.prod_mono (K.subset h) (K.subset h))
+    exact iSup_le_iSup_of_subset (Set.prod_mono (K.mono h) (K.mono h))
 
 lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     (hT : HasBoundedInternalCoveringNumber U c d)

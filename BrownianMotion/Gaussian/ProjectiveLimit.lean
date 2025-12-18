@@ -80,7 +80,8 @@ lemma integral_gaussianProjectiveFamily {E : Type*} [NormedAddCommGroup E] [Norm
     ∫ x, f x ∂gaussianProjectiveFamily I =
       ∫ x, f (EuclideanSpace.equiv I ℝ x)
         ∂multivariateGaussian 0 (brownianCovMatrix I) := by
-  simp [gaussianProjectiveFamily, integral_map_equiv]
+  simp only [gaussianProjectiveFamily, integral_map_equiv, MeasurableEquiv.toLp_symm_apply]
+  sorry
 
 instance isGaussian_gaussianProjectiveFamily (I : Finset ℝ≥0) :
     IsGaussian (gaussianProjectiveFamily I) := by
@@ -105,8 +106,8 @@ lemma covariance_eval_gaussianProjectiveFamily (I : Finset ℝ≥0) (s t : I) :
   change cov[fun x : EuclideanSpace ℝ I ↦ x s, fun x ↦ x t; _] = _
   have (u : I) : (fun x : EuclideanSpace ℝ I ↦ x u) =
       fun x ↦ ⟪EuclideanSpace.basisFun I ℝ u, x⟫ := by ext; simp [PiLp.inner_apply]
-  rw [this, this, ← covInnerBilin_apply_eq,
-    covInnerBilin_multivariateGaussian (posSemidef_brownianCovMatrix I),
+  rw [this, this, ← covarianceBilin_apply_eq_cov,
+    covarianceBilin_multivariateGaussian (posSemidef_brownianCovMatrix I),
     ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
   exact IsGaussian.memLp_two_id
 

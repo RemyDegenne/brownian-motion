@@ -191,7 +191,7 @@ lemma edist_chainingSequence_le (hC : ∀ i, IsCover (C i) (ε i) A) (hCA : ∀ 
     ≤ edist (chainingSequence C x k m) x + edist x (chainingSequence C y n m) :=
         edist_triangle _ _ _
   _ ≤ edist (chainingSequence C x k m) x + (edist x y + edist y (chainingSequence C y n m)) :=
-        add_le_add_left (edist_triangle _ _ _) _
+        add_le_add_right (edist_triangle _ _ _) _
   _ = edist x y + edist (chainingSequence C x k m) x + edist y (chainingSequence C y n m) := by
         abel
   _ ≤ edist x y + ∑ i ∈ Finset.range (k - m), ε (m + i)
@@ -218,10 +218,8 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (m : ℕ) (X : E → F) (�
   let Ck' (s : C k) := { t : C k // edist s t ≤ δ }
   have (s : C k) : Nonempty (Ck' s) := ⟨⟨s, by simp⟩⟩
   let c (s : C k) := chainingSequence C s k m
-
   -- Trivial case: `C k` is empty
   refine (isEmpty_or_nonempty (C k)).elim (fun _ => by simp) (fun _ => ?_)
-
   calc ⨆ (s : C k) (t : Ck' s), edist (X s) (X t)
       ≤ ⨆ (s : C k) (t : Ck' s),
           edist (X s) (X (c s)) + edist (X (c s)) (X (c t)) + edist (X (c t)) (X t) := ?_
@@ -249,7 +247,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (m : ℕ) (X : E → F) (�
     conv_lhs => congr; ext s; rw [iSup_subtype']
   · simp only [ENNReal.iSup_add]
   · rw [add_assoc]
-    exact add_le_add_left (iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)) _
+    exact add_le_add_right (iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)) _
   · conv_lhs => right; congr; ext s; rw [edist_comm]
     conv_rhs => left; congr; ext s; congr; ext t; rw [edist_comm]
     ring

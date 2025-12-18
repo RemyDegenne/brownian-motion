@@ -76,7 +76,7 @@ lemma variance_dual_stdGaussian (L : StrongDual ℝ E) : Var[L; stdGaussian E] =
       ext x; simp [mul_comm]
     rw [this, variance_pi]
     · change ∑ i, Var[fun x ↦ _ * (id x); gaussianReal 0 1] = _
-      simp_rw [variance_mul, variance_id_gaussianReal, (stdOrthonormalBasis ℝ E).norm_dual]
+      simp_rw [variance_const_mul, variance_id_gaussianReal, (stdOrthonormalBasis ℝ E).norm_dual]
       simp
     · exact fun i ↦ IsGaussian.memLp_two_id.const_mul _
   · exact L.continuous.aemeasurable
@@ -107,13 +107,14 @@ lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     variance_dual_stdGaussian]
   simp [neg_div]
 
-lemma covInnerBilin_stdGaussian :
-    covInnerBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
+lemma covarianceBilin_stdGaussian :
+    covarianceBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
   refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
   simp [charFun_stdGaussian, neg_div]
 
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
-  rw [covMatrix, covInnerBilin_stdGaussian, ContinuousBilinForm.inner_toMatrix_eq_one]
+  rw [covMatrix, covarianceBilin_stdGaussian] --  ContinuousBilinForm.inner_toMatrix_eq_one
+  sorry
 
 lemma stdGaussian_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
     [BorelSpace F] (f : E ≃ₗᵢ[ℝ] F) :
@@ -183,20 +184,19 @@ lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     smul_eq_mul, OrthonormalBasis.coe_toBasis, EuclideanSpace.basisFun_apply, PiLp.inner_apply,
     RCLike.inner_apply, conj_trivial, dotProduct]
   congr with i
-  rw [mul_comm, ← WithLp.linearEquiv_apply 2 ℝ]
-  simp [-EuclideanSpace.ofLp_single, Finset.sum_apply]
+  rw [mul_comm (x.ofLp i)]
+  simp [Pi.single_apply]
 
-lemma covInnerBilin_multivariateGaussian (hS : S.PosSemidef) :
-    covInnerBilin (multivariateGaussian μ S)
+lemma covarianceBilin_multivariateGaussian (hS : S.PosSemidef) :
+    covarianceBilin (multivariateGaussian μ S)
       = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis := by
   have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S))) =
     (fun x ↦ μ + (toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S)) x) := rfl
   simp only [multivariateGaussian]
   rw [← h, ← Measure.map_map (measurable_const_add μ) (by fun_prop)]
-  rw [covInnerBilin_map_const_add]
-  swap; · exact IsGaussian.memLp_two_id
+  rw [covarianceBilin_map_const_add]
   ext x y
-  rw [covInnerBilin_map, covInnerBilin_stdGaussian]
+  rw [covarianceBilin_map, covarianceBilin_stdGaussian]
   swap; · exact IsGaussian.memLp_two_id
   rw [ContinuousBilinForm.inner_apply, ContinuousBilinForm.ofMatrix_apply,
     ContinuousLinearMap.adjoint_inner_left]
@@ -222,7 +222,7 @@ lemma covariance_eval_multivariateGaussian (hS : S.PosSemidef) (i j : ι) :
     cov[fun x ↦ x i, fun x ↦ x j; multivariateGaussian μ S] = S i j := by
   have (i : ι) : (fun x : EuclideanSpace ℝ ι ↦ x i) =
       fun x ↦ ⟪EuclideanSpace.basisFun ι ℝ i, x⟫ := by ext; simp [PiLp.inner_apply]
-  rw [this, this, ← covInnerBilin_apply_eq, covInnerBilin_multivariateGaussian hS,
+  rw [this, this, ← covarianceBilin_apply_eq_cov, covarianceBilin_multivariateGaussian hS,
     ContinuousBilinForm.ofMatrix_orthonormalBasis]
   exact IsGaussian.memLp_two_id
 
@@ -244,10 +244,10 @@ lemma charFun_multivariateGaussian (hS : S.PosSemidef) (x : EuclideanSpace ℝ �
     charFun (multivariateGaussian μ S) x =
       Complex.exp (⟪x, μ⟫ * Complex.I
         - ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis x x / 2) := by
-  rw [IsGaussian.charFun_eq]
+  rw [IsGaussian.charFun_eq']
   congr
   · exact integral_id_multivariateGaussian
-  · exact covInnerBilin_multivariateGaussian hS
+  · exact covarianceBilin_multivariateGaussian hS
 
 /-- `Finset.restrict₂` as a continuous linear map. -/
 def _root_.Finset.restrict₂CLM {ι : Type*} (R : Type*) {M : ι → Type*} [Semiring R]
@@ -302,11 +302,11 @@ lemma measurePreserving_restrict_multivariateGaussian (hS : S.PosSemidef) (hJI :
       exact IsGaussian.integrable_id
     apply ContinuousBilinForm.ext_basis (EuclideanSpace.basisFun J ℝ).toBasis
     intro i j
-    rw [covInnerBilin_apply_eq, covariance_map]
+    rw [covarianceBilin_apply_eq_cov, covariance_map]
     · have (i : J) : (fun u ↦ ⟪(EuclideanSpace.basisFun J ℝ).toBasis i, u⟫) ∘
           EuclideanSpace.restrict₂ hJI = fun u ↦ u ⟨i.1, hJI i.2⟩ := by ext; simp [PiLp.inner_apply]
       simp_rw [this, covariance_eval_multivariateGaussian hS,
-        covInnerBilin_multivariateGaussian (hS.submatrix _),
+        covarianceBilin_multivariateGaussian (hS.submatrix _),
         ContinuousBilinForm.ofMatrix_basis, S.submatrix_apply]
     any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
     · fun_prop

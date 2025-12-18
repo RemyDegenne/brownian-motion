@@ -243,11 +243,11 @@ lemma covariance_fun_sub_right [IsFiniteMeasure μ]
 
 lemma covariance_fun_div_left :
     cov[fun ω ↦ X ω / c, Y; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_left]
+  simp_rw [← inv_mul_eq_div, covariance_const_mul_left]
 
 lemma covariance_fun_div_right :
     cov[X, fun ω ↦ Y ω / c; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_right]
+  simp_rw [← inv_mul_eq_div, covariance_const_mul_right]
 
 lemma variance_fun_div (hX : AEMeasurable X μ) :
     Var[fun ω ↦ X ω / c; μ] = Var[X; μ] / c ^ 2 := by
