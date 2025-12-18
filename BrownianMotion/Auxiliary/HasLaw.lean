@@ -1,6 +1,7 @@
 import Mathlib.Analysis.Normed.Lp.MeasurableSpace
 import Mathlib.Probability.Distributions.Gaussian.Basic
 import Mathlib.Probability.HasLaw
+import Mathlib.Probability.Independence.CharacteristicFunction
 
 open MeasureTheory ENNReal WithLp
 
@@ -35,21 +36,6 @@ lemma HasLaw.ae_eq_const_of_gaussianReal {X : Ω → ℝ} {μ : ℝ} (hX : HasLa
   exact hX.ae_eq_of_dirac
 
 end dirac
-
-variable {E : Type*} [NormedAddCommGroup E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] [IsProbabilityMeasure P] {X Y : Ω → E}
-
-lemma IndepFun.charFunDual_map_add_eq_mul [NormedSpace ℝ E]
-    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
-    charFunDual (P.map (X + Y)) = charFunDual (P.map X) * charFunDual (P.map Y) := by
-  ext L
-  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFunDual_conv, Pi.mul_apply]
-
-lemma IndepFun.charFun_map_add_eq_mul [InnerProductSpace ℝ E]
-    (mX : AEMeasurable X P) (mY : AEMeasurable Y P) (hXY : IndepFun X Y P) :
-    charFun (P.map (X + Y)) = charFun (P.map X) * charFun (P.map Y) := by
-  ext t
-  rw [(hXY.hasLaw_add (hasLaw_map mX) (hasLaw_map mY)).map_eq, charFun_conv, Pi.mul_apply]
 
 end HasLaw
 
@@ -199,10 +185,9 @@ instance HasGaussianLaw.eval [∀ i, SecondCountableTopology (E i)] {X : (i : ι
   infer_instance
 
 instance HasGaussianLaw.toLp_comp_pi (p : ℝ≥0∞) [Fact (1 ≤ p)]
-    [HasGaussianLaw (fun ω ↦ (X · ω)) P] :
-    HasGaussianLaw (fun ω ↦ toLp p (X · ω)) P := by
-  rw [← PiLp.continuousLinearEquiv_symm_apply p ℝ]
-  infer_instance
+    [hX : HasGaussianLaw (fun ω ↦ (X · ω)) P] :
+    HasGaussianLaw (fun ω ↦ toLp p (X · ω)) P :=
+  hX.map_equiv (PiLp.continuousLinearEquiv p ℝ E).symm
 
 instance IsGaussian.hasGaussianLaw_eval {μ : Measure (Π i, E i)} [IsGaussian μ] (i : ι) :
     HasGaussianLaw (fun x ↦ x i) μ :=

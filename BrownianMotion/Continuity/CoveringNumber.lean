@@ -94,7 +94,6 @@ lemma Set.Nonempty.one_le_internalCoveringNumber [EDist E] {A : Set E} (hA : A.N
   refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
   simp only [Nat.one_le_cast, Finset.one_le_card]
   by_contra!
-  rw [Finset.not_nonempty_iff_eq_empty] at this
   rw [this, Finset.coe_empty, isCover_empty_iff] at hC₂
   exact Set.nonempty_iff_ne_empty.1 hA hC₂
 
@@ -570,7 +569,7 @@ theorem internalCoveringNumber_Icc_zero_one_le_one_div {ε : ℝ≥0∞} (hε : 
     -- Finally the general case
     refine ⟨⌊x * (k + 1)⌋₊ / (k + 1), mem_C ⌊x * (k + 1)⌋₊ ?_ ?_ rfl, edist_le ?_⟩
     · rwa [Nat.one_le_floor_iff, ← div_le_iff₀ (by positivity)]
-    · rw [← Nat.lt_succ, Nat.floor_lt (by positivity)]
+    · rw [← Nat.lt_succ_iff, Nat.floor_lt (by positivity)]
       calc
       x * (k + 1) < 1 * (k + 1) := (mul_lt_mul_iff_left₀ (by positivity)).2 h1
       _ = k.succ := by simp

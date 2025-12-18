@@ -1052,12 +1052,13 @@ lemma edist_modification_holderModification (hT : HasBoundedInternalCoveringNumb
     (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
 
 lemma exists_edist_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, ∀ᵐ ω ∂P, edist (Y t ω) (X t ω) = 0) ∧
       (∀ ω, ∃ C : ℝ≥0, HolderOnWith C β (Y · ω) U) ∧ IsLimitOfIndicator Y X P U := by
+  classical
   refine ⟨holderModification X β p U, ?_, ?_, ?_, ?_⟩
   · exact measurable_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
   · exact edist_modification_holderModification hT hU hX hc hd_pos hdq_lt hβ_pos hβ_lt
@@ -1074,7 +1075,7 @@ lemma _root_.HolderOnWith.congr_edist {T E : Type*} [PseudoEMetricSpace T] [Pseu
   exact hfg s t hsU htU
 
 lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
@@ -1102,7 +1103,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c
       simpa [hZ_edist]
 
 lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hU : IsOpen U)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
@@ -1145,7 +1146,7 @@ lemma indistinguishable_of_edist_modification {T Ω E : Type*} {mΩ : Measurable
   exact indistinguishable_of_edist_modification_on isOpen_univ (by simpa) (by simpa) (by simpa)
 
 lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, Y t =ᵐ[P] X t) ∧
@@ -1214,7 +1215,7 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
   · exact IsLimitOfIndicator.indicatorProcess (hZ_isLimit 0) A hA hA_ae
 
 lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber U c d)
-    [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hU : IsOpen U)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
     ∃ Y : T → Ω → E, (∀ t, Measurable (Y t)) ∧ (∀ t ∈ U, Y t =ᵐ[P] X t)
