@@ -237,41 +237,42 @@ lemma IsCover.Nonempty (hC : IsCover ε A C) (hA : A.Nonempty) : C.Nonempty := b
 
 section minimalCover
 
-lemma exists_finset_card_eq_coveringNumber (h : TotallyBounded A) (hr : 0 < r) :
-    ∃ (C : Finset E), ↑C ⊆ A ∧ IsCover r A C ∧ C.card = coveringNumber r A := by
-  have : Nonempty { s : Finset E // ↑s ⊆ A ∧ IsCover r A s } := by
-    obtain ⟨C, hC⟩ := h.exists_isCover r hr
-    exact⟨⟨C, hC⟩⟩
-  let h := ENat.exists_eq_iInf
-    (fun C : {s : Finset E // ↑s ⊆ A ∧ IsCover r A s} ↦ (C : Finset E).card)
+lemma exists_set_encard_eq_coveringNumber (h : TotallyBounded A) (hr : 0 < r) :
+    ∃ C, C ⊆ A ∧ C.Finite ∧ IsCover r A C ∧ C.encard = coveringNumber r A := by
+  obtain ⟨C', hC'A, hC'_fin, hC'⟩ := exists_finite_isCover_of_totallyBounded hr.ne' h
+  have : Nonempty { s : Set E // s ⊆ A ∧ IsCover r A s } := ⟨C', hC'A, hC'⟩
+  let h := ENat.exists_eq_iInf (fun C : {s : Set E // s ⊆ A ∧ IsCover r A s} ↦ (C : Set E).encard)
   obtain ⟨C, hC⟩ := h
-  refine ⟨C, C.2.1, C.2.2, ?_⟩
-  rw [hC]
-  simp_rw [iInf_subtype, iInf_and]
-  sorry
+  refine ⟨C, C.2.1, ?_, C.2.2, ?_⟩
+  · refine Set.encard_lt_top_iff.mp ?_
+    simp only [hC, iInf_lt_top, encard_lt_top_iff, Subtype.exists, exists_prop]
+    exact ⟨C', ⟨hC'A, hC'⟩, hC'_fin⟩
+  · rw [hC]
+    simp_rw [iInf_subtype, iInf_and]
+    rfl
 
 open Classical in
 /-- An internal `r`-cover of `A` with minimal cardinal. -/
 noncomputable
-def minimalCover (r : ℝ≥0) (A : Set E) (hr : 0 < r) : Finset E :=
+def minimalCover (r : ℝ≥0) (A : Set E) (hr : 0 < r) : Set E :=
   if h : TotallyBounded A
-    then (exists_finset_card_eq_coveringNumber h hr).choose else ∅
+    then (exists_set_encard_eq_coveringNumber h hr).choose else ∅
 
-lemma minimalCover_subset (hr : 0 < r) : ↑(minimalCover r A hr) ⊆ A := by
+lemma minimalCover_subset (hr : 0 < r) : minimalCover r A hr ⊆ A := by
   by_cases h : TotallyBounded A
   · simp only [minimalCover, h, dite_true]
-    exact (exists_finset_card_eq_coveringNumber h hr).choose_spec.1
-  · simp only [minimalCover, h, dite_false, Finset.coe_empty, Set.empty_subset]
+    exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.1
+  · simp only [minimalCover, h, dite_false, Set.empty_subset]
 
 lemma isCover_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
     IsCover r A (minimalCover r A hr) := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_coveringNumber h hr).choose_spec.2.1
+  exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.2.1
 
 lemma card_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
-    (minimalCover r A hr).card = coveringNumber r A := by
+    (minimalCover r A hr).encard = coveringNumber r A := by
   simp only [minimalCover, h, dite_true]
-  exact (exists_finset_card_eq_coveringNumber h hr).choose_spec.2.2
+  exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.2.2
 
 end minimalCover
 
@@ -291,7 +292,8 @@ lemma exists_set_encard_eq_packingNumber (h : packingNumber r A < ⊤) :
   specialize h_exists h
   obtain ⟨C, hC⟩ := h_exists
   refine ⟨C, C.2.1, ?_, C.2.2, ?_⟩
-  · sorry
+  · refine Set.encard_lt_top_iff.mp ?_
+    rwa [hC]
   · rw [hC]
 
 /-- A maximal `r`-separated finite subset of `A`. -/
@@ -593,7 +595,8 @@ lemma volume_le_externalCoveringNumber_mul (A : Set E) (hε : 0 < ε) :
   grw [← hC, volume_le_of_isCover C.2 hε]
 
 open scoped Pointwise in
-lemma le_volume_of_isSeparated (hC : IsSeparated ε C) (h_subset : C ⊆ A) :
+lemma le_volume_of_isSeparated_of_countable (hC_count : C.Countable)
+    (hC : IsSeparated ε C) (h_subset : C ⊆ A) :
     C.encard * volume (EMetric.closedBall (0 : E) (ε / 2))
       ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
   calc
@@ -603,15 +606,61 @@ lemma le_volume_of_isSeparated (hC : IsSeparated ε C) (h_subset : C ⊆ A) :
       ENNReal.tsum_const]
     simp
   _ = volume (⋃ x ∈ C, EMetric.closedBall x (ε / 2)) := by
-    sorry
-    -- (measure_biUnion_finset hC.disjoint_closedBall
-    --   fun _ _ ↦ EMetric.isClosed_closedBall.measurableSet).symm
+    rw [measure_biUnion]
+    · exact hC_count
+    · exact hC.disjoint_closedBall
+    · exact fun _ _ ↦ EMetric.isClosed_closedBall.measurableSet
   _ ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
     refine measure_mono fun x hx ↦ ?_
     rw [Set.mem_iUnion₂] at hx
     obtain ⟨y, hy, hx⟩ := hx
     refine ⟨y, h_subset hy, x - y, ?_, by simp⟩
     rwa [EMetric.mem_closedBall, edist_zero_right, ← edist_eq_enorm_sub]
+
+open scoped Pointwise in
+lemma le_volume_of_isSeparated (hC : IsSeparated ε C) (h_subset : C ⊆ A) :
+    C.encard * volume (EMetric.closedBall (0 : E) (ε / 2))
+      ≤ volume (A + EMetric.closedBall (0 : E) (ε / 2)) := by
+  obtain rfl | hε := eq_zero_or_pos ε
+  · simp only [ENNReal.coe_zero, ENNReal.zero_div, EMetric.closedBall_zero,
+      Measure.addHaar_singleton, add_singleton, add_zero, image_id']
+    obtain _ | _ := subsingleton_or_nontrivial E
+    · simp only [singleton_nonempty, volume_of_nonempty_of_subsingleton, mul_one]
+      obtain rfl | hA := Set.eq_empty_or_nonempty A
+      · simp only [subset_empty_iff] at h_subset
+        simp [h_subset]
+      simp only [hA.eq_zero, Measure.addHaar_singleton, singleton_nonempty,
+        volume_of_nonempty_of_subsingleton]
+      norm_cast
+      refine (Set.encard_le_encard h_subset).trans ?_
+      simp [hA.eq_zero]
+    · simp
+  by_cases hC_encard : C.encard = ⊤
+  swap
+  · have hC_count : C.Countable := by
+      refine Set.Finite.countable ?_
+      simpa using hC_encard
+    exact le_volume_of_isSeparated_of_countable hC_count hC h_subset
+  suffices volume (A + EMetric.closedBall 0 (↑ε / 2)) = ∞ by simp [this]
+  obtain ⟨C', hC'_subset, hC'_sep, hC'_count, hC'_encard⟩ :
+      ∃ C' ⊆ C, IsSeparated ε C' ∧ C'.Countable ∧ C'.encard = ⊤ := by
+    suffices ∃ C' ⊆ C, C'.Countable ∧ C'.encard = ⊤ by
+      obtain ⟨C', hC'_subset, hC'_count, hC'_encard⟩ := this
+      exact ⟨C', hC'_subset, hC.mono hC'_subset, hC'_count, hC'_encard⟩
+    simp only [encard_eq_top_iff] at hC_encard ⊢
+    refine ⟨Set.range (fun n : ℕ ↦ hC_encard.natEmbedding C n), fun x ↦ ?_, ?_, ?_⟩
+    · simp only [mem_range, forall_exists_index]
+      rintro _ ⟨n, rfl⟩
+      simp
+    · exact countable_range _
+    · refine infinite_range_of_injective fun n m hnm ↦ ?_
+      apply (hC_encard.natEmbedding C).injective
+      exact SetCoe.ext hnm
+  have h_le := le_volume_of_isSeparated_of_countable hC'_count hC'_sep (hC'_subset.trans h_subset)
+  rw [hC'_encard, ENat.toENNReal_top, ENNReal.top_mul] at h_le
+  · simpa using h_le
+  · refine (EMetric.measure_closedBall_pos volume _ ?_).ne'
+    simp [hε.ne']
 
 open scoped Pointwise in
 lemma volume_eq_top_of_packingNumber (A : Set E) (hε : 0 < ε)
