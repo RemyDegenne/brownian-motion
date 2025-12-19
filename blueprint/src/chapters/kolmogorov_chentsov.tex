@@ -24,8 +24,8 @@ All distances will be expressed with \texttt{edist}, which takes values in \text
 Let $(E, d_E)$ be a pseudo-metric space.
 
 \begin{definition}[$\varepsilon$-cover]\label{def:IsCover}
-  \leanok
-  \lean{IsCover}
+  \mathlibok
+  \lean{Metric.IsCover}
   A set $C \subseteq E$ is an $\varepsilon$-cover of a set $A \subseteq E$ if for every $x \in A$, there exists $y \in C$ such that $d_E(x, y) \le \varepsilon$.
 \end{definition}
 
@@ -33,7 +33,7 @@ Let $(E, d_E)$ be a pseudo-metric space.
 \begin{definition}[External covering number]\label{def:externalCoveringNumber}
   \uses{def:IsCover}
   \leanok
-  \lean{externalCoveringNumber}
+  \lean{Metric.externalCoveringNumber}
   The external covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$.
   Denote it by $N^{ext}_\varepsilon(A)$.
 \end{definition}
@@ -42,7 +42,7 @@ Let $(E, d_E)$ be a pseudo-metric space.
 \begin{definition}[Internal covering number]\label{def:internalCoveringNumber}
   \uses{def:IsCover}
   \leanok
-  \lean{internalCoveringNumber}
+  \lean{Metric.coveringNumber}
   The internal covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$ which is a subset of $A$.
   Denote it by $N^{int}_\varepsilon(A)$.
 \end{definition}
@@ -58,7 +58,7 @@ A set $c \subseteq E$ is $\varepsilon$-separated if for all $x, y \in c$, $d_E(x
 \begin{definition}[Packing number]\label{def:packingNumber}
   \uses{def:IsSeparated}
   \leanok
-  \lean{packingNumber}
+  \lean{Metric.packingNumber}
 The packing number of a set $A \subseteq E$ for $\varepsilon > 0$ is the largest cardinality of an $\varepsilon$-separated subset of $A$.
 Denote it by $P_\varepsilon(A)$.
 \end{definition}
@@ -67,7 +67,7 @@ Denote it by $P_\varepsilon(A)$.
 \begin{lemma}\label{lem:externalCoveringNumber_le_internalCoveringNumber}
   \uses{def:externalCoveringNumber, def:internalCoveringNumber}
   \leanok
-  \lean{externalCoveringNumber_le_internalCoveringNumber}
+  \lean{Metric.externalCoveringNumber_le_coveringNumber}
 $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
@@ -79,7 +79,7 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \begin{lemma}\label{lem:internalCoveringNumber_le_packingNumber}
   \uses{def:internalCoveringNumber, def:packingNumber}
   \leanok
-  \lean{internalCoveringNumber_le_packingNumber}
+  \lean{coveringNumber_le_packingNumber}
 $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
 \end{lemma}
 
@@ -91,7 +91,7 @@ $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
 \begin{lemma}\label{lem:packingNumber_two_le_externalCoveringNumber}
   \uses{def:packingNumber, def:externalCoveringNumber}
   \leanok
-  \lean{packingNumber_two_le_externalCoveringNumber}
+  \lean{Metric.packingNumber_two_mul_le_externalCoveringNumber}
 $P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 \end{lemma}
 
@@ -103,7 +103,7 @@ $P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 \begin{lemma}\label{lem:internalCoveringNumber_eq_one_of_diam_le}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_eq_one_of_diam_le}
+  \lean{Metric.coveringNumber_eq_one_of_ediam_le}
 If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\varepsilon(A) = 1$.
 \end{lemma}
 
@@ -115,7 +115,7 @@ If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\vareps
 \begin{lemma}\label{lem:externalCoveringNumber_mono}
   \uses{def:externalCoveringNumber}
   \leanok
-  \lean{externalCoveringNumber_mono_set}
+  \lean{Metric.externalCoveringNumber_mono_set}
 For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
 \end{lemma}
 
@@ -127,7 +127,7 @@ For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
 \begin{lemma}\label{lem:internalCoveringNumber_subset_le}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_subset_le}
+  \lean{coveringNumber_subset_le}
 For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
 \end{lemma}
 
@@ -226,7 +226,7 @@ Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated
 \begin{lemma}\label{lem:volume_div_le_internalCoveringNumber}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{volume_div_le_internalCoveringNumber}
+  \lean{volume_div_le_coveringNumber}
 If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
@@ -239,7 +239,7 @@ We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref
 \begin{lemma}\label{lem:internalCoveringNumber_le_volume_div}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_le_volume_div}
+  \lean{coveringNumber_le_volume_div}
 If $0 < \varepsilon < \infty$ then $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
 \end{lemma}
 
@@ -252,7 +252,7 @@ We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internal
 \begin{lemma}\label{lem:internalCoveringNumber_closedBall_ge}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_closedBall_ge}
+  \lean{coveringNumber_closedBall_ge}
 $N_\varepsilon^{int}(B_1) \ge \frac{1}{\varepsilon^d}$.
 \end{lemma}
 
@@ -272,7 +272,7 @@ By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
 \begin{lemma}\label{lem:internalCoveringNumber_closedBall_le}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_closedBall_le}
+  \lean{coveringNumber_closedBall_le}
 $N_\varepsilon^{int}(B_1) \le \left(\frac{2}{\varepsilon} + 1\right)^d$.
 \end{lemma}
 
@@ -294,7 +294,7 @@ By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
 \begin{definition}[Bounded internal covering number]\label{def:HasBoundedInternalCoveringNumber}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{HasBoundedInternalCoveringNumber}
+  \lean{HasBoundedCoveringNumber}
   Let $\mathrm{diam}(A)$ be the diameter of $A \subseteq E$, i.e. $\mathrm{diam}(A) = \sup_{x,y \in A} d_E(x, y)$.
   A set $A \subseteq E$ has bounded internal covering number with constant $c>0$ and exponent $t>0$ if for all $\varepsilon \in (0, \mathrm{diam}(A)]$, $N^{int}_\varepsilon(A) \le c \varepsilon^{-t}$.
 \end{definition}
@@ -303,7 +303,7 @@ By Lemma~\ref{lem:internalCoveringNumber_le_volume_div},
 \begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_unitInterval}
   \uses{def:HasBoundedInternalCoveringNumber}
   \leanok
-  \lean{internalCoveringNumber_Icc_zero_one_le_one_div}
+  \lean{coveringNumber_Icc_zero_one_le_one_div}
 The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal covering number with constant $1$ and exponent $1$: for $\varepsilon \le 1$, $N^{int}_\varepsilon(I) \le 1/\varepsilon$.
 \end{lemma}
 
@@ -315,7 +315,7 @@ The unit interval $I = [0, 1] \subseteq \mathbb{R}$ has bounded internal coverin
 \begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_subset}
   \uses{def:HasBoundedInternalCoveringNumber}
   \leanok
-  \lean{HasBoundedInternalCoveringNumber.subset}
+  \lean{HasBoundedCoveringNumber.subset}
 If $A$ has bounded internal covering number with constant $c>0$ and exponent $d>0$, then for all $B \subseteq A$, $B$ has bounded internal covering number with constant $2^d c$ and exponent $d$.
 \end{lemma}
 
