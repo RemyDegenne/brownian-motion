@@ -266,10 +266,10 @@ section PseudoEMetricSpace
 
 variable [PseudoEMetricSpace T] [PseudoEMetricSpace E]
 
-lemma _root_.IsCoverWithBoundedCoveringNumber.hasBoundedInternalCoveringNumber_univ
+lemma _root_.IsCoverWithBoundedCoveringNumber.HasBoundedCoveringNumber_univ
     {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d)) (n : ℕ) :
-    HasBoundedInternalCoveringNumber (Set.univ : Set (C n)) (c n) d := by
+    HasBoundedCoveringNumber (Set.univ : Set (C n)) (c n) d := by
   have h := hC.hasBoundedCoveringNumber n
   refine fun ε hε ↦ ?_
   specialize h ε (hε.trans_eq ?_)
@@ -277,25 +277,25 @@ lemma _root_.IsCoverWithBoundedCoveringNumber.hasBoundedInternalCoveringNumber_u
     simp [iSup_subtype]
   refine le_of_eq_of_le ?_ h
   simp only [ENat.toENNReal_inj]
-  unfold internalCoveringNumber
+  unfold Metric.coveringNumber
   simp only [Set.subset_univ, iInf_pos]
   classical
   refine le_antisymm ?_ ?_
   · simp only [le_iInf_iff]
     intro A hA hA_cover
-    refine (iInf₂_le (A.subtype (C n) : Finset (C n)) (fun x _ ↦ ?_)).trans ?_
-    · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x x.2
+    refine (iInf₂_le {x : C n | (x : T) ∈ A} (fun x _ ↦ ?_)).trans ?_
+    · have ⟨c, hc_mem, hc_edist⟩ := hA_cover x.2
       exact ⟨⟨c, hA hc_mem⟩, by simpa using hc_mem, hc_edist⟩
-    · simp only [Finset.card_subtype, Nat.cast_le]
-      exact Finset.card_filter_le _ _
+    · exact Set.encard_le_encard_of_injOn (f := fun x ↦ (x : T)) (fun _ hx ↦ hx)
+        fun x hx y hy hxy ↦ (by ext; exact hxy)
   · simp only [le_iInf_iff]
     intro A hA_cover
     refine (iInf₂_le (A.image (fun x : C n ↦ (x : T))) (by simp)).trans ?_
     refine (iInf_le _ ?_).trans ?_
     · intro x hx_mem
-      obtain ⟨c, hc_mem, hc⟩ := hA_cover ⟨x, hx_mem⟩ (Set.mem_univ _)
+      obtain ⟨c, hc_mem, hc⟩ := hA_cover (Set.mem_univ ⟨x, hx_mem⟩)
       exact ⟨c, by simpa using hc_mem, hc⟩
-    · exact mod_cast Finset.card_image_le
+    · exact Set.encard_image_le _ _
 
 lemma _root_.Measurable.measurableSet_edist_eq_zero_of_continuous [SecondCountableTopology T]
     {f g : T → Ω → E} (hf : ∀ ω, Continuous (f · ω)) (hg : ∀ ω, Continuous (g · ω))
@@ -378,7 +378,7 @@ lemma IsKolmogorovProcess.measurableSet_holderSet
     · exact MeasurableSet.preimage (measurableSet_singleton 0) hX.measurable_edist
     · exact (MeasurableSet.preimage (measurableSet_singleton 0) (by fun_prop)).compl
 
-lemma holderOnWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d)
+lemma holderOnWith_of_mem_holderSet (hT : HasBoundedCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β U) :
     letI C ω := ⨆ (s : (T' ∩ U : Set T)) (t : (T' ∩ U : Set T)),
@@ -387,7 +387,7 @@ lemma holderOnWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d
   intro s hs t ht
   have h_edist_lt_top : edist s t < ∞ := by
     calc edist s t ≤ EMetric.diam U := EMetric.edist_le_diam_of_mem hs ht
-    _ < ∞ := hT.diam_lt_top hd_pos
+    _ < ∞ := sorry -- hT.diam_lt_top hd_pos
   have h_dist_top : edist s t ^ (β : ℝ) ≠ ∞
   · simp only [ne_eq, ENNReal.rpow_eq_top_iff, NNReal.coe_pos, not_or, not_and, not_lt,
       NNReal.zero_le_coe, implies_true, nonpos_iff_eq_zero, true_and]
@@ -403,20 +403,20 @@ lemma holderOnWith_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d
     edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p))
 
 lemma uniformContinuousOn_of_mem_holderSet
-    (hT : HasBoundedInternalCoveringNumber U c d)
+    (hT : HasBoundedCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β U) :
     UniformContinuousOn (fun (t : T') ↦ X t ω) {x : T' | ↑x ∈ U} :=
       (holderOnWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).uniformContinuousOn hβ_pos
 
-lemma continuousOn_of_mem_holderSet (hT : HasBoundedInternalCoveringNumber U c d)
+lemma continuousOn_of_mem_holderSet (hT : HasBoundedCoveringNumber U c d)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} {ω : Ω} (hω : ω ∈ holderSet X T' p β U) :
     ContinuousOn (fun (t : T') ↦ X t ω) {x : T' | ↑x ∈ U} :=
   (holderOnWith_of_mem_holderSet hT hd_pos hp_pos hβ_pos hω).continuousOn hβ_pos
 
 lemma exists_tendsto_of_mem_holderSet [CompleteSpace E]
-    (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) (hU : IsOpen U)
     (hd_pos : 0 < d) (hp_pos : 0 < p) (hβ_pos : 0 < β)
     {T' : Set T} (hT'_dense : Dense T') {ω : Ω} (hω : ω ∈ holderSet X T' p β U)
     (t : T) (htU : t ∈ U) :
@@ -425,7 +425,7 @@ lemma exists_tendsto_of_mem_holderSet [CompleteSpace E]
     htU
 
 lemma ae_mem_holderSet [MeasurableSpace E] [BorelSpace E]
-    (hT : HasBoundedInternalCoveringNumber U c d) (hX : IsKolmogorovProcess X P p q M)
+    (hT : HasBoundedCoveringNumber U c d) (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     {T' : Set T} (hT'_countable : T'.Countable) :
     ∀ᵐ ω ∂P, ω ∈ holderSet X T' p β U := by
@@ -591,7 +591,7 @@ def holderModification (X : T → Ω → E) (β : ℝ≥0) (p : ℝ) (U : Set T)
     else hE.some
 
 lemma isLimitOfIndicator_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p) :
     IsLimitOfIndicator (holderModification X β p U) X P U := by
@@ -609,7 +609,7 @@ lemma isLimitOfIndicator_holderModification
 
 omit [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology T] in
 lemma exists_tendsto_indicatorProcess_holderSet
-    (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     {T' : Set T} (hT'_dense : Dense T') (t : T) (htU : t ∈ U) (ω : Ω) :
     ∃ c, Tendsto (fun x : T' ↦ indicatorProcess X (holderSet X T' p β U) x ω)
@@ -633,7 +633,7 @@ lemma exists_tendsto_indicatorProcess_holderSet
   · simp only [indicatorProcess, hω, ↓reduceIte]
     exact ⟨hE.some, tendsto_const_nhds⟩
 
-lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+lemma measurable_holderModification (hT : HasBoundedCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
@@ -644,7 +644,7 @@ lemma measurable_holderModification (hT : HasBoundedInternalCoveringNumber U c d
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma holderOnWith_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
     ∃ C : ℝ≥0, HolderOnWith C β (holderModification X β p U · ω) U := by
   let C ω := ⨆ (s : (denseCountable T ∩ U : Set T)) (t : (denseCountable T ∩ U : Set T)),
@@ -671,7 +671,7 @@ lemma holderOnWith_holderModification
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma uniformContinuousOn_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     (ω : Ω) :
     UniformContinuousOn (fun t : T ↦ holderModification X β p U t ω) U := by
@@ -680,7 +680,7 @@ lemma uniformContinuousOn_holderModification
 
 omit [MeasurableSpace E] [BorelSpace E] in
 lemma continuousOn_holderModification
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β) (ω : Ω) :
     ContinuousOn (fun t : T ↦ holderModification X β p U t ω) U :=
   (uniformContinuousOn_holderModification hT hU hX hd_pos hβ_pos ω).continuousOn
@@ -881,8 +881,8 @@ lemma measurable_pair_holderModification
     {U₁ U₂ : Set T} [DecidablePred (· ∈ U₁)] [DecidablePred (· ∈ U₂)]
     (hU₁ : IsOpen U₁) (hU₂ : IsOpen U₂)
     {X₁ X₂ : T → Ω → E} {c₁ c₂ : ℝ≥0∞} {p₁ p₂ q₁ q₂ d₁ d₂ : ℝ} {M₁ M₂ β₁ β₂ : ℝ≥0}
-    (hT₁ : HasBoundedInternalCoveringNumber U₁ c₁ d₁)
-    (hT₂ : HasBoundedInternalCoveringNumber U₂ c₂ d₂)
+    (hT₁ : HasBoundedCoveringNumber U₁ c₁ d₁)
+    (hT₂ : HasBoundedCoveringNumber U₂ c₂ d₂)
     (hX₁ : IsKolmogorovProcess X₁ P p₁ q₁ M₁)
     (hX₂ : IsKolmogorovProcess X₂ P p₂ q₂ M₂)
     (hc₁ : c₁ ≠ ∞) (hc₂ : c₂ ≠ ∞)
@@ -900,7 +900,7 @@ lemma measurable_pair_holderModification
     (isLimitOfIndicator_holderModification hT₂ hU₂ hX₂ hc₂ hd₂_pos hdq₂_lt hβ₂_pos hβ₂_lt) s t
 
 lemma measurable_pair_holderModification_self
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     (s t : T) :
@@ -913,8 +913,8 @@ lemma measurable_edist_holderModification
     {U₁ U₂ : Set T} [DecidablePred (· ∈ U₁)] [DecidablePred (· ∈ U₂)]
     (hU₁ : IsOpen U₁) (hU₂ : IsOpen U₂)
     {X₁ X₂ : T → Ω → E} {c₁ c₂ : ℝ≥0∞} {p₁ p₂ q₁ q₂ d₁ d₂ : ℝ} {M₁ M₂ β₁ β₂ : ℝ≥0}
-    (hT₁ : HasBoundedInternalCoveringNumber U₁ c₁ d₁)
-    (hT₂ : HasBoundedInternalCoveringNumber U₂ c₂ d₂)
+    (hT₁ : HasBoundedCoveringNumber U₁ c₁ d₁)
+    (hT₂ : HasBoundedCoveringNumber U₂ c₂ d₂)
     (hX₁ : IsKolmogorovProcess X₁ P p₁ q₁ M₁)
     (hX₂ : IsKolmogorovProcess X₂ P p₂ q₂ M₂)
     (hc₁ : c₁ ≠ ∞) (hc₂ : c₂ ≠ ∞)
@@ -932,7 +932,7 @@ lemma measurable_edist_holderModification
     (isLimitOfIndicator_holderModification hT₂ hU₂ hX₂ hc₂ hd₂_pos hdq₂_lt hβ₂_pos hβ₂_lt) s t
 
 lemma measurable_edist_holderModification' {β₁ β₂ : ℝ≥0}
-    (hT : HasBoundedInternalCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
+    (hT : HasBoundedCoveringNumber U c d) [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ₁_pos : 0 < β₁) (hβ₁_lt : β₁ < (q - d) / p)
@@ -944,7 +944,7 @@ lemma measurable_edist_holderModification' {β₁ β₂ : ℝ≥0}
     hβ₁_pos hβ₂_pos hβ₁_lt hβ₂_lt hX.measurablePair s t
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
-lemma edist_holderModification_eq_zero (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+lemma edist_holderModification_eq_zero (hT : HasBoundedCoveringNumber U c d) (hU : IsOpen U)
     [DecidablePred (· ∈ U)]
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     (t' : denseCountable T) (ht'U : ↑t' ∈ U)
@@ -969,7 +969,7 @@ lemma edist_holderModification_eq_zero (hT : HasBoundedInternalCoveringNumber U 
 
 variable [IsFiniteMeasure P]
 
-lemma edist_modification_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+lemma edist_modification_holderModification (hT : HasBoundedCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
@@ -1051,7 +1051,7 @@ lemma edist_modification_holderModification (hT : HasBoundedInternalCoveringNumb
   exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
     (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
 
-lemma exists_edist_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_edist_modification_holder_aux' (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
@@ -1074,7 +1074,7 @@ lemma _root_.HolderOnWith.congr_edist {T E : Type*} [PseudoEMetricSpace T] [Pseu
   convert hf using 5 with s hsU t htU
   exact hfg s t hsU htU
 
-lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_modification_holder_aux' (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
@@ -1102,7 +1102,7 @@ lemma exists_modification_holder_aux' (hT : HasBoundedInternalCoveringNumber U c
       refine (edist_triangle _ (Y t ω) _).trans ?_
       simpa [hZ_edist]
 
-lemma exists_modification_holder_aux (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_modification_holder_aux (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
@@ -1145,7 +1145,7 @@ lemma indistinguishable_of_edist_modification {T Ω E : Type*} {mΩ : Measurable
   suffices ∀ᵐ ω ∂P, ∀ t ∈ Set.univ, edist (X t ω) (Y t ω) = 0 by simpa using this
   exact indistinguishable_of_edist_modification_on isOpen_univ (by simpa) (by simpa) (by simpa)
 
-lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_modification_holder'' (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
@@ -1203,7 +1203,8 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
     suffices ∃ C, HolderOnWith C (β n) (fun x ↦ Z 0 x ω) U by
       obtain ⟨C, hC⟩ := this
       refine HolderOnWith.mono_right' hC hn.le (C' := (EMetric.diam U).toNNReal) ?_
-      rw [ENNReal.coe_toNNReal (hT.diam_lt_top hd_pos).ne]
+      have h_diam : EMetric.diam U < ∞ := sorry -- hT.diam_lt_top hd_pos
+      rw [ENNReal.coe_toNNReal h_diam.ne]
       exact fun x hx y hy ↦ EMetric.edist_le_diam_of_mem hx hy
     simp only [Set.mem_setOf_eq, A] at hω
     obtain ⟨C, hC⟩ := hZ_holder n ω
@@ -1214,7 +1215,7 @@ lemma exists_modification_holder'' (hT : HasBoundedInternalCoveringNumber U c d)
     exact hC
   · exact IsLimitOfIndicator.indicatorProcess (hZ_isLimit 0) A hA hA_ae
 
-lemma exists_modification_holder (hT : HasBoundedInternalCoveringNumber U c d)
+lemma exists_modification_holder (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
@@ -1455,7 +1456,7 @@ variable [MeasurableSpace E] [BorelSpace E] [CompleteSpace E]
   [SecondCountableTopology T]
 
 omit [MeasurableSpace E] [BorelSpace E] [CompleteSpace E] in
-lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : IsOpen U)
+lemma holderModification_eq (hT : HasBoundedCoveringNumber U c d) (hU : IsOpen U)
     [DecidablePred (· ∈ U)]
     (hX : IsKolmogorovProcess X P p q M) (hd_pos : 0 < d) (hβ_pos : 0 < β)
     (t' : denseCountable T) (ht'U : ↑t' ∈ U)
@@ -1466,7 +1467,7 @@ lemma holderModification_eq (hT : HasBoundedInternalCoveringNumber U c d) (hU : 
 
 variable [IsFiniteMeasure P]
 
-lemma modification_holderModification (hT : HasBoundedInternalCoveringNumber U c d)
+lemma modification_holderModification (hT : HasBoundedCoveringNumber U c d)
     [DecidablePred (· ∈ U)] (hU : IsOpen U)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)

@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 import BrownianMotion.Continuity.CoveringNumber
 
 /-!
-# HasBoundedcoveringNumber
+# HasBoundedCoveringNumber
 
 -/
 
@@ -15,11 +15,11 @@ open scoped ENNReal NNReal
 
 variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c : ℝ≥0∞} {ε : ℝ≥0} {d : ℝ}
 
-def HasBoundedcoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop :=
+def HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop :=
   ∀ ε : ℝ≥0, ε ≤ EMetric.diam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
 
-lemma HasBoundedcoveringNumber.coveringNumber_lt_top
-    (h : HasBoundedcoveringNumber A c d) (hε_ne : ε ≠ 0)
+lemma HasBoundedCoveringNumber.coveringNumber_lt_top
+    (h : HasBoundedCoveringNumber A c d) (hε_ne : ε ≠ 0)
     (hc : c ≠ ∞) (hd : 0 ≤ d) :
     coveringNumber ε A < ⊤ := by
   by_cases hε_le : ε ≤ EMetric.diam A
@@ -33,8 +33,8 @@ lemma HasBoundedcoveringNumber.coveringNumber_lt_top
     _ ≤ 1 := coveringNumber_le_one_of_ediam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
--- lemma HasBoundedcoveringNumber.diam_lt_top
---     (h : HasBoundedcoveringNumber A c d) (hd : 0 < d) :
+-- lemma HasBoundedCoveringNumber.diam_lt_top
+--     (h : HasBoundedCoveringNumber A c d) (hd : 0 < d) :
 --     EMetric.diam A < ∞ := by
 --   specialize h _ le_rfl
 --   by_contra!
@@ -47,9 +47,9 @@ lemma HasBoundedcoveringNumber.coveringNumber_lt_top
 --     at h
 --   simp [h] at this
 
-lemma HasBoundedcoveringNumber.subset {B : Set T}
-    (h : HasBoundedcoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
-    HasBoundedcoveringNumber B (2 ^ d * c) d := by
+lemma HasBoundedCoveringNumber.subset {B : Set T}
+    (h : HasBoundedCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
+    HasBoundedCoveringNumber B (2 ^ d * c) d := by
   intro ε hε_le
   by_cases hdA : d = 0 ∧ EMetric.diam A = ∞
   · simp only [hdA.1, ENNReal.rpow_zero, one_mul, mul_one]
@@ -81,7 +81,7 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
   d_pos : ∀ n, 0 < d n
   isOpen : ∀ n, IsOpen (C n)
   totallyBounded : ∀ n, TotallyBounded (C n)
-  hasBoundedCoveringNumber : ∀ n, HasBoundedcoveringNumber (C n) (c n) (d n)
+  hasBoundedCoveringNumber : ∀ n, HasBoundedCoveringNumber (C n) (c n) (d n)
   mono : ∀ n m, n ≤ m → C n ⊆ C m
   subset_iUnion : A ⊆ ⋃ i, C i
 
