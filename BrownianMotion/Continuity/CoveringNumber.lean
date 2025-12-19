@@ -255,14 +255,20 @@ open Classical in
 /-- An internal `r`-cover of `A` with minimal cardinal. -/
 noncomputable
 def minimalCover (r : ℝ≥0) (A : Set E) (hr : 0 < r) : Set E :=
-  if h : TotallyBounded A
-    then (exists_set_encard_eq_coveringNumber h hr).choose else ∅
+  if h : TotallyBounded A then (exists_set_encard_eq_coveringNumber h hr).choose else ∅
 
 lemma minimalCover_subset (hr : 0 < r) : minimalCover r A hr ⊆ A := by
   by_cases h : TotallyBounded A
   · simp only [minimalCover, h, dite_true]
     exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.1
-  · simp only [minimalCover, h, dite_false, Set.empty_subset]
+  · simp [minimalCover, h]
+
+lemma finite_minimalCover (hr : 0 < r) :
+    (minimalCover r A hr).Finite := by
+  by_cases h : TotallyBounded A
+  · simp only [minimalCover, h, dite_true]
+    exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.1
+  · simp [minimalCover, h]
 
 lemma isCover_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
     IsCover r A (minimalCover r A hr) := by

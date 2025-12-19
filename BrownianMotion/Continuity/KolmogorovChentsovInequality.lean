@@ -233,7 +233,7 @@ theorem finite_kolmogorov_chentsov
     (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] (hT'U : T' ⊆ U) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β U := by
-  have h_diam : EMetric.diam U < ∞ := sorry -- hT.diam_lt_top hd_pos
+  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp only [constL, ← ENNReal.tsum_mul_left, ge_iff_le] at *
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
@@ -376,7 +376,7 @@ lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     {T' : Set T} (hT' : T'.Countable) (hT'U : T' ⊆ U) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
-  have h_diam : EMetric.diam U < ∞ := sorry -- hT.diam_lt_top hd_pos
+  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
   refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsAEKolmogorovProcess hd_pos
     hdq_lt hβ_pos T' hT'U).trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))

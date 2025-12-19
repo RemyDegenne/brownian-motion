@@ -15,8 +15,9 @@ open scoped ENNReal NNReal
 
 variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c : ℝ≥0∞} {ε : ℝ≥0} {d : ℝ}
 
-def HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop :=
-  ∀ ε : ℝ≥0, ε ≤ EMetric.diam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
+structure HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop where
+  ediam_lt_top : EMetric.diam A < ∞
+  coveringNumber_le : ∀ ε : ℝ≥0, ε ≤ EMetric.diam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
 
 lemma HasBoundedCoveringNumber.coveringNumber_lt_top
     (h : HasBoundedCoveringNumber A c d) (hε_ne : ε ≠ 0)
@@ -25,7 +26,7 @@ lemma HasBoundedCoveringNumber.coveringNumber_lt_top
   by_cases hε_le : ε ≤ EMetric.diam A
   · suffices (coveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
     calc (coveringNumber ε A : ℝ≥0∞)
-    _ ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d := h _ hε_le
+    _ ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d := h.coveringNumber_le _ hε_le
     _ < ∞ := by
       refine ENNReal.mul_lt_top hc.lt_top ?_
       exact ENNReal.rpow_lt_top_of_nonneg hd (by simp [hε_ne])
@@ -33,27 +34,15 @@ lemma HasBoundedCoveringNumber.coveringNumber_lt_top
     _ ≤ 1 := coveringNumber_le_one_of_ediam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
--- lemma HasBoundedCoveringNumber.diam_lt_top
---     (h : HasBoundedCoveringNumber A c d) (hd : 0 < d) :
---     EMetric.diam A < ∞ := by
---   specialize h _ le_rfl
---   by_contra!
---   simp only [top_le_iff] at this
---   simp only [this, ENNReal.inv_top, hd, ENNReal.zero_rpow_of_pos, mul_zero, nonpos_iff_eq_zero]
---     at h
---   norm_cast at h
---   simp only [coveringNumber, ENat.iInf_eq_zero, Nat.cast_eq_zero, Finset.card_eq_zero,
---     exists_prop, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff, Set.empty_subset]
---     at h
---   simp [h] at this
-
 lemma HasBoundedCoveringNumber.subset {B : Set T}
     (h : HasBoundedCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
     HasBoundedCoveringNumber B (2 ^ d * c) d := by
+  constructor
+  · exact lt_of_le_of_lt (EMetric.diam_mono hBA) h.ediam_lt_top
   intro ε hε_le
   by_cases hdA : d = 0 ∧ EMetric.diam A = ∞
   · simp only [hdA.1, ENNReal.rpow_zero, one_mul, mul_one]
-    specialize h 0 zero_le'
+    replace h := h.coveringNumber_le 0 zero_le'
     simp only [hdA.1, ENNReal.rpow_zero, mul_one] at h
     calc (coveringNumber ε B : ℝ≥0∞)
     _ ≤ coveringNumber 0 B := mod_cast coveringNumber_anti zero_le'
@@ -64,12 +53,12 @@ lemma HasBoundedCoveringNumber.subset {B : Set T}
   calc (coveringNumber ε B : ℝ≥0∞)
   _ ≤ coveringNumber (ε / 2) A := mod_cast coveringNumber_subset_le hBA
   _ ≤ c * (ε / 2 : ℝ≥0∞)⁻¹ ^ d := by
-    specialize h (ε / 2) ?_
+    replace h := h.coveringNumber_le (ε / 2) ?_
+    · simpa using h
     · simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_ofNat]
       calc (ε / 2 : ℝ≥0∞) ≤ ε := ENNReal.half_le_self
       _ ≤ EMetric.diam B := hε_le
       _ ≤ EMetric.diam A := EMetric.diam_mono hBA
-    · simpa using h
   _ = 2 ^ d * c * (ε : ℝ≥0∞)⁻¹ ^ d := by
     rw [div_eq_mul_inv, ENNReal.mul_inv (by simp) (by simp), inv_inv,
       ENNReal.mul_rpow_of_nonneg _ _ hd]
@@ -93,10 +82,8 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
   d_pos := by simp
   isOpen n := NNReal.isOpen_Ico_zero
   totallyBounded n := totallyBounded_Ico _ _
-  hasBoundedCoveringNumber n ε hε_le := by
-    simp only [ENNReal.rpow_one]
+  hasBoundedCoveringNumber n := by
     have h_iso : Isometry ((↑) : ℝ≥0 → ℝ) := fun x y ↦ rfl
-    rw [← h_iso.coveringNumber_image]
     have h_image : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
       ext x
       simp only [Set.mem_image, Set.mem_Ico, zero_le, true_and]
@@ -104,12 +91,16 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       · rw [← hy_eq]
         exact ⟨y.2, hy⟩
       · exact ⟨⟨x, h.1⟩, h.2, rfl⟩
-    rw [h_image]
     -- todo : extract that have as a lemma
     have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
       rw [← h_iso.ediam_image, h_image]
       simp only [Real.ediam_Ico, sub_zero]
       norm_cast
+    constructor
+    · simp [h_diam]
+    intro ε hε_le
+    simp only [ENNReal.rpow_one]
+    rw [← h_iso.coveringNumber_image, h_image]
     rw [h_diam] at hε_le
     have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
       intro x hx
