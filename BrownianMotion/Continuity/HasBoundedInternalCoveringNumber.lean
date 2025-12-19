@@ -15,6 +15,9 @@ open scoped ENNReal NNReal
 
 variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c : ℝ≥0∞} {ε : ℝ≥0} {d : ℝ}
 
+/-- A set `A` in a pseudoemetric space has bounded covering number with constant `c` and exponent
+`d` if it has finite diameter and for all `ε ∈ (0, diam(A)]`, the covering number of `A`
+at scale `ε` is bounded by `c * ε^{-d}`. -/
 structure HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop where
   ediam_lt_top : EMetric.diam A < ∞
   coveringNumber_le : ∀ ε : ℝ≥0, ε ≤ EMetric.diam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
