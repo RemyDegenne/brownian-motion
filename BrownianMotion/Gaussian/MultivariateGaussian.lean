@@ -97,9 +97,11 @@ lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- �
   · exact Measurable.aestronglyMeasurable (by fun_prop)
 
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
-  refine isGaussian_iff_gaussian_charFun.2 ?_
-  use 0, ContinuousBilinForm.inner E, ContinuousBilinForm.isPosSemidef_inner
-  simp [charFun_stdGaussian, neg_div]
+  refine isGaussian_iff_gaussian_charFun.2 ⟨0, ContinuousBilinForm.inner E, ?_, ?_⟩
+  · rw [← ContinuousBilinForm.toBilinForm_eq,
+      ← ContinuousBilinForm.isPosSemidef_iff_bilinForm]
+    exact ContinuousBilinForm.isPosSemidef_inner
+  · simp [charFun_stdGaussian, neg_div]
 
 lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
@@ -109,8 +111,11 @@ lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
 
 lemma covarianceBilin_stdGaussian :
     covarianceBilin (stdGaussian E) = ContinuousBilinForm.inner E := by
-  refine gaussian_charFun_congr 0 _ ContinuousBilinForm.isPosSemidef_inner (fun t ↦ ?_) |>.2.symm
-  simp [charFun_stdGaussian, neg_div]
+  refine gaussian_charFun_congr 0 _ ?_ (fun t ↦ ?_) |>.2.symm
+  · rw [← ContinuousBilinForm.toBilinForm_eq,
+      ← ContinuousBilinForm.isPosSemidef_iff_bilinForm]
+    exact ContinuousBilinForm.isPosSemidef_inner
+  · simp [charFun_stdGaussian, neg_div]
 
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
   rw [covMatrix, covarianceBilin_stdGaussian] --  ContinuousBilinForm.inner_toMatrix_eq_one

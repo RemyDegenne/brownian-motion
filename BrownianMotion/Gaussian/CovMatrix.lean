@@ -22,12 +22,6 @@ open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
 
-lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} :
-    ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
-  map_symm := covarianceBilinDual_comm
-  nonneg_re_apply_self := covarianceBilinDual_self_nonneg
-
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
@@ -60,14 +54,9 @@ lemma covarianceBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
   · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2
       (MemLp.of_fst_of_snd_prodLp ⟨hX, hY⟩)
 
-lemma isPosSemidef_covarianceBilin' :
-    LinearMap.BilinForm.IsPosSemidef (covarianceBilin μ).toBilinForm := by
-  rw [LinearMap.BilinForm.isPosSemidef_iff]
-  exact isPosSemidef_covarianceBilin
-
 lemma isSymm_covarianceBilin :
     LinearMap.BilinForm.IsSymm (covarianceBilin μ).toBilinForm :=
- isPosSemidef_covarianceBilin'.1
+ isPosSemidef_covarianceBilin.1
 
 variable [FiniteDimensional ℝ E]
 
@@ -111,8 +100,7 @@ lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
   rw [covMatrix_apply, covarianceBilin_map h, covarianceBilin_eq_dotProduct_covMatrix_mulVec]
 
 lemma posSemidef_covMatrix : (covMatrix μ).PosSemidef := by
-  rw [covMatrix, ← LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix,
-    LinearMap.BilinForm.isPosSemidef_iff]
+  rw [covMatrix, ← LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix]
   exact isPosSemidef_covarianceBilin
 
 end ProbabilityTheory
