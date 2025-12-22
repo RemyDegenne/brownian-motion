@@ -97,7 +97,8 @@ def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : Upcro
   fs_le_a := fun i hi => h.fs_le_a i (Nat.lt_trans hi (Nat.lt_succ_self _)),
   ft_ge_b := fun i hi => h.ft_ge_b i (Nat.lt_trans hi (Nat.lt_succ_self _)),
   ti_lt_sj := fun i j hij hj =>
-    h.ti_lt_sj i j hij (Nat.lt_trans hj (Nat.lt_succ_self _)) }
+    h.ti_lt_sj i j hij (Nat.lt_trans hj (Nat.lt_succ_self _)),
+  n := n - 1 }
 
 end UpcrossingData
 
@@ -111,20 +112,29 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
   refine Nat.rec (motive := fun n => ∀ hseq : UpcrossingData a b f (n+1) ω, hseq.t n ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n) ?base ?step
   · -- n = 0 case; hseq : UpcrossingData a b f 1 ω
-    intro hseq h_t0_le_N; simp at h_t0_le_N
+    intro hseq h_t0_le_N
     have h_s0_le_t0 := hseq.si_le_ti (Nat.zero_lt_succ 0)
     have h0 : upperCrossingTime a b f N 0 ω = ⊥ := by simp [upperCrossingTime]
     have h1 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.s 0 := by
       simp only [lowerCrossingTimeAux]
       refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ hseq.s 0) (h_s0_le_t0.trans h_t0_le_N) ?_
       apply hseq.fs_mem; simp
-    simp only [upperCrossingTime]; simp
+    simp only [upperCrossingTime]
     have h2 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.t 0 := le_trans h1 h_s0_le_t0
     have hmem : f (hseq.t 0) ω ∈ Set.Ici b := hseq.ft_mem (Nat.zero_lt_succ 0)
     exact hittingBtwn_le_of_mem h2 h_t0_le_N hmem
   · -- succ case
     intro n ih hseq h_tn1_le
-    set hseq_prev := hseq.toShorter with hseq_prev_def
+    set hse := hseq.toShorter with hseq_prev_def
+    have htn : hseq.t n = hse.t n := rfl
+    have hn2 : hseq.n = n + 2 := by
+      rw [hseq_prev_def]; rfl
+    have : n + 1 < hseq.n := by Nat.lt_succ_self n
+    have htn1 : hseq.t n < hseq.t (n + 1) := hseq.t_lt_succ (Nat.lt_succ_self n)
+    have h0 : hse.t n ≤ N := by
+      rw [← htn]
+      exact le_trans hseq.ti
+    have q := ih hse h0
     set upper_prev := upperCrossingTime a b f N (n + 1) ω with hup_n
     sorry
     -- have h_tn_le : hseq_prev.t n ≤ N := by exact hseq_prev.
