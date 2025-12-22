@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
+import BrownianMotion.StochasticIntegral.HittingTime
+import Mathlib.Order.BoundedOrder.Basic
 import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.Martingale.Upcrossing
 import Mathlib.Data.Finset.Sort
 
-/-! # Doob's upcrossing inequality
+/-! # Doob's upcrossing inequality on NNRat
 
 -/
 
@@ -17,471 +19,142 @@ open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
 
-#check Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part
+/- The original definitions, valid for InfSet (hence not for NNRat), are:
 
-variable {ι Ω E : Type*} [ConditionallyCompleteLinearOrderBot ι]
-  [TopologicalSpace ι] [OrderTopology ι] [Finite ι] [Nonempty ι]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-  {Y : ι → Ω → ℝ}
+noncomputable def upperCrossingTime [Preorder ι] [OrderBot ι] [InfSet ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) : ℕ → Ω → ι
+  | 0 => ⊥
+  | n + 1 => fun ω =>
+    hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f (upperCrossingTime a b f N n ω) N ω) N ω
 
-/-- **Doob's upcrossing estimate**: given a real-valued discrete submartingale `f` and real
-values `a` and `b`, we have `(b - a) * 𝔼[upcrossingsBefore a b f N] ≤ 𝔼[(f N - a)⁺]` where
-`upcrossingsBefore a b f N` is the number of times the process `f` crossed from below `a` to above
-`b` before the time `N`. -/
--- This is the version for countable time index. The original version for natural time index is in
---  .lake/packages/mathlib/Mathlib/Probability/Martingale/Upcrossing.lean
--- We shall extend the result "mul_integral_upcrossingsBefore_le_integral_pos_part",
--- which works for `ℕ` as time index, i.e., finite time index - as it is up to the time `N`.
--- By repeating the claim on a finite time index,
--- for denser and denser finite subsets of `Iic N`, we get the result for countable time index.
--- The result then follows thanks to monotone convergence theorem.
--- The point is to show that the number of upcrossings is:
--- - growing when we add more time points,
--- - converging to the number of upcrossings on the whole countable index set.
--- By inductively densening the time index, we mean adding one time point at a time.
+noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) (ω : Ω) : ℕ :=
+  sSup {n | upperCrossingTime a b f N n ω < N}
 
-def restriction_to_Fin (n k : ℕ) (hn : n ≠ 0) : Fin n := ⟨min k (n-1), by grind⟩
+-/
 
-lemma restriction_to_Fin.mono (n k1 k2 : ℕ) (hn : n ≠ 0) (h : k1 ≤ k2) :
-  restriction_to_Fin n k1 hn ≤ restriction_to_Fin n k2 hn := by
-  simp only [restriction_to_Fin]
-  refine Fin.mk_le_mk.mpr ?_
-  exact inf_le_inf_right (n-1) h
+variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
 
-lemma restriction_to_Fin.eq_of_lt (n k : ℕ) (hn : n ≠ 0) (hk : k < n) :
-  restriction_to_Fin n k hn = k := by
-  simp only [restriction_to_Fin]
-  grind
+-- structure UpcrossingData (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
+--   s t : ℕ → ι
+--   hlt  : ∀ i : Fin n, s i < t i
+--   hle  : ∀ i : Fin n, f (s i) ω ≤ a
+--   hge  : ∀ i : Fin n, f (t i) ω ≥ b
+--   chain : ∀ i j : Fin n, i < j → t i < s j
 
-lemma restriction_to_Fin.strict_of_lt (n k1 k2 : ℕ) (hn : n ≠ 0)
-    (h : k1 < k2) (h2 : k2 < n) :
-  restriction_to_Fin n k1 hn < restriction_to_Fin n k2 hn := by
-  have h1 : k1 < n := lt_of_lt_of_le h (le_of_lt h2)
-  simp only [restriction_to_Fin, Fin.lt_iff_val_lt_val]
-  grind
+-- def nUpcrossings (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : Prop :=
+--   ∃ d : UpcrossingData a b f n ω, True   -- or just `Nonempty (UpcrossingData …)`
 
-lemma restriction_to_Fin.map_le_map_iff (n i j : ℕ) (hn : n ≠ 0)
-  (hi : i < n) (hj : j < n) :
-    restriction_to_Fin n i hn ≤ restriction_to_Fin n j hn ↔ i ≤ j := by
-  have h1 : restriction_to_Fin n i hn = i := restriction_to_Fin.eq_of_lt n i hn hi
-  have h2 : restriction_to_Fin n j hn = j := restriction_to_Fin.eq_of_lt n j hn hj
-  grind
+-- def ltUpcrossingsBefore (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
+--   if N ≤ ⊥ then False else
+--     if n = 0 then True else
+--       ∃ d : UpcrossingData a b f n ω, d.t (n-1) < N
 
-lemma restriction_to_Fin.map_lt_map_iff (n i j : ℕ) (hn : n ≠ 0)
-  (hi : i < n) (hj : j < n) :
-    restriction_to_Fin n i hn < restriction_to_Fin n j hn ↔ i < j := by
-  have h1 : restriction_to_Fin n i hn = i := restriction_to_Fin.eq_of_lt n i hn hi
-  have h2 : restriction_to_Fin n j hn = j := restriction_to_Fin.eq_of_lt n j hn hj
-  grind
+/-
+  Equivalent definition that skips `[InfSet ι]`:
+  ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N).
+-/
+noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+  (N : ι) (n : ℕ) (ω : Ω) : Prop :=
+  if N ≤ ⊥ then False else
+    if n = 0 then True else
+      ∃ s t : Nat → ι,
+        (∀ i : Fin n, s i < t i) ∧
+        (∀ i : Fin n, f (s i) ω ≤ a) ∧
+        (∀ i : Fin n, f (t i) ω ≥ b) ∧
+        (∀ i j : Fin n, i < j → t i < s j) ∧
+        t (n - 1) < N
 
-/- For every Finite, ConditionallyCompleteLinearOrderBot set ι,
-  there is a finite set α, such that ι ≃ WithTop α -/
-lemma Finite.isFiniteWithTop : ∃ α : Type*, ConditionallyCompleteLinearOrderBot α ∧ ι ≃o (WithTop α) :=
-  ⟨α, Equiv.refl _⟩
+noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+  (N : ι) (ω : Ω) : ℕ :=
+  sSup {n | ltUpcrossingsBefore a b f N n ω}
 
-lemma Finite.has_top : instFiniteWithTop ι
-  ∃ (f : Fin n), ∀ (k : Fin n), k ≤ f := by
-  use restriction_to_Fin n (n-1) hn
-  intro k
-  simp only [restriction_to_Fin]
-  refine Fin.mk_le_mk.mpr ?_
-  exact le_inf_right _ _
-
-def restriction_to_Finite (f : ℕ → ι)
-{ toFun := fun k => k.val,
-  invFun := fun k => restriction_to_Fin n k hn,
-  left_inv := by
-    intro k
-    simp only [restriction_to_Fin]
-    grind,
-  right_inv := by
-    intro k
-    simp only [restriction_to_Fin]
-    grind
-}
+-- lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+--   [WellFoundedLT ι]
+--   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
+--   (ltUpcrossingsBefore a b f N n ω):
+--     upperCrossingTime a b f N n ω ≤ ltUpcrossingsBefore a b f N n ω   := by
 
 
-theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part_finite
-    [IsFiniteMeasure P]
-    (a b : ℝ) (hf : Submartingale X 𝓕 P) (N : ι) :
-    (b - a) * P[upcrossingsBefore a b X N] ≤ P[fun ω => (X N ω - a)⁺] := by
-  -- We reduce to the case where `ι = Fin n` for some `n : ℕ`.
-  -- get an order isomorphism
-  have hfin := Fintype.ofFinite ι
-  let n := Fintype.card ι
-  have hn : n ≠ 0 := Fintype.card_ne_zero
-
-  let i2N : ι ≃o Fin n := (Fintype.orderIsoFinOfCardEq ι (rfl)).symm
-
-  let N2i : ℕ → ι := fun k => i2N.symm (restriction_to_Fin n k hn)
-
-  have hN2imono : Monotone N2i := by
-    intro i j hij
-    refine i2N.symm.monotone ?_
-    exact restriction_to_Fin.mono n i j hn hij
-  -- define a filtration and a submartingale on `Fin n`
-  let 𝓕' : Filtration ℕ mΩ :=
-    { seq := fun i => 𝓕 (N2i i)
-      mono' := by
-        intro i j hij
-        refine 𝓕.mono ?_
-        exact hN2imono hij
-      le' := by
-        exact fun i ↦ Filtration.le 𝓕 (N2i i)
-    }
-  let X' : ℕ → Ω → ℝ := fun i ω => X (N2i i) ω
-  have hf' : Submartingale X' 𝓕' P := by
-    have hadapted' : Adapted 𝓕' X' := by
-      intro i
-      have hsm : StronglyMeasurable[𝓕 (N2i i)] (X (N2i i)) := by
-        exact Submartingale.stronglyMeasurable hf (N2i i)
-      have hsm' : StronglyMeasurable[𝓕' i] (X' i) := by
-        simp only [X', 𝓕']
-        exact hsm
-      exact hsm'
-    have hsub' : (∀ i j, i ≤ j → X' i ≤ᵐ[P] P[X' j|𝓕' i]) := by
-      intros i j hij
-      simp only [X', 𝓕']
-      refine Submartingale.ae_le_condExp hf ?_
-      exact hN2imono hij
-    have hint' : ∀ i, Integrable (X' i) P := by
-      intro i
-      simp only [X']
-      exact Submartingale.integrable hf (N2i i)
-    exact ⟨ hadapted', hsub', hint' ⟩
-
-  -- now apply the known result on `Fin n`
-
-  let N' : ℕ := i2N N
-
-
-  have hnn : N = N2i (i2N N) := by
-    refine (OrderIso.apply_eq_iff_eq_symm_apply i2N N (restriction_to_Fin n (↑(i2N N)) hn)).mp ?_
-    simp only [restriction_to_Fin]
-    ext
-    simp
-    grind
-
-  have hXN : X N = X' N' := by
-    ext ω
-    simp only [N', X']
-    rw[← hnn]
-
-  have hN2iltiff2 : ∀ i j : ℕ, i < n → j < n → (i < j ↔ N2i i < N2i j) := by
-    intro i j hi hj
-    simp only [N2i]
-    have h1 : i < j ↔ restriction_to_Fin n i hn < restriction_to_Fin n j hn := by
-      exact Iff.symm (restriction_to_Fin.map_lt_map_iff n i j hn hi hj)
-    have h2 : restriction_to_Fin n i hn < restriction_to_Fin n j hn ↔
-        i2N.symm (restriction_to_Fin n i hn) < i2N.symm (restriction_to_Fin n j hn) := by
-      exact Iff.symm (i2N.symm.lt_iff_lt)
-    grind
-
-  have hN2iltiff1 : ∀ i j : ℕ, j < n → (i < j ↔ N2i i < N2i j) := by
-    intro i j hj
-    constructor
-    · intro hij
-      grind
-    · contrapose!
-      exact fun a ↦ hN2imono a
-
-  have hNlt : i2N N < n := by grind
-
-  have hupton : ∀ i : ι, ∀ k : ℕ, i = N2i k → (i < N ↔ k < N') := by
-    intro i k hik
-    rw[hnn, hik]
-    simp only [N']
-    exact iff_comm.mp (hN2iltiff1 k (↑(i2N N)) hNlt)
-
-  have hN2ii2Nid {t : ι} : N2i (i2N t) = t := by
-    have ht : (i2N t) < n := by grind
-    refine (OrderIso.symm_apply_eq i2N).mpr ?_
-    have := restriction_to_Fin.eq_of_lt n (i2N t) hn ht
-    grind
-
-  have hi2NN2iid {k : ℕ} (hk : k < n) : i2N (N2i k) = k := by
-    grind
-
-  have hi2Neqbot : i2N ⊥ = 0 := by
-    apply le_antisymm
-    · -- i2N ⊥ ≤ 0 because ⊥ ≤ i2N.symm 0
-      have h : (⊥ : ι) ≤ i2N.symm 0 := bot_le
-      exact (OrderIso.symm_apply_le (Fintype.orderIsoFinOfCardEq ι rfl)).mpr h
-    · -- 0 ≤ i2N ⊥ since 0 is the minimum in Fin n
-      exact Fin.zero_le _
-
-  have hSetIcceq :
-    ∀ i j x : ι, x ∈ Set.Icc i j ↔ (i2N x) ∈ Set.Icc (i2N i) (i2N j) := by
-    intro i j x
-    constructor
-    · intro hx
-      simp only [Set.mem_Icc] at *
-      have h1 : i2N i ≤ i2N x := by
-        grind
-      have h2 : i2N x ≤ i2N j := by
-        grind
-      exact ⟨h1, h2⟩
-    · intro hy
-      simp only [Set.mem_Icc] at *
-      have h1 : i ≤ x := by
-        grind
-      have h2 : x ≤ j := by
-        grind
-      exact ⟨h1, h2⟩
-
-  have hXhiteq : ∀ i j ω, ∀ s : Set ℝ,
-      (∃ j_1 ∈ Set.Icc i j, X j_1 ω ∈ s)
-    ↔ (∃ j_2 ∈ Set.Icc (i2N i : ℕ) (i2N j), X' j_2 ω ∈ s) := by
-    intro i j ω s
-    constructor
-    · intro hhit1
-      obtain ⟨j_1, hij1, hx1⟩ := hhit1
-      use i2N j_1
-      constructor
-      · exact (hSetIcceq i j j_1).mp hij1
-      · simp only [X', hN2ii2Nid]
-        exact hx1
-    · intro hhit2
-      obtain ⟨j_2, hij2, hx2⟩ := hhit2
-      use N2i j_2
-      have hj_2lt : j_2 < n := by grind
-      have hj_2eq : i2N (N2i j_2) = j_2 := by grind
-      constructor
-      · apply (hSetIcceq i j (N2i j_2)).mpr
-        rw [← hj_2eq] at hij2
-        exact hij2
-      · simp only [X'] at hx2
-        exact hx2
-
-  #check Set.Nonempty.csInf_mem
-
-  have hsfin : ∀ s : Set ι, s.Finite := by
-    intro s
-    exact Set.toFinite s
-
-  have hN2isymm : ∀ m : ℕ, ∀ i : ι, m < n → (N2i m = i ↔ m = i2N i) := by
-    intro m i hm
-    constructor
-    · intro hN2imeqi
-      have hn0 : i2N (N2i m) = i2N i := by grind
-      rw[← hn0]
-      grind
-    · intro hmeqi2Ni
-      grind
-
-  #check Finite.ofBijective
-  /- Suppose there is a set s of indices in ι, which maps to a set t of indices in ℕ,
-  through a bijection f : t → s. Then t is finite, since s is finite.
-  -/
-  have hfiniteOfBijective :
-    ∀ (s : Set ι) (t : Set ℕ) (f : t → s), Function.Bijective f →
-      t.Finite := by
-    intro s t f hfbij
-    have hsfinite : s.Finite := hsfin s
-    let f0 := Equiv.ofBijective f hfbij
-    let g := f0.symm
-    have hgBijective : Function.Bijective g := by exact Equiv.bijective g
-    exact (Equiv.set_finite_iff g).mp (hsfin s)
-
-  #check Function.bijective_iff_has_inverse
-  /-
-  LeftInverse g f means that g is a left inverse to f. That is, g ∘ f = id.
-  -/
-  /- If the set s of indices in ι is such that i2N i < (n-1) for each i ∈ s,
-  and the set t of indices in ℕ is the preimage of s through N2i,
-  then f : t → s, given by f m = N2i m, is a bijection.
-  -/
-  have hbijectiveN2i :
-    ∀ s : Set ι, (∀ i ∈ s, i2N i < (n-1))
-      → Function.Bijective (fun m : { m | N2i m ∈ s } => N2i m) := by
-    intro s hsfin
-    let t := { m | N2i m ∈ s }
-    have htmem : ∀ m : t, N2i m ∈ s := by grind
-    let f0 := (fun m : t => N2i m)
-    have hffromts :  := by
-      intro m
-      have hm_in_s : N2i m ∈ s := m.prop
-      exact hm_in_s
-    have hffromttos : (f : t → s) := by
-      intro m
-      have hm_in_s : N2i m ∈ s := m.prop
-      exact hm_in_s
-    -- Let's show that f has left and right inverses.
-    -- The inverse candidate (left and right) is g:
-    let g := fun i : s => i2N i
-    /-
-    We have already shown:
-    have hN2ii2Nid {t : ι} : N2i (i2N t) = t
-    have hi2NN2iid {k : ℕ} (hk : k < n) : i2N (N2i k) = k
-    -/
-    have hleftinv : Function.LeftInverse g f := by
-      intro m
-      simp only [f, g]
-      have hN2imins : N2i m ∈ s := m.prop
-      have hN2i_lt_n1 : i2N (N2i m) < (n-1) := hsfin (N2i m) hN2imins
-      have hN2i_lt_n : i2N (N2i m) < n := by grind
-      have hN2i_eq_m : i2N (N2i m) = m := by grind
-      rw [hN2i_eq_m]
-
-
-  -- If s is a set of indices in ι, which map to indices < (n-1) through i2N,
-  -- then its preimage through N2i is finite.
-  have hfiniteN2ipreimage :
-  ∀ s : Set ι, (∀ i ∈ s, i2N i < (n-1)) → { m | N2i m ∈ s }.Finite) := by
-    intro s hsfin
-    let t := { x | (N2i x) ∈ s }
-    -- let's show that t is finite,
-    -- by proving that for x ∈ t, N2i is i2N.symm on x
-    let t0 := { x | (i2N.symm x) ∈ s }
-    let t1 := { i2N i | i ∈ s }
-    -- show that t0 and t1 are equal
-    have ht0eqt1 : t0 = t1 := by
-      ext x
-      constructor
-      · intro hxt0
-        have hN2isymmx : N2i x ∈ s := by
-
-        use N2i x
-        exact hN2isymmx
-      · intro hxt1
-
-    have ht0fin : t0.Finite := by
-      apply Finite.subset _ (Finite.univ n)
-      intro x hx
-      simp only [t0, Set.mem_setOf_eq]
-      exact hx.right
-    have htfin : t.Finite := by
-      apply Finite.subset _ (Finite.univ n)
-      intro x hx
-      simp only [t, Set.mem_setOf_eq]
-      exact hx.right
-    use t
-    constructor
-    · exact htfin
-    · intro x
-      simp only [t, Set.mem_setOf_eq]
-      constructor
-      · intro hN2ixins
-        have hxlt : x < n := by
-          obtain ⟨y, hys, hx⟩ := hN2ixins
-          have hylt : (i2N y) < n := by grind
-          have hN2iyeqx : N2i (i2N y) = y := by grind
-          rw[← hN2iyeqx] at hx
-          grind
-        exact ⟨hN2ixins, hxlt⟩
-      · intro htins
-        exact htins.left
-
-  have hsSupeq : ∀ s : Set ι, ∀ t : Set ℕ,
-  -- t is the preimage of s through N2i
-  -- Even if s is {y} = {N2i (n-1)}, so that t is {n-1, n, n+1, ...},
-  -- we get sInf s = y, sInf t = (n-1), and N2i (sInf t) = N2i (n-1) = y.
-  /-
-  If f is monotone (but not necessarily injective),
-  inf A = f (inf f^{-1}(A)) ?
-  -/
-    s.Nonempty ∧ (∀ x, (N2i x) ∈ s ↔ x ∈ t)
-      → sInf s = N2i (sInf t) := by
-    intro s t hst
-    have hsnem : s.Nonempty := hst.left
-    have hsinfmem : sInf s ∈ s := Set.Nonempty.csInf_mem hsnem (hsfin s)
-    have hinfsrep : sInf s = N2i (i2N (sInf s)) := by
-      grind
-    have htpreims : ∀ x, (N2i x) ∈ s ↔ x ∈ t := hst.right
-    have haux1 : BddBelow t := by
-      refine ⟨0, ?_⟩
-      intro x hx
-      grind
-    have haux2 : (i2N (sInf s)).val ∈ t := by
-      grind
-    have haux3 : sInf t ≤ (i2N (sInf s)).val := by
-      exact csInf_le haux1 haux2
-    have haux4 : N2i (sInf t) ≤ sInf s := by
-      grind
-    have htnem : t.Nonempty := by
-      use (i2N (sInf s)).val
-    -- We can't repeat the argument, t is not known to be finite.
-    have haux42 : sInf s ≤ N2i (sInf t) := by
-      have haux41 : ∀ x, x ∈ t → N2i x ∈ s := by
-        intro x hx
-        exact (htpreims x).mpr hx
-      have haux411 : ∀ x, x ∈ t → sInf s ≤ N2i x := by
-        intro x hx
-        have hn2ixins : N2i x ∈ s := haux41 x hx
-        exact csInf_le (hsfin s).bddBelow hn2ixins
-      -- Suppose N2i(sInf t) < (sInf s).
-      -- Now, for any x ∈ t, (sInf s) ≤ N2i x.
-      sorry
-
-    exact le_antisymm haux42 haux4
-
-  have hhitBtw : ∀ s i j ω, hittingBtwn X s i j ω = N2i (hittingBtwn X' s (i2N i) (i2N j) ω) := by
-    intro s i j ω
-    simp only [hittingBtwn]
-    have hcondeq : ∀ s : Set ℝ, ∀ i ω, (X i ω ∈ s) ↔ (X' (i2N i) ω ∈ s) := by
-      grind
-    rw [hXhiteq]
-    split_ifs with h1
-
-    -- have hSetIcccapeq :
-    --   Set.Icc i j ∩ {i | X i ω ∈ s}
-    --   = N2i (sInf (Set.Icc ↑(i2N i) ↑(i2N j) ∩ {i | X' i ω ∈ s}))
-    -- by_cases -- h1 : ∃ j_1 ∈ Set.Icc i j, X j_1 ω ∈ s
-    --   -- h1 : ∃ j_1 ∈ Set.Icc i j, X j_1 ω ∈ s
-    --   have h1rhs : ∃ j_1 ∈ Set.Icc (i2N i) (i2N j), X' j_1 ω ∈ s := by
-    --     simp only [X']
-    --     obtain ⟨j_1, hij, hx⟩ := h1
-    --     use i2N j_1
-    --     constructor
-    --     · refine Set.mem_Icc.mpr ?_
-
-
-
-
-
-
-
-
-  have huppercrossings :
-    ∀ k ω, upperCrossingTime a b X N k ω = N2i (upperCrossingTime a b X' N' k ω)
-  := by
-    intro k; induction k with
-    | zero =>
-        intro ω; simp only [upperCrossingTime, N2i]          -- both are ⊥
-        have hX0_lt : 0 < n := by grind
-        have h0_eq := restriction_to_Fin.eq_of_lt n 0 hn hX0_lt
-        have h00 : ⊥ = i2N.symm 0 := by
-          exact (OrderIso.apply_eq_iff_eq_symm_apply i2N ⊥ 0).mp hi2Neqbot
-        sorry
-        -- rw [h00]
-        -- simp
-        -- exact Fin.eq_of_val_eq (id (Eq.symm h0_eq))
-    | succ k ih =>
-        intro ω
-        sorry
-        -- -- bounds: both upperCrossingTimes ≤ N, so their Fin reps are < n
-        -- have hX_le  := upperCrossingTime_le (a:=a) (b:=b) (f:=X)  (N:=N)  (n:=k) ω
-        -- have hX'_le := upperCrossingTime_le (a:=a) (b:=b) (f:=X') (N:=N') (n:=k) ω
-        -- have hX_lt  : upperCrossingTime a b X  N  k ω < n := lt_of_le_of_lt hX_le  hNlt
-        -- have hX'_lt : upperCrossingTime a b X' N' k ω < n := lt_of_le_of_lt hX'_le hNlt
-
-        -- -- unfold the succ step and transport hittingBtwn through N2i using ih
-        -- simp [upperCrossingTime_succ, ih, hittingBtwn, N2i, hN2i_id hX_lt, hN2i_id hX'_lt]
-
-  have hupcrossings :
-    upcrossingsBefore a b X N = upcrossingsBefore a b X' N' := by
-      ext ω
-      simp only [upcrossingsBefore, huppercrossings]
-      apply congr_arg sSup
-      ext n
-      exact hupton (N2i (upperCrossingTime a b X' N' n ω)) (upperCrossingTime a b X' N' n ω) rfl
-
-  have hintegral :
-    P[fun ω => (X N ω - a)⁺] = P[fun ω => (X' N' ω - a)⁺] := by
-    rw[hXN]
-
-  rw [hupcrossings, hintegral]
-
-  exact Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part a b hf' (N' : ℕ)
-
-#check Encodable
+lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
+  by_cases h : N ≤ ⊥
+  · have : ⊥ ≤ N := OrderBot.bot_le N
+    have hNbot : N = ⊥ := le_antisymm h this
+    subst hNbot
+    simp only [ltUpcrossingsBefore]; simp
+  · simp only [ltUpcrossingsBefore, h, if_false]
+    induction n
+    case neg.zero => simp; grind
+    case neg.succ n ih =>
+      simp only [if_neg (Nat.succ_ne_zero n)]; simp
+      by_cases hnzero : n = 0
+      -- The induction step for n = 0:
+      · subst hnzero; simp
+        constructor
+        · intro hupcross
+          obtain ⟨s, t, hs0_lt_t0, hs0_le_a, ht0_ge_b, ht0_lt_N⟩ := hupcross
+          set s0 : ι := s 0 with hs0
+          set t0 : ι := t 0 with ht0
+          have hs0_lt_N : s0 < N := by grind
+          simp only [upperCrossingTime]; simp
+          set pre_s0 := lowerCrossingTimeAux a f ⊥ N ω with hlower
+          have h_lower : pre_s0 ≤ s0 := by
+            simp only [pre_s0, lowerCrossingTimeAux]
+            have h_exists : ∃ j ∈ Set.Icc ⊥ N, f j ω ∈ Set.Iic a := by
+              use s0; simp; exact ⟨le_of_lt hs0_lt_N, hs0_le_a⟩
+            simp only [hittingBtwn, h_exists, if_true]
+            set s := Set.Icc ⊥ N ∩ { i | f i ω ∈ Set.Iic a } with hs
+            have : s0 ∈ s := by simp [hs]; exact ⟨le_of_lt hs0_lt_N, hs0_le_a⟩
+            exact csInf_le' this
+          set pre_t0 := hittingBtwn f (Set.Ici b) pre_s0 N ω with hhit_lower
+          set pre_t0' := hittingBtwn f (Set.Ici b) s0 N ω with hhit_s0
+          have h_hit_mono : pre_t0 ≤ pre_t0' := by
+            apply hittingBtwn_mono_left f (Set.Ici b) pre_s0 s0 N
+            exact h_lower
+          show pre_t0 < N
+          have hpre_t0_lt_N : pre_t0' < N := by
+            simp only [hhit_s0, hittingBtwn]
+            have hs0t0 : s0 ≤ t0 ∧ t0 ≤ N := ⟨le_of_lt hs0_lt_t0, le_of_lt ht0_lt_N⟩
+            have h_exists : ∃ j ∈ Set.Icc s0 N, f j ω ∈ Set.Ici b := by
+              use t0; simp; exact ⟨hs0t0, ht0_ge_b⟩
+            simp only [h_exists, if_true]
+            set s := Set.Icc s0 N ∩ { i | f i ω ∈ Set.Ici b } with hs
+            have : t0 ∈ s := by simp [hs]; exact ⟨hs0t0, ht0_ge_b⟩
+            have := csInf_le' this
+            grind
+          exact Std.lt_of_le_of_lt h_hit_mono hpre_t0_lt_N
+        · intro ht0_lt_N
+          simp only [upperCrossingTime] at ht0_lt_N; simp at ht0_lt_N
+          set s0 : ι := lowerCrossingTimeAux a f ⊥ N ω with hs0
+          set t0 : ι := hittingBtwn f (Set.Ici b) s0 N ω with ht0
+          have hs0_le_N : s0 ≤ N := by
+            simp only [hs0, lowerCrossingTimeAux]
+            exact hittingBtwn_le (u := f) (s := Set.Iic a) (n := ⊥) (m := N) (ω := ω)
+          have hs0_le_t0 : s0 ≤ t0 := by
+            simp only [ht0]
+            exact le_hittingBtwn (u := f) (s := Set.Ici b) (n := s0) (m := N) hs0_le_N (ω := ω)
+          have hf_t0_ge_b : f t0 ω ≥ b := by
+            have hl : hittingBtwn f (Set.Ici b) s0 N ω < N := by grind
+            exact hittingBtwn_mem_set_of_hittingBtwn_lt
+              (u := f) (s := Set.Ici b) (n := s0) (ω := ω) (m := N) hl
+          have hf_s0_le_a : f s0 ω ≤ a := by
+            simp only [hs0, lowerCrossingTimeAux]
+            rw [lowerCrossingTimeAux] at hs0
+            exact hittingBtwn_mem_set_of_hittingBtwn_lt
+              (u := f) (s := Set.Iic a) (n := ⊥) (ω := ω) (m := N) (lt_of_le_of_lt hs0_le_t0 ht0_lt_N)
+          have hs0_lt_t0 : s0 < t0 := by grind
+          let s : Nat → ι := fun i => if i = 0 then s0 else ⊥
+          let t : Nat → ι := fun i => if i = 0 then t0 else ⊥
+          use s, t
+          exact ⟨hs0_lt_t0, hf_s0_le_a, hf_t0_ge_b, ht0_lt_N⟩
+      · -- Now, n ≥ 1 and we show the induction step again:
+        simp only [if_neg hnzero] at ih
+        constructor
+        · intro hupcross
+          obtain ⟨s, t, hs_lt_t, hfs_le_a, hft_ge_b, hts, htn_lt_N⟩ := hupcross
+          set sn : ι := s (Fin.last n) with hsn
+          set tn : ι := t (Fin.last n) with htn
+          sorry
