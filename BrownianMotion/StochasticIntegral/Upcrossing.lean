@@ -33,15 +33,16 @@ noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b
 
 -/
 
-variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} --[LinearOrder ι]
 
-structure UpcrossingData [LinearOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
+structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
   s : ℕ → ι
   t : ℕ → ι
-  hlt  : ∀ i : Fin n, s i < t i
-  hle  : ∀ i : Fin n, f (s i) ω ≤ a
-  hge  : ∀ i : Fin n, f (t i) ω ≥ b
-  chain : ∀ i j : Fin n, i < j → t i < s j
+  si_lt_ti  : ∀ i : ℕ, i < n → s i < t i
+  fs_le_a  : ∀ i : ℕ, i < n → f (s i) ω ≤ a
+  ft_ge_b  : ∀ i : ℕ, i < n → f (t i) ω ≥ b
+  ti_lt_sj : ∀ i j : ℕ, i < j → j < n → t i < s j
+  n : ℕ := n
 
 /-! We already have (proved in Mathlib.Probability.Process.HittingTime):
 theorem hittingBtwn_mem_set_of_hittingBtwn_lt [WellFoundedLT ι] {m : ι}
@@ -51,27 +52,87 @@ theorem hittingBtwn_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u 
     hittingBtwn u s n m ω ≤ i
 -/
 
+namespace UpcrossingData
+
+variable {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} [PartialOrder ι]
+variable (h : UpcrossingData a b f n ω)
+
+-- From hlt you get a ≤ version
+lemma si_le_ti {i} (hi : i < n) : h.s i ≤ h.t i :=
+  (h.si_lt_ti i hi).le
+
+-- Repackage the side conditions as set membership
+lemma fs_mem {i} (hi : i < n) : f (h.s i) ω ∈ Set.Iic a := h.fs_le_a i hi
+lemma ft_mem {i} (hi : i < n) : f (h.t i) ω ∈ Set.Ici b := h.ft_ge_b i hi
+
+-- Chain inequality as a non-strict version
+lemma ti_le_sj {i j} (hij : i < j) (hj : j < n) : h.t i ≤ h.s j :=
+  (h.ti_lt_sj i j hij hj).le
+
+-- `s` is strictly increasing on indices below `n`
+lemma s_lt_of_lt {i j} (hij : i < j) (hj : j < n) : h.s i < h.s j := by
+  have hj' : j ≤ n := le_of_lt hj
+  have hi : i < n := lt_of_lt_of_le hij hj'
+  have hti : h.t i < h.s j := h.ti_lt_sj i j hij hj
+  exact lt_trans (h.si_lt_ti i hi) hti
+
+-- `t` is strictly increasing on indices below `n`
+lemma t_lt_of_lt {i j} (hij : i < j) (hj : j < n) : h.t i < h.t j := by
+  have hti : h.t i < h.s j := h.ti_lt_sj i j hij hj
+  have hst : h.s j < h.t j := h.si_lt_ti j hj
+  exact lt_trans hti hst
+
+-- Convenient successors
+lemma s_lt_succ {i} (hi : i + 1 < n) : h.s i < h.s (i + 1) :=
+  h.s_lt_of_lt (Nat.lt_succ_self _) hi
+
+lemma t_lt_succ {i} (hi : i + 1 < n) : h.t i < h.t (i + 1) :=
+  h.t_lt_of_lt (Nat.lt_succ_self _) hi
+
+def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : UpcrossingData a b f (n + 1) ω) :
+    UpcrossingData a b f n ω :=
+{ s := h.s,
+  t := h.t,
+  si_lt_ti := fun i hi => h.si_lt_ti i (Nat.lt_trans hi (Nat.lt_succ_self _)),
+  fs_le_a := fun i hi => h.fs_le_a i (Nat.lt_trans hi (Nat.lt_succ_self _)),
+  ft_ge_b := fun i hi => h.ft_ge_b i (Nat.lt_trans hi (Nat.lt_succ_self _)),
+  ti_lt_sj := fun i j hij hj =>
+    h.ti_lt_sj i j hij (Nat.lt_trans hj (Nat.lt_succ_self _)) }
+
+end UpcrossingData
+
 lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
-  (hab : a < b) (hseq : UpcrossingData a b f (n + 1) ω) (hleN : hseq.t n ≤ N) :
-    upperCrossingTime a b f N (n + 1) ω ≤ hseq.t n := by
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω)
+  (hab : a < b) : ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t n ≤ N →
+    upperCrossingTime a b f N (n+1) ω ≤ hseq.t n := by
   simp only [upperCrossingTime]
-  set up_n := upperCrossingTime a b f N n ω with hup_n
-  set lo_n := lowerCrossingTimeAux a f up_n N ω with hlo_n
-  set B := Set.Ici b with hB
-  set A := Set.Iic a with hA
-  set tn : ι := hseq.t n with htn
-  set sn : ι := hseq.s n with hsn
-  induction n with
-  | zero =>
-    have h_sn_le_tn : sn ≤ tn := le_of_lt (hseq.hlt 0)
-    have h_lo_n_le_sn : lo_n ≤ sn := by
-      refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ sn) (h_sn_le_tn.trans hleN) ?_
-      simpa [A] using hseq.hle 0
-    have h_lo_n_le_tn : lo_n ≤ tn := h_lo_n_le_sn.trans h_sn_le_tn
-    have h_tn_inB : f tn ω ∈ B := by simpa [B] using hseq.hge 0
-    exact hittingBtwn_le_of_mem h_lo_n_le_tn hleN h_tn_inB
-  | succ n ih =>
+  classical
+  -- motive depends on n and hseq
+  refine Nat.rec (motive := fun n => ∀ hseq : UpcrossingData a b f (n+1) ω, hseq.t n ≤ N →
+    upperCrossingTime a b f N (n+1) ω ≤ hseq.t n) ?base ?step
+  · -- n = 0 case; hseq : UpcrossingData a b f 1 ω
+    intro hseq h_t0_le_N; simp at h_t0_le_N
+    have h_s0_le_t0 := hseq.si_le_ti (Nat.zero_lt_succ 0)
+    have h0 : upperCrossingTime a b f N 0 ω = ⊥ := by simp [upperCrossingTime]
+    have h1 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.s 0 := by
+      simp only [lowerCrossingTimeAux]
+      refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ hseq.s 0) (h_s0_le_t0.trans h_t0_le_N) ?_
+      apply hseq.fs_mem; simp
+    simp only [upperCrossingTime]; simp
+    have h2 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.t 0 := le_trans h1 h_s0_le_t0
+    have hmem : f (hseq.t 0) ω ∈ Set.Ici b := hseq.ft_mem (Nat.zero_lt_succ 0)
+    exact hittingBtwn_le_of_mem h2 h_t0_le_N hmem
+  · -- succ case
+    intro n ih hseq h_tn1_le
+    set hseq_prev := hseq.toShorter with hseq_prev_def
+    set upper_prev := upperCrossingTime a b f N (n + 1) ω with hup_n
+    sorry
+    -- have h_tn_le : hseq_prev.t n ≤ N := by exact hseq_prev.
+    -- have upper_prev_le_tn : upper_prev ≤ hseq.t n := ih hseq_prev h_tn1_le
+    -- set lower := lowerCrossingTimeAux a f upper_prev N ω with hlo_n
+    -- set tn : ι := hseq.t (n + 1) with htn
+    -- set sn : ι := hseq.s (n + 1) with hsn
+
 
 
 noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
