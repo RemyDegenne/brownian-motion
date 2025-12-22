@@ -35,46 +35,57 @@ noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b
 
 variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
 
--- structure UpcrossingData (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
---   s t : ℕ → ι
---   hlt  : ∀ i : Fin n, s i < t i
---   hle  : ∀ i : Fin n, f (s i) ω ≤ a
---   hge  : ∀ i : Fin n, f (t i) ω ≥ b
---   chain : ∀ i j : Fin n, i < j → t i < s j
+structure UpcrossingData [LinearOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
+  s : ℕ → ι
+  t : ℕ → ι
+  hlt  : ∀ i : Fin n, s i < t i
+  hle  : ∀ i : Fin n, f (s i) ω ≤ a
+  hge  : ∀ i : Fin n, f (t i) ω ≥ b
+  chain : ∀ i j : Fin n, i < j → t i < s j
 
--- def nUpcrossings (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : Prop :=
---   ∃ d : UpcrossingData a b f n ω, True   -- or just `Nonempty (UpcrossingData …)`
+/-! We already have (proved in Mathlib.Probability.Process.HittingTime):
+theorem hittingBtwn_mem_set_of_hittingBtwn_lt [WellFoundedLT ι] {m : ι}
+    (hl : hittingBtwn u s n m ω < m) :
+    u (hittingBtwn u s n m ω) ω ∈ s
+theorem hittingBtwn_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
+    hittingBtwn u s n m ω ≤ i
+-/
 
--- def ltUpcrossingsBefore (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
---   if N ≤ ⊥ then False else
---     if n = 0 then True else
---       ∃ d : UpcrossingData a b f n ω, d.t (n-1) < N
+lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
+  (hab : a < b) (hseq : UpcrossingData a b f (n + 1) ω) (hleN : hseq.t n ≤ N) :
+    upperCrossingTime a b f N (n + 1) ω ≤ hseq.t n := by
+  simp only [upperCrossingTime]
+  set up_n := upperCrossingTime a b f N n ω with hup_n
+  set lo_n := lowerCrossingTimeAux a f up_n N ω with hlo_n
+  set B := Set.Ici b with hB
+  set A := Set.Iic a with hA
+  set tn : ι := hseq.t n with htn
+  set sn : ι := hseq.s n with hsn
+  induction n with
+  | zero =>
+    have h_sn_le_tn : sn ≤ tn := le_of_lt (hseq.hlt 0)
+    have h_lo_n_le_sn : lo_n ≤ sn := by
+      refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ sn) (h_sn_le_tn.trans hleN) ?_
+      simpa [A] using hseq.hle 0
+    have h_lo_n_le_tn : lo_n ≤ tn := h_lo_n_le_sn.trans h_sn_le_tn
+    have h_tn_inB : f tn ω ∈ B := by simpa [B] using hseq.hge 0
+    exact hittingBtwn_le_of_mem h_lo_n_le_tn hleN h_tn_inB
+  | succ n ih =>
+
+
+noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
+  if N ≤ ⊥ then False else
+    if n = 0 then True else
+      ∃ seq : UpcrossingData a b f n ω, seq.t (n - 1) < N
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
   ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N).
 -/
-noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
-  (N : ι) (n : ℕ) (ω : Ω) : Prop :=
-  if N ≤ ⊥ then False else
-    if n = 0 then True else
-      ∃ s t : Nat → ι,
-        (∀ i : Fin n, s i < t i) ∧
-        (∀ i : Fin n, f (s i) ω ≤ a) ∧
-        (∀ i : Fin n, f (t i) ω ≥ b) ∧
-        (∀ i j : Fin n, i < j → t i < s j) ∧
-        t (n - 1) < N
-
-noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
-  (N : ι) (ω : Ω) : ℕ :=
-  sSup {n | ltUpcrossingsBefore a b f N n ω}
-
--- lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
---   [WellFoundedLT ι]
---   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
---   (ltUpcrossingsBefore a b f N n ω):
---     upperCrossingTime a b f N n ω ≤ ltUpcrossingsBefore a b f N n ω   := by
-
+noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) : ℕ := sSup {n | ltUpcrossingsBefore a b f N n ω}
 
 lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι]
@@ -88,7 +99,8 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
   · simp only [ltUpcrossingsBefore, h, if_false]
     induction n
     case neg.zero => simp; grind
-    case neg.succ n ih =>
+    case neg.succ n ih => sorry
+/-!
       simp only [if_neg (Nat.succ_ne_zero n)]; simp
       by_cases hnzero : n = 0
       -- The induction step for n = 0:
@@ -154,7 +166,5 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
         simp only [if_neg hnzero] at ih
         constructor
         · intro hupcross
-          obtain ⟨s, t, hs_lt_t, hfs_le_a, hft_ge_b, hts, htn_lt_N⟩ := hupcross
-          set sn : ι := s (Fin.last n) with hsn
-          set tn : ι := t (Fin.last n) with htn
           sorry
+-/
