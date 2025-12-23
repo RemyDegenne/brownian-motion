@@ -140,6 +140,45 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
       (le_trans (ih hseq1 h0) (hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)))
       (hseq2.si_le_ti (by simp)) h_t_le_N (hseq2.fs_mem (by simp)) (hseq2.ft_mem (by simp))
 
+-- -- A single step: if the (n+1)-st upcrossing happens before `N`, then the
+-- -- intermediate lower and upper crossing times give the two witnesses between
+-- -- the previous upper crossing time and `N`.
+-- lemma upperCrossingTime_crossing_pair [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+--   (a b : ℝ) (hab : a < b) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
+--   (hlt : upperCrossingTime a b f N (n + 1) ω < N) :
+--   let s := lowerCrossingTimeAux a f (upperCrossingTime a b f N n ω) N ω
+--   let t := upperCrossingTime a b f N (n + 1) ω
+--   upperCrossingTime a b f N n ω ≤ s ∧ s < t ∧ t < N ∧
+--     f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b := by
+--   classical
+--   intro s t
+--   have ht_mem : f t ω ∈ Set.Ici b :=
+--     hittingBtwn_mem_set_of_hittingBtwn_lt (u := f) (s := Set.Ici b) (n := s) (m := N)
+--       (ω := ω) hlt
+--   have hs_le_N : s ≤ N := hittingBtwn_le (u := f) (s := Set.Iic a)
+--     (n := upperCrossingTime a b f N n ω) (m := N) (ω := ω)
+--   have hprev_le_N : upperCrossingTime a b f N n ω ≤ N :=
+--     (upperCrossingTime_mono (Nat.le_succ n)).trans (le_of_lt hlt)
+--   have hprev_le_s : upperCrossingTime a b f N n ω ≤ s :=
+--     le_hittingBtwn (u := f) (s := Set.Iic a)
+--       (n := upperCrossingTime a b f N n ω) (m := N) (ω := ω) hprev_le_N
+--   have hs_mem : f s ω ∈ Set.Iic a :=
+--     hittingBtwn_mem_set_of_hittingBtwn_lt (u := f) (s := Set.Iic a)
+--       (n := upperCrossingTime a b f N n ω) (m := N) (ω := ω)
+--       (lt_of_le_of_lt hs_le_N hlt)
+--   have hs_le_t : s ≤ t :=
+--     le_hittingBtwn (u := f) (s := Set.Ici b) (n := s) (m := N) (ω := ω) hs_le_N
+--   have hs_lt_t : s < t := by
+--     have hfa : f s ω ≤ a := by simpa [Set.mem_Iic] using hs_mem
+--     have hfb : f t ω ≥ b := by simpa [Set.mem_Ici] using ht_mem
+--     have hne : s ≠ t := by
+--       intro hEq
+--       have : b ≤ a := le_trans hfb (by simpa [hEq] using hfa)
+--       exact (not_le_of_gt hab) this
+--     exact lt_of_le_of_ne hs_le_t hne
+--   refine ⟨hprev_le_s, hs_lt_t, lt_of_le_of_lt hs_le_t hlt, ?_, ht_mem⟩
+--   simpa [Set.mem_Iic] using hs_mem
+
 noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
@@ -183,7 +222,7 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
     ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
   constructor
   · exact upperCrossingTime_lt_of_ltUpcrossingsBefore a b f N n ω
-  · intro hlt
+  · intro hlt /-TODO: this could be streamlined by pointing witnesses s,t first. -/
     by_cases hNbot : N ≤ ⊥
     · simpa [ltUpcrossingsBefore, hNbot] using
         (not_lt_of_ge (bot_le : ⊥ ≤ upperCrossingTime a b f N n ω)
