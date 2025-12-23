@@ -116,7 +116,6 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
   ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t n ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n := by
   simp only [upperCrossingTime]
-  classical
   -- motive depends on n and hseq
   refine Nat.rec (motive := fun n => ∀ hseq : UpcrossingData a b f (n+1) ω, hseq.t n ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n) ?base ?step
@@ -141,14 +140,33 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
       (le_trans (ih hseq1 h0) (hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)))
       (hseq2.si_le_ti (by simp)) h_t_le_N (hseq2.fs_mem (by simp)) (hseq2.ft_mem (by simp))
 
-
-
-
 noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (n - 1) < N
+
+
+lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    ltUpcrossingsBefore a b f N n ω → upperCrossingTime a b f N n ω < N := by
+  by_cases h : N ≤ ⊥
+  · have : ⊥ ≤ N := OrderBot.bot_le N
+    have hNbot : N = ⊥ := le_antisymm h this
+    subst hNbot
+    simp only [ltUpcrossingsBefore]; simp
+  · simp only [ltUpcrossingsBefore, h, if_false]
+    by_cases hnzero : n = 0
+    · -- n = 0 case
+      subst hnzero; simp; grind
+    · -- n ≥ 1 case
+      simp only [if_neg hnzero]
+      rintro ⟨hseq, ht_lt_N⟩
+      refine lt_of_le_of_lt ?_ ht_lt_N
+      refine upperCrossingTime_le_of_UpcrossingData a b f N ω (n - 1) ?_ ?_
+
+
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
