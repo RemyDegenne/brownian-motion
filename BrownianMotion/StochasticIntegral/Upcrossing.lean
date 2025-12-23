@@ -149,7 +149,7 @@ noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
 
 lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
     ltUpcrossingsBefore a b f N n ω → upperCrossingTime a b f N n ω < N := by
   by_cases h : N ≤ ⊥
   · have : ⊥ ≤ N := OrderBot.bot_le N
@@ -164,13 +164,11 @@ lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOr
       simp only [if_neg hnzero]
       rintro ⟨hseq, ht_lt_N⟩
       refine lt_of_le_of_lt ?_ ht_lt_N
-      have hnpos : 0 < n := Nat.pos_of_ne_zero hnzero    -- or however you know n≥1
-      set m := n - 1 with hm
-      have hnm : n = m + 1 := by grind
-      subst hnm
-      -- goal now has (m+1)
-      refine upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ?_
-
+      cases n with
+      | zero => contradiction
+      | succ m =>
+          have ht_le_N : hseq.t m ≤ N := le_of_lt ht_lt_N
+          simpa using upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ht_le_N
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
