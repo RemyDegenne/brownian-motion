@@ -123,14 +123,10 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n) ?base ?step
   · -- n = 0 case; hseq : UpcrossingData a b f 1 ω
     intro hseq h_t0_le_N
-    have h_s0_le_t0 : hseq.s 0 ≤ hseq.t 0 := hseq.si_le_ti (Nat.zero_lt_succ 0)
-    simp only [upperCrossingTime]
-    refine hittingBtwn_le_of_mem ?hin h_t0_le_N (hseq.ft_mem (Nat.zero_lt_succ 0))
-    have h_lower_le_s0 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.s 0 := by
-      simp only [lowerCrossingTimeAux]
-      refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ hseq.s 0) (h_s0_le_t0.trans h_t0_le_N) ?_
-      simpa using hseq.fs_mem (Nat.zero_lt_succ 0)
-    exact h_lower_le_s0.trans h_s0_le_t0
+    simp only [upperCrossingTime];
+    have h := Nat.zero_lt_succ 0
+    exact upperCrossingTime_le_of_UpcrossingData' a b f ⊥ (hseq.s 0) (hseq.t 0) N ω
+      bot_le (hseq.si_le_ti h) h_t0_le_N (hseq.fs_mem h) (hseq.ft_mem h)
   · -- succ case
     intro n ih hseq2 h_t_le_N
     set hseq1 := hseq2.toShorter with hseq_prev_def
@@ -149,13 +145,8 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
     have h_u'_le_s  : u' ≤ s := le_trans h_u'_le_t' h_t'_le_s
     have h_s_le_N   : s  ≤ N := le_trans h_s_le_t h_t_le_N
     have hmem : f s ω ∈ Set.Iic a := hseq2.fs_mem (by simp)
-    have h1 : lowerCrossingTimeAux a f u' N ω ≤ s := by
-      simp only [lowerCrossingTimeAux]
-      refine hittingBtwn_le_of_mem h_u'_le_s h_s_le_N hmem
-    simp only [upperCrossingTime]; simp only [upperCrossingTime] at hu'; rw [← hu']
-    have h2 : lowerCrossingTimeAux a f u' N ω ≤ t := le_trans h1 h_s_le_t
-    have hmem2 : f t ω ∈ Set.Ici b := hseq2.ft_mem (by simp)
-    exact hittingBtwn_le_of_mem h2 h_t_le_N hmem2
+    exact upperCrossingTime_le_of_UpcrossingData' a b f u' s t N ω
+      h_u'_le_s h_s_le_t h_t_le_N hmem (hseq2.ft_mem (by simp))
 
 
 
