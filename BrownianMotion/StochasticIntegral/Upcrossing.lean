@@ -182,5 +182,92 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
     ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
   constructor
-  · exact upperCrossingTime_lt_of_ltUpcrossingsBefore a b f N n ω hab
-  · sorry
+  · exact upperCrossingTime_lt_of_ltUpcrossingsBefore a b f N n ω
+  · intro hlt
+    by_cases hNbot : N ≤ ⊥
+    · have hlt' : False :=
+        not_lt_of_ge (bot_le : ⊥ ≤ upperCrossingTime a b f N n ω) (lt_of_lt_of_le hlt hNbot)
+      simp at hlt'
+    · simp only [ltUpcrossingsBefore, hNbot, if_false]
+      cases n with
+      | zero => simp
+      | succ m =>
+          have h_upper : upperCrossingTime a b f N (m + 1) ω < N := hlt
+          have h_upper_le : ∀ k ≤ m + 1, upperCrossingTime a b f N k ω < N :=
+            fun k hk => lt_of_le_of_lt (upperCrossingTime_mono hk) h_upper
+          have h_lower_le : ∀ k ≤ m, lowerCrossingTime a b f N k ω < N :=
+            fun k hk =>
+              lt_of_le_of_lt
+                (lowerCrossingTime_le_upperCrossingTime_succ (a:=a) (b:=b) (f:=f)
+                  (N:=N) (n:=k) (ω:=ω))
+                (h_upper_le (k + 1) (Nat.succ_le_succ hk))
+          classical
+          have h_s_mem : ∀ k < m + 1, f (lowerCrossingTime a b f N k ω) ω ∈ Set.Iic a :=
+            fun k hk =>
+              hittingBtwn_mem_set_of_hittingBtwn_lt
+                (u := f) (s := Set.Iic a) (n := upperCrossingTime a b f N k ω)
+                (m := N) (ω := ω) (h_lower_le k (Nat.lt_succ_iff.mp hk))
+          have h_t_mem : ∀ k < m + 1, f (upperCrossingTime a b f N (k + 1) ω) ω ∈ Set.Ici b :=
+            fun k hk =>
+              hittingBtwn_mem_set_of_hittingBtwn_lt
+                (u := f) (s := Set.Ici b)
+                (n := lowerCrossingTimeAux a f (upperCrossingTime a b f N k ω) N ω)
+                (m := N) (ω := ω)
+                (h_upper_le (k + 1) (Nat.succ_le_succ (Nat.le_of_lt_succ hk)))
+          let seq : UpcrossingData a b f (m + 1) ω :=
+          { s := fun k => lowerCrossingTime a b f N k ω
+            t := fun k => upperCrossingTime a b f N (k + 1) ω
+            si_lt_ti := by
+              intro k hk
+              have hle : lowerCrossingTime a b f N k ω ≤
+                  upperCrossingTime a b f N (k + 1) ω :=
+                lowerCrossingTime_le_upperCrossingTime_succ (a:=a) (b:=b) (f:=f) (N:=N)
+                  (n:=k) (ω:=ω)
+              have hne : lowerCrossingTime a b f N k ω ≠ upperCrossingTime a b f N (k + 1) ω :=
+                by
+                  intro hEq
+                  have hfa : f (upperCrossingTime a b f N (k + 1) ω) ω ≤ a := by
+                    simpa [Set.mem_Iic, hEq] using (h_s_mem k hk)
+                  have hfb : f (upperCrossingTime a b f N (k + 1) ω) ω ≥ b := by
+                    simpa [Set.mem_Ici] using (h_t_mem k hk)
+                  have : b ≤ a := le_trans hfb hfa
+                  exact (not_le_of_gt hab) this
+              exact lt_of_le_of_ne hle hne
+            fs_le_a := fun k hk => by
+              have h := h_s_mem k hk
+              simpa [Set.mem_Iic] using h
+            ft_ge_b := fun k hk => by
+              have h := h_t_mem k hk
+              simpa [Set.mem_Ici] using h
+            ti_lt_sj := by
+              intro i j hij hj
+              have hi1_le_j : i + 1 ≤ j := Nat.succ_le_of_lt hij
+              have hj_le_m : j ≤ m := Nat.lt_succ_iff.mp hj
+              have hi1_le_m : i + 1 ≤ m := le_trans hi1_le_j hj_le_m
+              have h_lower : lowerCrossingTime a b f N (i + 1) ω < N :=
+                h_lower_le (i + 1) hi1_le_m
+              have hti_le_si1 : upperCrossingTime a b f N (i + 1) ω ≤
+                  lowerCrossingTime a b f N (i + 1) ω :=
+                upperCrossingTime_le_lowerCrossingTime (a:=a) (b:=b) (f:=f) (N:=N)
+                  (n:=i + 1) (ω:=ω)
+              have hti_lt_si1 : upperCrossingTime a b f N (i + 1) ω <
+                  lowerCrossingTime a b f N (i + 1) ω := by
+                have hne : upperCrossingTime a b f N (i + 1) ω ≠
+                    lowerCrossingTime a b f N (i + 1) ω := by
+                  intro hEq
+                  have hfa : f (lowerCrossingTime a b f N (i + 1) ω) ω ≤ a := by
+                    have := h_s_mem (i + 1) (Nat.lt_succ_of_le hi1_le_m)
+                    simpa [Set.mem_Iic, hEq] using this
+                  have hfb : f (lowerCrossingTime a b f N (i + 1) ω) ω ≥ b := by
+                    have hi_lt_m : i < m := lt_of_lt_of_le hij hj_le_m
+                    have := h_t_mem i (lt_trans hi_lt_m (Nat.lt_succ_self m))
+                    simpa [Set.mem_Ici, hEq, Nat.succ_eq_add_one] using this
+                  have : b ≤ a := le_trans hfb hfa
+                  exact (not_le_of_gt hab) this
+                exact lt_of_le_of_ne hti_le_si1 hne
+              have hsi1_le_sj : lowerCrossingTime a b f N (i + 1) ω ≤
+                  lowerCrossingTime a b f N j ω :=
+                lowerCrossingTime_mono hi1_le_j
+              exact lt_of_lt_of_le hti_lt_si1 hsi1_le_sj }
+          refine ⟨seq, ?_⟩
+          simpa using h_upper 
