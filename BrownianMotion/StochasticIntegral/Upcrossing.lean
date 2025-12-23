@@ -42,7 +42,6 @@ structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (
   fs_le_a  : ∀ i : ℕ, i < n → f (s i) ω ≤ a
   ft_ge_b  : ∀ i : ℕ, i < n → f (t i) ω ≥ b
   ti_lt_sj : ∀ i j : ℕ, i < j → j < n → t i < s j
-  n : ℕ := n
 
 /-! We already have (proved in Mathlib.Probability.Process.HittingTime):
 theorem hittingBtwn_mem_set_of_hittingBtwn_lt [WellFoundedLT ι] {m : ι}
@@ -97,8 +96,8 @@ def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : Upcro
   fs_le_a := fun i hi => h.fs_le_a i (Nat.lt_trans hi (Nat.lt_succ_self _)),
   ft_ge_b := fun i hi => h.ft_ge_b i (Nat.lt_trans hi (Nat.lt_succ_self _)),
   ti_lt_sj := fun i j hij hj =>
-    h.ti_lt_sj i j hij (Nat.lt_trans hj (Nat.lt_succ_self _)),
-  n := n - 1 }
+    h.ti_lt_sj i j hij (Nat.lt_trans hj (Nat.lt_succ_self _))
+}
 
 end UpcrossingData
 
@@ -136,17 +135,11 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
         _ ≤ hseq2.t n.succ := le_of_lt (hseq2.t_lt_succ (by simp))
         _ ≤ N := h_t_le_N
     set u' := upperCrossingTime a b f N (n + 1) ω with hu'
-    set t' := hseq1.t n with ht'
-    set t := hseq2.t n.succ with ht
     set s := hseq2.s n.succ with hs
-    have h_u'_le_t' : u' ≤ t' := ih hseq1 h0
-    have h_t'_le_s  : t' ≤ s := hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)
-    have h_s_le_t   : s  ≤ t := hseq2.si_le_ti (by simp)
-    have h_u'_le_s  : u' ≤ s := le_trans h_u'_le_t' h_t'_le_s
-    have h_s_le_N   : s  ≤ N := le_trans h_s_le_t h_t_le_N
-    have hmem : f s ω ∈ Set.Iic a := hseq2.fs_mem (by simp)
+    set t := hseq2.t n.succ with ht
     exact upperCrossingTime_le_of_UpcrossingData' a b f u' s t N ω
-      h_u'_le_s h_s_le_t h_t_le_N hmem (hseq2.ft_mem (by simp))
+      (le_trans (ih hseq1 h0) (hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)))
+      (hseq2.si_le_ti (by simp)) h_t_le_N (hseq2.fs_mem (by simp)) (hseq2.ft_mem (by simp))
 
 
 
