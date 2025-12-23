@@ -103,8 +103,8 @@ def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : Upcro
 end UpcrossingData
 
 lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω)
-  (hab : a < b) : ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t n ≤ N →
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
+  ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t n ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n := by
   simp only [upperCrossingTime]
   classical
@@ -124,24 +124,33 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
     have hmem : f (hseq.t 0) ω ∈ Set.Ici b := hseq.ft_mem (Nat.zero_lt_succ 0)
     exact hittingBtwn_le_of_mem h2 h_t0_le_N hmem
   · -- succ case
-    intro n ih hseq h_tn1_le
-    set hse := hseq.toShorter with hseq_prev_def
-    have htn : hseq.t n = hse.t n := rfl
-    have hn2 : hseq.n = n + 2 := by
-      rw [hseq_prev_def]; rfl
-    have : n + 1 < hseq.n := by Nat.lt_succ_self n
-    have htn1 : hseq.t n < hseq.t (n + 1) := hseq.t_lt_succ (Nat.lt_succ_self n)
-    have h0 : hse.t n ≤ N := by
-      rw [← htn]
-      exact le_trans hseq.ti
-    have q := ih hse h0
-    set upper_prev := upperCrossingTime a b f N (n + 1) ω with hup_n
-    sorry
-    -- have h_tn_le : hseq_prev.t n ≤ N := by exact hseq_prev.
-    -- have upper_prev_le_tn : upper_prev ≤ hseq.t n := ih hseq_prev h_tn1_le
-    -- set lower := lowerCrossingTimeAux a f upper_prev N ω with hlo_n
-    -- set tn : ι := hseq.t (n + 1) with htn
-    -- set sn : ι := hseq.s (n + 1) with hsn
+    intro n ih hseq2 h_tn1_le
+    set hseq1 := hseq2.toShorter with hseq_prev_def
+    have h0 : hseq1.t n ≤ N := by
+      calc
+        hseq1.t n = hseq2.t n := rfl
+        _ ≤ hseq2.t n.succ := le_of_lt (hseq2.t_lt_succ (by simp))
+        _ ≤ N := h_tn1_le
+    set u' := upperCrossingTime a b f N (n + 1) ω with hu'
+    set t' := hseq1.t n with ht'
+    set t := hseq2.t n.succ with ht
+    set s := hseq2.s n.succ with hs
+    have h_u'_le_t' : u' ≤ t' := ih hseq1 h0
+    have h_t'_le_s  : t' ≤ s := hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)
+    have h_s_le_t   : s  ≤ t := hseq2.si_le_ti (by simp)
+    have h_u'_le_s  : u' ≤ s := le_trans h_u'_le_t' h_t'_le_s
+    have h_s_le_N   : s  ≤ N := le_trans h_s_le_t h_tn1_le
+    have hmem : f s ω ∈ Set.Iic a := hseq2.fs_mem (by simp)
+    have h1 : lowerCrossingTimeAux a f u' N ω ≤ s := by
+      simp only [lowerCrossingTimeAux]
+      refine hittingBtwn_le_of_mem h_u'_le_s h_s_le_N hmem
+    simp only [upperCrossingTime]
+    simp only [upperCrossingTime] at hu'
+    rw [← hu']
+    have h2 : lowerCrossingTimeAux a f u' N ω ≤ t := le_trans h1 h_s_le_t
+    have hmem2 : f t ω ∈ Set.Ici b := hseq2.ft_mem (by simp)
+    exact hittingBtwn_le_of_mem h2 h_tn1_le hmem2
+
 
 
 
