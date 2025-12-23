@@ -164,8 +164,12 @@ lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOr
       simp only [if_neg hnzero]
       rintro ⟨hseq, ht_lt_N⟩
       refine lt_of_le_of_lt ?_ ht_lt_N
-      refine upperCrossingTime_le_of_UpcrossingData a b f N ω (n - 1) ?_ ?_
-
+      have hnpos : 0 < n := Nat.pos_of_ne_zero hnzero    -- or however you know n≥1
+      set m := n - 1 with hm
+      have hnm : n = m + 1 := by grind
+      subst hnm
+      -- goal now has (m+1)
+      refine upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ?_
 
 
 /-
@@ -179,80 +183,6 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
   [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
     ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
-  by_cases h : N ≤ ⊥
-  · have : ⊥ ≤ N := OrderBot.bot_le N
-    have hNbot : N = ⊥ := le_antisymm h this
-    subst hNbot
-    simp only [ltUpcrossingsBefore]; simp
-  · simp only [ltUpcrossingsBefore, h, if_false]
-    induction n
-    case neg.zero => simp; grind
-    case neg.succ n ih => sorry
-/-!
-      simp only [if_neg (Nat.succ_ne_zero n)]; simp
-      by_cases hnzero : n = 0
-      -- The induction step for n = 0:
-      · subst hnzero; simp
-        constructor
-        · intro hupcross
-          obtain ⟨s, t, hs0_lt_t0, hs0_le_a, ht0_ge_b, ht0_lt_N⟩ := hupcross
-          set s0 : ι := s 0 with hs0
-          set t0 : ι := t 0 with ht0
-          have hs0_lt_N : s0 < N := by grind
-          simp only [upperCrossingTime]; simp
-          set pre_s0 := lowerCrossingTimeAux a f ⊥ N ω with hlower
-          have h_lower : pre_s0 ≤ s0 := by
-            simp only [pre_s0, lowerCrossingTimeAux]
-            have h_exists : ∃ j ∈ Set.Icc ⊥ N, f j ω ∈ Set.Iic a := by
-              use s0; simp; exact ⟨le_of_lt hs0_lt_N, hs0_le_a⟩
-            simp only [hittingBtwn, h_exists, if_true]
-            set s := Set.Icc ⊥ N ∩ { i | f i ω ∈ Set.Iic a } with hs
-            have : s0 ∈ s := by simp [hs]; exact ⟨le_of_lt hs0_lt_N, hs0_le_a⟩
-            exact csInf_le' this
-          set pre_t0 := hittingBtwn f (Set.Ici b) pre_s0 N ω with hhit_lower
-          set pre_t0' := hittingBtwn f (Set.Ici b) s0 N ω with hhit_s0
-          have h_hit_mono : pre_t0 ≤ pre_t0' := by
-            apply hittingBtwn_mono_left f (Set.Ici b) pre_s0 s0 N
-            exact h_lower
-          show pre_t0 < N
-          have hpre_t0_lt_N : pre_t0' < N := by
-            simp only [hhit_s0, hittingBtwn]
-            have hs0t0 : s0 ≤ t0 ∧ t0 ≤ N := ⟨le_of_lt hs0_lt_t0, le_of_lt ht0_lt_N⟩
-            have h_exists : ∃ j ∈ Set.Icc s0 N, f j ω ∈ Set.Ici b := by
-              use t0; simp; exact ⟨hs0t0, ht0_ge_b⟩
-            simp only [h_exists, if_true]
-            set s := Set.Icc s0 N ∩ { i | f i ω ∈ Set.Ici b } with hs
-            have : t0 ∈ s := by simp [hs]; exact ⟨hs0t0, ht0_ge_b⟩
-            have := csInf_le' this
-            grind
-          exact Std.lt_of_le_of_lt h_hit_mono hpre_t0_lt_N
-        · intro ht0_lt_N
-          simp only [upperCrossingTime] at ht0_lt_N; simp at ht0_lt_N
-          set s0 : ι := lowerCrossingTimeAux a f ⊥ N ω with hs0
-          set t0 : ι := hittingBtwn f (Set.Ici b) s0 N ω with ht0
-          have hs0_le_N : s0 ≤ N := by
-            simp only [hs0, lowerCrossingTimeAux]
-            exact hittingBtwn_le (u := f) (s := Set.Iic a) (n := ⊥) (m := N) (ω := ω)
-          have hs0_le_t0 : s0 ≤ t0 := by
-            simp only [ht0]
-            exact le_hittingBtwn (u := f) (s := Set.Ici b) (n := s0) (m := N) hs0_le_N (ω := ω)
-          have hf_t0_ge_b : f t0 ω ≥ b := by
-            have hl : hittingBtwn f (Set.Ici b) s0 N ω < N := by grind
-            exact hittingBtwn_mem_set_of_hittingBtwn_lt
-              (u := f) (s := Set.Ici b) (n := s0) (ω := ω) (m := N) hl
-          have hf_s0_le_a : f s0 ω ≤ a := by
-            simp only [hs0, lowerCrossingTimeAux]
-            rw [lowerCrossingTimeAux] at hs0
-            exact hittingBtwn_mem_set_of_hittingBtwn_lt
-              (u := f) (s := Set.Iic a) (n := ⊥) (ω := ω) (m := N) (lt_of_le_of_lt hs0_le_t0 ht0_lt_N)
-          have hs0_lt_t0 : s0 < t0 := by grind
-          let s : Nat → ι := fun i => if i = 0 then s0 else ⊥
-          let t : Nat → ι := fun i => if i = 0 then t0 else ⊥
-          use s, t
-          exact ⟨hs0_lt_t0, hf_s0_le_a, hf_t0_ge_b, ht0_lt_N⟩
-      · -- Now, n ≥ 1 and we show the induction step again:
-        simp only [if_neg hnzero] at ih
-        constructor
-        · intro hupcross
-          sorry
--/
+  constructor
+  · exact upperCrossingTime_lt_of_ltUpcrossingsBefore a b f N n ω hab
+  · sorry
