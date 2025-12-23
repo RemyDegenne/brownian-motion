@@ -102,6 +102,16 @@ def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : Upcro
 
 end UpcrossingData
 
+private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (u' s t N : ι) (ω : Ω) :
+    u' ≤ s → s ≤ t → t ≤ N → f s ω ∈ Set.Iic a → f t ω ∈ Set.Ici b →
+    hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f u' N ω) N ω ≤ t := by
+  intro hu's hst htN hfs hft
+  refine hittingBtwn_le_of_mem ?hin htN hft
+  simp only [lowerCrossingTimeAux]
+  refine le_trans ?hle_s hst
+  exact hittingBtwn_le_of_mem hu's (le_trans hst htN) hfs
+
 lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
   ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t n ≤ N →
@@ -113,24 +123,22 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t n) ?base ?step
   · -- n = 0 case; hseq : UpcrossingData a b f 1 ω
     intro hseq h_t0_le_N
-    have h_s0_le_t0 := hseq.si_le_ti (Nat.zero_lt_succ 0)
-    have h0 : upperCrossingTime a b f N 0 ω = ⊥ := by simp [upperCrossingTime]
-    have h1 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.s 0 := by
+    have h_s0_le_t0 : hseq.s 0 ≤ hseq.t 0 := hseq.si_le_ti (Nat.zero_lt_succ 0)
+    simp only [upperCrossingTime]
+    refine hittingBtwn_le_of_mem ?hin h_t0_le_N (hseq.ft_mem (Nat.zero_lt_succ 0))
+    have h_lower_le_s0 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.s 0 := by
       simp only [lowerCrossingTimeAux]
       refine hittingBtwn_le_of_mem (bot_le : (⊥ : ι) ≤ hseq.s 0) (h_s0_le_t0.trans h_t0_le_N) ?_
-      apply hseq.fs_mem; simp
-    simp only [upperCrossingTime]
-    have h2 : lowerCrossingTimeAux a f ⊥ N ω ≤ hseq.t 0 := le_trans h1 h_s0_le_t0
-    have hmem : f (hseq.t 0) ω ∈ Set.Ici b := hseq.ft_mem (Nat.zero_lt_succ 0)
-    exact hittingBtwn_le_of_mem h2 h_t0_le_N hmem
+      simpa using hseq.fs_mem (Nat.zero_lt_succ 0)
+    exact h_lower_le_s0.trans h_s0_le_t0
   · -- succ case
-    intro n ih hseq2 h_tn1_le
+    intro n ih hseq2 h_t_le_N
     set hseq1 := hseq2.toShorter with hseq_prev_def
     have h0 : hseq1.t n ≤ N := by
       calc
         hseq1.t n = hseq2.t n := rfl
         _ ≤ hseq2.t n.succ := le_of_lt (hseq2.t_lt_succ (by simp))
-        _ ≤ N := h_tn1_le
+        _ ≤ N := h_t_le_N
     set u' := upperCrossingTime a b f N (n + 1) ω with hu'
     set t' := hseq1.t n with ht'
     set t := hseq2.t n.succ with ht
@@ -139,17 +147,15 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
     have h_t'_le_s  : t' ≤ s := hseq2.ti_le_sj (Nat.lt_succ_self n) (by simp)
     have h_s_le_t   : s  ≤ t := hseq2.si_le_ti (by simp)
     have h_u'_le_s  : u' ≤ s := le_trans h_u'_le_t' h_t'_le_s
-    have h_s_le_N   : s  ≤ N := le_trans h_s_le_t h_tn1_le
+    have h_s_le_N   : s  ≤ N := le_trans h_s_le_t h_t_le_N
     have hmem : f s ω ∈ Set.Iic a := hseq2.fs_mem (by simp)
     have h1 : lowerCrossingTimeAux a f u' N ω ≤ s := by
       simp only [lowerCrossingTimeAux]
       refine hittingBtwn_le_of_mem h_u'_le_s h_s_le_N hmem
-    simp only [upperCrossingTime]
-    simp only [upperCrossingTime] at hu'
-    rw [← hu']
+    simp only [upperCrossingTime]; simp only [upperCrossingTime] at hu'; rw [← hu']
     have h2 : lowerCrossingTimeAux a f u' N ω ≤ t := le_trans h1 h_s_le_t
     have hmem2 : f t ω ∈ Set.Ici b := hseq2.ft_mem (by simp)
-    exact hittingBtwn_le_of_mem h2 h_tn1_le hmem2
+    exact hittingBtwn_le_of_mem h2 h_t_le_N hmem2
 
 
 
