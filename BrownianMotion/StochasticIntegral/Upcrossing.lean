@@ -299,3 +299,20 @@ lemma ltUpcrossingsBefore_iff_upperCrossingTime_lt [ConditionallyCompleteLinearO
               exact lt_of_lt_of_le hti_lt_si1 hsi1_le_sj }
           refine ⟨seq, ?_⟩
           simpa using h_upper
+
+/-!
+TODO next:
+  1) The upcrossingsBefore' - upcrossing number before N defined via sSup of ltUpcrossingsBefore,
+  is equal to the original definition via sSup of upperCrossingTime < N.
+  2) The upcrossingsBefore' is measurable (for ConditionallyCompleteLinearOrderBot ι), using
+  the equivalence above and measurability of upperCrossingTime.
+  3) The upcrossingsBefore' is monotone (weakly) in the index set, i.e.,
+  for f : ι → κ monotone, upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω,
+  where v (f i) = u i. On finite ι, this follows from the equivalence above and
+  the upperCrossingTime_antimono_index_set proved in HittingTime.lean.
+  But as we shall compare upcrossingsBefore' on finite and countable sets T ⊆ ι,
+  we need to go through the UpcrossingData.
+  4) For a countable set T of indices ι (T : Set ι), we can approximate the upcrossingsBefore'
+  on T by upcrossingsBefore' on finite subsets of T; (monotone - by 3.) convergence.
+  5) The above is the sketch of the proof of Doob's upcrossing inequality on countable index sets.
+-/
