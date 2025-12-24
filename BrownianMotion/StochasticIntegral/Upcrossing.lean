@@ -189,12 +189,10 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
   have hsN : s < N := nondegenerate_of_hittingBtwn_lt f (Set.Ici b) s N ω ht_lt_N
   simp only [lowerCrossingTimeAux] at hs
   have hfs : f s ω ∈ Set.Iic a := hittingBtwn_mem_set_of_hittingBtwn_lt hsN
-  have hmN : m ≤ N := le_of_lt <| nondegenerate_of_hittingBtwn_lt f (Set.Iic a) m N ω hsN
-  have hms : m ≤ s := le_hittingBtwn hmN ω
-  have hst : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
-  have hsnt : s ≠ t := by intro hEq; grind
-  have hsltt : s < t := lt_of_le_of_ne hst hsnt
-  exact ⟨hms, hsltt, ht_lt_N, hfs, hft⟩
+  have hms : m ≤ s :=
+    le_hittingBtwn (le_of_lt <| nondegenerate_of_hittingBtwn_lt f (Set.Iic a) m N ω hsN) ω
+  have hsltt : s < t := lt_of_le_of_ne (le_hittingBtwn (le_of_lt hsN) ω) (by intro hEq; grind)
+  grind
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
