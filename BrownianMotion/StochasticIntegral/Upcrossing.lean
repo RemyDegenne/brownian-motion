@@ -200,6 +200,12 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
   This should streamline the proof of the equivalence between
   ltUpcrossingsBefore and upperCrossingTime < N.
 -/
+private lemma extend_UpcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) :
+    ∀ n (hseq : UpcrossingData a b f n ω),
+    upperCrossingTime a b f N (n + 1) ω < N →
+    ∃ hseq' : UpcrossingData a b f (n + 1) ω, hseq'.t n < N := by
+  sorry
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
@@ -310,7 +316,7 @@ TODO next:
   for f : ι → κ monotone, upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω,
   where v (f i) = u i. On finite ι, this follows from the equivalence above and
   the upperCrossingTime_antimono_index_set proved in HittingTime.lean.
-  But as we shall compare upcrossingsBefore' on finite and countable sets T ⊆ ι,
+  But as we shall compare upcrossingsBefore' on [Countable ι] and on finite subsets of it,
   we need to go through the UpcrossingData.
   4) For a countable set T of indices ι (T : Set ι), we can approximate the upcrossingsBefore'
   on T by upcrossingsBefore' on finite subsets of T; (monotone - by 3.) convergence.
