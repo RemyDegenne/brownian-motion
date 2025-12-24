@@ -318,8 +318,8 @@ TODO next:
   for f : ι → κ monotone, upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω,
   where v (f i) = u i. On finite ι, this follows from the equivalence above and
   the upperCrossingTime_antimono_index_set proved in HittingTime.lean.
-  But as we shall compare upcrossingsBefore' on [Countable ι] and on finite subsets of it,
-  we need to go through the UpcrossingData.
+  But as we shall compare upcrossingsBefore' on [Countable ι] (assumption as elsewhere;
+  omits [InfSet ι]) and on finite subsets of it, we need to go through the UpcrossingData.
   4) For a countable set T of indices ι (T : Set ι), we can approximate the upcrossingsBefore'
   on T by upcrossingsBefore' on finite subsets of T; (monotone - by 3.) convergence.
   5) The above is the sketch of the proof of Doob's upcrossing inequality on countable index sets.
