@@ -177,13 +177,14 @@ private lemma nondegenerate_of_hittingBtwn_lt [ConditionallyCompleteLinearOrderB
   grind
 
 private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
-    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω) (hab : a < b) :
-    hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N →
-    ∃ s t : ι, m ≤ s ∧ s < t ∧ t < N ∧ f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b := by
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N i : ι) (ω : Ω) (hab : a < b)
+    (hi : i = hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω) :
+    i < N → ∃ s t : ι, m ≤ s ∧ s < t ∧ t ≤ i ∧ f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b := by
   intro ht_lt_N
   set s := lowerCrossingTimeAux a f m N ω with hs
   set t := hittingBtwn f (Set.Ici b) s N ω with ht
   use s, t
+  rw [hi, ht] at ht_lt_N
   have hft : f t ω ∈ Set.Ici b := hittingBtwn_mem_set_of_hittingBtwn_lt ht_lt_N
   have hsN : s < N := nondegenerate_of_hittingBtwn_lt f (Set.Ici b) s N ω ht_lt_N
   simp only [lowerCrossingTimeAux] at hs
@@ -203,6 +204,7 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
 private lemma extend_UpcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) :
     ∀ n (hseq : UpcrossingData a b f n ω),
+    hseq.t (n - 1) ≤ upperCrossingTime a b f N n ω →
     upperCrossingTime a b f N (n + 1) ω < N →
     ∃ hseq' : UpcrossingData a b f (n + 1) ω, hseq'.t n < N := by
   sorry
