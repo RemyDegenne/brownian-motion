@@ -176,7 +176,6 @@ private lemma nondegenerate_of_hittingBtwn_lt [ConditionallyCompleteLinearOrderB
   have h := (hittingBtwn_lt_iff (i:=m) (le_refl m)).mp hl
   grind
 
-
 private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω) (hab : a < b) :
     hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N →
@@ -193,6 +192,14 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
     le_hittingBtwn (le_of_lt <| nondegenerate_of_hittingBtwn_lt f (Set.Iic a) m N ω hsN) ω
   have hsltt : s < t := lt_of_le_of_ne (le_hittingBtwn (le_of_lt hsN) ω) (by intro hEq; grind)
   grind
+
+/-! TODO next:
+  The inequality upperCrossingTime a b f N (n+1) ω < N
+  implies existence of two witnesses ≥ upperCrossingTime a b f N n ω,
+  so, given upcrossing data for n, we can extend it to n+1.
+  This should streamline the proof of the equivalence between
+  ltUpcrossingsBefore and upperCrossingTime < N.
+-/
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
