@@ -16,6 +16,7 @@ import BrownianMotion.Auxiliary.Metric
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Auxiliary.Nat
 import BrownianMotion.Auxiliary.Real
+import BrownianMotion.Auxiliary.SetAlgebra
 import BrownianMotion.Auxiliary.StoppedProcess
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
