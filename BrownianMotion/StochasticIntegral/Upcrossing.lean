@@ -88,6 +88,88 @@ def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : Upcro
     exact h.ft_ge_b i (by grind) hodd
 }
 
+def extend {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
+  (h : UpcrossingData a b f n ω)
+  (s t : ι)
+  (hu's : h.t (2 * n - 1) ≤ s)
+  (hst : s ≤ t)
+  (hfs : f s ω ∈ Set.Iic a)
+  (hft : f t ω ∈ Set.Ici b) :
+    UpcrossingData a b f (n + 1) ω :=
+{
+  hab := h.hab,
+  t := fun i => if i < 2 * n then h.t i else if i = 2 * n then s else t,
+  mono := by
+    intro i j hij
+    set u' := h.t (2 * n - 1) with hu'
+    have hu't : u' ≤ t := le_trans hu's hst
+    by_cases hi_n : i < 2 * n
+    · have hi_le_2n1 : i ≤ 2 * n - 1 := by grind
+      have hti_le_u' : h.t i ≤ u' := h.mono hi_le_2n1
+      by_cases hj_n : j < 2 * n
+      · -- both i,j < 2n: t i, t j
+        simp only [hi_n, hj_n, if_true, if_true]
+        exact h.mono hij
+      · by_cases hj_eq : j = 2 * n
+        · -- i < 2n, j = 2n: t i, s
+          grind
+          -- simp only [hi_n, hj_eq, if_true]; simp
+          -- exact le_trans hti_le_u' hu's
+        · -- i < 2n < j: t i, t
+          grind
+          -- simp only [hi_n, hj_n, hj_eq, if_true, if_false]
+          -- exact le_trans hti_le_u' hu't
+    · -- 2n ≤ i ≤ j
+      have hj_n : ¬j < 2 * n := by grind
+      simp only [hi_n, hj_n]; simp
+      by_cases hi_eq : i = 2 * n
+      · -- i = 2n
+        simp only [hi_eq, if_true]
+        by_cases hj_eq : j = 2 * n
+        · -- i = 2n = j
+          simp only [hj_eq, if_true];
+          exact le_refl s
+        · -- i = 2n < j
+          simp only [hj_eq, if_false];
+          exact hst
+      · -- 2n < i ≤ j
+        simp only [hi_eq, if_false];
+        by_cases hj_eq : j = 2 * n
+        · -- i > 2n = j -- impossible
+          have hnj : ¬j = 2 * n := by grind
+          simp only [hj_eq, if_true] at hnj
+          contradiction
+        · -- 2n < i < j: t, t
+          simp only [hj_eq, if_false];
+          exact le_refl t,
+  ft_le_a := by
+    intro i hi heven
+    by_cases hi_n : i < 2 * n
+    · simp only [hi_n, if_true]
+      exact h.ft_le_a i (by grind) heven
+    · simp only [hi_n, if_false]
+      by_cases hi_eq : i = 2 * n
+      · -- i = 2n
+        simp only [hi_eq, if_true]
+        exact hfs
+      · -- i > 2n
+        -- have hi2n1 : i = 2 * n + 1 := by grind
+        have : ¬Even i := by grind
+        contradiction,
+  ft_ge_b := by
+    intro i hi hodd
+    by_cases hi_n : i < 2 * n
+    · simp only [hi_n, if_true]
+      exact h.ft_ge_b i (by grind) hodd
+    · simp only [hi_n, if_false]
+      by_cases hi_eq : i = 2 * n
+      · -- i = 2n -- impossible
+        have : ¬Odd i := by grind
+        contradiction
+      · -- i > 2n
+        simp only [hi_eq, if_false]
+        exact hft
+}
 
 end UpcrossingData
 
@@ -138,15 +220,21 @@ noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
+lemma upperCrossingTime_lt_bot_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : N ≤ ⊥) :
+    ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
+  simp only [ltUpcrossingsBefore, hN, if_true];
+  have : upperCrossingTime a b f N n ω ≥ ⊥ := bot_le
+  grind
+
+
 lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
     ltUpcrossingsBefore a b f N n ω → upperCrossingTime a b f N n ω < N := by
   by_cases h : N ≤ ⊥
-  · have : ⊥ ≤ N := OrderBot.bot_le N
-    have hNbot : N = ⊥ := le_antisymm h this
-    subst hNbot
-    simp only [ltUpcrossingsBefore]; simp
+  · exact (upperCrossingTime_lt_bot_iff_ltUpcrossingsBefore a b f N n ω h).mp
   · simp only [ltUpcrossingsBefore, h, if_false]
     by_cases hnzero : n = 0
     · -- n = 0 case
@@ -158,7 +246,7 @@ lemma upperCrossingTime_lt_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOr
       cases n with
       | zero => contradiction
       | succ m =>
-          have ht_le_N : hseq.t m ≤ N := le_of_lt ht_lt_N
+          have ht_le_N : hseq.t (2 * m + 1) ≤ N := le_of_lt ht_lt_N
           simpa using upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ht_le_N
 
 private lemma nondegenerate_of_hittingBtwn_lt [ConditionallyCompleteLinearOrderBot ι]
@@ -171,7 +259,9 @@ private lemma nondegenerate_of_hittingBtwn_lt [ConditionallyCompleteLinearOrderB
 private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω) :
     hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N →
-    ∃ s t : ι, m ≤ s ∧ s ≤ t ∧ t < N ∧ f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b := by
+    ∃ s t : ι, m ≤ s ∧ s ≤ t
+    ∧ t ≤ hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω
+    ∧ f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b := by
   intro ht_lt_N
   set s := lowerCrossingTimeAux a f m N ω with hs
   set t := hittingBtwn f (Set.Ici b) s N ω with ht
@@ -197,19 +287,38 @@ lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinear
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
   ∀ n (hup : upperCrossingTime a b f N (n+1) ω < N),
     ∀ (hseq : UpcrossingData a b f n ω),
+      hseq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω →
       ∃ hseq' : UpcrossingData a b f (n+1) ω,
-        hseq'.toShorter = hseq ∧ hseq'.t n < N := by
-  intro n hup hseq
+        hseq'.toShorter = hseq ∧
+        hseq'.t (2 * n + 1) ≤ upperCrossingTime a b f N (n+1) ω := by
+  intro n hup hseq htu'
   set u' := upperCrossingTime a b f N n ω with hu'
-  set s := hseq.s n with hs
-  set t := hseq.t n with ht
-  have ht_lt_N : hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f u' N ω) N ω < N :=
+  set s := hseq.t (2 * n - 2) with hs
+  set t := hseq.t (2 * n - 1) with ht
+  set u := upperCrossingTime a b f N (n + 1) ω with hu
+  have hu_lt_N : hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f u' N ω) N ω < N :=
     by simpa [upperCrossingTime] using hup
-  rcases upcrossingData_of_upperCrossingTime_lt a b f u' N ω ht_lt_N with
-    ⟨s', t', hu's', hst', httN', hfs', hft'⟩
+  rcases upcrossingData_of_upperCrossingTime_lt a b f u' N ω hu_lt_N with
+    ⟨s', t', hu's', hst', ht'u, hfs', hft'⟩
+  -- have hts' : t  ≤ s' := le_hittingBtwn (le_of_lt <| nondegenerate_of_hittingBtwn_lt f (Set.Iic a) t N ω hfs') ω
+  have hu's' : u' ≤ s' := hu's'
+  have hst'  : s' ≤ t' := hst'
+  have ht'u  : t' ≤ u  := ht'u
   let hseq' : UpcrossingData a b f (n + 1) ω :=
   { hab := hseq.hab,
-    s := fun i => if i < n then hseq.s i else s',
+    t := fun i => if i < 2 * n then hseq.t i else if i = 2 * n then s' else t',
+    mono := by
+      intro i j hij
+      by_cases hi_n : i < 2 * n
+      · by_cases hj_n : j < 2 * n
+        · -- both i,j < 2n
+          simp only [hi_n, hj_n, if_true, if_true]
+          exact hseq.mono hij
+        · by_cases hj_eq : j = 2 * n
+          · -- i < 2n, j = 2n
+            simp only [hi_n, hj_n, hj_eq, if_true, if_false]; simp
+
+
     t := fun i => if i < n then hseq.t i else t',
     si_le_ti := sorry -- fun i hi => by_cases hi_n : i < n <;> simp [hi_n, hseq.si_le_ti, hst']
     fs_le_a := by
@@ -251,6 +360,43 @@ lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinear
     · simp only [hi_n, if_true]
     · simp only [hi_n, if_false]
   exact httN'
+-/
+
+lemma ltUpcrossingsBefore_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
+    upperCrossingTime a b f N n ω < N → ltUpcrossingsBefore a b f N n ω := by
+  by_cases h : N ≤ ⊥
+  · exact (upperCrossingTime_lt_bot_iff_ltUpcrossingsBefore a b f N n ω h).mpr
+  · simp only [ltUpcrossingsBefore, h, if_false]
+    by_cases hnzero : n = 0
+    · -- n = 0 case
+      subst hnzero; simp_all
+    · -- n ≥ 1 case
+      simp only [if_neg hnzero]
+      intro hup
+      induction n with
+      | zero => contradiction
+      | succ m ih =>
+          have hupm : upperCrossingTime a b f N (m + 1) ω < N := hup
+          have ih' := ih hupm
+          rcases ih' with ⟨hseq, ht_lt_N⟩
+          rcases upcrossingData_of_upperCrossingTime_lt a b f (upperCrossingTime a b f N m ω) N ω hup with
+            ⟨s, t, hu's, hst, httN, hfs, hft⟩
+          let hseq' : UpcrossingData a b f (m + 1) ω :=
+          { hab := hseq.hab,
+            t := fun i => if i < 2 * m then hseq.t i else if i = 2 * m then s else t,
+            mono := by
+              intro i j hij
+              by_cases hi_m : i < 2 * m
+              · by_cases hj_m : j < 2 * m
+                · -- both i,j < 2m
+                  simp only [hi_m, hj_m, if_true, if_true]
+                  exact hseq.mono hij
+                · by_cases hj_eq : j = 2 * m
+                  · -- i < 2m, j = 2m
+                    simp only [hi_m, hj_m, hj_eq, if_true, if_false, if_true]
+
 
 /-
   Equivalent definition that skips `[InfSet ι]`:
@@ -342,4 +488,6 @@ TODO next:
   4) For a countable set T of indices ι (T : Set ι), we can approximate the upcrossingsBefore'
   on T by upcrossingsBefore' on finite subsets of T; (monotone - by 3.) convergence.
   5) The above is the sketch of the proof of Doob's upcrossing inequality on countable index sets.
+-/
+
 -/
