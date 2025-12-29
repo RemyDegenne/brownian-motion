@@ -101,74 +101,30 @@ def extend {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
   t := fun i => if i < 2 * n then h.t i else if i = 2 * n then s else t,
   mono := by
     intro i j hij
-    set u' := h.t (2 * n - 1) with hu'
-    have hu't : u' ≤ t := le_trans hu's hst
     by_cases hi_n : i < 2 * n
     · have hi_le_2n1 : i ≤ 2 * n - 1 := by grind
-      have hti_le_u' : h.t i ≤ u' := h.mono hi_le_2n1
+      have hti_le_u' : h.t i ≤ h.t (2 * n - 1) := h.mono hi_le_2n1
       by_cases hj_n : j < 2 * n
-      · -- both i,j < 2n: t i, t j
-        simp only [hi_n, hj_n, if_true, if_true]
+      · simp only [hi_n, hj_n, if_true, if_true]
         exact h.mono hij
       · by_cases hj_eq : j = 2 * n
-        · -- i < 2n, j = 2n: t i, s
-          grind
-          -- simp only [hi_n, hj_eq, if_true]; simp
-          -- exact le_trans hti_le_u' hu's
-        · -- i < 2n < j: t i, t
-          grind
-          -- simp only [hi_n, hj_n, hj_eq, if_true, if_false]
-          -- exact le_trans hti_le_u' hu't
-    · -- 2n ≤ i ≤ j
-      have hj_n : ¬j < 2 * n := by grind
-      simp only [hi_n, hj_n]; simp
-      by_cases hi_eq : i = 2 * n
-      · -- i = 2n
-        simp only [hi_eq, if_true]
-        by_cases hj_eq : j = 2 * n
-        · -- i = 2n = j
-          simp only [hj_eq, if_true];
-          exact le_refl s
-        · -- i = 2n < j
-          simp only [hj_eq, if_false];
-          exact hst
-      · -- 2n < i ≤ j
-        simp only [hi_eq, if_false];
-        by_cases hj_eq : j = 2 * n
-        · -- i > 2n = j -- impossible
-          have hnj : ¬j = 2 * n := by grind
-          simp only [hj_eq, if_true] at hnj
-          contradiction
-        · -- 2n < i < j: t, t
-          simp only [hj_eq, if_false];
-          exact le_refl t,
+        · grind
+        · grind
+    · grind,
   ft_le_a := by
     intro i hi heven
     by_cases hi_n : i < 2 * n
     · simp only [hi_n, if_true]
       exact h.ft_le_a i (by grind) heven
     · simp only [hi_n, if_false]
-      by_cases hi_eq : i = 2 * n
-      · -- i = 2n
-        simp only [hi_eq, if_true]
-        exact hfs
-      · -- i > 2n
-        -- have hi2n1 : i = 2 * n + 1 := by grind
-        have : ¬Even i := by grind
-        contradiction,
+      grind
   ft_ge_b := by
     intro i hi hodd
     by_cases hi_n : i < 2 * n
     · simp only [hi_n, if_true]
       exact h.ft_ge_b i (by grind) hodd
     · simp only [hi_n, if_false]
-      by_cases hi_eq : i = 2 * n
-      · -- i = 2n -- impossible
-        have : ¬Odd i := by grind
-        contradiction
-      · -- i > 2n
-        simp only [hi_eq, if_false]
-        exact hft
+      grind
 }
 
 end UpcrossingData
