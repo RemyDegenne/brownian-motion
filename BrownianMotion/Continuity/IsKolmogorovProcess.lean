@@ -7,9 +7,9 @@ import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
-import BrownianMotion.Continuity.LogSizeBallSequence
 import Mathlib.Order.CompleteLattice.Group
 import Mathlib.Probability.Process.Kolmogorov
+import Mathlib.Topology.EMetricSpace.PairReduction
 
 /-!
 # Stochastic processes satisfying the Kolmogorov condition
@@ -108,10 +108,10 @@ lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hX : IsAEKolmogorovProcess X P 
 
 lemma lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le
     (hX : IsAEKolmogorovProcess X P p q M) {J : Finset T} {a c : ℝ≥0∞} {n : ℕ}
-    (hJ_card : #J ≤ a ^ n) (ha : 1 < a) :
+    (hJ_card : #J ≤ a ^ n) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ c }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ p * a * #J * M * (c * n) ^ q := by
-  obtain ⟨K, ⟨-, _, hKeps, hKle⟩⟩ := pair_reduction J hJ_card ha E
+  obtain ⟨K, ⟨-, _, hKeps, hKle⟩⟩ := EMetric.pair_reduction hJ_card c E
   calc
     _ = ∫⁻ ω, (⨆ (s : J) (t : { t : J // edist s t ≤ c}), edist (X s ω) (X t ω)) ^ p ∂P := ?_
     _ ≤ ∫⁻ ω, (2 * ⨆ p : K, edist (X p.1.1 ω) (X p.1.2 ω)) ^ p ∂P := ?_
@@ -159,7 +159,7 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le
   have h₁ : rbar ≤ 2 * Nat.log2 #C := by
     suffices 1 ≤ Nat.log2 #C by omega
     rw [Nat.le_log2] <;> omega
-  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀' (by norm_num)).trans ?_
+  refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀').trans ?_
   simp only [← hC_card, ENat.toNat_coe, ENat.toENNReal_coe]
   calc 2 ^ p * 2 * #C * M * (c * rbar) ^ q = 2 ^ (p + 1) * M * (c * rbar) ^ q * #C := ?_
     _ ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 #C) ^ q * #C := ?_

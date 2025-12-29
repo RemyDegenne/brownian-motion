@@ -2,6 +2,12 @@ import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.LinearAlgebra.Matrix.PosDef
 
+lemma sum_single_apply {ι : Type*} (φ : ι → Type*) [∀ i, AddCommMonoid (φ i)] [Fintype ι]
+    [DecidableEq ι] (v : (i : ι) → φ i) :
+    ∑ i, Pi.single i (v i) = v := by
+  ext i
+  simp
+
 lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [Fintype n] [CommRing R] [PartialOrder R]
     [StarRing R] {M : Matrix n n R} (hM : M.PosSemidef) (i : n) : 0 ≤ M i i := by
   classical
@@ -78,10 +84,14 @@ lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGro
     [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : StrongDual 𝕜 E) :
   inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
 
+lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike 𝕜]
+    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E] (x : E) :
+  InnerProductSpace.toDual 𝕜 E x = InnerProductSpace.toDualMap 𝕜 E x := rfl
+
 theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : StrongDual ℝ E) :
     ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
-  have := FiniteDimensional.of_fintype_basis b.toBasis
+  have := Module.Basis.finiteDimensional_of_finite b.toBasis
   simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
     InnerProductSpace.toDual_symm_apply]
 

@@ -2,81 +2,183 @@
 \label{chap:doob_meyer}
 
 
-\section{Doob-Meyer}
+This chapter starts with a short review of the properties of the Doob decomposition of an adapted process indexed on a discrete set, and then follows \cite{Beiglböck_Schachermayer_Veliyev_2012} which gives an elementary and short proof of the Doob-Meyer theorem.
 
-This chapter follows \cite{Beiglböck_Schachermayer_Veliyev_2012}
-which gives an elementary and short proof of the result.
-\begin{definition}\label{def:Doob_Meyer_class}
-$D$ is the class of all adapted processes $(S_t )_{0\leq t\leq T}$ such that $S_\tau$ is uniformly integrable w.r.t. any stopping time $\tau$.
+
+\section{Doob decomposition in discrete time}
+
+
+\begin{definition}\label{def:predictablePart}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
+The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined for $n \ge 0$ by
+$$A_n = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k].$$
 \end{definition}
 
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_left}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale. There exists a negligible event $N$ such that, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^-}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite for every $\omega\in\Omega\setminus N$. Where $\mathcal{D}$ are the dyadics.
+In what follows, we fix a process $X : \mathbb{N} \to \Omega \to E$ and a filtration $(\mathcal{F}_n)_{n \in \mathbb{N}}$, and denote by $A$ the predictable part of $X$.
+
+\begin{lemma}\label{lem:predictablePart_zero}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart_zero}
+We have $A_0 = 0$.
 \end{lemma}
-\begin{proof}
-  See 8.2.1 of Pascucci.
+
+\begin{proof}\leanok
+
 \end{proof}
 
-\begin{lemma}\label{lem:martingale_exists_dyadic_limit_right}
-  Let $X=(X_t)_{t\in\mathcal{D}}$ be a martingale. There exists a negligible event $N$ such that, for every $t\geq 0$ the limit
-  $$
-  \lim_{\stackrel{s\rightarrow t^+}{s\in\mathcal{D}}}X_s(\omega)
-  $$
-  exists and is finite for every $\omega\in\Omega\setminus N$. Where $\mathcal{D}$ are the dyadics.
+\begin{lemma}\label{lem:predictablePart_add_one}
+  \uses{def:predictablePart}
+  \leanok
+  \lean{MeasureTheory.predictablePart_add_one}
+For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
 \end{lemma}
-\begin{proof}
-  See 8.2.1 of Pascucci.
+
+\begin{proof}\leanok
+  \uses{def:predictablePart}
+Let $n \in \mathbb{N}$. Then
+\begin{align*}
+  A_{n+1}
+  & = \sum_{k=0}^n \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] \\
+  & = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] + \mathbb{E}[X_{n+1}-X_n \mid \mathcal{F}_n] \\
+  & = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n],
+\end{align*}
+which concludes the proof.
 \end{proof}
 
-\begin{lemma}\label{lem:mg_is_cadlag}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every martingale $X$ admits a modification that is still a martingale with cadlag trajectories.
+\begin{lemma}\label{lem:adapted_predictablePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.adapted_predictablePart}
+The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \in \mathbb{N}}$.
 \end{lemma}
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,em:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
+
+\begin{proof}\mathlibok
+
 \end{proof}
 
-\begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
+\begin{definition}\label{def:martingalePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.martingalePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$ and let $A$ be the predictable part of $X$ for that filtration.
+The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defined by $M_n = X_n - A_n$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_predictablePart}
+  \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.isPredictable_predictablePart}
+The predictable part of a process is predictable.
 \end{lemma}
-\begin{proof}
-  \uses{lem:martingale_exists_dyadic_limit_right,em:martingale_exists_dyadic_limit_left}
-  See 8.2.3 of Pascucci.
+
+\begin{proof}\leanok
+  \uses{lem:predictable_nat_iff, lem:predictablePart_zero, lem:adapted_predictablePart}
+By Lemma~\ref{lem:predictable_nat_iff}, the process $A$ is predictable if $A_0$ is $\mathcal{F}_0$-measurable and for all integer $n$, $A_{n+1}$ is $\mathcal{F}_n$-measurable. As $A_0 = 0$ from Lemma~\ref{lem:predictablePart_zero}, it is $\mathcal{F}_0$-measurable. Lemma~\ref{lem:adapted_predictablePart} allows to conclude the proof.
 \end{proof}
 
-\begin{lemma}\label{lem:exists_cadlag_mod_of_local_mg}
-  Let the filtered probability space satisfy the usual conditions.
-  Then every local martingale $X$ admits a modification that is still a local martingale with cadlag trajectories.
+
+\begin{lemma}\label{lem:martingale_martingalePart}
+  \uses{def:martingalePart, def:Martingale}
+  \mathlibok
+  \lean{MeasureTheory.martingale_martingalePart}
+Suppose that the filtration is sigma-finite.
+Then the martingale part of an adapted process $X$ such that $X_n$ is integrable for all $n$ is a martingale.
 \end{lemma}
-\begin{proof}
-  \uses{lem:mg_is_cadlag}
+
+\begin{proof}\leanok
+
 \end{proof}
 
-Firstly we will need Komlos' Lemma
+
+\begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
+  \uses{def:predictablePart, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
+The predictable part of a real-valued submartingale is an almost surely nondecreasing process.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
+Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
+\begin{align*}
+  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
+  &\ge A_n
+  \: .
+\end{align*}
+The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
+Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
+\end{proof}
+
+
+
+
+\section{Komlòs Lemma}
+
+
+Firstly we will need Komlos' Lemma.
 %technically a more general version with Cesaro sums exists, but it is not needed for this case
 %(see "J. Komlòs, A generalization of a problem of Steinhaus, Acta Math. Acad. Sci. Hungar. 18 (1967) 217–229").
 
-\begin{lemma}\label{lem:komlos_aux}
-  Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
+\begin{lemma}\label{lem:komlos_convex}
+  \leanok
+  \lean{komlos_convex}
+Let $(f_n)_{n\in\mathbb{N}}$ be a sequence in a vector space $E$ and $\phi : E \to \mathbb{R}_+$ be a function such that $\phi(f_n)$ is a bounded sequence.
+For $\delta > 0$, let $S_\delta = \{(f, g) \mid \phi(f)/2 + \phi(g)/2 - \phi((f+g)/2) \ge \delta\}$.
+Then there exist $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for all $\delta > 0$, for $N$ large enough and $n, m \ge N$, $(g_n, g_m) \notin S_\delta$.
 \end{lemma}
+
 \begin{proof}
-  Let $r_n = \inf(\|g\|_2:g\in convex(f_n, f_{n+1},\ldots))$.
-  Let $A=\sup_{n\geq1} r_n$. $A$ is finite by boundedness of $(f_n)_{n\in\mathbb{N}}$ and
-  for each $n$ we  may pick some $g_n\in convex(f_n, f_{n+1},\ldots)$ such that $ \|g_n\|_2\leq A+1/n$ by $\inf$ and $\sup$ definitions.
-  Let $\epsilon>0$.
-  By construction $(r_n)_{n\in\mathbb{N}}$ is increasing. By properties of $\sup$ there exists $\bar{n}$ such that $r_{\bar{n}}\geq A-\epsilon$ and such that $\frac{1}{\bar{n}}\leq\epsilon$.
-  Let $m\geq k\geq \bar{n}$. $(g_k+g_m)/2 \in convex(f_k,f_{k+1},\ldots)$. It follows since $(r_n)_{n\in\mathbb{N}}$ is increasing that
-  $\|(g_k+g_m)/2\|_2\geq A-\epsilon$.
-  Hence due to the ordering of $m,k,\bar{n}$
-  $$ \|g_k-g_m\|_2^2=2 \|g_k\|_2^2+2\|g_m\|_2^2- \|g_k+g_m\|_2^2
-  \leq 4(A+\frac{1}{\bar{n}})^2-4(A-\epsilon)^2\leq 16A\epsilon.$$ By completeness, $(g_n)_{n\geq1}$  converges in $\|.\|_2$.
+  \leanok
+Let $B$ be the bound of $(\phi(f_n))_{n\in\mathbb{N}}$.
+Then for all $n\in\mathbb{N}$ and $g\in convex(f_n,f_{n+1},\cdots)$ we have $\phi(g)\le B$ by convexity of $\phi$.
+Let $r_n = \inf(\phi(g) \mid g\in convex(f_n, f_{n+1},\ldots))$.
+By construction $(r_n)_{n\in\mathbb{N}}$ is nondecreasing.
+Let $A = \sup_{n \ge 1} r_n$, which is finite (as $A \le B$) and for each $n$ we may pick some $g_n\in convex(f_n, f_{n+1},\ldots)$ such that $\phi(g_n) \le A+1/n$ by $\inf$ and $\sup$ definitions.
+
+Let $\varepsilon \in (0, \delta/4)$.
+By properties of $\sup$ there exists $\bar{n}$ such that $r_{\bar{n}} \ge A-\varepsilon$ and such that $\frac{1}{\bar{n}} \le \varepsilon$.
+Let $m \ge k \ge \bar{n}$.
+We have $(g_k+g_m)/2 \in convex(f_k,f_{k+1},\ldots)$ and it follows since $(r_n)_{n\in\mathbb{N}}$ is nondecreasing that $\phi((g_k+g_m)/2) \ge A - \varepsilon$.
+Hence due to the ordering of $m,k,\bar{n}$,
+\begin{align*}
+  \phi(g_k)/2 + \phi(g_m)/2 - \phi((g_k+g_m)/2)
+  &\le 2(A + \frac{1}{\bar{n}}) - 2(A - \varepsilon)
+  \\
+  &\le 4 \varepsilon
+  \\
+  &< \delta
+  \: .
+\end{align*}
+Thus, for $n, m \ge \bar{n}$, $(g_n, g_m) \notin S_\delta$.
 \end{proof}
+
+
+\begin{lemma}\label{lem:komlos_aux}
+  \leanok
+  \lean{komlos_norm}
+Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:komlos_convex}
+Consider $\phi : H \to \mathbb{R}_+$ defined by $\phi(f) = \|f\|_2^2$, which is convex.
+Then Lemma \ref{lem:komlos_convex} applied to $(f_n)_{n\in\mathbb{N}}$ and $\phi$ gives us functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for every $\delta>0$ there exists $N$ such that for $n,m\geq N$, $(g_n,g_m)\notin S_\delta$.
+Thus for every $\delta>0$ there exists $N$ such that for $n,m\geq N$,
+\begin{align*}
+  \|g_n\|_2^2/2 + \|g_m\|_2^2/2 - \|(g_n+g_m)/2\|_2^2
+  &< \delta
+  \: .
+\end{align*}
+But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram identity, hence $(g_n)_{n\in\mathbb{N}}$ is a Cauchy sequence in $H$ and thus converges in $H$ by completeness.
+\end{proof}
+
 
 \begin{lemma}\label{lem:convex_of_converg_seq_is_converg}
   Let $X$ be a normed vector space (over $\mathbb{R}$).
@@ -86,6 +188,7 @@ Firstly we will need Komlos' Lemma
   Let $(a_{n,m})_{n\in\mathbb{N},m\in\left\lbrace n,\cdots,N_n\right\rbrace}$ be a triangular array in $\mathbb{R}$ such that $0\leq a_{n,m}\leq 1$ and $\sum_{m=n}^{N_n}a_{n,m}=1$.
   Then $(\sum_{m=n}^{N_n}a_{n,m}x_m)_{n\in\mathbb{N}}$ converges to $x$ uniformly w.r.t. the triangular array.
 \end{lemma}
+
 \begin{proof}
   Let $\epsilon>0$.
   By convergence of $x_n$ we have $\exists \bar{n}$ such that $\forall n\geq\bar{n}$ $|x_n-x|\leq \epsilon$.
@@ -95,12 +198,14 @@ Firstly we will need Komlos' Lemma
   $$
 \end{proof}
 
+
 \begin{lemma}\label{lem:komlos_convex_aux}
   For $i,n\in\mathbb{N}$ set $f_{n}^{(i)}:=f_n \mathbb{1}_{(|f_n|\leq i)}$ such that $f_{n}^{(i)}\in L^2$.
   There exists the sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
   $ (\lambda_n^{n} f_n^{(i)} + \ldots+\lambda_{N_n}^{n} f_{N_n}^{(i)})_{n\in\mathbb{N}}$
   converge in $L^2$ for every $i\in\mathbb{N}$ uniformly.
 \end{lemma}
+
 \begin{proof}
   \uses{lem:komlos_aux, lem:convex_of_converg_seq_is_converg}
   Firstly by lemma \ref{lem:komlos_aux} over $(f_n^{(1)})_{n\in\mathbb{N}}$ there exist convex weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$ such that
@@ -115,10 +220,12 @@ Firstly we will need Komlos' Lemma
   (this works by lemma \ref{lem:convex_of_converg_seq_is_converg} uniformity of convergence w.r.t. triangular array) this concludes.
 \end{proof}
 
+
 \begin{lemma}[Komlòs Lemma]\label{lem:komlos}
   Let $( f_n)_{n\in\mathbb{N}}$ be a uniformly integrable sequence of functions on a probability space $(\Omega , \mathcal{F} , P)$.
   Then there exist functions $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in  $L^1 (\Omega )$.
 \end{lemma}
+
 \begin{proof}
   \uses{lem:komlos_convex_aux}
   For $i,n\in\mathbb{N}$ set $f_{n}^{(i)}:=f_n \mathbb{1}_{(|f_n|\leq i)}$ such that $f_{n}^{(i)}\in L^2$.
@@ -130,54 +237,194 @@ Firstly we will need Komlos' Lemma
   Thus $(\lambda_n^{n} f_n + \ldots+\lambda_{N_n}^{n} f_{N_n})_{n\geq 1}$  is a Cauchy sequence in $L^1$.
 \end{proof}
 
-For uniqueness of Doob-Meyer Decomposition we will need theorem \ref{thm:IsLocalMartingale.eq_zero_of_finiteVariation}.
 
-We now start the construction for the existence part, fix $T>0$, let $\mathcal{D}_n^T=\left\lbrace \frac{k}{2^n}T,\quad k=0,\cdots 2^n\right\rbrace$. Define $A_0=0$ and for $t\in\mathcal{D}_n^T$
+\paragraph{Komlòs lemma for nonnegative random variables}
+
+\begin{lemma}\label{lem:komlos_ennreal}
+  \leanok
+  \lean{komlos_ennreal}
+Let $(f_n)_{n\in\mathbb{N}}$ be a sequence of random variables with values in $[0, \infty]$.
+Then there exist random variables $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges almost surely to a random variable $g$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:komlos_convex}
+Let $\phi : (\Omega \to [0, \infty]) \to [0, \infty]$ be defined by $\phi(X) = \mathbb{E}[e^{-X}]$.
+Then $\phi$ is convex and $\phi(f_n) \le 1$ for all $n$.
+By Lemma~\ref{lem:komlos_convex}, there exist $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that for all $\delta>0$, for $N$ large enough and $n, m \ge N$,
 \begin{align*}
-A^n_t&=A^n_{t-T2^{-n}} + \mathbb{E}\left[ S_t-S_{t-T2^{-n}}|\mathcal{F}_{t-T2^{-n}}\right],\\
-M^N_t&=S_t-A^n_t.
+  \mathbb{E}[e^{-g_n}]/2 + \mathbb{E}[e^{-g_m}]/2 - \mathbb{E}[e^{-(g_n + g_m)/2}] < \delta
+  \: .
 \end{align*}
 
+For $\varepsilon > 0$, let $B_\varepsilon = \{(x, y) \in [0, \infty]^2 \mid \vert x - y \vert \ge \varepsilon \text{ and } \min\{x, y\} \le 1/\varepsilon \}$.
+Then for all $x, y$,
+\begin{align*}
+  \left\vert e^{-x} - e^{-y} \right\vert
+  &\le \varepsilon + 2 e^{-1/\varepsilon} + 2 \mathbb{1}_{B_\varepsilon}(x, y)
+  \: .
+\end{align*}
+Hence for any pair of random variables $(X, Y)$ with values in $[0, \infty]$,
+\begin{align*}
+  \mathbb{E}\left[\left\vert e^{-X} - e^{-Y} \right\vert\right]
+  &\le \varepsilon + 2 e^{-1/\varepsilon} + 2 P((X, Y) \in B_\varepsilon) \: .
+\end{align*}
+On the other hand, for $(x, y) \in B_\varepsilon$, there exists $\delta_\varepsilon > 0$ such that
+\begin{align*}
+  e^{-x}/2 + e^{-y}/2 - e^{-(x + y)/2} \ge \delta_\varepsilon
+  \: .
+\end{align*}
+Thus,
+\begin{align*}
+  P((X, Y) \in B_\varepsilon)
+  &\le \frac{1}{\delta_\varepsilon} \mathbb{E}\left[ e^{-X}/2 + e^{-Y}/2 - e^{-(X + Y)/2} \right]
+  \: .
+\end{align*}
+For $n, m \ge N$ large enough so that we can apply the first inequality of this proof with $\delta = \varepsilon \delta_\varepsilon$, we deduce that
+\begin{align*}
+  \mathbb{E}\left[\left\vert e^{-g_n} - e^{-g_m} \right\vert\right]
+  &\le \varepsilon + 2 e^{-1/\varepsilon} + \frac{2}{\delta_\varepsilon} \mathbb{E}\left[ e^{-g_n}/2 + e^{-g_m}/2 - e^{-(g_n + g_m)/2} \right] \\
+  &\le \varepsilon + 2 e^{-1/\varepsilon} + 2 \varepsilon
+  \: .
+\end{align*}
+As $\varepsilon$ is arbitrary, we deduce that $(e^{-g_n})_{n\in\mathbb{N}}$ is a Cauchy sequence in $L^1$ and thus converges in $L^1$ to some random variable $h$.
+Therefore, it has a subsequence $(e^{-g_{n_k}})_{k\in\mathbb{N}}$ converging almost surely to $h$.
+Finally, the subsequence of $g_n$ converges almost surely to $g = -\log(h)$.
+\end{proof}
+
+
+\section{Doob-Meyer decomposition}
+
+
+
+For uniqueness of Doob-Meyer Decomposition we will need theorem \ref{thm:IsLocalMartingale.eq_zero_of_finiteVariation}.
+
+We now start the construction for the existence part.
+Let $T>0$ and recall that $\mathcal{D}_n^T=\left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$.
+
+TODO: everywhere below, $S$ is a cadlag submartingale of class D on $[0,T]$?
+
+
+\begin{definition}[A]\label{def:A}
+  \uses{def:dyadics, def:predictablePart}
+Define $A_0=0$ and for $t\in\mathcal{D}_n^T$ positive,
+\begin{align*}
+A^n_t
+&=A^n_{t-T2^{-n}} + \mathbb{E}\left[ S_t-S_{t-T2^{-n}}|\mathcal{F}_{t-T2^{-n}}\right]
+\: .
+\end{align*}
+\end{definition}
+
+
+\begin{definition}[M]\label{def:M}
+  \uses{def:A, def:martingalePart}
+For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
+\end{definition}
+
+
 \begin{lemma}\label{lem:Doob_Meyer_Finite_Predictable}
+  \uses{def:A, def:predictable}
   $(A^n_t)_{t\in\mathcal{D}_n^T}$ is a predictable process.
 \end{lemma}
+
 \begin{proof}
+  \uses{lem:predictable_nat_iff, lem:predictable_predictablePart}
   Trivial
 \end{proof}
+
 
 \begin{lemma}\label{lem:Doob_Meyer_Finite_Martingale}
+  \uses{def:M, def:Martingale}
   $(M^n_t)_{t\in\mathcal{D}_n^T}$ is a martingale.
 \end{lemma}
+
 \begin{proof}
+  \uses{lem:martingale_martingalePart}
   Trivial
 \end{proof}
 
+
 \begin{lemma}\label{lem:Predict_Part_Increasing}
+  \uses{def:A}
   $(A^n_t)_{t\in\mathcal{D}_n^T}$ is an increasing process.
 \end{lemma}
+
 \begin{proof}
-  $S$ is a submartingale.
+  \uses{def:Submartingale, lem:nondecreasing_predictablePart_of_submartingale}
+$S$ is a submartingale:
+\begin{align*}
+  A^n_{t+T2^{-n}} - A^n_t
+  &= \mathbb{E}\left[ S_{t+T2^{-n}}-S_t|\mathcal{F}_t\right] \ge 0
+  \: .
+\end{align*}
 \end{proof}
 
-\begin{lemma}\label{lem:A_uniform_integrabl}
-  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale}
+
+\begin{definition}[Hitting time for $A$]\label{def:hittingAGT}
+  \uses{def:A}
+Let $c>0$. Define the hitting time on $\mathcal{D}^T_n$
+\begin{align*}
+  \tau_n(c)
+  &= \inf\{t \in \mathcal{D}^T_n \mid A^n_{t + 2^{-n}T} > c\} \wedge T
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsStoppingTime_hittingAGT}
+  \uses{def:IsStoppingTime,def:hittingAGT}
+  $\tau_n(c)$ is a stopping time.
+\end{lemma}
+
+\begin{proof}
+Since $A^n_{t}$ is predictable, $A^n_{t + 2^{-n}T}$ is adapted.
+The hitting time of an adapted process is a stopping time (we use the discrete time version of that result here, not the full Début theorem).
+\end{proof}
+
+
+\begin{lemma}\label{lem:A_hittingAGT_le}
+  \uses{def:hittingAGT}
+$A^n_{\tau_n(c)} \le c$ and if $\tau_n(c) < T$ then $A^n_{\tau_n(c)+T2^{-n}} > c$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:A_hittingAGT_sub_ge}
+  \uses{def:hittingAGT}
+Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} - A^n_{\tau_n(a)} \ge b - a$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:A_hittingAGT_le}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:A_uniform_integrable}
+  \uses{def:A}
   The sequence $(A^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
+
 \begin{proof}
+  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale,lem:IsStoppingTime_hittingAGT,lem:A_hittingAGT_sub_ge}
   WLOG $S_T=0$ and $S_t\leq 0$ (else consider $S_t-\mathbb{E}\left[S_T\vert\mathcal{F}_{t}\right]$).
 
   We have that $0=S_T=M^n_T+A^n_T$. Thus
   \begin{equation}\label{equation_DM_e1}
   M^n_T=-A^n_T.
   \end{equation}
-  Since $M^n$ is a martingale it follows by optimal sampling that for any $(\mathcal{F}_t)_{t\in\mathcal{D}_n}$ stopping time $\tau$
+  Since $M^n$ is a martingale it follows by optional sampling that for any $(\mathcal{F}_t)_{t\in\mathcal{D}_n}$ stopping time $\tau$
   \begin{equation}\label{equation_DM_e2}
   S_\tau=M^n_\tau+A^n_\tau = \mathbb{E}[M^n_T\vert\mathcal{F}_\tau]+A^n_\tau\stackrel{\eqref{equation_DM_e1}}{=} -\mathbb{E}[A^n_T\vert\mathcal{F}_\tau]+A^n_\tau.
   \end{equation}
-  Let $c>0$. Define the last time when $A^n$ has always been inside $[0,c]$, by the Debùt Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
-  $$
-  \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
-  $$
+  Let $c>0$. By Lemma~\ref{lem:IsStoppingTime_hittingAGT}, $\tau_n(c)$ (Definition~\ref{def:hittingAGT}) is a stopping time.
+  % Define the last time when $A^n$ has always been inside $[0,c]$, by the Début Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
+  % $$
+  % \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
+  % $$
   By construction $A^n_{\tau_n(c)}\leq c$. It follows that
   \begin{equation}\label{equation_DM_e3}
   S_{\tau_n(c)}\stackrel{\eqref{equation_DM_e2}}{=}-\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+A^n_{\tau_n(c)}\leq -\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+c.
@@ -189,8 +436,13 @@ M^N_t&=S_t-A^n_t.
   \end{align}
   Now we notice that $(\tau_n(c)<T)\subseteq (\tau_n(c/2)<T)$, thus
   \begin{align}\nonumber
-  \int_{\tau_n(c/2)<T}-S_{\tau_n(c/2)}dP&\stackrel{\eqref{equation_DM_e2}}{=}\int_{(\tau_n(c/2))<T}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c/2)}]-A^n_{\tau_n(c/2)}dP\\
-  &\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c/2)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\geq \int_{(\tau_n(c)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber\\
+  \int_{\tau_n(c/2)<T}-S_{\tau_n(c/2)}dP
+  &\stackrel{\eqref{equation_DM_e2}}{=}\int_{(\tau_n(c/2))<T}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c/2)}]-A^n_{\tau_n(c/2)}dP \nonumber
+  \\
+  &\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c/2)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
+  \\
+  &\geq \int_{(\tau_n(c)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
+  \\
   \intertext{(over the event $(\tau_n(c)<T)$ $A^n_T\geq c$ and $A^n_{\tau_n(c/2)}\leq c/2$, thus $A^n_T-A^n_{\tau_n(c/2)}\geq c/2$)}
   &\geq \frac{c}{2}P(\tau_n(c)<T).\label{equation_DM_e5}
   \end{align}
@@ -206,18 +458,22 @@ M^N_t&=S_t-A^n_t.
   This implies that $\int_{(A^n_T>c)}A^n_TdP$ is uniformly bounded in $n$ due to the fact that $S$ is of class $D$. And so also the $L^1$ norm is uniformly bounded.
 \end{proof}
 
-\begin{lemma}\label{lem:M_uniform_integrabl}
+
+\begin{lemma}\label{lem:M_uniform_integrable}
   The sequence $(M^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
+
 \begin{proof}
-  \uses{lem:A_uniform_integrabl}
+  \uses{lem:A_uniform_integrable, def:classD}
   $M^n_T=S_T-A^n_T$, also $S$ is of class $D$ and $A^n_T$ is uniformly integrable.
 \end{proof}
+
 
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_limsup_ineq}
   If $f_n, f : [0, 1] \rightarrow \mathbb{R}$ are increasing functions such that $f$ is right continuous and
   $\lim_n f_n(t) = f (t)$ for $t \in\mathcal{D}^T$, then  $\limsup_n  f_n(t) \leq f (t)$ for all $t \in [0, T]$.
 \end{lemma}
+
 \begin{proof}
   Let $t\in[0,T]$ and $s\in\mathcal{D}^T$ such that $t<s$. We have
   $$
@@ -229,10 +485,12 @@ M^N_t&=S_t-A^n_t.
   $$
 \end{proof}
 
+
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_lim_eq}
   If $f_n, f : [0, 1] \rightarrow \mathbb{R}$ are increasing functions such that $f$ is right continuous and
   $\lim_n f_n(t) = f (t)$ for $t \in\mathcal{D^T}$, if $f$ is continuous in $t\in[0,T]$ then $\lim_n  f_n(t) = f (t)$.
 \end{lemma}
+
 \begin{proof}
   \uses{lem:incr_fun_lim_right_cont_limsup_ineq}
   By lemma \ref{lem:incr_fun_lim_right_cont_limsup_ineq} it is enough to show that $\liminf_n f_n(t)\geq f(t)$.
@@ -251,19 +509,21 @@ Define $M^n_t$ on $[0,T]$ using $M^n_t=\mathbb{E}[M^n_T\vert\mathcal{F}_t]$.
 \begin{lemma}\label{lem:M_n_cadlag_mg}
   $M^n_t$ admits a modification which is a cadlag martingale.
 \end{lemma}
+
 \begin{proof}
-  \uses{lem:mg_is_cadlag}
-  By theorem \ref{lem:mg_is_cadlag}
+  \uses{thm:Martingale.exists_cadlag_modification}
+  By theorem \ref{thm:Martingale.exists_cadlag_modification}
 \end{proof}
 
 From this point onwards $M^n_t$ will be redefined as the modification from lemma \ref{lem:M_n_cadlag_mg}.
+
 \begin{lemma}\label{lem:M_cal_converges_L1}
   There are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
   $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_uniform_integrabl,lem:komlos}
-  By lemma \ref{lem:M_uniform_integrabl} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
+  \uses{lem:M_uniform_integrable,lem:komlos}
+  By lemma \ref{lem:M_uniform_integrable} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
   $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
 \end{proof}
 
@@ -281,8 +541,8 @@ Let \begin{equation}\label{equation_DM_e6} M_t = \mathbb{E}[M\vert\mathcal{F}_t]
   $M_t$ admits a martingale cadlag modification.
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_cal_converges_L1, lem:mg_is_cadlag}
-  By construction $M_t$ is a martingale and thus by theorem \ref{lem:mg_is_cadlag} admits a cadlag martingale modification
+  \uses{lem:M_cal_converges_L1, thm:Martingale.exists_cadlag_modification}
+  By construction $M_t$ is a martingale and thus by theorem \ref{thm:Martingale.exists_cadlag_modification} admits a cadlag martingale modification
   ($M_t$ is a version of $\mathbb{E}[M\vert\mathcal{F}_t]$ and thus passing to modification does not pose any problem).
 \end{proof}
 
@@ -336,7 +596,7 @@ Define
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\lim_n\mathbb{E}[A^n_\tau]=\mathbb{E}[A_\tau]$.
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg}
+  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg, def:classD}
   Let $\sigma_n:=\inf\left(t\in\mathcal{D}^T_n\vert t>\tau\right)$. By construction of $A^n$ we have $A^n_\tau=A^n_{\sigma_n}$.
   Also $\sigma_n\searrow\tau$. Since $S$ is of class $D$ and cadlag we have
   \begin{align*}
@@ -387,4 +647,22 @@ Define
   Due to lemma \ref{lem:limsup_A_n_tau_is_A_tau_ae} we know that $\limsup_n A^n_{\tau_{q,k}} = A_{\tau_{q,k}}$ for each $q,k$ almost surely. Thus, since it is an intersection of a countable amount of almost sure
   events $\forall\omega\in\Omega'$ with $P(\Omega')=1$, for each $q,k$ $\limsup_n A^n_{\tau_{q,k}}(\omega) = A_{\tau_{q,k}}(\omega)$ ($\omega$ does not depend upon $q,k$).
   Consequently, $\forall\omega\in\Omega'$ we have $\limsup_n\mathcal{A}^n_t(\omega)=\limsup_n\mathcal{A}^n_{\tau_{q(\omega),k(\omega)}}(\omega)=A_{\tau_{q(\omega),k(\omega)}}(\omega)=A_t(\omega)$
+\end{proof}
+
+
+
+\section{Local version of the Doob-Meyer decomposition}
+
+
+\begin{theorem}[Doob-Meyer decomposition]\label{thm:local_doobMeyer}
+  \uses{def:IsLocalSubmartingale, def:predictable, def:IsLocalMartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocalSubmartingale.doob_meyer}
+An adapted process $X$ is a cadlag local submartingale iff $X = M + A$ where $M$ is a cadlag local martingale and $A$ is a predictable, cadlag, locally integrable and increasing process starting at $0$.
+The processes $M$ and $A$ are uniquely determined by $X$ a.s.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:IsLocalSubmartingale.locally_classD, thm:Doob_Meyer}
+
 \end{proof}

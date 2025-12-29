@@ -137,7 +137,7 @@ variable (M : Matrix n n 𝕜) (b : Basis n 𝕜 E)
 
 noncomputable
 def ofMatrix : ContinuousBilinForm 𝕜 E :=
-  haveI : FiniteDimensional 𝕜 E := FiniteDimensional.of_fintype_basis b
+  haveI : FiniteDimensional 𝕜 E := Module.Basis.finiteDimensional_of_finite b
   LinearMap.mkContinuous₂OfFiniteDimensional (M.toBilin b)
 
 lemma ofMatrix_apply' (x y : E) : ofMatrix M b x y = M.toBilin b x y := rfl
@@ -280,5 +280,56 @@ lemma inner_toMatrix_eq_one : (ContinuousBilinForm.inner E).toMatrix b.toBasis =
 end InnerProductSpace
 
 end Real
+
+section Diagonal
+
+variable {ι : Type*} [DecidableEq ι] [Fintype ι] {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)]
+
+section RCLike
+
+variable [RCLike 𝕜] [∀ i, NormedSpace 𝕜 (E i)]
+    (L : (i : ι) → ContinuousBilinForm 𝕜 (StrongDual 𝕜 (E i)))
+
+open ContinuousLinearMap in
+/-- Given `L i : (E i)' × (E i)' → 𝕜` a family of continuous bilinear forms,
+`diagonalStrongDual L` is a continuous bilinear form is the continuous bilinear form over
+`(Π i, E i)'` which maps `(x, y) : (Π i, E i)' × (Π i, E i)'` to
+`∑ i, L i (fun a ↦ x aᵢ) (fun a ↦ y aᵢ)`. -/
+noncomputable
+def diagonalStrongDual : ContinuousBilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) :=
+  letI g : LinearMap.BilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) := LinearMap.mk₂ 𝕜
+    (fun x y ↦ ∑ i, L i (x ∘L (single 𝕜 E i)) (y ∘L (single 𝕜 E i)))
+    (fun x y z ↦ by simp [Finset.sum_add_distrib])
+    (fun c m n ↦ by simp [Finset.mul_sum])
+    (fun x y z ↦ by simp [Finset.sum_add_distrib])
+    (fun c m n ↦ by simp [Finset.mul_sum])
+  g.mkContinuous₂ (∑ i, ‖L i‖) <| by
+    intro x y
+    simp only [LinearMap.mk₂_apply, g]
+    grw [norm_sum_le, Finset.sum_mul, Finset.sum_mul]
+    gcongr with i _
+    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one]
+    simp
+
+lemma diagonalStrongDual_apply (x y : StrongDual 𝕜 (Π i, E i)) :
+    diagonalStrongDual L x y = ∑ i, L i (x ∘L (.single 𝕜 E i)) (y ∘L (.single 𝕜 E i)) := rfl
+
+end RCLike
+
+section Real
+
+variable [∀ i, NormedSpace ℝ (E i)] {L : (i : ι) → ContinuousBilinForm ℝ (StrongDual ℝ (E i))}
+
+lemma isPosSemidef_diagonalStrongDual (hL : ∀ i, (L i).IsPosSemidef) :
+    (diagonalStrongDual L).IsPosSemidef where
+  map_symm x y := by
+    simp_rw [diagonalStrongDual_apply, fun i ↦ (hL i).map_symm]
+  nonneg_re_apply_self x := by
+    simp only [diagonalStrongDual_apply, map_sum, RCLike.re_to_real]
+    exact Finset.sum_nonneg fun i _ ↦ (hL i).nonneg_apply_self _
+
+end Real
+
+end Diagonal
 
 end ContinuousBilinForm

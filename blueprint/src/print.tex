@@ -21,6 +21,10 @@
 
 \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
 
+\usepackage{bibunits}
+\defaultbibliographystyle{amsalpha}
+\defaultbibliography{bib}
+
 \input{macros/common}
 \input{macros/print}
 
@@ -28,6 +32,9 @@
 \author{Rémy Degenne \and Peter Pfaffelhuber}
 
 \begin{document}
+
+\bibliographyunit[\part]
+
 \maketitle
 \input{content}
 \end{document}
