@@ -153,16 +153,6 @@ have ht : h2.t (2 * n + 1) = t := by
   simp only [h2, UpcrossingData.extend]; simp
 exact ht
 
-lemma UpcrossingData_extend_toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
-  (h : UpcrossingData a b f n ω)
-  (s t : ι)
-  (hus : h.t (2 * n - 1) ≤ s)
-  (hst : s ≤ t)
-  (hfs : f s ω ∈ Set.Iic a)
-  (hft : f t ω ∈ Set.Ici b) :
-    (h.extend s t hus hst hfs hft).toShorter = h := by
-  sorry
-
 end UpcrossingData
 
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
@@ -267,14 +257,6 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
   have hsltt : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
   grind
 
-/-! TODO next:
-  The inequality upperCrossingTime a b f N (n+1) ω < N
-  implies existence of two witnesses ≥ upperCrossingTime a b f N n ω,
-  so, given upcrossing data for n, we can extend it to n+1.
-  This should streamline the proof of the equivalence between
-  ltUpcrossingsBefore and upperCrossingTime < N.
--/
-
 lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
   ∀ n, upperCrossingTime a b f N (n+1) ω < N →
@@ -300,8 +282,6 @@ lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinear
   simp only [ht2n1];
   exact ht'u
 
-
-
 lemma ltUpcrossingsBefore_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
@@ -315,20 +295,6 @@ lemma ltUpcrossingsBefore_of_upperCrossingTime_lt [ConditionallyCompleteLinearOr
     · -- n ≥ 1 case
       simp only [if_neg hnzero]
       intro hup
-      induction n with
-      | zero => contradiction
-      | succ m ih =>
-          have hup_succ : upperCrossingTime a b f N (m + 1) ω < N := hup
-          have ih_step :
-            ∀ (hseq : UpcrossingData a b f m ω),
-              hseq.t (2 * m - 1) ≤ upperCrossingTime a b f N m ω →
-              ∃ hseq' : UpcrossingData a b f (m + 1) ω,
-                -- hseq'.toShorter = hseq ∧
-                hseq'.t (2 * m + 1) ≤ upperCrossingTime a b f N (m + 1) ω :=
-            upcrossingData_extend_of_upperCrossingTime_lt a b f N ω m hup_succ
-          rcases ih ih_step with ⟨hseq_m, ht_m_lt_N⟩
-          use hseq_m
-          exact ht_m_lt_N
 
 
 
