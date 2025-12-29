@@ -37,42 +37,42 @@ $\mathcal{S}$ is a topological space;
 $\pi:\mathbb{R}_{\geq 0}\times\Omega\rightarrow \Omega$ is the projection; $P^*$ is the outer measure associated with $P$.
 
 \begin{definition}[Progressively measurable set]\label{def:progr_meas_set}
-  \leanok
+  % \leanok
   \uses{def:ProgMeasurable}
-  \lean{MeasureTheory.ProgMeasurableSet}
+  % \lean{MeasureTheory.ProgMeasurableSet}
 A subset of $[0, \infty) \times \Omega$ is progressively measurable if its indicator is a progressively measurable process.
 \end{definition}
 
 \begin{definition}[Debut of a set]\label{def:debut_set}
-  \leanok
-  \lean{MeasureTheory.Debut}
+  % \leanok
+  % \lean{MeasureTheory.Debut}
 Let $E \subseteq{} [0, \infty) \times \Omega $, define $D_E = \inf\left\lbrace t \geq 0\ :\ (t, \omega) \in E\right\rbrace$, the debut of $E$.
 \end{definition}
 
 \begin{definition}[$\mathcal{K}^0$]\label{def:subsets_compact_RNN_times_measurable}
-  \leanok
-  \lean{MeasureTheory.𝓚₀}
+  % \leanok
+  % \lean{MeasureTheory.𝓚₀}
 Let $t>0$. Let $\mathcal{K}^0(t)$ be the collection of subsets of $[0, t] \times \Omega$ of the form $K \times C$, where $K$ is a compact
 subset of $[0, t]$ and $C \in \mathcal{F}_t$.
 \end{definition}
 
 \begin{definition}[$\mathcal{K}$]\label{def:fin_union_RNN_times_measurable}
-  \leanok
-  \lean{MeasureTheory.𝓚}
+  % \leanok
+  % \lean{MeasureTheory.𝓚}
   \uses{def:subsets_compact_RNN_times_measurable}
 Let $t>0$. Let $\mathcal{K}(t)$ be the collection of finite unions of elements of $\mathcal{K}^0(t)$.
 \end{definition}
 
 \begin{definition}[$\mathcal{K}_\delta$]\label{def:count_inter_of_fin_union_RNN_times_measurable}
-  \leanok
-  \lean{MeasureTheory.𝓚δ}
+  % \leanok
+  % \lean{MeasureTheory.𝓚δ}
   \uses{def:fin_union_RNN_times_measurable}
 Let $t>0$. Let $\mathcal{K}_\delta(t)$ be the collection of countable intersections of elements of $\mathcal{K}(t)$.
 \end{definition}
 
 \begin{definition}[$t$-approximable set]\label{def:t_approx_set}
-  \leanok
-  \lean{MeasureTheory.Approximation}
+  % \leanok
+  % \lean{MeasureTheory.Approximation}
   \uses{def:count_inter_of_fin_union_RNN_times_measurable}
 Let $t>0$.
 We say $A \in \mathcal{B}[0, t] \times \mathcal{F}_t$ is
@@ -82,8 +82,8 @@ where $\pi$ is the projection over $\Omega$.
 \end{definition}
 
 \begin{lemma}\label{lem:iInf_snd_eq_snd_iInf}
-  \leanok
-  \lean{MeasureTheory.iInf_snd_eq_snd_iInf_of_mem_𝓚δ}
+  % \leanok
+  % \lean{MeasureTheory.iInf_snd_eq_snd_iInf_of_mem_𝓚δ}
   \uses{def:count_inter_of_fin_union_RNN_times_measurable}
 If $B \in \mathcal{K}_\delta (t)$, $\forall n\in \mathbb{N}$, $B_n \in \mathcal{K}^\delta(t)$ and $B_n \searrow B$, then $\pi(B) = \bigcap_{n\in\mathbb{N}} \pi(B_n)$.
 \end{lemma}
@@ -115,8 +115,8 @@ If $B \in \mathcal{K}_\delta (t)$, $\forall n\in \mathbb{N}$, $B_n \in \mathcal{
 \end{proof}
 
 \begin{lemma}\label{lem:K_delta_of_inter_K_delta}
-  \leanok
-  \lean{MeasureTheory.measurableSet_snd_of_mem_𝓚δ}
+  % \leanok
+  % \lean{MeasureTheory.measurableSet_snd_of_mem_𝓚δ}
   \uses{def:count_inter_of_fin_union_RNN_times_measurable}
 If $B \in \mathcal{K}_\delta (t)$, then $\pi(B) \in \mathcal{F}_t$.
 \end{lemma}
@@ -128,8 +128,8 @@ If $B \in \mathcal{K}_\delta (t)$, then $\pi(B) \in \mathcal{F}_t$.
 \end{proof}
 
 \begin{lemma}\label{lem:measurable_of_t_approx}
-  \leanok
-  \lean{MeasureTheory.Approximation.measurableSet_snd}
+  % \leanok
+  % \lean{MeasureTheory.Approximation.measurableSet_snd}
   \uses{def:t_approx_set}
   If $A$ is $t$-approximable, then $\pi(A) \in \mathcal{F}_t$.
 \end{lemma}
@@ -156,8 +156,8 @@ If $B \in \mathcal{K}_\delta (t)$, then $\pi(B) \in \mathcal{F}_t$.
 \end{proof}
 
 \begin{lemma}\label{lem:exists_B_of_t_approx}
-  \leanok
-  \lean{MeasureTheory.Approximation.tendsto_measure_diff_B'}
+  % \leanok
+  % \lean{MeasureTheory.Approximation.tendsto_measure_diff_B'}
   \uses{def:count_inter_of_fin_union_RNN_times_measurable, def:t_approx_set}
   Suppose $A$ is $t$-approximable. Then, given $\epsilon > 0$, there exists
   $B \in \mathcal{K}_\delta (t)$ such that $P(\pi(A) \setminus \pi(B)) < \epsilon$.
@@ -173,26 +173,30 @@ If $B \in \mathcal{K}_\delta (t)$, then $\pi(B) \in \mathcal{F}_t$.
 
 % consider removing this lemma altogether, I think we do not even need it in the proof
 \begin{lemma}\label{lem:aux1a}
-  \leanok
+  \mathlibok
+  \lean{MeasureTheory.exists_measurable_superset}
 If $A \subseteq \Omega$, there exists $C \in \mathcal{F}$ such that $A \subseteq C$ and $P^∗(A) = P(C)$.
 \end{lemma}
 
 \begin{proof}\leanok
-  This is just \verb|MeasureTheory.exists_measurable_superset|.
+
 \end{proof}
 
 \begin{lemma}\label{lem:aux1b}
+  \mathlibok
+  \lean{Monotone.measure_iUnion}
+  % this is a version with the sup, if needed there is also the version with the limit
 Let $(A_n)_{n\in\mathbb{N}},A\subseteq \Omega$.
 Suppose $A_n \nearrow A$. Then $P^∗(A) = \lim_{n\rightarrow \infty} P^∗(A_n)$.
 \end{lemma}
 
 \begin{proof}\leanok
-  This is just \verb|Monotone.measure_iUnion| (this is a version with the sup, if needed there is also the version with the limit).
+
 \end{proof}
 
 \begin{definition}[$\mathcal{L}$-sets]\label{def:L_sets}
-  \leanok
-  \lean{MeasureTheory.𝓛₀, MeasureTheory.𝓛₁, MeasureTheory.𝓛, MeasureTheory.𝓛σ, MeasureTheory.𝓛σδ}
+  % \leanok
+  % \lean{MeasureTheory.𝓛₀, MeasureTheory.𝓛₁, MeasureTheory.𝓛, MeasureTheory.𝓛σ, MeasureTheory.𝓛σδ}
   \uses{def:count_inter_of_fin_union_RNN_times_measurable}
   From hereafter the following sets are needed:
 
@@ -206,8 +210,8 @@ Suppose $A_n \nearrow A$. Then $P^∗(A) = \lim_{n\rightarrow \infty} P^∗(A_n)
 \end{definition}
 
 \begin{lemma}\label{lem:exists_cpct_Hausdorff}
-  \leanok
-  \lean{MeasureTheory.exists_mem_𝓛σδ_of_measurableSet}
+  % \leanok
+  % \lean{MeasureTheory.exists_mem_𝓛σδ_of_measurableSet}
   \uses{def:L_sets}
 If $A \in \mathcal{B}[0, t] \times \mathcal{F}_t$, there exists a compact Hausdorff space $X$ and $B \in \mathcal{L}_{\sigma\delta}(X )$ such  that $A = \rho^X (B)$.
 
@@ -271,8 +275,8 @@ Where $\rho^X:X\times ([0,t]\times\Omega)\rightarrow [0,t]\times\Omega$ is the p
 \end{proof}
 
 \begin{lemma}\label{lem:t_approx_of_Borel_measurable}
-  \leanok
-  \lean{MeasureTheory.Approximation.of_mem_prod_borel}
+  % \leanok
+  % \lean{MeasureTheory.Approximation.of_mem_prod_borel}
   \uses{def:t_approx_set}
 If $A \in \mathcal{B}[0, t] \times \mathcal{F}_t$, then $A$ is $t$-approximable.
 \end{lemma}
@@ -332,8 +336,8 @@ If $A \in \mathcal{B}[0, t] \times \mathcal{F}_t$, then $A$ is $t$-approximable.
 \end{proof}
 
 \begin{theorem}\label{thm:debut_of_progr_meas_is_stop_time}
-  \leanok
-  \lean{MeasureTheory.Debut.isStoppingTime}
+  % \leanok
+  % \lean{MeasureTheory.Debut.isStoppingTime}
   \uses{def:progr_meas_set, def:debut_set}
 If $E$ is a progressively measurable set, then $D_E$ is a stopping time.
 \end{theorem}
@@ -363,8 +367,8 @@ If $E$ is a progressively measurable set, then $D_E$ is a stopping time.
 % For the moment this does not seem necessary, and in any case the proof for the hitting time relies on the one for the entry time and takes a limit, so we can always add it later if needed.
 
 \begin{theorem}\label{thm:hitting_is_stopping_time}
-  \leanok
-  \lean{MeasureTheory.hitting_isStoppingTime'}
+  % \leanok
+  % \lean{MeasureTheory.hitting_isStoppingTime'}
   \uses{def:IsStoppingTime, def:hittingAfter, def:ProgMeasurable, def:rightContinuous}
   \notready
 If $X : T \to \Omega \to E$ is a progressively measurable process with respect to a right-continuous filtration and $B$ is a Borel-measurable subset of $E$, then the hitting time of $X$ in $B$ is a stopping time.
