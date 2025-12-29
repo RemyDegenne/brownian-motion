@@ -73,7 +73,6 @@ lemma t_strict_mono {i j} (hij : i < j) (hj : j < 2 * n) : h.t i < h.t j := by
   have hti : h.t i < h.t (i + 1) := lt_of_le_of_ne (h.mono (Nat.le_succ i)) (h.ti_ne_ti1 hi1n)
   exact lt_of_lt_of_le hti (h.mono (Nat.succ_le_of_lt hij))
 
-
 def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : UpcrossingData a b f (n + 1) ω) :
     UpcrossingData a b f n ω :=
 {
@@ -257,15 +256,43 @@ private lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinea
   have hsltt : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
   grind
 
+lemma upcrossingData_of_first_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) :
+    upperCrossingTime a b f N 1 ω < N →
+    ∃ hseq : UpcrossingData a b f 1 ω, hseq.t 1 ≤ upperCrossingTime a b f N 1 ω := by
+  intro hup
+  set m := upperCrossingTime a b f N 0 ω with hm
+  have hm_bot : m = ⊥ := rfl
+  have ht_lt_N : hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N :=
+    by simpa [upperCrossingTime] using hup
+  rcases upcrossingData_of_upperCrossingTime_lt a b f m N ω ht_lt_N with
+    ⟨s, t, hm_s, hs_t, ht_u, hfs, hft⟩
+  let hseq : UpcrossingData a b f 1 ω :=
+    {
+      hab := hab,
+      t := fun i => if i = 0 then s else t,
+      mono := by
+        intro i j hij
+        by_cases hi0 : i = 0
+        · grind
+        · grind,
+      ft_le_a := by grind,
+      ft_ge_b := by grind
+    }
+  use hseq
+  have ht1 : hseq.t 1 = t := by simp only [hseq]; simp
+  simp only [ht1];
+  exact ht_u
+
 lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
-  ∀ n, upperCrossingTime a b f N (n+1) ω < N →
+  ∀ n > 1, upperCrossingTime a b f N (n+1) ω < N →
     ∀ (hseq : UpcrossingData a b f n ω),
       hseq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω →
       ∃ hseq' : UpcrossingData a b f (n+1) ω,
         -- hseq'.toShorter = hseq ∧
         hseq'.t (2 * n + 1) ≤ upperCrossingTime a b f N (n+1) ω := by
-  intro n hup hseq htu'
+  intro n hn hup hseq htu'
   set u' := upperCrossingTime a b f N n ω with hu'
   set s := hseq.t (2 * n - 2) with hs
   set t := hseq.t (2 * n - 1) with ht
@@ -295,6 +322,7 @@ lemma ltUpcrossingsBefore_of_upperCrossingTime_lt [ConditionallyCompleteLinearOr
     · -- n ≥ 1 case
       simp only [if_neg hnzero]
       intro hup
+      sorry
 
 
 
