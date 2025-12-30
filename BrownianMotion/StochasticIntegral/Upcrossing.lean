@@ -372,50 +372,37 @@ lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinear
   simp only [ht2n1];
   exact ht'u
 
+/-! P (n+1) → P n. -/
+lemma upperCrossingTime_lt_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
+  upperCrossingTimeLT a b f N (n+1) ω → upperCrossingTimeLT a b f N n ω := by
+  intro hup
+  rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N (n+1) ω] at hup
+  rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
+  refine lt_of_le_of_lt ?_ hup
+  exact upperCrossingTime_mono (Nat.le_succ n)
 
-
-
-/-!
+/-! ∀ n ≥ 1, P n → Q n, in the case N ≠ ⊥. -/
 lemma ltUpcrossingsBefore_of_upperCrossingTime_lt_all [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω)
-  (hab : a < b) (hNbot : ¬ N ≤ ⊥) :
-  ∀ n, upperCrossingTime a b f N n ω < N → ltUpcrossingsBefore a b f N n ω := by
-  refine Nat.rec ?base ?step
-  · -- n = 0
-    intro hup; simp [ltUpcrossingsBefore, hNbot]
-  · -- step n → n+1
-    intro n ih hup
-    cases n with
-    | zero =>
-        -- n+1 = 1 : use existing lemma
-        obtain ⟨hseq, ht1_le⟩ := upcrossingData_of_first_upperCrossingTime_lt a b f N ω hab hup
-        simp only [ltUpcrossingsBefore]; simp_all
-        use hseq
-        exact lt_of_le_of_lt ht1_le hup
-    | succ k =>
-        -- n+1 = k.succ.succ ≥ 2
-        -- get all earlier upperCrossingTimes < N by monotonicity
-        have hup_le : ∀ m ≤ k+1, upperCrossingTime a b f N (m+1) ω < N :=
-          fun m hm => lt_of_le_of_lt (upperCrossingTime_mono (Nat.succ_le_succ hm)) hup
-        -- base upcrossing data at index 1
-        obtain ⟨hseq1, ht1_le⟩ :=
-          upcrossingData_of_first_upperCrossingTime_lt a b f N ω hab (hup_le 0 (by linarith))
-        -- iterate extend from 1 to k+1 using your extend lemma
-        have hseq_chain :
-          ∀ i (hi : i ≥ 1) (hi_le : i ≤ k+1),
-            ∃ hseq : UpcrossingData a b f (i+1) ω,
-              hseq.t (2*i+1) ≤ upperCrossingTime a b f N (i+1) ω := by
-          refine Nat.rec ?base2 ?step2
-          · intro hi hi_le; exact ⟨hseq1, by simpa using ht1_le⟩
-          · intro i IH hi hi_le
-            have hi_pos : i+1 ≥ 1 := by linarith
-            have hi_ge_1 : i ≥ 1 := by linarith
-            obtain ⟨hseqi, hti_le⟩ := IH hi (by nlinarith)
-            have hup_next := hup_le (i+1) (by nlinarith)
-            rcases upcrossingData_extend_of_upperCrossingTime_lt a b f N ω
-              (n:=i+1) hi_pos hup_next hseqi hti_le with ⟨hseq', ht'⟩
-            exact ⟨hseq', ht'⟩
-        -- pick i = k+1 to get the final sequence
-        rcases hseq_chain (k+1) (by nlinarith) (by nlinarith) with ⟨hseq_fin, ht_fin⟩
-        refine ?goal_for_step -- supply ⟨hseq_fin, lt_of_le_of_lt ht_fin hup⟩ under the if-branch
--/
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
+  (hab : a < b) (hn : n ≥ 1) (hNbot : ¬ N ≤ ⊥) :
+    upperCrossingTimeLT a b f N n ω → upcrossingsBeforeUpperCrossingTime a b f N n ω := by
+  induction n with
+  | zero =>
+      intro h; linarith
+  | succ n ih =>
+      intro hup
+      by_cases hn1 : n = 0
+      · -- (n+1) = 1 case
+        subst hn1
+        exact upcrossingData_of_first_upperCrossingTime_lt a b f N ω hab hNbot hup
+      · -- (n+1) ≥ 2 case
+        have hn1 : n ≥ 1 := by grind
+        -- have hn_succ : n + 1 ≥ 1 := by linarith
+        simp only [hn1] at ih; simp at ih
+        -- ih : P n → Q n
+        -- hup : P (n+1); let's deduce P n
+        have hPn := upperCrossingTime_lt_of_upperCrossingTime_lt a b f N n ω hup
+        refine upcrossingData_extend_of_upperCrossingTime_lt a b f N ω hNbot n hn1 hup ?_
+        grind
+        
