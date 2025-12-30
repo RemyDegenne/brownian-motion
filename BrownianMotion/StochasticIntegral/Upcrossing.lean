@@ -311,7 +311,7 @@ lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBo
   have hsltt : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
   grind
 
-/-! P 1 → Q 1. -/
+/-! P 1 → Q 1, in the case N ≠ ⊥. -/
 lemma upcrossingData_of_first_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
     upperCrossingTimeLT a b f N 1 ω → upcrossingsBeforeUpperCrossingTime a b f N 1 ω := by
@@ -342,15 +342,17 @@ lemma upcrossingData_of_first_upperCrossingTime_lt [ConditionallyCompleteLinearO
   simp only [ht1];
   exact ht_u
 
+/-! P (n+1) → Q n → Q (n+1), in the case N ≠ ⊥. -/
 lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
-  ∀ n ≥ 1, upperCrossingTimeLT a b f N (n+1) ω →
-    ∀ (hseq : UpcrossingData a b f n ω),
-      hseq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω →
-      ∃ hseq' : UpcrossingData a b f (n+1) ω,
-        -- hseq'.toShorter = hseq ∧
-        hseq'.t (2 * n + 1) ≤ upperCrossingTime a b f N (n+1) ω := by
-  intro n hn hup hseq htu'
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : ¬ N ≤ ⊥) :
+  ∀ n ≥ 1, (upperCrossingTimeLT a b f N (n+1) ω →
+    upcrossingsBeforeUpperCrossingTime a b f N n ω →
+      upcrossingsBeforeUpperCrossingTime a b f N (n+1) ω) := by
+  intro n hn hup hseq
+  simp only [upcrossingsBeforeUpperCrossingTime, hN, if_false] at hseq
+  have : n ≠ 0 := by linarith
+  simp only [this] at hseq
+  obtain ⟨hseq, htu'⟩ := hseq
   set u' := upperCrossingTime a b f N n ω with hu'
   set s := hseq.t (2 * n - 2) with hs
   set t := hseq.t (2 * n - 1) with ht
@@ -362,20 +364,14 @@ lemma upcrossingData_extend_of_upperCrossingTime_lt [ConditionallyCompleteLinear
     ⟨s', t', hu's', hs't', ht'u, hfs', hft'⟩
   let hseq' : UpcrossingData a b f (n + 1) ω :=
     hseq.extend s' t' (le_trans htu' hu's') hs't' hfs' hft'
+  simp only [upcrossingsBeforeUpperCrossingTime, hN, if_false]
   use hseq'
   have ht2n1 : hseq'.t (2 * n + 1) = t' := by
     simp only [hseq', UpcrossingData.extend_t]
+  have ht2n1 : hseq'.t (2 * (n + 1) - 1) = t' := by grind
   simp only [ht2n1];
   exact ht'u
 
-lemma upcrossingData_of_upperCrossingTime_lt [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω)
-  (n : ℕ) (hn : n ≥ 1) :
-  (upperCrossingTime a b f N n ω < N → ∃ hseq : UpcrossingData a b f n ω,
-      hseq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω) →
-      ∃ hseq' : UpcrossingData a b f (n+1) ω,
-        -- hseq'.toShorter = hseq ∧
-        hseq'.t (2 * n + 1) ≤ upperCrossingTime a b f N (n+1) ω := by
 
 
 
