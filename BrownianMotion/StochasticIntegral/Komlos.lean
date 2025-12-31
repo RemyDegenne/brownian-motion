@@ -101,6 +101,7 @@ namespace ENNReal
 
 section ExponentialTransform
 
+/-- ExponentialTransform -/
 noncomputable
 def expInv : ℝ≥0∞ → ℝ
   | ∞ => 0
@@ -112,9 +113,9 @@ def expInv : ℝ≥0∞ → ℝ
 
 @[simp] lemma expInv_of_ne_top {x : ℝ≥0∞} (hy : x ≠ ⊤) : expInv x = (Real.exp x.toReal)⁻¹ := by
   lift x to NNReal using hy
-  rw [ coe_toReal]; rfl
+  rw [coe_toReal]; rfl
 
-@[simp] lemma exp_coe_of_nonneg (x : Real) : (EReal.exp x).toReal = Real.exp x := by
+lemma exp_coe_of_nonneg (x : Real) : (EReal.exp x).toReal = Real.exp x := by
   rw [EReal.exp_coe, ENNReal.toReal_ofReal_eq_iff]
   exact Real.exp_nonneg x
 
@@ -127,9 +128,8 @@ lemma expInv_def : expInv = fun x : ENNReal ↦ (EReal.exp x)⁻¹.toReal := by
   ext x
   rw [← expInv_eq_toReal_inv_exp]
 
-lemma expInv_nonneg (x : ℝ≥0∞) : 0 ≤ x.expInv  := by
-  rw [expInv_eq_toReal_inv_exp]
-  exact toReal_nonneg
+lemma expInv_nonneg (x : ℝ≥0∞) : 0 ≤ x.expInv :=
+  expInv_eq_toReal_inv_exp ▸ toReal_nonneg
 
 lemma expInv_le_one (x : ℝ≥0∞) : x.expInv ≤ 1 := by
   induction x with
@@ -168,7 +168,7 @@ lemma expInv_midpoint_lt_avg {x y : ℝ≥0∞} (h : x ≠ y) :
     exact Real.exp_inv_midpoint_lt_avg <| Subtype.coe_ne_coe.2 fun a ↦ h (congrArg ofNNReal a)
 
 lemma expInv_midpoint_le_avg {x y : ℝ≥0∞} :
-    expInv (2⁻¹ * (x + y)) ≤  2⁻¹ * (x.expInv + y.expInv) := by
+     expInv (2⁻¹ * (x + y)) ≤  2⁻¹ * (x.expInv + y.expInv) := by
   cases em (x = y) with
   | inl h => simp [h, ← two_mul, ← mul_assoc, ENNReal.inv_mul_cancel, one_mul]
   | inr h => exact (expInv_midpoint_lt_avg h).le
@@ -177,6 +177,7 @@ end ExponentialTransform
 
 section LogarithmicTransform
 
+/-- The inverse of expInv -/
 def logNeg (x : ℝ) : ℝ≥0∞ := if x = 0 then ⊤ else ENNReal.ofReal (- Real.log x)
 
 lemma expInv_logNeg_of_mem {y : ℝ} (hy : y ∈ Icc 0 1) : expInv (logNeg y) = y := by
@@ -184,18 +185,18 @@ lemma expInv_logNeg_of_mem {y : ℝ} (hy : y ∈ Icc 0 1) : expInv (logNeg y) = 
   split_ifs with h
   · subst h; rfl
   · rw [expInv_of_ne_top ofReal_ne_top, toReal_ofReal', max_eq_left]
-    · rw [Real.exp_neg, InvolutiveInv.inv_inv, Real.exp_log <|  hy.1.lt_of_ne' h]
-    · rw [@Right.nonneg_neg_iff, Real.log_nonpos_iff hy.1]
+    · rw [Real.exp_neg, InvolutiveInv.inv_inv, Real.exp_log <| hy.1.lt_of_ne' h]
+    · rw [Right.nonneg_neg_iff, Real.log_nonpos_iff hy.1]
       exact hy.2
 
-lemma measurable_logNeg : Measurable logNeg := by
-  refine Measurable.ite measurableSet_eq measurable_const ?_
-  measurability
+lemma measurable_logNeg : Measurable logNeg :=
+  Measurable.ite measurableSet_eq measurable_const <| by measurability
 
 end LogarithmicTransform
 
 section Embedding
 
+/-- Tranformation into the unit-interval -/
 def expInvIcc (x : ℝ≥0∞) : Icc (0 : ℝ) 1 := ⟨expInv x, expInv_mem_Icc x⟩
 
 lemma isClosedEmbedding_expInvIcc : IsClosedEmbedding expInvIcc := by
@@ -214,6 +215,7 @@ The key estimate says: if `expInv x` and `expInv y` are separated, then the defe
 positive. This is the bridge from pointwise separation to an integral estimate in Part 4.
 -/
 
+/-- Gap function -/
 def defect (x y : ℝ≥0∞) : ℝ :=  2⁻¹ *  (expInv x + expInv y) - expInv (2⁻¹ * (x + y))
 
 lemma defect_nonneg (x y : ℝ≥0∞) : 0 ≤ defect x y :=
@@ -244,21 +246,18 @@ lemma quantitative_convexity (ε : ℝ) (hε : 0 < ε) :
       ⟨⟨x₀, y₀⟩, hxy_mem, h_min⟩
     refine ⟨defect x₀ y₀, ?_, ?_⟩
     · have h_dist_pos : expInv x₀ ≠ expInv y₀ := by
-        refine fun h_eq => ?_
-        have h_le_zero : ε ≤ 0 := by
-          simpa [K, h_eq] using hxy_mem
+        intro h_eq
+        have h_le_zero : ε ≤ 0 := by simpa [K, h_eq] using hxy_mem
         exact lt_irrefl _ (lt_of_le_of_lt h_le_zero hε)
       exact defect_pos_of_ne fun h_eq => h_dist_pos (by rw [h_eq])
     · intro x y hxy
-      have h_isMin := (isMinOn_iff).1 h_min
-      simpa using h_isMin ⟨x, y⟩ hxy
-  · refine ⟨1, by norm_num, ?_⟩
-    intro x y hxy
-    exact (h_nonempty ⟨⟨x, y⟩, hxy⟩).elim
+      simpa using (isMinOn_iff.1 h_min) ⟨x, y⟩ hxy
+  · exact ⟨1, zero_lt_one, fun x y hxy ↦ (h_nonempty ⟨⟨x, y⟩, hxy⟩).elim⟩
 
 /-- Inverse mapping properties.
 Later we will know `expInv ∘ g_n → expInv g` and need to recover convergence of `g_n`.
 This lemma uses the closed embedding from Part 2 to transfer convergence back to `ℝ≥0∞`. -/
+
 lemma tendsto_of_expInv_tendsto {α : Type*} {l : Filter α} {f : α → ℝ≥0∞} {y : ℝ≥0∞}
     (h : Tendsto (expInv ∘ f) l (𝓝 (expInv y))) : Tendsto f l (𝓝 y) := by
   have hcoe : IsClosedEmbedding fun z : Icc (0 : ℝ) 1 => (z : ℝ) :=
@@ -267,7 +266,6 @@ lemma tendsto_of_expInv_tendsto {α : Type*} {l : Filter α} {f : α → ℝ≥0
     refine (hcoe.tendsto_nhds_iff).2 ?_
     simpa [Function.comp, expInvIcc] using h
   exact (isClosedEmbedding_expInvIcc.tendsto_nhds_iff).2 hφ
-
 
 /-!
 ## Part 4: Measure-Theoretic Stuff
@@ -293,14 +291,14 @@ lemma integrable_expInv_comp {f : Ω → ℝ≥0∞} (hf : Measurable f) : Integ
 lemma integrable_defect {f g : Ω → ℝ≥0∞}
    (hf : Measurable f) (hg : Measurable g) : Integrable (fun ω ↦ defect (f ω) (g ω)) P := by
   have h_D_meas : Measurable (fun ω ↦ defect (f ω) (g ω)) := by
-    refine Measurable.sub  ?_ <| measurable_expInv.comp <| (hf.add hg).const_mul _
+    refine Measurable.sub ?_ <| measurable_expInv.comp <| (hf.add hg).const_mul _
     exact measurable_const.mul ((measurable_expInv.comp hf).add (measurable_expInv.comp hg))
   use Measurable.aestronglyMeasurable h_D_meas
   apply HasFiniteIntegral.of_bounded
-  change ∀ᵐ (a : Ω) ∂P, ‖ ((fun ω ↦ defect (f ω) (g ω))) a‖ ≤ 1
+  change ∀ᵐ (a : Ω) ∂P, ‖defect (f a) (g a)‖ ≤ 1
   filter_upwards with ω
-  rw [ defect, Real.norm_eq_abs, abs_le]
-  constructor
+  rw [defect, Real.norm_eq_abs, abs_le]
+  refine ⟨?_, ?_⟩
   · linarith [expInv_nonneg (f ω), expInv_nonneg (g ω), expInv_le_one (2⁻¹ * (f ω + g ω))]
   · linarith [expInv_le_one (f ω), expInv_le_one (g ω), expInv_nonneg (2⁻¹ * (f ω + g ω))]
 
@@ -361,8 +359,7 @@ lemma prob_large_diff_le_defect (ε : ℝ) (hε : 0 < ε) :
   rw [le_ofReal_iff_toReal_le]
   · rwa [← div_eq_inv_mul, le_div_iff₀' hδ_pos]
   · exact measure_ne_top P _
-  · apply mul_nonneg (inv_nonneg.mpr (le_of_lt hδ_pos))
-    exact defect_val_nonneg P _ _
+  · exact mul_nonneg (inv_nonneg.mpr (le_of_lt hδ_pos)) <| defect_val_nonneg P _ _
 
 lemma convexHull_real_subset_convexHull_ennreal (f : ℕ → Ω → ℝ≥0∞) (n : ℕ) :
     convexHull ℝ≥0 (Set.range (fun m => (f (n + m)))) ⊆
@@ -415,7 +412,7 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
 
   have hφ_le_one (n : ℕ) : φ (X n) ≤ 1 := by
     have hf_int : Integrable (Z (X n)) P := integrable_expInv_comp _ (hX n)
-    have h_int := integral_mono hf_int (integrable_const _) (hZ_le_one (X n))
+    have h_int := integral_mono (hf_int) (integrable_const _) (hZ_le_one _)
     have hconst : ∫ ω, (1 : ℝ) ∂P = 1 := by
       rw [integral_const 1, smul_eq_mul, mul_one, MeasureTheory.probReal_univ]
     simpa [φ,  Function.comp, hconst] using h_int
@@ -512,10 +509,8 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
         · exact mul_nonneg (Right.inv_nonneg.mpr hδ_defect_pos.le) (defect_val_nonneg P (g m) (g n))
       simpa using mul_le_mul_of_nonneg_left h_measure zero_le_two
 
-    have h_integral_bound :
-        (∫ ω in S, |Y m ω - Y n ω| ∂P) + (∫ ω in Sᶜ, |Y m ω - Y n ω| ∂P) ≤
-          (∫ ω in S, 2 ∂P) + (∫ ω in Sᶜ, δ' ∂P) := by
-
+    have h_integral_bound : ∫ ω in S, |Y m ω - Y n ω| ∂P + ∫ ω in Sᶜ, |Y m ω - Y n ω| ∂P ≤
+        ∫ ω in S, 2 ∂P + ∫ ω in Sᶜ, δ' ∂P := by
       have hY_le_one (k) (ω) : |Y k ω| ≤ 1 := by
         simpa only [Y, Function.comp, expInv_abs_eq_self] using (expInv_le_one _)
       have h_abs_le (ω : Ω) : |Y m ω - Y n ω| ≤ 2 := by
@@ -529,7 +524,8 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
       have htwo : (∫ ω in Sᶜ, |Y m ω - Y n ω| ∂P) ≤ (∫ ω in Sᶜ, δ' ∂P)  := by
         apply setIntegral_mono_on h_abs_integrable.integrableOn (integrable_const δ').integrableOn
         · rwa [@MeasurableSet.compl_iff]
-        apply  h_abs_le_delta
+        apply h_abs_le_delta
+
       exact add_le_add hone htwo
 
     have h_defect_lt_target_two :
