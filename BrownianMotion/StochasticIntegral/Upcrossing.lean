@@ -155,7 +155,7 @@ exact ht
 end UpcrossingData
 
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
-    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (u' s t N : ι) (ω : Ω) :
+    (a b : ℝ) (f : ι → Ω → ℝ) (u' s t N : ι) (ω : Ω) :
     u' ≤ s → s ≤ t → t ≤ N → f s ω ∈ Set.Iic a → f t ω ∈ Set.Ici b →
     hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f u' N ω) N ω ≤ t := by
   intro hu's hst htN hfs hft
@@ -165,7 +165,7 @@ private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLine
   exact hittingBtwn_le_of_mem hu's (le_trans hst htN) hfs
 
 lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
   ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t (2 * n + 1) ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t (2 * n + 1) := by
   simp only [upperCrossingTime]
@@ -223,7 +223,6 @@ noncomputable def upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
 /-! An auxiliary equivalence lemma. -/
 lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
   [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
     upperCrossingTimeLT a b f N n ω ↔ upperCrossingTime a b f N n ω < N := by
   by_cases hN : N ≤ ⊥
@@ -238,7 +237,6 @@ lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
 
 /-! The equivalence P n ↔ L n, in the case N = ⊥. -/
 lemma upperCrossingTimeLT_bot_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : N ≤ ⊥) :
     upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω := by
   simp only [ltUpcrossingsBefore, hN, if_true]
@@ -246,7 +244,6 @@ lemma upperCrossingTimeLT_bot_iff_ltUpcrossingsBefore [ConditionallyCompleteLine
 
 /-! The left implication: ∀ n, L n → P n, in the case N ≠ ⊥ -/
 lemma upperCrossingTimeLT_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (h : ¬ N ≤ ⊥) :
     ltUpcrossingsBefore a b f N n ω → upperCrossingTimeLT a b f N n ω := by
   simp only [ltUpcrossingsBefore, h, if_false]
