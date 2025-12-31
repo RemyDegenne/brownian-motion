@@ -604,7 +604,6 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
       filter_upwards [h_range] with ω hω_range using expInv_logNeg_of_mem hω_range
     have hg_lim0_tendsto : ∀ᵐ ω ∂P, Tendsto (fun k => g (ns k) ω) atTop (𝓝 (g_lim0 ω)) := by
       filter_upwards [hns_tendsto, h_phi_eq] with ω hω_tend hω_eq
-
         using tendsto_of_expInv_tendsto (by rwa [hω_eq])
 
     have hg_lim_eq : hg_lim0_aemeasurable.mk g_lim0 =ᵐ[P] g_lim0 :=
