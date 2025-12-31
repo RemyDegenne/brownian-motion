@@ -422,7 +422,7 @@ lemma ltUpcrossingsBefore_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrd
       a b f N n ω hab (by grind) (by grind) hup
 
 /-! Finally, the equivalence ∀ n, P n ↔ L n. -/
-theorem upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+theorem upperCrossingTimeLT_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
     upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω := by
   by_cases hN : N ≤ ⊥
@@ -430,5 +430,126 @@ theorem upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinea
   · constructor
     · exact ltUpcrossingsBefore_of_upperCrossingTimeLT a b f N n ω hab hN
     · exact upperCrossingTimeLT_of_ltUpcrossingsBefore a b f N n ω hN
+
+/-! Auxiliary lemma. -/
+lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    upperCrossingTime a b f N n ω < N ↔ ltUpcrossingsBefore a b f N n ω := by
+  rw [← upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
+  exact upperCrossingTimeLT_iff_ltUpcrossingsBefore a b f N n ω hab
+
+/-! noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
+  if N ≤ ⊥ then False else
+    if n = 0 then True else
+      ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
+-/
+
+/-! noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) : ℕ :=
+    sSup {n | upperCrossingTime a b f N n ω < N}
+-/
+
+/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
+noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) (ω : Ω) : ℕ :=
+  sSup {n | ltUpcrossingsBefore a b f N n ω}
+
+theorem upcrossingsBefore_eq_upcrossingsBefore'
+  [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) :
+    upcrossingsBefore a b f N ω = upcrossingsBefore' a b f N ω := by
+  simp only [upcrossingsBefore, upcrossingsBefore']
+  set A := {n | upperCrossingTime a b f N n ω < N} with hA
+  set B := {n | ltUpcrossingsBefore a b f N n ω} with hB
+  have : A = B := by
+    ext n
+    rw [hA, hB]
+    exact upperCrossingTime_lt_iff_ltUpcrossingsBefore a b f N n ω hab
+  grind
+
+variable {κ : Type*}
+
+lemma ltUpcrossingsBefore_mono_index_set [LinearOrder ι] [OrderBot ι]
+    [LinearOrder κ] [OrderBot κ] (f : ι → κ) (hsmon : StrictMono f)
+    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
+    -- u has less upcrossings than v
+    (a b : ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    ltUpcrossingsBefore a b u N n ω → ltUpcrossingsBefore a b v (f N) n ω := by
+  simp only [ltUpcrossingsBefore]
+  by_cases hN : N ≤ ⊥
+  · simp only [hN, if_true]; grind
+  · simp only [hN, if_false]
+    push_neg at hN
+    have : f ⊥ < f N := hsmon hN
+    have fbot : ⊥ ≤ f ⊥ := by exact OrderBot.bot_le (f ⊥)
+    have hbot : ¬ f N ≤ ⊥ := by grind
+    simp only [hbot, if_false]
+    by_cases hnzero : n = 0
+    · simp only [hnzero, if_true]
+      grind
+    · simp only [hnzero, if_false]
+      rintro ⟨hseq, ht_lt_N⟩
+      have hmon : Monotone f := hsmon.monotone
+      let hseqv : UpcrossingData a b v n ω :=
+        {
+          hab := hab,
+          t := fun i => f (hseq.t i),
+          mono := by
+            intro i j hij
+            exact hsmon.monotone (hseq.mono hij)
+          ft_le_a := by
+            intro i hi heven
+            rw [hv (hseq.t i)]
+            exact hseq.ft_le_a i hi heven,
+          ft_ge_b := by
+            intro i hi hodd
+            rw [hv (hseq.t i)]
+            exact hseq.ft_ge_b i hi hodd
+        }
+      use hseqv
+      have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
+        simp only [hseqv]
+        exact hsmon ht_lt_N
+      exact htv_lt_fN
+
+/-! Suffices to show for `Finite` index sets - the comparison with `NNRat`, as
+  needed in the `theorem lintegral_iSup'`, is via `⊔`. -/
+theorem upcrossingsBefore'_mono_index_set [LinearOrder ι] [OrderBot ι] [Finite ι]
+    [LinearOrder κ] [OrderBot κ] [Finite κ] (f : ι → κ) (hsmon : StrictMono f)
+    -- (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
+    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
+    -- u has less upcrossings than v
+    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) :
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω := by
+  simp only [upcrossingsBefore']
+  set A := {n | ltUpcrossingsBefore a b u N n ω} with hA
+  set B := {n | ltUpcrossingsBefore a b v (f N) n ω} with hB
+  have : A ⊆ B := by
+    intro n hn
+    exact ltUpcrossingsBefore_mono_index_set f hsmon u v hv a b N n ω hab hn
+  sorry
+  /-! Use BddAbove A, B and Nat.sSup_mem - or the lemma in HittingTime.lean, via the equivalence.-/
+
+
+section Countable
+
+variable [Countable ι] [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
+
+variable {ℱ : Filtration ι m0}
+
+theorem mul_integral_upcrossingsBefore'_le_integral_pos_part_aux [IsFiniteMeasure μ]
+    (hf : Submartingale f ℱ μ) (hab : a < b) :
+    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+  sorry
+
+lemma upcrossingsBefore'_measurable
+    (hf : MeasurableProcess f ℱ) :
+    Measurable (upcrossingsBefore' a b f N) := by
+  sorry
+
+
+end Countable
 
 end ProbabilityTheory
