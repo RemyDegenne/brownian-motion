@@ -302,6 +302,7 @@ lemma integrable_defect {f g : Ω → ℝ≥0∞}
   · linarith [expInv_nonneg (f ω), expInv_nonneg (g ω), expInv_le_one (2⁻¹ * (f ω + g ω))]
   · linarith [expInv_le_one (f ω), expInv_le_one (g ω), expInv_nonneg (2⁻¹ * (f ω + g ω))]
 
+/-- Gap value -/
 def Defect_val (f g : Ω → ℝ≥0∞) := (∫ ω, (defect (f ω) (g ω)) ∂P)
 
 lemma Defect_val_eq {f g : Ω → ℝ≥0∞} (hf : Measurable f) (hg : Measurable g) :
