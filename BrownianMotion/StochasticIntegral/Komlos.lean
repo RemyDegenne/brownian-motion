@@ -376,15 +376,13 @@ open ContinuousLinearMap PiLp WithLp
 
 open scoped ENNReal ProbabilityTheory
 
-/-!
+/-
 ## Part 5: Komlós Lemma for ENNReal
 
 We combine the convex Komlós lemma with the defect bounds: first show `expInv ∘ g_n`
 is Cauchy in L1, then extract a subsequence with a.e. convergence, and finally invert
 `expInv` using `logNeg` to obtain a.e. convergence of `g_n` itself.
 -/
-
-/-- **Komlòs Lemma for ENNReal** -/
 
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
     {P : Measure Ω} [IsProbabilityMeasure P] :
@@ -549,22 +547,22 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
 
     exact lt_of_le_of_lt (le_refl _) h_dist_lt_ε
 
-  have hZ_int (n : ℕ) :  Integrable (Z (g n)) P := hZ_integrable (hg_meas n)
-
-  let C : ℕ → Lp ℝ 1 P := fun n => (hZ_int n).toL1 (Z (g n))
-
-  have hY_mem_L1' : CauchySeq C := by
-    refine Metric.cauchySeq_iff'.2 (fun ε hε ↦ ?_ )
-    obtain ⟨N, hN⟩ := h_exp_cauchy ε hε
-    refine ⟨N, fun n hn => ?_⟩
-    rw [dist_eq_norm, ← Integrable.toL1_sub, L1.norm_of_fun_eq_integral_norm]
-    exact hN n N hn le_rfl
-
   /-
   ### Step 4: Extract a subsequence with a.e. convergence in the `expInv` chart
   The L1 Cauchy property gives L1 convergence, hence convergence in measure. We then
   extract a subsequence converging almost surely pointwise in the `expInv` chart.
   -/
+
+  have hZ_int (n : ℕ) : Integrable (Z (g n)) P := hZ_integrable (hg_meas n)
+
+  let C : ℕ → Lp ℝ 1 P := fun n => (hZ_int n).toL1 (Z (g n))
+
+  have hY_mem_L1' : CauchySeq C := by
+    refine Metric.cauchySeq_iff'.2 <| fun ε hε ↦ ?_
+    obtain ⟨N, hN⟩ := h_exp_cauchy ε hε
+    refine ⟨N, fun n hn => ?_⟩
+    rw [dist_eq_norm, ← Integrable.toL1_sub, L1.norm_of_fun_eq_integral_norm]
+    exact hN n N hn le_rfl
 
   obtain ⟨h, h_L1⟩  := cauchySeq_tendsto_of_complete hY_mem_L1'
 
