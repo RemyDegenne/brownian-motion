@@ -374,8 +374,12 @@ end MeasureTheory
 
 open ContinuousLinearMap PiLp WithLp
 
-open scoped ENNReal ProbabilityTheory
 
+end ENNReal
+
+
+
+open ENNReal
 /-
 ## Part 5: Komlós Lemma for ENNReal
 
@@ -621,7 +625,5 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
   use (ns N - N) + n
   rw [← Nat.add_sub_cancel' (h_ns_ge N)] at nh
   rwa [← add_assoc]
-
-end ENNReal
 
 end
