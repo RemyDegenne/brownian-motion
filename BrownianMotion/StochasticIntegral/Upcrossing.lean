@@ -218,6 +218,10 @@ noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
+section UpperCrossingTimeEquivalence
+
+/-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
+
 /-! The `upcrossingsBeforeUpperCrossingTime a b f N n ω` is shortened as `Q n`. -/
 noncomputable def upcrossingsBeforeUpperCrossingTime [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
@@ -484,6 +488,8 @@ theorem upcrossingsBefore_eq_upcrossingsBefore'
     exact upperCrossingTime_lt_iff_ltUpcrossingsBefore a b f N n ω hab
   grind
 
+end UpperCrossingTimeEquivalence
+
 variable {κ : Type*}
 
 lemma ltUpcrossingsBefore_mono_index_set [LinearOrder ι] [OrderBot ι]
@@ -580,8 +586,6 @@ theorem upcrossingsBefore'_mono_index_set [LinearOrder ι] [OrderBot ι] [Finite
     use 0
     simp only [ltUpcrossingsBefore, hA, hN, if_false]; simp
   exact csSup_le_csSup hbdB hnonempty hAsubB
-
-
 
 section Countable
 
