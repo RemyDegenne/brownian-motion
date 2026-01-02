@@ -54,6 +54,8 @@ namespace UpcrossingData
 
 variable {a b : ℝ} {f : ι → Ω → ℝ} {ω : Ω}
 
+def size [PartialOrder ι] {n : ℕ} (_h : UpcrossingData a b f n ω) : ℕ := 2 * n
+
 lemma ne_of_ab {x y : ι} (hab : a < b) (ha : f x ω ≤ a) (hb : f y ω ≥ b) : x ≠ y := by
   intro hEq
   exact (not_le_of_gt hab) (le_trans hb (by simpa [hEq] using ha))
@@ -68,10 +70,24 @@ lemma ti_ne_ti1 {i} (hi1n : i + 1 < 2 * n) : h.t i ≠ h.t (i + 1) := by
   · have hi_odd : Odd i := Nat.not_even_iff_odd.mp hi_even
     exact (ne_of_ab h.hab (h.ft_le_a (i + 1) hi1n (by grind)) (h.ft_ge_b i hi hi_odd)).symm
 
-lemma t_strict_mono {i j} (hij : i < j) (hj : j < 2 * n) : h.t i < h.t j := by
+lemma t_strict_mono' {i j} (hij : i < j) (hj : j < 2 * n) : h.t i < h.t j := by
   have hi1n : i + 1 < 2 * n := Nat.lt_of_le_of_lt (Nat.succ_le_of_lt hij) hj
   have hti : h.t i < h.t (i + 1) := lt_of_le_of_ne (h.mono (Nat.le_succ i)) (h.ti_ne_ti1 hi1n)
   exact lt_of_lt_of_le hti (h.mono (Nat.succ_le_of_lt hij))
+
+def t_on_Fin2n : Fin (2 * n) → ι := fun x => h.t x.toNat
+
+lemma t_strict_mono_on_Fin2n : StrictMono h.t_on_Fin2n := by
+  intro x y hxy
+  exact h.t_strict_mono' hxy y.isLt
+
+lemma index_set_card_ge_of_upcrossingData {n : ℕ} [Fintype ι] (h : UpcrossingData a b f n ω) :
+    Fintype.card ι ≥ 2 * n := by
+  have this : Function.Injective h.t_on_Fin2n := h.t_strict_mono_on_Fin2n.injective
+  calc
+    Fintype.card ι ≥ Fintype.card (Fin (2 * n)) :=
+      Fintype.card_le_of_injective h.t_on_Fin2n this
+    _ = 2 * n := Fintype.card_fin _
 
 def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : UpcrossingData a b f (n + 1) ω) :
     UpcrossingData a b f n ω :=
@@ -473,8 +489,8 @@ variable {κ : Type*}
 lemma ltUpcrossingsBefore_mono_index_set [LinearOrder ι] [OrderBot ι]
     [LinearOrder κ] [OrderBot κ] (f : ι → κ) (hsmon : StrictMono f)
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
-    -- u has less upcrossings than v
     (a b : ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    -- u has less upcrossings than v
     ltUpcrossingsBefore a b u N n ω → ltUpcrossingsBefore a b v (f N) n ω := by
   simp only [ltUpcrossingsBefore]
   by_cases hN : N ≤ ⊥
@@ -513,24 +529,57 @@ lemma ltUpcrossingsBefore_mono_index_set [LinearOrder ι] [OrderBot ι]
         exact hsmon ht_lt_N
       exact htv_lt_fN
 
+lemma upcrossingData_bounded_size
+    [LinearOrder ι] [OrderBot ι] [Finite ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω)
+    : ∃ M : ℕ, ∀ n : ℕ, ∀ _ : UpcrossingData a b f n ω, 2 * n ≤ M := by
+  have hfin := Fintype.ofFinite ι
+  use Fintype.card ι
+  intro n hseq
+  exact hseq.index_set_card_ge_of_upcrossingData
+
+lemma ltUpcrossingsBefore_bddAbove
+    [LinearOrder ι] [OrderBot ι] [Finite ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) :
+    BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
+  by_cases hN : N ≤ ⊥
+  · simp only [ltUpcrossingsBefore, hN, if_true]
+    use 0
+    intro n hn
+    grind
+  · obtain ⟨M, hMsize⟩ := upcrossingData_bounded_size a b f ω
+    set A := {n | ltUpcrossingsBefore a b f N n ω} with hA
+    have hbdd: BddAbove A := by
+      use M
+      intro n hn
+      rw [hA] at hn;
+      simp only [ltUpcrossingsBefore, hN, if_false] at hn
+      by_cases hnzero : n = 0
+      · simp only [hnzero]; grind
+      · simp_all
+        rcases hn with ⟨hseq, ht_lt_N⟩
+        specialize hMsize n hseq
+        linarith
+    exact hbdd
+
 /-! Suffices to show for `Finite` index sets - the comparison with `NNRat`, as
   needed in the `theorem lintegral_iSup'`, is via `⊔`. -/
 theorem upcrossingsBefore'_mono_index_set [LinearOrder ι] [OrderBot ι] [Finite ι]
     [LinearOrder κ] [OrderBot κ] [Finite κ] (f : ι → κ) (hsmon : StrictMono f)
-    -- (hfinι : ∀ n m : ι, (Set.Icc n m).Finite) -- finite intervals in ι
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
+    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
     -- u has less upcrossings than v
-    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) :
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω := by
-  simp only [upcrossingsBefore']
   set A := {n | ltUpcrossingsBefore a b u N n ω} with hA
   set B := {n | ltUpcrossingsBefore a b v (f N) n ω} with hB
-  have : A ⊆ B := by
+  have hAsubB : A ⊆ B := by
     intro n hn
     exact ltUpcrossingsBefore_mono_index_set f hsmon u v hv a b N n ω hab hn
-  sorry
-  /-! Use BddAbove A, B and Nat.sSup_mem - or the lemma in HittingTime.lean, via the equivalence.-/
-
+  have hbdB : BddAbove B := ltUpcrossingsBefore_bddAbove a b v (f N) ω
+  have hnonempty : A.Nonempty := by
+    use 0
+    simp only [ltUpcrossingsBefore, hA, hN, if_false]; simp
+  exact csSup_le_csSup hbdB hnonempty hAsubB
 
 section Countable
 
