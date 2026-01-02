@@ -428,7 +428,7 @@ lemma ltUpcrossingsBefore_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrd
     upperCrossingTimeLT a b f N n ω → ltUpcrossingsBefore a b f N n ω := by
   by_cases hnzero : n = 0
   · -- n = 0 case
-    simp only [ltUpcrossingsBefore, hN, if_false]
+    simp only [ltUpcrossingsBefore, hN, if_true]
     simp only [hnzero, if_true]; grind
   · -- n ≥ 1 case
     intro hup
@@ -581,24 +581,40 @@ theorem upcrossingsBefore'_mono_index_set [LinearOrder ι] [OrderBot ι] [Finite
     simp only [ltUpcrossingsBefore, hA, hN, if_false]; simp
   exact csSup_le_csSup hbdB hnonempty hAsubB
 
+
+
 section Countable
 
-variable [Countable ι] [LinearOrder ι] [OrderBot ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
+variable [Countable ι]
 
-variable {ℱ : Filtration ι m0}
+theorem Countable.increasing_family_saturates_every_finite_subset :
+    ∃ s : ℕ → Set ι,
+    Monotone s ∧
+    (∀ n, Finite (s n)) ∧
+    (∀ t : Set ι, Finite t → ∃ n, t ⊆ s n) := by
+  obtain ⟨f, hf⟩ := Countable.exists_injective_nat ι
+  let s : ℕ → Set ι := fun n => {i | f i < n}
+  refine ⟨s, ?_, ?_, ?_⟩
+  · -- Monotone s
+    intro m n hmn i hi
+    exact Nat.lt_of_lt_of_le hi hmn
+  · -- ∀ n, Finite (s n)
+    intro n
+    let g : s n → Fin n := fun ⟨i, hi⟩ => ⟨f i, hi⟩
+    have g_inj : Function.Injective g := fun ⟨x, _⟩ ⟨y, _⟩ h => Subtype.ext (hf (Fin.ext_iff.mp h))
+    exact Finite.of_injective g g_inj
+  · -- ∀ t, Finite t → ∃ n, t ⊆ s n
+    intro t ht
+    haveI : Fintype t := Set.Finite.fintype ht
+    by_cases hempty : t = ∅
+    · exact ⟨0, by simp [hempty]⟩
+    · use (Finset.univ.image (fun i : t => f i)).sup id + 1
+      intro i hi
+      simp only [Set.mem_setOf_eq, s]
+      have : f i ∈ Finset.univ.image (fun j : t => f j) :=
+        Finset.mem_image.mpr ⟨⟨i, hi⟩, Finset.mem_univ _, rfl⟩
+      exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
 
-theorem mul_integral_upcrossingsBefore'_le_integral_pos_part_aux [IsFiniteMeasure μ]
-    (hf : Submartingale f ℱ μ) (hab : a < b) :
-    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  sorry
+variable [LinearOrder ι] [OrderBot ι]
 
-lemma upcrossingsBefore'_measurable
-    (hf : MeasurableProcess f ℱ) :
-    Measurable (upcrossingsBefore' a b f N) := by
-  sorry
-
-
-end Countable
-
-end ProbabilityTheory
+variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
