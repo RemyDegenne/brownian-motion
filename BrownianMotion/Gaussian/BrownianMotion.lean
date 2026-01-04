@@ -486,6 +486,8 @@ lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
       field_simp
     exact one_div_le_one_div_of_le (pos_of_ne_zero hs) hst
 
+/-- A pre-Brownian motion `X` is **filtered** with respect to a filtration `𝓕` if it is adapted 
+to `𝓕` and the increments of `X` after time `t` are independent of `𝓕 t` -/
 class IsFilteredPreBrownian (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω) : Prop
   extends IsPreBrownian X P where
     adap : Adapted 𝓕 X
