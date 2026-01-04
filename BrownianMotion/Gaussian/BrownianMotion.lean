@@ -9,6 +9,7 @@ import BrownianMotion.Gaussian.Moment
 import BrownianMotion.Gaussian.ProjectiveLimit
 import Mathlib.Probability.Independence.BoundedContinuousFunction
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
+import Mathlib.Probability.ConditionalExpectation
 
 /-!
 # Brownian motion
@@ -238,6 +239,9 @@ lemma IsPreBrownian.hasLaw_sub [IsPreBrownian X P] (s t : ℝ≥0) :
 lemma IsPreBrownian.integral_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
     P[X t] = 0 := by
   rw [(h.hasLaw_eval t).integral_eq, integral_id_gaussianReal]
+
+lemma IsPreBrownian.integrable_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
+    Integrable (X t) P := (h.isGaussianProcess.hasGaussianLaw_eval t).integrable
 
 lemma IsPreBrownian.covariance_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
     cov[X s, X t; P] = min s t := by
@@ -481,6 +485,49 @@ lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
     · norm_cast
       field_simp
     exact one_div_le_one_div_of_le (pos_of_ne_zero hs) hst
+
+class IsFilteredPreBrownian (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω) : Prop
+  extends IsPreBrownian X P where
+    adap : Adapted 𝓕 X
+    indep : ∀ s t : ℝ≥0, s ≤ t → Indep (MeasurableSpace.comap (X t - X s) inferInstance) (𝓕 s) P
+
+instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
+    (hX : ∀ t : ℝ≥0, Measurable (X t)) :
+    IsFilteredPreBrownian X (natural X (fun t ↦ (hX t).stronglyMeasurable)) P where
+  adap  := adapted_natural (fun t ↦ (hX t).stronglyMeasurable)
+  indep := by
+    intro s t hst
+    have h := (IndepFun_iff_Indep _ _ _).1 (h.indepFun_shift hX s)
+    refine indep_of_indep_of_le_right (indep_of_indep_of_le_left h ?_) ?_
+    · have hX : X t - X s = (fun f ↦ f (t - s)) ∘ (fun ω u ↦ (X (s + u) ω - X s ω)) := by
+        funext; simp [add_tsub_cancel_of_le, hst]
+      rw [hX, ←comap_comp]; apply comap_mono (Measurable.comap_le _); fun_prop
+    · apply iSup_le; intro u; apply iSup_le; intro hu
+      have hX : (X u) = ((fun f ↦ f ⟨u,hu⟩) ∘ (fun ω (t : Set.Iic s) ↦ X t ω)) := by
+        funext; simp
+      rw [hX, ←comap_comp]; apply comap_mono (Measurable.comap_le _); fun_prop
+
+lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω)
+  [IsProbabilityMeasure P] [hX : IsFilteredPreBrownian X 𝓕 P] : Martingale X 𝓕 P := by
+  refine ⟨hX.adap, ?_⟩
+  have hM := fun t ↦ ((hX.adap t).mono (𝓕.le t)).measurable
+  intro s t hst
+  have h_no_cond : P[X t - X s | 𝓕 s] =ᵐ[P] fun _ ↦ P[X t - X s] := by
+    refine condExp_indep_eq ?_ (𝓕.le s) ?_ (hX.indep s t hst)
+    · exact Measurable.comap_le (Measurable.sub (hM t) (hM s))
+    · exact (comap_measurable (X t - X s)).stronglyMeasurable
+  have h_integral_zero : P[X t - X s] = 0 := calc
+    P[X t - X s] = P[X t] - P[X s] := integral_sub (hX.integrable_eval t) (hX.integrable_eval s)
+    _ = ↑0 := by rw [hX.integral_eval t, hX.integral_eval s]; simp
+  exact calc
+    _ = P[(X t - X s) + X s | 𝓕 s] := by simp
+    _ =ᵐ[P] P[X t - X s | 𝓕 s] + P[X s | 𝓕 s] := by
+        refine condExp_add ?_ (hX.integrable_eval s) (𝓕 s)
+        exact (Integrable.sub (hX.integrable_eval t) (hX.integrable_eval s))
+    _ = P[X t - X s | 𝓕 s] + X s :=
+        by rw [condExp_of_stronglyMeasurable (𝓕.le s) (hX.adap s) (hX.integrable_eval s)]
+    _ =ᵐ[P] (fun _ ↦ P[X t - X s]) + X s := by filter_upwards [h_no_cond] with ω hω; simp [hω]
+    _ = X s := by rw [h_integral_zero]; funext; simp
 
 end IsPreBrownian
 
