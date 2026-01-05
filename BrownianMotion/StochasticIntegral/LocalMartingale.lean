@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.StochasticIntegral.Cadlag
+import BrownianMotion.StochasticIntegral.OptionalSampling
 import Mathlib.Probability.Martingale.Basic
+import BrownianMotion.Auxiliary.Martingale
 
 /-! # Local (sub)martingales
 
 -/
 
-open MeasureTheory Filter
+open MeasureTheory Filter TopologicalSpace Function
 open scoped ENNReal
 
 namespace ProbabilityTheory
@@ -40,10 +41,33 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
+variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
+  [Approximable 𝓕 P]
+
 /-- Martingales are a stable class. -/
 lemma isStable_martingale :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
-  sorry
+  intro X ⟨hX, hC⟩ τ hτ
+  refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
+    isStable_isCadlag X hC τ hτ⟩
+  · refine Adapted.progMeasurable_of_rightContinuous
+      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _) (fun ω ↦ ?_)
+    by_cases hω : ω ∈ {ω | ⊥ < τ ω}
+    · simp_rw [Set.indicator_of_mem hω]
+      exact (hC ω).right_continuous
+    · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+  · have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
+      hX.indicator (hτ.measurableSet_gt _)
+    conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
+    refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
+      (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
+      (fun ω ↦ min_le_left _ _) i)
+    · rw [stoppedProcess_eq_stoppedValue]
+    · by_cases hω : ω ∈ {ω | ⊥ < τ ω}
+      · simp_rw [Set.indicator_of_mem hω]
+        exact (hC ω).right_continuous
+      · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
 
 /-- Submartingales are a stable class. -/
 lemma isStable_submartingale :

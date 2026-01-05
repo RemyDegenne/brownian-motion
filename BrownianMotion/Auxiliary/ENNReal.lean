@@ -26,6 +26,14 @@ lemma div_le_one_of_le {x y : ℝ≥0∞} (h : x ≤ y) : x / y ≤ 1 := by
   · simp
   rwa [ENNReal.div_le_iff h1 h2, one_mul]
 
+lemma one_le_toReal {p : ℝ≥0∞} (hp1 : 1 ≤ p) (hp2 : p ≠ ⊤) : 1 ≤ p.toReal := by
+  calc
+  1 = (1 : ℝ≥0∞).toReal := rfl
+  _ ≤ p.toReal := by rwa [ENNReal.toReal_le_toReal (by simp) hp2]
+
+lemma toReal_pos_of_one_le {p : ℝ≥0∞} (hp1 : 1 ≤ p) (hp2 : p ≠ ⊤) : 0 < p.toReal :=
+    LT.lt.trans_le (by simp) (one_le_toReal hp1 hp2)
+
 end ENNReal
 
 @[norm_cast]

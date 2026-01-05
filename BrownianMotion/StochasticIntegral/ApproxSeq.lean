@@ -15,9 +15,9 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [TopologicalSpace E]
+variable {ι Ω E : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
-  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
+  {X : ι → Ω → E} {τ σ : Ω → WithTop ι} {i : ι}
 
 /-- Given a random time `τ`, a discrete approximation sequence `τn` of `τ` is a sequence of
 stopping times with countable range that converges to `τ` from above almost surely. -/
@@ -46,6 +46,24 @@ instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) w
 theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
     IsStoppingTime f fun _ => i := fun j => by simp only [MeasurableSet.const]
 
+/-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
+a discrete approximation sequence of `τ`. -/
+class Approximable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace ι] [LinearOrder ι]
+    [OrderTopology ι] (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac) where
+  /-- For any stopping time `τ`, there exists a discrete approximation sequence of `τ`. -/
+  approxSeq :
+    ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
+
+/-- Given a stopping time `τ` on an approximable time index, we obtain an associated discrete
+approximation sequence. -/
+def IsStoppingTime.discreteApproxSequence
+    (h : IsStoppingTime 𝓕 τ) (μ : Measure Ω) [Approximable 𝓕 μ] :
+    DiscreteApproxSequence 𝓕 τ μ := Approximable.approxSeq τ h
+
+instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := sorry
+
+instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable 𝓕 μ := sorry
+
 /-- The constant discrete approximation sequence. -/
 def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
     DiscreteApproxSequence 𝓕 (Function.const _ i) μ where
@@ -61,10 +79,32 @@ def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
   le := fun n ω ↦ le_rfl
   tendsto := by simp
 
-lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι]
+lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpace E]
     (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, RightContinuous (X · ω)) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  sorry
+  filter_upwards [τn.tendsto] with ω hω
+  simp only [stoppedValue]
+  by_cases hτ : τ ω = ⊤
+  · have (n : ℕ) : τn.seq n ω = ⊤ := by simpa [hτ] using τn.le n ω
+    simp [hτ, this, tendsto_const_nhds]
+  · have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
+      refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
+        τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
+      have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
+        simp only [ne_eq, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
+        by_contra!
+        have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
+          simp only [tendsto_atTop_nhds]
+          intro _ _ _
+          obtain ⟨N, hN⟩ := this 0
+          refine ⟨N, fun n hn => ?_⟩
+          obtain ⟨M, hM⟩ := this n
+          have : τn.seq n ω = ⊤ := by simpa [hM.2] using (τn.antitone hM.1 ω)
+          grind
+        exact hτ (tendsto_nhds_unique hω this)
+      filter_upwards [this] with n hn
+      simpa using WithTop.untopA_mono hn (τn.le n ω)
+    simpa using (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
 
 /-- For `τ` a time bounded by `i` and `τn` a discrete approximation sequence of `τ`,
 `discreteApproxSequence_of` is the discrete approximation sequence of `τ` defined by `τn ∧ i`. -/
@@ -158,6 +198,7 @@ lemma DiscreteApproxSequence.discreteApproxSequence_of_le_inf_le_of_left {i : ι
   (min_le_left _ _).trans <| discreteApproxSequence_of_le hτ τn m ω
 
 variable [Nonempty ι] [OrderBot ι] [FirstCountableTopology ι] [IsFiniteMeasure μ]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
 
 lemma uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
     (h : Martingale X 𝓕 μ) (τn : DiscreteApproxSequence 𝓕 τ μ) (hτn_le : ∀ n ω, τn n ω ≤ i) :

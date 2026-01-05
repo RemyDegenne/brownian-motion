@@ -15,8 +15,10 @@ namespace Martingale
 
 variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
   [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [MetrizableSpace ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} [IsFiniteMeasure μ]
-  {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {n : ι}
+  {X : ι → Ω → E} {τ σ : Ω → WithTop ι} {n : ι}
 
 theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
     (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω)) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
@@ -83,7 +85,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_countable_range
 /-- **Optional sampling theorem** for general time indices
 (assuming existence of `DiscreteApproxSequence`). -/
 theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
-    [SigmaFiniteFiltration μ 𝓕] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ) :
     (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
@@ -135,15 +137,33 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
         (DiscreteApproxSequence.isStoppingTime _ _) (discreteApproxSequence_of_le hτ_le τn m)
         (DiscreteApproxSequence.countable _ m))⟩
 
-theorem stoppedValue_ae_eq_condExp_of_le_const_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
-    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (τn : DiscreteApproxSequence 𝓕 τ μ) :
+-- TODO: change name of `stoppedValue_min_ae_eq_condExp` in mathlib and remove the prime here
+/-- **Optional sampling theorem** for approximable time indices. -/
+theorem stoppedValue_min_ae_eq_condExp'
+    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
+    (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] :=
+  stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC hτ hσ hτ_le
+    (hτ.discreteApproxSequence μ) (hσ.discreteApproxSequence μ)
+
+theorem stoppedValue_ae_eq_condExp_of_le_const'
+    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) :
     stoppedValue X τ =ᵐ[μ] μ[X n|hτ.measurableSpace] := by
   convert stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC
-    (isStoppingTime_const 𝓕 n) hτ (fun _ ↦ le_rfl) (discreteApproxSequence_const 𝓕 n) τn using 2
+    (isStoppingTime_const 𝓕 n) hτ (fun _ ↦ le_rfl) (discreteApproxSequence_const 𝓕 n)
+      (hτ.discreteApproxSequence μ) using 2
   ext ω
   rw [eq_comm, min_eq_right_iff]
   exact hτ_le ω
+
+theorem condExp_stoppedValue_ae_eq_stoppedProcess [Approximable 𝓕 μ] {n : ι}
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (i : ι) :
+    μ[stoppedValue X τ|𝓕 i] =ᵐ[μ] stoppedProcess X τ i := by
+  simp_rw [stoppedProcess_eq_stoppedValue, min_comm]
+  exact EventuallyEq.trans (Eq.eventuallyEq <| by simp)
+    (stoppedValue_min_ae_eq_condExp' h hRC hτ (isStoppingTime_const 𝓕 i) hτ_le).symm
 
 end Martingale
 
