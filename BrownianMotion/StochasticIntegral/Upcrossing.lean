@@ -475,11 +475,18 @@ noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) 
     (N : ι) (ω : Ω) : ℕ :=
   sSup {n | ltUpcrossingsBefore a b f N n ω}
 
+lemma upcrossingsBefore'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : N ≤ ⊥) :
+    upcrossingsBefore' a b f N ω = 0 := by
+  simp only [upcrossingsBefore', ltUpcrossingsBefore, hN, if_true]
+  simp
+
 /-! The two definitions of upcrossingsBefore are equivalent. -/
 theorem upcrossingsBefore_eq_upcrossingsBefore'
   [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) :
-    upcrossingsBefore a b f N ω = upcrossingsBefore' a b f N ω := by
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b) :
+    upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
+  ext ω
   simp only [upcrossingsBefore, upcrossingsBefore']
   set A := {n | upperCrossingTime a b f N n ω < N} with hA
   set B := {n | ltUpcrossingsBefore a b f N n ω} with hB
@@ -488,6 +495,14 @@ theorem upcrossingsBefore_eq_upcrossingsBefore'
     rw [hA, hB]
     exact upperCrossingTime_lt_iff_ltUpcrossingsBefore a b f N n ω hab
   grind
+
+lemma Adapted.measurable_upcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] {𝓕 : Filtration ι m0}
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hf : Adapted 𝓕 f) (hab : a < b) :
+    Measurable (upcrossingsBefore' a b f N) := by
+  rw [← upcrossingsBefore_eq_upcrossingsBefore' a b f N hab]
+  sorry -- TODO: the problem with the proof below is that it requires ι = ℕ
+  -- exact Adapted.measurable_upcrossingsBefore a b f N ω hf hab
 
 end UpperCrossingTimeEquivalence
 
@@ -605,38 +620,42 @@ lemma ltUpcrossingsBefore_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ)
 /-! Monotonicity of upcrossingsBefore' in the index set, assuming ltUpcrossingsBefore is bounded. -/
 lemma upcrossingsBefore'_mono_index_set_of_bounded (f : ι → κ) (hsmon : StrictMono f)
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
+    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b)
     (hbdB : BddAbove {n | ltUpcrossingsBefore a b v (f N) n ω}) :
     -- u has less upcrossings than v
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω := by
-  set A := {n | ltUpcrossingsBefore a b u N n ω} with hA
-  set B := {n | ltUpcrossingsBefore a b v (f N) n ω} with hB
-  have hAsubB : A ⊆ B := by
-    intro n hn
-    exact ltUpcrossingsBefore_mono_index_set f hsmon u v hv a b N n ω hab hn
-  have hbdB : BddAbove B := hbdB
-  have hnonempty : A.Nonempty := by
-    use 0
-    simp only [ltUpcrossingsBefore, hA, hN, if_false]; simp
-  exact csSup_le_csSup hbdB hnonempty hAsubB
+  by_cases! hN : N ≤ ⊥
+  · have hleftzero : upcrossingsBefore' a b u N ω = 0 := by
+      exact upcrossingsBefore'_zero_of_N_bot a b u N ω hN
+    rw [hleftzero]; grind
+  · set A := {n | ltUpcrossingsBefore a b u N n ω} with hA
+    set B := {n | ltUpcrossingsBefore a b v (f N) n ω} with hB
+    have hAsubB : A ⊆ B := by
+      intro n hn
+      exact ltUpcrossingsBefore_mono_index_set f hsmon u v hv a b N n ω hab hn
+    have hbdB : BddAbove B := hbdB
+    have hnonempty : A.Nonempty := by
+      use 0
+      simp only [ltUpcrossingsBefore, hA]; simp; grind
+    exact csSup_le_csSup hbdB hnonempty hAsubB
 
 /-! Monotonicity of upcrossingsBefore' in the index set, assuming {i | i < f N} is finite. -/
 theorem upcrossingsBefore'_mono_index_set_of_finite_till_N (f : ι → κ) (hsmon : StrictMono f)
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) (hfin : Finite {i | i < f N}):
+    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) (hfin : Finite {i | i < f N}):
     -- u has less upcrossings than v
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω :=
-  upcrossingsBefore'_mono_index_set_of_bounded f hsmon u v hv a b N ω hab hN <|
+  upcrossingsBefore'_mono_index_set_of_bounded f hsmon u v hv a b N ω hab <|
     ltUpcrossingsBefore_bddAbove_of_finite a b v ω (f N) hfin
 
 /-! Monotonicity of upcrossingsBefore' in the index set, assuming its finiteness. -/
 theorem upcrossingsBefore'_mono_index_set_of_finite [Finite κ]
     (f : ι → κ) (hsmon : StrictMono f)
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
+    (a b : ℝ) (N : ι) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω :=
-  upcrossingsBefore'_mono_index_set_of_finite_till_N f hsmon u v hv a b N ω hab hN <|
+  upcrossingsBefore'_mono_index_set_of_finite_till_N f hsmon u v hv a b N ω hab <|
     inferInstance
 
 end MonotonicityAndBoundedness
@@ -656,6 +675,9 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasur
     mul_integral_upcrossingsBefore_le_integral_pos_part_aux hf hab
   grind
 
+/-!
+  Doob's upcrossing inequality on `ℕ` for the alternative definition of `upcrossingsBefore`.
+-/
 theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part' [IsFiniteMeasure μ]
     {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0}
     (a b : ℝ) (hf : Submartingale f 𝓕 μ) (N : ℕ) :
@@ -675,6 +697,9 @@ def Fin.clamp (i : ℕ) (n : ℕ) [NeZero n] : Fin n :=
 
 lemma Fin.clamp_val (i : ℕ) (n : ℕ) [NeZero n] :
     (Fin.clamp i n).val = min i (n - 1) := rfl
+
+lemma Fin.clamp.eq_of_fin (n : ℕ) [NeZero n] (i : Fin n) :
+    Fin.clamp i.val n = i := by grind [Fin.clamp_val]
 
 lemma Fin.clamp.mono (i j : ℕ) (hij : i ≤ j) (n : ℕ) [NeZero n] :
     Fin.clamp i n ≤ Fin.clamp j n := by
@@ -726,20 +751,22 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_on_finite [IsFiniteM
   set ℱ' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hvsub : Submartingale v ℱ' μ := Submartingale.natOfFin hu
-  set N' := N.val with hNNat
   -- The inclusion map from `Fin n` to `ℕ`
   set f : Fin n → ℕ := fun i => i.val with hmap
+  set N' : ℕ := f N with hN'
   have hsmon : StrictMono f := by
     intro i j hij
     simp only [Fin.lt_iff_val_lt_val] at hij
     exact hij
   have hv : ∀ i : Fin n, v (f i) = u i := by
     intro i
-    sorry
-    -- have hclamp : Fin.clamp i n = i := i.is_lt
-    -- simp only [v, f]
-    -- unfold Process.natOfFin
-    --   simp only [Fin.clamp]
+    simp only [v, f]; unfold Process.natOfFin
+    simp only [Fin.clamp.eq_of_fin n i]
+  have hfin : Finite {i : ℕ | i < N'} := by infer_instance
+  have hineq : upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v N' := by
+    intro ω
+    exact upcrossingsBefore'_mono_index_set_of_finite_till_N f hsmon u v hv a b N ω hab hfin
+  -- TODO: finish, starting from measurability of upcrossingsBefore' (see another TODO, above)
   -- have hNpos : 0 < NNat + 1 := by exact Nat.lt_succ_of_le (Nat.zero_le NNat)
   sorry
 
