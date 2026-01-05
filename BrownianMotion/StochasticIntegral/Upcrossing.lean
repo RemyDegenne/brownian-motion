@@ -646,8 +646,8 @@ section DoobInequality
 variable {a b : ℝ}
 
 theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasure μ]
-    {f : ℕ → Ω → ℝ} {ℱ : Filtration ℕ m0} (N : ℕ)
-    (hf : Submartingale f ℱ μ) (hab : a < b) :
+    {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0} (N : ℕ)
+    (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
   have hgeq : ∀ x, upcrossingsBefore a b f N x = upcrossingsBefore' a b f N x := by
     intro ω
@@ -657,8 +657,8 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasur
   grind
 
 theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part' [IsFiniteMeasure μ]
-    {f : ℕ → Ω → ℝ} {ℱ : Filtration ℕ m0}
-    (a b : ℝ) (hf : Submartingale f ℱ μ) (N : ℕ) :
+    {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0}
+    (a b : ℝ) (hf : Submartingale f 𝓕 μ) (N : ℕ) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
   by_cases! hab : a < b
   · exact mul_integral_upcrossingsBefore_le_integral_pos_part_aux' N hf hab
@@ -667,34 +667,41 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part' [IsFi
       (integral_nonneg fun ω => posPart_nonneg _)
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
-variable {f : (Fin n) → Ω → ℝ} {N : Fin n} {ℱ : Filtration (Fin n) m0}
+variable {f : (Fin n) → Ω → ℝ} {N : Fin n}
 
 def Fin.clamp (i : ℕ) (n : ℕ) [NeZero n] : Fin n :=
   ⟨min i (n - 1),
     Nat.lt_of_le_of_lt (Nat.min_le_right i (n - 1)) (Nat.sub_lt (NeZero.pos n) Nat.one_pos)⟩
+
+lemma Fin.clamp_val (i : ℕ) (n : ℕ) [NeZero n] :
+    (Fin.clamp i n).val = min i (n - 1) := rfl
 
 lemma Fin.clamp.mono (i j : ℕ) (hij : i ≤ j) (n : ℕ) [NeZero n] :
     Fin.clamp i n ≤ Fin.clamp j n := by
   simp only [Fin.le_iff_val_le_val, Fin.clamp]
   exact min_le_min hij (Nat.le_refl _)
 
-def Filtration.natOfFin (ℱ : Filtration (Fin n) m0) : Filtration ℕ m0 :=
-  { seq := fun i => ℱ (Fin.clamp i n)
+def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
+  { seq := fun i => 𝓕 (Fin.clamp i n)
     mono' := by
       intro i j hij
-      refine ℱ.mono ?_
+      refine 𝓕.mono ?_
       simp only [Fin.clamp, Fin.le_iff_val_le_val]
       exact min_le_min hij (Nat.le_refl _)
-    le' := fun i => Filtration.le ℱ (Fin.clamp i n)
+    le' := fun i => Filtration.le 𝓕 (Fin.clamp i n)
   }
 
-def Submartingale.natOfFin (hf : Submartingale f ℱ μ) :
-    Submartingale (fun k : ℕ => f (Fin.clamp k n)) (Filtration.natOfFin ℱ) μ := by
-  set f' : ℕ → Ω → ℝ := fun k ω => f (Fin.clamp k n) ω with hfNat
-  set ℱ' := Filtration.natOfFin ℱ with hFNat
+variable {𝓕 : Filtration (Fin n) m0}
+
+def Process.natOfFin (f : Fin n → Ω → ℝ) : ℕ → Ω → ℝ := fun k ω => f (Fin.clamp k n) ω
+
+lemma Submartingale.natOfFin (hf : Submartingale f 𝓕 μ) :
+    Submartingale (Process.natOfFin f) (Filtration.natOfFin 𝓕) μ := by
+  set f' : ℕ → Ω → ℝ := Process.natOfFin f with hfNat
+  set ℱ' := Filtration.natOfFin 𝓕 with hFNat
   have hadapted' : Adapted ℱ' f' := by
     intro i
-    have hsm : StronglyMeasurable[ℱ (Fin.clamp i n)] (f (Fin.clamp i n)) := by
+    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (f (Fin.clamp i n)) := by
       exact Submartingale.stronglyMeasurable hf (Fin.clamp i n)
     have hsm' : StronglyMeasurable[ℱ' i] (f' i) := by
       simp only [f', ℱ']
@@ -712,18 +719,27 @@ def Submartingale.natOfFin (hf : Submartingale f ℱ μ) :
   exact ⟨ hadapted', hsub', hint' ⟩
 
 theorem mul_integral_upcrossingsBefore_le_integral_pos_part_on_finite [IsFiniteMeasure μ]
-    {u : (Fin n) → Ω → ℝ} {N : Fin n} {ℱ : Filtration (Fin n) m0}
-    (hu : Submartingale u ℱ μ) (hab : a < b) :
+    {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0}
+    (hu : Submartingale u 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
-  set FNat := Filtration.natOfFin ℱ with hFNat
-  set fNat := Submartingale.natOfFin hu with hfNat
-  set NNat := N.val with hNNat
-  set mapFinToNat : Fin n → ℕ := fun i => i.val with hmap
-  have hmap_strict_mono : StrictMono mapFinToNat := by
+  -- We reduce to the `ℕ`-indexed case
+  set ℱ' := Filtration.natOfFin 𝓕 with hFiltr
+  set v := Process.natOfFin u with hv
+  have hvsub : Submartingale v ℱ' μ := Submartingale.natOfFin hu
+  set N' := N.val with hNNat
+  -- The inclusion map from `Fin n` to `ℕ`
+  set f : Fin n → ℕ := fun i => i.val with hmap
+  have hsmon : StrictMono f := by
     intro i j hij
     simp only [Fin.lt_iff_val_lt_val] at hij
     exact hij
-  have hmap_eq : ∀ i : Fin n, fNat (mapFinToNat i) = u i := by
+  have hv : ∀ i : Fin n, v (f i) = u i := by
+    intro i
+    sorry
+    -- have hclamp : Fin.clamp i n = i := i.is_lt
+    -- simp only [v, f]
+    -- unfold Process.natOfFin
+    --   simp only [Fin.clamp]
   -- have hNpos : 0 < NNat + 1 := by exact Nat.lt_succ_of_le (Nat.zero_le NNat)
   sorry
 
