@@ -46,62 +46,18 @@ lemma hittingAfter_eq_debut [Preorder ι] [InfSet ι] {β : Type*} (u : ι → �
 
 section Debut
 
-variable [ConditionallyCompleteLinearOrder ι] (n : ι)
-
-@[simp]
-lemma hittingAfter_empty {β : Type*} {u : ι → Ω → β} : hittingAfter u ∅ n = fun _ ↦ ⊤ := by
-  ext
-  simp [hittingAfter]
-
-@[simp]
-lemma hittingAfter_univ {β : Type*} {u : ι → Ω → β} :
-    hittingAfter u .univ n = fun _ ↦ (n : WithTop ι) := by
-  ext ω
-  classical
-  simp only [hittingAfter, Set.mem_univ, and_true]
-  rw [if_pos ⟨n, le_refl n⟩]
-  exact_mod_cast csInf_Ici
-
-lemma hittingAfter_anti {β : Type*} (u : ι → Ω → β) : Antitone (hittingAfter u · n) := by
-  intro E F hEF ω
-  simp only [hittingAfter]
-  split_ifs with hF hE hE
-  · norm_cast
-    gcongr
-    exacts [⟨n, by simp only [mem_lowerBounds, Set.mem_setOf_eq, and_imp]; grind⟩, hE, hEF]
-  · simp
-  · have ⟨t, ht⟩ := hE
-    exact absurd ⟨t, ht.1, hEF ht.2⟩ hF
-  · simp
-
-lemma hittingAfter_mono {β : Type*} (u : ι → Ω → β) (s : Set β) : Monotone (hittingAfter u s) := by
-  intro n m hnm ω
-  simp only [hittingAfter]
-  split_ifs with h_n h_m h_m
-  · norm_cast
-    gcongr
-    exacts [⟨n, by simp only [mem_lowerBounds, Set.mem_setOf_eq, and_imp]; grind⟩, h_m]
-  · simp
-  · have ⟨t, ht⟩ := h_m
-    exact absurd ⟨t, hnm.trans ht.1, ht.2⟩ h_n
-  · simp
-
-lemma hittingAfter_apply_anti {β : Type*} (u : ι → Ω → β) (ω : Ω) :
-    Antitone (hittingAfter u · n ω) := fun _ _ hst ↦ hittingAfter_anti n u hst ω
-
-lemma hittingAfter_apply_mono {β : Type*} (u : ι → Ω → β) (s : Set β) (ω : Ω) :
-    Monotone (hittingAfter u s · ω) := fun _ _ hnm ↦ hittingAfter_mono u s hnm ω
-
 /-- The debut of the empty set is the constant function that returns `m`. -/
 @[simp]
-lemma debut_empty : debut (∅ : Set (ι × Ω)) n = fun _ ↦ ⊤ := hittingAfter_empty n
+lemma debut_empty [Preorder ι] [InfSet ι] (n : ι) : debut (∅ : Set (ι × Ω)) n = fun _ ↦ ⊤ :=
+  hittingAfter_empty n
 
 @[simp]
-lemma debut_univ : debut (.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι) := hittingAfter_univ n
+lemma debut_univ [ConditionallyCompleteLattice ι] (n : ι) :
+    debut (.univ : Set (ι × Ω)) n = fun _ ↦ (n : WithTop ι) := hittingAfter_univ n
 
 open scoped Classical in
 @[simp]
-lemma debut_prod (I : Set ι) (A : Set Ω) :
+lemma debut_prod [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) (A : Set Ω) :
     debut (I ×ˢ A) n = fun ω ↦ if .Ici n ∩ I ≠ ∅ then
         if ω ∈ A then ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤
       else ⊤ := by
@@ -116,12 +72,12 @@ lemma debut_prod (I : Set ι) (A : Set Ω) :
     exact fun i hni hiI _ ↦ Set.notMem_empty i (hI ▸ ⟨hni, hiI⟩)
 
 open scoped Classical in
-lemma debut_prod_univ (I : Set ι) :
+lemma debut_prod_univ [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) :
     debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if .Ici n ∩ I ≠ ∅ then
       ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by
   simp
 
-lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
+lemma debut_univ_prod [ConditionallyCompleteLattice ι] (n : ι) (A : Set Ω) [DecidablePred (· ∈ A)] :
     debut ((.univ : Set ι) ×ˢ A) n = fun ω ↦ if ω ∈ A then (n : WithTop ι) else ⊤ := by
   rw [debut_eq_ite]
   ext ω
@@ -129,15 +85,16 @@ lemma debut_univ_prod (A : Set Ω) [DecidablePred (· ∈ A)] :
   · simp only [Set.mem_prod, Set.mem_univ, hω, and_true, WithTop.coe_eq_coe]
     exact csInf_Ici
   · simp_all
-  · simp only [Set.mem_prod, Set.mem_univ, hω, and_true, not_exists, not_le] at hi
-    exact (lt_self_iff_false n).mp (hi n) |>.elim
+  · simp only [Set.mem_prod, Set.mem_univ, hω, and_true, not_exists] at hi
+    simpa only [le_refl, not_true_eq_false] using hi n
   · simp_all
 
-lemma debut_anti : Antitone (debut (Ω := Ω) · n) := hittingAfter_anti n _
+lemma debut_anti [ConditionallyCompleteLinearOrder ι] (n : ι) : Antitone (debut (Ω := Ω) · n) :=
+  hittingAfter_anti _ n
 
 section Inequalities
 
-variable {E : Set (ι × Ω)} {n t : ι} {ω : Ω}
+variable [ConditionallyCompleteLinearOrder ι] {E : Set (ι × Ω)} {n t : ι} {ω : Ω}
 
 lemma notMem_of_lt_debut (ht : t < debut E n ω) (hnt : n ≤ t) : (t, ω) ∉ E :=
   notMem_of_lt_hittingAfter ht hnt
@@ -180,13 +137,13 @@ progressively measurable set, but we can just add the necessary hypothesis manua
 
 /-- A set `E : Set ι × Ω` is *Progressively measurable* with respect to a filtration `f` if the
 indicator function of `E` is a progressively measurable process with respect to `f`. -/
-def _root_.MeasureTheory.ProgMeasurableSet
+def _root_.MeasureTheory.ProgMeasurableSet [Preorder ι]
     [MeasurableSpace ι] (E : Set (ι × Ω)) (f : Filtration ι mΩ) :=
   ProgMeasurable f (E.indicator fun _ ↦ 1).curry
 
 /-- **Debùt Therorem**: The debut of a progressively measurable set `E` is a stopping time. -/
-theorem debut_isStoppingTime [MeasurableSpace ι]
-    {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) :
+theorem debut_isStoppingTime [MeasurableSpace ι] [Preorder ι] [InfSet ι]
+    {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) (n : ι) :
     IsStoppingTime f (debut E n) := by
   /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
   usual hypotheses on the filtration (in particular the right continuity of the filtration, see
