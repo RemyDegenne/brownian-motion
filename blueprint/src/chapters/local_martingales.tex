@@ -615,7 +615,7 @@ Apply Lemma~\ref{lem:local_induction} using Lemma~\ref{lem:ClassDL.locally_class
 Assume $T$ is a linear order endowed with a topology making it first countable and $E$ is a pseudo-metric space. If $X$ is a càdlàg process then it maps compact sets of $T$ to bounded sets.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $K \subseteq T$ be a compact set and $\omega \in \Omega$. Assume that $X(\omega)(K)$ is not bounded. Then there exists a sequence $(t_n)$ in $K$ such that for all $n \in N$, $d(X_{t_n}(\omega), x) \ge n$, for some arbitrary $x \in E$. Because $K$ is compact, there is a subsequence $(t_{\phi(n)})$ that converges. Then one can extract a subsequence $(t_{\phi(\psi(n))})$ which either converges from below or from above. In both cases the sequence $(X_{t_{\phi(\psi(n))}})$ will converge, contradicting the hypotheses.
 \end{proof}
 
@@ -650,6 +650,7 @@ Then
 \end{lemma}
 
 \begin{proof}
+\leanok
 If $\tau > t$, then for all $s \le t$, $\|X_s\| \le n$, and thus $(X^\tau)^*_t = \sup_{s \le t} \|X_{\tau \land s}\| \le n = n + \mathbb{1}_{\tau \le t} \|X_{\tau}\|$. Otherwise $(X^\tau)^*_t = \sup_{s \le \tau} \|X_s\|$. For $s < \tau$, $\|X_s\| \le n$, and $\|X_\tau\| \le \|X_\tau\|$ so $\sup_{s \le \tau} \|X_s\| \le n \lor \|X_\tau\| \le n + \|X_\tau\| = n + \mathbb{I}_{\tau \le t} \|X_\tau\|$.
 \end{proof}
 
