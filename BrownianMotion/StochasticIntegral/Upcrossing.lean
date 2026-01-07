@@ -668,12 +668,12 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasur
     {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0} (N : ℕ)
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  have hgeq : ∀ x, upcrossingsBefore a b f N x = upcrossingsBefore' a b f N x := by
-    intro ω
-    rw [upcrossingsBefore_eq_upcrossingsBefore' a b f N ω hab]
+  have hgeq : upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
+    rw [upcrossingsBefore_eq_upcrossingsBefore' a b f N hab]
   have hequiv : (b - a) * μ[upcrossingsBefore a b f N] ≤ μ[fun ω => (f N ω - a)⁺] :=
     mul_integral_upcrossingsBefore_le_integral_pos_part_aux hf hab
-  grind
+  rw [← hgeq]
+  assumption
 
 /-!
   Doob's upcrossing inequality on `ℕ` for the alternative definition of `upcrossingsBefore`.
