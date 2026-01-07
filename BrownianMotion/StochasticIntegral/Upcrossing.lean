@@ -218,6 +218,192 @@ noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
+/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
+noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) (ω : Ω) : ℕ :=
+  sSup {n | ltUpcrossingsBefore a b f N n ω}
+
+section Measurability
+
+lemma measurable_zero_UpcrossingsBefore_lt [LinearOrder ι] [OrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) :
+    MeasurableSet ({ω | ltUpcrossingsBefore a b f N 0 ω}) := by
+  simp only [ltUpcrossingsBefore]
+  by_cases hN : N ≤ ⊥
+  · simp only [hN, if_true]
+    exact MeasurableSet.empty
+  · simp only [hN, if_false, if_true]
+    exact MeasurableSet.univ
+
+lemma measurable_one_UpcrossingsBefore_lt [LinearOrder ι] [OrderBot ι] [Countable ι]
+    {𝓕 : Filtration ι m0}
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hf : Adapted 𝓕 f) (hab : a < b) :
+    MeasurableSet ({ω | ltUpcrossingsBefore a b f N 1 ω}) := by
+  by_cases hN : N ≤ ⊥
+  · simp only [ltUpcrossingsBefore, hN, if_true]
+    exact MeasurableSet.empty
+  · -- simp only [hN, if_false]
+    set S : Set Ω := {ω | ∃ s t : ι,
+      f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b ∧ s < t ∧ t < N} with hS
+    have : {ω | ltUpcrossingsBefore a b f N 1 ω} = S := by
+      ext ω
+      simp only [ltUpcrossingsBefore, hN, if_false]
+      simp only [Set.mem_setOf_eq]
+      rw [Set.mem_setOf_eq]
+      constructor
+      · rintro ⟨seq, h_t1_lt_N⟩
+        use seq.t 0, seq.t 1
+        have ha : f (seq.t 0) ω ∈ Set.Iic a :=
+          Set.mem_Iic.mpr (seq.ft_le_a 0 (by simp) Even.zero)
+        have hb : f (seq.t 1) ω ∈ Set.Ici b :=
+          Set.mem_Ici.mpr (seq.ft_ge_b 1 (by simp) (by grind))
+        refine ⟨ha, hb, ?hs_lt_t, h_t1_lt_N⟩
+        exact seq.t_strict_mono' (by simp) (by simp)
+      · rintro ⟨s, t, hfs, hft, hs_lt_t, ht_lt_N⟩
+        let hseq : UpcrossingData a b f 1 ω :=
+          {
+            hab := hab,
+            t := fun i => if i = 0 then s else t,
+            mono := by
+              intro i j hij
+              by_cases hi0 : i = 0
+              · grind
+              · grind,
+            ft_le_a := by grind,
+            ft_ge_b := by grind
+          }
+        use hseq
+        exact ht_lt_N
+    rw [this]
+    set A : ι → Set Ω := fun t => {ω | f t ω ∈ Set.Iic a} with hA
+    set B : ι → Set Ω := fun t => {ω | f t ω ∈ Set.Ici b} with hB
+    have hA_meas : ∀ t, MeasurableSet (A t) := fun t =>
+        measurableSet_le ((hf t).mono (𝓕.le t)).measurable measurable_const
+    have hB_meas : ∀ t, MeasurableSet (B t) := fun t =>
+        measurableSet_le measurable_const ((hf t).mono (𝓕.le t)).measurable
+    have hSconstr : S = ⋃ t < N, (B t ∩ ⋃ s < t, (A s)) := by
+      ext ω
+      simp only [Set.mem_iUnion, Set.mem_inter_iff, Set.mem_setOf_eq, S, A, B]
+      constructor
+      · rintro ⟨s, t, hfs, hft, hst, htN⟩
+        exact ⟨t, htN, hft, s, hst, hfs⟩
+      · rintro ⟨t, htN, hft, s, hst, hfs⟩
+        exact ⟨s, t, hfs, hft, hst, htN⟩
+    rw [hSconstr]
+    have huA_meas : ∀ t, MeasurableSet (⋃ s < t, (A s)) := fun t =>
+      MeasurableSet.biUnion (Set.to_countable _) (fun s _ => hA_meas s)
+    exact MeasurableSet.biUnion (Set.to_countable _) (fun t _ =>
+      (hB_meas t).inter (huA_meas t))
+
+lemma ltUpcrossingsBefore_of_ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : ¬ N ≤ ⊥) :
+    ltUpcrossingsBefore a b f N (n + 2) ω ↔
+    (∃ seq' : UpcrossingData a b f (n + 1) ω, ∃ s t : ι,
+      seq'.t (2 * n + 1) < s ∧
+      s < t ∧
+      t < N ∧
+      f s ω ∈ Set.Iic a ∧
+      f t ω ∈ Set.Ici b) := by
+  simp only [ltUpcrossingsBefore]
+  rw [if_neg hN]
+  have h1 : n + 2 ≠ 0 := by grind
+  simp only [h1, if_false]
+  constructor
+  · rintro ⟨seq, h_t1_lt_N⟩
+    set seq' := seq.toShorter with hseq'_def
+    set s := seq.t (2 * n + 2) with hs
+    set t := seq.t (2 * n + 3) with ht
+    have h_t1_lt_s : seq'.t (2 * n + 1) < s := seq.t_strict_mono' (by simp) (by grind)
+    have h_s_lt_t : s < t := seq.t_strict_mono' (by grind) (by grind)
+    have h_even : f s ω ∈ Set.Iic a :=
+      Set.mem_Iic.mpr (seq.ft_le_a (2 * n + 2) (by grind) (by grind))
+    have h_odd : f t ω ∈ Set.Ici b :=
+      Set.mem_Ici.mpr (seq.ft_ge_b (2 * n + 3) (by grind) (by grind))
+    exact ⟨seq', s, t, h_t1_lt_s, h_s_lt_t, h_t1_lt_N, h_even, h_odd⟩
+  · rintro ⟨seq', s, t, h_t1_lt_s, h_s_lt_t, h_t_lt_N, hfs, hft⟩
+    use (seq'.extend s t h_t1_lt_s.le h_s_lt_t.le hfs hft)
+    have := seq'.extend_t s t h_t1_lt_s.le h_s_lt_t.le hfs hft
+    rw [← this] at h_t_lt_N
+    exact h_t_lt_N
+
+lemma ltUpcrossingsBefore_of_ltUpcrossingsBefore' [LinearOrder ι] [OrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : ¬ N ≤ ⊥) :
+    ltUpcrossingsBefore a b f N (n + 2) ω ↔
+    (∃ s t : ι, ltUpcrossingsBefore a b f s (n + 1) ω ∧
+      s < t ∧
+      t < N ∧
+      f s ω ∈ Set.Iic a ∧
+      f t ω ∈ Set.Ici b) := by
+  rw [ltUpcrossingsBefore_of_ltUpcrossingsBefore a b f N n ω hN]
+  simp only [ltUpcrossingsBefore]
+  have hn1 : n + 1 ≠ 0 := by grind
+  constructor
+  · rintro ⟨seq', s, t, h_t1_lt_s, h_s_lt_t, h_t_lt_N, hfs, hft⟩
+    use s, t
+    have hsbot : ⊥ < s := lt_of_le_of_lt bot_le h_t1_lt_s
+    have hsbot : ¬ s ≤ ⊥ := by grind
+    simp only [hsbot, hn1, if_false]
+    have hseq'_n1 : ∃ seq'' : UpcrossingData a b f (n + 1) ω, seq''.t (2 * n + 1) < s := by
+      use seq'
+    exact ⟨hseq'_n1, h_s_lt_t, h_t_lt_N, hfs, hft⟩
+  · rintro ⟨s, t, h_ltUp_n1, h_s_lt_t, h_t_lt_N, hfs, hft⟩
+    by_cases hsb : s ≤ ⊥
+    · simp only [hsb, if_true] at h_ltUp_n1
+    · simp only [hsb, if_false, hn1] at h_ltUp_n1
+      rcases h_ltUp_n1 with ⟨seq', hseq'_n1⟩
+      use seq', s, t
+      exact ⟨hseq'_n1, h_s_lt_t, h_t_lt_N, hfs, hft⟩
+
+lemma measurable_ltUpcrossingsBefore_of_Nbot [LinearOrder ι] [OrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) :
+    MeasurableSet ({ω | ltUpcrossingsBefore a b f ⊥ n ω}) := by
+  simp only [ltUpcrossingsBefore]; simp
+
+/-! The set `{ω | ltUpcrossingsBefore a b f N n ω}` is measurable. -/
+theorem Adapted.measurable_ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι] [Countable ι]
+    {𝓕 : Filtration ι m0}
+    (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (hf : Adapted 𝓕 f) (hab : a < b) :
+    ∀ N : ι, MeasurableSet ({ω | ltUpcrossingsBefore a b f N n ω}) := by
+  by_cases! hnzero : n = 0
+  · simp only [hnzero, if_true, ltUpcrossingsBefore]
+    intro N
+    simp_all
+  · -- substitute n with n' + 1
+    let n' := n - 1; have hn' : n = n' + 1 := by grind
+    simp only [hn']
+    induction n' with
+    | zero =>
+      intro N
+      exact measurable_one_UpcrossingsBefore_lt a b f N hf hab
+    | succ n'' ih =>
+      intro N
+      by_cases hN : N ≤ ⊥
+      · simp only [ltUpcrossingsBefore, hN, if_true]
+        exact MeasurableSet.empty
+      · -- case N ≠ ⊥
+        set S : ι → Set Ω := fun i => {ω | ltUpcrossingsBefore a b f i (n'' + 1) ω} with hS
+        have hS_meas : ∀ i, MeasurableSet (S i) := fun i => ih i
+        set S' : Set Ω := {ω | ltUpcrossingsBefore a b f N (n'' + 2) ω} with hS'
+        set A : ι → Set Ω := fun t => {ω | f t ω ≤ a} with hA
+        set B : ι → Set Ω := fun t => {ω | f t ω ≥ b} with hB
+        have hA_meas : ∀ t, MeasurableSet (A t) := fun t =>
+          measurableSet_le ((hf t).mono (𝓕.le t)).measurable measurable_const
+        have hB_meas : ∀ t, MeasurableSet (B t) := fun t =>
+          measurableSet_le measurable_const ((hf t).mono (𝓕.le t)).measurable
+        have hSconstr : S' = ⋃ t < N, (B t ∩ ⋃ s < t, (A s ∩ S s)) := by
+          ext ω
+          simp only [Set.mem_iUnion, Set.mem_inter_iff, Set.mem_setOf_eq, S', A, B]
+          simp only [Set.mem_setOf_eq, S]
+          rw [ltUpcrossingsBefore_of_ltUpcrossingsBefore' a b f N n'' ω hN]
+          grind
+        rw [hSconstr]
+        have huA_meas : ∀ t, MeasurableSet (⋃ s < t, (A s ∩ S s)) := fun t =>
+          MeasurableSet.biUnion (Set.to_countable _) (fun s _ =>
+            (hA_meas s).inter (hS_meas s))
+        exact MeasurableSet.biUnion (Set.to_countable _) (fun t _ => (hB_meas t).inter (huA_meas t))
+
+end Measurability
+
 section UpperCrossingTimeEquivalence
 
 /-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
@@ -334,7 +520,6 @@ lemma upcrossingData_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot
 lemma upcrossingData_of_first_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
     upperCrossingTimeLT a b f N 1 ω → upcrossingsBeforeUpperCrossingTime a b f N 1 ω := by
-    -- ∃ hseq : UpcrossingData a b f 1 ω, hseq.t 1 ≤ upperCrossingTime a b f N 1 ω := by
   intro hup
   set m := upperCrossingTime a b f N 0 ω with hm
   have hm_bot : m = ⊥ := rfl
@@ -470,11 +655,6 @@ lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearO
     sSup {n | upperCrossingTime a b f N n ω < N}
 -/
 
-/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
-noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
-    (N : ι) (ω : Ω) : ℕ :=
-  sSup {n | ltUpcrossingsBefore a b f N n ω}
-
 lemma upcrossingsBefore'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : N ≤ ⊥) :
     upcrossingsBefore' a b f N ω = 0 := by
@@ -495,14 +675,6 @@ theorem upcrossingsBefore_eq_upcrossingsBefore'
     rw [hA, hB]
     exact upperCrossingTime_lt_iff_ltUpcrossingsBefore a b f N n ω hab
   grind
-
-lemma Adapted.measurable_upcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] {𝓕 : Filtration ι m0}
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hf : Adapted 𝓕 f) (hab : a < b) :
-    Measurable (upcrossingsBefore' a b f N) := by
-  rw [← upcrossingsBefore_eq_upcrossingsBefore' a b f N hab]
-  sorry -- TODO: the problem with the proof below is that it requires ι = ℕ
-  -- exact Adapted.measurable_upcrossingsBefore a b f N ω hf hab
 
 end UpperCrossingTimeEquivalence
 
