@@ -533,6 +533,7 @@ variable [OrderBot ι]
 variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
 
 /-! Monotonicity of ltUpcrossingsBefore with respect to the index set. -/
+/-! TODO: Let's check if this proof can be generalized to `hv : ∀ i ≤ N, v (f i) = u i`. -/
 lemma ltUpcrossingsBefore_mono_index_set (f : ι → κ) (hsmon : StrictMono f)
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
@@ -573,6 +574,73 @@ lemma ltUpcrossingsBefore_mono_index_set (f : ι → κ) (hsmon : StrictMono f)
       have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
         simp only [hseqv]
         exact hsmon ht_lt_N
+      exact htv_lt_fN
+
+/-! Monotonicity of ltUpcrossingsBefore with respect to the index set. -/
+/-! TODO: Let's check if this proof can be generalized to `hv : ∀ i ≤ N, v (f i) = u i`. -/
+lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
+    (hsmon : StrictMonoOn f {i | i ≤ N})
+    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
+    (a b : ℝ) (n : ℕ) (ω : Ω) (hab : a < b) :
+    -- u has less upcrossings than v
+    ltUpcrossingsBefore a b u N n ω → ltUpcrossingsBefore a b v (f N) n ω := by
+  simp only [ltUpcrossingsBefore]
+  by_cases hN : N ≤ ⊥
+  · simp only [hN, if_true]; grind
+  · simp only [hN, if_false]
+    push_neg at hN -- hN : ⊥ < N
+    have hBotIn : ⊥ ∈ {i | i ≤ N} := by simp
+    have hNIn : N ∈ {i | i ≤ N} := by simp
+    have : f ⊥ < f N := hsmon hBotIn hNIn hN
+    have fbot : ⊥ ≤ f ⊥ := by exact OrderBot.bot_le (f ⊥)
+    have hbot : ¬ f N ≤ ⊥ := by grind
+    simp only [hbot, if_false]
+    by_cases hnzero : n = 0
+    · simp only [hnzero, if_true]
+      grind
+    · simp only [hnzero, if_false]
+      rintro ⟨hseq, ht_lt_N⟩
+      have hmon : MonotoneOn f {i | i ≤ N} := hsmon.monotoneOn
+      have htIn : ∀ j < 2 * n, hseq.t j ∈ {i | i ≤ N} := by
+        intro i hi
+        have : hseq.t i ≤ hseq.t (2 * n - 1) := hseq.mono (by grind)
+        grind
+      let hseqv : UpcrossingData a b v n ω :=
+        {
+          hab := hab,
+          t := fun i => if i < 2 * n then f (hseq.t i) else f N,
+          mono := by
+            intro i j hij
+            by_cases hi : i < 2 * n
+            · have hti := htIn i hi
+              by_cases hj : j < 2 * n
+              · -- both i and j are < 2 * n
+                simp only [hi, hj, if_true]
+                exact hmon hti (htIn j hj) (hseq.mono hij)
+              · -- i < 2 * n but j ≥ 2 * n
+                simp only [hi, hj, if_true, if_false]
+                exact hmon hti hNIn (by grind)
+            · -- i ≥ 2 * n, so j ≥ 2 * n too
+              have hj : ¬ j < 2 * n := by grind
+              simp only [hi, hj, if_false]
+              rfl
+          ft_le_a := by
+            intro i hi heven
+            simp only [hi, if_true]
+            rw [hv (hseq.t i) (htIn i hi)]
+            exact hseq.ft_le_a i hi heven
+          ft_ge_b := by
+            intro i hi hodd
+            simp only [hi, if_true]
+            rw [hv (hseq.t i) (htIn i hi)]
+            exact hseq.ft_ge_b i hi hodd
+        }
+      use hseqv
+      have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
+        simp only [hseqv]
+        have hnzero : 2 * n - 1 < 2 * n := by grind
+        simp only [hnzero, if_true]
+        exact hsmon (htIn (2 * n - 1) hnzero) hNIn ht_lt_N
       exact htv_lt_fN
 
 -- /-! Given a finite index set, size of UpcrossingData is bounded. -/
