@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.HittingTime
 import Mathlib.Order.BoundedOrder.Basic
 import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.Martingale.Upcrossing
