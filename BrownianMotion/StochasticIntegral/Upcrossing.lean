@@ -986,7 +986,7 @@ end DoobInequalityNat
 section FinToNat
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
-variable {f : (Fin n) → Ω → ℝ} {N : Fin n}
+variable {u : (Fin n) → Ω → ℝ} {N : Fin n}
 
 def Fin.clamp (i : ℕ) (n : ℕ) [NeZero n] : Fin n :=
   ⟨min i (n - 1),
@@ -998,10 +998,21 @@ lemma Fin.clamp_val (i : ℕ) (n : ℕ) [NeZero n] :
 lemma Fin.clamp.eq_of_fin (n : ℕ) [NeZero n] (i : Fin n) :
     Fin.clamp i.val n = i := by grind [Fin.clamp_val]
 
-lemma Fin.clamp.mono (i j : ℕ) (hij : i ≤ j) (n : ℕ) [NeZero n] :
+lemma Fin.clamp.monotone (i j : ℕ) (hij : i ≤ j) (n : ℕ) [NeZero n] :
     Fin.clamp i n ≤ Fin.clamp j n := by
   simp only [Fin.le_iff_val_le_val, Fin.clamp]
   exact min_le_min hij (Nat.le_refl _)
+
+lemma Fin.clamp.StrictMonoOn {N n : ℕ} (hnN : N < n) [NeZero n] :
+    StrictMonoOn (fun i => Fin.clamp i n) {i | i ≤ N} := by
+  intro i hi j hj hij
+  simp only [Fin.lt_iff_val_lt_val, Fin.clamp]
+  grind
+
+lemma Fin.val.StrictMonoOn {n : ℕ} (N : Fin n) :
+    StrictMonoOn (fun k : Fin n => k.val) {k | k ≤ N} := by
+  intro i hi j hj hij
+  assumption
 
 def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
   { seq := fun i => 𝓕 (Fin.clamp i n)
@@ -1015,50 +1026,68 @@ def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
 
 variable {𝓕 : Filtration (Fin n) m0}
 
-def Process.natOfFin (f : Fin n → Ω → ℝ) : ℕ → Ω → ℝ := fun k ω => f (Fin.clamp k n) ω
+def Process.natOfFin (u : Fin n → Ω → ℝ) : ℕ → Ω → ℝ := fun k => u (Fin.clamp k n)
 
-lemma Submartingale.natOfFin (hf : Submartingale f 𝓕 μ) :
-    Submartingale (Process.natOfFin f) (Filtration.natOfFin 𝓕) μ := by
-  set f' : ℕ → Ω → ℝ := Process.natOfFin f with hfNat
+lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
+    Submartingale (Process.natOfFin u) (Filtration.natOfFin 𝓕) μ := by
+  set u' : ℕ → Ω → ℝ := Process.natOfFin u with hfNat
   set 𝓕' := Filtration.natOfFin 𝓕 with hFNat
-  have hadapted' : Adapted 𝓕' f' := by
+  have hadapted' : Adapted 𝓕' u' := by
     intro i
-    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (f (Fin.clamp i n)) := by
+    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
       exact Submartingale.stronglyMeasurable hf (Fin.clamp i n)
-    have hsm' : StronglyMeasurable[𝓕' i] (f' i) := by
-      simp only [f', 𝓕']
+    have hsm' : StronglyMeasurable[𝓕' i] (u' i) := by
+      simp only [u', 𝓕']
       exact hsm
     exact hsm'
-  have hsub' : (∀ i j, i ≤ j → f' i ≤ᵐ[μ] μ[f' j|𝓕' i]) := by
+  have hsub' : (∀ i j, i ≤ j → u' i ≤ᵐ[μ] μ[u' j|𝓕' i]) := by
     intros i j hij
-    simp only [f', 𝓕']
+    simp only [u', 𝓕']
     refine Submartingale.ae_le_condExp hf ?_
-    exact Fin.clamp.mono i j hij n
-  have hint' : ∀ i, Integrable (f' i) μ := by
+    exact Fin.clamp.monotone i j hij n
+  have hint' : ∀ i, Integrable (u' i) μ := by
     intro i
-    simp only [f']
+    simp only [u']
     exact Submartingale.integrable hf (Fin.clamp i n)
   exact ⟨ hadapted', hsub', hint' ⟩
 
-lemma Process.natOfFin_eq (f : Fin n → Ω → ℝ) (k : Fin n) (ω : Ω) :
-    Process.natOfFin f k.val ω = f k ω := by
-  simp only [Process.natOfFin, Fin.clamp.eq_of_fin n k]
+lemma Process.natOfFin_eq (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
+    (hNatOfFin : u = Process.natOfFin v) (N : ℕ) :
+    ∀ i ≤ N, v (Fin.clamp i n) = u i := by
+  intro i hi
+  rw [hNatOfFin, Process.natOfFin]
 
-lemma Process.natOfFin_eq' (f : Fin n → Ω → ℝ) (i : ℕ) (ω : Ω)
-    (hi : i < n) :
-    Process.natOfFin f i ω = f ⟨i, hi⟩ ω := by
-  simp only [Process.natOfFin]
-  set k : Fin n := ⟨i, hi⟩ with hk
-  rw [Fin.clamp.eq_of_fin n k]
+lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
+    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) :
+    ∀ i ≤ N, v i.val = u i := by
+  intro i hi
+  rw [hNatOfFin, Process.natOfFin, Fin.clamp.eq_of_fin n i]
 
-lemma Process.natOfFin.upcrossingsBefore' (f : Fin n → Ω → ℝ) (i N : Fin n) (ω : Ω)
-    (hi : i ≥ n) :
-    Process.natOfFin f i ω = f ⟨n - 1, Nat.lt_of_le_of_lt hi
-      (Nat.sub_lt (NeZero.pos n) Nat.one_pos)⟩ ω := by
-  simp only [Process.natOfFin]
-  set k : Fin n := ⟨n - 1, Nat.lt_of_le_of_lt hi
-    (Nat.sub_lt (NeZero.pos n) Nat.one_pos)⟩ with hk
-  rw [Fin.clamp.eq_of_fin n k]
+lemma Process.natOfFin.upcrossingsBefore'_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
+    (hNatOfFin : u = Process.natOfFin v) (N : ℕ) (a b : ℝ) (ω : Ω) (hab : a < b) (hNn : N < n) :
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (Fin.clamp N n) ω := by
+  set f : ℕ → Fin n := fun i => Fin.clamp i n with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.clamp.StrictMonoOn hNn
+  have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq u v hNatOfFin N
+  have hfin : Finite {i | i < f N} := by infer_instance
+  exact upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin
+
+lemma Process.natOfFin.upcrossingsBefore'_ge (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
+    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (ω : Ω) (hab : a < b) :
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v N ω := by
+  set f : Fin n → ℕ := fun i => i.val with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.val.StrictMonoOn N
+  have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq' u v hNatOfFin N
+  have hfin : Finite {i | i < f N} := by infer_instance
+  exact upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin
+
+theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
+    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (ω : Ω) (hab : a < b) :
+    upcrossingsBefore' a b u N ω = upcrossingsBefore' a b v N ω := by
+  apply le_antisymm
+  · exact Process.natOfFin.upcrossingsBefore'_ge u v hNatOfFin N a b ω hab
+  · conv_rhs => rw [(Fin.clamp.eq_of_fin n N).symm]
+    exact Process.natOfFin.upcrossingsBefore'_le v u hNatOfFin N a b ω hab (N.isLt)
 
 end FinToNat
 
