@@ -944,7 +944,7 @@ section DoobInequalityNat
 
 variable {a b : ℝ}
 
-theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasure μ]
+theorem mul_integral_upcrossingsBefore'_le_integral_pos_part_aux [IsFiniteMeasure μ]
     {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0} (N : ℕ)
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
@@ -958,7 +958,7 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux' [IsFiniteMeasur
 /-!
   Doob's upcrossing inequality on `ℕ` for the alternative definition of `upcrossingsBefore`.
 -/
-theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part' [IsFiniteMeasure μ]
+theorem Submartingale.mul_integral_upcrossingsBefore'_le_integral_pos_part [IsFiniteMeasure μ]
     {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0}
     (a b : ℝ) (hf : Submartingale f 𝓕 μ) (N : ℕ) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
@@ -1121,37 +1121,32 @@ end MeasurabilityFin
 
 section DoobInequalityFin
 
-variable {a b : ℝ}
- {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
- {f : (Fin n) → Ω → ℝ} {N : Fin n}
- {𝓕 : Filtration (Fin n) m0}
+variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
+  {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0} {a b : ℝ}
 
-theorem mul_integral_upcrossingsBefore_le_integral_pos_part_on_finite [IsFiniteMeasure μ]
-    {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0}
+theorem mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hu : Submartingale u 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
   -- We reduce to the `ℕ`-indexed case
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hvsub : Submartingale v 𝓕' μ := Submartingale.natOfFin hu
-  -- The inclusion map from `Fin n` to `ℕ`
-  set f : Fin n → ℕ := fun i => i.val with hmap
-  set N' : ℕ := f N with hN'
-  have hsmon : StrictMono f := by
-    intro i j hij
-    simp only [Fin.lt_iff_val_lt_val] at hij
-    exact hij
-  have hv : ∀ i : Fin n, v (f i) = u i := by
-    intro i
-    simp only [v, f]; unfold Process.natOfFin
-    simp only [Fin.clamp.eq_of_fin n i]
-  have hfin : Finite {i : ℕ | i < N'} := by infer_instance
-  have hineq : upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v N' := by
-    intro ω
-    exact upcrossingsBefore'_mono_index_set_of_finite_till_N f hsmon u v hv a b N ω hab hfin
-  -- TODO: finish, starting from measurability of upcrossingsBefore' (see another TODO, above)
-  -- have hNpos : 0 < NNat + 1 := by exact Nat.lt_succ_of_le (Nat.zero_le NNat)
-  sorry
+  have hNatOfFin : v = Process.natOfFin u := rfl
+  have heq : upcrossingsBefore' a b u N = upcrossingsBefore' a b v N := by
+    exact Process.natOfFin.upcrossingsBefore'_eq u v hNatOfFin N a b hab
+  rw [heq]
+  have huNvN : v N = u N := Process.natOfFin_eq' u v hNatOfFin N N le_rfl
+  rw [← huNvN]
+  exact mul_integral_upcrossingsBefore'_le_integral_pos_part_aux N hvsub hab
+
+theorem Submartingale.mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part [IsFiniteMeasure μ]
+    (hu : Submartingale u 𝓕 μ) :
+    (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
+  by_cases! hab : a < b
+  · exact mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux hu hab
+  · rw [← sub_nonpos] at hab
+    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
+      (integral_nonneg fun ω => posPart_nonneg _)
 
 end DoobInequalityFin
 
