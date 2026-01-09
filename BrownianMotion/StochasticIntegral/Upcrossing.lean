@@ -42,14 +42,6 @@ structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (
   ft_le_a  : ∀ i : ℕ, i < 2 * n → Even i → f (t i) ω ≤ a
   ft_ge_b  : ∀ i : ℕ, i < 2 * n → Odd i → f (t i) ω ≥ b
 
-/-! We already have (proved in Mathlib.Probability.Process.HittingTime):
-theorem hittingBtwn_mem_set_of_hittingBtwn_lt [WellFoundedLT ι] {m : ι}
-    (hl : hittingBtwn u s n m ω < m) :
-    u (hittingBtwn u s n m ω) ω ∈ s
-theorem hittingBtwn_le_of_mem {m : ι} (hin : n ≤ i) (him : i ≤ m) (his : u i ω ∈ s) :
-    hittingBtwn u s n m ω ≤ i
--/
-
 namespace UpcrossingData
 
 variable {a b : ℝ} {f : ι → Ω → ℝ} {ω : Ω}
@@ -170,6 +162,21 @@ exact ht
 
 end UpcrossingData
 
+/-! The `ltUpcrossingsBefore a b f N n ω` is shortened as `L n`. -/
+noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
+  if N ≤ ⊥ then False else
+    if n = 0 then True else
+      ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
+
+/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
+noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) (ω : Ω) : ℕ :=
+  sSup {n | ltUpcrossingsBefore a b f N n ω}
+
+/-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
+section UpperCrossingTimeEquivalence
+
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (u' s t N : ι) (ω : Ω) :
     u' ≤ s → s ≤ t → t ≤ N → f s ω ∈ Set.Iic a → f t ω ∈ Set.Ici b →
@@ -210,22 +217,6 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
       (le_trans hu't' ht's) hst htN
       (hseq2.ft_le_a (2 * n + 2) (by grind) (by grind))
       (hseq2.ft_ge_b (2 * n + 3) (by grind) (by grind))
-
-/-! The `ltUpcrossingsBefore a b f N n ω` is shortened as `L n`. -/
-noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
-  if N ≤ ⊥ then False else
-    if n = 0 then True else
-      ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
-
-/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
-noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
-    (N : ι) (ω : Ω) : ℕ :=
-  sSup {n | ltUpcrossingsBefore a b f N n ω}
-
-section UpperCrossingTimeEquivalence
-
-/-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 
 /-! The `upcrossingsBeforeUpperCrossingTime a b f N n ω` is shortened as `Q n`. -/
 noncomputable def upcrossingsBeforeUpperCrossingTime [ConditionallyCompleteLinearOrderBot ι]
@@ -462,18 +453,6 @@ lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearO
   rw [← upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
   exact upperCrossingTimeLT_iff_ltUpcrossingsBefore a b f N n ω hab
 
-/-! noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
-  if N ≤ ⊥ then False else
-    if n = 0 then True else
-      ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
--/
-
-/-! noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) : ℕ :=
-    sSup {n | upperCrossingTime a b f N n ω < N}
--/
-
 lemma upcrossingsBefore'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : N ≤ ⊥) :
     upcrossingsBefore' a b f N ω = 0 := by
@@ -502,7 +481,6 @@ end UpperCrossingTimeEquivalence
   -- Not really. We need to derive Doob's upcrossing inequality for finite index sets,
   from its version for Nat.
 -/
-
 section MonotonicityAndBoundedness
 
 variable [LinearOrder ι]
@@ -863,7 +841,7 @@ theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : �
 
 end FinToNat
 
-section MeasurabilityFin
+section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
 theorem Adapted.measurable_upcrossingsBefore (hf : Adapted ℱ f) (hab : a < b) :
@@ -900,7 +878,7 @@ theorem Adapted.measurable_upcrossingsBefore'_Fin {u : (Fin n) → Ω → ℝ} {
   rw [heq]
   exact hmeas_nat
 
-end MeasurabilityFin
+end Measurability
 
 section DoobInequalityFin
 
