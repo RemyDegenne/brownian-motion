@@ -845,30 +845,116 @@ section FinsetToFin
 
 variable [LinearOrder ι]
 
--- Given a Finset s, get an OrderIso
-noncomputable def myIso {k : ℕ} (s : Finset ι) (h : s.card = k) :
-    Fin k ≃o s :=
-  Finset.orderIsoOfFin s h
+/-! This section connects a finite subset `s : Set ι` to `Fin k`
+    where `k = Nat.card s`, paralleling the `FinToNat` section. -/
 
-lemma myIso_smon {k : ℕ} (s : Finset ι) (h : s.card = k) :
-    StrictMono (fun i : Fin k => (myIso s h i : ι)) := (myIso s h).strictMono
+variable {s : Set ι} (hs : s.Finite) (hne : s.Nonempty)
 
-lemma Finite.OrderIso_strictMono {s : Set ι} (hs : Finite s) :
-    ∃ k : ℕ, ∃ f : Fin k → s, StrictMono f := by
-  have hfin : Fintype s := Fintype.ofFinite s
-  let s' : Finset ι := s.toFinset
-  let k := Fintype.card s
-  let k' := Finset.card s'
-  have heq : k' = k := Set.toFinset_card s
-  
+/-- The cardinality of a finite set as a natural number. -/
+noncomputable def FiniteSet.card : ℕ := Nat.card s
 
-  have hcard : s'.card = k := by
-    rw [Finset.card_toFinset]
-  rcases hfinset with
-      StrictMono (fun i : Fin k => (myIso s h i : ι)) := by
-  use s.card
-  use rfl
-  exact myIso_smon s rfl
+/-- Order isomorphism from `Fin k` to a finite set `s` where `k = Nat.card s`. -/
+noncomputable def FiniteSet.orderIso (hs : s.Finite) :
+    Fin (Nat.card s) ≃o s := by
+  sorry
+
+/-- The embedding from `Fin k` into `ι` via the order isomorphism. -/
+noncomputable def FiniteSet.embed (hs : s.Finite) : Fin (Nat.card s) → ι :=
+  fun i => (FiniteSet.orderIso hs i : ι)
+
+lemma FiniteSet.embed_strictMono (hs : s.Finite) :
+    StrictMono (FiniteSet.embed hs) := by
+  sorry
+
+lemma FiniteSet.embed_mem (hs : s.Finite) (i : Fin (Nat.card s)) :
+    FiniteSet.embed hs i ∈ s := by
+  sorry
+
+/-- The inverse: given an element of `s`, get its index in `Fin k`. -/
+noncomputable def FiniteSet.index (hs : s.Finite) (x : s) : Fin (Nat.card s) :=
+  (FiniteSet.orderIso hs).symm x
+
+lemma FiniteSet.index_embed (hs : s.Finite) (i : Fin (Nat.card s)) :
+    FiniteSet.index hs ⟨FiniteSet.embed hs i, FiniteSet.embed_mem hs i⟩ = i := by
+  sorry
+
+lemma FiniteSet.embed_index (hs : s.Finite) (x : s) :
+    FiniteSet.embed hs (FiniteSet.index hs x) = x := by
+  sorry
+
+lemma FiniteSet.index_strictMono (hs : s.Finite) :
+    StrictMono (FiniteSet.index hs) := by
+  sorry
+
+-- lemma FiniteSet.embed_bot (hs : s.Finite) (hbot : ⊥ ∈ s) :
+--     FiniteSet.embed hs ⟨0, by simp [Nat.card_pos_iff]; exact ⟨hs, ⟨⊥, hbot⟩⟩⟩ = ⊥ := by
+--   sorry
+
+/-- StrictMonoOn for embed restricted to a set. -/
+lemma FiniteSet.embed.StrictMonoOn (hs : s.Finite) (N : Fin (Nat.card s)) :
+    StrictMonoOn (FiniteSet.embed hs) {i | i ≤ N} := by
+  sorry
+
+/-- StrictMonoOn for index restricted to a set. -/
+lemma FiniteSet.index.StrictMonoOn (hs : s.Finite) (N : s) :
+    StrictMonoOn (FiniteSet.index hs) {x | x ≤ N} := by
+  sorry
+
+/-- Convert a filtration on a finite set `s` to a filtration on `Fin k`. -/
+noncomputable def Filtration.finOfFiniteSet (hs : s.Finite)
+    (𝓕 : Filtration s m0) : Filtration (Fin (Nat.card s)) m0 :=
+  { seq := fun i => 𝓕 (FiniteSet.orderIso hs i)
+    mono' := by
+      intro i j hij
+      refine 𝓕.mono ?_
+      exact (FiniteSet.orderIso hs).monotone hij
+    le' := fun i => Filtration.le 𝓕 (FiniteSet.orderIso hs i)
+  }
+
+/-- Convert a process on a finite set `s` to a process on `Fin k`. -/
+noncomputable def Process.finOfFiniteSet (hs : s.Finite)
+    (u : s → Ω → ℝ) : Fin (Nat.card s) → Ω → ℝ :=
+  fun i => u (FiniteSet.orderIso hs i)
+
+lemma Submartingale.finOfFiniteSet {𝓕 : Filtration s m0} {u : s → Ω → ℝ}
+    (hs : s.Finite) (hu : Submartingale u 𝓕 μ) :
+    Submartingale (Process.finOfFiniteSet hs u) (Filtration.finOfFiniteSet hs 𝓕) μ := by
+  sorry
+
+lemma Process.finOfFiniteSet_eq (hs : s.Finite) (u : Fin (Nat.card s) → Ω → ℝ) (v : s → Ω → ℝ)
+    (hFinOfFiniteSet : u = Process.finOfFiniteSet hs v) (N : Fin (Nat.card s)) :
+    ∀ i ≤ N, v (FiniteSet.orderIso hs i) = u i := by
+  sorry
+
+lemma Process.finOfFiniteSet_eq' (hs : s.Finite) (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
+    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u) (N : s) :
+    ∀ i ≤ N, v (FiniteSet.index hs i) = u i := by
+  sorry
+
+/-! Lemmas connecting upcrossingsBefore' under the finOfFiniteSet transformation. -/
+/-! The problem is the inability to synthesize [OrderBot s] and [OrderBot (Fin (Nat.card s))]. -/
+/-!
+lemma Process.finOfFiniteSet.upcrossingsBefore'_le (hs : s.Finite)
+    (u : Fin (Nat.card s) → Ω → ℝ) (v : s → Ω → ℝ)
+    (hFinOfFiniteSet : u = Process.finOfFiniteSet hs v)
+    (N : Fin (Nat.card s)) (a b : ℝ) (hab : a < b) :
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (FiniteSet.orderIso hs N) := by
+  sorry
+
+lemma Process.finOfFiniteSet.upcrossingsBefore'_ge (hs : s.Finite)
+    (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
+    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u)
+    (N : s) (a b : ℝ) (hab : a < b) :
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (FiniteSet.index hs N) := by
+  sorry
+
+theorem Process.finOfFiniteSet.upcrossingsBefore'_eq (hs : s.Finite)
+    (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
+    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u)
+    (N : s) (a b : ℝ) (hab : a < b) :
+    upcrossingsBefore' a b u N = upcrossingsBefore' a b v (FiniteSet.index hs N) := by
+  sorry
+-/
 
 end FinsetToFin
 
