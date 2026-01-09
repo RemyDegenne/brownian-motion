@@ -640,7 +640,7 @@ lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
         simp only [hseqv]
         have hnzero : 2 * n - 1 < 2 * n := by grind
         simp only [hnzero, if_true]
-        exact hsmon (htIn (2 * n - 1) hnzero) hNIn ht_lt_N
+        exact hsmon (htIn (2 * n - 1) hnzero) hN ht_lt_N
       exact htv_lt_fN
 
 -- /-! Given a finite index set, size of UpcrossingData is bounded. -/
@@ -949,7 +949,7 @@ theorem Adapted.measurable_upcrossingsBefore' [LinearOrder ι] [OrderBot ι] [Fi
 
 end Measurability
 
-section DoobInequality
+section DoobInequalityNat
 
 variable {a b : ℝ}
 
@@ -976,6 +976,10 @@ theorem Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part' [IsFi
   · rw [← sub_nonpos] at hab
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
+
+end DoobInequalityNat
+
+section FinToNat
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
 variable {f : (Fin n) → Ω → ℝ} {N : Fin n}
@@ -1032,6 +1036,15 @@ lemma Submartingale.natOfFin (hf : Submartingale f 𝓕 μ) :
     exact Submartingale.integrable hf (Fin.clamp i n)
   exact ⟨ hadapted', hsub', hint' ⟩
 
+end FinToNat
+
+section DoobInequalityFin
+
+variable {a b : ℝ}
+ {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
+ {f : (Fin n) → Ω → ℝ} {N : Fin n}
+ {𝓕 : Filtration (Fin n) m0}
+
 theorem mul_integral_upcrossingsBefore_le_integral_pos_part_on_finite [IsFiniteMeasure μ]
     {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0}
     (hu : Submartingale u 𝓕 μ) (hab : a < b) :
@@ -1059,7 +1072,7 @@ theorem mul_integral_upcrossingsBefore_le_integral_pos_part_on_finite [IsFiniteM
   -- have hNpos : 0 < NNat + 1 := by exact Nat.lt_succ_of_le (Nat.zero_le NNat)
   sorry
 
-end DoobInequality
+end DoobInequalityFin
 
 section Countable
 
