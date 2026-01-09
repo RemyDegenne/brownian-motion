@@ -841,6 +841,37 @@ theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : �
 
 end FinToNat
 
+section FinsetToFin
+
+variable [LinearOrder ι]
+
+-- Given a Finset s, get an OrderIso
+noncomputable def myIso {k : ℕ} (s : Finset ι) (h : s.card = k) :
+    Fin k ≃o s :=
+  Finset.orderIsoOfFin s h
+
+lemma myIso_smon {k : ℕ} (s : Finset ι) (h : s.card = k) :
+    StrictMono (fun i : Fin k => (myIso s h i : ι)) := (myIso s h).strictMono
+
+lemma Finite.OrderIso_strictMono {s : Set ι} (hs : Finite s) :
+    ∃ k : ℕ, ∃ f : Fin k → s, StrictMono f := by
+  have hfin : Fintype s := Fintype.ofFinite s
+  let s' : Finset ι := s.toFinset
+  let k := Fintype.card s
+  let k' := Finset.card s'
+  have heq : k' = k := Set.toFinset_card s
+  
+
+  have hcard : s'.card = k := by
+    rw [Finset.card_toFinset]
+  rcases hfinset with
+      StrictMono (fun i : Fin k => (myIso s h i : ι)) := by
+  use s.card
+  use rfl
+  exact myIso_smon s rfl
+
+end FinsetToFin
+
 section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
