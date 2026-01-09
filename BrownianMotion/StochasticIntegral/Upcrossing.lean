@@ -902,6 +902,7 @@ theorem Adapted.measurable_ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι] [C
             (hA_meas s).inter (hS_meas s))
         exact MeasurableSet.biUnion (Set.to_countable _) (fun t _ => (hB_meas t).inter (huA_meas t))
 
+/-! Partially proved: upcrossingsBefore' is a sum of indicators of ltUpcrossingsBefore.
 lemma upcrossingsBefore'_eq_sum [LinearOrder ι] [OrderBot ι] [Finite ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) : upcrossingsBefore' a b f N ω =
     ∑' i, {n | ltUpcrossingsBefore a b f N n ω}.indicator 1 i := by
@@ -933,23 +934,9 @@ lemma upcrossingsBefore'_eq_sum [LinearOrder ι] [OrderBot ι] [Finite ι]
     obtain ⟨n0, hn0⟩ := hex
     have : upcrossingsBefore' a b f N ω = sSup {n | A n} := rfl
     sorry
+-/
 
 
-
-theorem Adapted.measurable_upcrossingsBefore' [LinearOrder ι] [OrderBot ι] [Finite ι]
-    {𝓕 : Filtration ι m0}
-    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hf : Adapted 𝓕 f) (hab : a < b) :
-    Measurable (upcrossingsBefore' a b f N) := by
-  have : upcrossingsBefore' a b f N = fun ω =>
-      ∑' i, {n | ltUpcrossingsBefore a b f N n ω}.indicator 1 i := by
-    ext ω
-    exact upcrossingsBefore'_eq_sum a b f N ω hab
-  rw [this]
-  sorry
-  -- refine Finset.measurable_fun_sum _ fun i _ => Measurable.indicator measurable_const <|
-  --   𝓕.le N _ ?_
-  -- simpa only [ENat.some_eq_coe, Nat.cast_lt] using
-  --   hf.isStoppingTime_upperCrossingTime.measurableSet_lt_of_pred N
 
 end Measurability
 
@@ -1064,32 +1051,73 @@ lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
   rw [hNatOfFin, Process.natOfFin, Fin.clamp.eq_of_fin n i]
 
 lemma Process.natOfFin.upcrossingsBefore'_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
-    (hNatOfFin : u = Process.natOfFin v) (N : ℕ) (a b : ℝ) (ω : Ω) (hab : a < b) (hNn : N < n) :
-    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (Fin.clamp N n) ω := by
+    (hNatOfFin : u = Process.natOfFin v) (N : ℕ) (a b : ℝ) (hab : a < b) (hNn : N < n) :
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (Fin.clamp N n) := by
   set f : ℕ → Fin n := fun i => Fin.clamp i n with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.clamp.StrictMonoOn hNn
   have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq u v hNatOfFin N
   have hfin : Finite {i | i < f N} := by infer_instance
+  intro ω
   exact upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin
 
 lemma Process.natOfFin.upcrossingsBefore'_ge (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
-    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (ω : Ω) (hab : a < b) :
-    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v N ω := by
+    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (hab : a < b) :
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v N := by
   set f : Fin n → ℕ := fun i => i.val with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.val.StrictMonoOn N
   have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq' u v hNatOfFin N
   have hfin : Finite {i | i < f N} := by infer_instance
+  intro ω
   exact upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin
 
 theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
-    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (ω : Ω) (hab : a < b) :
-    upcrossingsBefore' a b u N ω = upcrossingsBefore' a b v N ω := by
+    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (hab : a < b) :
+    upcrossingsBefore' a b u N = upcrossingsBefore' a b v N := by
   apply le_antisymm
-  · exact Process.natOfFin.upcrossingsBefore'_ge u v hNatOfFin N a b ω hab
+  · exact Process.natOfFin.upcrossingsBefore'_ge u v hNatOfFin N a b hab
   · conv_rhs => rw [(Fin.clamp.eq_of_fin n N).symm]
-    exact Process.natOfFin.upcrossingsBefore'_le v u hNatOfFin N a b ω hab (N.isLt)
+    exact Process.natOfFin.upcrossingsBefore'_le v u hNatOfFin N a b hab (N.isLt)
 
 end FinToNat
+
+section MeasurabilityFin
+/-!
+We use the following, which assumes ι = ℕ :
+theorem Adapted.measurable_upcrossingsBefore (hf : Adapted ℱ f) (hab : a < b) :
+    Measurable (upcrossingsBefore a b f N)
+-/
+
+theorem Adapted.measurable_upcrossingsBefore'_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {a b : ℝ}
+    {𝓕 : Filtration ℕ m0} (hf : Adapted 𝓕 f) (hab : a < b) :
+    Measurable (upcrossingsBefore' a b f N) := by
+  have hgeq : upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
+    rw [upcrossingsBefore_eq_upcrossingsBefore' a b f N hab]
+  rw [← hgeq]
+  exact Adapted.measurable_upcrossingsBefore hf hab
+
+variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
+
+theorem Adapted.measurable_upcrossingsBefore'_Fin {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
+    {𝓕 : Filtration (Fin n) m0} (hf : Adapted 𝓕 u) (hab : a < b) :
+    Measurable (upcrossingsBefore' a b u N) := by
+  set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
+  set v := Process.natOfFin u with hv
+  have hadapted' : Adapted 𝓕' v := by
+    intro i
+    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
+      exact hf (Fin.clamp i n)
+    simp only [v, 𝓕']
+    assumption
+  have hNatOfFin : v = Process.natOfFin u := rfl
+  have hfin : Finite (Fin n) := by infer_instance
+  have hmeas_nat : Measurable (upcrossingsBefore' a b v N.val) :=
+    Adapted.measurable_upcrossingsBefore'_Nat hadapted' hab
+  have heq : upcrossingsBefore' a b u N = upcrossingsBefore' a b v N := by
+    exact Process.natOfFin.upcrossingsBefore'_eq u v hNatOfFin N a b hab
+  rw [heq]
+  exact hmeas_nat
+
+end MeasurabilityFin
 
 section DoobInequalityFin
 
