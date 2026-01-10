@@ -979,7 +979,7 @@ lemma Process.finOfFinset.upcrossingsBefore'_ge (u : s → Ω → ℝ) (v : Fin 
   intro ω
   convert upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin using 1
 
-lemma Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+theorem Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     upcrossingsBefore' a b u N = upcrossingsBefore' a b v (Finset.ToFin hk N) := by
@@ -991,6 +991,44 @@ lemma Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fin 
     exact Process.finOfFinset.upcrossingsBefore'_le hk hbot v u hFinOfFinset N' a b hab
 
 end FinsetToFin
+
+/-!
+### Connecting `Set` to `Finset`
+
+For a finite `Set ι`, we can use `s.toFinset` to convert to a `Finset ι`.
+The key facts are:
+- `x ∈ s.toFinset ↔ x ∈ s` (when `[Fintype s]` is available from `[Finite s]`)
+- `#s.toFinset = Nat.card s` (via `Set.toFinset_card` and `Nat.card_eq_fintype_card`)
+- The subtypes `↑s` and `↑s.toFinset` are order-isomorphic
+
+Rather than define separate infrastructure for `Set`, we recommend:
+1. Convert the `Set` to a `Finset` using `s.toFinset`
+2. Apply the `FinsetToFin` results
+-/
+
+section SetToFinset
+
+variable [LinearOrder ι] [OrderBot ι]
+variable {s : Set ι} [Fintype s] (hne : s.Nonempty) (hbot : ⊥ ∈ s)
+
+/-- Order isomorphism between the subtype of a Set and the subtype of its toFinset. -/
+noncomputable def Set.subtypeOrderIsoToFinset :
+    s ≃o s.toFinset :=
+  OrderIso.setCongr s s.toFinset (by ext x; simp)
+
+/-- Convert a process on a finite Set to a process on the corresponding Finset. -/
+noncomputable def Process.setToFinset (u : s → Ω → ℝ) : s.toFinset → Ω → ℝ :=
+  fun i => u (Set.subtypeOrderIsoToFinset.symm i)
+
+omit [LinearOrder ι] [OrderBot ι] in
+lemma Set.toFinset_card_eq_natCard :
+    #s.toFinset = Nat.card s := by
+  rw [Set.toFinset_card, Nat.card_eq_fintype_card]
+
+lemma Set.toFinset_bot_mem (hbot : ⊥ ∈ s) : ⊥ ∈ s.toFinset :=
+  Set.mem_toFinset.mpr hbot
+
+end SetToFinset
 
 section Measurability
 /-!
