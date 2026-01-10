@@ -942,13 +942,24 @@ section Countable
 
 variable [Countable ι]
 
+/-! TODO:
+ A variation of the below would be nice:
+  a non-decreasing sequence of q n := (Fin (k n)),
+  each order-isomorphic to (s n), k → ∞,
+  and every finite subset of ι is contained in some s n.
+  Additionally, we'd like:
+  - a StrictMono embedding from each (q n) to (q (n + 1));
+  - a StrictMono embedding from each (q n) to ι.
+
+-/
 theorem Countable.increasing_family_saturates_every_finite_subset :
     ∃ s : ℕ → Set ι,
     Monotone s ∧
     (∀ n, Finite (s n)) ∧
     (∀ t : Set ι, Finite t → ∃ n, t ⊆ s n) := by
   obtain ⟨f, hf⟩ := Countable.exists_injective_nat ι
-  let s : ℕ → Set ι := fun n => {i | f i < n}
+  -- f enumerates elements of ι, but not all natural numbers must be present
+  let s : ℕ → Set ι := fun n => {i | f i < n} -- not strictly increasing and may start from empty
   refine ⟨s, ?_, ?_, ?_⟩
   · -- Monotone s
     intro m n hmn i hi
