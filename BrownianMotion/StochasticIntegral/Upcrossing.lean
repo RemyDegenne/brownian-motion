@@ -992,44 +992,6 @@ theorem Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fi
 
 end FinsetToFin
 
-/-!
-### Connecting `Set` to `Finset`
-
-For a finite `Set ι`, we can use `s.toFinset` to convert to a `Finset ι`.
-The key facts are:
-- `x ∈ s.toFinset ↔ x ∈ s` (when `[Fintype s]` is available from `[Finite s]`)
-- `#s.toFinset = Nat.card s` (via `Set.toFinset_card` and `Nat.card_eq_fintype_card`)
-- The subtypes `↑s` and `↑s.toFinset` are order-isomorphic
-
-Rather than define separate infrastructure for `Set`, we recommend:
-1. Convert the `Set` to a `Finset` using `s.toFinset`
-2. Apply the `FinsetToFin` results
--/
-
-section SetToFinset
-
-variable [LinearOrder ι] [OrderBot ι]
-variable {s : Set ι} [Fintype s] (hne : s.Nonempty) (hbot : ⊥ ∈ s)
-
-/-- Order isomorphism between the subtype of a Set and the subtype of its toFinset. -/
-noncomputable def Set.subtypeOrderIsoToFinset :
-    s ≃o s.toFinset :=
-  OrderIso.setCongr s s.toFinset (by ext x; simp)
-
-/-- Convert a process on a finite Set to a process on the corresponding Finset. -/
-noncomputable def Process.setToFinset (u : s → Ω → ℝ) : s.toFinset → Ω → ℝ :=
-  fun i => u (Set.subtypeOrderIsoToFinset.symm i)
-
-omit [LinearOrder ι] [OrderBot ι] in
-lemma Set.toFinset_card_eq_natCard :
-    #s.toFinset = Nat.card s := by
-  rw [Set.toFinset_card, Nat.card_eq_fintype_card]
-
-lemma Set.toFinset_bot_mem (hbot : ⊥ ∈ s) : ⊥ ∈ s.toFinset :=
-  Set.mem_toFinset.mpr hbot
-
-end SetToFinset
-
 section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
@@ -1146,7 +1108,32 @@ theorem Countable.increasing_family_saturates_every_finite_subset :
         Finset.mem_image.mpr ⟨⟨i, hi⟩, Finset.mem_univ _, rfl⟩
       exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
 
-variable [LinearOrder ι] [OrderBot ι]
+theorem Countable.increasing_finset_family_saturates_every_finite_subset :
+    ∃ s : ℕ → Finset ι,
+    Monotone s ∧
+    (∀ t : Set ι, Finite t → ∃ n, t ⊆ s n) := by
+  obtain ⟨s, hsmon, hsfin, hsaturate⟩ :=
+    @Countable.increasing_family_saturates_every_finite_subset ι _
+  -- Convert Set to Finset using toFinset with chosen Fintype instances
+  have fintype_s : ∀ n, Fintype (s n) := fun n => Fintype.ofFinite (s n)
+  let s' : ℕ → Finset ι := fun n => @Set.toFinset ι (s n) (fintype_s n)
+  refine ⟨s', ?_, ?_⟩
+  · -- Monotone s'
+    intro m n hmn
+    simp only [s', Finset.le_iff_subset]
+    intro x hx
+    simp only [Set.mem_toFinset] at hx ⊢
+    exact hsmon hmn hx
+  · -- saturation
+    intro t ht
+    obtain ⟨n, hn⟩ := hsaturate t ht
+    use n
+    intro x hx
+    change x ∈ @Set.toFinset ι (s n) (fintype_s n)
+    rw [Set.mem_toFinset]
+    exact hn hx
+
+
 
 variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
