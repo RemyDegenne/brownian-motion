@@ -164,7 +164,7 @@ end UpcrossingData
 /-! The `ltUpcrossingsBefore a b f N n ω` is shortened as `L n`. -/
 noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
-  if N ≤ ⊥ then False else
+  if N ≤ ⊥ then False else -- to make {n | ...} empty when N = ⊥, same as in upperCrossingTime
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
@@ -478,7 +478,7 @@ end UpperCrossingTimeEquivalence
 /-! Suffices to show monotonicity for `Finite` index sets - the comparison with `NNRat`, as
   needed in the `theorem lintegral_iSup'`, is via `⊔`.
   -- Not really. We need to derive Doob's upcrossing inequality for finite index sets,
-  from its version for Nat.
+  from its version for Nat. Besides, we need to compare with `NNRat` to establish convergence.
 -/
 section MonotonicityAndBoundedness
 
@@ -700,6 +700,34 @@ theorem upcrossingsBefore'_mono_index_set_of_finite [Finite κ] (f : ι → κ)
 
 end MonotonicityAndBoundedness
 
+/-! To compare upcrossingsBefore' between NNRat and its finite subsets (with ⊥) and between them. -/
+section UpcrossingsOnSubset
+
+variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
+    {s : Set κ} (hs : s.Finite) (hbot : ⊥ ∈ s)
+
+/-! Assuming finitely many upcrossings along a trajectory, a subset of index set admits less. -/
+theorem upcrossingsBefore'_ge_subset_of_bounded (N : s) (u : s → Ω → ℝ) (v : κ → Ω → ℝ)
+    (hv : ∀ i : s, v i = u i) -- u is a restriction of v to s
+    (a b : ℝ) (ω : Ω) (hab : a < b)
+    (hfin : BddAbove {n | ltUpcrossingsBefore a b v N n ω}) :
+    -- u has less upcrossings than v, and (v · ω) has finitely many upcrossings before f N
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v N ω := by
+  set f : s → κ := fun i => (i : κ) with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := by
+    intro i hi j hj hij
+    exact hij
+  have hv' : ∀ i ≤ N, v (f i) = u i := by
+    intro i hi
+    rw [hf]
+    exact hv i
+  have hfN : f N = N := rfl
+  rw [← hfN]
+  convert upcrossingsBefore'_mono_index_set_of_bounded f N hsmon u v hv' a b ω hab hfin using 1
+
+end UpcrossingsOnSubset
+
 section DoobInequalityNat
 
 variable {a b : ℝ}
@@ -839,125 +867,6 @@ theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : �
     exact Process.natOfFin.upcrossingsBefore'_le v u hNatOfFin N a b hab (N.isLt)
 
 end FinToNat
-
-/-!
-section FinsetToFin
-
-variable [LinearOrder ι]
-
-/-! This section connects a finite subset `s : Set ι` to `Fin k`
-    where `k = Nat.card s`, paralleling the `FinToNat` section. -/
-
-variable {s : Set ι} (hs : s.Finite) (hne : s.Nonempty)
-
-/-- The cardinality of a finite set as a natural number. -/
-noncomputable def FiniteSet.card : ℕ := Nat.card s
-
-/-- Order isomorphism from `Fin k` to a finite set `s` where `k = Nat.card s`. -/
-noncomputable def FiniteSet.orderIso (hs : s.Finite) :
-    Fin (Nat.card s) ≃o s := by
-  sorry
-
-/-- The embedding from `Fin k` into `ι` via the order isomorphism. -/
-noncomputable def FiniteSet.embed (hs : s.Finite) : Fin (Nat.card s) → ι :=
-  fun i => (FiniteSet.orderIso hs i : ι)
-
-lemma FiniteSet.embed_strictMono (hs : s.Finite) :
-    StrictMono (FiniteSet.embed hs) := by
-  sorry
-
-lemma FiniteSet.embed_mem (hs : s.Finite) (i : Fin (Nat.card s)) :
-    FiniteSet.embed hs i ∈ s := by
-  sorry
-
-/-- The inverse: given an element of `s`, get its index in `Fin k`. -/
-noncomputable def FiniteSet.index (hs : s.Finite) (x : s) : Fin (Nat.card s) :=
-  (FiniteSet.orderIso hs).symm x
-
-lemma FiniteSet.index_embed (hs : s.Finite) (i : Fin (Nat.card s)) :
-    FiniteSet.index hs ⟨FiniteSet.embed hs i, FiniteSet.embed_mem hs i⟩ = i := by
-  sorry
-
-lemma FiniteSet.embed_index (hs : s.Finite) (x : s) :
-    FiniteSet.embed hs (FiniteSet.index hs x) = x := by
-  sorry
-
-lemma FiniteSet.index_strictMono (hs : s.Finite) :
-    StrictMono (FiniteSet.index hs) := by
-  sorry
-
--- lemma FiniteSet.embed_bot (hs : s.Finite) (hbot : ⊥ ∈ s) :
---     FiniteSet.embed hs ⟨0, by simp [Nat.card_pos_iff]; exact ⟨hs, ⟨⊥, hbot⟩⟩⟩ = ⊥ := by
---   sorry
-
-/-- StrictMonoOn for embed restricted to a set. -/
-lemma FiniteSet.embed.StrictMonoOn (hs : s.Finite) (N : Fin (Nat.card s)) :
-    StrictMonoOn (FiniteSet.embed hs) {i | i ≤ N} := by
-  sorry
-
-/-- StrictMonoOn for index restricted to a set. -/
-lemma FiniteSet.index.StrictMonoOn (hs : s.Finite) (N : s) :
-    StrictMonoOn (FiniteSet.index hs) {x | x ≤ N} := by
-  sorry
-
-/-- Convert a filtration on a finite set `s` to a filtration on `Fin k`. -/
-noncomputable def Filtration.finOfFiniteSet (hs : s.Finite)
-    (𝓕 : Filtration s m0) : Filtration (Fin (Nat.card s)) m0 :=
-  { seq := fun i => 𝓕 (FiniteSet.orderIso hs i)
-    mono' := by
-      intro i j hij
-      refine 𝓕.mono ?_
-      exact (FiniteSet.orderIso hs).monotone hij
-    le' := fun i => Filtration.le 𝓕 (FiniteSet.orderIso hs i)
-  }
-
-/-- Convert a process on a finite set `s` to a process on `Fin k`. -/
-noncomputable def Process.finOfFiniteSet (hs : s.Finite)
-    (u : s → Ω → ℝ) : Fin (Nat.card s) → Ω → ℝ :=
-  fun i => u (FiniteSet.orderIso hs i)
-
-lemma Submartingale.finOfFiniteSet {𝓕 : Filtration s m0} {u : s → Ω → ℝ}
-    (hs : s.Finite) (hu : Submartingale u 𝓕 μ) :
-    Submartingale (Process.finOfFiniteSet hs u) (Filtration.finOfFiniteSet hs 𝓕) μ := by
-  sorry
-
-lemma Process.finOfFiniteSet_eq (hs : s.Finite) (u : Fin (Nat.card s) → Ω → ℝ) (v : s → Ω → ℝ)
-    (hFinOfFiniteSet : u = Process.finOfFiniteSet hs v) (N : Fin (Nat.card s)) :
-    ∀ i ≤ N, v (FiniteSet.orderIso hs i) = u i := by
-  sorry
-
-lemma Process.finOfFiniteSet_eq' (hs : s.Finite) (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
-    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u) (N : s) :
-    ∀ i ≤ N, v (FiniteSet.index hs i) = u i := by
-  sorry
-
-/-! Lemmas connecting upcrossingsBefore' under the finOfFiniteSet transformation. -/
-/-! The problem is the inability to synthesize [OrderBot s] and [OrderBot (Fin (Nat.card s))]. -/
-/-!
-lemma Process.finOfFiniteSet.upcrossingsBefore'_le (hs : s.Finite)
-    (u : Fin (Nat.card s) → Ω → ℝ) (v : s → Ω → ℝ)
-    (hFinOfFiniteSet : u = Process.finOfFiniteSet hs v)
-    (N : Fin (Nat.card s)) (a b : ℝ) (hab : a < b) :
-    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (FiniteSet.orderIso hs N) := by
-  sorry
-
-lemma Process.finOfFiniteSet.upcrossingsBefore'_ge (hs : s.Finite)
-    (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
-    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u)
-    (N : s) (a b : ℝ) (hab : a < b) :
-    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (FiniteSet.index hs N) := by
-  sorry
-
-theorem Process.finOfFiniteSet.upcrossingsBefore'_eq (hs : s.Finite)
-    (u : s → Ω → ℝ) (v : Fin (Nat.card s) → Ω → ℝ)
-    (hFinOfFiniteSet : v = Process.finOfFiniteSet hs u)
-    (N : s) (a b : ℝ) (hab : a < b) :
-    upcrossingsBefore' a b u N = upcrossingsBefore' a b v (FiniteSet.index hs N) := by
-  sorry
--/
-
-end FinsetToFin
--/
 
 section Measurability
 /-!
