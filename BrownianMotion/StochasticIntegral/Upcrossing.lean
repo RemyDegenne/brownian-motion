@@ -868,6 +868,130 @@ theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : �
 
 end FinToNat
 
+section FinsetToFin
+
+variable [LinearOrder ι]
+
+variable {s : Finset ι} {k : ℕ} (hne : s.Nonempty) (hk : #s = k) -- (hbot : ⊥ ∈ s)
+
+def Finset.orderIso :
+    Fin k ≃o s := by
+  exact Finset.orderIsoOfFin s hk
+
+def Finset.FromFin : Fin k → s :=
+  fun n => Finset.orderIso hk n
+
+def Finset.ToFin : s → Fin k :=
+  fun i => (Finset.orderIso hk).symm i
+
+lemma Finset.FromFin.StrictMono :
+    StrictMono (Finset.FromFin hk) := by
+  exact OrderIso.strictMono (Finset.orderIso hk)
+
+lemma Finset.ToFin.StrictMono :
+    StrictMono (Finset.ToFin hk) := by
+  exact OrderIso.strictMono (Finset.orderIso hk).symm
+
+lemma Finset.FromFin.StrictMonoOn (N : Fin k) :
+    StrictMonoOn (Finset.FromFin hk) {i | i ≤ N} :=
+  (Finset.FromFin.StrictMono hk).strictMonoOn {i | i ≤ N}
+
+lemma Finset.ToFin.StrictMonoOn (N : s) :
+    StrictMonoOn (Finset.ToFin hk) {i | i ≤ N} :=
+  (Finset.ToFin.StrictMono hk).strictMonoOn {i | i ≤ N}
+
+lemma Finset.FromFin.ToFin_eq (i : s) :
+    Finset.FromFin hk (Finset.ToFin hk i) = i := by
+  rw [Finset.ToFin, Finset.FromFin]
+  exact OrderIso.apply_symm_apply (Finset.orderIso hk) i
+
+def Filtration.finOfFinset (𝓕 : Filtration s m0) : Filtration (Fin k) m0 :=
+  { seq := fun i => 𝓕 (Finset.FromFin hk i)
+    mono' := by
+      intro i j hij
+      refine 𝓕.mono ?_
+      exact (Finset.FromFin.StrictMono hk).monotone hij
+    le' := fun i => Filtration.le 𝓕 (Finset.FromFin hk i)
+  }
+
+variable {𝓕 : Filtration s m0}
+
+def Process.finOfFinset (u : s → Ω → ℝ) : Fin k → Ω → ℝ := fun i => u (Finset.FromFin hk i)
+
+variable {u : s → Ω → ℝ} {N : s}
+
+lemma Submartingale.finOfFinset (hf : Submartingale u 𝓕 μ) :
+    Submartingale (Process.finOfFinset hk u) (Filtration.finOfFinset hk 𝓕) μ := by
+  set u' : Fin k → Ω → ℝ := Process.finOfFinset hk u with hfFin
+  set 𝓕' := Filtration.finOfFinset hk 𝓕
+  have hadapted' : Adapted 𝓕' u' := by
+    intro i
+    have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
+      exact Submartingale.stronglyMeasurable hf (Finset.FromFin hk i)
+    have hsm' : StronglyMeasurable[𝓕' i] (u' i) := by
+      simp only [u', 𝓕']
+      exact hsm
+    exact hsm'
+  have hsub' : (∀ i j, i ≤ j → u' i ≤ᵐ[μ] μ[u' j|𝓕' i]) := by
+    intro i j hij
+    simp only [u', 𝓕']
+    refine Submartingale.ae_le_condExp hf ?_
+    exact (Finset.FromFin.StrictMono hk).monotone hij
+  have hint' : ∀ i, Integrable (u' i) μ := by
+    intro i
+    simp only [u']
+    exact Submartingale.integrable hf (Finset.FromFin hk i)
+  exact ⟨ hadapted', hsub', hint' ⟩
+
+lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+    (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) :
+    ∀ i ≤ N, v (Finset.ToFin hk i) = u i := by
+  intro i _
+  rw [hFinOfFinset, Process.finOfFinset, (Finset.FromFin.ToFin_eq hk i)]
+
+lemma Process.finOfFinset_eq' (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
+    (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) :
+    ∀ i ≤ N, v (Finset.FromFin hk i) = u i := by
+  intro i _
+  rw [hFinOfFinset, Process.finOfFinset]
+
+variable [OrderBot ι] (hbot : ⊥ ∈ s) [NeZero k] -- to avoid issues with `Fin 0`
+
+lemma Process.finOfFinset.upcrossingsBefore'_le (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
+    (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) (a b : ℝ) (hab : a < b) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (Finset.FromFin hk N) := by
+  set f : Fin k → s := fun i => Finset.FromFin hk i with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.FromFin.StrictMonoOn hk N
+  have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq' hk u v hFinOfFinset N
+  have hfin : Finite {i | i < f N} := by infer_instance
+  intro ω
+  convert upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin using 1
+
+lemma Process.finOfFinset.upcrossingsBefore'_ge (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+    (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N ≤ upcrossingsBefore' a b v (Finset.ToFin hk N) := by
+  set f : s → Fin k := fun i => Finset.ToFin hk i with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.ToFin.StrictMonoOn hk N
+  have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq hk u v hFinOfFinset N
+  have hfin : Finite {i | i < f N} := by infer_instance
+  intro ω
+  convert upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab hfin using 1
+
+lemma Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+    (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N = upcrossingsBefore' a b v (Finset.ToFin hk N) := by
+  apply le_antisymm
+  · exact Process.finOfFinset.upcrossingsBefore'_ge hk hbot u v hFinOfFinset N a b hab
+  · set N' := Finset.ToFin hk N with hN'
+    have hN : Finset.FromFin hk N' = N := by rw [hN']; exact Finset.FromFin.ToFin_eq hk N
+    rw [← hN]
+    exact Process.finOfFinset.upcrossingsBefore'_le hk hbot v u hFinOfFinset N' a b hab
+
+end FinsetToFin
+
 section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
