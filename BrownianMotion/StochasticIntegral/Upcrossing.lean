@@ -942,15 +942,18 @@ section Countable
 
 variable [Countable ι]
 
-/-! TODO:
+/-! Note:
  A variation of the below would be nice:
   a non-decreasing sequence of q n := (Fin (k n)),
   each order-isomorphic to (s n), k → ∞,
   and every finite subset of ι is contained in some s n.
-  Additionally, we'd like:
+  Additionally, we'd like, for monotonicity/convergence purposes:
   - a StrictMono embedding from each (q n) to (q (n + 1));
   - a StrictMono embedding from each (q n) to ι.
-
+  Nevertheless, for Doob's inequality on finite subsets of NNRat,
+  this would not suffice, as the index set must be sorted (OrderIso sorts implicitly).
+  The same stands for measurability of upcrossingsBefore' on those subsets.
+  Hence the below construction is preferred for now.
 -/
 theorem Countable.increasing_family_saturates_every_finite_subset :
     ∃ s : ℕ → Set ι,
