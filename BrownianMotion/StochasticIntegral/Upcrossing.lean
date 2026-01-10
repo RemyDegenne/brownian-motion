@@ -655,13 +655,13 @@ lemma ltUpcrossingsBefore_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ)
         grind
     exact hbdd
 
-/-! Monotonicity of upcrossingsBefore' in the index set, assuming ltUpcrossingsBefore is bounded. -/
+/-! Monotonicity of upcrossingsBefore' in the index set, assuming finitely many upcrossings. -/
 lemma upcrossingsBefore'_mono_index_set_of_bounded (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (ω : Ω) (hab : a < b)
     (hbdB : BddAbove {n | ltUpcrossingsBefore a b v (f N) n ω}) :
-    -- u has less upcrossings than v
+    -- u has less upcrossings than v, and (v · ω) has finitely many upcrossings before f N
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω := by
   by_cases! hN : N ≤ ⊥
   · have hleftzero : upcrossingsBefore' a b u N ω = 0 := by
@@ -683,7 +683,7 @@ theorem upcrossingsBefore'_mono_index_set_of_finite_till_N (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (ω : Ω) (hab : a < b) (hfin : Finite {i | i < f N}) :
-    -- u has less upcrossings than v
+    -- u has less upcrossings than v, and (v · ω) has finitely many points before f N
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω :=
   upcrossingsBefore'_mono_index_set_of_bounded f N hsmon u v hv a b ω hab <|
     ltUpcrossingsBefore_bddAbove_of_finite a b v ω (f N) hfin
@@ -693,7 +693,7 @@ theorem upcrossingsBefore'_mono_index_set_of_finite [Finite κ] (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (ω : Ω) (hab : a < b) :
-    -- u has less upcrossings than v
+    -- u has less upcrossings than v, and v has finite index set
     upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω :=
   upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab <|
     inferInstance
@@ -840,6 +840,7 @@ theorem Process.natOfFin.upcrossingsBefore'_eq (u : Fin n → Ω → ℝ) (v : �
 
 end FinToNat
 
+/-!
 section FinsetToFin
 
 variable [LinearOrder ι]
@@ -956,6 +957,7 @@ theorem Process.finOfFiniteSet.upcrossingsBefore'_eq (hs : s.Finite)
 -/
 
 end FinsetToFin
+-/
 
 section Measurability
 /-!
