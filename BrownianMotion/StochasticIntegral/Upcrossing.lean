@@ -728,6 +728,54 @@ theorem upcrossingsBefore'_ge_subset_of_bounded (N : s) (u : s → Ω → ℝ) (
 
 end UpcrossingsOnSubset
 
+/-! To compare upcrossingsBefore' between NNRat and its finsets (with ⊥) and between them. -/
+section UpcrossingsOnFinset
+
+variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
+    {s : Finset κ} (hbot : ⊥ ∈ s)
+
+/-! Assuming finitely many upcrossings along a trajectory, a subset of index set admits less. -/
+theorem upcrossingsBefore'_ge_finset_of_bounded (N : s) (u : s → Ω → ℝ) (v : κ → Ω → ℝ)
+    (hv : ∀ i : s, v i = u i) -- u is a restriction of v to s
+    (a b : ℝ) (ω : Ω) (hab : a < b)
+    (hfin : BddAbove {n | ltUpcrossingsBefore a b v N n ω}) :
+    -- u has less upcrossings than v, and (v · ω) has finitely many upcrossings before f N
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v N ω := by
+  set f : s → κ := fun i => (i : κ) with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := by
+    intro i hi j hj hij
+    exact hij
+  have hv' : ∀ i ≤ N, v (f i) = u i := by
+    intro i hi
+    rw [hf]
+    exact hv i
+  have hfN : f N = N := rfl
+  rw [← hfN]
+  convert upcrossingsBefore'_mono_index_set_of_bounded f N hsmon u v hv' a b ω hab hfin using 1
+
+theorem upcrossingsBefore'_ge_finset {t : Finset κ} (hbots : ⊥ ∈ s) (hbott : ⊥ ∈ t) (hst : s ⊆ t)
+    (N : s) (u : s → Ω → ℝ) (v : t → Ω → ℝ)
+    (hv : ∀ i : s, v ⟨i, hst i.prop⟩ = u i) -- u is a restriction of v to s
+    (a b : ℝ) (ω : Ω) (hab : a < b) :
+    -- u has less upcrossings than v, and v has finite index set
+    letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v ⟨N, hst N.prop⟩ ω := by
+  letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  -- The inclusion map from s into t
+  set f : s → t := fun i => ⟨i, hst i.prop⟩ with hf
+  have hsmon : StrictMonoOn f {i | i ≤ N} := by
+    intro i _ j _ hij
+    exact hij
+  have hv' : ∀ i ≤ N, v (f i) = u i := fun i _ => hv i
+  have hfN : f N = ⟨N, hst N.prop⟩ := rfl
+  rw [← hfN]
+  exact upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv' a b ω hab inferInstance
+
+end UpcrossingsOnFinset
+
 section DoobInequalityNat
 
 variable {a b : ℝ}
@@ -992,17 +1040,44 @@ theorem Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fi
 
 end FinsetToFin
 
-
+/-! To compare upcrossingsBefore' between a finite set (as a subtype)
+    and its corresponding Finset (as a subtype).
+    Most probably obsolete, as we proved monotonicity on finsets, and
+    measurability and Doob upcrossings inequality are also done. -/
 section FiniteSetToFinset
 
 variable [LinearOrder ι]
 
-variable {s : Set ι} (hfin : Finite s) (hne : s.Nonempty)
-  (ft : Fintype s := Fintype.ofFinite s)
-  (fs : Finset ι := @Set.toFinset ι s ft)
+variable {s : Set ι} [Fintype s]
 
-def FiniteSet.toFinset : s → fs := sorry
+/-- Order isomorphism between a finite set `s` (as a subtype) and its corresponding Finset
+    (as a subtype). Uses that `x ∈ Set.toFinset s ↔ x ∈ s` when `s` has a `Fintype` instance. -/
+def Set.subtypeOrderIsoFinset : s ≃o s.toFinset where
+  toFun := fun ⟨x, hx⟩ => ⟨x, Set.mem_toFinset.mpr hx⟩
+  invFun := fun ⟨x, hx⟩ => ⟨x, Set.mem_toFinset.mp hx⟩
+  left_inv := fun ⟨x, _⟩ => rfl
+  right_inv := fun ⟨x, _⟩ => rfl
+  map_rel_iff' := by simp
 
+def Set.FromFinset : s.toFinset → s := Set.subtypeOrderIsoFinset.symm
+
+def Set.ToFinset' : s → s.toFinset := Set.subtypeOrderIsoFinset
+
+lemma Set.FromFinset.StrictMono :
+    StrictMono (Set.FromFinset (s := s)) :=
+  OrderIso.strictMono (Set.subtypeOrderIsoFinset (s := s)).symm
+
+lemma Set.ToFinset'.StrictMono :
+    StrictMono (Set.ToFinset' (s := s)) :=
+  OrderIso.strictMono (Set.subtypeOrderIsoFinset (s := s))
+
+lemma Set.FromFinset.ToFinset'_eq (i : s) :
+    Set.FromFinset (Set.ToFinset' i) = i :=
+  OrderIso.symm_apply_apply Set.subtypeOrderIsoFinset i
+
+lemma Set.ToFinset'.FromFinset_eq (i : s.toFinset) :
+    Set.ToFinset' (Set.FromFinset i) = i :=
+  OrderIso.apply_symm_apply Set.subtypeOrderIsoFinset i
 
 end FiniteSetToFinset
 
