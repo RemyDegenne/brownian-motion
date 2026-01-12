@@ -1029,6 +1029,24 @@ theorem Adapted.measurable_upcrossingsBefore'_Fin {u : (Fin n) → Ω → ℝ} {
   rw [heq]
   exact hmeas_nat
 
+theorem Adapted.measurable_upcrossingsBefore'_Finset [LinearOrder ι] [OrderBot ι]
+    {s : Finset ι} {k : ℕ} (hk : #s = k) (hbot : ⊥ ∈ s) [NeZero k]
+    {u : s → Ω → ℝ} {N : s} {a b : ℝ} {𝓕 : Filtration s m0}
+    (hf : Adapted 𝓕 u) (hab : a < b) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    Measurable (upcrossingsBefore' a b u N) := by
+  set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
+  set v := Process.finOfFinset hk u with hv
+  have hadapted' : Adapted 𝓕' v := by
+    intro i
+    have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
+      exact hf (Finset.FromFin hk i)
+    simp only [v, 𝓕']
+    assumption
+  have hFinOfFinset : v = Process.finOfFinset hk u := rfl
+  rw [Process.finOfFinset.upcrossingsBefore'_eq hk hbot u v hFinOfFinset N a b hab]
+  exact Adapted.measurable_upcrossingsBefore'_Fin hadapted' hab
+
 end Measurability
 
 section DoobInequalityFin
@@ -1061,6 +1079,40 @@ theorem Submartingale.mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part [
       (integral_nonneg fun ω => posPart_nonneg _)
 
 end DoobInequalityFin
+
+section DoobInequalityFinset
+
+variable [LinearOrder ι] [OrderBot ι]
+  {s : Finset ι} {k : ℕ} (hne : s.Nonempty) (hk : #s = k) (hbot : ⊥ ∈ s) [NeZero k]
+  {𝓕 : Filtration s m0} {u : s → Ω → ℝ} {N : s} {a b : ℝ}
+
+theorem mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux [IsFiniteMeasure μ]
+    (hk : #s = k) (hf : Submartingale u 𝓕 μ) (hab : a < b) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
+  -- We reduce to the `Fin k`-indexed case
+  set 𝓕' := Filtration.finOfFinset hk 𝓕
+  set v := Process.finOfFinset hk u
+  have hvsub : Submartingale v 𝓕' μ := Submartingale.finOfFinset hk hf
+  have hFinOfFinset : v = Process.finOfFinset hk u := rfl
+  have heq := Process.finOfFinset.upcrossingsBefore'_eq hk hbot u v hFinOfFinset N a b hab
+  rw [heq]
+  have huNvN : v (Finset.ToFin hk N) = u N := Process.finOfFinset_eq hk u v hFinOfFinset N N le_rfl
+  rw [← huNvN]
+  exact mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux hvsub hab
+
+theorem Submartingale.mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part
+    [IsFiniteMeasure μ]
+    (hk : #s = k) (hf : Submartingale u 𝓕 μ) :
+    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
+  by_cases! hab : a < b
+  · exact mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux hbot hk hf hab
+  · rw [← sub_nonpos] at hab
+    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
+      (integral_nonneg fun ω => posPart_nonneg _)
+
+end DoobInequalityFinset
 
 section Countable
 
