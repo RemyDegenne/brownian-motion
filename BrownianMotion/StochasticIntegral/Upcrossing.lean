@@ -1457,18 +1457,35 @@ end Approximation
 section Convergence
 
 /-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
-    and `g` equals the supremum of `(f n)` whenever the sequence is bounded above,
-    then `g` is integrable and its integral is at most `c`. -/
+    then supremum is integrable and its integral is at most `c`. -/
 theorem integrable_of_monotone_bounded_iSup
-    (f : ℕ → Ω → ℝ) (g : Ω → ℝ)
-    (h_mono : ∀ᵐ ω ∂μ, Monotone (fun n ↦ f n ω))
-    (h_nonneg : ∀ n, 0 ≤ᵐ[μ] f n)
-    (h_int : ∀ n, Integrable (f n) μ)
-    (c : ℝ)
-    (h_bound : ∀ n, ∫ ω, f n ω ∂μ ≤ c)
-    (h_g : ∀ᵐ ω ∂μ, BddAbove (Set.range (fun n ↦ f n ω)) → g ω = ⨆ n, f n ω) :
-    Integrable g μ ∧ ∫ ω, g ω ∂μ ≤ c := by
-  sorry
+    (f : ℕ → Ω → ℝ≥0∞)
+    (hf : ∀ n, Measurable (f n))
+    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
+    (c : ℝ≥0∞)
+    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
+    ∫⁻ a, ⨆ n, f n a ∂μ ≤ c := by
+  -- Use Monotone Convergence Theorem: ∫⁻ (⨆ n, f n) = ⨆ n, ∫⁻ f n
+  calc ∫⁻ a, ⨆ n, f n a ∂μ
+      = ⨆ n, ∫⁻ a, f n a ∂μ := lintegral_iSup_ae hf h_mono
+    _ ≤ c := iSup_le h_bound
+
+/-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
+    then the supremum is finite a.e. -/
+theorem ae_lt_top_of_monotone_bounded_iSup
+    (f : ℕ → Ω → ℝ≥0∞)
+    (hf : ∀ n, Measurable (f n))
+    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
+    (c : ℝ≥0∞)
+    (hc : c < ⊤)
+    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
+    ∀ᵐ a ∂μ, ⨆ n, f n a < ⊤ := by
+  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c := integrable_of_monotone_bounded_iSup f hf h_mono c h_bound
+  have h_int_lt : ∫⁻ a, ⨆ n, f n a ∂μ < ⊤ := lt_of_le_of_lt h_int hc
+  have h_meas : Measurable (fun a => ⨆ n, f n a) := Measurable.iSup hf
+  exact ae_lt_top h_meas h_int_lt.ne
+
+
 
 end Convergence
 
