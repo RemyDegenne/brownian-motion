@@ -1563,8 +1563,8 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
     letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     -- Get submartingale on finset
     have hsub_n : Submartingale (fun i : s n => f i)
-        (Filtration.restrictFinset 𝓕 (s n) (hsbot n)) μ :=
-      Submartingale.restrictFinset (s n) (hsbot n) hf
+        (Filtration.restrictFinset 𝓕 (s n)) μ :=
+      Submartingale.restrictFinset (s n) hf
     -- Check if finset is nonempty
     have hne : (s n).Nonempty := ⟨⊥, hsbot n⟩
     have hcard_pos : #(s n) ≠ 0 := Finset.card_ne_zero.mpr hne
