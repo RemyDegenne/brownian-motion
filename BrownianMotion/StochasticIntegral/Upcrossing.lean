@@ -1411,6 +1411,49 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
       simp only [hKdef]
       exact upcrossingsBefore'_finset_ge_of_witness (hbot m) (hN m) hKpos hseq ht_lt_N ht_in_sm
 
+/-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingsBefore'. -/
+theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
+    {s : ℕ → Finset ι}
+    (hmon : Monotone s)
+    (hbot : ∀ n, ⊥ ∈ s n)
+    (hN : ∀ n, N ∈ s n)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N)
+    (hab : a < b)
+    (hfinite_sup : ∃ C, ∀ n,
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
+    BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
+  obtain ⟨C, hCbound⟩ := hfinite_sup
+  by_cases hNbot : N ≤ ⊥
+  · -- N ≤ ⊥ implies {n | ltUpcrossingsBefore a b f N n ω} is empty
+    simp only [ltUpcrossingsBefore]; simp_all
+  · -- Use the finite supremum C to bound
+    use C
+    intro K hK
+    simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot] at hK
+    classical
+    -- assume n' > C, that is, exist UpcrosingData with > C upcrossings
+    by_contra hnot
+    have hKpos : ¬ K = 0 := by grind
+    simp_all
+    obtain ⟨hseq, ht_lt_N⟩ := hK
+    -- The witness set
+    set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
+    have hwit_finite : Finite witness := Set.finite_range _
+    have hwit_Icc : witness ⊆ Set.Icc ⊥ N := by
+      intro x hx
+      obtain ⟨i, rfl⟩ := hx
+      constructor
+      · exact bot_le
+      · have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+    -- Find M such that witness ⊆ s M
+    obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
+    -- witness ⊆ s M'
+    have hwit_in_sM' : witness ⊆ s M' := fun x
+
+
 end Approximation
 
 section Convergence
@@ -1450,35 +1493,31 @@ end Convergence
 
 section DoobInequalityCountable
 
-variable [Countable ι] [LinearOrder ι] [OrderBot ι]
-  {f : ι → Ω → ℝ} {N : ι} {𝓕 : Filtration ι m0} {a b : ℝ}
+variable [LinearOrder ι] {f : ι → Ω → ℝ} {𝓕 : Filtration ι m0}
 
 /-- Restrict a filtration on ι to a finset s. -/
-def Filtration.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι) (hbot : ⊥ ∈ s) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+def Filtration.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι) :
     Filtration s m0 :=
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   { seq := fun i => 𝓕 i.val
     mono' := fun _ _ hij => 𝓕.mono hij
     le' := fun i => 𝓕.le i.val }
 
 /-- Restrict a submartingale on ι to a finset s. -/
-lemma Submartingale.restrictFinset [Countable ι'] [LinearOrder ι'] [OrderBot ι']
-    {f' : ι' → Ω → ℝ} {𝓕' : Filtration ι' m0}
-    (s : Finset ι') (hbot : ⊥ ∈ s) (hf' : Submartingale f' 𝓕' μ) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Submartingale (fun i : s => f' i) (Filtration.restrictFinset 𝓕' s hbot) μ := by
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
+    (hf : Submartingale f 𝓕 μ) :
+    Submartingale (fun i : s => f i) (Filtration.restrictFinset 𝓕 s) μ := by
   refine ⟨?_, ?_, ?_⟩
   · -- Adapted
     intro i
-    exact hf'.adapted i.val
+    exact hf.adapted i.val
   · -- Submartingale property
     intro i j hij
-    exact hf'.2.1 i.val j.val hij
+    exact hf.2.1 i.val j.val hij
   · -- Integrable
     intro i
-    exact hf'.integrable i.val
+    exact hf.integrable i.val
+
+variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
 
 theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
