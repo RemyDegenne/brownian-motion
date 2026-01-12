@@ -1330,4 +1330,139 @@ variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
 end Countable
 
+section Approximation
+
+variable [LinearOrder ι] [OrderBot ι]
+variable {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+
+/-- Upcrossings on a finset are at most the upcrossings on the whole space. -/
+lemma upcrossingsBefore'_finset_le
+    {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s) (hab : a < b)
+    (hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω}) :
+    letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    upcrossingsBefore' a b (fun i : s => f i) ⟨N, hN⟩ ω ≤ upcrossingsBefore' a b f N ω := by
+  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  set g : s → ι := fun i => i.val with hg
+  have hgmon : StrictMonoOn g {i | i ≤ ⟨N, hN⟩} := fun _ _ _ _ hij => hij
+  have hv : ∀ i ≤ ⟨N, hN⟩, f (g i) = (fun i : s => f i) i := fun _ _ => rfl
+  exact upcrossingsBefore'_mono_index_set_of_bounded g ⟨N, hN⟩ hgmon
+    (fun i : s => f i) f hv a b ω hab hbdd
+
+/-- If we have K upcrossings, witnessed by UpcrossingData, and a finset contains all
+    the witness points, then the finset also has at least K upcrossings. -/
+lemma upcrossingsBefore'_finset_ge_of_witness
+    {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s)
+    {K : ℕ} (hKpos : K ≥ 1)
+    (hseq : UpcrossingData a b f K ω)
+    (ht_lt_N : hseq.t (2 * K - 1) < N)
+    (ht_in_s : ∀ i < 2 * K, hseq.t i ∈ s) :
+    letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    K ≤ upcrossingsBefore' a b (fun i : s => f i) ⟨N, hN⟩ ω := by
+  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  have hNbot : ¬ N ≤ ⊥ := by
+    intro h
+    have h1 : hseq.t 0 ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+    have h2 : hseq.t (2 * K - 1) < N := ht_lt_N
+    have h3 : N ≤ ⊥ := h
+    have h4 : hseq.t (2 * K - 1) < ⊥ := lt_of_lt_of_le h2 h3
+    exact not_lt_bot h4
+  -- Build UpcrossingData on s from hseq
+  have ht_lt_N_s : ⟨hseq.t (2 * K - 1), ht_in_s (2 * K - 1) (by omega)⟩ < (⟨N, hN⟩ : s) := ht_lt_N
+  let hseq' : UpcrossingData a b (fun i : s => f i) K ω := {
+    hab := hseq.hab
+    t := fun i => if h : i < 2 * K then ⟨hseq.t i, ht_in_s i h⟩ else ⟨N, hN⟩
+    mono := by
+      intro i j hij
+      simp only
+      split_ifs with hi hj hj
+      · exact hseq.mono hij
+      · have hmono : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+        exact le_of_lt (lt_of_le_of_lt hmono ht_lt_N_s)
+      · omega
+      · exact le_rfl
+    ft_le_a := fun i hi heven => by simp only [hi, dif_pos]; exact hseq.ft_le_a i hi heven
+    ft_ge_b := fun i hi hodd => by simp only [hi, dif_pos]; exact hseq.ft_ge_b i hi hodd
+  }
+  -- hseq' witnesses K upcrossings before ⟨N, hN⟩
+  have hlt : ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ K ω := by
+    simp only [ltUpcrossingsBefore]
+    have hNbot' : ¬ (⟨N, hN⟩ : s) ≤ ⊥ := fun h => hNbot h
+    simp only [hNbot', ↓reduceIte, Nat.one_le_iff_ne_zero.mp hKpos]
+    use hseq'
+    simp only [hseq', dif_pos (by omega : 2 * K - 1 < 2 * K)]
+    exact ht_lt_N
+  -- Therefore upcrossingsBefore' on s is at least K
+  have hmem : K ∈ {n | ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
+    Set.mem_setOf.mpr hlt
+  have hbdd' : BddAbove {n | ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
+    ltUpcrossingsBefore_bddAbove_of_finite a b (fun i : s => f i) ω ⟨N, hN⟩ inferInstance
+  exact le_csSup hbdd' hmem
+
+/-- Given a monotone family of finsets saturating `Set.Icc ⊥ N`, assuming bounded upcrossings,
+    the upcrossings on `ι` eventually equal the upcrossings on the finsets. -/
+theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
+    {s : ℕ → Finset ι}
+    (hmon : Monotone s)
+    (hbot : ∀ n, ⊥ ∈ s n)
+    (hN : ∀ n, N ∈ s n)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N)
+    (hab : a < b)
+    (hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω}) :
+    ∃ M, ∀ m ≥ M,
+      letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
+        upcrossingsBefore' a b f N ω := by
+  set K := upcrossingsBefore' a b f N ω with hKdef
+  by_cases hKzero : K = 0
+  · -- K = 0: any finset works
+    use 0
+    intro m _
+    apply le_antisymm
+    · exact upcrossingsBefore'_finset_le (hbot m) (hN m) hab hbdd
+    · rw [hKzero]; exact Nat.zero_le _
+  · -- K ≥ 1: we need to find the witness and ensure the finset contains it
+    have hKpos : K ≥ 1 := Nat.one_le_iff_ne_zero.mpr hKzero
+    -- N is not ⊥ (otherwise K = 0)
+    have hNbot : ¬ N ≤ ⊥ := by
+      intro h
+      have hzero : upcrossingsBefore' a b f N ω = 0 := upcrossingsBefore'_zero_of_N_bot a b f N ω h
+      simp only [← hKdef] at hzero
+      exact hKzero hzero
+    -- K is in the set of ltUpcrossingsBefore
+    have hne : {n | ltUpcrossingsBefore a b f N n ω}.Nonempty := by
+      use 0
+      simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte]
+    have hKmem : K ∈ {n | ltUpcrossingsBefore a b f N n ω} := by
+      simp only [hKdef, upcrossingsBefore']
+      exact Nat.sSup_mem hne hbdd
+    -- Extract the UpcrossingData from K being in the set
+    simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte,
+      Nat.one_le_iff_ne_zero.mp hKpos] at hKmem
+    obtain ⟨hseq, ht_lt_N⟩ := hKmem
+    -- The witness set
+    set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
+    have hwit_finite : Finite witness := Set.finite_range _
+    have hwit_Icc : witness ⊆ Set.Icc ⊥ N := by
+      intro x hx
+      obtain ⟨i, rfl⟩ := hx
+      constructor
+      · exact bot_le
+      · have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+    -- Find M such that witness ⊆ s M
+    obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
+    use M'
+    intro m hm
+    apply le_antisymm
+    · exact upcrossingsBefore'_finset_le (hbot m) (hN m) hab hbdd
+    · -- witness ⊆ s m
+      have hwit_in_sm : witness ⊆ s m := fun x hx => hmon hm (hM'_wit hx)
+      have ht_in_sm : ∀ i < 2 * K, hseq.t i ∈ s m := fun i hi =>
+        hwit_in_sm (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩)
+      simp only [hKdef]
+      exact upcrossingsBefore'_finset_ge_of_witness (hbot m) (hN m) hKpos hseq ht_lt_N ht_in_sm
+
+end Approximation
+
 end ProbabilityTheory
