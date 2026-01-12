@@ -1166,24 +1166,24 @@ section Countable
 
 variable [Countable ι] [LinearOrder ι] [OrderBot ι]
 
-/-! Approximating `Set.Icc ⊥ N` by finite sets that always contain ⊥ and N. -/
+/-! Approximating `Set.Iic N` by finite sets that always contain ⊥ and N. -/
 
-theorem Countable.increasing_family_saturates_Icc (N : ι) :
+theorem Countable.increasing_family_saturates_Iic (N : ι) :
     ∃ s : ℕ → Set ι,
     Monotone s ∧
     (∀ n, Finite (s n)) ∧
     (∀ n, ⊥ ∈ s n) ∧
     (∀ n, N ∈ s n) ∧
-    (∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N → ∃ n, t ⊆ s n ∧ s n ⊆ Set.Icc ⊥ N) := by
+    (∀ t : Set ι, Finite t → t ⊆ Set.Iic N → ∃ n, t ⊆ s n ∧ s n ⊆ Set.Iic N) := by
   obtain ⟨f, hf⟩ := Countable.exists_injective_nat ι
   -- f enumerates elements of ι, but not all natural numbers must be present
   let s₀ : ℕ → Set ι := fun n => {i | f i < n}
-  -- Augment each s₀ n with ⊥ and N, and intersect with Set.Icc ⊥ N
-  let s : ℕ → Set ι := fun n => (s₀ n ∩ Set.Icc ⊥ N) ∪ {⊥, N}
+  -- Augment each s₀ n with ⊥ and N, and intersect with Set.Iic N
+  let s : ℕ → Set ι := fun n => (s₀ n ∩ Set.Iic N) ∪ {⊥, N}
   refine ⟨s, ?_, ?_, ?_, ?_, ?_⟩
   · -- Monotone s
     intro m n hmn x hx
-    simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+    simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
       Set.mem_singleton_iff, Set.mem_setOf_eq, s₀] at hx ⊢
     cases hx with
     | inl h =>
@@ -1217,7 +1217,7 @@ theorem Countable.increasing_family_saturates_Icc (N : ι) :
       constructor
       · simp [hempty, Set.empty_subset]
       · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
           Set.mem_singleton_iff] at hx
         cases hx with
         | inl h => exact h.2
@@ -1228,7 +1228,7 @@ theorem Countable.increasing_family_saturates_Icc (N : ι) :
     · use (Finset.univ.image (fun i : t => f i)).sup id + 1
       constructor
       · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
           Set.mem_singleton_iff, Set.mem_setOf_eq, s₀]
         left
         constructor
@@ -1237,7 +1237,7 @@ theorem Countable.increasing_family_saturates_Icc (N : ι) :
           exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
         · exact htIcc hx
       · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
           Set.mem_singleton_iff] at hx
         cases hx with
         | inl h => exact h.2
@@ -1246,14 +1246,14 @@ theorem Countable.increasing_family_saturates_Icc (N : ι) :
           | inl h => subst h; simp
           | inr h => subst h; simp
 
-theorem Countable.increasing_finset_family_saturates_Icc (N : ι) :
+theorem Countable.increasing_finset_family_saturates_Iic (N : ι) :
     ∃ s : ℕ → Finset ι,
     Monotone s ∧
     (∀ n, ⊥ ∈ s n) ∧
     (∀ n, N ∈ s n) ∧
-    (∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N → ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N) := by
+    (∀ t : Set ι, Finite t → t ⊆ Set.Iic N → ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N) := by
   obtain ⟨s, hsmon, hsfin, hsbot, hsN, hsaturate⟩ :=
-    Countable.increasing_family_saturates_Icc (ι := ι) N
+    Countable.increasing_family_saturates_Iic (ι := ι) N
   -- Convert Set to Finset
   have fintype_s : ∀ n, Fintype (s n) := fun n => Fintype.ofFinite (s n)
   let s' : ℕ → Finset ι := fun n => @Set.toFinset ι (s n) (fintype_s n)
@@ -1294,7 +1294,7 @@ section Approximation
 variable [LinearOrder ι] [OrderBot ι]
 variable {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
-/-- If we have K upcrossings, witnessed by UpcrossingData, and a finset contains all
+/-- If we have K upcrossings, witnessed by UpcrossingDat a, and a finset contains all
     the witness points, then the finset also has at least K upcrossings. -/
 lemma upcrossingsBefore'_finset_ge_of_witness
     {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s)
@@ -1344,15 +1344,15 @@ lemma upcrossingsBefore'_finset_ge_of_witness
     ltUpcrossingsBefore_bddAbove_of_finite a b (fun i : s => f i) ω ⟨N, hN⟩ inferInstance
   exact le_csSup hbdd' hmem
 
-/-- Given a monotone family of finsets saturating `Set.Icc ⊥ N`, assuming bounded upcrossings,
+/-- Given a monotone family of finsets saturating `Set.Iic N`, assuming bounded upcrossings,
     the upcrossings on `ι` eventually equal the upcrossings on the finsets. -/
 theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
     (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
     (hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω}) :
     ∃ M, ∀ m ≥ M,
@@ -1390,13 +1390,11 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
     -- The witness set
     set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
     have hwit_finite : Finite witness := Set.finite_range _
-    have hwit_Icc : witness ⊆ Set.Icc ⊥ N := by
+    have hwit_Icc : witness ⊆ Set.Iic N := by
       intro x hx
       obtain ⟨i, rfl⟩ := hx
-      constructor
-      · exact bot_le
-      · have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+      have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+      exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
     -- Find M such that witness ⊆ s M
     obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
     use M'
@@ -1414,12 +1412,12 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
 /-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingsBefore'. -/
 theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     {s : ℕ → Finset ι}
-    (hmon : Monotone s)
+    -- (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
     (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N)
-    (hab : a < b)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
+    -- (hab : a < b)
     (hfinite_sup : ∃ C, ∀ n,
       letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
       upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
@@ -1433,25 +1431,31 @@ theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     intro K hK
     simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot] at hK
     classical
-    -- assume n' > C, that is, exist UpcrosingData with > C upcrossings
+    -- assume K > C, that is, exist UpcrosingData with > C upcrossings
     by_contra hnot
     have hKpos : ¬ K = 0 := by grind
-    simp_all
+    simp only [hKpos] at hK
     obtain ⟨hseq, ht_lt_N⟩ := hK
     -- The witness set
     set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
     have hwit_finite : Finite witness := Set.finite_range _
-    have hwit_Icc : witness ⊆ Set.Icc ⊥ N := by
+    have hwit_Icc : witness ⊆ Set.Iic N := by
       intro x hx
       obtain ⟨i, rfl⟩ := hx
-      constructor
-      · exact bot_le
-      · have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-    -- Find M such that witness ⊆ s M
-    obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-    -- witness ⊆ s M'
-    have hwit_in_sM' : witness ⊆ s M' := fun x
+      have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+      exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+    -- Find n₀ such that witness ⊆ s n₀
+    obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
+    /- We have K upcrossings and s n₀ contains all the witness points, hence ≥ K upcrossings. -/
+    letI : OrderBot (s n₀) := { bot := ⟨⊥, hbot n₀⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    have h_upcrossings_ge : K ≤ upcrossingsBefore' a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
+      upcrossingsBefore'_finset_ge_of_witness (hbot n₀) (hN n₀) (Nat.one_le_iff_ne_zero.mpr hKpos)
+        hseq ht_lt_N (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
+    -- This contradicts the bound by C
+    have hbound := hCbound n₀
+    linarith
+
+/-! The above two theorems merge into the following. -/
 
 
 end Approximation
@@ -1522,8 +1526,8 @@ variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
 theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  -- We approximate Set.Icc ⊥ N by an increasing family of finsets
-  obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Icc N
+  -- We approximate Set.Iic N by an increasing family of finsets
+  obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Iic N
   -- For each n, define U_n as upcrossings on s n
   let U : ℕ → Ω → ℕ := fun n =>
     letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
@@ -1591,10 +1595,10 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
           simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte,
             Nat.one_le_iff_ne_zero.mp hKpos] at hKmem
           obtain ⟨hseq, ht_lt_N⟩ := hKmem
-          -- The witness set is finite and in Set.Icc ⊥ N
+          -- The witness set is finite and in Set.Iic N
           set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
           have hwit_finite : Finite witness := Set.finite_range _
-          have hwit_Icc : witness ⊆ Set.Icc ⊥ N := by
+          have hwit_Icc : witness ⊆ Set.Iic N := by
             intro x hx
             obtain ⟨i, rfl⟩ := hx
             constructor
