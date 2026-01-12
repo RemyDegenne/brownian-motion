@@ -992,6 +992,20 @@ theorem Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fi
 
 end FinsetToFin
 
+
+section FiniteSetToFinset
+
+variable [LinearOrder ι]
+
+variable {s : Set ι} (hfin : Finite s) (hne : s.Nonempty)
+  (ft : Fintype s := Fintype.ofFinite s)
+  (fs : Finset ι := @Set.toFinset ι s ft)
+
+def FiniteSet.toFinset : s → fs := sorry
+
+
+end FiniteSetToFinset
+
 section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
