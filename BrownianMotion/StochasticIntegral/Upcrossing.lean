@@ -1040,47 +1040,6 @@ theorem Process.finOfFinset.upcrossingsBefore'_eq (u : s → Ω → ℝ) (v : Fi
 
 end FinsetToFin
 
-/-! To compare upcrossingsBefore' between a finite set (as a subtype)
-    and its corresponding Finset (as a subtype).
-    Most probably obsolete, as we proved monotonicity on finsets, and
-    measurability and Doob upcrossings inequality are also done. -/
-section FiniteSetToFinset
-
-variable [LinearOrder ι]
-
-variable {s : Set ι} [Fintype s]
-
-/-- Order isomorphism between a finite set `s` (as a subtype) and its corresponding Finset
-    (as a subtype). Uses that `x ∈ Set.toFinset s ↔ x ∈ s` when `s` has a `Fintype` instance. -/
-def Set.subtypeOrderIsoFinset : s ≃o s.toFinset where
-  toFun := fun ⟨x, hx⟩ => ⟨x, Set.mem_toFinset.mpr hx⟩
-  invFun := fun ⟨x, hx⟩ => ⟨x, Set.mem_toFinset.mp hx⟩
-  left_inv := fun ⟨x, _⟩ => rfl
-  right_inv := fun ⟨x, _⟩ => rfl
-  map_rel_iff' := by simp
-
-def Set.FromFinset : s.toFinset → s := Set.subtypeOrderIsoFinset.symm
-
-def Set.ToFinset' : s → s.toFinset := Set.subtypeOrderIsoFinset
-
-lemma Set.FromFinset.StrictMono :
-    StrictMono (Set.FromFinset (s := s)) :=
-  OrderIso.strictMono (Set.subtypeOrderIsoFinset (s := s)).symm
-
-lemma Set.ToFinset'.StrictMono :
-    StrictMono (Set.ToFinset' (s := s)) :=
-  OrderIso.strictMono (Set.subtypeOrderIsoFinset (s := s))
-
-lemma Set.FromFinset.ToFinset'_eq (i : s) :
-    Set.FromFinset (Set.ToFinset' i) = i :=
-  OrderIso.symm_apply_apply Set.subtypeOrderIsoFinset i
-
-lemma Set.ToFinset'.FromFinset_eq (i : s.toFinset) :
-    Set.ToFinset' (Set.FromFinset i) = i :=
-  OrderIso.apply_symm_apply Set.subtypeOrderIsoFinset i
-
-end FiniteSetToFinset
-
 section Measurability
 /-!
 We use the following, which assumes ι = ℕ :
