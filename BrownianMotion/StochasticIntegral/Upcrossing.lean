@@ -1454,4 +1454,22 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
 
 end Approximation
 
+section Convergence
+
+/-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
+    and `g` equals the supremum of `(f n)` whenever the sequence is bounded above,
+    then `g` is integrable and its integral is at most `c`. -/
+theorem integrable_of_monotone_bounded_iSup
+    (f : ℕ → Ω → ℝ) (g : Ω → ℝ)
+    (h_mono : ∀ᵐ ω ∂μ, Monotone (fun n ↦ f n ω))
+    (h_nonneg : ∀ n, 0 ≤ᵐ[μ] f n)
+    (h_int : ∀ n, Integrable (f n) μ)
+    (c : ℝ)
+    (h_bound : ∀ n, ∫ ω, f n ω ∂μ ≤ c)
+    (h_g : ∀ᵐ ω ∂μ, BddAbove (Set.range (fun n ↦ f n ω)) → g ω = ⨆ n, f n ω) :
+    Integrable g μ ∧ ∫ ω, g ω ∂μ ≤ c := by
+  sorry
+
+end Convergence
+
 end ProbabilityTheory
