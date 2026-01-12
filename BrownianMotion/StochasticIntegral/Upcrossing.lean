@@ -1412,12 +1412,10 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
 /-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingsBefore'. -/
 theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     {s : ℕ → Finset ι}
-    -- (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
     (hN : ∀ n, N ∈ s n)
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    -- (hab : a < b)
     (hfinite_sup : ∃ C, ∀ n,
       letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
       upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
@@ -1456,7 +1454,24 @@ theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     linarith
 
 /-! The above two theorems merge into the following. -/
-
+theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
+    {s : ℕ → Finset ι}
+    (hmon : Monotone s)
+    (hbot : ∀ n, ⊥ ∈ s n)
+    (hN : ∀ n, N ∈ s n)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
+    (hab : a < b)
+    (hfinite_sup : ∃ C, ∀ n,
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
+    ∃ M, ∀ m ≥ M,
+      letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
+        upcrossingsBefore' a b f N ω := by
+  have hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω} :=
+    upcrossingsBefore'_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
+  exact upcrossingsBefore'_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
 
 end Approximation
 
