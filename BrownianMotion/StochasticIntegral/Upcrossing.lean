@@ -1116,7 +1116,7 @@ end DoobInequalityFinset
 
 section Countable
 
-variable [Countable ι]
+variable [Countable ι] [LinearOrder ι] [OrderBot ι]
 
 /-! Note:
  A variation of the below would be nice:
