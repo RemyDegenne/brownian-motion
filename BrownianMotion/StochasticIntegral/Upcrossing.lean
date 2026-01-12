@@ -1335,19 +1335,6 @@ section Approximation
 variable [LinearOrder ι] [OrderBot ι]
 variable {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
-/-- Upcrossings on a finset are at most the upcrossings on the whole space. -/
-lemma upcrossingsBefore'_finset_le
-    {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s) (hab : a < b)
-    (hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω}) :
-    letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBefore' a b (fun i : s => f i) ⟨N, hN⟩ ω ≤ upcrossingsBefore' a b f N ω := by
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  set g : s → ι := fun i => i.val with hg
-  have hgmon : StrictMonoOn g {i | i ≤ ⟨N, hN⟩} := fun _ _ _ _ hij => hij
-  have hv : ∀ i ≤ ⟨N, hN⟩, f (g i) = (fun i : s => f i) i := fun _ _ => rfl
-  exact upcrossingsBefore'_mono_index_set_of_bounded g ⟨N, hN⟩ hgmon
-    (fun i : s => f i) f hv a b ω hab hbdd
-
 /-- If we have K upcrossings, witnessed by UpcrossingData, and a finset contains all
     the witness points, then the finset also has at least K upcrossings. -/
 lemma upcrossingsBefore'_finset_ge_of_witness
@@ -1419,7 +1406,8 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
     use 0
     intro m _
     apply le_antisymm
-    · exact upcrossingsBefore'_finset_le (hbot m) (hN m) hab hbdd
+    · exact upcrossingsBefore'_ge_finset_of_bounded (hbot m) ⟨N, hN m⟩
+        (fun i : s m => f i) f (fun _ => rfl) a b ω hab hbdd
     · rw [hKzero]; exact Nat.zero_le _
   · -- K ≥ 1: we need to find the witness and ensure the finset contains it
     have hKpos : K ≥ 1 := Nat.one_le_iff_ne_zero.mpr hKzero
@@ -1455,7 +1443,8 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets
     use M'
     intro m hm
     apply le_antisymm
-    · exact upcrossingsBefore'_finset_le (hbot m) (hN m) hab hbdd
+    · exact upcrossingsBefore'_ge_finset_of_bounded (hbot m) ⟨N, hN m⟩
+        (fun i : s m => f i) f (fun _ => rfl) a b ω hab hbdd
     · -- witness ⊆ s m
       have hwit_in_sm : witness ⊆ s m := fun x hx => hmon hm (hM'_wit hx)
       have ht_in_sm : ∀ i < 2 * K, hseq.t i ∈ s m := fun i hi =>
