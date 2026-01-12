@@ -1118,74 +1118,124 @@ section Countable
 
 variable [Countable ι] [LinearOrder ι] [OrderBot ι]
 
-/-! Note:
- A variation of the below would be nice:
-  a non-decreasing sequence of q n := (Fin (k n)),
-  each order-isomorphic to (s n), k → ∞,
-  and every finite subset of ι is contained in some s n.
-  Additionally, we'd like, for monotonicity/convergence purposes:
-  - a StrictMono embedding from each (q n) to (q (n + 1));
-  - a StrictMono embedding from each (q n) to ι.
-  Nevertheless, for Doob's inequality on finite subsets of NNRat,
-  this would not suffice, as the index set must be sorted (OrderIso sorts implicitly).
-  The same stands for measurability of upcrossingsBefore' on those subsets.
-  Hence the below construction is preferred for now.
--/
-theorem Countable.increasing_family_saturates_every_finite_subset :
+/-! Approximating `Set.Icc ⊥ N` by finite sets that always contain ⊥ and N. -/
+
+theorem Countable.increasing_family_saturates_Icc (N : ι) :
     ∃ s : ℕ → Set ι,
     Monotone s ∧
     (∀ n, Finite (s n)) ∧
-    (∀ t : Set ι, Finite t → ∃ n, t ⊆ s n) := by
+    (∀ n, ⊥ ∈ s n) ∧
+    (∀ n, N ∈ s n) ∧
+    (∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N → ∃ n, t ⊆ s n ∧ s n ⊆ Set.Icc ⊥ N) := by
   obtain ⟨f, hf⟩ := Countable.exists_injective_nat ι
   -- f enumerates elements of ι, but not all natural numbers must be present
-  let s : ℕ → Set ι := fun n => {i | f i < n} -- not strictly increasing and may start from empty
-  refine ⟨s, ?_, ?_, ?_⟩
+  let s₀ : ℕ → Set ι := fun n => {i | f i < n}
+  -- Augment each s₀ n with ⊥ and N, and intersect with Set.Icc ⊥ N
+  let s : ℕ → Set ι := fun n => (s₀ n ∩ Set.Icc ⊥ N) ∪ {⊥, N}
+  refine ⟨s, ?_, ?_, ?_, ?_, ?_⟩
   · -- Monotone s
-    intro m n hmn i hi
-    exact Nat.lt_of_lt_of_le hi hmn
+    intro m n hmn x hx
+    simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+      Set.mem_singleton_iff, Set.mem_setOf_eq, s₀] at hx ⊢
+    cases hx with
+    | inl h =>
+      left
+      constructor
+      · exact Nat.lt_of_lt_of_le h.1 hmn
+      · exact h.2
+    | inr h => right; exact h
   · -- ∀ n, Finite (s n)
     intro n
-    let g : s n → Fin n := fun ⟨i, hi⟩ => ⟨f i, hi⟩
-    have g_inj : Function.Injective g := fun ⟨x, _⟩ ⟨y, _⟩ h => Subtype.ext (hf (Fin.ext_iff.mp h))
-    exact Finite.of_injective g g_inj
-  · -- ∀ t, Finite t → ∃ n, t ⊆ s n
-    intro t ht
+    apply Set.Finite.union
+    · apply Set.Finite.inter_of_left
+      let g : s₀ n → Fin n := fun ⟨i, hi⟩ => ⟨f i, hi⟩
+      have g_inj : Function.Injective g := fun ⟨x, _⟩ ⟨y, _⟩ h =>
+        Subtype.ext (hf (Fin.ext_iff.mp h))
+      exact Finite.of_injective g g_inj
+    · exact Set.finite_singleton N |>.insert ⊥
+  · -- ∀ n, ⊥ ∈ s n
+    intro n
+    simp only [s, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]
+    right; left; trivial
+  · -- ∀ n, N ∈ s n
+    intro n
+    simp only [s, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]
+    right; right; trivial
+  · -- saturation
+    intro t ht htIcc
     haveI : Fintype t := Set.Finite.fintype ht
     by_cases hempty : t = ∅
-    · exact ⟨0, by simp [hempty]⟩
+    · use 0
+      constructor
+      · simp [hempty, Set.empty_subset]
+      · intro x hx
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+          Set.mem_singleton_iff] at hx
+        cases hx with
+        | inl h => exact h.2
+        | inr h =>
+          cases h with
+          | inl h => subst h; simp
+          | inr h => subst h; simp
     · use (Finset.univ.image (fun i : t => f i)).sup id + 1
-      intro i hi
-      simp only [Set.mem_setOf_eq, s]
-      have : f i ∈ Finset.univ.image (fun j : t => f j) :=
-        Finset.mem_image.mpr ⟨⟨i, hi⟩, Finset.mem_univ _, rfl⟩
-      exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
+      constructor
+      · intro x hx
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+          Set.mem_singleton_iff, Set.mem_setOf_eq, s₀]
+        left
+        constructor
+        · have : f x ∈ Finset.univ.image (fun j : t => f j) :=
+            Finset.mem_image.mpr ⟨⟨x, hx⟩, Finset.mem_univ _, rfl⟩
+          exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
+        · exact htIcc hx
+      · intro x hx
+        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Icc, Set.mem_insert_iff,
+          Set.mem_singleton_iff] at hx
+        cases hx with
+        | inl h => exact h.2
+        | inr h =>
+          cases h with
+          | inl h => subst h; simp
+          | inr h => subst h; simp
 
-theorem Countable.increasing_finset_family_saturates_every_finite_subset :
+theorem Countable.increasing_finset_family_saturates_Icc (N : ι) :
     ∃ s : ℕ → Finset ι,
     Monotone s ∧
-    (∀ t : Set ι, Finite t → ∃ n, t ⊆ s n) := by
-  obtain ⟨s, hsmon, hsfin, hsaturate⟩ :=
-    @Countable.increasing_family_saturates_every_finite_subset ι _
-  -- Convert Set to Finset using toFinset with chosen Fintype instances
+    (∀ n, ⊥ ∈ s n) ∧
+    (∀ n, N ∈ s n) ∧
+    (∀ t : Set ι, Finite t → t ⊆ Set.Icc ⊥ N → ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Icc ⊥ N) := by
+  obtain ⟨s, hsmon, hsfin, hsbot, hsN, hsaturate⟩ :=
+    Countable.increasing_family_saturates_Icc (ι := ι) N
+  -- Convert Set to Finset
   have fintype_s : ∀ n, Fintype (s n) := fun n => Fintype.ofFinite (s n)
   let s' : ℕ → Finset ι := fun n => @Set.toFinset ι (s n) (fintype_s n)
-  refine ⟨s', ?_, ?_⟩
+  refine ⟨s', ?_, ?_, ?_, ?_⟩
   · -- Monotone s'
     intro m n hmn
     simp only [s', Finset.le_iff_subset]
     intro x hx
     simp only [Set.mem_toFinset] at hx ⊢
     exact hsmon hmn hx
+  · -- ∀ n, ⊥ ∈ s' n
+    intro n
+    simp only [s', Set.mem_toFinset]
+    exact hsbot n
+  · -- ∀ n, N ∈ s' n
+    intro n
+    simp only [s', Set.mem_toFinset]
+    exact hsN n
   · -- saturation
-    intro t ht
-    obtain ⟨n, hn⟩ := hsaturate t ht
+    intro t ht htIcc
+    obtain ⟨n, hn, hnIcc⟩ := hsaturate t ht htIcc
     use n
-    intro x hx
-    change x ∈ @Set.toFinset ι (s n) (fintype_s n)
-    rw [Set.mem_toFinset]
-    exact hn hx
-
-
+    constructor
+    · intro x hx
+      change x ∈ @Set.toFinset ι (s n) (fintype_s n)
+      rw [Set.mem_toFinset]
+      exact hn hx
+    · intro x hx
+      simp only [Finset.mem_coe, s', Set.mem_toFinset] at hx
+      exact hnIcc hx
 
 variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
