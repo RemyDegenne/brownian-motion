@@ -1491,6 +1491,10 @@ theorem integrable_of_monotone_bounded_iSup
       = ⨆ n, ∫⁻ a, f n a ∂μ := lintegral_iSup_ae hf h_mono
     _ ≤ c := iSup_le h_bound
 
+
+#check integral_tendsto_of_tendsto_of_monotone -- Monotone convergence for Bochner integrals
+
+
 /-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
     then the supremum is finite a.e. -/
 theorem ae_lt_top_of_monotone_bounded_iSup
