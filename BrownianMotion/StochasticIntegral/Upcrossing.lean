@@ -1570,7 +1570,7 @@ theorem integral_le_of_monotone_bounded_iSup
 lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
     (hf : ∀ n, Integrable (f n) μ)
-    {c : ℝ} (_hcpos : 0 ≤ c)
+    {c : ℝ}
     (hF : AEStronglyMeasurable F μ)
     (h_bound : ∀ n, μ[f n] ≤ c)
     (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
@@ -1618,14 +1618,14 @@ lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ
 lemma bounded_integral_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
     (hf : ∀ n, Integrable (f n) μ)
-    {c : ℝ} (hcpos : 0 ≤ c)
+    {c : ℝ}
     (hF : AEStronglyMeasurable F μ)
     (h_bound : ∀ n, μ[f n] ≤ c)
     (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
     (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x))) :
     μ[F] ≤ c := by
   have hF_int : Integrable F μ :=
-    integrable_lim_of_mono_L1_bounded h_pos hf hcpos hF h_bound h_mono h_tendsto
+    integrable_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto
   have h_int_tendsto : Tendsto (fun n => μ[f n]) atTop (nhds μ[F]) :=
     integral_tendsto_of_tendsto_of_monotone hf hF_int h_mono h_tendsto
   exact le_of_tendsto' h_int_tendsto h_bound
@@ -1633,7 +1633,7 @@ lemma bounded_integral_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
 lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
     (hf : ∀ n, Integrable (f n) μ)
-    {c : ℝ} (hcpos : 0 ≤ c)
+    {c : ℝ}
     (h_bound : ∀ n, μ[f n] ≤ c)
     (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
     (hsup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
@@ -1680,7 +1680,7 @@ lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
     exact tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
   have hF : AEStronglyMeasurable F μ :=
     aestronglyMeasurable_of_tendsto_ae atTop (fun n => (hf n).aestronglyMeasurable) h_tendsto
-  exact bounded_integral_lim_of_mono_L1_bounded h_pos hf hcpos hF h_bound h_mono h_tendsto
+  exact bounded_integral_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto
 
 
 end ConvergenceBochner
