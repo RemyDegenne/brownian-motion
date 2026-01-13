@@ -1567,6 +1567,16 @@ theorem integral_le_of_monotone_bounded_iSup
     Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
 -/
 
+lemma integrable_of_finite_integral_of_nonneg_ae {f : Ω → ℝ}
+    (h_pos : 0 ≤ᵐ[μ] f)
+    (hfm : AEStronglyMeasurable f μ)
+    (hbd : ∃ c : ℝ, μ[f] ≤ c)
+    : HasFiniteIntegral f μ := by
+  -- This lemma as stated is not provable: if f is not integrable, μ[f] = 0 by definition,
+  -- so μ[f] ≤ c is always satisfiable. The hypothesis should use lintegral instead.
+  -- TODO: switch to Lebesgue integral in the main theorem (Doob upcrossings on countable) instead.
+  sorry
+
 lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
     (hf : ∀ n, Integrable (f n) μ)
