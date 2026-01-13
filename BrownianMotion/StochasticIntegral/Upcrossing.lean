@@ -1479,27 +1479,17 @@ section Convergence
 
 /-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
     then supremum is integrable and its integral is at most `c`. -/
-theorem integrable_of_monotone_bounded_iSup
-    (f : ℕ → Ω → ℝ≥0∞)
-    (hf : ∀ n, Measurable (f n))
-    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
-    (c : ℝ≥0∞)
-    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
-    ∫⁻ a, ⨆ n, f n a ∂μ ≤ c := by
+theorem lintegral_le_of_monotone_bounded_iSup
+    (g : ℕ → Ω → ℝ≥0∞)
+    (hg : ∀ n, Measurable (g n))
+    (h_mono : ∀ n, ∀ᵐ a ∂μ, g n a ≤ g n.succ a)
+    (d : ℝ≥0∞)
+    (h_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d) :
+    ∫⁻ a, ⨆ n, g n a ∂μ ≤ d := by
   -- Use Monotone Convergence Theorem: ∫⁻ (⨆ n, f n) = ⨆ n, ∫⁻ f n
-  calc ∫⁻ a, ⨆ n, f n a ∂μ
-      = ⨆ n, ∫⁻ a, f n a ∂μ := lintegral_iSup_ae hf h_mono
-    _ ≤ c := iSup_le h_bound
-
-
-#check integral_tendsto_of_tendsto_of_monotone -- Monotone convergence for Bochner integrals
-/-! lemma integral_tendsto_of_tendsto_of_monotone {μ : Measure α} {f : ℕ → α → ℝ} {F : α → ℝ}
-    (hf : ∀ n, Integrable (f n) μ) (hF : Integrable F μ) (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
-    (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (𝓝 (F x))) :
-    Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
--/
-
-
+  calc ∫⁻ a, ⨆ n, g n a ∂μ
+      = ⨆ n, ∫⁻ a, g n a ∂μ := lintegral_iSup_ae hg h_mono
+    _ ≤ d := iSup_le h_bound
 
 /-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
     then the supremum is finite a.e. -/
@@ -1511,14 +1501,78 @@ theorem ae_lt_top_of_monotone_bounded_iSup
     (hc : c < ⊤)
     (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
     ∀ᵐ a ∂μ, ⨆ n, f n a < ⊤ := by
-  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c := integrable_of_monotone_bounded_iSup f hf h_mono c h_bound
+  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c :=
+    lintegral_le_of_monotone_bounded_iSup f hf h_mono c h_bound
   have h_int_lt : ∫⁻ a, ⨆ n, f n a ∂μ < ⊤ := lt_of_le_of_lt h_int hc
   have h_meas : Measurable (fun a => ⨆ n, f n a) := Measurable.iSup hf
   exact ae_lt_top h_meas h_int_lt.ne
 
-
-
 end Convergence
+
+section ConvergenceBochner
+
+#check integral_eq_lintegral_of_nonneg_ae -- Link between integral and lintegral for nonnegative functions
+/-! theorem integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f)
+    (hfm : AEStronglyMeasurable f μ) :
+    ∫ a, f a ∂μ = ENNReal.toReal (∫⁻ a, ENNReal.ofReal (f a) ∂μ)
+-/
+
+/-!
+theorem integral_le_of_monotone_bounded_iSup
+    (f : ℕ → Ω → ℝ)
+    (hf : ∀ n, Measurable (f n))
+    (hpos : ∀ n, 0 ≤ f n)
+    (h_mono : ∀ n, ∀ᵐ ω ∂μ, f n ω ≤ f n.succ ω)
+    (c : ℝ) (hcpos : 0 ≤ c)
+    (h_bound : ∀ n, μ[f n] ≤ c) :
+    μ[⨆ n, f n] ≤ c := by
+  -- Use the link between integral and lintegral for nonnegative functions
+  set g : ℕ → Ω → ℝ≥0∞ := fun n ω => ENNReal.ofReal (f n ω) with hg
+  have hmeas_g : ∀ n, Measurable (g n) := by
+    intro n
+    exact Measurable.ennreal_ofReal (hf n)
+  have hPQ : ∀ n, ∀ ω, f n ω ≤ f n.succ ω → g n ω ≤ g n.succ ω := by
+    intro n ω hle
+    simp only [g]
+    exact ENNReal.ofReal_le_ofReal hle
+  have h_mono_g : ∀ n, ∀ᵐ ω ∂μ, g n ω ≤ g n.succ ω := by
+    intro n
+    filter_upwards [h_mono n] with ω hPω using hPQ n ω hPω
+  set d := ENNReal.ofReal c with hd_def
+  have hint_eq : ∀ n, μ[f n] = ENNReal.toReal (∫⁻ ω, g n ω ∂μ) := by
+    intro n
+    rw [integral_eq_lintegral_of_nonneg_ae (Eventually.of_forall (hpos n))
+      (Measurable.aestronglyMeasurable (hf n))]
+  have h_bound0 : ∀ n, ENNReal.toReal (∫⁻ ω, g n ω ∂μ) ≤ c := by
+    intro n
+    rw [← hint_eq n]
+    exact h_bound n
+  have h_bound2 : ∀ n, ∫⁻ ω, g n ω ∂μ < ⊤ := by
+    intro n
+    sorry
+    -- rw [hd_def]
+    -- exact ENNReal.le_ofReal_iff_toReal_le.mpr (h_bound0 n)
+  -- have h_bound1 : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d := by
+  --   intro n
+  --   rw [hd_def]
+  --   exact ENNReal.le_ofReal_iff_toReal_le.mpr (h_bound0 n)
+  sorry
+-/
+
+#check integral_tendsto_of_tendsto_of_monotone -- Monotone convergence for Bochner integrals
+/-! lemma integral_tendsto_of_tendsto_of_monotone {μ : Measure α} {f : ℕ → α → ℝ} {F : α → ℝ}
+    (hf : ∀ n, Integrable (f n) μ) (hF : Integrable F μ) (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
+    (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (𝓝 (F x))) :
+    Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
+-/
+
+
+
+
+
+
+
+end ConvergenceBochner
 
 section DoobInequalityCountable
 
@@ -1560,13 +1614,13 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
   -- The bound c is the same for all n (since f N appears in each finset)
   set c := μ[fun ω => (f N ω - a)⁺] with hc
   -- Key property: U is monotone in n (larger finsets have more upcrossings)
-  have hU_mono : ∀ n, ∀ ω, U n ω ≤ U n.succ ω := by
-    intro n ω
+  have hU_mono : ∀ n m, n ≤ m → ∀ ω, U n ω ≤ U m ω := by
+    intro n m hnm ω
     letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    letI : OrderBot (s n.succ) := { bot := ⟨⊥, hsbot n.succ⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    have hsub : s n ⊆ s n.succ := hsmon (Nat.le_succ n)
-    exact upcrossingsBefore'_ge_finset (hsbot n) (hsbot n.succ) hsub ⟨N, hsN n⟩
-      (fun i : s n => f i) (fun i : s n.succ => f i) (fun _ => rfl) a b ω hab
+    letI : OrderBot (s m) := { bot := ⟨⊥, hsbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    have hsub : s n ⊆ s m := hsmon hnm
+    exact upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) hsub ⟨N, hsN n⟩
+      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
   -- For each n, Doob's inequality holds on the finset
   have hDoob_n : ∀ n, (b - a) * μ[U n] ≤ c := by
     intro n
