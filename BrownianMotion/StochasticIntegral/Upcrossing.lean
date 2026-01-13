@@ -1493,6 +1493,12 @@ theorem integrable_of_monotone_bounded_iSup
 
 
 #check integral_tendsto_of_tendsto_of_monotone -- Monotone convergence for Bochner integrals
+/-! lemma integral_tendsto_of_tendsto_of_monotone {μ : Measure α} {f : ℕ → α → ℝ} {F : α → ℝ}
+    (hf : ∀ n, Integrable (f n) μ) (hF : Integrable F μ) (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
+    (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (𝓝 (F x))) :
+    Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
+-/
+
 
 
 /-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
