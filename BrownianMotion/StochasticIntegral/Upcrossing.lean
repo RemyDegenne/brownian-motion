@@ -1630,8 +1630,57 @@ lemma bounded_integral_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
     integral_tendsto_of_tendsto_of_monotone hf hF_int h_mono h_tendsto
   exact le_of_tendsto' h_int_tendsto h_bound
 
-
-
+lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
+    (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
+    (hf : ∀ n, Integrable (f n) μ)
+    {c : ℝ} (hcpos : 0 ≤ c)
+    (h_bound : ∀ n, μ[f n] ≤ c)
+    (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
+    (hsup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
+    μ[F] ≤ c := by
+  -- Show that a.e. the sequence is bounded above (key step)
+  have h_ae_bdd : ∀ᵐ x ∂μ, ∃ M, ∀ n, f n x ≤ M := by
+    have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
+      fun n => (hf n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
+    have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
+      filter_upwards [h_mono] with x hx n m hnm
+      exact ENNReal.ofReal_le_ofReal (hx hnm)
+    have h_lintegral_bdd : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
+      intro n
+      rw [← ofReal_integral_eq_lintegral_ofReal (hf n) (h_pos n)]
+      exact ENNReal.ofReal_le_ofReal (h_bound n)
+    have h_sup_lintegral : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
+      calc ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ
+          = ⨆ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ := lintegral_iSup' h_meas h_mono_ennreal
+        _ ≤ ENNReal.ofReal c := iSup_le h_lintegral_bdd
+    have h_sup_lt_top : ∀ᵐ x ∂μ, ⨆ n, ENNReal.ofReal (f n x) < ⊤ := by
+      have hne : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≠ ⊤ :=
+        (lt_of_le_of_lt h_sup_lintegral ENNReal.ofReal_lt_top).ne
+      have hmeas : AEMeasurable (fun x => ⨆ n, ENNReal.ofReal (f n x)) μ :=
+        AEMeasurable.iSup h_meas
+      exact ae_lt_top' hmeas hne
+    filter_upwards [h_sup_lt_top, h_mono, h_pos 0] with x hx_lt_top hx_mono hf0
+    have hsup_ne_top : ⨆ n, ENNReal.ofReal (f n x) ≠ ⊤ := hx_lt_top.ne
+    refine ⟨(⨆ n, ENNReal.ofReal (f n x)).toReal, fun n => ?_⟩
+    by_cases hfn : 0 ≤ f n x
+    · calc f n x = (ENNReal.ofReal (f n x)).toReal := (ENNReal.toReal_ofReal hfn).symm
+        _ ≤ (⨆ n, ENNReal.ofReal (f n x)).toReal := by
+            apply ENNReal.toReal_mono hsup_ne_top
+            exact le_iSup (fun n => ENNReal.ofReal (f n x)) n
+    · push_neg at hfn
+      have h0le : 0 ≤ (⨆ n, ENNReal.ofReal (f n x)).toReal := ENNReal.toReal_nonneg
+      exact le_trans (le_of_lt hfn) h0le
+  -- Now we have a.e. boundedness, so a.e. F = ⨆ n, f n x and f n → F
+  have h_ae_sup : ∀ᵐ x ∂μ, F x = ⨆ n, f n x := by
+    filter_upwards [h_ae_bdd] with x hx
+    exact hsup x hx
+  have h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x)) := by
+    filter_upwards [h_ae_bdd, h_mono, h_ae_sup] with x hx_bdd hx_mono hx_sup
+    rw [hx_sup]
+    exact tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
+  have hF : AEStronglyMeasurable F μ :=
+    aestronglyMeasurable_of_tendsto_ae atTop (fun n => (hf n).aestronglyMeasurable) h_tendsto
+  exact bounded_integral_lim_of_mono_L1_bounded h_pos hf hcpos hF h_bound h_mono h_tendsto
 
 
 end ConvergenceBochner
