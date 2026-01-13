@@ -8,6 +8,7 @@ import Mathlib.Order.BoundedOrder.Basic
 import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.Martingale.Upcrossing
 import Mathlib.Data.Finset.Sort
+import Mathlib.Topology.Defs.Filter
 
 /-! # Doob's upcrossing inequality on NNRat
 
@@ -1565,6 +1566,54 @@ theorem integral_le_of_monotone_bounded_iSup
     (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (𝓝 (F x))) :
     Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
 -/
+
+lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
+    (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
+    (hf : ∀ n, Integrable (f n) μ)
+    {c : ℝ} (_hcpos : 0 ≤ c)
+    (hF : AEStronglyMeasurable F μ)
+    (h_bound : ∀ n, μ[f n] ≤ c)
+    (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
+    (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x))) :
+    Integrable F μ := by
+  -- F ≥ 0 a.e. since f n ≥ 0 a.e. and f n → F monotonically
+  have hF_pos : 0 ≤ᵐ[μ] F := by
+    filter_upwards [h_pos 0, h_mono, h_tendsto] with x hf0 hmono htends
+    exact ge_of_tendsto' htends fun n => le_trans hf0 (hmono (Nat.zero_le n))
+  -- Convert lintegral to integral for f n (since f n ≥ 0 a.e.)
+  have hlint_eq : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ = ENNReal.ofReal (μ[f n]) := by
+    intro n
+    rw [← ofReal_integral_eq_lintegral_ofReal (hf n) (h_pos n)]
+  -- The lintegral of f n is bounded by c
+  have hlint_bound : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
+    intro n
+    rw [hlint_eq n]
+    exact ENNReal.ofReal_le_ofReal (h_bound n)
+  -- Monotonicity of f n in ENNReal
+  have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
+    filter_upwards [h_mono] with x hx n m hnm
+    exact ENNReal.ofReal_le_ofReal (hx hnm)
+  -- Convergence of f n to F in ENNReal
+  have h_tendsto_ennreal : ∀ᵐ x ∂μ, Tendsto (fun n => ENNReal.ofReal (f n x)) atTop
+      (nhds (ENNReal.ofReal (F x))) := by
+    filter_upwards [h_tendsto] with x hx
+    exact (ENNReal.continuous_ofReal.tendsto _).comp hx
+  -- AEMeasurable for ENNReal.ofReal ∘ f n
+  have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
+    fun n => (hf n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
+  -- By monotone convergence, lintegral of F equals limit of lintegrals
+  have h_lintegral_tendsto :
+      Tendsto (fun n => ∫⁻ x, ENNReal.ofReal (f n x) ∂μ) atTop
+        (nhds (∫⁻ x, ENNReal.ofReal (F x) ∂μ)) :=
+    lintegral_tendsto_of_tendsto_of_monotone h_meas h_mono_ennreal h_tendsto_ennreal
+  -- The limit of a sequence bounded by c is at most c
+  have h_lintegral_bound : ∫⁻ x, ENNReal.ofReal (F x) ∂μ ≤ ENNReal.ofReal c :=
+    le_of_tendsto' h_lintegral_tendsto hlint_bound
+  -- HasFiniteIntegral since lintegral is finite
+  have hfi : HasFiniteIntegral F μ := by
+    rw [hasFiniteIntegral_iff_ofReal hF_pos]
+    exact lt_of_le_of_lt h_lintegral_bound ENNReal.ofReal_lt_top
+  exact ⟨hF, hfi⟩
 
 
 
