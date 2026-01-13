@@ -1476,106 +1476,7 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
 
 end Approximation
 
-section Convergence
-
-/-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
-    then supremum is integrable and its integral is at most `c`. -/
-theorem lintegral_le_of_monotone_bounded_iSup
-    (g : ℕ → Ω → ℝ≥0∞)
-    (hg : ∀ n, Measurable (g n))
-    (h_mono : ∀ n, ∀ᵐ a ∂μ, g n a ≤ g n.succ a)
-    (d : ℝ≥0∞)
-    (h_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d) :
-    ∫⁻ a, ⨆ n, g n a ∂μ ≤ d := by
-  -- Use Monotone Convergence Theorem: ∫⁻ (⨆ n, f n) = ⨆ n, ∫⁻ f n
-  calc ∫⁻ a, ⨆ n, g n a ∂μ
-      = ⨆ n, ∫⁻ a, g n a ∂μ := lintegral_iSup_ae hg h_mono
-    _ ≤ d := iSup_le h_bound
-
-/-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
-    then the supremum is finite a.e. -/
-theorem ae_lt_top_of_monotone_bounded_iSup
-    (f : ℕ → Ω → ℝ≥0∞)
-    (hf : ∀ n, Measurable (f n))
-    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
-    (c : ℝ≥0∞)
-    (hc : c < ⊤)
-    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
-    ∀ᵐ a ∂μ, ⨆ n, f n a < ⊤ := by
-  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c :=
-    lintegral_le_of_monotone_bounded_iSup f hf h_mono c h_bound
-  have h_int_lt : ∫⁻ a, ⨆ n, f n a ∂μ < ⊤ := lt_of_le_of_lt h_int hc
-  have h_meas : Measurable (fun a => ⨆ n, f n a) := Measurable.iSup hf
-  exact ae_lt_top h_meas h_int_lt.ne
-
-end Convergence
-
 section ConvergenceBochner
-
-#check integral_eq_lintegral_of_nonneg_ae -- Link between integral and lintegral for nonnegative functions
-/-! theorem integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f)
-    (hfm : AEStronglyMeasurable f μ) :
-    ∫ a, f a ∂μ = ENNReal.toReal (∫⁻ a, ENNReal.ofReal (f a) ∂μ)
--/
-
-/-!
-theorem integral_le_of_monotone_bounded_iSup
-    (f : ℕ → Ω → ℝ)
-    (hf : ∀ n, Measurable (f n))
-    (hpos : ∀ n, 0 ≤ f n)
-    (h_mono : ∀ n, ∀ᵐ ω ∂μ, f n ω ≤ f n.succ ω)
-    (c : ℝ) (hcpos : 0 ≤ c)
-    (h_bound : ∀ n, μ[f n] ≤ c) :
-    μ[⨆ n, f n] ≤ c := by
-  -- Use the link between integral and lintegral for nonnegative functions
-  set g : ℕ → Ω → ℝ≥0∞ := fun n ω => ENNReal.ofReal (f n ω) with hg
-  have hmeas_g : ∀ n, Measurable (g n) := by
-    intro n
-    exact Measurable.ennreal_ofReal (hf n)
-  have hPQ : ∀ n, ∀ ω, f n ω ≤ f n.succ ω → g n ω ≤ g n.succ ω := by
-    intro n ω hle
-    simp only [g]
-    exact ENNReal.ofReal_le_ofReal hle
-  have h_mono_g : ∀ n, ∀ᵐ ω ∂μ, g n ω ≤ g n.succ ω := by
-    intro n
-    filter_upwards [h_mono n] with ω hPω using hPQ n ω hPω
-  set d := ENNReal.ofReal c with hd_def
-  have hint_eq : ∀ n, μ[f n] = ENNReal.toReal (∫⁻ ω, g n ω ∂μ) := by
-    intro n
-    rw [integral_eq_lintegral_of_nonneg_ae (Eventually.of_forall (hpos n))
-      (Measurable.aestronglyMeasurable (hf n))]
-  have h_bound0 : ∀ n, ENNReal.toReal (∫⁻ ω, g n ω ∂μ) ≤ c := by
-    intro n
-    rw [← hint_eq n]
-    exact h_bound n
-  have h_bound2 : ∀ n, ∫⁻ ω, g n ω ∂μ < ⊤ := by
-    intro n
-    sorry
-    -- rw [hd_def]
-    -- exact ENNReal.le_ofReal_iff_toReal_le.mpr (h_bound0 n)
-  -- have h_bound1 : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d := by
-  --   intro n
-  --   rw [hd_def]
-  --   exact ENNReal.le_ofReal_iff_toReal_le.mpr (h_bound0 n)
-  sorry
--/
-
-#check integral_tendsto_of_tendsto_of_monotone -- Monotone convergence for Bochner integrals
-/-! lemma integral_tendsto_of_tendsto_of_monotone {μ : Measure α} {f : ℕ → α → ℝ} {F : α → ℝ}
-    (hf : ∀ n, Integrable (f n) μ) (hF : Integrable F μ) (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
-    (h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (𝓝 (F x))) :
-    Tendsto (fun n ↦ ∫ x, f n x ∂μ) atTop (𝓝 (∫ x, F x ∂μ))
--/
-
-lemma integrable_of_finite_integral_of_nonneg_ae {f : Ω → ℝ}
-    (h_pos : 0 ≤ᵐ[μ] f)
-    (hfm : AEStronglyMeasurable f μ)
-    (hbd : ∃ c : ℝ, μ[f] ≤ c)
-    : HasFiniteIntegral f μ := by
-  -- This lemma as stated is not provable: if f is not integrable, μ[f] = 0 by definition,
-  -- so μ[f] ≤ c is always satisfiable. The hypothesis should use lintegral instead.
-  -- TODO: switch to Lebesgue integral in the main theorem (Doob upcrossings on countable) instead.
-  sorry
 
 lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
@@ -1647,7 +1548,7 @@ lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
     (h_bound : ∀ n, μ[f n] ≤ c)
     (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
     (hsup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
-    μ[F] ≤ c := by
+    Integrable F μ ∧ μ[F] ≤ c := by
   -- Show that a.e. the sequence is bounded above (key step)
   have h_ae_bdd : ∀ᵐ x ∂μ, ∃ M, ∀ n, f n x ≤ M := by
     have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
@@ -1690,8 +1591,9 @@ lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
     exact tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
   have hF : AEStronglyMeasurable F μ :=
     aestronglyMeasurable_of_tendsto_ae atTop (fun n => (hf n).aestronglyMeasurable) h_tendsto
-  exact bounded_integral_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto
-
+  have hF_int : Integrable F μ :=
+    integrable_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto
+  exact ⟨hF_int, bounded_integral_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto⟩
 
 end ConvergenceBochner
 
