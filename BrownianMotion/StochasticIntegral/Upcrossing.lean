@@ -126,6 +126,19 @@ noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) 
     (N : ι) (ω : Ω) : ℕ :=
   sSup {n | ltUpcrossingsBefore a b f N n ω}
 
+lemma upcrossingsBefore'_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
+    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+    (hab : ¬ a < b) : upcrossingsBefore' a b f N ω = 0 := by
+  simp only [upcrossingsBefore', ltUpcrossingsBefore]
+  rcases le_or_gt N ⊥ with hN | hN
+  · simp_all
+  · have : ¬ N ≤ ⊥ := by grind
+    simp only [this, if_false]
+    have : ∀ n, ¬ (∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N) :=
+      fun _ ⟨seq, _⟩ => hab seq.hab
+    simp only [this]; simp_all
+
+
 /-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 section UpperCrossingTimeEquivalence
 
@@ -1460,6 +1473,20 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
   · intro ω hω_bdd; simp only [hF, U]
     exact upcrossingsBefore'_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
 
+theorem Submartingale.mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part
+    [IsFiniteMeasure μ]
+    (hf : Submartingale f 𝓕 μ) :
+    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+  by_cases! hab : a < b
+  · simp only [← le_div_iff₀' (sub_pos.mpr hab)]
+    exact (mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux hf hab).2
+  · rw [← sub_nonpos] at hab
+    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
+      (integral_nonneg fun ω => posPart_nonneg _)
+
+
+
 end DoobInequalityCountable
+
 
 end ProbabilityTheory
