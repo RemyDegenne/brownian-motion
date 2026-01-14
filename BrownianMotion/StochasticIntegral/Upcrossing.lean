@@ -763,29 +763,23 @@ lemma Submartingale.finOfFinset (hf : Submartingale u 𝓕 μ) :
     Submartingale (Process.finOfFinset hk u) (Filtration.finOfFinset hk 𝓕) μ := by
   set u' : Fin k → Ω → ℝ := Process.finOfFinset hk u with hfFin
   set 𝓕' := Filtration.finOfFinset hk 𝓕
-  have hadapted' : Adapted 𝓕' u' := by
-    intro i
+  have hadapted' : Adapted 𝓕' u' := fun i => by
     have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
       exact Submartingale.stronglyMeasurable hf (Finset.FromFin hk i)
-    have hsm' : StronglyMeasurable[𝓕' i] (u' i) := by
-      simp only [u', 𝓕']
-      exact hsm
+    have hsm' : StronglyMeasurable[𝓕' i] (u' i) := by simp only [u', 𝓕']; exact hsm
     exact hsm'
-  have hsub' : (∀ i j, i ≤ j → u' i ≤ᵐ[μ] μ[u' j|𝓕' i]) := by
-    intro i j hij
+  have hsub' : (∀ i j, i ≤ j → u' i ≤ᵐ[μ] μ[u' j|𝓕' i]) := fun i j hij => by
     simp only [u', 𝓕']
     refine Submartingale.ae_le_condExp hf ?_
     exact (Finset.FromFin.StrictMono hk).monotone hij
-  have hint' : ∀ i, Integrable (u' i) μ := by
-    intro i
+  have hint' : ∀ i, Integrable (u' i) μ := fun i => by
     simp only [u']
     exact Submartingale.integrable hf (Finset.FromFin hk i)
   exact ⟨ hadapted', hsub', hint' ⟩
 
 lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) :
-    ∀ i ≤ N, v (Finset.ToFin hk i) = u i := by
-  intro i _
+    ∀ i ≤ N, v (Finset.ToFin hk i) = u i := fun i _ => by
   rw [hFinOfFinset, Process.finOfFinset, (Finset.FromFin.ToFin_eq hk i)]
 
 lemma Process.finOfFinset_eq' (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
@@ -851,8 +845,7 @@ theorem Adapted.measurable_upcrossingsBefore'_Fin {u : (Fin n) → Ω → ℝ} {
     Measurable (upcrossingsBefore' a b u N) := by
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
-  have hadapted' : Adapted 𝓕' v := by
-    intro i
+  have hadapted' : Adapted 𝓕' v := fun i => by
     have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
       exact hf (Fin.clamp i n)
     simp only [v, 𝓕']
@@ -874,8 +867,7 @@ theorem Adapted.measurable_upcrossingsBefore'_Finset [LinearOrder ι] [OrderBot 
     Measurable (upcrossingsBefore' a b u N) := by
   set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
   set v := Process.finOfFinset hk u with hv
-  have hadapted' : Adapted 𝓕' v := by
-    intro i
+  have hadapted' : Adapted 𝓕' v := fun i => by
     have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
       exact hf (Finset.FromFin hk i)
     simp only [v, 𝓕']
