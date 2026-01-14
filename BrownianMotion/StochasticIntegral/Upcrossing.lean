@@ -1323,19 +1323,17 @@ variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
 end Countable
 
-variable [LinearOrder ι] [OrderBot ι] {N : ι}
-
 /-- Helper definition for `upcrossingsBefore'` on a finset, bundling the `OrderBot` instance.
     This avoids repeating `letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, ... }` throughout
     theorem statements and proofs. -/
-noncomputable def upcrossingsBefore'_finset
+noncomputable def upcrossingsBefore'_finset [LinearOrder ι] [OrderBot ι] {N : ι}
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ :=
   letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω
 
 @[simp]
-lemma upcrossingsBefore'_finset_def
+lemma upcrossingsBefore'_finset_def [LinearOrder ι] [OrderBot ι] {N : ι}
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) :
     upcrossingsBefore'_finset hbot hN a b f n ω =
@@ -1345,7 +1343,8 @@ lemma upcrossingsBefore'_finset_def
 
 section Approximation
 
-variable {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+variable [LinearOrder ι] [OrderBot ι]
+  {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
 /-- If we have K upcrossings, witnessed by UpcrossingDat a, and a finset contains all
     the witness points, then the finset also has at least K upcrossings. -/
@@ -1621,22 +1620,22 @@ lemma bounded_integral_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
 
 lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
     (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
-    (hf : ∀ n, Integrable (f n) μ)
+    (h_int : ∀ n, Integrable (f n) μ)
     {c : ℝ}
     (h_bound : ∀ n, μ[f n] ≤ c)
     (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
-    (hsup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
+    (h_sup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
     Integrable F μ ∧ μ[F] ≤ c := by
   -- Show that a.e. the sequence is bounded above (key step)
   have h_ae_bdd : ∀ᵐ x ∂μ, ∃ M, ∀ n, f n x ≤ M := by
     have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
-      fun n => (hf n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
+      fun n => (h_int n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
     have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
       filter_upwards [h_mono] with x hx n m hnm
       exact ENNReal.ofReal_le_ofReal (hx hnm)
     have h_lintegral_bdd : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
       intro n
-      rw [← ofReal_integral_eq_lintegral_ofReal (hf n) (h_pos n)]
+      rw [← ofReal_integral_eq_lintegral_ofReal (h_int n) (h_pos n)]
       exact ENNReal.ofReal_le_ofReal (h_bound n)
     have h_sup_lintegral : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
       calc ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ
@@ -1662,16 +1661,16 @@ lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
   -- Now we have a.e. boundedness, so a.e. F = ⨆ n, f n x and f n → F
   have h_ae_sup : ∀ᵐ x ∂μ, F x = ⨆ n, f n x := by
     filter_upwards [h_ae_bdd] with x hx
-    exact hsup x hx
+    exact h_sup x hx
   have h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x)) := by
     filter_upwards [h_ae_bdd, h_mono, h_ae_sup] with x hx_bdd hx_mono hx_sup
     rw [hx_sup]
     exact tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
   have hF : AEStronglyMeasurable F μ :=
-    aestronglyMeasurable_of_tendsto_ae atTop (fun n => (hf n).aestronglyMeasurable) h_tendsto
+    aestronglyMeasurable_of_tendsto_ae atTop (fun n => (h_int n).aestronglyMeasurable) h_tendsto
   have hF_int : Integrable F μ :=
-    integrable_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto
-  exact ⟨hF_int, bounded_integral_lim_of_mono_L1_bounded h_pos hf hF h_bound h_mono h_tendsto⟩
+    integrable_lim_of_mono_L1_bounded h_pos h_int hF h_bound h_mono h_tendsto
+  exact ⟨hF_int, bounded_integral_lim_of_mono_L1_bounded h_pos h_int hF h_bound h_mono h_tendsto⟩
 
 end ConvergenceBochner
 
@@ -1705,27 +1704,44 @@ variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
 
 theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ ∧
+    μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] / (b - a) := by
   -- We approximate Set.Iic N by an increasing family of finsets
   obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Iic N
   -- For each n, define U_n as upcrossings on s n
-  let U : ℕ → Ω → ℕ := fun n =>
-    letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hsN n⟩
+  let U : ℕ → Ω → ℝ := fun n ω => upcrossingsBefore'_finset hsbot hsN a b f n ω
   -- The bound c is the same for all n (since f N appears in each finset)
-  set c := μ[fun ω => (f N ω - a)⁺] with hc
+  set c := μ[fun ω => (f N ω - a)⁺] / (b - a) with hc
+  set F : Ω → ℝ := fun ω => upcrossingsBefore' a b f N ω with hF
+  have hk : ∀ n, #(s n) = Finset.card (s n) := by intro n; rfl
+  have hne : ∀ n, (s n).Nonempty := by intro n; use ⊥; exact hsbot n
+  have hnz : ∀ n, #(s n) ≠ 0 := by intro n; exact Finset.card_ne_zero.mpr (hne n)
+  have hNZ : ∀ n, NeZero #(s n) := by intro n; exact ⟨hnz n⟩
+  refine bounded_integral_sup_of_mono_L1_bounded (f:=U) ?h_pos ?h_int ?h_bound ?h_mono ?h_sup
+  · -- U n ≥ 0 a.e.
+    intro n
+    filter_upwards with ω
+    simp only [U]; simp
+  · -- U n is integrable
+    intro n
+    let 𝓕n := Filtration.restrictFinset 𝓕 (s n)
+    have hsub_n : Submartingale (fun i : s n => f i) 𝓕n μ := Submartingale.restrictFinset 𝓕 (s n) hf
+    have hada_n : Adapted 𝓕n (fun i : s n => f i) := hsub_n.adapted
+    have := Adapted.integrable_upcrossingsBefore' (hsbot n) (hk n) hada_n hab
+    exact this
+  sorry
+
+/-!
   -- Key property: U is monotone in n (larger finsets have more upcrossings)
   have hU_mono : ∀ n m, n ≤ m → ∀ ω, U n ω ≤ U m ω := by
     intro n m hnm ω
-    letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    letI : OrderBot (s m) := { bot := ⟨⊥, hsbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     have hsub : s n ⊆ s m := hsmon hnm
     exact upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) hsub ⟨N, hsN n⟩
       (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
   -- For each n, Doob's inequality holds on the finset
-  have hDoob_n : ∀ n, (b - a) * μ[U n] ≤ c := by
+  have hDoob_n : ∀ n, μ[U n] ≤ c := by
     intro n
-    letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    -- letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     -- Get submartingale on finset
     have hsub_n : Submartingale (fun i : s n => f i)
         (Filtration.restrictFinset 𝓕 (s n)) μ :=
@@ -1842,7 +1858,7 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
   calc (b - a) * μ[upcrossingsBefore' a b f N]
       ≤ (b - a) * (c / (b - a)) := by apply mul_le_mul_of_nonneg_left h_limit_bound hab_pos.le
     _ = c := by field_simp
-
+-/
 end DoobInequalityCountable
 
 
