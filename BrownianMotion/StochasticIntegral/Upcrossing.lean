@@ -46,8 +46,6 @@ namespace UpcrossingData
 
 variable {a b : ℝ} {f : ι → Ω → ℝ} {ω : Ω}
 
-def size [PartialOrder ι] {n : ℕ} (_h : UpcrossingData a b f n ω) : ℕ := 2 * n
-
 lemma ne_of_ab {x y : ι} (hab : a < b) (ha : f x ω ≤ a) (hb : f y ω ≥ b) : x ≠ y := by
   intro hEq
   exact (not_le_of_gt hab) (le_trans hb (by simpa [hEq] using ha))
@@ -72,14 +70,6 @@ def t_on_Fin2n : Fin (2 * n) → ι := fun x => h.t x.toNat
 lemma t_strict_mono_on_Fin2n : StrictMono h.t_on_Fin2n := by
   intro x y hxy
   exact h.t_strict_mono' hxy y.isLt
-
-lemma index_set_card_ge_of_upcrossingData {n : ℕ} [Fintype ι] (h : UpcrossingData a b f n ω) :
-    Fintype.card ι ≥ 2 * n := by
-  have this : Function.Injective h.t_on_Fin2n := h.t_strict_mono_on_Fin2n.injective
-  calc
-    Fintype.card ι ≥ Fintype.card (Fin (2 * n)) :=
-      Fintype.card_le_of_injective h.t_on_Fin2n this
-    _ = 2 * n := Fintype.card_fin _
 
 def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : UpcrossingData a b f (n + 1) ω) :
     UpcrossingData a b f n ω :=
@@ -173,9 +163,6 @@ noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
 noncomputable def upcrossingsBefore' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
     (N : ι) (ω : Ω) : ℕ :=
   sSup {n | ltUpcrossingsBefore a b f N n ω}
-
-lemma upcrossingsBefore'_nonneg [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
-    (N : ι) (ω : Ω) : 0 ≤ upcrossingsBefore' a b f N ω := by grind
 
 /-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 section UpperCrossingTimeEquivalence
@@ -513,51 +500,6 @@ lemma upcrossingData_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : 
 variable [OrderBot ι]
 variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
 
-/-! (UNUSED NOW) Monotonicity of ltUpcrossingsBefore with respect to the index set. -/
-/-!
-lemma ltUpcrossingsBefore_mono_index_set (f : ι → κ) (hsmon : StrictMono f)
-    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i : ι, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
-    -- u has less upcrossings than v
-    ltUpcrossingsBefore a b u N n ω → ltUpcrossingsBefore a b v (f N) n ω := by
-  simp only [ltUpcrossingsBefore]
-  by_cases hN : N ≤ ⊥
-  · simp only [hN, if_true]; grind
-  · simp only [hN, if_false]
-    push_neg at hN
-    have : f ⊥ < f N := hsmon hN
-    have fbot : ⊥ ≤ f ⊥ := by exact OrderBot.bot_le (f ⊥)
-    have hbot : ¬ f N ≤ ⊥ := by grind
-    simp only [hbot, if_false]
-    by_cases hnzero : n = 0
-    · simp only [hnzero, if_true]
-      grind
-    · simp only [hnzero, if_false]
-      rintro ⟨hseq, ht_lt_N⟩
-      have hmon : Monotone f := hsmon.monotone
-      let hseqv : UpcrossingData a b v n ω :=
-        {
-          hab := hab,
-          t := fun i => f (hseq.t i),
-          mono := by
-            intro i j hij
-            exact hsmon.monotone (hseq.mono hij)
-          ft_le_a := by
-            intro i hi heven
-            rw [hv (hseq.t i)]
-            exact hseq.ft_le_a i hi heven,
-          ft_ge_b := by
-            intro i hi hodd
-            rw [hv (hseq.t i)]
-            exact hseq.ft_ge_b i hi hodd
-        }
-      use hseqv
-      have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
-        simp only [hseqv]
-        exact hsmon ht_lt_N
-      exact htv_lt_fN
--/
-
 /-! Monotonicity of ltUpcrossingsBefore with respect to the index set, on {i | i ≤ N}. -/
 lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
     (hsmon : StrictMonoOn f {i | i ≤ N})
@@ -706,45 +648,7 @@ theorem upcrossingsBefore'_mono_index_set_of_finite_till_N (f : ι → κ)
   upcrossingsBefore'_mono_index_set_of_bounded f N hsmon u v hv a b ω hab <|
     ltUpcrossingsBefore_bddAbove_of_finite a b v ω (f N) hfin
 
-/-! Monotonicity of upcrossingsBefore' in the index set, assuming its finiteness. -/
-theorem upcrossingsBefore'_mono_index_set_of_finite [Finite κ] (f : ι → κ)
-    (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
-    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (ω : Ω) (hab : a < b) :
-    -- u has less upcrossings than v, and v has finite index set
-    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v (f N) ω :=
-  upcrossingsBefore'_mono_index_set_of_finite_till_N f N hsmon u v hv a b ω hab <|
-    inferInstance
-
 end MonotonicityAndBoundedness
-
-/-! To compare upcrossingsBefore' between NNRat and its finite subsets (with ⊥) and between them. -/
-section UpcrossingsOnSubset
-
-variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
-    {s : Set κ} (hs : s.Finite) (hbot : ⊥ ∈ s)
-
-/-! Assuming finitely many upcrossings along a trajectory, a subset of index set admits less. -/
-theorem upcrossingsBefore'_ge_subset_of_bounded (N : s) (u : s → Ω → ℝ) (v : κ → Ω → ℝ)
-    (hv : ∀ i : s, v i = u i) -- u is a restriction of v to s
-    (a b : ℝ) (ω : Ω) (hab : a < b)
-    (hfin : BddAbove {n | ltUpcrossingsBefore a b v N n ω}) :
-    -- u has less upcrossings than v, and (v · ω) has finitely many upcrossings before f N
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBefore' a b u N ω ≤ upcrossingsBefore' a b v N ω := by
-  set f : s → κ := fun i => (i : κ) with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := by
-    intro i hi j hj hij
-    exact hij
-  have hv' : ∀ i ≤ N, v (f i) = u i := by
-    intro i hi
-    rw [hf]
-    exact hv i
-  have hfN : f N = N := rfl
-  rw [← hfN]
-  convert upcrossingsBefore'_mono_index_set_of_bounded f N hsmon u v hv' a b ω hab hfin using 1
-
-end UpcrossingsOnSubset
 
 /-! To compare upcrossingsBefore' between NNRat and its finsets (with ⊥) and between them. -/
 section UpcrossingsOnFinset
@@ -808,19 +712,6 @@ theorem mul_integral_upcrossingsBefore'_le_integral_pos_part_aux [IsFiniteMeasur
     mul_integral_upcrossingsBefore_le_integral_pos_part_aux hf hab
   rw [← hgeq]
   assumption
-
-/-!
-  Doob's upcrossing inequality on `ℕ` for the alternative definition of `upcrossingsBefore`.
--/
-theorem Submartingale.mul_integral_upcrossingsBefore'_le_integral_pos_part [IsFiniteMeasure μ]
-    {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0}
-    (a b : ℝ) (hf : Submartingale f 𝓕 μ) (N : ℕ) :
-    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  by_cases! hab : a < b
-  · exact mul_integral_upcrossingsBefore'_le_integral_pos_part_aux N hf hab
-  · rw [← sub_nonpos] at hab
-    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
-      (integral_nonneg fun ω => posPart_nonneg _)
 
 end DoobInequalityNat
 
@@ -1135,15 +1026,6 @@ theorem mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux [IsFiniteMe
   rw [← huNvN]
   exact mul_integral_upcrossingsBefore'_le_integral_pos_part_aux N hvsub hab
 
-theorem Submartingale.mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part [IsFiniteMeasure μ]
-    (hu : Submartingale u 𝓕 μ) :
-    (b - a) * μ[upcrossingsBefore' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
-  by_cases! hab : a < b
-  · exact mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux hu hab
-  · rw [← sub_nonpos] at hab
-    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
-      (integral_nonneg fun ω => posPart_nonneg _)
-
 end DoobInequalityFin
 
 section DoobInequalityFinset
@@ -1166,17 +1048,6 @@ theorem mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux [IsFinit
   have huNvN : v (Finset.ToFin hk N) = f N := Process.finOfFinset_eq hk f v hFinOfFinset N N le_rfl
   rw [← huNvN]
   exact mul_integral_upcrossingsBefore'_Fin_le_integral_pos_part_aux hvsub hab
-
-theorem Submartingale.mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part
-    [IsFiniteMeasure μ]
-    (hk : #s = k) (hf : Submartingale f 𝓕 μ) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  by_cases! hab : a < b
-  · exact mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux hbot hk hf hab
-  · rw [← sub_nonpos] at hab
-    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
-      (integral_nonneg fun ω => posPart_nonneg _)
 
 theorem Adapted.integrable_upcrossingsBefore' [IsFiniteMeasure μ] (hk : #s = k)
     (hf : Adapted 𝓕 f) (hab : a < b) :
@@ -1331,15 +1202,6 @@ noncomputable def upcrossingsBefore'_finset [LinearOrder ι] [OrderBot ι] {N : 
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ :=
   letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω
-
-@[simp]
-lemma upcrossingsBefore'_finset_def [LinearOrder ι] [OrderBot ι] {N : ι}
-    {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
-    (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) :
-    upcrossingsBefore'_finset hbot hN a b f n ω =
-      (letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-       upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) :=
-  rfl
 
 section Approximation
 
