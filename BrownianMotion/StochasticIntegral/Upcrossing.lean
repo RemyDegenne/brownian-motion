@@ -437,9 +437,8 @@ lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
   · simp only [hN, if_true]; grind
   · simp only [hN, if_false]
     push_neg at hN -- hN : ⊥ < N
-    have hBotIn : ⊥ ∈ {i | i ≤ N} := by simp
     have hNIn : N ∈ {i | i ≤ N} := by simp
-    have : f ⊥ < f N := hsmon hBotIn hNIn hN
+    have : f ⊥ < f N := hsmon (by simp) hNIn hN
     have fbot : ⊥ ≤ f ⊥ := by exact OrderBot.bot_le (f ⊥)
     have hbot : ¬ f N ≤ ⊥ := by grind
     simp only [hbot, if_false]
@@ -453,36 +452,23 @@ lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
         intro i hi
         have : hseq.t i ≤ hseq.t (2 * n - 1) := hseq.mono (by grind)
         grind
-      let hseqv : UpcrossingData a b v n ω :=
-        {
-          hab := hab,
-          t := fun i => if i < 2 * n then f (hseq.t i) else f N,
-          mono := by
-            intro i j hij
+      let hseqv : UpcrossingData a b v n ω := ⟨
+          hab,
+          fun i => if i < 2 * n then f (hseq.t i) else f N,
+          fun i j hij => by
             by_cases hi : i < 2 * n
-            · have hti := htIn i hi
-              by_cases hj : j < 2 * n
-              · -- both i and j are < 2 * n
-                simp only [hi, hj, if_true]
-                exact hmon hti (htIn j hj) (hseq.mono hij)
-              · -- i < 2 * n but j ≥ 2 * n
-                simp only [hi, hj, if_true, if_false]
-                exact hmon hti hNIn (by grind)
-            · -- i ≥ 2 * n, so j ≥ 2 * n too
-              have hj : ¬ j < 2 * n := by grind
-              simp only [hi, hj, if_false]
-              rfl
-          ft_le_a := by
-            intro i hi heven
+            · by_cases hj : j < 2 * n
+              · simp only [hi, hj, if_true]; exact hmon (htIn i hi) (htIn j hj) (hseq.mono hij)
+              · simp only [hi, hj, if_true, if_false]; exact hmon (htIn i hi) hNIn (by grind)
+            · simp only [hi, if_false]; grind,
+          fun i hi heven => by
             simp only [hi, if_true]
             rw [hv (hseq.t i) (htIn i hi)]
-            exact hseq.ft_le_a i hi heven
-          ft_ge_b := by
-            intro i hi hodd
+            exact hseq.ft_le_a i hi heven,
+          fun i hi hodd => by
             simp only [hi, if_true]
             rw [hv (hseq.t i) (htIn i hi)]
-            exact hseq.ft_ge_b i hi hodd
-        }
+            exact hseq.ft_ge_b i hi hodd ⟩
       use hseqv
       have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
         simp only [hseqv]
@@ -490,18 +476,6 @@ lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
         simp only [hnzero, if_true]
         exact hsmon (htIn (2 * n - 1) hnzero) hNIn ht_lt_N
       exact htv_lt_fN
-
-/-! Given a finite index set, size of UpcrossingData is bounded. -/
-/-!
--- lemma upcrossingData_bounded_size
---     [LinearOrder ι] [OrderBot ι] [Finite ι]
---     (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω)
---     : ∃ M : ℕ, ∀ n : ℕ, ∀ _ : UpcrossingData a b f n ω, 2 * n ≤ M := by
---   have hfin := Fintype.ofFinite ι
---   use Fintype.card ι
---   intro n hseq
---   exact hseq.index_set_card_ge_of_upcrossingData
--/
 
 /-! Uniform boundedness of ltUpcrossingsBefore, assuming {i | i < N} is finite. -/
 lemma ltUpcrossingsBefore_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
@@ -672,14 +646,12 @@ lemma Fin.val.StrictMonoOn {n : ℕ} (N : Fin n) :
   assumption
 
 def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
-  { seq := fun i => 𝓕 (Fin.clamp i n)
-    mono' := by
-      intro i j hij
+  ⟨ fun i => 𝓕 (Fin.clamp i n),
+    fun i j hij => by
       refine 𝓕.mono ?_
       simp only [Fin.clamp, Fin.le_iff_val_le_val]
-      exact min_le_min hij (Nat.le_refl _)
-    le' := fun i => Filtration.le 𝓕 (Fin.clamp i n)
-  }
+      exact min_le_min hij (Nat.le_refl _),
+    fun i => Filtration.le 𝓕 (Fin.clamp i n) ⟩
 
 variable {𝓕 : Filtration (Fin n) m0}
 
@@ -710,14 +682,11 @@ lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
 
 lemma Process.natOfFin_eq (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
     (hNatOfFin : u = Process.natOfFin v) (N : ℕ) :
-    ∀ i ≤ N, v (Fin.clamp i n) = u i := by
-  intro i hi
-  rw [hNatOfFin, Process.natOfFin]
+    ∀ i ≤ N, v (Fin.clamp i n) = u i := fun i _ => by rw [hNatOfFin, Process.natOfFin]
 
 lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
     (hNatOfFin : v = Process.natOfFin u) (N : Fin n) :
-    ∀ i ≤ N, v i.val = u i := by
-  intro i hi
+    ∀ i ≤ N, v i.val = u i := fun i _ => by
   rw [hNatOfFin, Process.natOfFin, Fin.clamp.eq_of_fin n i]
 
 lemma Process.natOfFin.upcrossingsBefore'_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
@@ -756,30 +725,22 @@ variable [LinearOrder ι]
 
 variable {s : Finset ι} {k : ℕ} (hne : s.Nonempty) (hk : #s = k) -- (hbot : ⊥ ∈ s)
 
-def Finset.orderIso :
-    Fin k ≃o s := by
-  exact Finset.orderIsoOfFin s hk
+def Finset.orderIso : Fin k ≃o s := by exact Finset.orderIsoOfFin s hk
 
-def Finset.FromFin : Fin k → s :=
-  fun n => Finset.orderIso hk n
+def Finset.FromFin : Fin k → s := fun n => Finset.orderIso hk n
 
-def Finset.ToFin : s → Fin k :=
-  fun i => (Finset.orderIso hk).symm i
+def Finset.ToFin : s → Fin k := fun i => (Finset.orderIso hk).symm i
 
-lemma Finset.FromFin.StrictMono :
-    StrictMono (Finset.FromFin hk) := by
-  exact OrderIso.strictMono (Finset.orderIso hk)
+lemma Finset.FromFin.StrictMono : StrictMono (Finset.FromFin hk) :=
+  OrderIso.strictMono (Finset.orderIso hk)
 
-lemma Finset.ToFin.StrictMono :
-    StrictMono (Finset.ToFin hk) := by
-  exact OrderIso.strictMono (Finset.orderIso hk).symm
+lemma Finset.ToFin.StrictMono : StrictMono (Finset.ToFin hk) :=
+  OrderIso.strictMono (Finset.orderIso hk).symm
 
-lemma Finset.FromFin.StrictMonoOn (N : Fin k) :
-    StrictMonoOn (Finset.FromFin hk) {i | i ≤ N} :=
+lemma Finset.FromFin.StrictMonoOn (N : Fin k) : StrictMonoOn (Finset.FromFin hk) {i | i ≤ N} :=
   (Finset.FromFin.StrictMono hk).strictMonoOn {i | i ≤ N}
 
-lemma Finset.ToFin.StrictMonoOn (N : s) :
-    StrictMonoOn (Finset.ToFin hk) {i | i ≤ N} :=
+lemma Finset.ToFin.StrictMonoOn (N : s) : StrictMonoOn (Finset.ToFin hk) {i | i ≤ N} :=
   (Finset.ToFin.StrictMono hk).strictMonoOn {i | i ≤ N}
 
 lemma Finset.FromFin.ToFin_eq (i : s) :
@@ -788,13 +749,9 @@ lemma Finset.FromFin.ToFin_eq (i : s) :
   exact OrderIso.apply_symm_apply (Finset.orderIso hk) i
 
 def Filtration.finOfFinset (𝓕 : Filtration s m0) : Filtration (Fin k) m0 :=
-  { seq := fun i => 𝓕 (Finset.FromFin hk i)
-    mono' := by
-      intro i j hij
-      refine 𝓕.mono ?_
-      exact (Finset.FromFin.StrictMono hk).monotone hij
-    le' := fun i => Filtration.le 𝓕 (Finset.FromFin hk i)
-  }
+  ⟨ fun i => 𝓕 (Finset.FromFin hk i),
+    fun i j hij => by refine 𝓕.mono ?_; exact (Finset.FromFin.StrictMono hk).monotone hij,
+    fun i => Filtration.le 𝓕 (Finset.FromFin hk i) ⟩
 
 variable {𝓕 : Filtration s m0}
 
@@ -833,9 +790,7 @@ lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
 
 lemma Process.finOfFinset_eq' (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
     (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) :
-    ∀ i ≤ N, v (Finset.FromFin hk i) = u i := by
-  intro i _
-  rw [hFinOfFinset, Process.finOfFinset]
+    ∀ i ≤ N, v (Finset.FromFin hk i) = u i := fun i _ => by rw [hFinOfFinset, Process.finOfFinset]
 
 variable [OrderBot ι] (hbot : ⊥ ∈ s) [NeZero k] -- to avoid issues with `Fin 0`
 
@@ -1144,30 +1099,22 @@ lemma upcrossingsBefore'_finset_ge_of_witness
     letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     K ≤ upcrossingsBefore' a b (fun i : s => f i) ⟨N, hN⟩ ω := by
   letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  have hNbot : ¬ N ≤ ⊥ := by
-    intro h
-    have h1 : hseq.t 0 ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-    have h2 : hseq.t (2 * K - 1) < N := ht_lt_N
-    have h3 : N ≤ ⊥ := h
-    have h4 : hseq.t (2 * K - 1) < ⊥ := lt_of_lt_of_le h2 h3
-    exact not_lt_bot h4
+  have hNbot : ¬ N ≤ ⊥ := fun h => not_lt_bot (lt_of_lt_of_le ht_lt_N h)
   -- Build UpcrossingData on s from hseq
   have ht_lt_N_s : ⟨hseq.t (2 * K - 1), ht_in_s (2 * K - 1) (by omega)⟩ < (⟨N, hN⟩ : s) := ht_lt_N
-  let hseq' : UpcrossingData a b (fun i : s => f i) K ω := {
-    hab := hseq.hab
-    t := fun i => if h : i < 2 * K then ⟨hseq.t i, ht_in_s i h⟩ else ⟨N, hN⟩
-    mono := by
-      intro i j hij
+  let hseq' : UpcrossingData a b (fun i : s => f i) K ω := ⟨
+    hseq.hab,
+    fun i => if h : i < 2 * K then ⟨hseq.t i, ht_in_s i h⟩ else ⟨N, hN⟩,
+    fun i j hij => by
       simp only
-      split_ifs with hi hj hj
+      split_ifs with hi hj
       · exact hseq.mono hij
       · have hmono : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
         exact le_of_lt (lt_of_le_of_lt hmono ht_lt_N_s)
       · omega
-      · exact le_rfl
-    ft_le_a := fun i hi heven => by simp only [hi, dif_pos]; exact hseq.ft_le_a i hi heven
-    ft_ge_b := fun i hi hodd => by simp only [hi, dif_pos]; exact hseq.ft_ge_b i hi hodd
-  }
+      · exact le_rfl,
+    fun i hi heven => by simp only [hi, dif_pos]; exact hseq.ft_le_a i hi heven,
+    fun i hi hodd => by simp only [hi, dif_pos]; exact hseq.ft_ge_b i hi hodd ⟩
   -- hseq' witnesses K upcrossings before ⟨N, hN⟩
   have hlt : ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ K ω := by
     simp only [ltUpcrossingsBefore]
@@ -1478,25 +1425,13 @@ variable [LinearOrder ι] {f : ι → Ω → ℝ} {𝓕 : Filtration ι m0}
 
 /-- Restrict a filtration on ι to a finset s. -/
 def Filtration.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι) :
-    Filtration s m0 :=
-  { seq := fun i => 𝓕 i.val
-    mono' := fun _ _ hij => 𝓕.mono hij
-    le' := fun i => 𝓕.le i.val }
+    Filtration s m0 := ⟨fun i => 𝓕 i.val, fun _ _ hij => 𝓕.mono hij, fun i => 𝓕.le i.val⟩
 
 /-- Restrict a submartingale on ι to a finset s. -/
 lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
     (hf : Submartingale f 𝓕 μ) :
-    Submartingale (fun i : s => f i) (Filtration.restrictFinset 𝓕 s) μ := by
-  refine ⟨?_, ?_, ?_⟩
-  · -- Adapted
-    intro i
-    exact hf.adapted i.val
-  · -- Submartingale property
-    intro i j hij
-    exact hf.2.1 i.val j.val hij
-  · -- Integrable
-    intro i
-    exact hf.integrable i.val
+    Submartingale (fun i : s => f i) (Filtration.restrictFinset 𝓕 s) μ :=
+  ⟨fun i => hf.adapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
 
 variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
 
