@@ -1519,37 +1519,54 @@ lemma upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
     upcrossingsBefore'_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
   exact upcrossingsBefore'_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
 
-theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
+/-- The upcrossings count on the full index set equals the supremum of upcrossings counts
+    on the approximating finsets, when the latter is bounded. This version provides an
+    equality in ℝ (with coercions from ℕ). -/
+theorem upcrossingsBefore'_eq_iSup_finset_real
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
     (hN : ∀ n, N ∈ s n)
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hab : a < b) :
-    ∀ ω, (∃ C, ∀ n, upcrossingsBefore'_finset hbot hN a b f n ω ≤ C) →
-      upcrossingsBefore' a b f N ω = ⨆ n, upcrossingsBefore'_finset hbot hN a b f n ω := by
-  intro ω hfinite_sup
+    (hab : a < b)
+    (ω : Ω) (hfinite_sup : ∃ C : ℝ, ∀ n, (upcrossingsBefore'_finset hbot hN a b f n ω : ℝ) ≤ C) :
+    (upcrossingsBefore' a b f N ω : ℝ) =
+      ⨆ n, (upcrossingsBefore'_finset hbot hN a b f n ω : ℝ) := by
+  -- Convert real bound to nat bound
+  obtain ⟨C', hCbound'⟩ := hfinite_sup
+  let C := Nat.ceil C'
+  have hCC : C' ≤ C := Nat.le_ceil C'
+  have hCbound : ∃ C, ∀ n, upcrossingsBefore'_finset hbot hN a b f n ω ≤ C := by
+    use C
+    intro n
+    exact_mod_cast (hCbound' n).trans hCC
+  -- Get the stabilization point M
   obtain ⟨M, hM⟩ := upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
-    hmon hbot hN hsaturate hab hfinite_sup
-  -- The sequence U n ω is monotone (larger finsets have more upcrossings)
-  have hU_mono : Monotone fun n => upcrossingsBefore'_finset hbot hN a b f n ω := by
+    hmon hbot hN hsaturate hab hCbound
+  -- The sequence is monotone in ℝ
+  have hU_mono : Monotone (fun n => (upcrossingsBefore'_finset hbot hN a b f n ω : ℝ)) := by
     intro n m hnm
     simp only [upcrossingsBefore'_finset]
-    exact upcrossingsBefore'_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
-      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
-  -- Since sequence stabilizes at M and is monotone, the supremum equals the value at M
-  have hstab : ⨆ n, upcrossingsBefore'_finset hbot hN a b f n ω =
-      upcrossingsBefore'_finset hbot hN a b f M ω := by
+    exact Nat.cast_le.mpr (upcrossingsBefore'_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
+      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab)
+  -- LHS equals value at M
+  have heq1 : (upcrossingsBefore' a b f N ω : ℝ) =
+      (upcrossingsBefore'_finset hbot hN a b f M ω : ℝ) := by
+    exact_mod_cast (hM M le_rfl).symm
+  -- RHS (ℝ-supremum) equals value at M
+  have heq2 : ⨆ n, (upcrossingsBefore'_finset hbot hN a b f n ω : ℝ) =
+      (upcrossingsBefore'_finset hbot hN a b f M ω : ℝ) := by
     apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
     · intro n
       by_cases hnM : n ≤ M
       · exact hU_mono hnM
       · push_neg at hnM
-        rw [hM n (le_of_lt hnM), ← hM M le_rfl]
+        simp only [upcrossingsBefore'_finset]
+        exact_mod_cast le_of_eq (hM n (le_of_lt hnM) ▸ (hM M le_rfl).symm)
     · intro w hw
       exact ⟨M, hw⟩
-  rw [hstab, ← hM M le_rfl]
+  rw [heq1, heq2]
 
 end Approximation
 
@@ -1744,42 +1761,8 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
     exact_mod_cast this
   · -- F = ⨆ n, U n whenever the sup is finite
     intro ω hω_bdd
-    simp only [U] at hω_bdd
-    obtain ⟨C', hCbound'⟩ := hω_bdd
-    let C := Nat.ceil C'
-    have hCC : C' ≤ C := by apply Nat.le_ceil
-    have hCbound : ∃ C, ∀ n, upcrossingsBefore'_finset hsbot hsN a b f n ω ≤ C := by
-      use C
-      intro n
-      exact_mod_cast calc upcrossingsBefore'_finset hsbot hsN a b f n ω
-            ≤ C' := hCbound' n
-          _ ≤ C := hCC
-    -- Get the stabilization point M
-    obtain ⟨M, hM⟩ := upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
-      hsmon hsbot hsN hsaturate hab hCbound
     simp only [hF, U]
-    -- LHS equals value at M (in ℝ)
-    have heq1 : (upcrossingsBefore' a b f N ω : ℝ) =
-        (upcrossingsBefore'_finset hsbot hsN a b f M ω : ℝ) := by
-      exact_mod_cast (hM M le_rfl).symm
-    -- RHS (ℝ-supremum) equals value at M
-    have hU_mono : Monotone (fun n => (upcrossingsBefore'_finset hsbot hsN a b f n ω : ℝ)) := by
-      intro n m hnm
-      simp only [upcrossingsBefore'_finset]
-      exact Nat.cast_le.mpr (upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
-        (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab)
-    have heq2 : ⨆ n, (upcrossingsBefore'_finset hsbot hsN a b f n ω : ℝ) =
-        (upcrossingsBefore'_finset hsbot hsN a b f M ω : ℝ) := by
-      apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
-      · intro n
-        by_cases hnM : n ≤ M
-        · exact hU_mono hnM
-        · push_neg at hnM
-          simp only [upcrossingsBefore'_finset]
-          exact_mod_cast le_of_eq (hM n (le_of_lt hnM) ▸ (hM M le_rfl).symm)
-      · intro w hw
-        exact ⟨M, hw⟩
-    rw [heq1, heq2]
+    exact upcrossingsBefore'_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
 
 end DoobInequalityCountable
 
