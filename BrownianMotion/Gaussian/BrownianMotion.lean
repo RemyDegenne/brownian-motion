@@ -510,9 +510,8 @@ instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
 
 lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω)
     [IsProbabilityMeasure P] [hX : IsFilteredPreBrownian X 𝓕 P] : Martingale X 𝓕 P := by
-  refine ⟨hX.adap, ?_⟩
+  refine ⟨hX.adap, fun s t hst => ?_⟩
   have hM := fun t ↦ ((hX.adap t).mono (𝓕.le t)).measurable
-  intro s t hst
   have h_no_cond : P[X t - X s | 𝓕 s] =ᵐ[P] fun _ ↦ P[X t - X s] := by
     refine condExp_indep_eq ?_ (𝓕.le s) ?_ (hX.indep s t hst)
     · exact Measurable.comap_le (Measurable.sub (hM t) (hM s))
