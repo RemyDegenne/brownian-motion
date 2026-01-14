@@ -1323,9 +1323,28 @@ variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
 end Countable
 
+variable [LinearOrder ι] [OrderBot ι] {N : ι}
+
+/-- Helper definition for `upcrossingsBefore'` on a finset, bundling the `OrderBot` instance.
+    This avoids repeating `letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, ... }` throughout
+    theorem statements and proofs. -/
+noncomputable def upcrossingsBefore'_finset
+    {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
+    (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ :=
+  letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω
+
+@[simp]
+lemma upcrossingsBefore'_finset_def
+    {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
+    (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) :
+    upcrossingsBefore'_finset hbot hN a b f n ω =
+      (letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+       upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) :=
+  rfl
+
 section Approximation
 
-variable [LinearOrder ι] [OrderBot ι]
 variable {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
 /-- If we have K upcrossings, witnessed by UpcrossingDat a, and a finset contains all
@@ -1450,9 +1469,7 @@ theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     (hN : ∀ n, N ∈ s n)
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hfinite_sup : ∃ C, ∀ n,
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
+    (hfinite_sup : ∃ C, ∀ n, upcrossingsBefore'_finset hbot hN a b f n ω ≤ C) :
     BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
   obtain ⟨C, hCbound⟩ := hfinite_sup
   by_cases hNbot : N ≤ ⊥
@@ -1485,6 +1502,7 @@ theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
         hseq ht_lt_N (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
     -- This contradicts the bound by C
     have hbound := hCbound n₀
+    simp only [upcrossingsBefore'_finset] at hbound
     linarith
 
 /-! The above two theorems merge into the following. -/
@@ -1496,13 +1514,8 @@ lemma upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (hfinite_sup : ∃ C, ∀ n,
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) :
-    ∃ M, ∀ m ≥ M,
-      letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
-        upcrossingsBefore' a b f N ω := by
+    (hfinite_sup : ∃ C, ∀ n, upcrossingsBefore'_finset hbot hN a b f n ω ≤ C) :
+    ∃ M, ∀ m ≥ M, upcrossingsBefore'_finset hbot hN a b f m ω = upcrossingsBefore' a b f N ω := by
   have hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω} :=
     upcrossingsBefore'_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
   exact upcrossingsBefore'_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
@@ -1515,31 +1528,20 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b) :
-    ∀ ω, (∃ C, ∀ n,
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) →
-      upcrossingsBefore' a b f N ω = ⨆ n,
-        letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-        upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω := by
+    ∀ ω, (∃ C, ∀ n, upcrossingsBefore'_finset hbot hN a b f n ω ≤ C) →
+      upcrossingsBefore' a b f N ω = ⨆ n, upcrossingsBefore'_finset hbot hN a b f n ω := by
   intro ω hfinite_sup
   obtain ⟨M, hM⟩ := upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
     hmon hbot hN hsaturate hab hfinite_sup
   -- The sequence U n ω is monotone (larger finsets have more upcrossings)
-  have hU_mono : Monotone fun n =>
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω := by
+  have hU_mono : Monotone fun n => upcrossingsBefore'_finset hbot hN a b f n ω := by
     intro n m hnm
-    letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    simp only [upcrossingsBefore'_finset]
     exact upcrossingsBefore'_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
       (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
   -- Since sequence stabilizes at M and is monotone, the supremum equals the value at M
-  have hstab : ⨆ n, (fun n =>
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) n =
-      (fun n =>
-      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) M := by
+  have hstab : ⨆ n, upcrossingsBefore'_finset hbot hN a b f n ω =
+      upcrossingsBefore'_finset hbot hN a b f M ω := by
     apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
     · intro n
       by_cases hnM : n ≤ M
