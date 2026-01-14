@@ -1178,23 +1178,21 @@ theorem Submartingale.mul_integral_upcrossingsBefore'_Finset_le_integral_pos_par
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
 
-theorem Adapted.integrable_upcrossingsBefore' [IsFiniteMeasure μ]
+theorem Adapted.integrable_upcrossingsBefore' [IsFiniteMeasure μ] (hk : #s = k)
     (hf : Adapted 𝓕 f) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ :=
-  haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  have hbdd : ∀ ω, BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
-    intro ω
-    exact ltUpcrossingsBefore_bddAbove_of_finite a b f ω N (by infer_instance)
-
-
-
-  haveI : ∀ᵐ ω ∂μ, ‖(upcrossingsBefore' a b f N ω : ℝ)‖ ≤ N := by
+    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ := by
+  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  obtain ⟨M, hM⟩ := upcrossingsBefore'_bounded_of_finite a b f N (by infer_instance)
+  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingsBefore' a b f N ω : ℝ)‖ ≤ M := by
     filter_upwards with ω
-    rw [Real.norm_eq_abs, Nat.abs_cast, Nat.cast_le]
-    exact upcrossingsBefore_le _ _ hab
-  ⟨Measurable.aestronglyMeasurable (measurable_from_top.comp (hf.measurable_upcrossingsBefore'_Finset hab)),
-    .of_bounded this⟩
+    rw [Real.norm_eq_abs]
+    simp only [Nat.cast_le, Nat.abs_cast]
+    grind
+  have meas0 := Adapted.measurable_upcrossingsBefore'_Finset hk hbot (N:=N) hf hab
+  have meas : AEStronglyMeasurable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ :=
+    Measurable.aestronglyMeasurable (measurable_from_top.comp meas0)
+  exact ⟨meas, .of_bounded hbdd⟩
 
 end DoobInequalityFinset
 
