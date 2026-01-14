@@ -1178,21 +1178,23 @@ theorem Submartingale.mul_integral_upcrossingsBefore'_Finset_le_integral_pos_par
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
 
-theorem Adapted.integrable_upcrossingsBefore' [IsFiniteMeasure μ] (hk : #s = k)
+theorem Adapted.integrable_upcrossingsBefore' [IsFiniteMeasure μ]
     (hf : Adapted 𝓕 f) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ := by
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  obtain ⟨M, hM⟩ := upcrossingsBefore'_bounded_of_finite a b f N (by infer_instance)
-  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingsBefore' a b f N ω : ℝ)‖ ≤ M := by
+    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ :=
+  haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  have hbdd : ∀ ω, BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
+    intro ω
+    exact ltUpcrossingsBefore_bddAbove_of_finite a b f ω N (by infer_instance)
+
+
+
+  haveI : ∀ᵐ ω ∂μ, ‖(upcrossingsBefore' a b f N ω : ℝ)‖ ≤ N := by
     filter_upwards with ω
-    rw [Real.norm_eq_abs]
-    simp only [Nat.cast_le, Nat.abs_cast]
-    grind
-  have meas0 := Adapted.measurable_upcrossingsBefore'_Finset hk hbot (N:=N) hf hab
-  have meas : AEStronglyMeasurable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ :=
-    Measurable.aestronglyMeasurable (measurable_from_top.comp meas0)
-  exact ⟨meas, .of_bounded hbdd⟩
+    rw [Real.norm_eq_abs, Nat.abs_cast, Nat.cast_le]
+    exact upcrossingsBefore_le _ _ hab
+  ⟨Measurable.aestronglyMeasurable (measurable_from_top.comp (hf.measurable_upcrossingsBefore'_Finset hab)),
+    .of_bounded this⟩
 
 end DoobInequalityFinset
 
@@ -1488,7 +1490,7 @@ theorem upcrossingsBefore'_finite_of_saturating_finsets_finite_sup
     linarith
 
 /-! The above two theorems merge into the following. -/
-theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
+lemma upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
@@ -1506,6 +1508,49 @@ theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
   have hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω} :=
     upcrossingsBefore'_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
   exact upcrossingsBefore'_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
+
+theorem upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup
+    {s : ℕ → Finset ι}
+    (hmon : Monotone s)
+    (hbot : ∀ n, ⊥ ∈ s n)
+    (hN : ∀ n, N ∈ s n)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
+    (hab : a < b) :
+    ∀ ω, (∃ C, ∀ n,
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω ≤ C) →
+      upcrossingsBefore' a b f N ω = ⨆ n,
+        letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+        upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω := by
+  intro ω hfinite_sup
+  obtain ⟨M, hM⟩ := upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
+    hmon hbot hN hsaturate hab hfinite_sup
+  -- The sequence U n ω is monotone (larger finsets have more upcrossings)
+  have hU_mono : Monotone fun n =>
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω := by
+    intro n m hnm
+    letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    exact upcrossingsBefore'_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
+      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
+  -- Since sequence stabilizes at M and is monotone, the supremum equals the value at M
+  have hstab : ⨆ n, (fun n =>
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) n =
+      (fun n =>
+      letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      upcrossingsBefore' a b (fun i : s n => f i) ⟨N, hN n⟩ ω) M := by
+    apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
+    · intro n
+      by_cases hnM : n ≤ M
+      · exact hU_mono hnM
+      · push_neg at hnM
+        rw [hM n (le_of_lt hnM), ← hM M le_rfl]
+    · intro w hw
+      exact ⟨M, hw⟩
+  rw [hstab, ← hM M le_rfl]
 
 end Approximation
 
