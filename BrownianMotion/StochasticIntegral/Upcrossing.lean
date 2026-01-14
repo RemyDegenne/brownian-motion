@@ -1586,23 +1586,18 @@ lemma integrable_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ
     filter_upwards [h_pos 0, h_mono, h_tendsto] with x hf0 hmono htends
     exact ge_of_tendsto' htends fun n => le_trans hf0 (hmono (Nat.zero_le n))
   -- Convert lintegral to integral for f n (since f n ≥ 0 a.e.)
-  have hlint_eq : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ = ENNReal.ofReal (μ[f n]) := by
-    intro n
-    rw [← ofReal_integral_eq_lintegral_ofReal (hf n) (h_pos n)]
+  have hlint_eq : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ = ENNReal.ofReal (μ[f n]) :=
+    fun n => (ofReal_integral_eq_lintegral_ofReal (hf n) (h_pos n)).symm
   -- The lintegral of f n is bounded by c
-  have hlint_bound : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
-    intro n
-    rw [hlint_eq n]
-    exact ENNReal.ofReal_le_ofReal (h_bound n)
+  have hlint_bound : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c :=
+    fun n => (hlint_eq n).symm ▸ ENNReal.ofReal_le_ofReal (h_bound n)
   -- Monotonicity of f n in ENNReal
   have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
-    filter_upwards [h_mono] with x hx n m hnm
-    exact ENNReal.ofReal_le_ofReal (hx hnm)
+    filter_upwards [h_mono] with x hx n m hnm; exact ENNReal.ofReal_le_ofReal (hx hnm)
   -- Convergence of f n to F in ENNReal
   have h_tendsto_ennreal : ∀ᵐ x ∂μ, Tendsto (fun n => ENNReal.ofReal (f n x)) atTop
       (nhds (ENNReal.ofReal (F x))) := by
-    filter_upwards [h_tendsto] with x hx
-    exact (ENNReal.continuous_ofReal.tendsto _).comp hx
+    filter_upwards [h_tendsto] with x hx; exact (ENNReal.continuous_ofReal.tendsto _).comp hx
   -- AEMeasurable for ENNReal.ofReal ∘ f n
   have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
     fun n => (hf n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
@@ -1677,8 +1672,7 @@ lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
       exact le_trans (le_of_lt hfn) h0le
   -- Now we have a.e. boundedness, so a.e. F = ⨆ n, f n x and f n → F
   have h_ae_sup : ∀ᵐ x ∂μ, F x = ⨆ n, f n x := by
-    filter_upwards [h_ae_bdd] with x hx
-    exact h_sup x hx
+    filter_upwards [h_ae_bdd] with x hx; exact h_sup x hx
   have h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x)) := by
     filter_upwards [h_ae_bdd, h_mono, h_ae_sup] with x hx_bdd hx_mono hx_sup
     rw [hx_sup]
@@ -1738,30 +1732,18 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
   have hsub : ∀ n, Submartingale (fun i : s n => f i) (hFiltr n) μ :=
     fun n => Submartingale.restrictFinset 𝓕 (s n) hf
   refine bounded_integral_sup_of_mono_L1_bounded (f:=U) ?h_pos ?h_int ?h_bound ?h_mono ?h_sup
-  · -- U n ≥ 0 a.e.
-    intro n
-    filter_upwards with ω
-    simp only [U]; simp
-  · -- U n is integrable
-    exact (fun n =>
-      Adapted.integrable_upcrossingsBefore' (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab)
-  · -- The integral of U n is bounded by c
-    intro n
-    have := mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux
+  · intro n; filter_upwards with ω; simp only [U]; simp
+  · exact fun n =>
+      Adapted.integrable_upcrossingsBefore' (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab
+  · intro n
+    simp only [hc, le_div_iff₀' (sub_pos.mpr hab)]
+    exact mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux
       (hbot := hsbot n) (hk := rfl) (hf := hsub n) (N := ⟨N, hsN n⟩) hab
-    simp only [hc]
-    rw [le_div_iff₀' (sub_pos.mpr hab)]
-    exact this
-  · -- U n is monotone in n a.e.
-    filter_upwards with ω
-    intro n m hnm; simp only [U, upcrossingsBefore'_finset]
-    have hsub : s n ⊆ s m := hsmon hnm
-    have := upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) hsub ⟨N, hsN n⟩
+  · filter_upwards with ω n m hnm
+    simp only [U, upcrossingsBefore'_finset]
+    exact_mod_cast upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
       (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
-    exact_mod_cast this
-  · -- F = ⨆ n, U n whenever the sup is finite
-    intro ω hω_bdd
-    simp only [hF, U]
+  · intro ω hω_bdd; simp only [hF, U]
     exact upcrossingsBefore'_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
 
 end DoobInequalityCountable
