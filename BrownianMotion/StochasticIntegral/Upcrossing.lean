@@ -138,7 +138,6 @@ lemma upcrossingsBefore'_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
       fun _ ⟨seq, _⟩ => hab seq.hab
     simp only [this]; simp_all
 
-
 /-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 section UpperCrossingTimeEquivalence
 
@@ -1484,7 +1483,19 @@ theorem Submartingale.mul_integral_upcrossingsBefore'_Countable_le_integral_pos_
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
 
-
+theorem Submartingale.integrable_upcrossingsBefore'_Countable
+    [IsFiniteMeasure μ]
+    (hf : Submartingale f 𝓕 μ) :
+    Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ := by
+  by_cases hab : a < b
+  · exact (mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux hf hab).1
+  · -- simp only [← sub_nonpos] at hab
+    have h_nonpos : (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) =ᵐ[μ] 0 := by
+      filter_upwards with ω
+      have := upcrossingsBefore'_eq_zero_of_not_hab (a:=a) (b:=b) (f:=f) (N:=N) (ω:=ω) hab
+      simp_all
+    rw [integrable_congr h_nonpos]
+    exact integrable_zero Ω ℝ μ
 
 end DoobInequalityCountable
 
