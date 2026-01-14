@@ -1717,150 +1717,70 @@ theorem mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux [IsFi
   have hne : ∀ n, (s n).Nonempty := by intro n; use ⊥; exact hsbot n
   have hnz : ∀ n, #(s n) ≠ 0 := by intro n; exact Finset.card_ne_zero.mpr (hne n)
   have hNZ : ∀ n, NeZero #(s n) := by intro n; exact ⟨hnz n⟩
+  let hFiltr := fun n => Filtration.restrictFinset 𝓕 (s n)
+  have hsub : ∀ n, Submartingale (fun i : s n => f i) (hFiltr n) μ :=
+    fun n => Submartingale.restrictFinset 𝓕 (s n) hf
   refine bounded_integral_sup_of_mono_L1_bounded (f:=U) ?h_pos ?h_int ?h_bound ?h_mono ?h_sup
   · -- U n ≥ 0 a.e.
     intro n
     filter_upwards with ω
     simp only [U]; simp
   · -- U n is integrable
+    exact (fun n =>
+      Adapted.integrable_upcrossingsBefore' (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab)
+  · -- The integral of U n is bounded by c
     intro n
-    let 𝓕n := Filtration.restrictFinset 𝓕 (s n)
-    have hsub_n : Submartingale (fun i : s n => f i) 𝓕n μ := Submartingale.restrictFinset 𝓕 (s n) hf
-    have hada_n : Adapted 𝓕n (fun i : s n => f i) := hsub_n.adapted
-    have := Adapted.integrable_upcrossingsBefore' (hsbot n) (hk n) hada_n hab
-    exact this
-  sorry
-
-/-!
-  -- Key property: U is monotone in n (larger finsets have more upcrossings)
-  have hU_mono : ∀ n m, n ≤ m → ∀ ω, U n ω ≤ U m ω := by
-    intro n m hnm ω
-    have hsub : s n ⊆ s m := hsmon hnm
-    exact upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) hsub ⟨N, hsN n⟩
-      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
-  -- For each n, Doob's inequality holds on the finset
-  have hDoob_n : ∀ n, μ[U n] ≤ c := by
-    intro n
-    -- letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    -- Get submartingale on finset
-    have hsub_n : Submartingale (fun i : s n => f i)
-        (Filtration.restrictFinset 𝓕 (s n)) μ :=
-      Submartingale.restrictFinset (s n) hf
-    -- Check if finset is nonempty
-    have hne : (s n).Nonempty := ⟨⊥, hsbot n⟩
-    have hcard_pos : #(s n) ≠ 0 := Finset.card_ne_zero.mpr hne
-    haveI : NeZero #(s n) := ⟨hcard_pos⟩
-    -- Apply Doob on finset
-    have hDoob := mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux
-      (hbot := hsbot n) (hk := rfl) (hf := hsub_n) (N := ⟨N, hsN n⟩) hab
-    -- The RHS is μ[(f N - a)⁺] because N ∈ s n
+    have := mul_integral_upcrossingsBefore'_Finset_le_integral_pos_part_aux
+      (hbot := hsbot n) (hk := rfl) (hf := hsub n) (N := ⟨N, hsN n⟩) hab
     simp only [hc]
-    convert hDoob using 2
-  -- Show that sup_n (U n ω) = upcrossingsBefore' a b f N ω pointwise
-  have hU_sup_eq : ∀ ω, ⨆ n, U n ω = upcrossingsBefore' a b f N ω := by
-    intro ω
-    apply le_antisymm
-    · -- ⨆ n, U n ω ≤ upcrossingsBefore'
-      apply Nat.sSup_le (Set.range_nonempty (fun n => U n ω))
-      intro k ⟨n, hn⟩
-      rw [← hn]
-      -- U n ω ≤ upcrossingsBefore' a b f N ω
-      letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      have hbdd : BddAbove {k | ltUpcrossingsBefore a b f N k ω} := by
-        by_cases hNbot : N ≤ ⊥
-        · simp only [ltUpcrossingsBefore, hNbot, ↓reduceIte, Set.setOf_false, bddAbove_empty]
-        · -- Use integrability to show boundedness
-          sorry
-      exact upcrossingsBefore'_ge_finset_of_bounded (hsbot n) ⟨N, hsN n⟩
-        (fun i : s n => f i) f (fun _ => rfl) a b ω hab hbdd
-    · -- upcrossingsBefore' ≤ ⨆ n, U n ω
-      by_cases hNbot : N ≤ ⊥
-      · simp only [upcrossingsBefore'_zero_of_N_bot a b f N ω hNbot, Nat.zero_le]
-      · set K := upcrossingsBefore' a b f N ω with hKdef
-        by_cases hK0 : K = 0
-        · simp only [hK0, Nat.zero_le]
-        · -- K ≥ 1, so there's an UpcrossingData witness
-          have hKpos : K ≥ 1 := Nat.one_le_iff_ne_zero.mpr hK0
-          have hne : {n | ltUpcrossingsBefore a b f N n ω}.Nonempty := by
-            use 0; simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte]
-          have hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
-            sorry
-          have hKmem : K ∈ {n | ltUpcrossingsBefore a b f N n ω} := by
-            simp only [hKdef, upcrossingsBefore']
-            exact Nat.sSup_mem hne hbdd
-          simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte,
-            Nat.one_le_iff_ne_zero.mp hKpos] at hKmem
-          obtain ⟨hseq, ht_lt_N⟩ := hKmem
-          -- The witness set is finite and in Set.Iic N
-          set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
-          have hwit_finite : Finite witness := Set.finite_range _
-          have hwit_Icc : witness ⊆ Set.Iic N := by
-            intro x hx
-            obtain ⟨i, rfl⟩ := hx
-            constructor
-            · exact bot_le
-            · have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-              exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-          -- Find M such that witness ⊆ s M
-          obtain ⟨M, hM_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-          have ht_in_sM : ∀ i < 2 * K, hseq.t i ∈ s M := fun i hi =>
-            hM_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩)
-          -- Therefore U M ω ≥ K
-          have hUM_ge : U M ω ≥ K := by
-            exact upcrossingsBefore'_finset_ge_of_witness (hsbot M) (hsN M) hKpos hseq ht_lt_N
-              ht_in_sM
-          calc upcrossingsBefore' a b f N ω = K := hKdef.symm
-            _ ≤ U M ω := hUM_ge
-            _ ≤ ⨆ n, U n ω := Nat.le_sSup (Set.mem_range.mpr ⟨M, rfl⟩)
-                (⟨upcrossingsBefore' a b f N ω,
-                  fun k ⟨m, hm⟩ => hm ▸ upcrossingsBefore'_ge_finset_of_bounded (hsbot m)
-                    ⟨N, hsN m⟩ (fun i : s m => f i) f (fun _ => rfl) a b ω hab hbdd⟩)
-  -- U n is measurable
-  have hU_meas : ∀ n, Measurable (U n) := by
-    intro n
-    letI : OrderBot (s n) := { bot := ⟨⊥, hsbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    have hne : (s n).Nonempty := ⟨⊥, hsbot n⟩
-    have hcard_pos : #(s n) ≠ 0 := Finset.card_ne_zero.mpr hne
-    haveI : NeZero #(s n) := ⟨hcard_pos⟩
-    have hsub_n : Submartingale (fun i : s n => f i)
-        (Filtration.restrictFinset 𝓕 (s n) (hsbot n)) μ :=
-      Submartingale.restrictFinset (s n) (hsbot n) hf
-    exact Adapted.measurable_upcrossingsBefore'_Finset (rfl : #(s n) = #(s n)) (hsbot n)
-      hsub_n.adapted hab
-  -- Use monotone convergence in the form of integrals
-  have hU_sup_meas : Measurable (upcrossingsBefore' a b f N) := by
-    have h : upcrossingsBefore' a b f N = fun ω => ⨆ n, U n ω := by ext ω; exact (hU_sup_eq ω).symm
-    rw [h]
-    exact Measurable.iSup hU_meas
-  -- Key: from hDoob_n we get μ[U n] ≤ c / (b - a), so by MCT, μ[sup U n] ≤ c / (b - a)
-  have hab_pos : 0 < b - a := sub_pos.mpr hab
-  have h_int_bound : ∀ n, μ[U n] ≤ c / (b - a) := by
-    intro n
-    have h := hDoob_n n
-    have hba : 0 < b - a := hab_pos
-    calc μ[U n] = (b - a)⁻¹ * ((b - a) * μ[U n]) := by field_simp
-      _ ≤ (b - a)⁻¹ * c := by apply mul_le_mul_of_nonneg_left h (inv_nonneg.mpr hba.le)
-      _ = c / (b - a) := by ring
-  -- Integrable for each U n (as ℕ-valued measurable functions)
-  have hU_int : ∀ n, Integrable (fun ω => (U n ω : ℝ)) μ := by
-    intro n
-    sorry  -- This follows from the bounded integral
-  -- By monotone convergence for real-valued integrals
-  have h_tendsto_int : Tendsto (fun n => μ[fun ω => (U n ω : ℝ)]) atTop (𝓝 μ[upcrossingsBefore' a b f N]) := by
-    sorry  -- Monotone convergence theorem
-  -- Therefore μ[upcrossingsBefore'] ≤ c / (b - a)
-  have h_limit_bound : μ[upcrossingsBefore' a b f N] ≤ c / (b - a) := by
-    apply le_of_tendsto h_tendsto_int
-    filter_upwards with n
-    calc μ[fun ω => (U n ω : ℝ)] = μ[U n] := by rfl
-      _ ≤ c / (b - a) := h_int_bound n
-  -- Finally: (b - a) * μ[upcrossingsBefore'] ≤ c
-  calc (b - a) * μ[upcrossingsBefore' a b f N]
-      ≤ (b - a) * (c / (b - a)) := by apply mul_le_mul_of_nonneg_left h_limit_bound hab_pos.le
-    _ = c := by field_simp
--/
+    rw [le_div_iff₀' (sub_pos.mpr hab)]
+    exact this
+  · -- U n is monotone in n a.e.
+    filter_upwards with ω
+    intro n m hnm; simp only [U, upcrossingsBefore'_finset]
+    have hsub : s n ⊆ s m := hsmon hnm
+    have := upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) hsub ⟨N, hsN n⟩
+      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
+    exact_mod_cast this
+  · -- F = ⨆ n, U n whenever the sup is finite
+    intro ω hω_bdd
+    simp only [U] at hω_bdd
+    obtain ⟨C', hCbound'⟩ := hω_bdd
+    let C := Nat.ceil C'
+    have hCC : C' ≤ C := by apply Nat.le_ceil
+    have hCbound : ∃ C, ∀ n, upcrossingsBefore'_finset hsbot hsN a b f n ω ≤ C := by
+      use C
+      intro n
+      exact_mod_cast calc upcrossingsBefore'_finset hsbot hsN a b f n ω
+            ≤ C' := hCbound' n
+          _ ≤ C := hCC
+    -- Get the stabilization point M
+    obtain ⟨M, hM⟩ := upcrossingsBefore'_eventually_eq_of_saturating_finsets_finite_sup_aux
+      hsmon hsbot hsN hsaturate hab hCbound
+    simp only [hF, U]
+    -- LHS equals value at M (in ℝ)
+    have heq1 : (upcrossingsBefore' a b f N ω : ℝ) =
+        (upcrossingsBefore'_finset hsbot hsN a b f M ω : ℝ) := by
+      exact_mod_cast (hM M le_rfl).symm
+    -- RHS (ℝ-supremum) equals value at M
+    have hU_mono : Monotone (fun n => (upcrossingsBefore'_finset hsbot hsN a b f n ω : ℝ)) := by
+      intro n m hnm
+      simp only [upcrossingsBefore'_finset]
+      exact Nat.cast_le.mpr (upcrossingsBefore'_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
+        (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab)
+    have heq2 : ⨆ n, (upcrossingsBefore'_finset hsbot hsN a b f n ω : ℝ) =
+        (upcrossingsBefore'_finset hsbot hsN a b f M ω : ℝ) := by
+      apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
+      · intro n
+        by_cases hnM : n ≤ M
+        · exact hU_mono hnM
+        · push_neg at hnM
+          simp only [upcrossingsBefore'_finset]
+          exact_mod_cast le_of_eq (hM n (le_of_lt hnM) ▸ (hM M le_rfl).symm)
+      · intro w hw
+        exact ⟨M, hw⟩
+    rw [heq1, heq2]
+
 end DoobInequalityCountable
-
-
 
 end ProbabilityTheory
