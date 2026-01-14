@@ -652,6 +652,15 @@ lemma ltUpcrossingsBefore_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ)
       rcases hn with ⟨hseq, ht_lt_N⟩
       grind
 
+lemma upcrossingsBefore'_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
+    (hfin : Finite {i | i < N}) :
+    ∃ M, ∀ ω, upcrossingsBefore' a b f N ω ≤ M := by
+  obtain ⟨M, hMsize⟩ := ltUpcrossingsBefore_unif_bdd_of_finite a b f N hfin
+  use M
+  intro ω
+  simp only [upcrossingsBefore']
+  exact csSup_le' fun n => hMsize n ω
+
 /-! Boundedness of ltUpcrossingsBefore, assuming {i | i < N} is finite. -/
 lemma ltUpcrossingsBefore_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω) (N : ι)
     (hfin : Finite {i | i < N}) :
