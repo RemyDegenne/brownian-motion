@@ -259,26 +259,47 @@ lemma ltUpcrossingsBefore_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossing
     refine lt_of_le_of_lt ht_le ?_
     simp_all
 
+
 /-- Bundled properties of `hittingBtwn` that hold under `WellFoundedLT` but may also
-be established under weaker assumptions (e.g., finiteness of the index set). -/
+be established under weaker assumptions (e.g., finiteness of the index set, or
+right-continuity of trajectories for `ℝ≥0`). -/
 structure HittingBtwnSpec [Preorder ι] [OrderBot ι] [InfSet ι]
     (f : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω) where
   /-- When the hitting time is strictly less than `m`, it actually hits the set. -/
   hitsSet : hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
-  /-- The hitting time is less than `i` iff there's a witness in `[n, i)`. -/
-  ltIff : ∀ i ≤ m, hittingBtwn f s n m ω < i ↔ ∃ j ∈ Set.Ico n i, f j ω ∈ s
+
+namespace HittingBtwnSpec
+
+variable [ConditionallyCompleteLinearOrderBot ι]
+variable {f : ι → Ω → ℝ} {s : Set ℝ} {n m : ι} {ω : Ω}
+
+/-- If the hitting time is less than `i`, the hitting time itself is a witness in `[n, i)`. -/
+lemma lt_exists_witness (hspec : HittingBtwnSpec f s n m ω) (i : ι) (hi : i ≤ m)
+    (hlt : hittingBtwn f s n m ω < i) : ∃ j ∈ Set.Ico n i, f j ω ∈ s := by
+  have htm : hittingBtwn f s n m ω < m := lt_of_lt_of_le hlt hi
+  have hfhit : f (hittingBtwn f s n m ω) ω ∈ s := hspec.hitsSet htm
+  set h := hittingBtwn f s n m ω with hdef
+  have hle : h ≤ m := hittingBtwn_le ω
+  -- If hittingBtwn < m, there must exist a hit in [n, m] (otherwise hittingBtwn = m)
+  have h_exists : ∃ j ∈ Set.Icc n m, f j ω ∈ s := by
+    by_contra h_neg
+    simp only [hittingBtwn, h_neg, ↓reduceIte] at hdef
+    exact (lt_irrefl m (hdef ▸ htm))
+  exact ⟨h, ⟨le_hittingBtwn_of_exists h_exists, hlt⟩, hfhit⟩
+
+end HittingBtwnSpec
 
 /-- `WellFoundedLT` provides a `HittingBtwnSpec`. -/
 lemma hittingBtwnSpec_of_wellFoundedLT [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
     (f : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω) : HittingBtwnSpec f s n m ω :=
-  ⟨hittingBtwn_mem_set_of_hittingBtwn_lt, fun i hi => hittingBtwn_lt_iff (i := i) hi⟩
+  ⟨hittingBtwn_mem_set_of_hittingBtwn_lt⟩
 
 private lemma nondegenerate_of_hittingBtwn_lt' [ConditionallyCompleteLinearOrderBot ι]
     (u : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω)
     (hspec : HittingBtwnSpec u s n m ω)
     (hl : hittingBtwn u s n m ω < m) :
     n < m := by
-  have h := (hspec.ltIff m (le_refl m)).mp hl
+  have h := hspec.lt_exists_witness m (le_refl m) hl
   obtain ⟨j, hjIco, _⟩ := h
   exact lt_of_le_of_lt hjIco.1 hjIco.2
 
@@ -1622,20 +1643,11 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
     HittingBtwnSpec f s n m ω := by
   constructor
-  · -- hitsSet: hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
-    intro ht
-    -- The hitting time is in [n, m) and by right continuity + closedness of s,
-    -- the infimum of times where f is in s actually achieves membership in s.
-    sorry
-  · -- ltIff: ∀ i ≤ m, hittingBtwn f s n m ω < i ↔ ∃ j ∈ Set.Ico n i, f j ω ∈ s
-    intro i hi
-    constructor
-    · -- (→) if hitting time < i, there exists a witness in [n, i)
-      intro hlt
-      sorry
-    · -- (←) if there's a witness in [n, i), then hitting time < i
-      intro ⟨j, hjIco, hfj⟩
-      sorry
+  -- hitsSet: hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
+  intro ht
+  -- The hitting time is in [n, m) and by right continuity + closedness of s,
+  -- the infimum of times where f is in s actually achieves membership in s.
+  sorry
 
 theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hab : a < b) :
     upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
