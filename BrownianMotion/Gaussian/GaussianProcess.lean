@@ -203,7 +203,7 @@ lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
     (hY : ∀ t, Measurable (Y t)) (h' : ∀ s t, cov[X s, Y t; P] = 0) :
     IndepFun (fun ω s ↦ X s ω) (fun ω t ↦ Y t ω) P :=
   h.indepFun' hX hY fun _ _ _ _ ↦ by
-    simp [mul_comm, covariance_mul_left, covariance_mul_right, h']
+    simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h']
 
 lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
     {X : (t : T) → (s : S t) → Ω → ℝ}
@@ -212,7 +212,7 @@ lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
     (h' : ∀ t₁ t₂, t₁ ≠ t₂ → ∀ (s₁ : S t₁) (s₂ : S t₂), cov[X t₁ s₁, X t₂ s₂; P] = 0) :
     ProbabilityTheory.iIndepFun (fun t ω s ↦ X t s ω) P :=
   h.iIndepFun' hX fun _ _ h'' _ _ _ _ ↦ by
-    simp [mul_comm, covariance_mul_left, covariance_mul_right, h' _ _ h'']
+    simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h' _ _ h'']
 
 /-- If a stochastic process `Y` is such that for `s`, `Y s` can be written as a linear
 combination of finitely many values of a Gaussian process, then `Y` is a Gaussian process. -/

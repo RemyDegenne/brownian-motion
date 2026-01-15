@@ -130,7 +130,7 @@ lemma UniformIntegrable.condExp {X : ι → Ω → E} [NormedAddCommGroup E] [No
   (hX.condExp' h𝓕).comp (fun i ↦ (i, i))
 
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] [Countable ι] [TopologicalSpace ι]
-  [OrderTopology ι] [FirstCountableTopology ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [OrderTopology ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
   [CompleteSpace E] {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
 
 lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → E}
@@ -159,6 +159,8 @@ lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕
 
 omit [Countable ι]
 
+variable [FirstCountableTopology ι]
+
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
@@ -178,14 +180,6 @@ lemma Martingale.integrable_stoppedValue_of_countable_range
   rw [← memLp_one_iff_integrable]
   exact (hX.uniformIntegrable_stoppedValue_of_countable_range (fun _ ↦ τ)
     (fun _ ↦ hτ) (fun _ _ ↦ hτ_le _) (fun _ ↦ hτ_countable)).memLp 0
-
-lemma TendstoInMeasure.aestronglyMeasurable
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [PseudoEMetricSpace β]
-    {u : Filter ι} [NeBot u] [IsCountablyGenerated u]
-    {f : ι → α → β} {g : α → β} (hf : ∀ i, AEStronglyMeasurable (f i) μ)
-    (h_tendsto : TendstoInMeasure μ f u g) : AEStronglyMeasurable g μ := by
-  obtain ⟨ns, -, hns⟩ := h_tendsto.exists_seq_tendsto_ae'
-  exact aestronglyMeasurable_of_tendsto_ae atTop (fun n => hf (ns n)) hns
 
 lemma seq_tendsto_ae_bounded
     {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
