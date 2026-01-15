@@ -4,17 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
+import BrownianMotion.StochasticIntegral.Cadlag
+import Mathlib.Data.Finset.Sort
 import Mathlib.Order.BoundedOrder.Basic
 import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.Martingale.Upcrossing
-import Mathlib.Data.Finset.Sort
 import Mathlib.Topology.Defs.Filter
 
 /-! # Doob's upcrossing inequality on NNRat
 
 -/
 
-open MeasureTheory Filter Finset
+open MeasureTheory Filter Finset Function
 open scoped ENNReal NNReal
 
 namespace ProbabilityTheory
@@ -258,16 +259,40 @@ lemma ltUpcrossingsBefore_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossing
     refine lt_of_le_of_lt ht_le ?_
     simp_all
 
+/-- Bundled properties of `hittingBtwn` that hold under `WellFoundedLT` but may also
+be established under weaker assumptions (e.g., finiteness of the index set). -/
+structure HittingBtwnSpec [Preorder ι] [OrderBot ι] [InfSet ι]
+    (f : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω) where
+  /-- When the hitting time is strictly less than `m`, it actually hits the set. -/
+  hitsSet : hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
+  /-- The hitting time is less than `i` iff there's a witness in `[n, i)`. -/
+  ltIff : ∀ i ≤ m, hittingBtwn f s n m ω < i ↔ ∃ j ∈ Set.Ico n i, f j ω ∈ s
+
+/-- `WellFoundedLT` provides a `HittingBtwnSpec`. -/
+lemma hittingBtwnSpec_of_wellFoundedLT [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+    (f : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω) : HittingBtwnSpec f s n m ω :=
+  ⟨hittingBtwn_mem_set_of_hittingBtwn_lt, fun i hi => hittingBtwn_lt_iff (i := i) hi⟩
+
+private lemma nondegenerate_of_hittingBtwn_lt' [ConditionallyCompleteLinearOrderBot ι]
+    (u : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω)
+    (hspec : HittingBtwnSpec u s n m ω)
+    (hl : hittingBtwn u s n m ω < m) :
+    n < m := by
+  have h := (hspec.ltIff m (le_refl m)).mp hl
+  obtain ⟨j, hjIco, _⟩ := h
+  exact lt_of_le_of_lt hjIco.1 hjIco.2
+
 private lemma nondegenerate_of_hittingBtwn_lt [ConditionallyCompleteLinearOrderBot ι]
     [WellFoundedLT ι] (u : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω)
     (hl : hittingBtwn u s n m ω < m) :
-    n < m := by
-  have h := (hittingBtwn_lt_iff (i:=m) (le_refl m)).mp hl
-  grind
+    n < m :=
+  nondegenerate_of_hittingBtwn_lt' u s n m ω (hittingBtwnSpec_of_wellFoundedLT u s n m ω) hl
 
 /-! P n gives a pair of witnesses, useful for establishing Q n. -/
-lemma upcrossingData_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
-    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω) :
+lemma upcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω)
+    (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+    (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N →
     ∃ s t : ι, m ≤ s ∧ s ≤ t
     ∧ t ≤ hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω
@@ -276,18 +301,30 @@ lemma upcrossingData_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot
   set s := lowerCrossingTimeAux a f m N ω with hs
   set t := hittingBtwn f (Set.Ici b) s N ω with ht
   use s, t
-  have hft : f t ω ∈ Set.Ici b := hittingBtwn_mem_set_of_hittingBtwn_lt ht_lt_N
-  have hsN : s < N := nondegenerate_of_hittingBtwn_lt f (Set.Ici b) s N ω ht_lt_N
+  have hft : f t ω ∈ Set.Ici b := (hspecIci s).hitsSet ht_lt_N
+  have hsN : s < N := nondegenerate_of_hittingBtwn_lt' f (Set.Ici b) s N ω (hspecIci s) ht_lt_N
   simp only [lowerCrossingTimeAux] at hs
-  have hfs : f s ω ∈ Set.Iic a := hittingBtwn_mem_set_of_hittingBtwn_lt hsN
-  have hms : m ≤ s :=
-    le_hittingBtwn (le_of_lt <| nondegenerate_of_hittingBtwn_lt f (Set.Iic a) m N ω hsN) ω
+  have hfs : f s ω ∈ Set.Iic a := (hspecIic m).hitsSet hsN
+  have hms : m ≤ s := le_hittingBtwn
+    (le_of_lt <| nondegenerate_of_hittingBtwn_lt' f (Set.Iic a) m N ω (hspecIic m) hsN) ω
   have hsltt : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
   simp_all
 
+lemma upcrossingData_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω) :
+    hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N →
+    ∃ s t : ι, m ≤ s ∧ s ≤ t
+    ∧ t ≤ hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω
+    ∧ f s ω ∈ Set.Iic a ∧ f t ω ∈ Set.Ici b :=
+  upcrossingData_of_upperCrossingTimeLT' a b f m N ω
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
+
 /-! P 1 → Q 1, in the case N ≠ ⊥. -/
-lemma upcrossingData_of_first_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
-    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
+lemma upcrossingData_of_first_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
+    (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+    (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upperCrossingTimeLT a b f N 1 ω → upcrossingsBeforeUpperCrossingTime a b f N 1 ω := by
   intro hup
   set m := upperCrossingTime a b f N 0 ω with hm
@@ -295,7 +332,7 @@ lemma upcrossingData_of_first_upperCrossingTimeLT [ConditionallyCompleteLinearOr
   rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N 1 ω] at hup
   have : hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f m N ω) N ω < N :=
     by simpa [upperCrossingTime] using hup
-  rcases upcrossingData_of_upperCrossingTimeLT a b f m N ω this with
+  rcases upcrossingData_of_upperCrossingTimeLT' a b f m N ω hspecIci hspecIic this with
     ⟨s, t, hm_s, hs_t, ht_u, hfs, hft⟩
   let hseq : UpcrossingData a b f 1 ω := ⟨hab, fun i => if i = 0 then s else t,
     fun i j hij => if i = 0 then by grind else by grind, by grind, by grind⟩
@@ -305,9 +342,18 @@ lemma upcrossingData_of_first_upperCrossingTimeLT [ConditionallyCompleteLinearOr
   simp only [ht1]
   exact ht_u
 
+lemma upcrossingData_of_first_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
+    upperCrossingTimeLT a b f N 1 ω → upcrossingsBeforeUpperCrossingTime a b f N 1 ω :=
+  upcrossingData_of_first_upperCrossingTimeLT' a b f N ω hab hN
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
+
 /-! P (n+1) → Q n → Q (n+1), in the case N ≠ ⊥. -/
-lemma upcrossingData_extend_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : ¬ N ≤ ⊥) :
+lemma upcrossingData_extend_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : ¬ N ≤ ⊥)
+    (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+    (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
   ∀ n ≥ 1, (upperCrossingTimeLT a b f N (n+1) ω →
     upcrossingsBeforeUpperCrossingTime a b f N n ω →
       upcrossingsBeforeUpperCrossingTime a b f N (n+1) ω) := by
@@ -323,7 +369,7 @@ lemma upcrossingData_extend_of_upperCrossingTimeLT [ConditionallyCompleteLinearO
   rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N (n+1) ω] at hup
   have hu_lt_N : hittingBtwn f (Set.Ici b) (lowerCrossingTimeAux a f u' N ω) N ω < N :=
     by simpa [upperCrossingTime] using hup
-  rcases upcrossingData_of_upperCrossingTimeLT a b f u' N ω hu_lt_N with
+  rcases upcrossingData_of_upperCrossingTimeLT' a b f u' N ω hspecIci hspecIic hu_lt_N with
     ⟨s', t', hu's', hs't', ht'u, hfs', hft'⟩
   let hseq' : UpcrossingData a b f (n + 1) ω :=
     hseq.extend s' t' (le_trans htu' hu's') hs't' hfs' hft'
@@ -335,9 +381,18 @@ lemma upcrossingData_extend_of_upperCrossingTimeLT [ConditionallyCompleteLinearO
   simp only [ht2n1];
   exact ht'u
 
+lemma upcrossingData_extend_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
+    [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : ¬ N ≤ ⊥) :
+  ∀ n ≥ 1, (upperCrossingTimeLT a b f N (n+1) ω →
+    upcrossingsBeforeUpperCrossingTime a b f N n ω →
+      upcrossingsBeforeUpperCrossingTime a b f N (n+1) ω) :=
+  upcrossingData_extend_of_upperCrossingTimeLT' a b f N ω hN
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
+
 /-! P (n+1) → P n. -/
 lemma upperCrossingTimeLT_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
   upperCrossingTimeLT a b f N (n+1) ω → upperCrossingTimeLT a b f N n ω := by
   intro hup
   rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N (n+1) ω] at hup
@@ -346,10 +401,12 @@ lemma upperCrossingTimeLT_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrd
   exact upperCrossingTime_mono (Nat.le_succ n)
 
 /-! ∀ n ≥ 1, P n → Q n, in the case N ≠ ⊥. -/
-lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all
-  [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
+  [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
-  (hab : a < b) (hn : n ≥ 1) (hNbot : ¬ N ≤ ⊥) :
+  (hab : a < b) (hn : n ≥ 1) (hNbot : ¬ N ≤ ⊥)
+  (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+  (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upperCrossingTimeLT a b f N n ω → upcrossingsBeforeUpperCrossingTime a b f N n ω := by
   induction n with
   | zero =>
@@ -357,40 +414,78 @@ lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all
   | succ n ih =>
       intro hup
       rcases eq_or_ne n 0 with rfl | hn
-      · exact upcrossingData_of_first_upperCrossingTimeLT a b f N ω hab hNbot hup
+      · exact upcrossingData_of_first_upperCrossingTimeLT' a b f N ω hab hNbot hspecIci hspecIic hup
       · have hn1 : n ≥ 1 := by grind
         simp only [hn1] at ih; simp at ih
         have hPn := upperCrossingTimeLT_of_upperCrossingTimeLT a b f N n ω hup
-        refine upcrossingData_extend_of_upperCrossingTimeLT a b f N ω hNbot n hn1 hup ?_
+        refine upcrossingData_extend_of_upperCrossingTimeLT'
+          a b f N ω hNbot hspecIci hspecIic n hn1 hup ?_
         simp_all
 
+lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all
+  [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
+  (hab : a < b) (hn : n ≥ 1) (hNbot : ¬ N ≤ ⊥) :
+    upperCrossingTimeLT a b f N n ω → upcrossingsBeforeUpperCrossingTime a b f N n ω :=
+  upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all' a b f N n ω hab hn hNbot
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
+
 /-! The right implication: ∀ n, P n → L n, in the case N ≠ ⊥. -/
-lemma ltUpcrossingsBefore_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
+lemma ltUpcrossingsBefore_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
+  (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+  (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upperCrossingTimeLT a b f N n ω → ltUpcrossingsBefore a b f N n ω := by
   rcases eq_or_ne n 0 with rfl | hn
   · simp only [ltUpcrossingsBefore, hN]; simp_all
   · intro hup
     refine ltUpcrossingsBefore_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
       a b f N n ω hN hup ?_
-    exact upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all
-      a b f N n ω hab (by grind) (by simp_all) hup
+    exact upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
+      a b f N n ω hab (by grind) (by simp_all) hspecIci hspecIic hup
+
+lemma ltUpcrossingsBefore_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥) :
+    upperCrossingTimeLT a b f N n ω → ltUpcrossingsBefore a b f N n ω :=
+  ltUpcrossingsBefore_of_upperCrossingTimeLT' a b f N n ω hab hN
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
 
 /-! Finally, the equivalence ∀ n, P n ↔ L n. -/
-theorem upperCrossingTimeLT_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
-  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+theorem upperCrossingTimeLT_iff_ltUpcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
+  (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+  (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω := by
   rcases le_or_gt N ⊥ with hN | hN
   · exact upperCrossingTimeLT_bot_iff_ltUpcrossingsBefore a b f N n ω hN
-  · exact ⟨ltUpcrossingsBefore_of_upperCrossingTimeLT a b f N n ω hab (not_le.mpr hN),
+  · exact ⟨ltUpcrossingsBefore_of_upperCrossingTimeLT'
+            a b f N n ω hab (not_le.mpr hN) hspecIci hspecIic,
             upperCrossingTimeLT_of_ltUpcrossingsBefore a b f N n ω (not_le.mpr hN)⟩
 
-/-! Auxiliary lemma. -/
-lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+theorem upperCrossingTimeLT_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
   [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω :=
+  upperCrossingTimeLT_iff_ltUpcrossingsBefore' a b f N n ω hab
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
+
+/-! Auxiliary lemma. -/
+lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
+  (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
+  (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upperCrossingTime a b f N n ω < N ↔ ltUpcrossingsBefore a b f N n ω := by
   rw [← upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
-  exact upperCrossingTimeLT_iff_ltUpcrossingsBefore a b f N n ω hab
+  exact upperCrossingTimeLT_iff_ltUpcrossingsBefore' a b f N n ω hab hspecIci hspecIic
+
+lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+  [WellFoundedLT ι] (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) :
+    upperCrossingTime a b f N n ω < N ↔ ltUpcrossingsBefore a b f N n ω :=
+  upperCrossingTime_lt_iff_ltUpcrossingsBefore' a b f N n ω hab
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
 
 lemma upcrossingsBefore'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : N ≤ ⊥) :
@@ -398,15 +493,25 @@ lemma upcrossingsBefore'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
   simp only [upcrossingsBefore', ltUpcrossingsBefore, hN, if_true]; simp
 
 /-! The two definitions of upcrossingsBefore are equivalent. -/
-theorem upcrossingsBefore_eq_upcrossingsBefore'
-  [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
-  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b) :
+theorem upcrossingsBefore_eq_upcrossingsBefore''
+  [ConditionallyCompleteLinearOrderBot ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
+  (hspecIci : ∀ n ω, HittingBtwnSpec f (Set.Ici b) n N ω)
+  (hspecIic : ∀ n ω, HittingBtwnSpec f (Set.Iic a) n N ω) :
     upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
   ext ω
   simp only [upcrossingsBefore, upcrossingsBefore']
   congr 1
   ext n
-  exact upperCrossingTime_lt_iff_ltUpcrossingsBefore a b f N n ω hab
+  exact upperCrossingTime_lt_iff_ltUpcrossingsBefore' a b f N n ω hab (hspecIci · ω) (hspecIic · ω)
+
+theorem upcrossingsBefore_eq_upcrossingsBefore'
+  [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+  (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b) :
+    upcrossingsBefore a b f N = upcrossingsBefore' a b f N :=
+  upcrossingsBefore_eq_upcrossingsBefore'' a b f N hab
+    (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
+    (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)
 
 end UpperCrossingTimeEquivalence
 
@@ -1499,5 +1604,51 @@ theorem Submartingale.integrable_upcrossingsBefore'_Countable
 
 end DoobInequalityCountable
 
+section DoobInequalityNNReal
+
+variable {f : ℝ≥0 → Ω → ℝ} {𝓕 : Filtration ℝ≥0 m0} [IsFiniteMeasure μ]
+  {N : ℝ≥0} {a b : ℝ}
+
+/-!
+/-- `WellFoundedLT` provides a `HittingBtwnSpec`. -/
+lemma hittingBtwnSpec_of_wellFoundedLT [ConditionallyCompleteLinearOrderBot ι] [WellFoundedLT ι]
+    (f : ι → Ω → ℝ) (s : Set ℝ) (n m : ι) (ω : Ω) : HittingBtwnSpec f s n m ω :=
+  ⟨hittingBtwn_mem_set_of_hittingBtwn_lt, fun i hi => hittingBtwn_lt_iff (i := i) hi⟩
+-/
+
+/-- For `ℝ≥0`, right continuity of trajectories provides `HittingBtwnSpec`.
+This requires showing that hitting times actually hit closed sets for right-continuous functions. -/
+lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω)
+    (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
+    HittingBtwnSpec f s n m ω := by
+  constructor
+  · -- hitsSet: hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
+    intro ht
+    -- The hitting time is in [n, m) and by right continuity + closedness of s,
+    -- the infimum of times where f is in s actually achieves membership in s.
+    sorry
+  · -- ltIff: ∀ i ≤ m, hittingBtwn f s n m ω < i ↔ ∃ j ∈ Set.Ico n i, f j ω ∈ s
+    intro i hi
+    constructor
+    · -- (→) if hitting time < i, there exists a witness in [n, i)
+      intro hlt
+      sorry
+    · -- (←) if there's a witness in [n, i), then hitting time < i
+      intro ⟨j, hjIco, hfj⟩
+      sorry
+
+theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hab : a < b) :
+    upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
+  -- upcrossingsBefore_eq_upcrossingsBefore' (a:=a) (b:=b) (f:=f) (N:=N) hab
+  -- that's impossible, for now, due to ¬ (WellFoundedLT ℝ≥0)
+  sorry
+
+theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux
+    (hf : Submartingale f 𝓕 μ) {N : ℝ≥0} {a b : ℝ} (hab : a < b)
+    (hRC : ∀ ω, RightContinuous (f · ω)) :
+    (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+  sorry
+
+end DoobInequalityNNReal
 
 end ProbabilityTheory
