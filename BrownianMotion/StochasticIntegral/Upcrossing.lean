@@ -1645,15 +1645,51 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
   constructor
   -- hitsSet: hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
   intro ht
-  -- The hitting time is in [n, m) and by right continuity + closedness of s,
-  -- the infimum of times where f is in s actually achieves membership in s.
-  sorry
+  -- Since hittingBtwn < m, there exists a hit in [n, m]
+  have h_exists : ∃ j ∈ Set.Icc n m, f j ω ∈ s := by
+    by_contra h_neg
+    simp only [hittingBtwn, h_neg, ↓reduceIte] at ht
+    exact lt_irrefl m ht
+  -- The hitting time is the infimum of hitting points in [n, m]
+  set S := Set.Icc n m ∩ {i | f i ω ∈ s} with Sdef
+  have h_eq : hittingBtwn f s n m ω = sInf S := by
+    simp only [hittingBtwn, h_exists, ↓reduceIte, Sdef]
+  -- The set of hitting points is nonempty
+  have hne : S.Nonempty := by
+    obtain ⟨j, hj_Icc, hj_s⟩ := h_exists
+    exact ⟨j, hj_Icc, hj_s⟩
+  -- S is bounded below
+  have hbdd : BddBelow S := ⟨n, fun x hx => hx.1.1⟩
+  -- Get a sequence in S converging to sInf S from above
+  obtain ⟨u, hu_anti, hu_tendsto, hu_mem⟩ := exists_seq_tendsto_sInf hne hbdd
+  -- The sequence elements are in S, so f u n ω ∈ s
+  have hu_in_s : ∀ n, f (u n) ω ∈ s := fun n => (hu_mem n).2
+  -- Since u is antitone and converges to sInf S from above, we have u n ≥ sInf S
+  have hu_ge : ∀ n, u n ≥ sInf S := fun n => csInf_le hbdd (hu_mem n)
+  -- Case split: either sInf S ∈ S (then done), or sInf S is a strict limit from the right
+  rw [h_eq]
+  by_cases h_mem_S : sInf S ∈ S
+  · -- sInf S ∈ S, so f (sInf S) ω ∈ s directly
+    exact h_mem_S.2
+  · -- sInf S ∉ S, so all u n > sInf S strictly
+    have hu_gt : ∀ n, u n > sInf S := fun n => lt_of_le_of_ne (hu_ge n) (fun heq =>
+      h_mem_S (heq ▸ hu_mem n))
+    -- u n ∈ Ioi (sInf S), so we can use right-continuity
+    have hu_Ioi : ∀ n, u n ∈ Set.Ioi (sInf S) := fun n => hu_gt n
+    -- Right-continuity gives tendsto (f · ω) (nhdsWithin h (Ioi h)) (nhds (f h ω))
+    -- The sequence u, which stays in Ioi h, induces a filter map to nhdsWithin
+    have h_tendsto_within : Tendsto u atTop (nhdsWithin (sInf S) (Set.Ioi (sInf S))) := by
+      rw [tendsto_nhdsWithin_iff]
+      exact ⟨hu_tendsto, Filter.Eventually.of_forall hu_Ioi⟩
+    -- Compose with right-continuity
+    have h_f_tendsto : Tendsto (fun n => f (u n) ω) atTop (nhds (f (sInf S) ω)) :=
+      (hRC (sInf S)).tendsto.comp h_tendsto_within
+    -- Apply IsClosed.mem_of_tendsto
+    exact hs.mem_of_tendsto h_f_tendsto (Filter.Eventually.of_forall hu_in_s)
 
 theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hab : a < b) :
     upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
-  -- upcrossingsBefore_eq_upcrossingsBefore' (a:=a) (b:=b) (f:=f) (N:=N) hab
-  -- that's impossible, for now, due to ¬ (WellFoundedLT ℝ≥0)
-  sorry
+  
 
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux
     (hf : Submartingale f 𝓕 μ) {N : ℝ≥0} {a b : ℝ} (hab : a < b)
