@@ -1687,9 +1687,30 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     -- Apply IsClosed.mem_of_tendsto
     exact hs.mem_of_tendsto h_f_tendsto (Filter.Eventually.of_forall hu_in_s)
 
-theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hab : a < b) :
-    upcrossingsBefore a b f N = upcrossingsBefore' a b f N := by
-  
+/-
+**Analysis of `upcrossingsBefore` when `¬(a < b)`:**
+
+When `b ≤ a`, the original `upcrossingsBefore` (based on `upperCrossingTime`) can be nonzero,
+while `upcrossingsBefore'` (based on `UpcrossingData`) is always 0 (since `UpcrossingData`
+requires `hab : a < b`).
+
+Example: If f starts in [b, a] then drops below b and stays there:
+- `lowerCrossingTime 0 = 0` (hits Iic a)
+- `upperCrossingTime 1 = 0` (hits Ici b at same point, since f ∈ [b,a] ⊆ Ici b)
+- `lowerCrossingTime 1 = 0`
+- `upperCrossingTime 2 = N` (no more hits of Ici b after f drops below b)
+- Set `{n | upperCrossingTime n < N} = {0, 1}`, so `upcrossingsBefore = 1 ≠ 0`
+
+So the equivalence does NOT hold unconditionally when `¬(a < b)`.
+The theorem below requires `a < b` and right-continuity to establish the equivalence.
+-/
+
+theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hab : a < b)
+    (hRC : ∀ ω, RightContinuous (f · ω)) :
+    upcrossingsBefore a b f N = upcrossingsBefore' a b f N :=
+  upcrossingsBefore_eq_upcrossingsBefore'' a b f N hab
+    (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Ici b) n N ω isClosed_Ici (hRC ω))
+    (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Iic a) n N ω isClosed_Iic (hRC ω))
 
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux
     (hf : Submartingale f 𝓕 μ) {N : ℝ≥0} {a b : ℝ} (hab : a < b)
