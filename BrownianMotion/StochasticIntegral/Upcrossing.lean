@@ -1572,49 +1572,64 @@ Now, letting $\epsilon\to0$ gives our claim, by monotone convergence in numerato
 -/
 lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
-    ∃ s' < t, s' > s ∧ f s' ω ≤ a + ε := by
+    ∃ s' : ℚ≥0, (s' : ℝ≥0) < t ∧ (s' : ℝ≥0) > s ∧ f s' ω ≤ a + ε := by
   have hRC_s : ContinuousWithinAt (f · ω) (Set.Ioi s) s := hRC ω s
   rw [Metric.continuousWithinAt_iff] at hRC_s
   obtain ⟨δ, hδpos, hδ⟩ := hRC_s ε hεpos
   have hts_pos : (0 : ℝ) < t - s := sub_pos.mpr hst
   set δ' : ℝ≥0 := ⟨min (δ / 2) ((t - s) / 2), by positivity⟩
   have hδ'pos : (0 : ℝ≥0) < δ' := (lt_min (by linarith) (by linarith) : (0 : ℝ) < _)
-  refine ⟨s + δ', ?_, lt_add_of_pos_right s hδ'pos, ?_⟩
-  · have : (δ' : ℝ) < t - s := calc
-        (δ' : ℝ) ≤ (↑t - ↑s) / 2 := min_le_right _ _
-        _ < t - s := by linarith
-    calc (s + δ' : ℝ) < s + (t - s) := add_lt_add_left this s
+  -- Pick a rational in (s, s + δ')
+  obtain ⟨q, hqs, hqδ⟩ := exists_rat_btwn
+    (show (s : ℝ) < s + δ' by exact_mod_cast lt_add_of_pos_right s hδ'pos)
+  have hq_pos : 0 ≤ q := Rat.cast_nonneg.mp ((NNReal.coe_nonneg s).trans (le_of_lt hqs))
+  set s' : ℚ≥0 := ⟨q, hq_pos⟩
+  have hs'_val : (s' : ℝ) = q := rfl
+  have hs'_gt_s : (s : ℝ) < s' := hqs
+  have hs'_lt_δ : (s' : ℝ) < s + δ' := hqδ
+  refine ⟨s', ?_, ?_, ?_⟩
+  · -- s' < t
+    have : (δ' : ℝ) < t - s := (min_le_right _ _).trans_lt (by linarith)
+    calc (s' : ℝ) < s + δ' := hs'_lt_δ
+      _ < s + (t - s) := add_lt_add_left this s
       _ = t := by ring
-  · have hdist : dist (f (s + δ') ω) (f s ω) < ε := hδ (lt_add_of_pos_right s hδ'pos) (by
-      simp only [NNReal.dist_eq, NNReal.coe_add, add_sub_cancel_left,
-        abs_of_nonneg (NNReal.coe_nonneg _)]
-      calc (δ' : ℝ) ≤ δ / 2 := min_le_left _ _
-        _ < δ := by linarith)
+  · -- s' > s
+    exact hs'_gt_s
+  · have hs'_lt_δ' : dist (s' : ℝ≥0) s < δ := by
+      have : ((s' : ℝ≥0) : ℝ) = (s' : ℝ) := rfl
+      simp only [NNReal.dist_eq, this]
+      rw [abs_of_nonneg (sub_nonneg.mpr (le_of_lt hs'_gt_s))]
+      calc (s' : ℝ) - s < s + δ' - s := by linarith
+        _ = δ' := by ring
+        _ ≤ δ / 2 := min_le_left _ _
+        _ < δ := by linarith
+    have hdist : dist (f s' ω) (f s ω) < ε := hδ hs'_gt_s hs'_lt_δ'
     linarith [abs_sub_lt_iff.mp (Real.dist_eq _ _ ▸ hdist)]
 
 lemma disturbed_crossing_ge_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (hb : f s ω ≥ b) :
-    ∃ s' < t, s' > s ∧ f s' ω ≥ b - ε := by
+    ∃ s' : ℚ≥0, (s' : ℝ≥0) < t ∧ (s' : ℝ≥0) > s ∧ f s' ω ≥ b - ε := by
   obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_le_close_of_crossing (f := -f) (a := -b)
     (fun ω x => (hRC ω x).neg) hεpos hst (neg_le_neg hb)
   exact ⟨s', h1, h2, by simp only [Pi.neg_apply] at h3; linarith⟩
 
 /-- Given `UpcrossingData a b f K ω` with witness times ending before `N`, and `0 < ε < (b-a)/2`,
-    we can construct `UpcrossingData (a + ε) (b - ε) f K ω` also with witness times before `N`.
+    we can construct `UpcrossingData (a + ε) (b - ε) f K ω` with witness times in `ℚ≥0` before `N`.
     This uses right-continuity to "push" each crossing time slightly forward while staying
     within the ε-disturbed thresholds. -/
 lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ} (hKpos : K ≥ 1) {ω : Ω}
     (hseq : UpcrossingData a b f K ω) (ht_lt_N : hseq.t (2 * K - 1) < N) {ε : ℝ} (hεpos : 0 < ε)
     (hε_small : 2 * ε < b - a) :
-    ∃ hseq' : UpcrossingData (a + ε) (b - ε) f K ω, hseq'.t (2 * K - 1) < N := by
+    ∃ (t' : ℕ → ℚ≥0) (hseq' : UpcrossingData (a + ε) (b - ε) f K ω),
+      hseq'.t = (fun i => (t' i : ℝ≥0)) ∧ (t' (2 * K - 1) : ℝ≥0) < N := by
   -- Upper bound for each index: t_{i+1} if i+1 < 2K, else N
   let bound : ℕ → ℝ≥0 := fun i => if i + 1 < 2 * K then hseq.t (i + 1) else N
   have hbound_gt i (hi : i < 2 * K) : hseq.t i < bound i := by
     simp only [bound]; split_ifs with h
     · exact hseq.t_strict_mono' (Nat.lt_succ_self i) h
     · exact (by omega : i = 2 * K - 1) ▸ ht_lt_N
-  -- Pick t'_i using right-continuity
-  have hexists i (hi : i < 2 * K) : ∃ t'_i, hseq.t i < t'_i ∧ t'_i < bound i ∧
+  -- Pick t'_i using right-continuity (now in ℚ≥0)
+  have hexists i (hi : i < 2 * K) : ∃ t'_i : ℚ≥0, hseq.t i < t'_i ∧ (t'_i : ℝ≥0) < bound i ∧
       (Even i → f t'_i ω ≤ a + ε) ∧ (Odd i → f t'_i ω ≥ b - ε) := by
     by_cases heven : Even i
     · obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_le_close_of_crossing hRC hεpos
@@ -1624,9 +1639,10 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
         (hbound_gt i hi) (hseq.ft_ge_b i hi (Nat.not_even_iff_odd.mp heven))
       exact ⟨s', h2, h1, fun he => absurd he heven, fun _ => h3⟩
   choose t' ht'_gt ht'_lt ht'_le_a ht'_ge_b using hexists
-  -- Extend to all ℕ
-  let t'' : ℕ → ℝ≥0 := fun i => if h : i < 2 * K then t' i h else N
-  have hmono : Monotone t'' := fun i j hij => by
+  -- Extend to all ℕ: use the last value t' (2*K-1) for indices ≥ 2K
+  have h2K_pos : 0 < 2 * K := by omega
+  let t'' : ℕ → ℚ≥0 := fun i => if h : i < 2 * K then t' i h else t' (2 * K - 1) (by omega)
+  have hmono : Monotone (fun i => (t'' i : ℝ≥0)) := fun i j hij => by
     simp only [t'']; split_ifs with hi hj
     · rcases eq_or_lt_of_le hij with rfl | hij_lt; · rfl
       have h1 := ht'_lt i hi; have h3 := ht'_gt j hj
@@ -1635,18 +1651,22 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
         · exact hseq.mono (Nat.succ_le_of_lt hij_lt)
         · omega
       exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
-    · have h2 : bound i ≤ N := by
-        simp only [bound]; split_ifs with hi'
-        · exact (hseq.mono (by omega)).trans (le_of_lt ht_lt_N)
-        · rfl
-      exact le_of_lt (lt_of_lt_of_le (ht'_lt i hi) h2)
+    · -- Case: i < 2K but j ≥ 2K. Then t'' j = t' (2K-1).
+      by_cases hi_eq : i = 2 * K - 1
+      · subst hi_eq; rfl  -- t' (2K-1) ≤ t' (2K-1)
+      · have h1 := ht'_lt i hi
+        have h3 := ht'_gt (2 * K - 1) (by omega)
+        have hi' : i + 1 < 2 * K := by omega
+        have h2 : bound i ≤ hseq.t (2 * K - 1) := by
+          simp only [bound, hi', ↓reduceIte]; exact hseq.mono (by omega)
+        exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
     · omega
     · rfl
-  refine ⟨⟨by linarith, t'', hmono,
+  refine ⟨t'', ⟨by linarith, fun i => t'' i, hmono,
     fun i hi he => by simp only [t'', hi, ↓reduceDIte]; exact ht'_le_a i hi he,
-    fun i hi ho => by simp only [t'', hi, ↓reduceDIte]; exact ht'_ge_b i hi ho⟩, ?_⟩
+    fun i hi ho => by simp only [t'', hi, ↓reduceDIte]; exact ht'_ge_b i hi ho⟩, rfl, ?_⟩
   simp only [t'', (by omega : 2 * K - 1 < 2 * K), ↓reduceDIte]
-  calc t' (2 * K - 1) _ < bound (2 * K - 1) := ht'_lt _ _
+  calc (t' (2 * K - 1) _ : ℝ≥0) < bound (2 * K - 1) := ht'_lt _ _
     _ = N := by simp only [bound]; split_ifs <;> [omega; rfl]
 
 
