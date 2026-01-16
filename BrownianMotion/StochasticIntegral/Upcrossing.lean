@@ -1622,13 +1622,11 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
     (hε_small : 2 * ε < b - a) :
     ∃ (t' : ℕ → ℚ≥0) (hseq' : UpcrossingData (a + ε) (b - ε) f K ω),
       hseq'.t = (fun i => (t' i : ℝ≥0)) ∧ (t' (2 * K - 1) : ℝ≥0) < N := by
-  -- Upper bound for each index: t_{i+1} if i+1 < 2K, else N
   let bound : ℕ → ℝ≥0 := fun i => if i + 1 < 2 * K then hseq.t (i + 1) else N
   have hbound_gt i (hi : i < 2 * K) : hseq.t i < bound i := by
     simp only [bound]; split_ifs with h
     · exact hseq.t_strict_mono' (Nat.lt_succ_self i) h
     · exact (by omega : i = 2 * K - 1) ▸ ht_lt_N
-  -- Pick t'_i using right-continuity (now in ℚ≥0)
   have hexists i (hi : i < 2 * K) : ∃ t'_i : ℚ≥0, hseq.t i < t'_i ∧ (t'_i : ℝ≥0) < bound i ∧
       (Even i → f t'_i ω ≤ a + ε) ∧ (Odd i → f t'_i ω ≥ b - ε) := by
     by_cases heven : Even i
@@ -1639,27 +1637,20 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
         (hbound_gt i hi) (hseq.ft_ge_b i hi (Nat.not_even_iff_odd.mp heven))
       exact ⟨s', h2, h1, fun he => absurd he heven, fun _ => h3⟩
   choose t' ht'_gt ht'_lt ht'_le_a ht'_ge_b using hexists
-  -- Extend to all ℕ: use the last value t' (2*K-1) for indices ≥ 2K
-  have h2K_pos : 0 < 2 * K := by omega
   let t'' : ℕ → ℚ≥0 := fun i => if h : i < 2 * K then t' i h else t' (2 * K - 1) (by omega)
   have hmono : Monotone (fun i => (t'' i : ℝ≥0)) := fun i j hij => by
     simp only [t'']; split_ifs with hi hj
     · rcases eq_or_lt_of_le hij with rfl | hij_lt; · rfl
-      have h1 := ht'_lt i hi; have h3 := ht'_gt j hj
       have h2 : bound i ≤ hseq.t j := by
-        simp only [bound]; split_ifs with hi'
-        · exact hseq.mono (Nat.succ_le_of_lt hij_lt)
-        · omega
-      exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
-    · -- Case: i < 2K but j ≥ 2K. Then t'' j = t' (2K-1).
-      by_cases hi_eq : i = 2 * K - 1
-      · subst hi_eq; rfl  -- t' (2K-1) ≤ t' (2K-1)
-      · have h1 := ht'_lt i hi
-        have h3 := ht'_gt (2 * K - 1) (by omega)
-        have hi' : i + 1 < 2 * K := by omega
-        have h2 : bound i ≤ hseq.t (2 * K - 1) := by
-          simp only [bound, hi', ↓reduceIte]; exact hseq.mono (by omega)
-        exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
+        simp only [bound]
+        split_ifs with hi' <;> [exact hseq.mono (Nat.succ_le_of_lt hij_lt); omega]
+      exact le_of_lt ((ht'_lt i hi).trans_le (h2.trans (le_of_lt (ht'_gt j hj))))
+    · by_cases hi_eq : i = 2 * K - 1
+      · subst hi_eq; rfl
+      · have h2 : bound i ≤ hseq.t (2 * K - 1) := by
+          have : i + 1 < 2 * K := by omega
+          simp only [bound, this, ↓reduceIte]; exact hseq.mono (by omega)
+        exact le_of_lt ((ht'_lt i hi).trans_le (h2.trans (le_of_lt (ht'_gt _ _))))
     · omega
     · rfl
   refine ⟨t'', ⟨by linarith, fun i => t'' i, hmono,
