@@ -1660,6 +1660,91 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
   calc (t' (2 * K - 1) _ : ℝ≥0) < bound (2 * K - 1) := ht'_lt _ _
     _ = N := by simp only [bound]; split_ifs <;> [omega; rfl]
 
+/-- The set `D = ℚ≥0 ∪ {N}` used in the discretization argument for Doob's inequality. -/
+def DSet (N : ℝ≥0) : Set ℝ≥0 := {q | ∃ r : ℚ≥0, (r : ℝ≥0) = q} ∪ {N}
+
+lemma DSet_countable (N : ℝ≥0) : (DSet N).Countable := by
+  apply Set.Countable.union _ (Set.countable_singleton N)
+  have : {q : ℝ≥0 | ∃ r : ℚ≥0, (r : ℝ≥0) = q} = Set.range (fun q : ℚ≥0 => (q : ℝ≥0)) := by
+    ext x; simp only [Set.mem_setOf_eq, Set.mem_range]
+  rw [this]
+  have : Countable ℚ≥0 := Subtype.countable
+  exact Set.countable_range _
+
+lemma mem_DSet_of_NNRat {N : ℝ≥0} (q : ℚ≥0) : (q : ℝ≥0) ∈ DSet N :=
+  Or.inl ⟨q, rfl⟩
+
+lemma zero_mem_DSet (N : ℝ≥0) : (0 : ℝ≥0) ∈ DSet N := by
+  convert mem_DSet_of_NNRat (0 : ℚ≥0)
+  simp
+
+lemma N_mem_DSet (N : ℝ≥0) : N ∈ DSet N := Or.inr rfl
+
+instance DSet_orderBot (N : ℝ≥0) : OrderBot (DSet N) where
+  bot := ⟨0, zero_mem_DSet N⟩
+  bot_le := fun ⟨x, _⟩ => zero_le x
+
+instance DSet_countable_inst (N : ℝ≥0) : Countable (DSet N) := (DSet_countable N).to_subtype
+
+/-- When `f` is right-continuous, upcrossings from `a` to `b` in `f` are bounded by
+    upcrossings from `(a + ε)` to `(b - ε)` in the restriction of `f` to `D = ℚ≥0 ∪ {N}`. -/
+lemma upcrossingsBefore'_le_upcrossingsBefore'_restrict_DSet
+    (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε) (hε_small : 2 * ε < b - a)
+    (ω : Ω) (hBdd : BddAbove {n | ltUpcrossingsBefore (a + ε) (b - ε) (fun d : DSet N => f d)
+      ⟨N, N_mem_DSet N⟩ n ω}) :
+    upcrossingsBefore' a b f N ω ≤
+      upcrossingsBefore' (a + ε) (b - ε) (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω := by
+  set DN := DSet N
+  set Nelem : DN := ⟨N, N_mem_DSet N⟩
+  haveI : Countable DN := DSet_countable_inst N
+  have hNelem_bot : Nelem ≤ ⊥ ↔ N ≤ ⊥ := by simp only [le_bot_iff, Nelem, Subtype.ext_iff]; rfl
+  -- If N ≤ ⊥, then LHS = 0 ≤ RHS
+  by_cases hNbot : N ≤ ⊥
+  · have : {n | ltUpcrossingsBefore a b f N n ω} = ∅ := by
+      ext n; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, ltUpcrossingsBefore,
+        hNbot, ↓reduceIte]
+    simp only [upcrossingsBefore', this, csSup_empty]
+    exact Nat.zero_le _
+  -- Now N > ⊥, so the set is nonempty (contains 0)
+  apply csSup_le_csSup
+  -- The D-indexed version is bounded (assumed)
+  · exact hBdd
+  -- The set of K with upcrossings in f is nonempty (0 is always in it when N > ⊥)
+  · use 0
+    simp only [Set.mem_setOf_eq, ltUpcrossingsBefore, hNbot, ↓reduceIte]
+  -- Main inclusion: if K upcrossings exist in f, then K upcrossings exist in f|D
+  · intro K hK
+    simp only [Set.mem_setOf_eq, ltUpcrossingsBefore, hNelem_bot, hNbot, ↓reduceIte] at hK ⊢
+    rcases K with _ | K
+    · trivial
+    · -- K ≥ 1, so hK : ∃ seq, seq.t (2 * (K+1) - 1) < N
+      obtain ⟨hseq, ht_lt_N⟩ := hK
+      -- Use disturb to get rational times
+      obtain ⟨t', hseq', ht'_eq, ht'_lt_N⟩ := hseq.disturb hRC (by omega : K + 1 ≥ 1)
+        ht_lt_N hεpos hε_small
+      -- Build UpcrossingData for f|D using the rational times t' (which are in D)
+      let t'' : ℕ → DN := fun i => ⟨t' i, mem_DSet_of_NNRat (t' i)⟩
+      have ht'_eq' : ∀ i, hseq'.t i = t' i := fun i => congrFun ht'_eq i
+      refine ⟨⟨hseq'.hab, t'', ?_, ?_, ?_⟩, ?_⟩
+      · -- Monotonicity of t''
+        intro i j hij
+        simp only [t'', Subtype.mk_le_mk]
+        rw [← ht'_eq' i, ← ht'_eq' j]
+        exact hseq'.mono hij
+      · -- f(t'' i) ≤ a + ε for even i
+        intro i hi he
+        simp only [t'']
+        rw [← ht'_eq' i]
+        exact hseq'.ft_le_a i hi he
+      · -- f(t'' i) ≥ b - ε for odd i
+        intro i hi ho
+        simp only [t'']
+        rw [← ht'_eq' i]
+        exact hseq'.ft_ge_b i hi ho
+      · -- t'' (2 * (K+1) - 1) < Nelem
+        simp only [t'']
+        exact ht'_lt_N
+
 
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
