@@ -1851,4 +1851,12 @@ theorem Submartingale.mul_integral_upcrossingsBefore_NNReal_le_integral_pos_part
 
 end DoobInequalityNNReal
 
+example : sSup (Set.univ : Set ℕ) = 0 := by
+  have h : ¬ BddAbove (Set.univ : Set ℕ) := by
+    intro ⟨M, hM⟩
+    have : M + 1 ≤ M := hM (Set.mem_univ (M + 1))
+    omega
+  rw [csSup_of_not_bddAbove h, csSup_empty]
+  rfl
+  
 end ProbabilityTheory
