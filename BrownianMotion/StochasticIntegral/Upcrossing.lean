@@ -1548,27 +1548,25 @@ variable {f : ℝ≥0 → Ω → ℝ} {𝓕 : Filtration ℝ≥0 m0} [IsFiniteMe
 Let $U_a^b(f,N)$ denote the number of $[a,b]$-crossings of $f$ up to time $N$;
 its measurability is ensured by the debut theorem.
 
-For a fixed $N\in R_+$, let $D=Q_+\cup\{0,N\}$.
+For a fixed $N\in R_+$, let $D=Q_+\cup\{N\}$.
 
-For $0<\epsilon < (b-a)/2$,
+For $0<ε<(b-a)/2$,
 \[
-  EU_a^b(f,N)
-    \le EU_{a+\epsilon}^{b-\epsilon}(f|_D,N)
-      \le \frac{E(f_t-a-\epsilon)^+}{b-a-2\epsilon},
+  EU_a^b(f,N) \le EU_{a+ε}^{b-ε}(f|_D,N) \le \frac{E(f_t-a-ε)^+}{b-a-2ε},
 \]
 where the latter inequality is the Doob upcrossing inequality applied to $f|_D$, $D$ countable.
 Indeed, let us fix a right-continuous trajectory $f · (\omega)$ and denote it by $f$, again;
 by continuity,
 \begin{align*}
-  f_s\le a  &\implies (f|_D)_{s_n}\le a+\epsilon \tekst{for some} s_n\downarrow s, \\
-  f_s\ge b  &\implies (f|_D)_{s_n}\ge b-\epsilon \tekst{for some} s_n\downarrow s,
+  f_s\le a  &\implies (f|_D)_{s_n}\le a+ε \tekst{for some} s_n\downarrow s, \\
+  f_s\ge b  &\implies (f|_D)_{s_n}\ge b-ε \tekst{for some} s_n\downarrow s,
 \end{align*}
 which yields
 $
-  U_a^b(f,N) \le U_{a+\epsilon}^{b-\epsilon}(f|_D,N)
+  U_a^b(f,N) \le U_{a+ε}^{b-ε}(f|_D,N)
 $.
 The sequence $(s_n)\subset D$; if $s=N$, we take $s_n=N\in D$.
-Now, letting $\epsilon\to0$ gives our claim, by monotone convergence in numerator.
+Now, letting $ε\to0$ gives our claim, by monotone convergence in numerator.
 -/
 lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
@@ -1744,6 +1742,57 @@ lemma upcrossingsBefore'_le_upcrossingsBefore'_restrict_DSet
       · -- t'' (2 * (K+1) - 1) < Nelem
         simp only [t'']
         exact ht'_lt_N
+
+/-- Restrict a filtration on ℝ≥0 to DSet N. -/
+def Filtration.restrictDSet (𝓕 : Filtration ℝ≥0 m0) (N : ℝ≥0) :
+    Filtration (DSet N) m0 :=
+  ⟨fun i => 𝓕 i.val, fun _ _ hij => 𝓕.mono hij, fun i => 𝓕.le i.val⟩
+
+omit [IsFiniteMeasure μ] in
+/-- Restrict a submartingale on ℝ≥0 to DSet N. -/
+lemma submartingale_restrictDSet (hf : Submartingale f 𝓕 μ) (N : ℝ≥0) :
+    Submartingale (fun d : DSet N => f d) (Filtration.restrictDSet 𝓕 N) μ :=
+  ⟨fun i => hf.adapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
+
+/-- The restriction of f to DSet N is integrable in upcrossings. -/
+lemma integrable_upcrossingsBefore'_restrict_DSet (hf : Submartingale f 𝓕 μ)
+    {ε : ℝ} (hε_small : 2 * ε < b - a) :
+    Integrable (fun ω => (upcrossingsBefore' (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)) μ := by
+  have hab' : a + ε < b - ε := by linarith
+  exact (mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part_aux
+    (submartingale_restrictDSet hf N) hab').1
+
+/-- For $0<ε<(b-a)/2$, $EU_a^b(f,N) \le EU_{a+ε}^{b-ε}(f|_D,N)$. -/
+lemma integral_upcrossingsBefore'_le_of_restrict_DSet (hf : Submartingale f 𝓕 μ)
+    (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε)
+    (hε_small : 2 * ε < b - a)
+    (hBdd : ∀ᵐ ω ∂μ, BddAbove {n | ltUpcrossingsBefore (a + ε) (b - ε) (fun d : DSet N => f d)
+      ⟨N, N_mem_DSet N⟩ n ω})
+    (hInt : Integrable (fun ω => (upcrossingsBefore' a b f N ω : ℝ)) μ) :
+    μ[fun ω => (upcrossingsBefore' a b f N ω : ℝ)] ≤
+      μ[fun ω => (upcrossingsBefore' (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] := by
+  apply integral_mono_ae
+  · exact hInt
+  · exact integrable_upcrossingsBefore'_restrict_DSet hf hε_small
+  · filter_upwards [hBdd] with ω hBdd_ω
+    exact Nat.cast_le.mpr
+      (upcrossingsBefore'_le_upcrossingsBefore'_restrict_DSet hRC hεpos hε_small ω hBdd_ω)
+
+/-- For $0<ε<(b-a)/2$, $EU_{a+ε}^{b-ε}(f|_D,N) \le \frac{E(f_N-a-ε)^+}{b-a-2ε}$.
+    This follows from the discrete Doob inequality applied to the restriction of f to D. -/
+lemma mul_integral_upcrossingsBefore'_restrict_DSet_le (hf : Submartingale f 𝓕 μ)
+    {ε : ℝ} (hε_small : 2 * ε < b - a) :
+    (b - a - 2 * ε) * μ[fun ω => (upcrossingsBefore' (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] ≤
+      μ[fun ω => (f N ω - (a + ε))⁺] := by
+  have hab' : a + ε < b - ε := by linarith
+  have hba : b - ε - (a + ε) = b - a - 2 * ε := by ring
+  rw [← hba]
+  exact Submartingale.mul_integral_upcrossingsBefore'_Countable_le_integral_pos_part
+    (submartingale_restrictDSet hf N)
+
 
 
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
