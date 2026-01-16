@@ -1429,56 +1429,36 @@ lemma bounded_integral_lim_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω �
   exact le_of_tendsto' h_int_tendsto h_bound
 
 lemma bounded_integral_sup_of_mono_L1_bounded {f : ℕ → Ω → ℝ} {F : Ω → ℝ}
-    (h_pos : ∀ n, 0 ≤ᵐ[μ] f n)
-    (h_int : ∀ n, Integrable (f n) μ)
-    {c : ℝ}
-    (h_bound : ∀ n, μ[f n] ≤ c)
-    (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
+    (h_pos : ∀ n, 0 ≤ᵐ[μ] f n) (h_int : ∀ n, Integrable (f n) μ) {c : ℝ}
+    (h_bound : ∀ n, μ[f n] ≤ c) (h_mono : ∀ᵐ x ∂μ, Monotone fun n ↦ f n x)
     (h_sup : ∀ x, (∃ M, ∀ n, f n x ≤ M) → F x = ⨆ n, f n x) :
     Integrable F μ ∧ μ[F] ≤ c := by
-  -- Show that a.e. the sequence is bounded above (key step)
+  have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
+    fun n => (h_int n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
+  have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
+    filter_upwards [h_mono] with x hx n m hnm; exact ENNReal.ofReal_le_ofReal (hx hnm)
+  have h_lintegral_bdd n : ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
+    rw [← ofReal_integral_eq_lintegral_ofReal (h_int n) (h_pos n)]
+    exact ENNReal.ofReal_le_ofReal (h_bound n)
+  have h_sup_lintegral : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c :=
+    (lintegral_iSup' h_meas h_mono_ennreal).trans_le (iSup_le h_lintegral_bdd)
+  have h_sup_lt_top : ∀ᵐ x ∂μ, ⨆ n, ENNReal.ofReal (f n x) < ⊤ :=
+    ae_lt_top' (AEMeasurable.iSup h_meas) (h_sup_lintegral.trans_lt ENNReal.ofReal_lt_top).ne
   have h_ae_bdd : ∀ᵐ x ∂μ, ∃ M, ∀ n, f n x ≤ M := by
-    have h_meas : ∀ n, AEMeasurable (fun x => ENNReal.ofReal (f n x)) μ :=
-      fun n => (h_int n).aestronglyMeasurable.aemeasurable.ennreal_ofReal
-    have h_mono_ennreal : ∀ᵐ x ∂μ, Monotone fun n => ENNReal.ofReal (f n x) := by
-      filter_upwards [h_mono] with x hx n m hnm
-      exact ENNReal.ofReal_le_ofReal (hx hnm)
-    have h_lintegral_bdd : ∀ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
-      intro n
-      rw [← ofReal_integral_eq_lintegral_ofReal (h_int n) (h_pos n)]
-      exact ENNReal.ofReal_le_ofReal (h_bound n)
-    have h_sup_lintegral : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≤ ENNReal.ofReal c := by
-      calc ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ
-          = ⨆ n, ∫⁻ x, ENNReal.ofReal (f n x) ∂μ := lintegral_iSup' h_meas h_mono_ennreal
-        _ ≤ ENNReal.ofReal c := iSup_le h_lintegral_bdd
-    have h_sup_lt_top : ∀ᵐ x ∂μ, ⨆ n, ENNReal.ofReal (f n x) < ⊤ := by
-      have hne : ∫⁻ x, ⨆ n, ENNReal.ofReal (f n x) ∂μ ≠ ⊤ :=
-        (lt_of_le_of_lt h_sup_lintegral ENNReal.ofReal_lt_top).ne
-      have hmeas : AEMeasurable (fun x => ⨆ n, ENNReal.ofReal (f n x)) μ :=
-        AEMeasurable.iSup h_meas
-      exact ae_lt_top' hmeas hne
     filter_upwards [h_sup_lt_top, h_mono, h_pos 0] with x hx_lt_top hx_mono hf0
-    have hsup_ne_top : ⨆ n, ENNReal.ofReal (f n x) ≠ ⊤ := hx_lt_top.ne
     refine ⟨(⨆ n, ENNReal.ofReal (f n x)).toReal, fun n => ?_⟩
     by_cases hfn : 0 ≤ f n x
     · calc f n x = (ENNReal.ofReal (f n x)).toReal := (ENNReal.toReal_ofReal hfn).symm
-        _ ≤ (⨆ n, ENNReal.ofReal (f n x)).toReal := by
-            apply ENNReal.toReal_mono hsup_ne_top
-            exact le_iSup (fun n => ENNReal.ofReal (f n x)) n
-    · push_neg at hfn
-      have h0le : 0 ≤ (⨆ n, ENNReal.ofReal (f n x)).toReal := ENNReal.toReal_nonneg
-      exact le_trans (le_of_lt hfn) h0le
-  -- Now we have a.e. boundedness, so a.e. F = ⨆ n, f n x and f n → F
+        _ ≤ _ := ENNReal.toReal_mono hx_lt_top.ne (le_iSup (fun n => ENNReal.ofReal (f n x)) n)
+    · exact (lt_of_not_ge hfn).le.trans ENNReal.toReal_nonneg
   have h_ae_sup : ∀ᵐ x ∂μ, F x = ⨆ n, f n x := by
     filter_upwards [h_ae_bdd] with x hx; exact h_sup x hx
   have h_tendsto : ∀ᵐ x ∂μ, Tendsto (fun n ↦ f n x) atTop (nhds (F x)) := by
     filter_upwards [h_ae_bdd, h_mono, h_ae_sup] with x hx_bdd hx_mono hx_sup
-    rw [hx_sup]
-    exact tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
+    exact hx_sup ▸ tendsto_atTop_ciSup hx_mono ⟨_, Set.forall_mem_range.mpr hx_bdd.choose_spec⟩
   have hF : AEStronglyMeasurable F μ :=
     aestronglyMeasurable_of_tendsto_ae atTop (fun n => (h_int n).aestronglyMeasurable) h_tendsto
-  have hF_int : Integrable F μ :=
-    integrable_lim_of_mono_L1_bounded h_pos h_int hF h_bound h_mono h_tendsto
+  have hF_int := integrable_lim_of_mono_L1_bounded h_pos h_int hF h_bound h_mono h_tendsto
   exact ⟨hF_int, bounded_integral_lim_of_mono_L1_bounded h_pos h_int hF h_bound h_mono h_tendsto⟩
 
 end ConvergenceBochner
@@ -1593,56 +1573,31 @@ Now, letting $\epsilon\to0$ gives our claim, by monotone convergence in numerato
 lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
     ∃ s' < t, s' > s ∧ f s' ω ≤ a + ε := by
-  -- Right-continuity at s gives: ∀ ε > 0, ∃ δ > 0, ∀ s' ∈ (s, s + δ), |f s' ω - f s ω| < ε
   have hRC_s : ContinuousWithinAt (f · ω) (Set.Ioi s) s := hRC ω s
   rw [Metric.continuousWithinAt_iff] at hRC_s
   obtain ⟨δ, hδpos, hδ⟩ := hRC_s ε hεpos
-  -- Pick δ' = min(δ/2, (t-s)/2) which puts s + δ' in (s, t) ∩ ball(s, δ)
   have hts_pos : (0 : ℝ) < t - s := sub_pos.mpr hst
-  set δ'_real : ℝ := min (δ / 2) ((t - s) / 2) with hδ'_real_def
-  have hδ'_pos : 0 < δ'_real := lt_min (by linarith) (by linarith)
-  set δ' : ℝ≥0 := ⟨δ'_real, le_of_lt hδ'_pos⟩ with hδ'def
-  use s + δ'
-  have hδ'pos_nnreal : (0 : ℝ≥0) < δ' := hδ'_pos
-  refine ⟨?_, ?_, ?_⟩
-  · -- s + δ' < t
-    have h1 : (δ' : ℝ) < t - s := by
-      calc (δ' : ℝ) = δ'_real := rfl
-        _ = min (δ / 2) ((↑t - ↑s) / 2) := rfl
-        _ ≤ (↑t - ↑s) / 2 := min_le_right _ _
+  set δ' : ℝ≥0 := ⟨min (δ / 2) ((t - s) / 2), by positivity⟩
+  have hδ'pos : (0 : ℝ≥0) < δ' := (lt_min (by linarith) (by linarith) : (0 : ℝ) < _)
+  refine ⟨s + δ', ?_, lt_add_of_pos_right s hδ'pos, ?_⟩
+  · have : (δ' : ℝ) < t - s := calc
+        (δ' : ℝ) ≤ (↑t - ↑s) / 2 := min_le_right _ _
         _ < t - s := by linarith
-    have h2 : (s : ℝ) + δ' < s + (t - s) := add_lt_add_left h1 (s : ℝ)
-    have h3 : (s : ℝ) + (t - s) = t := by ring
-    calc (s + δ' : ℝ≥0) < ⟨(s : ℝ) + (t - s), by positivity⟩ := by exact h2
-      _ = t := by ext; simp [h3]
-  · -- s < s + δ'
-    exact lt_add_of_pos_right s hδ'pos_nnreal
-  · -- f (s + δ') ω ≤ a + ε
-    have hmem_Ioi : s + δ' ∈ Set.Ioi s := lt_add_of_pos_right s hδ'pos_nnreal
-    have hmem_ball : dist (s + δ') s < δ := by
-      simp only [NNReal.dist_eq]
-      have h1 : (↑(s + δ') : ℝ) - ↑s = δ' := by simp [NNReal.coe_add]
-      rw [h1, abs_of_nonneg (NNReal.coe_nonneg δ')]
-      calc (δ' : ℝ) = δ'_real := rfl
-        _ ≤ δ / 2 := min_le_left _ _
-        _ < δ := by linarith
-    have hdist : dist (f (s + δ') ω) (f s ω) < ε := hδ hmem_Ioi hmem_ball
-    rw [Real.dist_eq] at hdist
-    have h := abs_sub_lt_iff.mp hdist
-    linarith
+    calc (s + δ' : ℝ) < s + (t - s) := add_lt_add_left this s
+      _ = t := by ring
+  · have hdist : dist (f (s + δ') ω) (f s ω) < ε := hδ (lt_add_of_pos_right s hδ'pos) (by
+      simp only [NNReal.dist_eq, NNReal.coe_add, add_sub_cancel_left,
+        abs_of_nonneg (NNReal.coe_nonneg _)]
+      calc (δ' : ℝ) ≤ δ / 2 := min_le_left _ _
+        _ < δ := by linarith)
+    linarith [abs_sub_lt_iff.mp (Real.dist_eq _ _ ▸ hdist)]
 
 lemma disturbed_crossing_ge_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (hb : f s ω ≥ b) :
     ∃ s' < t, s' > s ∧ f s' ω ≥ b - ε := by
-  -- Apply the `≤` version to `-f` with `-b` in place of `a`
-  have hRC_neg : ∀ ω, RightContinuous ((-f) · ω) := fun ω x =>
-    (hRC ω x).neg
-  have ha_neg : (-f) s ω ≤ -b := neg_le_neg hb
-  obtain ⟨s', hs'_lt, hs'_gt, hs'_le⟩ :=
-    disturbed_crossing_le_close_of_crossing (f := -f) (a := -b) hRC_neg hεpos hst ha_neg
-  refine ⟨s', hs'_lt, hs'_gt, ?_⟩
-  simp only [Pi.neg_apply] at hs'_le
-  linarith
+  obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_le_close_of_crossing (f := -f) (a := -b)
+    (fun ω x => (hRC ω x).neg) hεpos hst (neg_le_neg hb)
+  exact ⟨s', h1, h2, by simp only [Pi.neg_apply] at h3; linarith⟩
 
 /-- Given `UpcrossingData a b f K ω` with witness times ending before `N`, and `0 < ε < (b-a)/2`,
     we can construct `UpcrossingData (a + ε) (b - ε) f K ω` also with witness times before `N`.
@@ -1708,49 +1663,23 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
     HittingBtwnSpec f s n m ω := by
   constructor
-  -- hitsSet: hittingBtwn f s n m ω < m → f (hittingBtwn f s n m ω) ω ∈ s
   intro ht
-  -- Since hittingBtwn < m, there exists a hit in [n, m]
   have h_exists : ∃ j ∈ Set.Icc n m, f j ω ∈ s := by
-    by_contra h_neg
-    simp only [hittingBtwn, h_neg, ↓reduceIte] at ht
-    exact lt_irrefl m ht
-  -- The hitting time is the infimum of hitting points in [n, m]
-  set S := Set.Icc n m ∩ {i | f i ω ∈ s} with Sdef
-  have h_eq : hittingBtwn f s n m ω = sInf S := by
-    simp only [hittingBtwn, h_exists, ↓reduceIte, Sdef]
-  -- The set of hitting points is nonempty
-  have hne : S.Nonempty := by
-    obtain ⟨j, hj_Icc, hj_s⟩ := h_exists
-    exact ⟨j, hj_Icc, hj_s⟩
-  -- S is bounded below
+    by_contra h_neg; simp only [hittingBtwn, h_neg, ↓reduceIte] at ht; exact lt_irrefl m ht
+  set S := Set.Icc n m ∩ {i | f i ω ∈ s}
+  have h_eq : hittingBtwn f s n m ω = sInf S := by simp only [hittingBtwn, h_exists, ↓reduceIte, S]
+  have hne : S.Nonempty := h_exists
   have hbdd : BddBelow S := ⟨n, fun x hx => hx.1.1⟩
-  -- Get a sequence in S converging to sInf S from above
-  obtain ⟨u, hu_anti, hu_tendsto, hu_mem⟩ := exists_seq_tendsto_sInf hne hbdd
-  -- The sequence elements are in S, so f u n ω ∈ s
-  have hu_in_s : ∀ n, f (u n) ω ∈ s := fun n => (hu_mem n).2
-  -- Since u is antitone and converges to sInf S from above, we have u n ≥ sInf S
-  have hu_ge : ∀ n, u n ≥ sInf S := fun n => csInf_le hbdd (hu_mem n)
-  -- Case split: either sInf S ∈ S (then done), or sInf S is a strict limit from the right
+  obtain ⟨u, -, hu_tendsto, hu_mem⟩ := exists_seq_tendsto_sInf hne hbdd
   rw [h_eq]
   by_cases h_mem_S : sInf S ∈ S
-  · -- sInf S ∈ S, so f (sInf S) ω ∈ s directly
-    exact h_mem_S.2
-  · -- sInf S ∉ S, so all u n > sInf S strictly
-    have hu_gt : ∀ n, u n > sInf S := fun n => lt_of_le_of_ne (hu_ge n) (fun heq =>
-      h_mem_S (heq ▸ hu_mem n))
-    -- u n ∈ Ioi (sInf S), so we can use right-continuity
-    have hu_Ioi : ∀ n, u n ∈ Set.Ioi (sInf S) := fun n => hu_gt n
-    -- Right-continuity gives tendsto (f · ω) (nhdsWithin h (Ioi h)) (nhds (f h ω))
-    -- The sequence u, which stays in Ioi h, induces a filter map to nhdsWithin
-    have h_tendsto_within : Tendsto u atTop (nhdsWithin (sInf S) (Set.Ioi (sInf S))) := by
-      rw [tendsto_nhdsWithin_iff]
-      exact ⟨hu_tendsto, Filter.Eventually.of_forall hu_Ioi⟩
-    -- Compose with right-continuity
-    have h_f_tendsto : Tendsto (fun n => f (u n) ω) atTop (nhds (f (sInf S) ω)) :=
-      (hRC (sInf S)).tendsto.comp h_tendsto_within
-    -- Apply IsClosed.mem_of_tendsto
-    exact hs.mem_of_tendsto h_f_tendsto (Filter.Eventually.of_forall hu_in_s)
+  · exact h_mem_S.2
+  · have hu_Ioi : ∀ n, u n ∈ Set.Ioi (sInf S) := fun n =>
+      lt_of_le_of_ne (csInf_le hbdd (hu_mem n)) (fun heq => h_mem_S (heq ▸ hu_mem n))
+    have h_tendsto_within : Tendsto u atTop (nhdsWithin (sInf S) (Set.Ioi (sInf S))) :=
+      tendsto_nhdsWithin_iff.mpr ⟨hu_tendsto, Filter.Eventually.of_forall hu_Ioi⟩
+    exact hs.mem_of_tendsto ((hRC (sInf S)).tendsto.comp h_tendsto_within)
+      (Filter.Eventually.of_forall fun n => (hu_mem n).2)
 
 theorem upcrossingsBefore_eq_upcrossingsBefore'_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
     (hab : a < b) :
