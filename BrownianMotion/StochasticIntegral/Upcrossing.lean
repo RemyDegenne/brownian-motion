@@ -34,7 +34,36 @@ noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b
 
 -/
 
-variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
+variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {a b : ℝ}
+
+/- Upcrossings number that is infinite when optional times accumulate before N. -/
+noncomputable def upcrossingsBigsup [Preorder ι] [OrderBot ι] [InfSet ι] (a b : ℝ) (f : ι → Ω → ℝ)
+    (N : ι) (ω : Ω) : ℕ∞ :=
+  ⨆ (n : ℕ) (_ : upperCrossingTime a b f N n ω < N), (n : ℕ∞)
+
+/- The definition of supUpBef agrees with the upcrossingsBefore whenever the former is finite. -/
+lemma upcrossingsBigsup_eq_upcrossingsBefore_of_finite [Preorder ι] [OrderBot ι] [InfSet ι]
+    {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+    (hbdd : BddAbove {n | upperCrossingTime a b f N n ω < N}) :
+    upcrossingsBigsup a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
+  sorry
+
+lemma upcrossingsBigsup_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
+    (hab : a < b) :
+    upcrossingsBigsup a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) :=
+  upcrossingsBigsup_eq_upcrossingsBefore_of_finite (upperCrossingTime_lt_bddAbove hab)
+
+/-! Let's use:
+theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux [IsFiniteMeasure μ]
+    (hf : Submartingale f ℱ μ) (hab : a < b) :
+    (b - a) * μ[upcrossingsBefore a b f N] ≤ μ[fun ω => (f N ω - a)⁺]
+-/
+theorem mul_lintegral_upcrossingsBefore_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
+    {𝓕 : Filtration ℕ m0} {f : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ}
+    (hf : Submartingale f 𝓕 μ) (hab : a < b) :
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBefore a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
+  sorry
 
 structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
   hab : a < b
@@ -1858,5 +1887,5 @@ example : sSup (Set.univ : Set ℕ) = 0 := by
     omega
   rw [csSup_of_not_bddAbove h, csSup_empty]
   rfl
-  
+
 end ProbabilityTheory
