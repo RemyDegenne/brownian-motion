@@ -1564,6 +1564,38 @@ section DoobInequalityNNReal
 variable {f : ℝ≥0 → Ω → ℝ} {𝓕 : Filtration ℝ≥0 m0} [IsFiniteMeasure μ]
   {N : ℝ≥0} {a b : ℝ}
 
+/-!
+Let $U_a^b(f,N)$ denote the number of $[a,b]$-crossings of $f$ up to time $N$;
+its measurability is ensured by the debut theorem.
+
+For a fixed $N\in R_+$, let $D=Q_+\cup\{0,N\}$.
+
+For $0<\epsilon < (b-a)/2$,
+\[
+  EU_a^b(f,N)
+    \le EU_{a+\epsilon}^{b-\epsilon}(f|_D,N)
+      \le \frac{E(f_t-a-\epsilon)^+}{b-a-2\epsilon},
+\]
+where the latter inequality is the Doob upcrossing inequality applied to $f|_D$, $D$ countable.
+Indeed, let us fix a right-continuous trajectory $f · (\omega)$ and denote it by $f$, again;
+by continuity,
+\begin{align*}
+  f_s\le a  &\implies (f|_D)_{s_n}\le a+\epsilon \tekst{for some} s_n\downarrow s, \\
+  f_s\ge b  &\implies (f|_D)_{s_n}\ge b-\epsilon \tekst{for some} s_n\downarrow s,
+\end{align*}
+which yields
+$
+  U_a^b(f,N) \le U_{a+\epsilon}^{b-\epsilon}(f|_D,N)
+$.
+The sequence $(s_n)\subset D$; if $s=N$, we take $s_n=N\in D$.
+Now, letting $\epsilon\to0$ gives our claim, by monotone convergence in numerator.
+-/
+lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
+    (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
+    ∃ s' < t, s' > s ∧ f s' ω ≤ a + ε := by
+  sorry
+
+
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
     (b - a) * μ[upcrossingsBefore' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
@@ -1634,6 +1666,15 @@ theorem mul_integral_upcrossingsBefore_NNReal_le_integral_pos_part_aux (hf : Sub
   rw [upcrossingsBefore_eq_upcrossingsBefore'_NNReal hRC hab]
   exact mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux hf hRC hab
 
+theorem Submartingale.mul_integral_upcrossingsBefore_NNReal_le_integral_pos_part
+    (hf : Submartingale f 𝓕 μ)
+    (hRC : ∀ ω, RightContinuous (f · ω)) :
+    (b - a) * μ[upcrossingsBefore a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+  by_cases! hab : a < b
+  · exact mul_integral_upcrossingsBefore_NNReal_le_integral_pos_part_aux hf hRC hab
+  · rw [← sub_nonpos] at hab
+    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
+      (integral_nonneg fun ω => posPart_nonneg _)
 
 end DoobInequalityNNReal
 
