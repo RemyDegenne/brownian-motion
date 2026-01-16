@@ -1652,106 +1652,47 @@ lemma UpcrossingData.disturb (hRC : ∀ ω, RightContinuous (f · ω)) {K : ℕ}
     (hseq : UpcrossingData a b f K ω) (ht_lt_N : hseq.t (2 * K - 1) < N) {ε : ℝ} (hεpos : 0 < ε)
     (hε_small : 2 * ε < b - a) :
     ∃ hseq' : UpcrossingData (a + ε) (b - ε) f K ω, hseq'.t (2 * K - 1) < N := by
-  -- We construct t' inductively: for each i < 2K, pick t'_i in (t_i, min(t_{i+1}, N))
-  -- satisfying the appropriate bound (≤ a + ε or ≥ b - ε)
-  have h2Kpos : 2 * K ≥ 1 := by omega
-  -- Build the sequence t' by choosing witnesses using right-continuity
-  -- For even i: f(t_i) ≤ a, so ∃ t'_i > t_i with f(t'_i) ≤ a + ε
-  -- For odd i: f(t_i) ≥ b, so ∃ t'_i > t_i with f(t'_i) ≥ b - ε
-  -- We need t' to be monotone and t'_{2K-1} < N
-
-  -- First, define upper bounds for each index
+  -- Upper bound for each index: t_{i+1} if i+1 < 2K, else N
   let bound : ℕ → ℝ≥0 := fun i => if i + 1 < 2 * K then hseq.t (i + 1) else N
-
-  have hbound_gt : ∀ i, i < 2 * K → hseq.t i < bound i := by
-    intro i hi
-    simp only [bound]
-    split_ifs with h
+  have hbound_gt i (hi : i < 2 * K) : hseq.t i < bound i := by
+    simp only [bound]; split_ifs with h
     · exact hseq.t_strict_mono' (Nat.lt_succ_self i) h
-    · have hi_eq : i = 2 * K - 1 := by omega
-      rw [hi_eq]
-      exact ht_lt_N
-
-  -- Use choice to pick t'_i for each i < 2K
-  have hexists : ∀ i, i < 2 * K → ∃ t'_i, hseq.t i < t'_i ∧ t'_i < bound i ∧
+    · exact (by omega : i = 2 * K - 1) ▸ ht_lt_N
+  -- Pick t'_i using right-continuity
+  have hexists i (hi : i < 2 * K) : ∃ t'_i, hseq.t i < t'_i ∧ t'_i < bound i ∧
       (Even i → f t'_i ω ≤ a + ε) ∧ (Odd i → f t'_i ω ≥ b - ε) := by
-    intro i hi
     by_cases heven : Even i
-    · -- Even case: f(t_i) ≤ a
-      obtain ⟨s', hs'_lt, hs'_gt, hs'_le⟩ := disturbed_crossing_le_close_of_crossing hRC hεpos
+    · obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_le_close_of_crossing hRC hεpos
         (hbound_gt i hi) (hseq.ft_le_a i hi heven)
-      refine ⟨s', hs'_gt, hs'_lt, fun _ => hs'_le, fun hodd => ?_⟩
-      exact absurd heven (Nat.not_even_iff_odd.mpr hodd)
-    · -- Odd case: f(t_i) ≥ b
-      have hodd : Odd i := Nat.not_even_iff_odd.mp heven
-      obtain ⟨s', hs'_lt, hs'_gt, hs'_ge⟩ := disturbed_crossing_ge_close_of_crossing hRC hεpos
-        (hbound_gt i hi) (hseq.ft_ge_b i hi hodd)
-      refine ⟨s', hs'_gt, hs'_lt, fun hev => ?_, fun _ => hs'_ge⟩
-      exact absurd hev (Nat.not_even_iff_odd.mpr hodd)
-
+      exact ⟨s', h2, h1, fun _ => h3, fun ho => absurd heven (Nat.not_even_iff_odd.mpr ho)⟩
+    · obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_ge_close_of_crossing hRC hεpos
+        (hbound_gt i hi) (hseq.ft_ge_b i hi (Nat.not_even_iff_odd.mp heven))
+      exact ⟨s', h2, h1, fun he => absurd he heven, fun _ => h3⟩
   choose t' ht'_gt ht'_lt ht'_le_a ht'_ge_b using hexists
-
-  -- Define t'' extending t' to all of ℕ (using N for indices ≥ 2K)
+  -- Extend to all ℕ
   let t'' : ℕ → ℝ≥0 := fun i => if h : i < 2 * K then t' i h else N
-
-  -- Prove monotonicity
-  have hmono : Monotone t'' := by
-    intro i j hij
-    simp only [t'']
-    split_ifs with hi hj
-    · -- Both i, j < 2K
-      by_cases hij_eq : i = j
-      · simp [hij_eq]
-      · have hij_lt : i < j := lt_of_le_of_ne hij hij_eq
-        -- t'_i < bound i ≤ t_j < t'_j (if j < 2K - 1) or t'_i < bound i ≤ N (if j = 2K - 1)
-        have h1 : t' i hi < bound i := ht'_lt i hi
-        have h2 : bound i ≤ hseq.t j := by
-          simp only [bound]
-          split_ifs with hi'
-          · exact hseq.mono (Nat.succ_le_of_lt hij_lt)
-          · have : i = 2 * K - 1 := by omega
-            omega
-        have h3 : hseq.t j < t' j hj := ht'_gt j hj
-        exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
-    · -- i < 2K, j ≥ 2K
-      have h1 : t' i hi < bound i := ht'_lt i hi
-      have h2 : bound i ≤ N := by
-        simp only [bound]
-        split_ifs with hi'
-        · calc hseq.t (i + 1) ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-            _ ≤ N := le_of_lt ht_lt_N
+  have hmono : Monotone t'' := fun i j hij => by
+    simp only [t'']; split_ifs with hi hj
+    · rcases eq_or_lt_of_le hij with rfl | hij_lt; · rfl
+      have h1 := ht'_lt i hi; have h3 := ht'_gt j hj
+      have h2 : bound i ≤ hseq.t j := by
+        simp only [bound]; split_ifs with hi'
+        · exact hseq.mono (Nat.succ_le_of_lt hij_lt)
+        · omega
+      exact le_of_lt (lt_trans (lt_of_lt_of_le h1 h2) h3)
+    · have h2 : bound i ≤ N := by
+        simp only [bound]; split_ifs with hi'
+        · exact (hseq.mono (by omega)).trans (le_of_lt ht_lt_N)
         · rfl
-      exact le_of_lt (lt_of_lt_of_le h1 h2)
-    · -- i ≥ 2K, j < 2K: contradicts i ≤ j
-      omega
-    · -- Both ≥ 2K
-      rfl
-
-  -- Construct the UpcrossingData
-  have hab' : a + ε < b - ε := by linarith
-  let hseq' : UpcrossingData (a + ε) (b - ε) f K ω := {
-    hab := hab'
-    t := t''
-    mono := hmono
-    ft_le_a := fun i hi heven => by
-      simp only [t'', hi, dite_true]
-      exact ht'_le_a i hi heven
-    ft_ge_b := fun i hi hodd => by
-      simp only [t'', hi, dite_true]
-      exact ht'_ge_b i hi hodd
-  }
-
-  refine ⟨hseq', ?_⟩
-  -- Show t''(2K-1) < N
-  have h2Km1 : 2 * K - 1 < 2 * K := by omega
-  change t'' (2 * K - 1) < N
-  simp only [t'', h2Km1, ↓reduceDIte]
-  calc t' (2 * K - 1) h2Km1 < bound (2 * K - 1) := ht'_lt (2 * K - 1) h2Km1
-    _ = N := by
-      simp only [bound]
-      split_ifs with h
-      · omega
-      · rfl
+      exact le_of_lt (lt_of_lt_of_le (ht'_lt i hi) h2)
+    · omega
+    · rfl
+  refine ⟨⟨by linarith, t'', hmono,
+    fun i hi he => by simp only [t'', hi, ↓reduceDIte]; exact ht'_le_a i hi he,
+    fun i hi ho => by simp only [t'', hi, ↓reduceDIte]; exact ht'_ge_b i hi ho⟩, ?_⟩
+  simp only [t'', (by omega : 2 * K - 1 < 2 * K), ↓reduceDIte]
+  calc t' (2 * K - 1) _ < bound (2 * K - 1) := ht'_lt _ _
+    _ = N := by simp only [bound]; split_ifs <;> [omega; rfl]
 
 
 theorem mul_integral_upcrossingsBefore'_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
