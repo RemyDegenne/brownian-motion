@@ -1021,9 +1021,10 @@ section DoobInequalityFin
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
   {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0} {a b : ℝ}
 
-theorem mul_integral_upcrossingsBigsup'_Fin_le_integral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_lintegral_upcrossingsBigsup'_Fin_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     (hu : Submartingale u 𝓕 μ) (hab : a < b) :
-    (b - a) * μ[upcrossingsBigsup' a b u N] ≤ μ[fun ω => (u N ω - a)⁺] := by
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup' a b u N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((u N ω - a)⁺) ∂μ := by
   -- We reduce to the `ℕ`-indexed case
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
@@ -1034,7 +1035,7 @@ theorem mul_integral_upcrossingsBigsup'_Fin_le_integral_pos_part_aux [IsFiniteMe
   rw [heq]
   have huNvN : v N = u N := Process.natOfFin_eq' u v hNatOfFin N N le_rfl
   rw [← huNvN]
-  exact mul_integral_upcrossingsBigsup'_le_integral_pos_part_aux N hvsub hab
+  exact mul_lintegral_upcrossingsBigsup'_le_lintegral_pos_part_aux N hvsub hab
 
 end DoobInequalityFin
 
@@ -1047,7 +1048,8 @@ variable [LinearOrder ι] [OrderBot ι]
 theorem mul_integral_upcrossingsBigsup'_Finset_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hk : #s = k) (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    (b - a) * μ[upcrossingsBigsup' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup' a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   -- We reduce to the `Fin k`-indexed case
   set 𝓕' := Filtration.finOfFinset hk 𝓕
   set v := Process.finOfFinset hk f
@@ -1057,15 +1059,15 @@ theorem mul_integral_upcrossingsBigsup'_Finset_le_integral_pos_part_aux [IsFinit
   rw [heq]
   have huNvN : v (Finset.ToFin hk N) = f N := Process.finOfFinset_eq hk f v hFinOfFinset N N le_rfl
   rw [← huNvN]
-  exact mul_integral_upcrossingsBigsup'_Fin_le_integral_pos_part_aux hvsub hab
+  exact mul_lintegral_upcrossingsBigsup'_Fin_le_lintegral_pos_part_aux hvsub hab
 
 theorem Adapted.integrable_upcrossingsBigsup' [IsFiniteMeasure μ] (hk : #s = k)
     (hf : Adapted 𝓕 f) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) μ := by
+    Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ≥0∞)) μ := by
   letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   obtain ⟨M, hM⟩ := upcrossingsBigsup'_bounded_of_finite a b f N (by infer_instance)
-  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingsBigsup' a b f N ω : ℝ)‖ ≤ M := by
+  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingsBigsup' a b f N ω : ℝ≥0∞)‖ₑ ≤ M := by
     filter_upwards with ω
     rw [Real.norm_eq_abs]
     simp only [Nat.cast_le, Nat.abs_cast]
