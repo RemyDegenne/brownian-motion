@@ -547,6 +547,27 @@ theorem upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ}
   rw [← upcrossingsBeforeENat_eq_upcrossingSequenceENat_Nat hab]
   exact upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab
 
+/-- `BddAbove` for `ltUpcrossingData` on `ℕ`, derived from `upperCrossingTime_lt_bddAbove`. -/
+lemma ltUpcrossingData_bddAbove_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω} (hab : a < b) :
+    BddAbove {n | ltUpcrossingData a b f N n ω} := by
+  have heq : {n | ltUpcrossingData a b f N n ω} = {n | upperCrossingTime a b f N n ω < N} := by
+    ext n
+    rw [Set.mem_setOf, Set.mem_setOf,
+        upperCrossingTime_lt_iff_ltUpcrossingData' a b f N n ω hab
+          (fun m => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) m N ω)
+          (fun m => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) m N ω)]
+  rw [heq]
+  exact upperCrossingTime_lt_bddAbove hab
+
+/-- Finiteness for `upcrossingSequenceENat` on `ℕ`, derived from `upperCrossingTime_lt_bddAbove`. -/
+lemma upcrossingSequenceENat_finite_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω} (hab : a < b) :
+    upcrossingSequenceENat a b f N ω < ⊤ := by
+  simp only [upcrossingSequenceENat]
+  have hbd : BddAbove {n | ltUpcrossingData a b f N n ω} := ltUpcrossingData_bddAbove_Nat hab
+  obtain ⟨M, hM⟩ := hbd
+  simp_rw [upperBounds, Set.mem_setOf_eq] at hM
+  exact lt_of_le_of_lt (iSup₂_le fun n h => by exact_mod_cast hM h) (ENat.coe_lt_top M)
+
 end DefsEquivalence
 
 /-! Suffices to show monotonicity for `Finite` index sets - the comparison with `NNRat`, as
@@ -665,6 +686,39 @@ lemma ltUpcrossingData_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (�
   intro n hn
   grind
 
+/-- `BddAbove` for `ltUpcrossingData` from `upcrossingSequenceENat < ⊤`. -/
+lemma ltUpcrossingData_bddAbove_of_upcrossingSequenceENat_lt_top
+    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+    (hfin : upcrossingSequenceENat a b f N ω < ⊤) :
+    BddAbove {n | ltUpcrossingData a b f N n ω} := by
+  simp only [upcrossingSequenceENat] at hfin
+  -- The biSup is < ⊤, so there exists a bound M
+  rw [lt_top_iff_ne_top] at hfin
+  obtain ⟨M, hM⟩ := WithTop.ne_top_iff_exists.mp hfin
+  use M
+  intro n hn
+  by_contra hcon
+  push_neg at hcon
+  have h : (n : ℕ∞) ≤ ⨆ k, ⨆ (_ : ltUpcrossingData a b f N k ω), (k : ℕ∞) := by
+    apply le_ciSup_of_le (OrderTop.bddAbove _) n
+    exact le_iSup_of_le hn le_rfl
+  have h' : (n : ℕ∞) ≤ M := le_trans h (le_of_eq hM.symm)
+  have h'' : n ≤ M := Nat.cast_le.mp h'
+  omega
+
+
+
+/-- `upcrossingSequenceENat < ⊤` from `BddAbove` for `ltUpcrossingData`. -/
+lemma upcrossingSequenceENat_lt_top_of_bddAbove
+    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
+    (hbdd : BddAbove {n | ltUpcrossingData a b f N n ω}) :
+    upcrossingSequenceENat a b f N ω < ⊤ := by
+  obtain ⟨M, hM⟩ := hbdd
+  simp only [upcrossingSequenceENat]
+  calc ⨆ n, ⨆ (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
+      ≤ (M : ℕ∞) := iSup₂_le fun n hn => Nat.cast_le.mpr (hM hn)
+    _ < ⊤ := ENat.coe_lt_top M
+
 /-! Monotonicity of upcrossingSequenceENat in the index set, assuming finitely many upcrossings. -/
 lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
@@ -680,7 +734,7 @@ lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     set B := {n | ltUpcrossingData a b v (f N) n ω} with hB
     have hAsubB : A ⊆ B := by
       intro n hn
-      exact ltUpcrossingData_mono_index_set_before f N hsmon u v hv a b n ω hn
+      exact ltUpcrossingData_mono_index_set_before f N hsmon u v hv a b n ω hab hn
     exact biSup_mono fun n hn => hAsubB hn
 
 @[deprecated upcrossingSequenceENat_mono_index_set (since := "2025-01-16")]
@@ -804,27 +858,21 @@ variable {𝓕 : Filtration (Fin n) m0}
 def Process.natOfFin (u : Fin n → Ω → ℝ) : ℕ → Ω → ℝ := fun k => u (Fin.clamp k n)
 
 lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
-    Submartingale (Process.natOfFin u) (Filtration.natOfFin 𝓕) μ := by
-  set u' : ℕ → Ω → ℝ := Process.natOfFin u with hfNat
-  set 𝓕' := Filtration.natOfFin 𝓕 with hFNat
-  have hadapted' : Adapted 𝓕' u' := by
-    intro i
-    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
-      exact Submartingale.stronglyMeasurable hf (Fin.clamp i n)
-    have hsm' : StronglyMeasurable[𝓕' i] (u' i) := by
-      simp only [u', 𝓕']
-      exact hsm
-    exact hsm'
-  have hsub' : (∀ i j, i ≤ j → u' i ≤ᵐ[μ] μ[u' j|𝓕' i]) := by
-    intros i j hij
-    simp only [u', 𝓕']
-    refine Submartingale.ae_le_condExp hf ?_
-    exact Fin.clamp.monotone i j hij n
-  have hint' : ∀ i, Integrable (u' i) μ := by
-    intro i
-    simp only [u']
-    exact Submartingale.integrable hf (Fin.clamp i n)
-  exact ⟨ hadapted', hsub', hint' ⟩
+    Submartingale (Process.natOfFin u) (Filtration.natOfFin 𝓕) μ :=
+  ⟨ fun i => by
+      have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
+        exact Submartingale.stronglyMeasurable hf (Fin.clamp i n)
+      have hsm' : StronglyMeasurable[Filtration.natOfFin 𝓕 i] (Process.natOfFin u i) := by
+        simp only [Process.natOfFin, Filtration.natOfFin]
+        exact hsm
+      exact hsm',
+    fun i j hij => by
+      simp only [Process.natOfFin, Filtration.natOfFin]
+      refine Submartingale.ae_le_condExp hf ?_
+      exact Fin.clamp.monotone i j hij n,
+    fun i => by
+      simp only [Process.natOfFin]
+      exact Submartingale.integrable hf (Fin.clamp i n) ⟩
 
 lemma Process.natOfFin_eq (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
     (hNatOfFin : u = Process.natOfFin v) (N : ℕ) :
@@ -904,22 +952,13 @@ def Process.finOfFinset (u : s → Ω → ℝ) : Fin k → Ω → ℝ := fun i =
 variable {u : s → Ω → ℝ} {N : s}
 
 lemma Submartingale.finOfFinset (hf : Submartingale u 𝓕 μ) :
-    Submartingale (Process.finOfFinset hk u) (Filtration.finOfFinset hk 𝓕) μ := by
-  set u' : Fin k → Ω → ℝ := Process.finOfFinset hk u with hfFin
-  set 𝓕' := Filtration.finOfFinset hk 𝓕
-  have hadapted' : Adapted 𝓕' u' := fun i => by
-    have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
-      exact hf (Finset.FromFin hk i)
-    simp only [u', 𝓕']
-    assumption
-  have hNatOfFin : v = Process.finOfFinset hk u := rfl
-  have hfin : Finite (Fin n) := by infer_instance
-  have hmeas_nat : Measurable (upcrossingSequenceENat a b v N.val) :=
-    Adapted.measurable_upcrossingSequenceENat_Nat hadapted' hab
-  have heq : upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
-    exact Process.natOfFin.upcrossingSequenceENat_eq u v hNatOfFin N a b hab
-  rw [heq]
-  exact hmeas_nat
+    Submartingale (Process.finOfFinset hk u) (Filtration.finOfFinset hk 𝓕) μ :=
+  ⟨ fun i => hf.adapted (Finset.FromFin hk i),
+    fun i j hij => by
+      simp only [Process.finOfFinset, Filtration.finOfFinset]
+      refine Submartingale.ae_le_condExp hf ?_
+      exact (Finset.FromFin.StrictMono hk).monotone hij,
+    fun i => hf.integrable (Finset.FromFin hk i) ⟩
 
 lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) :
@@ -974,20 +1013,15 @@ theorem Adapted.measurable_upcrossingsBefore (hf : Adapted ℱ f) (hab : a < b) 
 
 theorem Adapted.measurable_upcrossingSequenceENat_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {a b : ℝ}
     {𝓕 : Filtration ℕ m0} (hf : Adapted 𝓕 f) (hab : a < b) :
-    Measurable (upcrossingSequenceENat a b f N) := by
-  have hgeq : upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N := by
-    rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
-      (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
-      (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)]
-  rw [← hgeq]
-  sorry
-  -- exact Adapted.measurable_upcrossingsBefore hf hab
+    Measurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) := by
+  simp_rw [upcrossingSequenceENat_eq_upcrossingsBefore_Nat hab]
+  exact measurable_from_top.comp (measurable_from_top.comp (hf.measurable_upcrossingsBefore hab))
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
 
 theorem Adapted.measurable_upcrossingSequenceENat_Fin {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
     {𝓕 : Filtration (Fin n) m0} (hf : Adapted 𝓕 u) (hab : a < b) :
-    Measurable (upcrossingSequenceENat a b u N) := by
+    Measurable (fun ω => (upcrossingSequenceENat a b u N ω : ℝ≥0∞)) := by
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hadapted' : Adapted 𝓕' v := fun i => by
@@ -996,12 +1030,11 @@ theorem Adapted.measurable_upcrossingSequenceENat_Fin {u : (Fin n) → Ω → �
     simp only [v, 𝓕']
     assumption
   have hNatOfFin : v = Process.natOfFin u := rfl
-  have hfin : Finite (Fin n) := by infer_instance
-  have hmeas_nat : Measurable (upcrossingSequenceENat a b v N.val) :=
+  have hmeas_nat : Measurable (fun ω => (upcrossingSequenceENat a b v N.val ω : ℝ≥0∞)) :=
     Adapted.measurable_upcrossingSequenceENat_Nat hadapted' hab
   have heq : upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
     exact Process.natOfFin.upcrossingSequenceENat_eq u v hNatOfFin N a b hab
-  rw [heq]
+  simp_rw [heq]
   exact hmeas_nat
 
 theorem Adapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι] [OrderBot ι]
@@ -1009,7 +1042,7 @@ theorem Adapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι] [Order
     {u : s → Ω → ℝ} {N : s} {a b : ℝ} {𝓕 : Filtration s m0}
     (hf : Adapted 𝓕 u) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Measurable (upcrossingSequenceENat a b u N) := by
+    Measurable (fun ω => (upcrossingSequenceENat a b u N ω : ℝ≥0∞)) := by
   set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
   set v := Process.finOfFinset hk u with hv
   have hadapted' : Adapted 𝓕' v := fun i => by
@@ -1018,7 +1051,7 @@ theorem Adapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι] [Order
     simp only [v, 𝓕']
     assumption
   have hFinOfFinset : v = Process.finOfFinset hk u := rfl
-  rw [Process.finOfFinset.upcrossingSequenceENat_eq hk hbot u v hFinOfFinset N a b hab]
+  simp_rw [Process.finOfFinset.upcrossingSequenceENat_eq hk hbot u v hFinOfFinset N a b hab]
   exact Adapted.measurable_upcrossingSequenceENat_Fin hadapted' hab
 
 end Measurability
@@ -1068,26 +1101,12 @@ theorem mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part_aux [I
   rw [← huNvN]
   exact mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part_aux hvsub hab
 
-theorem Adapted.integrable_upcrossingSequenceENat [IsFiniteMeasure μ] (hk : #s = k)
+theorem Adapted.measurable_upcrossingSequenceENat_Finset' (hk : #s = k)
     (hf : Adapted 𝓕 f) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Integrable (fun ω => ((upcrossingSequenceENat a b f N ω).toNat : ℝ)) μ := by
+    Measurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) := by
   letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  obtain ⟨M₀, hM₀⟩ := ltUpcrossingData_unif_bdd_of_finite a b f N (by infer_instance)
-  have hM : ∀ ω, upcrossingSequenceENat a b f N ω ≤ M₀ := by
-    intro ω
-    simp only [upcrossingSequenceENat]
-    exact iSup₂_le fun n hn => Nat.cast_le.mpr (hM₀ n ω hn)
-  have hbdd : ∀ᵐ ω ∂μ, ‖((upcrossingSequenceENat a b f N ω).toNat : ℝ)‖ ≤ M₀ := by
-    filter_upwards with ω
-    rw [Real.norm_eq_abs, abs_of_nonneg (Nat.cast_nonneg' _)]
-    have hle := hM ω
-    exact_mod_cast ENNReal.toNat_le_of_le_coe hle
-  have meas0 := Adapted.measurable_upcrossingSequenceENat_Finset hk hbot (N:=N) hf hab
-  have meas : AEStronglyMeasurable (fun ω => ((upcrossingSequenceENat a b f N ω).toNat : ℝ)) μ :=
-    Measurable.aestronglyMeasurable ((measurable_from_top (α := ℕ)).comp
-      (measurable_from_top.comp meas0))
-  exact ⟨meas, .of_bounded hbdd⟩
+  exact Adapted.measurable_upcrossingSequenceENat_Finset hk hbot hf hab
 
 end DoobInequalityFinset
 
@@ -1232,8 +1251,7 @@ section Approximation
 variable [LinearOrder ι] [OrderBot ι]
   {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
-/-- If we have K upcrossings, witnessed by UpcrossingDat a, and a finset contains all
-    the witness points, then the finset also has at least K upcrossings. -/
+/-- ι-UpcrossingData of length K, contained in s : Finset ι, yield s-upcrossingSequenceENat ≥ K. -/
 lemma upcrossingSequenceENat_finset_ge_of_witness
     {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s)
     {K : ℕ} (hKpos : K ≥ 1)
@@ -1268,11 +1286,10 @@ lemma upcrossingSequenceENat_finset_ge_of_witness
     simp only [hseq', dif_pos (by omega : 2 * K - 1 < 2 * K)]
     exact ht_lt_N
   -- Therefore upcrossingSequenceENat on s is at least K
-  have hmem : K ∈ {n | ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
-    Set.mem_setOf.mpr hlt
-  have hbdd' : BddAbove {n | ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
-    ltUpcrossingData_bddAbove_of_finite a b (fun i : s => f i) ω ⟨N, hN⟩ inferInstance
-  exact le_csSup hbdd' hmem
+  simp only [upcrossingSequenceENat]
+  have hbdd : BddAbove (Set.range fun n =>
+      ⨆ (_ : ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω), (n : ℕ∞)) := OrderTop.bddAbove _
+  exact le_ciSup_of_le hbdd K (le_iSup_of_le hlt le_rfl)
 
 /-- Given a monotone family of finsets saturating `Set.Iic N`, assuming bounded upcrossings,
     the upcrossings on `ι` eventually equal the upcrossings on the finsets. -/
@@ -1284,60 +1301,65 @@ theorem upcrossingSequenceENat_eventually_eq_of_saturating_finsets
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (hbdd : BddAbove {n | ltUpcrossingData a b f N n ω}) :
+    (hfin : upcrossingSequenceENat a b f N ω < ⊤) :
     ∃ M, ∀ m ≥ M,
       letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
       upcrossingSequenceENat a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
         upcrossingSequenceENat a b f N ω := by
-  set K := upcrossingSequenceENat a b f N ω with hKdef
-  by_cases hKzero : K = 0
-  · -- K = 0: any finset works
+  -- Derive BddAbove from finiteness
+  have hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} :=
+    ltUpcrossingData_bddAbove_of_upcrossingSequenceENat_lt_top hfin
+  -- Extract natural number K' = sSup
+  set K' := sSup {n | ltUpcrossingData a b f N n ω} with hK'def
+  have hKeq : upcrossingSequenceENat a b f N ω = (K' : ℕ∞) := by
+    simp only [upcrossingSequenceENat]
+    exact (ENat.coe_sSup hbdd).symm
+  by_cases hK'zero : K' = 0
+  · -- K' = 0: any finset works
     use 0
     intro m _
     apply le_antisymm
     · exact upcrossingSequenceENat_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
         (fun i : s m => f i) f (fun _ => rfl) a b ω hab
-    · rw [hKzero]; exact zero_le _
-  · -- K ≥ 1: we need to find the witness and ensure the finset contains it
-    have hKpos : K ≥ 1 := Nat.one_le_iff_ne_zero.mpr hKzero
-    -- N is not ⊥ (otherwise K = 0)
+    · rw [hKeq, hK'zero]; exact zero_le _
+  · -- K' ≥ 1: we need to find the witness and ensure the finset contains it
+    have hK'pos : K' ≥ 1 := Nat.one_le_iff_ne_zero.mpr hK'zero
+    -- N is not ⊥ (otherwise K' = 0)
     have hNbot : ¬ N ≤ ⊥ := by
       intro h
-      have hzero : upcrossingSequenceENat a b f N ω = 0 := upcrossingSequenceENat_zero_of_N_bot a b f N ω h
-      simp only [← hKdef] at hzero
-      exact hKzero hzero
-    -- K is in the set of ltUpcrossingData
+      have hzero : upcrossingSequenceENat a b f N ω = 0 :=
+        upcrossingSequenceENat_zero_of_N_bot a b f N ω h
+      simp only [hKeq, Nat.cast_eq_zero] at hzero
+      exact hK'zero hzero
+    -- K' is in the set of ltUpcrossingData
     have hne : {n | ltUpcrossingData a b f N n ω}.Nonempty := by
       use 0
       simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte]
-    have hKmem : K ∈ {n | ltUpcrossingData a b f N n ω} := by
-      simp only [hKdef, upcrossingSequenceENat]
-      exact Nat.sSup_mem hne hbdd
-    -- Extract the UpcrossingData from K being in the set
-    simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte,
-      Nat.one_le_iff_ne_zero.mp hKpos] at hKmem
-    obtain ⟨hseq, ht_lt_N⟩ := hKmem
+    have hK'mem : ltUpcrossingData a b f N K' ω := Nat.sSup_mem hne hbdd
+    -- Extract the UpcrossingData from K' being in the set
+    simp only [ltUpcrossingData, hNbot, ↓reduceIte, hK'zero] at hK'mem
+    obtain ⟨hseq, ht_lt_N⟩ := hK'mem
     -- The witness set
-    set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
+    set witness : Set ι := Set.range (fun i : Fin (2 * K') => hseq.t i) with hwit
     have hwit_finite : Finite witness := Set.finite_range _
     have hwit_Icc : witness ⊆ Set.Iic N := by
       intro x hx
       obtain ⟨i, rfl⟩ := hx
-      have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+      have : hseq.t i ≤ hseq.t (2 * K' - 1) := hseq.mono (by omega)
       exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
     -- Find M such that witness ⊆ s M
     obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
     use M'
     intro m hm
     apply le_antisymm
-    · exact upcrossingSequenceENat_ge_finset_of_bounded (hbot m) ⟨N, hN m⟩
-        (fun i : s m => f i) f (fun _ => rfl) a b ω hab hbdd
+    · exact upcrossingSequenceENat_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
+        (fun i : s m => f i) f (fun _ => rfl) a b ω hab
     · -- witness ⊆ s m
       have hwit_in_sm : witness ⊆ s m := fun x hx => hmon hm (hM'_wit hx)
-      have ht_in_sm : ∀ i < 2 * K, hseq.t i ∈ s m := fun i hi =>
+      have ht_in_sm : ∀ i < 2 * K', hseq.t i ∈ s m := fun i hi =>
         hwit_in_sm (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩)
-      simp only [hKdef]
-      exact upcrossingSequenceENat_finset_ge_of_witness (hbot m) (hN m) hKpos hseq ht_lt_N ht_in_sm
+      rw [hKeq]
+      exact upcrossingSequenceENat_finset_ge_of_witness (hbot m) (hN m) hK'pos hseq ht_lt_N ht_in_sm
 
 /-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingSequenceENat. -/
 theorem upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup
@@ -1346,41 +1368,52 @@ theorem upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup
     (hN : ∀ n, N ∈ s n)
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hfinite_sup : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
-    BddAbove {n | ltUpcrossingData a b f N n ω} := by
-  obtain ⟨C, hCbound⟩ := hfinite_sup
+    (hfinite_sup : ∃ C < ⊤, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
+    upcrossingSequenceENat a b f N ω < ⊤ := by
+  -- First establish BddAbove, then convert to < ⊤
+  suffices hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} by
+    exact upcrossingSequenceENat_lt_top_of_bddAbove hbdd
+  obtain ⟨C, hClt, hCbound⟩ := hfinite_sup
   by_cases hNbot : N ≤ ⊥
   · -- N ≤ ⊥ implies {n | ltUpcrossingData a b f N n ω} is empty
-    simp only [ltUpcrossingData]; simp_all
+    use 0
+    intro n hn
+    simp only [ltUpcrossingData, hNbot, ↓reduceIte] at hn
+    exact absurd hn id
   · -- Use the finite supremum C to bound
-    use C
+    -- First get a natural number bound from C
+    rw [lt_top_iff_ne_top] at hClt
+    obtain ⟨C', hC'eq⟩ := WithTop.ne_top_iff_exists.mp hClt
+    use C'
     intro K hK
-    simp only [Set.mem_setOf, ltUpcrossingData, hNbot] at hK
-    classical
-    -- assume K > C, that is, exist UpcrosingData with > C upcrossings
-    by_contra hnot
-    have hKpos : ¬ K = 0 := by grind
-    simp only [hKpos] at hK
-    obtain ⟨hseq, ht_lt_N⟩ := hK
-    -- The witness set
-    set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
-    have hwit_finite : Finite witness := Set.finite_range _
-    have hwit_Icc : witness ⊆ Set.Iic N := by
-      intro x hx
-      obtain ⟨i, rfl⟩ := hx
-      have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-      exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-    -- Find n₀ such that witness ⊆ s n₀
-    obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-    /- We have K upcrossings and s n₀ contains all the witness points, hence ≥ K upcrossings. -/
-    letI : OrderBot (s n₀) := { bot := ⟨⊥, hbot n₀⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    have h_upcrossings_ge : K ≤ upcrossingSequenceENat a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
-      upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀) (Nat.one_le_iff_ne_zero.mpr hKpos)
-        hseq ht_lt_N (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
-    -- This contradicts the bound by C
-    have hbound := hCbound n₀
-    simp only [upcrossingSequenceENat_finset] at hbound
-    linarith
+    simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte] at hK
+    -- K is positive
+    by_cases hKzero : K = 0
+    · omega
+    · simp only [hKzero, ↓reduceIte] at hK
+      obtain ⟨hseq, ht_lt_N⟩ := hK
+      -- The witness set
+      set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
+      have hwit_finite : Finite witness := Set.finite_range _
+      have hwit_Icc : witness ⊆ Set.Iic N := by
+        intro x hx
+        obtain ⟨i, rfl⟩ := hx
+        have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+      -- Find n₀ such that witness ⊆ s n₀
+      obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
+      letI : OrderBot (s n₀) := { bot := ⟨⊥, hbot n₀⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+      have h_upcrossings_ge : (K : ℕ∞)
+        ≤ upcrossingSequenceENat a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
+        upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀)
+          (Nat.one_le_iff_ne_zero.mpr hKzero) hseq ht_lt_N
+          (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
+      -- This gives K ≤ C'
+      have hbound := hCbound n₀
+      simp only [upcrossingSequenceENat_finset] at hbound
+      rw [← hC'eq] at hbound
+      exact ENat.coe_le_coe.mp (le_trans h_upcrossings_ge hbound)
+
 
 /-! The above two theorems merge into the following. -/
 lemma upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
@@ -1391,11 +1424,12 @@ lemma upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (hfinite_sup : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
-    ∃ M, ∀ m ≥ M, upcrossingSequenceENat_finset hbot hN a b f m ω = upcrossingSequenceENat a b f N ω := by
-  have hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} :=
+    (hfinite_sup : ∃ C < ⊤, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
+    ∃ M, ∀ m ≥ M, upcrossingSequenceENat_finset hbot hN a b f m ω
+      = upcrossingSequenceENat a b f N ω := by
+  have hfin : upcrossingSequenceENat a b f N ω < ⊤ :=
     upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
-  exact upcrossingSequenceENat_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
+  exact upcrossingSequenceENat_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hfin
 
 /-- The upcrossings count on the full index set equals the supremum of upcrossings counts
     on the approximating finsets, when the latter is bounded. This version provides an
