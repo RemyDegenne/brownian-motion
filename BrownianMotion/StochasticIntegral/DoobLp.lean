@@ -22,11 +22,28 @@ variable {ι Ω E : Type*} [LinearOrder ι]
 
 section Countable
 
+-- TODO: Mathlib version uses `ε • (P ...) ≤ ENNReal.ofReal (∫ ω in ..., ... ∂P)`
+-- which should be changed to `ε • (P.real ...) ≤ ∫ ω in ..., ... ∂P`,
+-- using the more recent `Measure.real` API as follows:
+lemma maximal_ineq' {𝓕 : Filtration ℕ mΩ} {f : ℕ → Ω → ℝ} (hsub : Submartingale f 𝓕 P)
+    (hnonneg : 0 ≤ f) (ε : ℝ≥0) (n : ℕ) :
+    ε • P.real {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_add_one fun k => f k ω} ≤
+    ∫ ω in {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_add_one fun k => f k ω},
+      f n ω ∂P := by
+  calc
+    _ = (ε • P {ω | (ε : ℝ) ≤ (range (n + 1)).sup' nonempty_range_add_one fun k => f k ω}).toReal :=
+      (ENNReal.toReal_smul ..).symm
+    _ ≤ _ := by
+      apply ENNReal.toReal_le_of_le_ofReal (integral_nonneg (hnonneg n))
+      exact maximal_ineq hsub hnonneg n
+
+-- NB: This might be shortended, if the mathlib result is generalized to
+-- a more general discrete index space.
 /-- Auxiliary lemma for `maximal_ineq_countable` where the index set is a Finset. -/
 lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) {n : ι}
     {J : Finset ι} (hJn : ∀ i ∈ J, i ≤ n) (hnJ : n ∈ J) :
-    ε • P {ω | (ε : ℝ) ≤ J.sup' ⟨n, hnJ⟩ fun i ↦ Y i ω} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ J.sup' ⟨n, hnJ⟩ fun i ↦ Y i ω}, Y n ω ∂P) := by
+    ε • P.real {ω | (ε : ℝ) ≤ J.sup' ⟨n, hnJ⟩ fun i ↦ Y i ω} ≤
+     ∫ ω in {ω | (ε : ℝ) ≤ J.sup' ⟨n, hnJ⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
   -- Convert to ℕ-indexed submartingale defined by (Y(j₁), ⋯, Y(jₘ), Y(n), Y(n), ⋯)
   -- where J = {j₁, ⋯, jₘ, n}, and j₁ < ⋯ < jₘ = n
   classical
@@ -49,12 +66,12 @@ lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
       split_ifs
       exacts [orderEmbOfFin_mem .., hnJ]
   calc
-    _ = ε • P {ω | (ε : ℝ) ≤ (range (#J + 1)).sup' nonempty_range_add_one fun k ↦ Y (toι k) ω} := by
+    _ = ε • P.real
+        {ω | (ε : ℝ) ≤ (range (#J + 1)).sup' nonempty_range_add_one fun k ↦ Y (toι k) ω} := by
       simp_rw [hcongr]
-    _ ≤ ENNReal.ofReal
-      (∫ ω in {ω | (ε : ℝ) ≤ (range (#J + 1)).sup' nonempty_range_add_one fun k ↦ Y (toι k) ω},
-        Y n ω ∂P) := by
-      convert maximal_ineq (hsub.indexComap toι_mono) (fun _ ↦ hnonneg _) #J
+    _ ≤ ∫ ω in {ω | (ε : ℝ) ≤ (range (#J + 1)).sup' nonempty_range_add_one fun k ↦ Y (toι k) ω},
+        Y n ω ∂P := by
+      convert maximal_ineq' (hsub.indexComap toι_mono) (fun _ ↦ hnonneg _) ε #J
       simp [toι]
     _ = _ := by
       congr! with ω
@@ -62,19 +79,22 @@ lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
 
 variable [Countable ι]
 
-lemma _root_.Finset.measurable_sup'' {α : Type*} {m : MeasurableSpace α} {δ : Type*}
-    [MeasurableSpace δ] [SemilatticeSup α] [MeasurableSup₂ α] {ι : Type*} {s : Finset ι}
-    (hs : s.Nonempty) {f : ι → δ → α} (hf : ∀ n ∈ s, Measurable (f n)) :
-    Measurable (fun x => s.sup' hs fun k => f k x) := by
-  convert Finset.measurable_sup' hs hf
-  simp
-
+#synth AddLeftReflectLE ℝ≥0
 #check Monotone.measure_iUnion
-#check tendsto_setIntegral_of_monotone
-/-- **Doob's maximal inequality** for a countable index set. -/
-theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω}, Y n ω ∂P) := by
+
+lemma tendsto_inv_add_atTop_nhds_zero_nat {𝕜 : Type*} [DivisionSemiring 𝕜] [CharZero 𝕜]
+    [TopologicalSpace 𝕜] [ContinuousSMul ℚ≥0 𝕜] :
+    Tendsto (fun n : ℕ ↦ ((n : 𝕜) + 1)⁻¹) atTop (𝓝 0) :=
+  by simpa using tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := 𝕜)
+
+lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0)
+    (n : ι) :
+    ε • P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
+      ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+  -- WLOG `ε > 0`
+  rcases eq_or_ne ε 0 with rfl | hε0
+  · simpa using integral_nonneg (hnonneg n)
+  -- Construct an increasing sequence `J k` of finite sets with union `(-∞, n]`
   have : Nonempty ι := ⟨n⟩
   obtain ⟨f : ℕ → ι, hf⟩ := exists_surjective_nat ι
   let J (k : ℕ) : Finset ι := insert n ((range k).image f |>.filter (· ≤ n))
@@ -84,13 +104,170 @@ theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ 
     unfold J
     gcongr
     exact image_mono _ (range_mono hkl)
+  have hmemJ (k) (h : f k ≤ n) : f k ∈ J (k + 1) := by
+    simpa [J, h] using .inr ⟨k, by omega, rfl⟩
+  -- The long inequality (see blueprint)
+  have hlt (ε' : ℝ≥0) (hε' : ε' < ε) :
+    ε' • P.real {ω | (ε' : ℝ≥0∞) < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
+      ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+    have hbdd : BddAbove <| Set.range fun k ↦
+        ∫ ω in {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
+      use ∫ ω, Y n ω ∂P
+      simpa [upperBounds] using fun k ↦
+        setIntegral_le_integral (hsub.integrable n) (.of_forall (hnonneg n))
+    calc
+      _ = ε' • P.real (⋃ i ≤ n, {ω | (ε' : ℝ) < Y i ω}) := by
+        congr!; ext ω
+        simp_rw [lt_iSup_iff]
+        lift Y to ι → Ω → ℝ≥0 using hnonneg
+        simp
+      _ = ε' • P.real (⋃ k, {ω | (ε' : ℝ) < (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}) := by
+        congr!; ext ω
+        simp only [Set.mem_iUnion, Set.mem_setOf_eq, exists_prop, lt_sup'_iff]
+        constructor
+        · rintro ⟨i, hi, h⟩
+          obtain ⟨k, rfl⟩ := hf i
+          use k + 1, f k, hmemJ k hi
+        · rintro ⟨k, i, hi, h⟩
+          use i, by simp [hJn k i hi]
+      _ = ⨆ k, ε' • P.real {ω | (ε' : ℝ) < (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω} := by
+        rw [Measure.real, Monotone.measure_iUnion, ENNReal.toReal_iSup]
+        · apply Real.mul_iSup_of_nonneg
+          simp
+        · finiteness
+        intro k l hkl
+        simpa using fun ω i hi h ↦ ⟨i, hJmono hkl hi, h⟩
+      _ ≤ ⨆ k, ε' • P.real {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω} := by
+        gcongr
+        · use ε' • P.real Set.univ
+          simp only [upperBounds, le_sup'_iff, Set.mem_range, forall_exists_index,
+            forall_apply_eq_imp_iff, Set.mem_setOf_eq]
+          intro k
+          gcongr
+          · finiteness -- gcongr bug?
+          simp
+        · finiteness -- gcongr bug?
+        · exact fun h ↦ h.le
+      _ ≤ ⨆ k, ∫ ω in {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
+        gcongr with k
+        · exact hbdd
+        · exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
+      _ ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+        refine (ciSup_le_iff hbdd).mpr fun k ↦ ?_
+        gcongr with ω
+        · filter_upwards; exact fun ω ↦ hnonneg _ _
+        · exact (hsub.integrable n).restrict
+        · simp only [le_sup'_iff, forall_exists_index, and_imp]
+          intro i hi h
+          apply le_iSup₂_of_le i (hJn k i hi)
+          lift Y to ι → Ω → ℝ≥0 using hnonneg
+          simpa using h
+  -- Take `ε' := ε - 1 / (r + 1) ↑ ε` where `r → ∞`
+  -- (This is needed instead of `ε' ↑ ε` directly, because `tendsto_measure_iInter_atTop` and
+  -- `tendsto_setIntegral_of_antitone` lemmas require `atTop` instead of `𝓝[<] ε`)
+  clear * - hε0 hsub hlt
+  let ε' (r : ℕ) : ℝ≥0 := ε - (r + 1 : ℝ≥0)⁻¹
+  have hinter (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r < c ω} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    constructor
+    · intro h r
+      push_cast [ε']
+      exact h.trans_lt' (ENNReal.sub_lt_self (by simp) (by simpa) (by simp))
+    · refine fun h ↦ le_of_forall_lt fun ε' hε' ↦ ?_
+      have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
+        rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
+        change Tendsto (fun r : ℕ ↦ _) _ _
+        simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
+      obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
+      exact (lt_tsub_comm.mp hr).trans (h r)
+  have hinter' (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r ≤ c ω} := by
+    -- same as hinter, but with ≤ instead of <
+    ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    constructor
+    · intro h r
+      push_cast [ε']
+      exact h.trans' tsub_le_self
+    · refine fun h ↦ le_of_forall_lt fun ε' hε' ↦ ?_
+      have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
+        rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
+        change Tendsto (fun r : ℕ ↦ _) _ _
+        simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
+      obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
+      exact (lt_tsub_comm.mp hr).trans_le (h r)
+  have hmeas (r : ℕ) : MeasurableSet {ω | ε' r < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
+    apply measurableSet_lt measurable_const
+    have (i : ι) : Measurable (Y i) :=
+      (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
+    fun_prop
+  have hmeas' (r : ℕ) : MeasurableSet {ω | ε' r ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
+    -- same as hmeas, but with ≤ instead of <
+    apply measurableSet_le measurable_const
+    have (i : ι) : Measurable (Y i) :=
+      (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
+    fun_prop
+  have hanti (c : Ω → ℝ≥0∞) : Antitone fun r : ℕ ↦ {ω | ε' r < c ω} := by
+    intro r1 r2 hr ω
+    dsimp [ε']
+    gcongr
+  have hanti' (c : Ω → ℝ≥0∞) : Antitone fun r : ℕ ↦ {ω | ε' r ≤ c ω} := by
+    -- same as hanti, but with ≤ instead of <
+    intro r1 r2 hr ω
+    dsimp [ε']
+    gcongr
+  -- LHS of `hlt` tends to LHS of `⊢`
+  have hl : Tendsto
+      (fun r : ℕ ↦ ε' r • P.real {ω | ε' r < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)})
+      atTop (𝓝 <| ε • P.real {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}) := by
+    apply (show Tendsto .. by simpa using tendsto_inv_add_atTop_nhds_zero_nat.const_sub ε).smul
+    erw [ENNReal.tendsto_toReal_iff (by finiteness) (by finiteness)]
+    convert tendsto_measure_iInter_atTop (fun r ↦ (hmeas r).nullMeasurableSet) (hanti _) ?_
+    · exact hinter _
+    · use 0
+      finiteness
+  -- RHS of `hlt` tends to RHS of `⊢`
+  have hr : Tendsto
+      (fun r : ℕ ↦ ∫ ω in {ω | ε' r ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P)
+      atTop (𝓝 <| ∫ ω in {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P) := by
+    convert tendsto_setIntegral_of_antitone hmeas' (hanti' _) ?_
+    · exact hinter' _
+    · use 0
+      exact (hsub.integrable n).restrict
+  -- Conclude
+  exact le_of_tendsto_of_tendsto hl hr (.of_forall fun r ↦ hlt _ (by simpa [ε'] using hε0.bot_lt))
+
+-- lemma _root_.Finset.measurable_sup'' {α : Type*} {m : MeasurableSpace α} {δ : Type*}
+--     [MeasurableSpace δ] [SemilatticeSup α] [MeasurableSup₂ α] {ι : Type*} {s : Finset ι}
+--     (hs : s.Nonempty) {f : ι → δ → α} (hf : ∀ n ∈ s, Measurable (f n)) :
+--     Measurable (fun x => s.sup' hs fun k => f k x) := by
+--   convert Finset.measurable_sup' hs hf
+--   simp
+
+-- theorem _root_.le_ciSup_iff {α ι : Type*} [Nonempty ι] [ConditionallyCompleteLattice α] {f : ι → α}
+--     {a : α} (h : BddAbove (Set.range f)) : a ≤ iSup f ↔ ∀ b, (∀ i, f i ≤ b) → a ≤ b := by
+--   simp [iSup, le_csSup_iff h (Set.range_nonempty f), upperBounds]
+
+#check lt_ciSup_iff
+#check Monotone.measure_iUnion
+#check tendsto_setIntegral_of_monotone
+/-- **Doob's maximal inequality** for a countable index set. -/
+theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι) :
+    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P) := by
+
   -- Monotone convergence works here but dominated convergence seems easier
   have htendsto (x : Ω → ℝ) (hx : Integrable x P) : Tendsto
       (fun k ↦ ∫ ω in {ω | (ε : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, x ω ∂P) atTop
-      (𝓝 <| ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω}, x ω ∂P) := by
+      (𝓝 <| ∫ ω in {ω | (ε : ℝ) ≤ ⨆ k, (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, x ω ∂P) := by
     convert tendsto_setIntegral_of_monotone _ _ hx.integrableOn
     · ext ω
       simp
+      have : ⨆ i : Set.Iic n, Y i ω = ⨆ k : ℕ, (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω := by
+        sorry
+      -- simp [this]
+      refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+      · #check le_ciSup_iff'
       sorry
     · infer_instance
     · intro k
@@ -102,8 +279,8 @@ theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ 
 
 theorem maximal_ineq_norm_countable [Countable ι] [IsFiniteMeasure P]
     (hsub : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
+    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
+     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
   sorry
 
 end Countable
@@ -111,14 +288,14 @@ end Countable
 variable [TopologicalSpace ι] [SecondCountableTopology ι]
 
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, Y i ω}, Y n ω ∂P) := by
+    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P) := by
   obtain ⟨T, hT_countable, hT_dense⟩ := TopologicalSpace.exists_countable_dense ι
   sorry
 
 theorem maximal_ineq_norm (hsub : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i ≤ n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
+    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
+     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
   sorry
 
 end ProbabilityTheory
