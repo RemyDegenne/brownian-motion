@@ -189,7 +189,7 @@ noncomputable def ltUpcrossingData [LinearOrder ι] [OrderBot ι]
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
-/-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
+/-- The maximal length of upcrossing sequence (strictly) before time `N`. Suitable for MCT proof. -/
 noncomputable def upcrossingSequenceENat [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
     (N : ι) (ω : Ω) : ℕ∞ :=
   ⨆ (n : ℕ) (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
@@ -208,7 +208,7 @@ lemma upcrossingSequenceENat_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
     simp only [this]; simp_all
 
 /-! ltUpcrossingData a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
-section UpperCrossingTimeEquivalence
+section DefsEquivalence
 
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (u' s t N : ι) (ω : Ω) :
@@ -519,7 +519,7 @@ lemma upcrossingSequenceENat_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
     upcrossingSequenceENat a b f N ω = 0 := by
   simp only [upcrossingSequenceENat, ltUpcrossingData, hN, if_true]; simp
 
-/-! The two definitions of upcrossingsBeforeENat are equivalent. -/
+/-! The two definitions of upcrossing*ENat are equivalent; measurable via `upcrossingsBeforeENat`.-/
 theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
@@ -533,7 +533,7 @@ theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat
   rw [upperCrossingTime_lt_iff_ltUpcrossingData' a b f N n ω hab (hspecIci · ω) (hspecIic · ω)]
 
 /-- `upcrossingSequenceENat` agrees with `upcrossingsBefore` on `ℕ` index set when `a < b`. -/
-lemma upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
+theorem upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
     (hab : a < b) :
     upcrossingSequenceENat a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
   rw [← upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab]
@@ -541,7 +541,7 @@ lemma upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {
     (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
     (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)]
 
-end UpperCrossingTimeEquivalence
+end DefsEquivalence
 
 /-! Suffices to show monotonicity for `Finite` index sets - the comparison with `NNRat`, as
   needed in the `theorem lintegral_iSup'`, is via `⊔`.
@@ -1870,8 +1870,7 @@ theorem mul_integral_upcrossingSequenceENat_NNReal_le_integral_pos_part_aux (hf 
 
 
 
-/-- For `ℝ≥0`, right continuity of trajectories provides `HittingBtwnSpec`.
-This requires showing that hitting times actually hit closed sets for right-continuous functions. -/
+/-- Right-continuous process hits the closed set at the corresponding hitting time. -/
 lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω)
     (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
     HittingBtwnSpec f s n m ω := by
