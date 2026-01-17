@@ -37,25 +37,25 @@ noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b
 variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {a b : ℝ}
 
 /- Upcrossings number that is infinite when optional times accumulate before N. -/
-noncomputable def upcrossingsBigsup [Preorder ι] [OrderBot ι] [InfSet ι] (a b : ℝ) (f : ι → Ω → ℝ)
-    (N : ι) (ω : Ω) : ℕ∞ :=
+noncomputable def upcrossingsBeforeENat [Preorder ι] [OrderBot ι] [InfSet ι]
+    (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) : ℕ∞ :=
   ⨆ (n : ℕ) (_ : upperCrossingTime a b f N n ω < N), (n : ℕ∞)
 
-/-- `upcrossingsBigsup` agrees with `upcrossingsBefore` whenever the set of crossing indices
+/-- `upcrossingsBeforeENat` agrees with `upcrossingsBefore` whenever the set of crossing indices
 is bounded above. -/
-lemma upcrossingsBigsup_eq_upcrossingsBefore_of_finite [Preorder ι] [OrderBot ι] [InfSet ι]
+lemma upcrossingsBeforeENat_eq_upcrossingsBefore_of_finite [Preorder ι] [OrderBot ι] [InfSet ι]
     {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
     (hbdd : BddAbove {n | upperCrossingTime a b f N n ω < N}) :
-    upcrossingsBigsup a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
-  simp only [upcrossingsBigsup, upcrossingsBefore]
+    upcrossingsBeforeENat a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
+  simp only [upcrossingsBeforeENat, upcrossingsBefore]
   rw [ENat.coe_sSup hbdd]
   simp only [Set.mem_setOf_eq]
 
-/-- `upcrossingsBigsup` agrees with `upcrossingsBefore` on `ℕ` index set when `a < b`. -/
-lemma upcrossingsBigsup_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
+/-- `upcrossingsBeforeENat` agrees with `upcrossingsBefore` on `ℕ` index set when `a < b`. -/
+lemma upcrossingsBeforeENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
     (hab : a < b) :
-    upcrossingsBigsup a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) :=
-  upcrossingsBigsup_eq_upcrossingsBefore_of_finite (upperCrossingTime_lt_bddAbove hab)
+    upcrossingsBeforeENat a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) :=
+  upcrossingsBeforeENat_eq_upcrossingsBefore_of_finite (upperCrossingTime_lt_bddAbove hab)
 
 /-! Let's use:
 theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux [IsFiniteMeasure μ]
@@ -95,12 +95,12 @@ theorem mul_lintegral_upcrossingsBefore_le_lintegral_pos_part_aux [IsFiniteMeasu
   apply ENNReal.ofReal_le_ofReal
   exact hDoob
 
-theorem mul_lintegral_upcrossingsBigsup_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     {𝓕 : Filtration ℕ m0} {f : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ}
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup a b f N ω : ℝ≥0∞) ∂μ ≤
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBeforeENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
-  simp_rw [upcrossingsBigsup_eq_upcrossingsBefore_Nat hab, ENat.toENNReal_coe]
+  simp_rw [upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab, ENat.toENNReal_coe]
   exact mul_lintegral_upcrossingsBefore_le_lintegral_pos_part_aux hf hab
 
 structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
@@ -182,23 +182,23 @@ lemma extend_t {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
 
 end UpcrossingData
 
-/-! The `ltUpcrossingsBefore a b f N n ω` is shortened as `L n`. -/
-noncomputable def ltUpcrossingsBefore [LinearOrder ι] [OrderBot ι]
+/-! The `ltUpcrossingData a b f N n ω` is shortened as `L n`. -/
+noncomputable def ltUpcrossingData [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else -- to make {n | ...} empty when N = ⊥, same as in upperCrossingTime
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N
 
 /-- The number of - alternatively defined - upcrossings (strictly) before time `N`. -/
-noncomputable def upcrossingsBigsup' [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
+noncomputable def upcrossingSequenceENat [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
     (N : ι) (ω : Ω) : ℕ∞ :=
-  ⨆ (n : ℕ) (_ : ltUpcrossingsBefore a b f N n ω), (n : ℕ∞)
+  ⨆ (n : ℕ) (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
 
 
-lemma upcrossingsBigsup'_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
+lemma upcrossingSequenceENat_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
     {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
-    (hab : ¬ a < b) : upcrossingsBigsup' a b f N ω = 0 := by
-  simp only [upcrossingsBigsup', ltUpcrossingsBefore]
+    (hab : ¬ a < b) : upcrossingSequenceENat a b f N ω = 0 := by
+  simp only [upcrossingSequenceENat, ltUpcrossingData]
   rcases le_or_gt N ⊥ with hN | hN
   · simp_all
   · have : ¬ N ≤ ⊥ := by grind
@@ -207,7 +207,7 @@ lemma upcrossingsBigsup'_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
       fun _ ⟨seq, _⟩ => hab seq.hab
     simp only [this]; simp_all
 
-/-! ltUpcrossingsBefore a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
+/-! ltUpcrossingData a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 section UpperCrossingTimeEquivalence
 
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
@@ -283,17 +283,17 @@ lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
     · simp [hn]
 
 /-! The equivalence P n ↔ L n, in the case N = ⊥. -/
-lemma upperCrossingTimeLT_bot_iff_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+lemma upperCrossingTimeLT_bot_iff_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : N ≤ ⊥) :
-    upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω := by
-  simp only [ltUpcrossingsBefore, hN, if_true]
+    upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingData a b f N n ω := by
+  simp only [ltUpcrossingData, hN, if_true]
   simp only [upperCrossingTimeLT, hN, if_true]
 
 /-! The left implication: ∀ n, L n → P n, in the case N ≠ ⊥ -/
-lemma upperCrossingTimeLT_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrderBot ι]
+lemma upperCrossingTimeLT_of_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (h : ¬ N ≤ ⊥) :
-    ltUpcrossingsBefore a b f N n ω → upperCrossingTimeLT a b f N n ω := by
-  simp only [ltUpcrossingsBefore, h, if_false]
+    ltUpcrossingData a b f N n ω → upperCrossingTimeLT a b f N n ω := by
+  simp only [ltUpcrossingData, h, if_false]
   rw [upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
   rcases eq_or_ne n 0 with rfl | hn
   · simp; grind
@@ -311,13 +311,13 @@ lemma upperCrossingTimeLT_of_ltUpcrossingsBefore [ConditionallyCompleteLinearOrd
 -/
 
 /-! Clearly, P n → Q n → L n, in the case N ≠ ⊥. -/
-lemma ltUpcrossingsBefore_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
+lemma ltUpcrossingData_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : ¬ N ≤ ⊥) :
   upperCrossingTimeLT a b f N n ω →
     upcrossingsBeforeUpperCrossingTime a b f N n ω →
-      ltUpcrossingsBefore a b f N n ω := by
-  simp only [ltUpcrossingsBefore, upcrossingsBeforeUpperCrossingTime, hN, if_false]
+      ltUpcrossingData a b f N n ω := by
+  simp only [ltUpcrossingData, upcrossingsBeforeUpperCrossingTime, hN, if_false]
   rcases eq_or_ne n 0 with rfl | hn
   · simp_all
   · simp only [hn]
@@ -480,64 +480,64 @@ lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
         simp_all
 
 /-! The right implication: ∀ n, P n → L n, in the case N ≠ ⊥. -/
-lemma ltUpcrossingsBefore_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
+lemma ltUpcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
   (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
-    upperCrossingTimeLT a b f N n ω → ltUpcrossingsBefore a b f N n ω := by
+    upperCrossingTimeLT a b f N n ω → ltUpcrossingData a b f N n ω := by
   rcases eq_or_ne n 0 with rfl | hn
-  · simp only [ltUpcrossingsBefore, hN]; simp_all
+  · simp only [ltUpcrossingData, hN]; simp_all
   · intro hup
-    refine ltUpcrossingsBefore_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
+    refine ltUpcrossingData_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
       a b f N n ω hN hup ?_
     exact upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
       a b f N n ω hab (by grind) (by simp_all) hspecIci hspecIic hup
 
 /-! Finally, the equivalence ∀ n, P n ↔ L n. -/
-theorem upperCrossingTimeLT_iff_ltUpcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
+theorem upperCrossingTimeLT_iff_ltUpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
   (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
-    upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingsBefore a b f N n ω := by
+    upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingData a b f N n ω := by
   rcases le_or_gt N ⊥ with hN | hN
-  · exact upperCrossingTimeLT_bot_iff_ltUpcrossingsBefore a b f N n ω hN
-  · exact ⟨ltUpcrossingsBefore_of_upperCrossingTimeLT'
+  · exact upperCrossingTimeLT_bot_iff_ltUpcrossingData a b f N n ω hN
+  · exact ⟨ltUpcrossingData_of_upperCrossingTimeLT'
             a b f N n ω hab (not_le.mpr hN) hspecIci hspecIic,
-            upperCrossingTimeLT_of_ltUpcrossingsBefore a b f N n ω (not_le.mpr hN)⟩
+            upperCrossingTimeLT_of_ltUpcrossingData a b f N n ω (not_le.mpr hN)⟩
 
 /-! Auxiliary lemma. -/
-lemma upperCrossingTime_lt_iff_ltUpcrossingsBefore' [ConditionallyCompleteLinearOrderBot ι]
+lemma upperCrossingTime_lt_iff_ltUpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
   (hspecIic : ∀ n, HittingBtwnSpec f (Set.Iic a) n N ω) :
-    upperCrossingTime a b f N n ω < N ↔ ltUpcrossingsBefore a b f N n ω := by
+    upperCrossingTime a b f N n ω < N ↔ ltUpcrossingData a b f N n ω := by
   rw [← upperCrossingTimeLT_iff_upperCrossingTime_lt a b f N n ω]
-  exact upperCrossingTimeLT_iff_ltUpcrossingsBefore' a b f N n ω hab hspecIci hspecIic
+  exact upperCrossingTimeLT_iff_ltUpcrossingData' a b f N n ω hab hspecIci hspecIic
 
-lemma upcrossingsBigsup'_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
+lemma upcrossingSequenceENat_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : N ≤ ⊥) :
-    upcrossingsBigsup' a b f N ω = 0 := by
-  simp only [upcrossingsBigsup', ltUpcrossingsBefore, hN, if_true]; simp
+    upcrossingSequenceENat a b f N ω = 0 := by
+  simp only [upcrossingSequenceENat, ltUpcrossingData, hN, if_true]; simp
 
-/-! The two definitions of upcrossingsBigsup are equivalent. -/
-theorem upcrossingsBigsup_eq_upcrossingsBigsup'
+/-! The two definitions of upcrossingsBeforeENat are equivalent. -/
+theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
   (hspecIci : ∀ n ω, HittingBtwnSpec f (Set.Ici b) n N ω)
   (hspecIic : ∀ n ω, HittingBtwnSpec f (Set.Iic a) n N ω) :
-    upcrossingsBigsup a b f N = upcrossingsBigsup' a b f N := by
+    upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N := by
   ext ω
-  simp only [upcrossingsBigsup, upcrossingsBigsup']
+  simp only [upcrossingsBeforeENat, upcrossingSequenceENat]
   congr 1
   ext n
-  rw [upperCrossingTime_lt_iff_ltUpcrossingsBefore' a b f N n ω hab (hspecIci · ω) (hspecIic · ω)]
+  rw [upperCrossingTime_lt_iff_ltUpcrossingData' a b f N n ω hab (hspecIci · ω) (hspecIic · ω)]
 
-/-- `upcrossingsBigsup'` agrees with `upcrossingsBefore` on `ℕ` index set when `a < b`. -/
-lemma upcrossingsBigsup'_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
+/-- `upcrossingSequenceENat` agrees with `upcrossingsBefore` on `ℕ` index set when `a < b`. -/
+lemma upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
     (hab : a < b) :
-    upcrossingsBigsup' a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
-  rw [← upcrossingsBigsup_eq_upcrossingsBefore_Nat hab]
-  rw [upcrossingsBigsup_eq_upcrossingsBigsup' a b f N hab
+    upcrossingSequenceENat a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) := by
+  rw [← upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab]
+  rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
     (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
     (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)]
 
@@ -570,14 +570,14 @@ lemma upcrossingData_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : 
 variable [OrderBot ι]
 variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
 
-/-! Monotonicity of ltUpcrossingsBefore with respect to the index set, on {i | i ≤ N}. -/
-lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
+/-! Monotonicity of ltUpcrossingData with respect to the index set, on {i | i ≤ N}. -/
+lemma ltUpcrossingData_mono_index_set_before (f : ι → κ) (N : ι)
     (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (n : ℕ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v
-    ltUpcrossingsBefore a b u N n ω → ltUpcrossingsBefore a b v (f N) n ω := by
-  simp only [ltUpcrossingsBefore]
+    ltUpcrossingData a b u N n ω → ltUpcrossingData a b v (f N) n ω := by
+  simp only [ltUpcrossingData]
   by_cases hN : N ≤ ⊥
   · simp only [hN, if_true]; grind
   · simp only [hN, if_false]
@@ -622,85 +622,85 @@ lemma ltUpcrossingsBefore_mono_index_set_before (f : ι → κ) (N : ι)
         exact hsmon (htIn (2 * n - 1) hnzero) hNIn ht_lt_N
       exact htv_lt_fN
 
-/-! Uniform boundedness of ltUpcrossingsBefore, assuming {i | i < N} is finite. -/
-lemma ltUpcrossingsBefore_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
+/-! Uniform boundedness of ltUpcrossingData, assuming {i | i < N} is finite. -/
+lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
     (hfin : Finite {i | i < N}) :
-    ∃ M, ∀ n ω, ltUpcrossingsBefore a b f N n ω → n ≤ M := by
+    ∃ M, ∀ n ω, ltUpcrossingData a b f N n ω → n ≤ M := by
   by_cases hN : N ≤ ⊥
-  · simp only [ltUpcrossingsBefore, hN, if_true]
+  · simp only [ltUpcrossingData, hN, if_true]
     use 0
     intro n hn
     grind
   · obtain ⟨M, hMsize⟩ := upcrossingData_bounded_of_finite a b f N hfin
     use M
     intro n ω hn
-    simp only [ltUpcrossingsBefore, hN, if_false] at hn
+    simp only [ltUpcrossingData, hN, if_false] at hn
     by_cases hnzero : n = 0
     · simp only [hnzero]; grind
     · simp_all
       rcases hn with ⟨hseq, ht_lt_N⟩
       grind
 
-lemma upcrossingsBigsup'_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
+lemma upcrossingSequenceENat_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
     (hfin : Finite {i | i < N}) :
-    ∃ M, ∀ ω, upcrossingsBigsup' a b f N ω ≤ M := by
-  obtain ⟨M, hMsize⟩ := ltUpcrossingsBefore_unif_bdd_of_finite a b f N hfin
+    ∃ M, ∀ ω, upcrossingSequenceENat a b f N ω ≤ M := by
+  obtain ⟨M, hMsize⟩ := ltUpcrossingData_unif_bdd_of_finite a b f N hfin
   use M
   intro ω
-  simp only [upcrossingsBigsup']
+  simp only [upcrossingSequenceENat]
   exact iSup₂_le fun n hn => Nat.cast_le.mpr (hMsize n ω hn)
 
-/-! Boundedness of ltUpcrossingsBefore, assuming {i | i < N} is finite. -/
-lemma ltUpcrossingsBefore_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω) (N : ι)
+/-! Boundedness of ltUpcrossingData, assuming {i | i < N} is finite. -/
+lemma ltUpcrossingData_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω) (N : ι)
     (hfin : Finite {i | i < N}) :
-    BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
-  obtain ⟨M, hMsize⟩ := ltUpcrossingsBefore_unif_bdd_of_finite a b f N hfin
+    BddAbove {n | ltUpcrossingData a b f N n ω} := by
+  obtain ⟨M, hMsize⟩ := ltUpcrossingData_unif_bdd_of_finite a b f N hfin
   use M
   intro n hn
   grind
 
-/-! Monotonicity of upcrossingsBigsup' in the index set, assuming finitely many upcrossings. -/
-lemma upcrossingsBigsup'_mono_index_set (f : ι → κ)
+/-! Monotonicity of upcrossingSequenceENat in the index set, assuming finitely many upcrossings. -/
+lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v
-    upcrossingsBigsup' a b u N ω ≤ upcrossingsBigsup' a b v (f N) ω := by
+    upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v (f N) ω := by
   by_cases! hN : N ≤ ⊥
-  · have hleftzero : upcrossingsBigsup' a b u N ω = 0 := by
-      exact upcrossingsBigsup'_zero_of_N_bot a b u N ω hN
+  · have hleftzero : upcrossingSequenceENat a b u N ω = 0 := by
+      exact upcrossingSequenceENat_zero_of_N_bot a b u N ω hN
     rw [hleftzero]; simp_all
-  · set A := {n | ltUpcrossingsBefore a b u N n ω} with hA
-    set B := {n | ltUpcrossingsBefore a b v (f N) n ω} with hB
+  · set A := {n | ltUpcrossingData a b u N n ω} with hA
+    set B := {n | ltUpcrossingData a b v (f N) n ω} with hB
     have hAsubB : A ⊆ B := by
       intro n hn
-      exact ltUpcrossingsBefore_mono_index_set_before f N hsmon u v hv a b n ω hab hn
+      exact ltUpcrossingData_mono_index_set_before f N hsmon u v hv a b n ω hab hn
     exact biSup_mono fun n hn => hAsubB hn
 
-@[deprecated upcrossingsBigsup'_mono_index_set (since := "2025-01-16")]
-theorem upcrossingsBigsup'_mono_index_set_of_finite_till_N (f : ι → κ)
+@[deprecated upcrossingSequenceENat_mono_index_set (since := "2025-01-16")]
+theorem upcrossingSequenceENat_mono_index_set_of_finite_till_N (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
     (a b : ℝ) (ω : Ω) (hab : a < b) (_hfin : Finite {i | i < f N}) :
     -- u has less upcrossings than v
-    upcrossingsBigsup' a b u N ω ≤ upcrossingsBigsup' a b v (f N) ω :=
-  upcrossingsBigsup'_mono_index_set f N hsmon u v hv a b ω hab
+    upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v (f N) ω :=
+  upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
 end MonotonicityAndBoundedness
 
-/-! To compare upcrossingsBigsup' between NNRat and its finsets (with ⊥) and between them. -/
+/-! To compare upcrossingSequenceENat between NNRat and its finsets (with ⊥) and between them. -/
 section UpcrossingsOnFinset
 
 variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
     {s : Finset κ} (hbot : ⊥ ∈ s)
 
 /-! A subset of the index set admits less upcrossings. -/
-theorem upcrossingsBigsup'_ge_finset_of_subset (N : s) (u : s → Ω → ℝ) (v : κ → Ω → ℝ)
+theorem upcrossingSequenceENat_ge_finset_of_subset (N : s) (u : s → Ω → ℝ) (v : κ → Ω → ℝ)
     (hv : ∀ i : s, v i = u i) -- u is a restriction of v to s
     (a b : ℝ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBigsup' a b u N ω ≤ upcrossingsBigsup' a b v N ω := by
+    upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v N ω := by
   set f : s → κ := fun i => (i : κ) with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := by
     intro i hi j hj hij
@@ -711,16 +711,16 @@ theorem upcrossingsBigsup'_ge_finset_of_subset (N : s) (u : s → Ω → ℝ) (v
     exact hv i
   have hfN : f N = N := rfl
   rw [← hfN]
-  convert upcrossingsBigsup'_mono_index_set f N hsmon u v hv' a b ω hab using 1
+  convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv' a b ω hab using 1
 
-theorem upcrossingsBigsup'_ge_finset {t : Finset κ} (hbots : ⊥ ∈ s) (hbott : ⊥ ∈ t) (hst : s ⊆ t)
+theorem upcrossingSequenceENat_ge_finset {t : Finset κ} (hbots : ⊥ ∈ s) (hbott : ⊥ ∈ t) (hst : s ⊆ t)
     (N : s) (u : s → Ω → ℝ) (v : t → Ω → ℝ)
     (hv : ∀ i : s, v ⟨i, hst i.prop⟩ = u i) -- u is a restriction of v to s
     (a b : ℝ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v, and v has finite index set
     letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
     letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBigsup' a b u N ω ≤ upcrossingsBigsup' a b v ⟨N, hst N.prop⟩ ω := by
+    upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v ⟨N, hst N.prop⟩ ω := by
   letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   -- The inclusion map from s into t
@@ -731,7 +731,7 @@ theorem upcrossingsBigsup'_ge_finset {t : Finset κ} (hbots : ⊥ ∈ s) (hbott 
   have hv' : ∀ i ≤ N, v (f i) = u i := fun i _ => hv i
   have hfN : f N = ⟨N, hst N.prop⟩ := rfl
   rw [← hfN]
-  exact upcrossingsBigsup'_mono_index_set f N hsmon u v hv' a b ω hab
+  exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv' a b ω hab
 
 end UpcrossingsOnFinset
 
@@ -739,17 +739,17 @@ section DoobInequalityNat
 
 variable {a b : ℝ}
 
-theorem mul_lintegral_upcrossingsBigsup'_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_lintegral_upcrossingSequenceENat_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     {f : ℕ → Ω → ℝ} {𝓕 : Filtration ℕ m0} (N : ℕ)
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup' a b f N ω : ℝ≥0∞) ∂μ ≤
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
-  have hgeq : upcrossingsBigsup a b f N = upcrossingsBigsup' a b f N := by
-    rw [upcrossingsBigsup_eq_upcrossingsBigsup' a b f N hab
+  have hgeq : upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N := by
+    rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
       (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
       (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)]
   simp_rw [← hgeq]
-  exact mul_lintegral_upcrossingsBigsup_le_lintegral_pos_part_aux hf hab
+  exact mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part_aux hf hab
 
 end DoobInequalityNat
 
@@ -828,31 +828,31 @@ lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
     ∀ i ≤ N, v i.val = u i := fun i _ => by
   rw [hNatOfFin, Process.natOfFin, Fin.clamp.eq_of_fin n i]
 
-lemma Process.natOfFin.upcrossingsBigsup'_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
+lemma Process.natOfFin.upcrossingSequenceENat_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
     (hNatOfFin : u = Process.natOfFin v) (N : ℕ) (a b : ℝ) (hab : a < b) (hNn : N < n) :
-    upcrossingsBigsup' a b u N ≤ upcrossingsBigsup' a b v (Fin.clamp N n) := by
+    upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Fin.clamp N n) := by
   set f : ℕ → Fin n := fun i => Fin.clamp i n with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.clamp.StrictMonoOn hNn
   have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq u v hNatOfFin N
   intro ω
-  exact upcrossingsBigsup'_mono_index_set f N hsmon u v hv a b ω hab
+  exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
-lemma Process.natOfFin.upcrossingsBigsup'_ge (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
+lemma Process.natOfFin.upcrossingSequenceENat_ge (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
     (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (hab : a < b) :
-    upcrossingsBigsup' a b u N ≤ upcrossingsBigsup' a b v N := by
+    upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v N := by
   set f : Fin n → ℕ := fun i => i.val with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.val.StrictMonoOn N
   have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq' u v hNatOfFin N
   intro ω
-  exact upcrossingsBigsup'_mono_index_set f N hsmon u v hv a b ω hab
+  exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
-theorem Process.natOfFin.upcrossingsBigsup'_eq (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
+theorem Process.natOfFin.upcrossingSequenceENat_eq (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
     (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (hab : a < b) :
-    upcrossingsBigsup' a b u N = upcrossingsBigsup' a b v N := by
+    upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
   apply le_antisymm
-  · exact Process.natOfFin.upcrossingsBigsup'_ge u v hNatOfFin N a b hab
+  · exact Process.natOfFin.upcrossingSequenceENat_ge u v hNatOfFin N a b hab
   · conv_rhs => rw [(Fin.clamp.eq_of_fin n N).symm]
-    exact Process.natOfFin.upcrossingsBigsup'_le v u hNatOfFin N a b hab (N.isLt)
+    exact Process.natOfFin.upcrossingSequenceENat_le v u hNatOfFin N a b hab (N.isLt)
 
 end FinToNat
 
@@ -925,36 +925,36 @@ lemma Process.finOfFinset_eq' (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
 
 variable [OrderBot ι] (hbot : ⊥ ∈ s) [NeZero k] -- to avoid issues with `Fin 0`
 
-lemma Process.finOfFinset.upcrossingsBigsup'_le (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
+lemma Process.finOfFinset.upcrossingSequenceENat_le (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
     (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBigsup' a b u N ≤ upcrossingsBigsup' a b v (Finset.FromFin hk N) := by
+    upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.FromFin hk N) := by
   set f : Fin k → s := fun i => Finset.FromFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.FromFin.StrictMonoOn hk N
   have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq' hk u v hFinOfFinset N
   intro ω
-  convert upcrossingsBigsup'_mono_index_set f N hsmon u v hv a b ω hab using 1
+  convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
 
-lemma Process.finOfFinset.upcrossingsBigsup'_ge (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+lemma Process.finOfFinset.upcrossingSequenceENat_ge (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBigsup' a b u N ≤ upcrossingsBigsup' a b v (Finset.ToFin hk N) := by
+    upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
   set f : s → Fin k := fun i => Finset.ToFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.ToFin.StrictMonoOn hk N
   have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq hk u v hFinOfFinset N
   intro ω
-  convert upcrossingsBigsup'_mono_index_set f N hsmon u v hv a b ω hab using 1
+  convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
 
-theorem Process.finOfFinset.upcrossingsBigsup'_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
+theorem Process.finOfFinset.upcrossingSequenceENat_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    upcrossingsBigsup' a b u N = upcrossingsBigsup' a b v (Finset.ToFin hk N) := by
+    upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
   apply le_antisymm
-  · exact Process.finOfFinset.upcrossingsBigsup'_ge hk hbot u v hFinOfFinset N a b hab
+  · exact Process.finOfFinset.upcrossingSequenceENat_ge hk hbot u v hFinOfFinset N a b hab
   · set N' := Finset.ToFin hk N with hN'
     have hN : Finset.FromFin hk N' = N := by rw [hN']; exact Finset.FromFin.ToFin_eq hk N
     rw [← hN]
-    exact Process.finOfFinset.upcrossingsBigsup'_le hk hbot v u hFinOfFinset N' a b hab
+    exact Process.finOfFinset.upcrossingSequenceENat_le hk hbot v u hFinOfFinset N' a b hab
 
 end FinsetToFin
 
@@ -965,11 +965,11 @@ theorem Adapted.measurable_upcrossingsBefore (hf : Adapted ℱ f) (hab : a < b) 
     Measurable (upcrossingsBefore a b f N)
 -/
 
-theorem Adapted.measurable_upcrossingsBigsup'_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {a b : ℝ}
+theorem Adapted.measurable_upcrossingSequenceENat_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {a b : ℝ}
     {𝓕 : Filtration ℕ m0} (hf : Adapted 𝓕 f) (hab : a < b) :
-    Measurable (upcrossingsBigsup' a b f N) := by
-  have hgeq : upcrossingsBigsup a b f N = upcrossingsBigsup' a b f N := by
-    rw [upcrossingsBigsup_eq_upcrossingsBigsup' a b f N hab
+    Measurable (upcrossingSequenceENat a b f N) := by
+  have hgeq : upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N := by
+    rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
       (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Ici b) n N ω)
       (fun n ω => hittingBtwnSpec_of_wellFoundedLT f (Set.Iic a) n N ω)]
   rw [← hgeq]
@@ -978,9 +978,9 @@ theorem Adapted.measurable_upcrossingsBigsup'_Nat {f : ℕ → Ω → ℝ} {N : 
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
 
-theorem Adapted.measurable_upcrossingsBigsup'_Fin {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
+theorem Adapted.measurable_upcrossingSequenceENat_Fin {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
     {𝓕 : Filtration (Fin n) m0} (hf : Adapted 𝓕 u) (hab : a < b) :
-    Measurable (upcrossingsBigsup' a b u N) := by
+    Measurable (upcrossingSequenceENat a b u N) := by
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hadapted' : Adapted 𝓕' v := fun i => by
@@ -990,19 +990,19 @@ theorem Adapted.measurable_upcrossingsBigsup'_Fin {u : (Fin n) → Ω → ℝ} {
     assumption
   have hNatOfFin : v = Process.natOfFin u := rfl
   have hfin : Finite (Fin n) := by infer_instance
-  have hmeas_nat : Measurable (upcrossingsBigsup' a b v N.val) :=
-    Adapted.measurable_upcrossingsBigsup'_Nat hadapted' hab
-  have heq : upcrossingsBigsup' a b u N = upcrossingsBigsup' a b v N := by
-    exact Process.natOfFin.upcrossingsBigsup'_eq u v hNatOfFin N a b hab
+  have hmeas_nat : Measurable (upcrossingSequenceENat a b v N.val) :=
+    Adapted.measurable_upcrossingSequenceENat_Nat hadapted' hab
+  have heq : upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
+    exact Process.natOfFin.upcrossingSequenceENat_eq u v hNatOfFin N a b hab
   rw [heq]
   exact hmeas_nat
 
-theorem Adapted.measurable_upcrossingsBigsup'_Finset [LinearOrder ι] [OrderBot ι]
+theorem Adapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι] [OrderBot ι]
     {s : Finset ι} {k : ℕ} (hk : #s = k) (hbot : ⊥ ∈ s) [NeZero k]
     {u : s → Ω → ℝ} {N : s} {a b : ℝ} {𝓕 : Filtration s m0}
     (hf : Adapted 𝓕 u) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Measurable (upcrossingsBigsup' a b u N) := by
+    Measurable (upcrossingSequenceENat a b u N) := by
   set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
   set v := Process.finOfFinset hk u with hv
   have hadapted' : Adapted 𝓕' v := fun i => by
@@ -1011,8 +1011,8 @@ theorem Adapted.measurable_upcrossingsBigsup'_Finset [LinearOrder ι] [OrderBot 
     simp only [v, 𝓕']
     assumption
   have hFinOfFinset : v = Process.finOfFinset hk u := rfl
-  rw [Process.finOfFinset.upcrossingsBigsup'_eq hk hbot u v hFinOfFinset N a b hab]
-  exact Adapted.measurable_upcrossingsBigsup'_Fin hadapted' hab
+  rw [Process.finOfFinset.upcrossingSequenceENat_eq hk hbot u v hFinOfFinset N a b hab]
+  exact Adapted.measurable_upcrossingSequenceENat_Fin hadapted' hab
 
 end Measurability
 
@@ -1021,21 +1021,21 @@ section DoobInequalityFin
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
   {u : (Fin n) → Ω → ℝ} {N : Fin n} {𝓕 : Filtration (Fin n) m0} {a b : ℝ}
 
-theorem mul_lintegral_upcrossingsBigsup'_Fin_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     (hu : Submartingale u 𝓕 μ) (hab : a < b) :
-    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup' a b u N ω : ℝ≥0∞) ∂μ ≤
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b u N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((u N ω - a)⁺) ∂μ := by
   -- We reduce to the `ℕ`-indexed case
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hvsub : Submartingale v 𝓕' μ := Submartingale.natOfFin hu
   have hNatOfFin : v = Process.natOfFin u := rfl
-  have heq : upcrossingsBigsup' a b u N = upcrossingsBigsup' a b v N := by
-    exact Process.natOfFin.upcrossingsBigsup'_eq u v hNatOfFin N a b hab
+  have heq : upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
+    exact Process.natOfFin.upcrossingSequenceENat_eq u v hNatOfFin N a b hab
   rw [heq]
   have huNvN : v N = u N := Process.natOfFin_eq' u v hNatOfFin N N le_rfl
   rw [← huNvN]
-  exact mul_lintegral_upcrossingsBigsup'_le_lintegral_pos_part_aux N hvsub hab
+  exact mul_lintegral_upcrossingSequenceENat_le_lintegral_pos_part_aux N hvsub hab
 
 end DoobInequalityFin
 
@@ -1045,35 +1045,35 @@ variable [LinearOrder ι] [OrderBot ι]
   {s : Finset ι} {k : ℕ} (hne : s.Nonempty) (hk : #s = k) (hbot : ⊥ ∈ s) [NeZero k]
   {𝓕 : Filtration s m0} {f : s → Ω → ℝ} {N : s} {a b : ℝ}
 
-theorem mul_integral_upcrossingsBigsup'_Finset_le_integral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     (hk : #s = k) (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingsBigsup' a b f N ω : ℝ≥0∞) ∂μ ≤
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   -- We reduce to the `Fin k`-indexed case
   set 𝓕' := Filtration.finOfFinset hk 𝓕
   set v := Process.finOfFinset hk f
   have hvsub : Submartingale v 𝓕' μ := Submartingale.finOfFinset hk hf
   have hFinOfFinset : v = Process.finOfFinset hk f := rfl
-  have heq := Process.finOfFinset.upcrossingsBigsup'_eq hk hbot f v hFinOfFinset N a b hab
+  have heq := Process.finOfFinset.upcrossingSequenceENat_eq hk hbot f v hFinOfFinset N a b hab
   rw [heq]
   have huNvN : v (Finset.ToFin hk N) = f N := Process.finOfFinset_eq hk f v hFinOfFinset N N le_rfl
   rw [← huNvN]
-  exact mul_lintegral_upcrossingsBigsup'_Fin_le_lintegral_pos_part_aux hvsub hab
+  exact mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part_aux hvsub hab
 
-theorem Adapted.integrable_upcrossingsBigsup' [IsFiniteMeasure μ] (hk : #s = k)
+theorem Adapted.integrable_upcrossingSequenceENat [IsFiniteMeasure μ] (hk : #s = k)
     (hf : Adapted 𝓕 f) (hab : a < b) :
     haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ≥0∞)) μ := by
+    Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) μ := by
   letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  obtain ⟨M, hM⟩ := upcrossingsBigsup'_bounded_of_finite a b f N (by infer_instance)
-  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingsBigsup' a b f N ω : ℝ≥0∞)‖ₑ ≤ M := by
+  obtain ⟨M, hM⟩ := upcrossingSequenceENat_bounded_of_finite a b f N (by infer_instance)
+  have hbdd : ∀ᵐ ω ∂μ, ‖(upcrossingSequenceENat a b f N ω : ℝ≥0∞)‖ₑ ≤ M := by
     filter_upwards with ω
     rw [Real.norm_eq_abs]
     simp only [Nat.cast_le, Nat.abs_cast]
     grind
-  have meas0 := Adapted.measurable_upcrossingsBigsup'_Finset hk hbot (N:=N) hf hab
-  have meas : AEStronglyMeasurable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) μ :=
+  have meas0 := Adapted.measurable_upcrossingSequenceENat_Finset hk hbot (N:=N) hf hab
+  have meas : AEStronglyMeasurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ :=
     Measurable.aestronglyMeasurable (measurable_from_top.comp meas0)
   exact ⟨meas, .of_bounded hbdd⟩
 
@@ -1206,14 +1206,14 @@ variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
 end Countable
 
-/-- Helper definition for `upcrossingsBigsup'` on a finset, bundling the `OrderBot` instance.
+/-- Helper definition for `upcrossingSequenceENat` on a finset, bundling the `OrderBot` instance.
     This avoids repeating `letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, ... }` throughout
     theorem statements and proofs. -/
-noncomputable def upcrossingsBigsup'_finset [LinearOrder ι] [OrderBot ι] {N : ι}
+noncomputable def upcrossingSequenceENat_finset [LinearOrder ι] [OrderBot ι] {N : ι}
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ :=
   letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  upcrossingsBigsup' a b (fun i : s n => f i) ⟨N, hN n⟩ ω
+  upcrossingSequenceENat a b (fun i : s n => f i) ⟨N, hN n⟩ ω
 
 section Approximation
 
@@ -1222,14 +1222,14 @@ variable [LinearOrder ι] [OrderBot ι]
 
 /-- If we have K upcrossings, witnessed by UpcrossingDat a, and a finset contains all
     the witness points, then the finset also has at least K upcrossings. -/
-lemma upcrossingsBigsup'_finset_ge_of_witness
+lemma upcrossingSequenceENat_finset_ge_of_witness
     {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s)
     {K : ℕ} (hKpos : K ≥ 1)
     (hseq : UpcrossingData a b f K ω)
     (ht_lt_N : hseq.t (2 * K - 1) < N)
     (ht_in_s : ∀ i < 2 * K, hseq.t i ∈ s) :
     letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    K ≤ upcrossingsBigsup' a b (fun i : s => f i) ⟨N, hN⟩ ω := by
+    K ≤ upcrossingSequenceENat a b (fun i : s => f i) ⟨N, hN⟩ ω := by
   letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
   have hNbot : ¬ N ≤ ⊥ := fun h => not_lt_bot (lt_of_lt_of_le ht_lt_N h)
   -- Build UpcrossingData on s from hseq
@@ -1248,23 +1248,23 @@ lemma upcrossingsBigsup'_finset_ge_of_witness
     fun i hi heven => by simp only [hi, dif_pos]; exact hseq.ft_le_a i hi heven,
     fun i hi hodd => by simp only [hi, dif_pos]; exact hseq.ft_ge_b i hi hodd ⟩
   -- hseq' witnesses K upcrossings before ⟨N, hN⟩
-  have hlt : ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ K ω := by
-    simp only [ltUpcrossingsBefore]
+  have hlt : ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ K ω := by
+    simp only [ltUpcrossingData]
     have hNbot' : ¬ (⟨N, hN⟩ : s) ≤ ⊥ := fun h => hNbot h
     simp only [hNbot', ↓reduceIte, Nat.one_le_iff_ne_zero.mp hKpos]
     use hseq'
     simp only [hseq', dif_pos (by omega : 2 * K - 1 < 2 * K)]
     exact ht_lt_N
-  -- Therefore upcrossingsBigsup' on s is at least K
-  have hmem : K ∈ {n | ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
+  -- Therefore upcrossingSequenceENat on s is at least K
+  have hmem : K ∈ {n | ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
     Set.mem_setOf.mpr hlt
-  have hbdd' : BddAbove {n | ltUpcrossingsBefore a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
-    ltUpcrossingsBefore_bddAbove_of_finite a b (fun i : s => f i) ω ⟨N, hN⟩ inferInstance
+  have hbdd' : BddAbove {n | ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω} :=
+    ltUpcrossingData_bddAbove_of_finite a b (fun i : s => f i) ω ⟨N, hN⟩ inferInstance
   exact le_csSup hbdd' hmem
 
 /-- Given a monotone family of finsets saturating `Set.Iic N`, assuming bounded upcrossings,
     the upcrossings on `ι` eventually equal the upcrossings on the finsets. -/
-theorem upcrossingsBigsup'_eventually_eq_of_saturating_finsets
+theorem upcrossingSequenceENat_eventually_eq_of_saturating_finsets
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
@@ -1272,18 +1272,18 @@ theorem upcrossingsBigsup'_eventually_eq_of_saturating_finsets
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω}) :
+    (hbdd : BddAbove {n | ltUpcrossingData a b f N n ω}) :
     ∃ M, ∀ m ≥ M,
       letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingsBigsup' a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
-        upcrossingsBigsup' a b f N ω := by
-  set K := upcrossingsBigsup' a b f N ω with hKdef
+      upcrossingSequenceENat a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
+        upcrossingSequenceENat a b f N ω := by
+  set K := upcrossingSequenceENat a b f N ω with hKdef
   by_cases hKzero : K = 0
   · -- K = 0: any finset works
     use 0
     intro m _
     apply le_antisymm
-    · exact upcrossingsBigsup'_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
+    · exact upcrossingSequenceENat_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
         (fun i : s m => f i) f (fun _ => rfl) a b ω hab
     · rw [hKzero]; exact Nat.zero_le _
   · -- K ≥ 1: we need to find the witness and ensure the finset contains it
@@ -1291,18 +1291,18 @@ theorem upcrossingsBigsup'_eventually_eq_of_saturating_finsets
     -- N is not ⊥ (otherwise K = 0)
     have hNbot : ¬ N ≤ ⊥ := by
       intro h
-      have hzero : upcrossingsBigsup' a b f N ω = 0 := upcrossingsBigsup'_zero_of_N_bot a b f N ω h
+      have hzero : upcrossingSequenceENat a b f N ω = 0 := upcrossingSequenceENat_zero_of_N_bot a b f N ω h
       simp only [← hKdef] at hzero
       exact hKzero hzero
-    -- K is in the set of ltUpcrossingsBefore
-    have hne : {n | ltUpcrossingsBefore a b f N n ω}.Nonempty := by
+    -- K is in the set of ltUpcrossingData
+    have hne : {n | ltUpcrossingData a b f N n ω}.Nonempty := by
       use 0
-      simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte]
-    have hKmem : K ∈ {n | ltUpcrossingsBefore a b f N n ω} := by
-      simp only [hKdef, upcrossingsBigsup']
+      simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte]
+    have hKmem : K ∈ {n | ltUpcrossingData a b f N n ω} := by
+      simp only [hKdef, upcrossingSequenceENat]
       exact Nat.sSup_mem hne hbdd
     -- Extract the UpcrossingData from K being in the set
-    simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot, ↓reduceIte,
+    simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte,
       Nat.one_le_iff_ne_zero.mp hKpos] at hKmem
     obtain ⟨hseq, ht_lt_N⟩ := hKmem
     -- The witness set
@@ -1318,32 +1318,32 @@ theorem upcrossingsBigsup'_eventually_eq_of_saturating_finsets
     use M'
     intro m hm
     apply le_antisymm
-    · exact upcrossingsBigsup'_ge_finset_of_bounded (hbot m) ⟨N, hN m⟩
+    · exact upcrossingSequenceENat_ge_finset_of_bounded (hbot m) ⟨N, hN m⟩
         (fun i : s m => f i) f (fun _ => rfl) a b ω hab hbdd
     · -- witness ⊆ s m
       have hwit_in_sm : witness ⊆ s m := fun x hx => hmon hm (hM'_wit hx)
       have ht_in_sm : ∀ i < 2 * K, hseq.t i ∈ s m := fun i hi =>
         hwit_in_sm (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩)
       simp only [hKdef]
-      exact upcrossingsBigsup'_finset_ge_of_witness (hbot m) (hN m) hKpos hseq ht_lt_N ht_in_sm
+      exact upcrossingSequenceENat_finset_ge_of_witness (hbot m) (hN m) hKpos hseq ht_lt_N ht_in_sm
 
-/-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingsBigsup'. -/
-theorem upcrossingsBigsup'_finite_of_saturating_finsets_finite_sup
+/-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingSequenceENat. -/
+theorem upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup
     {s : ℕ → Finset ι}
     (hbot : ∀ n, ⊥ ∈ s n)
     (hN : ∀ n, N ∈ s n)
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hfinite_sup : ∃ C, ∀ n, upcrossingsBigsup'_finset hbot hN a b f n ω ≤ C) :
-    BddAbove {n | ltUpcrossingsBefore a b f N n ω} := by
+    (hfinite_sup : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
+    BddAbove {n | ltUpcrossingData a b f N n ω} := by
   obtain ⟨C, hCbound⟩ := hfinite_sup
   by_cases hNbot : N ≤ ⊥
-  · -- N ≤ ⊥ implies {n | ltUpcrossingsBefore a b f N n ω} is empty
-    simp only [ltUpcrossingsBefore]; simp_all
+  · -- N ≤ ⊥ implies {n | ltUpcrossingData a b f N n ω} is empty
+    simp only [ltUpcrossingData]; simp_all
   · -- Use the finite supremum C to bound
     use C
     intro K hK
-    simp only [Set.mem_setOf, ltUpcrossingsBefore, hNbot] at hK
+    simp only [Set.mem_setOf, ltUpcrossingData, hNbot] at hK
     classical
     -- assume K > C, that is, exist UpcrosingData with > C upcrossings
     by_contra hnot
@@ -1362,16 +1362,16 @@ theorem upcrossingsBigsup'_finite_of_saturating_finsets_finite_sup
     obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
     /- We have K upcrossings and s n₀ contains all the witness points, hence ≥ K upcrossings. -/
     letI : OrderBot (s n₀) := { bot := ⟨⊥, hbot n₀⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    have h_upcrossings_ge : K ≤ upcrossingsBigsup' a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
-      upcrossingsBigsup'_finset_ge_of_witness (hbot n₀) (hN n₀) (Nat.one_le_iff_ne_zero.mpr hKpos)
+    have h_upcrossings_ge : K ≤ upcrossingSequenceENat a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
+      upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀) (Nat.one_le_iff_ne_zero.mpr hKpos)
         hseq ht_lt_N (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
     -- This contradicts the bound by C
     have hbound := hCbound n₀
-    simp only [upcrossingsBigsup'_finset] at hbound
+    simp only [upcrossingSequenceENat_finset] at hbound
     linarith
 
 /-! The above two theorems merge into the following. -/
-lemma upcrossingsBigsup'_eventually_eq_of_saturating_finsets_finite_sup_aux
+lemma upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
@@ -1379,16 +1379,16 @@ lemma upcrossingsBigsup'_eventually_eq_of_saturating_finsets_finite_sup_aux
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (hfinite_sup : ∃ C, ∀ n, upcrossingsBigsup'_finset hbot hN a b f n ω ≤ C) :
-    ∃ M, ∀ m ≥ M, upcrossingsBigsup'_finset hbot hN a b f m ω = upcrossingsBigsup' a b f N ω := by
-  have hbdd : BddAbove {n | ltUpcrossingsBefore a b f N n ω} :=
-    upcrossingsBigsup'_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
-  exact upcrossingsBigsup'_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
+    (hfinite_sup : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
+    ∃ M, ∀ m ≥ M, upcrossingSequenceENat_finset hbot hN a b f m ω = upcrossingSequenceENat a b f N ω := by
+  have hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} :=
+    upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
+  exact upcrossingSequenceENat_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hbdd
 
 /-- The upcrossings count on the full index set equals the supremum of upcrossings counts
     on the approximating finsets, when the latter is bounded. This version provides an
     equality in ℝ (with coercions from ℕ). -/
-theorem upcrossingsBigsup'_eq_iSup_finset_real
+theorem upcrossingSequenceENat_eq_iSup_finset_real
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
     (hbot : ∀ n, ⊥ ∈ s n)
@@ -1396,39 +1396,39 @@ theorem upcrossingsBigsup'_eq_iSup_finset_real
     (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
       ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
     (hab : a < b)
-    (ω : Ω) (hfinite_sup : ∃ C : ℝ, ∀ n, (upcrossingsBigsup'_finset hbot hN a b f n ω : ℝ) ≤ C) :
-    (upcrossingsBigsup' a b f N ω : ℝ) =
-      ⨆ n, (upcrossingsBigsup'_finset hbot hN a b f n ω : ℝ) := by
+    (ω : Ω) (hfinite_sup : ∃ C : ℝ, ∀ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) ≤ C) :
+    (upcrossingSequenceENat a b f N ω : ℝ) =
+      ⨆ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) := by
   -- Convert real bound to nat bound
   obtain ⟨C', hCbound'⟩ := hfinite_sup
   let C := Nat.ceil C'
   have hCC : C' ≤ C := Nat.le_ceil C'
-  have hCbound : ∃ C, ∀ n, upcrossingsBigsup'_finset hbot hN a b f n ω ≤ C := by
+  have hCbound : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C := by
     use C
     intro n
     exact_mod_cast (hCbound' n).trans hCC
   -- Get the stabilization point M
-  obtain ⟨M, hM⟩ := upcrossingsBigsup'_eventually_eq_of_saturating_finsets_finite_sup_aux
+  obtain ⟨M, hM⟩ := upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
     hmon hbot hN hsaturate hab hCbound
   -- The sequence is monotone in ℝ
-  have hU_mono : Monotone (fun n => (upcrossingsBigsup'_finset hbot hN a b f n ω : ℝ)) := by
+  have hU_mono : Monotone (fun n => (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ)) := by
     intro n m hnm
-    simp only [upcrossingsBigsup'_finset]
-    exact Nat.cast_le.mpr (upcrossingsBigsup'_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
+    simp only [upcrossingSequenceENat_finset]
+    exact Nat.cast_le.mpr (upcrossingSequenceENat_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
       (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab)
   -- LHS equals value at M
-  have heq1 : (upcrossingsBigsup' a b f N ω : ℝ) =
-      (upcrossingsBigsup'_finset hbot hN a b f M ω : ℝ) := by
+  have heq1 : (upcrossingSequenceENat a b f N ω : ℝ) =
+      (upcrossingSequenceENat_finset hbot hN a b f M ω : ℝ) := by
     exact_mod_cast (hM M le_rfl).symm
   -- RHS (ℝ-supremum) equals value at M
-  have heq2 : ⨆ n, (upcrossingsBigsup'_finset hbot hN a b f n ω : ℝ) =
-      (upcrossingsBigsup'_finset hbot hN a b f M ω : ℝ) := by
+  have heq2 : ⨆ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) =
+      (upcrossingSequenceENat_finset hbot hN a b f M ω : ℝ) := by
     apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
     · intro n
       by_cases hnM : n ≤ M
       · exact hU_mono hnM
       · push_neg at hnM
-        simp only [upcrossingsBigsup'_finset]
+        simp only [upcrossingSequenceENat_finset]
         exact_mod_cast le_of_eq (hM n (le_of_lt hnM) ▸ (hM M le_rfl).symm)
     · intro w hw
       exact ⟨M, hw⟩
@@ -1547,17 +1547,17 @@ lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
 
 variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
 
-theorem mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
+theorem mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) μ ∧
-    μ[upcrossingsBigsup' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] / (b - a) := by
+    Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ ∧
+    μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] / (b - a) := by
   -- We approximate Set.Iic N by an increasing family of finsets
   obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Iic N
   -- For each n, define U_n as upcrossings on s n
-  let U : ℕ → Ω → ℝ := fun n ω => upcrossingsBigsup'_finset hsbot hsN a b f n ω
+  let U : ℕ → Ω → ℝ := fun n ω => upcrossingSequenceENat_finset hsbot hsN a b f n ω
   -- The bound c is the same for all n (since f N appears in each finset)
   set c := μ[fun ω => (f N ω - a)⁺] / (b - a) with hc
-  set F : Ω → ℝ := fun ω => upcrossingsBigsup' a b f N ω with hF
+  set F : Ω → ℝ := fun ω => upcrossingSequenceENat a b f N ω with hF
   have hk : ∀ n, #(s n) = Finset.card (s n) := by intro n; rfl
   have hne : ∀ n, (s n).Nonempty := by intro n; use ⊥; exact hsbot n
   have hnz : ∀ n, #(s n) ≠ 0 := by intro n; exact Finset.card_ne_zero.mpr (hne n)
@@ -1568,39 +1568,39 @@ theorem mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part_aux [IsFi
   refine bounded_integral_sup_of_mono_L1_bounded (f:=U) ?h_pos ?h_int ?h_bound ?h_mono ?h_sup
   · intro n; filter_upwards with ω; simp only [U]; simp
   · exact fun n =>
-      Adapted.integrable_upcrossingsBigsup' (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab
+      Adapted.integrable_upcrossingSequenceENat (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab
   · intro n
     simp only [hc, le_div_iff₀' (sub_pos.mpr hab)]
-    exact mul_integral_upcrossingsBigsup'_Finset_le_integral_pos_part_aux
+    exact mul_integral_upcrossingSequenceENat_Finset_le_integral_pos_part_aux
       (hbot := hsbot n) (hk := rfl) (hf := hsub n) (N := ⟨N, hsN n⟩) hab
   · filter_upwards with ω n m hnm
-    simp only [U, upcrossingsBigsup'_finset]
-    exact_mod_cast upcrossingsBigsup'_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
+    simp only [U, upcrossingSequenceENat_finset]
+    exact_mod_cast upcrossingSequenceENat_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
       (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
   · intro ω hω_bdd; simp only [hF, U]
-    exact upcrossingsBigsup'_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
+    exact upcrossingSequenceENat_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
 
-theorem Submartingale.mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part
+theorem Submartingale.mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part
     [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) :
-    (b - a) * μ[upcrossingsBigsup' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+    (b - a) * μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
   by_cases! hab : a < b
   · simp only [← le_div_iff₀' (sub_pos.mpr hab)]
-    exact (mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part_aux hf hab).2
+    exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux hf hab).2
   · rw [← sub_nonpos] at hab
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
 
-theorem Submartingale.integrable_upcrossingsBigsup'_Countable
+theorem Submartingale.integrable_upcrossingSequenceENat_Countable
     [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) :
-    Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) μ := by
+    Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ := by
   by_cases hab : a < b
-  · exact (mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part_aux hf hab).1
+  · exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux hf hab).1
   · -- simp only [← sub_nonpos] at hab
-    have h_nonpos : (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) =ᵐ[μ] 0 := by
+    have h_nonpos : (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) =ᵐ[μ] 0 := by
       filter_upwards with ω
-      have := upcrossingsBigsup'_eq_zero_of_not_hab (a:=a) (b:=b) (f:=f) (N:=N) (ω:=ω) hab
+      have := upcrossingSequenceENat_eq_zero_of_not_hab (a:=a) (b:=b) (f:=f) (N:=N) (ω:=ω) hab
       simp_all
     rw [integrable_congr h_nonpos]
     exact integrable_zero Ω ℝ μ
@@ -1754,22 +1754,22 @@ instance DSet_countable_inst (N : ℝ≥0) : Countable (DSet N) := (DSet_countab
 
 /-- When `f` is right-continuous, upcrossings from `a` to `b` in `f` are bounded by
     upcrossings from `(a + ε)` to `(b - ε)` in the restriction of `f` to `D = ℚ≥0 ∪ {N}`. -/
-lemma upcrossingsBigsup'_le_upcrossingsBigsup'_restrict_DSet
+lemma upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet
     (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε) (hε_small : 2 * ε < b - a)
-    (ω : Ω) (hBdd : BddAbove {n | ltUpcrossingsBefore (a + ε) (b - ε) (fun d : DSet N => f d)
+    (ω : Ω) (hBdd : BddAbove {n | ltUpcrossingData (a + ε) (b - ε) (fun d : DSet N => f d)
       ⟨N, N_mem_DSet N⟩ n ω}) :
-    upcrossingsBigsup' a b f N ω ≤
-      upcrossingsBigsup' (a + ε) (b - ε) (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω := by
+    upcrossingSequenceENat a b f N ω ≤
+      upcrossingSequenceENat (a + ε) (b - ε) (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω := by
   set DN := DSet N
   set Nelem : DN := ⟨N, N_mem_DSet N⟩
   haveI : Countable DN := DSet_countable_inst N
   have hNelem_bot : Nelem ≤ ⊥ ↔ N ≤ ⊥ := by simp only [le_bot_iff, Nelem, Subtype.ext_iff]; rfl
   -- If N ≤ ⊥, then LHS = 0 ≤ RHS
   by_cases hNbot : N ≤ ⊥
-  · have : {n | ltUpcrossingsBefore a b f N n ω} = ∅ := by
-      ext n; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, ltUpcrossingsBefore,
+  · have : {n | ltUpcrossingData a b f N n ω} = ∅ := by
+      ext n; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, ltUpcrossingData,
         hNbot, ↓reduceIte]
-    simp only [upcrossingsBigsup', this, csSup_empty]
+    simp only [upcrossingSequenceENat, this, csSup_empty]
     exact Nat.zero_le _
   -- Now N > ⊥, so the set is nonempty (contains 0)
   apply csSup_le_csSup
@@ -1777,10 +1777,10 @@ lemma upcrossingsBigsup'_le_upcrossingsBigsup'_restrict_DSet
   · exact hBdd
   -- The set of K with upcrossings in f is nonempty (0 is always in it when N > ⊥)
   · use 0
-    simp only [Set.mem_setOf_eq, ltUpcrossingsBefore, hNbot, ↓reduceIte]
+    simp only [Set.mem_setOf_eq, ltUpcrossingData, hNbot, ↓reduceIte]
   -- Main inclusion: if K upcrossings exist in f, then K upcrossings exist in f|D
   · intro K hK
-    simp only [Set.mem_setOf_eq, ltUpcrossingsBefore, hNelem_bot, hNbot, ↓reduceIte] at hK ⊢
+    simp only [Set.mem_setOf_eq, ltUpcrossingData, hNelem_bot, hNbot, ↓reduceIte] at hK ⊢
     rcases K with _ | K
     · trivial
     · -- K ≥ 1, so hK : ∃ seq, seq.t (2 * (K+1) - 1) < N
@@ -1823,49 +1823,49 @@ lemma submartingale_restrictDSet (hf : Submartingale f 𝓕 μ) (N : ℝ≥0) :
   ⟨fun i => hf.adapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
 
 /-- The restriction of f to DSet N is integrable in upcrossings. -/
-lemma integrable_upcrossingsBigsup'_restrict_DSet (hf : Submartingale f 𝓕 μ)
+lemma integrable_upcrossingSequenceENat_restrict_DSet (hf : Submartingale f 𝓕 μ)
     {ε : ℝ} (hε_small : 2 * ε < b - a) :
-    Integrable (fun ω => (upcrossingsBigsup' (a + ε) (b - ε)
+    Integrable (fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
         (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)) μ := by
   have hab' : a + ε < b - ε := by linarith
-  exact (mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part_aux
+  exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux
     (submartingale_restrictDSet hf N) hab').1
 
 /-- For $0<ε<(b-a)/2$, $EU_a^b(f,N) \le EU_{a+ε}^{b-ε}(f|_D,N)$. -/
-lemma integral_upcrossingsBigsup'_le_of_restrict_DSet (hf : Submartingale f 𝓕 μ)
+lemma integral_upcrossingSequenceENat_le_of_restrict_DSet (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε)
     (hε_small : 2 * ε < b - a)
-    (hBdd : ∀ᵐ ω ∂μ, BddAbove {n | ltUpcrossingsBefore (a + ε) (b - ε) (fun d : DSet N => f d)
+    (hBdd : ∀ᵐ ω ∂μ, BddAbove {n | ltUpcrossingData (a + ε) (b - ε) (fun d : DSet N => f d)
       ⟨N, N_mem_DSet N⟩ n ω})
-    (hInt : Integrable (fun ω => (upcrossingsBigsup' a b f N ω : ℝ)) μ) :
-    μ[fun ω => (upcrossingsBigsup' a b f N ω : ℝ)] ≤
-      μ[fun ω => (upcrossingsBigsup' (a + ε) (b - ε)
+    (hInt : Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ) :
+    μ[fun ω => (upcrossingSequenceENat a b f N ω : ℝ)] ≤
+      μ[fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
         (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] := by
   apply integral_mono_ae
   · exact hInt
-  · exact integrable_upcrossingsBigsup'_restrict_DSet hf hε_small
+  · exact integrable_upcrossingSequenceENat_restrict_DSet hf hε_small
   · filter_upwards [hBdd] with ω hBdd_ω
     exact Nat.cast_le.mpr
-      (upcrossingsBigsup'_le_upcrossingsBigsup'_restrict_DSet hRC hεpos hε_small ω hBdd_ω)
+      (upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet hRC hεpos hε_small ω hBdd_ω)
 
 /-- For $0<ε<(b-a)/2$, $EU_{a+ε}^{b-ε}(f|_D,N) \le \frac{E(f_N-a-ε)^+}{b-a-2ε}$.
     This follows from the discrete Doob inequality applied to the restriction of f to D. -/
-lemma mul_integral_upcrossingsBigsup'_restrict_DSet_le (hf : Submartingale f 𝓕 μ)
+lemma mul_integral_upcrossingSequenceENat_restrict_DSet_le (hf : Submartingale f 𝓕 μ)
     {ε : ℝ} (hε_small : 2 * ε < b - a) :
-    (b - a - 2 * ε) * μ[fun ω => (upcrossingsBigsup' (a + ε) (b - ε)
+    (b - a - 2 * ε) * μ[fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
         (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] ≤
       μ[fun ω => (f N ω - (a + ε))⁺] := by
   have hab' : a + ε < b - ε := by linarith
   have hba : b - ε - (a + ε) = b - a - 2 * ε := by ring
   rw [← hba]
-  exact Submartingale.mul_integral_upcrossingsBigsup'_Countable_le_integral_pos_part
+  exact Submartingale.mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part
     (submartingale_restrictDSet hf N)
 
 
 
-theorem mul_integral_upcrossingsBigsup'_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
+theorem mul_integral_upcrossingSequenceENat_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
-    (b - a) * μ[upcrossingsBigsup' a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+    (b - a) * μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
   sorry
 
 
@@ -1894,25 +1894,25 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     exact hs.mem_of_tendsto ((hRC (sInf S)).tendsto.comp h_tendsto_within)
       (Filter.Eventually.of_forall fun n => (hu_mem n).2)
 
-theorem upcrossingsBigsup_eq_upcrossingsBigsup'_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
+theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
     (hab : a < b) :
-    upcrossingsBigsup a b f N = upcrossingsBigsup' a b f N :=
-  upcrossingsBigsup_eq_upcrossingsBigsup' a b f N hab
+    upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N :=
+  upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Ici b) n N ω isClosed_Ici (hRC ω))
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Iic a) n N ω isClosed_Iic (hRC ω))
 
-theorem mul_integral_upcrossingsBigsup_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
+theorem mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
-    (b - a) * μ[upcrossingsBigsup a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  rw [upcrossingsBigsup_eq_upcrossingsBigsup'_NNReal hRC hab]
-  exact mul_integral_upcrossingsBigsup'_NNReal_le_integral_pos_part_aux hf hRC hab
+    (b - a) * μ[upcrossingsBeforeENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+  rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal hRC hab]
+  exact mul_integral_upcrossingSequenceENat_NNReal_le_integral_pos_part_aux hf hRC hab
 
-theorem Submartingale.mul_integral_upcrossingsBigsup_NNReal_le_integral_pos_part
+theorem Submartingale.mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part
     (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) :
-    (b - a) * μ[upcrossingsBigsup a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
+    (b - a) * μ[upcrossingsBeforeENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
   by_cases! hab : a < b
-  · exact mul_integral_upcrossingsBigsup_NNReal_le_integral_pos_part_aux hf hRC hab
+  · exact mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part_aux hf hRC hab
   · rw [← sub_nonpos] at hab
     exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
       (integral_nonneg fun ω => posPart_nonneg _)
