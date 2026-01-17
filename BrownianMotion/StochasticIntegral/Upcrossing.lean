@@ -1415,7 +1415,58 @@ theorem upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup
       exact ENat.coe_le_coe.mp (le_trans h_upcrossings_ge hbound)
 
 
-/-! The above two theorems merge into the following. -/
+/-- The upcrossings count on the full countable index set equals the supremum of upcrossings
+    counts on the approximating finsets. This holds unconditionally - both when the supremum
+    is finite and when it is infinite. This is the main approximation theorem for upcrossings
+    on countable index sets. -/
+theorem upcrossingSequenceENat_eq_iSup_finset
+    {s : ℕ → Finset ι}
+    (hbot : ∀ n, ⊥ ∈ s n)
+    (hN : ∀ n, N ∈ s n)
+    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
+      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
+    (hab : a < b) :
+    upcrossingSequenceENat a b f N ω = ⨆ n, upcrossingSequenceENat_finset hbot hN a b f n ω := by
+  apply le_antisymm
+  · -- LHS ≤ RHS: any K upcrossings on ι uses finitely many witness points in some s n
+    by_cases hNbot : N ≤ ⊥
+    · -- N ≤ ⊥ implies LHS = 0
+      simp only [upcrossingSequenceENat_zero_of_N_bot a b f N ω hNbot]
+      exact zero_le _
+    · -- N > ⊥: use witness sets
+      simp only [upcrossingSequenceENat]
+      apply iSup₂_le
+      intro K hK
+      -- Extract the witness from hK
+      simp only [ltUpcrossingData, hNbot, ↓reduceIte] at hK
+      by_cases hKzero : K = 0
+      · simp only [hKzero, Nat.cast_zero]; exact zero_le _
+      · simp only [hKzero, ↓reduceIte] at hK
+        obtain ⟨hseq, ht_lt_N⟩ := hK
+        -- The witness set
+        set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
+        have hwit_finite : Finite witness := Set.finite_range _
+        have hwit_Icc : witness ⊆ Set.Iic N := by
+          intro x hx
+          obtain ⟨i, rfl⟩ := hx
+          have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
+          exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
+        -- Find n₀ such that witness ⊆ s n₀
+        obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
+        -- The upcrossings on s n₀ are at least K
+        have h_ge : (K : ℕ∞) ≤ upcrossingSequenceENat_finset hbot hN a b f n₀ ω := by
+          simp only [upcrossingSequenceENat_finset]
+          exact upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀)
+            (Nat.one_le_iff_ne_zero.mpr hKzero) hseq ht_lt_N
+            (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
+        exact le_trans h_ge (le_iSup (fun n => upcrossingSequenceENat_finset hbot hN a b f n ω) n₀)
+  · -- RHS ≤ LHS: each finset is a subset, so finset upcrossings ≤ full upcrossings
+    apply iSup_le; intro n
+    simp only [upcrossingSequenceENat_finset]
+    exact upcrossingSequenceENat_ge_finset_of_subset (hbot n) ⟨N, hN n⟩
+      (fun i : s n => f i) f (fun _ => rfl) a b ω hab
+
+/-! The above theorem, combined with finiteness, also gives eventual equality. -/
 lemma upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
     {s : ℕ → Finset ι}
     (hmon : Monotone s)
