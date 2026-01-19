@@ -222,29 +222,18 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
   ∀ n (hseq : UpcrossingData a b f (n+1) ω), hseq.t (2 * n + 1) ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t (2 * n + 1) := by
   simp only [upperCrossingTime]
-  -- motive depends on n and hseq
   refine Nat.rec (motive := fun n => ∀ hseq : UpcrossingData a b f (n+1) ω, hseq.t (2 * n + 1) ≤ N →
     upperCrossingTime a b f N (n+1) ω ≤ hseq.t (2 * n + 1)) ?base ?step
-  · -- n = 0 case; hseq : UpcrossingData a b f 1 ω
-    intro hseq h_t1_le_N
-    simp only [upperCrossingTime];
-    -- have h := Nat.zero_lt_succ 0
+  · intro hseq h_t1_le_N
+    simp only [upperCrossingTime]
     exact upperCrossingTime_le_of_UpcrossingData' a b f ⊥ (hseq.t 0) (hseq.t 1) N ω
       bot_le (hseq.mono (by simp)) h_t1_le_N
-      (hseq.ft_le_a 0 (by simp) Even.zero)
-      (hseq.ft_ge_b 1 (by simp) (by grind))
-  · -- succ case
-    intro n ih hseq2 htN
-    set hseq1 := hseq2.toShorter with hseq_prev_def
-    set u' := upperCrossingTime a b f N (n + 1) ω with hu'
-    set t' := hseq2.t (2 * n + 1) with ht'
-    set s  := hseq2.t (2 * n + 2) with hs
-    set t  := hseq2.t (2 * n + 3) with ht
-    have ht's  : t' ≤ s := hseq2.mono (Nat.le_succ (2 * n + 1))
-    have hst   : s  ≤ t := hseq2.mono (Nat.le_succ (2 * n + 2))
-    have hu't' : u' ≤ t' := ih hseq1 <| le_trans ht's (le_trans hst htN)
-    exact upperCrossingTime_le_of_UpcrossingData' a b f u' s t N ω
-      (le_trans hu't' ht's) hst htN
+      (hseq.ft_le_a 0 (by simp) Even.zero) (hseq.ft_ge_b 1 (by simp) (by grind))
+  · intro n ih hseq2 htN
+    have ht's : hseq2.t (2 * n + 1) ≤ hseq2.t (2 * n + 2) := hseq2.mono (Nat.le_succ _)
+    have hst : hseq2.t (2 * n + 2) ≤ hseq2.t (2 * n + 3) := hseq2.mono (Nat.le_succ _)
+    exact upperCrossingTime_le_of_UpcrossingData' a b f _ _ _ N ω
+      ((ih hseq2.toShorter (ht's.trans (hst.trans htN))).trans ht's) hst htN
       (hseq2.ft_le_a (2 * n + 2) (by grind) (by grind))
       (hseq2.ft_ge_b (2 * n + 3) (by grind) (by grind))
 
@@ -323,7 +312,6 @@ lemma ltUpcrossingData_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTim
     simp only [upperCrossingTimeLT] at h
     refine lt_of_le_of_lt ht_le ?_
     simp_all
-
 
 /-- Bundled properties of `hittingBtwn` that may be established under various assumptions
 (e.g., finiteness of the index set, or right-continuity of trajectories for `ℝ≥0`). -/
@@ -1179,7 +1167,6 @@ lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
 
 variable [OrderBot ι] {N : ι} {a b : ℝ}
 
--- set_option linter.unusedSectionVars false in
 /-- Measurability of `upcrossingSequenceENat_finset` as `ℝ≥0∞`. -/
 theorem Adapted.measurable_upcrossingSequenceENat_finset
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
