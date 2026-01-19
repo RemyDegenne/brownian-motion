@@ -1291,130 +1291,6 @@ lemma upcrossingSequenceENat_finset_ge_of_witness
       ⨆ (_ : ltUpcrossingData a b (fun i : s => f i) ⟨N, hN⟩ n ω), (n : ℕ∞)) := OrderTop.bddAbove _
   exact le_ciSup_of_le hbdd K (le_iSup_of_le hlt le_rfl)
 
-/-- Given a monotone family of finsets saturating `Set.Iic N`, assuming bounded upcrossings,
-    the upcrossings on `ι` eventually equal the upcrossings on the finsets. -/
-theorem upcrossingSequenceENat_eventually_eq_of_saturating_finsets
-    {s : ℕ → Finset ι}
-    (hmon : Monotone s)
-    (hbot : ∀ n, ⊥ ∈ s n)
-    (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hab : a < b)
-    (hfin : upcrossingSequenceENat a b f N ω < ⊤) :
-    ∃ M, ∀ m ≥ M,
-      letI : OrderBot (s m) := { bot := ⟨⊥, hbot m⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      upcrossingSequenceENat a b (fun i : s m => f i) ⟨N, hN m⟩ ω =
-        upcrossingSequenceENat a b f N ω := by
-  -- Derive BddAbove from finiteness
-  have hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} :=
-    ltUpcrossingData_bddAbove_of_upcrossingSequenceENat_lt_top hfin
-  -- Extract natural number K' = sSup
-  set K' := sSup {n | ltUpcrossingData a b f N n ω} with hK'def
-  have hKeq : upcrossingSequenceENat a b f N ω = (K' : ℕ∞) := by
-    simp only [upcrossingSequenceENat]
-    exact (ENat.coe_sSup hbdd).symm
-  by_cases hK'zero : K' = 0
-  · -- K' = 0: any finset works
-    use 0
-    intro m _
-    apply le_antisymm
-    · exact upcrossingSequenceENat_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
-        (fun i : s m => f i) f (fun _ => rfl) a b ω hab
-    · rw [hKeq, hK'zero]; exact zero_le _
-  · -- K' ≥ 1: we need to find the witness and ensure the finset contains it
-    have hK'pos : K' ≥ 1 := Nat.one_le_iff_ne_zero.mpr hK'zero
-    -- N is not ⊥ (otherwise K' = 0)
-    have hNbot : ¬ N ≤ ⊥ := by
-      intro h
-      have hzero : upcrossingSequenceENat a b f N ω = 0 :=
-        upcrossingSequenceENat_zero_of_N_bot a b f N ω h
-      simp only [hKeq, Nat.cast_eq_zero] at hzero
-      exact hK'zero hzero
-    -- K' is in the set of ltUpcrossingData
-    have hne : {n | ltUpcrossingData a b f N n ω}.Nonempty := by
-      use 0
-      simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte]
-    have hK'mem : ltUpcrossingData a b f N K' ω := Nat.sSup_mem hne hbdd
-    -- Extract the UpcrossingData from K' being in the set
-    simp only [ltUpcrossingData, hNbot, ↓reduceIte, hK'zero] at hK'mem
-    obtain ⟨hseq, ht_lt_N⟩ := hK'mem
-    -- The witness set
-    set witness : Set ι := Set.range (fun i : Fin (2 * K') => hseq.t i) with hwit
-    have hwit_finite : Finite witness := Set.finite_range _
-    have hwit_Icc : witness ⊆ Set.Iic N := by
-      intro x hx
-      obtain ⟨i, rfl⟩ := hx
-      have : hseq.t i ≤ hseq.t (2 * K' - 1) := hseq.mono (by omega)
-      exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-    -- Find M such that witness ⊆ s M
-    obtain ⟨M', hM'_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-    use M'
-    intro m hm
-    apply le_antisymm
-    · exact upcrossingSequenceENat_ge_finset_of_subset (hbot m) ⟨N, hN m⟩
-        (fun i : s m => f i) f (fun _ => rfl) a b ω hab
-    · -- witness ⊆ s m
-      have hwit_in_sm : witness ⊆ s m := fun x hx => hmon hm (hM'_wit hx)
-      have ht_in_sm : ∀ i < 2 * K', hseq.t i ∈ s m := fun i hi =>
-        hwit_in_sm (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩)
-      rw [hKeq]
-      exact upcrossingSequenceENat_finset_ge_of_witness (hbot m) (hN m) hK'pos hseq ht_lt_N ht_in_sm
-
-/-! In the above setting, hbdd may be replaced by a finite supremum of upcrossingSequenceENat. -/
-theorem upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup
-    {s : ℕ → Finset ι}
-    (hbot : ∀ n, ⊥ ∈ s n)
-    (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hfinite_sup : ∃ C < ⊤, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
-    upcrossingSequenceENat a b f N ω < ⊤ := by
-  -- First establish BddAbove, then convert to < ⊤
-  suffices hbdd : BddAbove {n | ltUpcrossingData a b f N n ω} by
-    exact upcrossingSequenceENat_lt_top_of_bddAbove hbdd
-  obtain ⟨C, hClt, hCbound⟩ := hfinite_sup
-  by_cases hNbot : N ≤ ⊥
-  · -- N ≤ ⊥ implies {n | ltUpcrossingData a b f N n ω} is empty
-    use 0
-    intro n hn
-    simp only [ltUpcrossingData, hNbot, ↓reduceIte] at hn
-    exact absurd hn id
-  · -- Use the finite supremum C to bound
-    -- First get a natural number bound from C
-    rw [lt_top_iff_ne_top] at hClt
-    obtain ⟨C', hC'eq⟩ := WithTop.ne_top_iff_exists.mp hClt
-    use C'
-    intro K hK
-    simp only [Set.mem_setOf, ltUpcrossingData, hNbot, ↓reduceIte] at hK
-    -- K is positive
-    by_cases hKzero : K = 0
-    · omega
-    · simp only [hKzero, ↓reduceIte] at hK
-      obtain ⟨hseq, ht_lt_N⟩ := hK
-      -- The witness set
-      set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
-      have hwit_finite : Finite witness := Set.finite_range _
-      have hwit_Icc : witness ⊆ Set.Iic N := by
-        intro x hx
-        obtain ⟨i, rfl⟩ := hx
-        have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-        exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-      -- Find n₀ such that witness ⊆ s n₀
-      obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-      letI : OrderBot (s n₀) := { bot := ⟨⊥, hbot n₀⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-      have h_upcrossings_ge : (K : ℕ∞)
-        ≤ upcrossingSequenceENat a b (fun i : s n₀ => f i) ⟨N, hN n₀⟩ ω :=
-        upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀)
-          (Nat.one_le_iff_ne_zero.mpr hKzero) hseq ht_lt_N
-          (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
-      -- This gives K ≤ C'
-      have hbound := hCbound n₀
-      simp only [upcrossingSequenceENat_finset] at hbound
-      rw [← hC'eq] at hbound
-      exact ENat.coe_le_coe.mp (le_trans h_upcrossings_ge hbound)
-
-
 /-- The upcrossings count on the full countable index set equals the supremum of upcrossings
     counts on the approximating finsets. This holds unconditionally - both when the supremum
     is finite and when it is infinite. This is the main approximation theorem for upcrossings
@@ -1466,72 +1342,42 @@ theorem upcrossingSequenceENat_eq_iSup_finset
     exact upcrossingSequenceENat_ge_finset_of_subset (hbot n) ⟨N, hN n⟩
       (fun i : s n => f i) f (fun _ => rfl) a b ω hab
 
-/-! The above theorem, combined with finiteness, also gives eventual equality. -/
-lemma upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
-    {s : ℕ → Finset ι}
-    (hmon : Monotone s)
-    (hbot : ∀ n, ⊥ ∈ s n)
-    (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hab : a < b)
-    (hfinite_sup : ∃ C < ⊤, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C) :
-    ∃ M, ∀ m ≥ M, upcrossingSequenceENat_finset hbot hN a b f m ω
-      = upcrossingSequenceENat a b f N ω := by
-  have hfin : upcrossingSequenceENat a b f N ω < ⊤ :=
-    upcrossingSequenceENat_finite_of_saturating_finsets_finite_sup hbot hN hsaturate hfinite_sup
-  exact upcrossingSequenceENat_eventually_eq_of_saturating_finsets hmon hbot hN hsaturate hab hfin
-
-/-- The upcrossings count on the full index set equals the supremum of upcrossings counts
-    on the approximating finsets, when the latter is bounded. This version provides an
-    equality in ℝ (with coercions from ℕ). -/
-theorem upcrossingSequenceENat_eq_iSup_finset_real
-    {s : ℕ → Finset ι}
-    (hmon : Monotone s)
-    (hbot : ∀ n, ⊥ ∈ s n)
-    (hN : ∀ n, N ∈ s n)
-    (hsaturate : ∀ t : Set ι, Finite t → t ⊆ Set.Iic N →
-      ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N)
-    (hab : a < b)
-    (ω : Ω) (hfinite_sup : ∃ C : ℝ, ∀ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) ≤ C) :
-    (upcrossingSequenceENat a b f N ω : ℝ) =
-      ⨆ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) := by
-  -- Convert real bound to nat bound
-  obtain ⟨C', hCbound'⟩ := hfinite_sup
-  let C := Nat.ceil C'
-  have hCC : C' ≤ C := Nat.le_ceil C'
-  have hCbound : ∃ C, ∀ n, upcrossingSequenceENat_finset hbot hN a b f n ω ≤ C := by
-    use C
-    intro n
-    exact_mod_cast (hCbound' n).trans hCC
-  -- Get the stabilization point M
-  obtain ⟨M, hM⟩ := upcrossingSequenceENat_eventually_eq_of_saturating_finsets_finite_sup_aux
-    hmon hbot hN hsaturate hab hCbound
-  -- The sequence is monotone in ℝ
-  have hU_mono : Monotone (fun n => (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ)) := by
-    intro n m hnm
-    simp only [upcrossingSequenceENat_finset]
-    exact Nat.cast_le.mpr (upcrossingSequenceENat_ge_finset (hbot n) (hbot m) (hmon hnm) ⟨N, hN n⟩
-      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab)
-  -- LHS equals value at M
-  have heq1 : (upcrossingSequenceENat a b f N ω : ℝ) =
-      (upcrossingSequenceENat_finset hbot hN a b f M ω : ℝ) := by
-    exact_mod_cast (hM M le_rfl).symm
-  -- RHS (ℝ-supremum) equals value at M
-  have heq2 : ⨆ n, (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ) =
-      (upcrossingSequenceENat_finset hbot hN a b f M ω : ℝ) := by
-    apply ciSup_eq_of_forall_le_of_forall_lt_exists_gt
-    · intro n
-      by_cases hnM : n ≤ M
-      · exact hU_mono hnM
-      · push_neg at hnM
-        simp only [upcrossingSequenceENat_finset]
-        exact_mod_cast le_of_eq (hM n (le_of_lt hnM) ▸ (hM M le_rfl).symm)
-    · intro w hw
-      exact ⟨M, hw⟩
-  rw [heq1, heq2]
 
 end Approximation
+
+section Convergence
+
+/-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
+    then supremum is integrable and its integral is at most `c`. -/
+theorem lintegral_le_of_monotone_bounded_iSup
+    (g : ℕ → Ω → ℝ≥0∞)
+    (hg : ∀ n, Measurable (g n))
+    (h_mono : ∀ n, ∀ᵐ a ∂μ, g n a ≤ g n.succ a)
+    (d : ℝ≥0∞)
+    (h_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d) :
+    ∫⁻ a, ⨆ n, g n a ∂μ ≤ d := by
+  -- Use Monotone Convergence Theorem: ∫⁻ (⨆ n, f n) = ⨆ n, ∫⁻ f n
+  calc ∫⁻ a, ⨆ n, g n a ∂μ
+      = ⨆ n, ∫⁻ a, g n a ∂μ := lintegral_iSup_ae hg h_mono
+    _ ≤ d := iSup_le h_bound
+
+/-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
+    then the supremum is finite a.e. -/
+theorem ae_lt_top_of_monotone_bounded_iSup
+    (f : ℕ → Ω → ℝ≥0∞)
+    (hf : ∀ n, Measurable (f n))
+    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
+    (c : ℝ≥0∞)
+    (hc : c < ⊤)
+    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
+    ∀ᵐ a ∂μ, ⨆ n, f n a < ⊤ := by
+  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c :=
+    lintegral_le_of_monotone_bounded_iSup f hf h_mono c h_bound
+  have h_int_lt : ∫⁻ a, ⨆ n, f n a ∂μ < ⊤ := lt_of_le_of_lt h_int hc
+  have h_meas : Measurable (fun a => ⨆ n, f n a) := Measurable.iSup hf
+  exact ae_lt_top h_meas h_int_lt.ne
+
+end Convergence
 
 section ConvergenceBochner
 
