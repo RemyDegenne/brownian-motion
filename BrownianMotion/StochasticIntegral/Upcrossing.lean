@@ -6,6 +6,7 @@ Authors: Rémy Degenne, Wojciech Czernous
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Cadlag
 import Mathlib.Data.Finset.Sort
+import Mathlib.MeasureTheory.Function.L1Space.Integrable
 import Mathlib.Order.BoundedOrder.Basic
 import Mathlib.Probability.Martingale.Basic
 import Mathlib.Probability.Martingale.Upcrossing
@@ -1840,8 +1841,6 @@ theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : 
   rw [← h_sup, ENNReal.iSup_mul]
   exact iSup_le h_eps_n'
 
-
-
 /-- Right-continuous process hits the closed set at the corresponding hitting time. -/
 lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω)
     (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
@@ -1865,6 +1864,8 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     exact hs.mem_of_tendsto ((hRC (sInf S)).tendsto.comp h_tendsto_within)
       (Filter.Eventually.of_forall fun n => (hu_mem n).2)
 
+/-- For right-continuous processes, `upcrossingsBeforeENat` agrees with `upcrossingSequenceENat`.
+  This is important for measurability of the latter. -/
 theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
     (hab : a < b) :
     upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N :=
@@ -1872,13 +1873,50 @@ theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, Ri
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Ici b) n N ω isClosed_Ici (hRC ω))
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Iic a) n N ω isClosed_Iic (hRC ω))
 
--- TODO: integral version of Doob upcrossing inequality for ℝ≥0 index
--- This requires handling the ℕ∞ → ℝ coercion for the upcrossing count.
--- For now, only the lintegral version is available:
--- mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part
+/-- Obviously, integrability of a submartingale yields finite RHS in Doob upcrossing inequality. -/
+lemma pos_sub_integrable_of_submartingale (hf : Submartingale f 𝓕 μ) :
+    ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ < ⊤ := by
+  rw [← hasFiniteIntegral_iff_ofReal (ae_of_all _ (fun _ => posPart_nonneg _))]
+  -- Show that (f N - a)⁺ is integrable
+  have hInt_sub : Integrable (fun ω => f N ω - a) μ := (hf.integrable N).sub (integrable_const a)
+  have h_bound : ∀ x, ‖(f N x - a)⁺‖ ≤ ‖f N x - a‖ := fun x => by
+    simp only [Real.norm_eq_abs, abs_of_nonneg (posPart_nonneg _)]
+    rw [posPart_def]
+    exact sup_le (le_abs_self _) (abs_nonneg _)
+  have h_meas : AEStronglyMeasurable (fun ω => (f N ω - a)⁺) μ := by
+    have h1 : (fun ω => (f N ω - a)⁺) = (fun ω => (f N ω - a) ⊔ 0) := by ext; rfl
+    rw [h1]
+    exact hInt_sub.aestronglyMeasurable.sup aestronglyMeasurable_const
+  exact (hInt_sub.mono h_meas (Filter.Eventually.of_forall h_bound)).hasFiniteIntegral
+
+/-- The `upcrossingSequenceENat` is a.s. finite, assuming it is `AEMeasurable`. -/
+theorem upcrossingSequenceENat_ae_lt_top (hf : Submartingale f 𝓕 μ)
+    (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b)
+    (hmeas : AEMeasurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) μ) :
+    ∀ᵐ ω ∂μ, upcrossingSequenceENat a b f N ω < ⊤ := by
+  -- The RHS of Doob inequality is finite
+  have hRHS : ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ < ⊤ := pos_sub_integrable_of_submartingale hf
+  -- The LHS of Doob inequality is ≤ RHS
+  have hDoob : ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ :=
+    mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part hf hRC hab
+  -- So LHS < ⊤
+  have hba_ne_zero : ENNReal.ofReal (b - a) ≠ 0 :=
+    (ENNReal.ofReal_pos.mpr (sub_pos.mpr hab)).ne'
+  have hLHS_lt : ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ < ⊤ :=
+    lt_of_le_of_lt hDoob hRHS
+  have hlint_ne_top : ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≠ ⊤ := by
+    intro hcontra
+    rw [hcontra, ENNReal.mul_top hba_ne_zero] at hLHS_lt
+    exact absurd hLHS_lt (not_lt.mpr le_top)
+  -- ae_lt_top' gives us (↑(upcrossingSequenceENat ...) : ℝ≥0∞) < ⊤ a.e.
+  -- We need to convert to ℕ∞ < ⊤
+  have h_ae_ennreal : ∀ᵐ ω ∂μ, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) < ⊤ :=
+    ae_lt_top' hmeas hlint_ne_top
+  filter_upwards [h_ae_ennreal] with ω hω
+  exact ENat.toENNReal_lt_top.mp hω
 
 end DoobInequalityNNReal
-
 
 /-- Rationale for ⨆ instead of sSup in the definitions. -/
 example : sSup (Set.univ : Set ℕ) = 0 := by
@@ -1888,27 +1926,5 @@ example : sSup (Set.univ : Set ℕ) = 0 := by
     omega
   rw [csSup_of_not_bddAbove h, csSup_empty]
   rfl
-
-/-- Submartingale has integrable t-values and our RHS in DUI is thus finite. -/
-example {f : ℕ → Ω → ℝ} {N : ℕ} {a : ℝ} (hInt : Integrable (fun ω => (f N ω - a)⁺) μ) :
-    ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ < ∞ := by
-  rw [← hasFiniteIntegral_iff_ofReal (ae_of_all _ (fun _ => posPart_nonneg _))]
-  exact hInt.hasFiniteIntegral
-
-/-- Since the LHS in DUI is finite, the integral of upcrossingsBefore is finite. -/
-example {f : Ω → ℝ≥0∞} (hab : a < b)
-    (hmeas : AEMeasurable f μ)
-    (h : ENNReal.ofReal (b - a) * ∫⁻ ω, f ω ∂μ < ⊤) :
-    ∀ᵐ ω ∂μ, f ω < ⊤ := by
-  have hba_ne_zero : ENNReal.ofReal (b - a) ≠ 0 :=
-    (ENNReal.ofReal_pos.mpr (sub_pos.mpr hab)).ne'
-  have hlint : ∫⁻ ω, f ω ∂μ ≠ ⊤ := by
-    intro hcontra
-    simp only [hcontra] at h
-    rw [ENNReal.mul_top hba_ne_zero] at h
-    exact absurd h (not_lt.mpr le_top)
-  exact_mod_cast ae_lt_top' hmeas hlint
-
-
 
 end ProbabilityTheory
