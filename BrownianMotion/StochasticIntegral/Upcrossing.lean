@@ -558,11 +558,6 @@ lemma ltUpcrossingData_bddAbove_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
 
 end DefsEquivalence
 
-/-! Suffices to show monotonicity for `Finite` index sets - the comparison with `NNRat`, as
-  needed in the `theorem lintegral_iSup'`, is via `⊔`.
-  -- Not really. We need to derive Doob's upcrossing inequality for finite index sets,
-  from its version for Nat. Besides, we need to compare with `NNRat` to establish convergence.
--/
 section MonotonicityAndBoundedness
 
 variable [LinearOrder ι]
