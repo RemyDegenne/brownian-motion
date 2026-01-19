@@ -5,7 +5,7 @@ Authors: Rémy Degenne, Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Cadlag
-ļimport Mathlib.Data.ENNReal.Basic
+import Mathlib.Data.ENNReal.Basic
 import Mathlib.Data.ENNReal.Real
 import Mathlib.Data.Finset.Sort
 import Mathlib.MeasureTheory.Function.L1Space.Integrable
@@ -589,48 +589,30 @@ lemma ltUpcrossingData_mono_index_set_before (f : ι → κ) (N : ι)
     ltUpcrossingData a b u N n ω → ltUpcrossingData a b v (f N) n ω := by
   simp only [ltUpcrossingData]
   by_cases hN : N ≤ ⊥
-  · simp only [hN, if_true]; grind
-  · simp only [hN, if_false]
-    push_neg at hN -- hN : ⊥ < N
-    have hNIn : N ∈ {i | i ≤ N} := by simp
-    have : f ⊥ < f N := hsmon (by simp) hNIn hN
-    have fbot : ⊥ ≤ f ⊥ := by exact OrderBot.bot_le (f ⊥)
-    have hbot : ¬ f N ≤ ⊥ := by grind
-    simp only [hbot, if_false]
+  · simp only [hN, ↓reduceIte, false_implies]
+  · simp only [hN, ↓reduceIte]
+    push_neg at hN
+    have hbot : ¬ f N ≤ ⊥ :=
+      not_le.mpr (lt_of_le_of_lt (OrderBot.bot_le _) (hsmon bot_le le_rfl hN))
+    simp only [hbot, ↓reduceIte]
     by_cases hnzero : n = 0
-    · simp only [hnzero, if_true]
-      grind
-    · simp only [hnzero, if_false]
+    · simp only [hnzero, ↓reduceIte, true_implies]
+    · simp only [hnzero, ↓reduceIte]
       rintro ⟨hseq, ht_lt_N⟩
       have hmon : MonotoneOn f {i | i ≤ N} := hsmon.monotoneOn
-      have htIn : ∀ j < 2 * n, hseq.t j ∈ {i | i ≤ N} := by
-        intro i hi
-        have : hseq.t i ≤ hseq.t (2 * n - 1) := hseq.mono (by grind)
-        grind
-      let hseqv : UpcrossingData a b v n ω := ⟨
-          hab,
-          fun i => if i < 2 * n then f (hseq.t i) else f N,
-          fun i j hij => by
-            by_cases hi : i < 2 * n
-            · by_cases hj : j < 2 * n
-              · simp only [hi, hj, if_true]; exact hmon (htIn i hi) (htIn j hj) (hseq.mono hij)
-              · simp only [hi, hj, if_true, if_false]; exact hmon (htIn i hi) hNIn (by grind)
-            · simp only [hi, if_false]; grind,
-          fun i hi heven => by
-            simp only [hi, if_true]
-            rw [hv (hseq.t i) (htIn i hi)]
-            exact hseq.ft_le_a i hi heven,
-          fun i hi hodd => by
-            simp only [hi, if_true]
-            rw [hv (hseq.t i) (htIn i hi)]
-            exact hseq.ft_ge_b i hi hodd ⟩
-      use hseqv
-      have htv_lt_fN : hseqv.t (2 * n - 1) < f N := by
-        simp only [hseqv]
-        have hnzero : 2 * n - 1 < 2 * n := by grind
-        simp only [hnzero, if_true]
-        exact hsmon (htIn (2 * n - 1) hnzero) hNIn ht_lt_N
-      exact htv_lt_fN
+      have htIn (j : ℕ) (hj : j < 2 * n) : hseq.t j ∈ {i | i ≤ N} :=
+        (hseq.mono (by grind : j ≤ 2 * n - 1)).trans (le_of_lt ht_lt_N)
+      refine ⟨⟨hab, fun i => if i < 2 * n then f (hseq.t i) else f N,
+        fun i j hij => ?_, fun i hi heven => ?_, fun i hi hodd => ?_⟩, ?_⟩
+      · by_cases hi : i < 2 * n <;> by_cases hj : j < 2 * n <;> simp only [*, ↓reduceIte]
+        · exact hmon (htIn _ hi) (htIn _ hj) (hseq.mono hij)
+        · exact hmon (htIn _ hi) le_rfl (by grind)
+        · grind
+        · rfl
+      · simp only [hi, ↓reduceIte, hv _ (htIn i hi)]; exact hseq.ft_le_a i hi heven
+      · simp only [hi, ↓reduceIte, hv _ (htIn i hi)]; exact hseq.ft_ge_b i hi hodd
+      · simp only [(by grind : 2 * n - 1 < 2 * n), ↓reduceIte]
+        exact hsmon (htIn _ (by grind)) le_rfl ht_lt_N
 
 /-! Uniform boundedness of ltUpcrossingData, assuming {i | i < N} is finite. -/
 lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
@@ -1687,11 +1669,13 @@ theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : 
     have h_cast : (n : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hnm
     nlinarith
   have h_tendsto_frac : Tendsto (fun n : ℕ => ((n : ℝ) + 1) / ((n : ℝ) + 2)) atTop (nhds 1) := by
-    simp_rw [show ∀ n : ℕ, ((n : ℝ) + 1) / ((n : ℝ) + 2) = 1 - 1 / ((n : ℝ) + 2) by intros; field_simp; ring]
-    have h1 : (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) = (fun n : ℕ => 1 / ((n + 1 : ℕ) + 1 : ℝ)) := by
-      ext n; simp only [Nat.cast_add, Nat.cast_one]; ring
-    rw [h1]; convert Tendsto.sub (tendsto_const_nhds (x := (1 : ℝ)))
-      ((tendsto_add_atTop_iff_nat 1).mpr tendsto_one_div_add_atTop_nhds_zero_nat) using 1; ring
+    have h (n : ℕ) : ((n : ℝ) + 1) / ((n : ℝ) + 2) = 1 - 1 / ((n : ℝ) + 2) := by field_simp; ring
+    simp_rw [h]
+    have htend : Tendsto (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) atTop (nhds 0) := by
+      have : (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) = (fun n : ℕ => 1 / ((n + 1 : ℕ) + 1 : ℝ)) := by
+        ext n; simp only [Nat.cast_add, Nat.cast_one]; ring
+      rw [this]; exact (tendsto_add_atTop_iff_nat 1).mpr tendsto_one_div_add_atTop_nhds_zero_nat
+    convert Tendsto.sub tendsto_const_nhds htend using 1; ring
   have h_sup : ⨆ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) =
       ENNReal.ofReal (b - a) := by
     apply le_antisymm
