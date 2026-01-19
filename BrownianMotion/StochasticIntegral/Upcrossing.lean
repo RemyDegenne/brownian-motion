@@ -33,6 +33,17 @@ noncomputable def upcrossingsBefore [Preorder ι] [OrderBot ι] [InfSet ι] (a b
     (N : ι) (ω : Ω) : ℕ :=
   sSup {n | upperCrossingTime a b f N n ω < N}
 
+-- BUT:
+
+example : sSup (Set.univ : Set ℕ) = 0 := by
+  have h : ¬ BddAbove (Set.univ : Set ℕ) := by
+    intro ⟨M, hM⟩
+    have : M + 1 ≤ M := hM (Set.mem_univ (M + 1))
+    omega
+  rw [csSup_of_not_bddAbove h, csSup_empty]
+  rfl
+
+-- which is why we use ⨆ instead of sSup in the following definitions.
 -/
 
 variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {a b : ℝ}
@@ -58,11 +69,7 @@ theorem upcrossingsBeforeENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ} 
     upcrossingsBeforeENat a b f N ω = (upcrossingsBefore a b f N ω : ℕ∞) :=
   upcrossingsBeforeENat_eq_upcrossingsBefore_of_finite (upperCrossingTime_lt_bddAbove hab)
 
-/-! Let's use:
-theorem mul_integral_upcrossingsBefore_le_integral_pos_part_aux [IsFiniteMeasure μ]
-    (hf : Submartingale f ℱ μ) (hab : a < b) :
-    (b - a) * μ[upcrossingsBefore a b f N] ≤ μ[fun ω => (f N ω - a)⁺]
--/
+/-- Doob's upcrossing inequality on ℕ, with `upcrossingsBefore` and Lebesgue integral. -/
 theorem mul_lintegral_upcrossingsBefore_le_lintegral_pos_part_aux [IsFiniteMeasure μ]
     {𝓕 : Filtration ℕ m0} {f : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ}
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
@@ -194,19 +201,6 @@ noncomputable def ltUpcrossingData [LinearOrder ι] [OrderBot ι]
 noncomputable def upcrossingSequenceENat [LinearOrder ι] [OrderBot ι] (a b : ℝ) (f : ι → Ω → ℝ)
     (N : ι) (ω : Ω) : ℕ∞ :=
   ⨆ (n : ℕ) (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
-
-
-lemma upcrossingSequenceENat_eq_zero_of_not_hab [LinearOrder ι] [OrderBot ι]
-    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
-    (hab : ¬ a < b) : upcrossingSequenceENat a b f N ω = 0 := by
-  simp only [upcrossingSequenceENat, ltUpcrossingData]
-  rcases le_or_gt N ⊥ with hN | hN
-  · simp_all
-  · have : ¬ N ≤ ⊥ := by grind
-    simp only [this, if_false]
-    have : ∀ n, ¬ (∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) < N) :=
-      fun _ ⟨seq, _⟩ => hab seq.hab
-    simp only [this]; simp_all
 
 /-! ltUpcrossingData a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
 section DefsEquivalence
@@ -560,15 +554,6 @@ lemma ltUpcrossingData_bddAbove_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω}
   rw [heq]
   exact upperCrossingTime_lt_bddAbove hab
 
-/-- Finiteness for `upcrossingSequenceENat` on `ℕ`, derived from `upperCrossingTime_lt_bddAbove`. -/
-lemma upcrossingSequenceENat_finite_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω} (hab : a < b) :
-    upcrossingSequenceENat a b f N ω < ⊤ := by
-  simp only [upcrossingSequenceENat]
-  have hbd : BddAbove {n | ltUpcrossingData a b f N n ω} := ltUpcrossingData_bddAbove_Nat hab
-  obtain ⟨M, hM⟩ := hbd
-  simp_rw [upperBounds, Set.mem_setOf_eq] at hM
-  exact lt_of_le_of_lt (iSup₂_le fun n h => by exact_mod_cast hM h) (ENat.coe_lt_top M)
-
 end DefsEquivalence
 
 /-! Suffices to show monotonicity for `Finite` index sets - the comparison with `NNRat`, as
@@ -669,57 +654,6 @@ lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N
       rcases hn with ⟨hseq, ht_lt_N⟩
       grind
 
-lemma upcrossingSequenceENat_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
-    (hfin : Finite {i | i < N}) :
-    ∃ M, ∀ ω, upcrossingSequenceENat a b f N ω ≤ M := by
-  obtain ⟨M, hMsize⟩ := ltUpcrossingData_unif_bdd_of_finite a b f N hfin
-  use M
-  intro ω
-  simp only [upcrossingSequenceENat]
-  exact iSup₂_le fun n hn => Nat.cast_le.mpr (hMsize n ω hn)
-
-/-! Boundedness of ltUpcrossingData, assuming {i | i < N} is finite. -/
-lemma ltUpcrossingData_bddAbove_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (ω : Ω) (N : ι)
-    (hfin : Finite {i | i < N}) :
-    BddAbove {n | ltUpcrossingData a b f N n ω} := by
-  obtain ⟨M, hMsize⟩ := ltUpcrossingData_unif_bdd_of_finite a b f N hfin
-  use M
-  intro n hn
-  grind
-
-/-- `BddAbove` for `ltUpcrossingData` from `upcrossingSequenceENat < ⊤`. -/
-lemma ltUpcrossingData_bddAbove_of_upcrossingSequenceENat_lt_top
-    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
-    (hfin : upcrossingSequenceENat a b f N ω < ⊤) :
-    BddAbove {n | ltUpcrossingData a b f N n ω} := by
-  simp only [upcrossingSequenceENat] at hfin
-  -- The biSup is < ⊤, so there exists a bound M
-  rw [lt_top_iff_ne_top] at hfin
-  obtain ⟨M, hM⟩ := WithTop.ne_top_iff_exists.mp hfin
-  use M
-  intro n hn
-  by_contra hcon
-  push_neg at hcon
-  have h : (n : ℕ∞) ≤ ⨆ k, ⨆ (_ : ltUpcrossingData a b f N k ω), (k : ℕ∞) := by
-    apply le_ciSup_of_le (OrderTop.bddAbove _) n
-    exact le_iSup_of_le hn le_rfl
-  have h' : (n : ℕ∞) ≤ M := le_trans h (le_of_eq hM.symm)
-  have h'' : n ≤ M := Nat.cast_le.mp h'
-  omega
-
-
-
-/-- `upcrossingSequenceENat < ⊤` from `BddAbove` for `ltUpcrossingData`. -/
-lemma upcrossingSequenceENat_lt_top_of_bddAbove
-    {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
-    (hbdd : BddAbove {n | ltUpcrossingData a b f N n ω}) :
-    upcrossingSequenceENat a b f N ω < ⊤ := by
-  obtain ⟨M, hM⟩ := hbdd
-  simp only [upcrossingSequenceENat]
-  calc ⨆ n, ⨆ (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
-      ≤ (M : ℕ∞) := iSup₂_le fun n hn => Nat.cast_le.mpr (hM hn)
-    _ < ⊤ := ENat.coe_lt_top M
-
 /-! Monotonicity of upcrossingSequenceENat in the index set, assuming finitely many upcrossings. -/
 lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
@@ -737,15 +671,6 @@ lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
       intro n hn
       exact ltUpcrossingData_mono_index_set_before f N hsmon u v hv a b n ω hab hn
     exact biSup_mono fun n hn => hAsubB hn
-
-@[deprecated upcrossingSequenceENat_mono_index_set (since := "2025-01-16")]
-theorem upcrossingSequenceENat_mono_index_set_of_finite_till_N (f : ι → κ)
-    (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
-    (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
-    (a b : ℝ) (ω : Ω) (hab : a < b) (_hfin : Finite {i | i < f N}) :
-    -- u has less upcrossings than v
-    upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v (f N) ω :=
-  upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
 end MonotonicityAndBoundedness
 
@@ -1362,22 +1287,6 @@ theorem lintegral_le_of_monotone_bounded_iSup
       = ⨆ n, ∫⁻ a, g n a ∂μ := lintegral_iSup_ae hg h_mono
     _ ≤ d := iSup_le h_bound
 
-/-- If `(f n)` is a monotone sequence with integrals bounded by a finite constant,
-    then the supremum is finite a.e. -/
-theorem ae_lt_top_of_monotone_bounded_iSup
-    (f : ℕ → Ω → ℝ≥0∞)
-    (hf : ∀ n, Measurable (f n))
-    (h_mono : ∀ n, ∀ᵐ a ∂μ, f n a ≤ f n.succ a)
-    (c : ℝ≥0∞)
-    (hc : c < ⊤)
-    (h_bound : ∀ n, ∫⁻ ω, f n ω ∂μ ≤ c) :
-    ∀ᵐ a ∂μ, ⨆ n, f n a < ⊤ := by
-  have h_int : ∫⁻ a, ⨆ n, f n a ∂μ ≤ c :=
-    lintegral_le_of_monotone_bounded_iSup f hf h_mono c h_bound
-  have h_int_lt : ∫⁻ a, ⨆ n, f n a ∂μ < ⊤ := lt_of_le_of_lt h_int hc
-  have h_meas : Measurable (fun a => ⨆ n, f n a) := Measurable.iSup hf
-  exact ae_lt_top h_meas h_int_lt.ne
-
 end Convergence
 
 section DoobInequalityCountable
@@ -1917,14 +1826,5 @@ theorem upcrossingSequenceENat_ae_lt_top (hf : Submartingale f 𝓕 μ)
   exact ENat.toENNReal_lt_top.mp hω
 
 end DoobInequalityNNReal
-
-/-- Rationale for ⨆ instead of sSup in the definitions. -/
-example : sSup (Set.univ : Set ℕ) = 0 := by
-  have h : ¬ BddAbove (Set.univ : Set ℕ) := by
-    intro ⟨M, hM⟩
-    have : M + 1 ≤ M := hM (Set.mem_univ (M + 1))
-    omega
-  rw [csSup_of_not_bddAbove h, csSup_empty]
-  rfl
 
 end ProbabilityTheory
