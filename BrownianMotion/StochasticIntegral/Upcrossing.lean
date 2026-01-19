@@ -1393,19 +1393,35 @@ lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
     Submartingale (fun i : s => f i) (Filtration.restrictFinset 𝓕 s) μ :=
   ⟨fun i => hf.adapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
 
-variable [Countable ι] [OrderBot ι] {N : ι} {a b : ℝ}
+variable [OrderBot ι] {N : ι} {a b : ℝ}
 
-theorem mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux [IsFiniteMeasure μ]
+-- set_option linter.unusedSectionVars false in
+/-- Measurability of `upcrossingSequenceENat_finset` as `ℝ≥0∞`. -/
+theorem Adapted.measurable_upcrossingSequenceENat_finset
+    {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
+    (hf : Adapted 𝓕 f) (hab : a < b) (n : ℕ) :
+    Measurable (fun ω => (upcrossingSequenceENat_finset hbot hN a b f n ω : ℝ≥0∞)) := by
+  simp only [upcrossingSequenceENat_finset]
+  have hne : (s n).Nonempty := ⟨⊥, hbot n⟩
+  have hnz : #(s n) ≠ 0 := Finset.card_ne_zero.mpr hne
+  haveI : NeZero #(s n) := ⟨hnz⟩
+  letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  let 𝓕' := Filtration.restrictFinset 𝓕 (s n)
+  have hadapted : Adapted 𝓕' (fun i : s n => f i) := fun i => hf i.val
+  exact Adapted.measurable_upcrossingSequenceENat_Finset' (hbot := hbot n) rfl hadapted hab
+
+variable [Countable ι]
+
+theorem mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ ∧
-    μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] / (b - a) := by
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   -- We approximate Set.Iic N by an increasing family of finsets
   obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Iic N
-  -- For each n, define U_n as upcrossings on s n
-  let U : ℕ → Ω → ℝ := fun n ω => upcrossingSequenceENat_finset hsbot hsN a b f n ω
-  -- The bound c is the same for all n (since f N appears in each finset)
-  set c := μ[fun ω => (f N ω - a)⁺] / (b - a) with hc
-  set F : Ω → ℝ := fun ω => upcrossingSequenceENat a b f N ω with hF
+  -- For each n, define g_n as ENNReal-valued upcrossings on s n
+  let g : ℕ → Ω → ℝ≥0∞ := fun n ω => (upcrossingSequenceENat_finset hsbot hsN a b f n ω : ℝ≥0∞)
+  -- The bound c
+  set c := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ with hc
   have hk : ∀ n, #(s n) = Finset.card (s n) := by intro n; rfl
   have hne : ∀ n, (s n).Nonempty := by intro n; use ⊥; exact hsbot n
   have hnz : ∀ n, #(s n) ≠ 0 := by intro n; exact Finset.card_ne_zero.mpr (hne n)
@@ -1413,45 +1429,58 @@ theorem mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux [
   let hFiltr := fun n => Filtration.restrictFinset 𝓕 (s n)
   have hsub : ∀ n, Submartingale (fun i : s n => f i) (hFiltr n) μ :=
     fun n => Submartingale.restrictFinset 𝓕 (s n) hf
-  refine bounded_integral_sup_of_mono_L1_bounded (f:=U) ?h_pos ?h_int ?h_bound ?h_mono ?h_sup
-  · intro n; filter_upwards with ω; simp only [U]; simp
-  · exact fun n =>
-      Adapted.integrable_upcrossingSequenceENat (μ := μ) (hsbot n) (hk n) (hsub n).adapted hab
-  · intro n
-    simp only [hc, le_div_iff₀' (sub_pos.mpr hab)]
-    exact mul_integral_upcrossingSequenceENat_Finset_le_integral_pos_part_aux
+  -- Measurability of g n
+  have hg_meas : ∀ n, Measurable (g n) := fun n =>
+    Adapted.measurable_upcrossingSequenceENat_finset hsbot hsN hf.adapted hab n
+  -- Monotonicity of g
+  have hg_mono : ∀ n, ∀ᵐ ω ∂μ, g n ω ≤ g n.succ ω := by
+    intro n
+    filter_upwards with ω
+    simp only [g, ENat.toENNReal_le]
+    exact upcrossingSequenceENat_ge_finset (hsbot n) (hsbot n.succ) (hsmon (Nat.le_succ n))
+      ⟨N, hsN n⟩ (fun i : s n => f i) (fun i : s n.succ => f i) (fun _ => rfl) a b ω hab
+  -- Bound for each g n
+  have hg_bound : ∀ n, ENNReal.ofReal (b - a) * ∫⁻ ω, g n ω ∂μ ≤ c := by
+    intro n
+    simp only [g, upcrossingSequenceENat_finset, hc]
+    haveI := hNZ n
+    exact mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part_aux
       (hbot := hsbot n) (hk := rfl) (hf := hsub n) (N := ⟨N, hsN n⟩) hab
-  · filter_upwards with ω n m hnm
-    simp only [U, upcrossingSequenceENat_finset]
-    exact_mod_cast upcrossingSequenceENat_ge_finset (hsbot n) (hsbot m) (hsmon hnm) ⟨N, hsN n⟩
-      (fun i : s n => f i) (fun i : s m => f i) (fun _ => rfl) a b ω hab
-  · intro ω hω_bdd; simp only [hF, U]
-    exact upcrossingSequenceENat_eq_iSup_finset_real hsmon hsbot hsN hsaturate hab ω hω_bdd
+  -- By upcrossingSequenceENat_eq_iSup_finset, the supremum equals the full upcrossings
+  have hiSup_eq : ∀ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) = ⨆ n, g n ω := by
+    intro ω
+    simp only [g]
+    rw [upcrossingSequenceENat_eq_iSup_finset hsbot hsN hsaturate hab (ω := ω)]
+    exact ENat.toENNReal_iSup _
+  -- The integral of the supremum
+  have hg_int_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ c / ENNReal.ofReal (b - a) := by
+    intro n
+    by_cases hba_zero : ENNReal.ofReal (b - a) = 0
+    · have : b - a ≤ 0 := by simpa using hba_zero
+      exact absurd (sub_pos.mpr hab) (not_lt.mpr this)
+    · rw [ENNReal.le_div_iff_mul_le (Or.inl hba_zero) (Or.inl (by simp)), mul_comm]
+      exact hg_bound n
+  -- Apply lintegral_le_of_monotone_bounded_iSup
+  calc ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
+      = ENNReal.ofReal (b - a) * ∫⁻ ω, ⨆ n, g n ω ∂μ := by simp only [hiSup_eq]
+    _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := by
+        apply mul_le_mul_left'
+        exact lintegral_le_of_monotone_bounded_iSup g hg_meas hg_mono _ hg_int_bound
+    _ ≤ c := by
+        have hba_zero : ENNReal.ofReal (b - a) ≠ 0 := by
+          simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le, sub_pos]
+          exact hab
+        rw [ENNReal.mul_div_cancel hba_zero (by simp)]
 
-theorem Submartingale.mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part
+theorem Submartingale.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part
     [IsFiniteMeasure μ]
     (hf : Submartingale f 𝓕 μ) :
-    (b - a) * μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  by_cases! hab : a < b
-  · simp only [← le_div_iff₀' (sub_pos.mpr hab)]
-    exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux hf hab).2
-  · rw [← sub_nonpos] at hab
-    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
-      (integral_nonneg fun ω => posPart_nonneg _)
-
-theorem Submartingale.integrable_upcrossingSequenceENat_Countable
-    [IsFiniteMeasure μ]
-    (hf : Submartingale f 𝓕 μ) :
-    Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ := by
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   by_cases hab : a < b
-  · exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux hf hab).1
-  · -- simp only [← sub_nonpos] at hab
-    have h_nonpos : (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) =ᵐ[μ] 0 := by
-      filter_upwards with ω
-      have := upcrossingSequenceENat_eq_zero_of_not_hab (a:=a) (b:=b) (f:=f) (N:=N) (ω:=ω) hab
-      simp_all
-    rw [integrable_congr h_nonpos]
-    exact integrable_zero Ω ℝ μ
+  · exact ProbabilityTheory.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part
+      hf hab
+  · simp only [ENNReal.ofReal_of_nonpos (sub_nonpos.mpr (le_of_not_gt hab)), zero_mul, zero_le]
 
 end DoobInequalityCountable
 
@@ -1604,31 +1633,23 @@ instance DSet_countable_inst (N : ℝ≥0) : Countable (DSet N) := (DSet_countab
     upcrossings from `(a + ε)` to `(b - ε)` in the restriction of `f` to `D = ℚ≥0 ∪ {N}`. -/
 lemma upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet
     (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε) (hε_small : 2 * ε < b - a)
-    (ω : Ω) (hBdd : BddAbove {n | ltUpcrossingData (a + ε) (b - ε) (fun d : DSet N => f d)
-      ⟨N, N_mem_DSet N⟩ n ω}) :
+    (ω : Ω) :
     upcrossingSequenceENat a b f N ω ≤
       upcrossingSequenceENat (a + ε) (b - ε) (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω := by
   set DN := DSet N
   set Nelem : DN := ⟨N, N_mem_DSet N⟩
   haveI : Countable DN := DSet_countable_inst N
   have hNelem_bot : Nelem ≤ ⊥ ↔ N ≤ ⊥ := by simp only [le_bot_iff, Nelem, Subtype.ext_iff]; rfl
-  -- If N ≤ ⊥, then LHS = 0 ≤ RHS
+  -- Use biSup_mono to reduce to showing inclusion of conditions
+  simp only [upcrossingSequenceENat]
+  apply biSup_mono
+  intro K hK
+  -- We need to show: ltUpcrossingData a b f N K ω → ltUpcrossingData (a+ε) (b-ε) (f|D) Nelem K ω
+  simp only [ltUpcrossingData] at hK ⊢
+  -- If N ≤ ⊥, the LHS condition is False
   by_cases hNbot : N ≤ ⊥
-  · have : {n | ltUpcrossingData a b f N n ω} = ∅ := by
-      ext n; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, ltUpcrossingData,
-        hNbot, ↓reduceIte]
-    simp only [upcrossingSequenceENat, this, csSup_empty]
-    exact Nat.zero_le _
-  -- Now N > ⊥, so the set is nonempty (contains 0)
-  apply csSup_le_csSup
-  -- The D-indexed version is bounded (assumed)
-  · exact hBdd
-  -- The set of K with upcrossings in f is nonempty (0 is always in it when N > ⊥)
-  · use 0
-    simp only [Set.mem_setOf_eq, ltUpcrossingData, hNbot, ↓reduceIte]
-  -- Main inclusion: if K upcrossings exist in f, then K upcrossings exist in f|D
-  · intro K hK
-    simp only [Set.mem_setOf_eq, ltUpcrossingData, hNelem_bot, hNbot, ↓reduceIte] at hK ⊢
+  · simp only [hNbot, ↓reduceIte] at hK
+  · simp only [hNbot, hNelem_bot, ↓reduceIte] at hK ⊢
     rcases K with _ | K
     · trivial
     · -- K ≥ 1, so hK : ∃ seq, seq.t (2 * (K+1) - 1) < N
@@ -1670,51 +1691,154 @@ lemma submartingale_restrictDSet (hf : Submartingale f 𝓕 μ) (N : ℝ≥0) :
     Submartingale (fun d : DSet N => f d) (Filtration.restrictDSet 𝓕 N) μ :=
   ⟨fun i => hf.adapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
 
-/-- The restriction of f to DSet N is integrable in upcrossings. -/
-lemma integrable_upcrossingSequenceENat_restrict_DSet (hf : Submartingale f 𝓕 μ)
-    {ε : ℝ} (hε_small : 2 * ε < b - a) :
-    Integrable (fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
-        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)) μ := by
-  have hab' : a + ε < b - ε := by linarith
-  exact (mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part_aux
-    (submartingale_restrictDSet hf N) hab').1
-
-/-- For $0<ε<(b-a)/2$, $EU_a^b(f,N) \le EU_{a+ε}^{b-ε}(f|_D,N)$. -/
-lemma integral_upcrossingSequenceENat_le_of_restrict_DSet (hf : Submartingale f 𝓕 μ)
+omit [IsFiniteMeasure μ] in
+/-- For $0<ε<(b-a)/2$, $E[U_a^b(f,N)] \le E[U_{a+ε}^{b-ε}(f|_D,N)]$.
+    Uses `upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet`. -/
+lemma lintegral_upcrossingSequenceENat_le_of_restrict_DSet
     (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε)
-    (hε_small : 2 * ε < b - a)
-    (hBdd : ∀ᵐ ω ∂μ, BddAbove {n | ltUpcrossingData (a + ε) (b - ε) (fun d : DSet N => f d)
-      ⟨N, N_mem_DSet N⟩ n ω})
-    (hInt : Integrable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ)) μ) :
-    μ[fun ω => (upcrossingSequenceENat a b f N ω : ℝ)] ≤
-      μ[fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
-        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] := by
-  apply integral_mono_ae
-  · exact hInt
-  · exact integrable_upcrossingSequenceENat_restrict_DSet hf hε_small
-  · filter_upwards [hBdd] with ω hBdd_ω
-    exact Nat.cast_le.mpr
-      (upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet hRC hεpos hε_small ω hBdd_ω)
+    (hε_small : 2 * ε < b - a) :
+    ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ := by
+  apply lintegral_mono
+  intro ω
+  exact ENat.toENNReal_le.mpr
+    (upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet hRC hεpos hε_small ω)
 
-/-- For $0<ε<(b-a)/2$, $EU_{a+ε}^{b-ε}(f|_D,N) \le \frac{E(f_N-a-ε)^+}{b-a-2ε}$.
+/-- For $0<ε<(b-a)/2$, $(b-a-2ε) E[U_{a+ε}^{b-ε}(f|_D,N)] \le E[(f_N-a-ε)^+]$ in lintegral form.
     This follows from the discrete Doob inequality applied to the restriction of f to D. -/
-lemma mul_integral_upcrossingSequenceENat_restrict_DSet_le (hf : Submartingale f 𝓕 μ)
+lemma mul_lintegral_upcrossingSequenceENat_restrict_DSet_le (hf : Submartingale f 𝓕 μ)
     {ε : ℝ} (hε_small : 2 * ε < b - a) :
-    (b - a - 2 * ε) * μ[fun ω => (upcrossingSequenceENat (a + ε) (b - ε)
-        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ)] ≤
-      μ[fun ω => (f N ω - (a + ε))⁺] := by
+    ENNReal.ofReal (b - a - 2 * ε) * ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ := by
   have hab' : a + ε < b - ε := by linarith
   have hba : b - ε - (a + ε) = b - a - 2 * ε := by ring
   rw [← hba]
-  exact Submartingale.mul_integral_upcrossingSequenceENat_Countable_le_integral_pos_part
+  exact Submartingale.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part
     (submartingale_restrictDSet hf N)
 
+/-- For all ε with 2ε < b - a, we have (b-a-2ε) * E[U_a^b(f,N)] ≤ E[(f_N - a)^+]. -/
+lemma mul_lintegral_upcrossingSequenceENat_NNReal_eps (hf : Submartingale f 𝓕 μ)
+    (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ} (hεpos : 0 < ε)
+    (hε_small : 2 * ε < b - a) :
+    ENNReal.ofReal (b - a - 2 * ε) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
+  -- Step 1: LHS_integral ≤ DSet_integral
+  have h1 : ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ :=
+    lintegral_upcrossingSequenceENat_le_of_restrict_DSet hRC hεpos hε_small
+  -- Step 2: Doob on DSet
+  have h2 : ENNReal.ofReal (b - a - 2 * ε) *
+      ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
+        (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ :=
+    mul_lintegral_upcrossingSequenceENat_restrict_DSet_le hf hε_small
+  -- Step 3: (f_N - a - ε)^+ ≤ (f_N - a)^+
+  have h3 : ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
+    apply lintegral_mono
+    intro ω
+    apply ENNReal.ofReal_le_ofReal
+    apply posPart_mono
+    linarith
+  calc ENNReal.ofReal (b - a - 2 * ε) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
+      ≤ ENNReal.ofReal (b - a - 2 * ε) *
+        ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
+          (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ :=
+        mul_le_mul_left' h1 _
+      _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ := h2
+      _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := h3
 
-
-theorem mul_integral_upcrossingSequenceENat_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
+/-- Doob's upcrossing inequality for right-continuous submartingales indexed by ℝ≥0:
+    $(b-a) \cdot E[U_a^b(f,N)] \le E[(f_N - a)^+]$ -/
+theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
-    (b - a) * μ[upcrossingSequenceENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  sorry
+    ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
+      ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
+  set L := ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ with hL
+  set R := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ with hR
+  have hba_pos : 0 < b - a := sub_pos.mpr hab
+  -- For each n, let ε_n = (b-a)/(2*(n+2)), then 2*ε_n < b-a
+  have h_eps_n : ∀ n : ℕ, ENNReal.ofReal (b - a - 2 * ((b - a) / (2 * ((n : ℝ) + 2)))) * L ≤ R := by
+    intro n
+    set ε := (b - a) / (2 * ((n : ℝ) + 2)) with hε_def
+    have hn2_pos : 0 < (n : ℝ) + 2 := by positivity
+    have hεpos : 0 < ε := by simp only [hε_def]; positivity
+    have hε_small : 2 * ε < b - a := by
+      simp only [hε_def]
+      have h2ε : 2 * ((b - a) / (2 * ((n : ℝ) + 2))) = (b - a) / ((n : ℝ) + 2) := by field_simp
+      rw [h2ε, div_lt_iff₀ hn2_pos]
+      nlinarith
+    exact mul_lintegral_upcrossingSequenceENat_NNReal_eps hf hRC hεpos hε_small
+  -- The coefficients = (b-a) * (n+1)/(n+2)
+  have h_coeff : ∀ n : ℕ,
+      b - a - 2 * ((b - a) / (2 * ((n : ℝ) + 2))) =
+        (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)) := by
+    intro n
+    have hn2_ne : (n : ℝ) + 2 ≠ 0 := by positivity
+    field_simp
+    ring
+  have h_eps_n' : ∀ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) * L ≤ R := by
+    intro n
+    rw [← h_coeff n]
+    exact h_eps_n n
+  -- sup_n (b-a)*(n+1)/(n+2) = (b-a), so (b-a) * L = sup_n (...) * L ≤ R
+  have h_sup : ⨆ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) =
+      ENNReal.ofReal (b - a) := by
+    apply le_antisymm
+    · apply iSup_le
+      intro n
+      apply ENNReal.ofReal_le_ofReal
+      apply mul_le_of_le_one_right (le_of_lt hba_pos)
+      have hn2 : 0 < (n : ℝ) + 2 := by positivity
+      rw [div_le_one hn2]
+      linarith
+    · -- For monotone sequence with limit L, sup = L
+      -- (n+1)/(n+2) → 1, so (b-a)*(n+1)/(n+2) → (b-a)
+      have h_mono : Monotone (fun n : ℕ => (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) := by
+        intro n m hnm
+        apply mul_le_mul_of_nonneg_left _ (le_of_lt hba_pos)
+        have hn2 : 0 < (n : ℝ) + 2 := by positivity
+        have hm2 : 0 < (m : ℝ) + 2 := by positivity
+        rw [div_le_div_iff₀ hn2 hm2]
+        have : (n : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hnm
+        nlinarith
+      have h_tendsto_frac :
+        Tendsto (fun n : ℕ => ((n : ℝ) + 1) / ((n : ℝ) + 2)) atTop (nhds 1) := by
+        have h1 : ∀ n : ℕ, ((n : ℝ) + 1) / ((n : ℝ) + 2) = 1 - 1 / ((n : ℝ) + 2) := by
+          intro n
+          have hn2 : (n : ℝ) + 2 ≠ 0 := by positivity
+          field_simp
+          ring
+        simp_rw [h1]
+        have h_tendsto_inv : Tendsto (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) atTop (nhds 0) := by
+          have h_tendsto_n2 : Tendsto (fun n : ℕ => (n : ℝ) + 2) atTop atTop :=
+            tendsto_atTop_add_const_right atTop 2 tendsto_natCast_atTop_atTop
+          apply Tendsto.comp _ h_tendsto_n2
+          exact tendsto_const_nhds.div_atTop tendsto_id
+        convert Tendsto.sub tendsto_const_nhds h_tendsto_inv using 1
+        ring_nf
+      have h_tendsto_mul :
+          Tendsto (fun n : ℕ => (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)))
+          atTop (nhds (b - a)) := by
+        convert Tendsto.const_mul (b - a) h_tendsto_frac using 1
+        ring_nf
+      have h_tendsto_ENNReal :
+          Tendsto (fun n : ℕ => ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))))
+          atTop (nhds (ENNReal.ofReal (b - a))) :=
+        ENNReal.tendsto_ofReal h_tendsto_mul
+      have h_mono_ENNReal :
+          Monotone (fun n : ℕ => ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)))) := by
+        intro n m hnm
+        exact ENNReal.ofReal_le_ofReal (h_mono hnm)
+      -- For monotone sequence, limit = sup
+      rw [show ENNReal.ofReal (b - a) = ⨆ n : ℕ,
+          ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) from
+        h_tendsto_ENNReal.limUnder_eq.symm.trans (tendsto_atTop_iSup h_mono_ENNReal).limUnder_eq]
+  rw [← h_sup, ENNReal.iSup_mul]
+  exact iSup_le h_eps_n'
 
 
 
@@ -1741,28 +1865,17 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
     exact hs.mem_of_tendsto ((hRC (sInf S)).tendsto.comp h_tendsto_within)
       (Filter.Eventually.of_forall fun n => (hu_mem n).2)
 
-theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat (hRC : ∀ ω, RightContinuous (f · ω))
+theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
     (hab : a < b) :
     upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N :=
   upcrossingsBeforeENat_eq_upcrossingSequenceENat a b f N hab
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Ici b) n N ω isClosed_Ici (hRC ω))
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Iic a) n N ω isClosed_Iic (hRC ω))
 
-theorem mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part_aux (hf : Submartingale f 𝓕 μ)
-    (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
-    (b - a) * μ[upcrossingsBeforeENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  rw [upcrossingsBeforeENat_eq_upcrossingSequenceENat hRC hab]
-  exact mul_integral_upcrossingSequenceENat_NNReal_le_integral_pos_part_aux hf hRC hab
-
-theorem Submartingale.mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part
-    (hf : Submartingale f 𝓕 μ)
-    (hRC : ∀ ω, RightContinuous (f · ω)) :
-    (b - a) * μ[upcrossingsBeforeENat a b f N] ≤ μ[fun ω => (f N ω - a)⁺] := by
-  by_cases! hab : a < b
-  · exact mul_integral_upcrossingsBeforeENat_NNReal_le_integral_pos_part_aux hf hRC hab
-  · rw [← sub_nonpos] at hab
-    exact le_trans (mul_nonpos_of_nonpos_of_nonneg hab (by positivity))
-      (integral_nonneg fun ω => posPart_nonneg _)
+-- TODO: integral version of Doob upcrossing inequality for ℝ≥0 index
+-- This requires handling the ℕ∞ → ℝ coercion for the upcrossing count.
+-- For now, only the lintegral version is available:
+-- mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part
 
 end DoobInequalityNNReal
 
@@ -1783,7 +1896,7 @@ example {f : ℕ → Ω → ℝ} {N : ℕ} {a : ℝ} (hInt : Integrable (fun ω 
   exact hInt.hasFiniteIntegral
 
 /-- Since the LHS in DUI is finite, the integral of upcrossingsBefore is finite. -/
-example {f : Ω → ℝ≥0∞} {ω : Ω} (hab : a < b)
+example {f : Ω → ℝ≥0∞} (hab : a < b)
     (hmeas : AEMeasurable f μ)
     (h : ENNReal.ofReal (b - a) * ∫⁻ ω, f ω ∂μ < ⊤) :
     ∀ᵐ ω ∂μ, f ω < ⊤ := by
@@ -1792,8 +1905,8 @@ example {f : Ω → ℝ≥0∞} {ω : Ω} (hab : a < b)
   have hlint : ∫⁻ ω, f ω ∂μ ≠ ⊤ := by
     intro hcontra
     simp only [hcontra] at h
-    rw [ENNReal.mul_top] at h
-    simp_all
+    rw [ENNReal.mul_top hba_ne_zero] at h
+    exact absurd h (not_lt.mpr le_top)
   exact_mod_cast ae_lt_top' hmeas hlint
 
 
