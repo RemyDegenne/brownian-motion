@@ -1163,24 +1163,6 @@ theorem upcrossingSequenceENat_eq_iSup_finset
 
 end Approximation
 
-section Convergence
-
-/-- If `(f n)` is a monotone sequence of integrable functions with integrals bounded by `c`,
-    then supremum is integrable and its integral is at most `c`. -/
-theorem lintegral_le_of_monotone_bounded_iSup
-    (g : ℕ → Ω → ℝ≥0∞)
-    (hg : ∀ n, Measurable (g n))
-    (h_mono : ∀ n, ∀ᵐ a ∂μ, g n a ≤ g n.succ a)
-    (d : ℝ≥0∞)
-    (h_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ d) :
-    ∫⁻ a, ⨆ n, g n a ∂μ ≤ d := by
-  -- Use Monotone Convergence Theorem: ∫⁻ (⨆ n, f n) = ⨆ n, ∫⁻ f n
-  calc ∫⁻ a, ⨆ n, g n a ∂μ
-      = ⨆ n, ∫⁻ a, g n a ∂μ := lintegral_iSup_ae hg h_mono
-    _ ≤ d := iSup_le h_bound
-
-end Convergence
-
 section DoobInequalityCountable
 
 variable [LinearOrder ι] {f : ι → Ω → ℝ} {𝓕 : Filtration ι m0}
@@ -1239,13 +1221,14 @@ theorem mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part [Is
       ENat.toENNReal_iSup]
   have hba_pos : ENNReal.ofReal (b - a) ≠ 0 := by
     simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le, sub_pos]; exact hab
+  have hg_int_bound : ∫⁻ ω, ⨆ n, g n ω ∂μ ≤ c / ENNReal.ofReal (b - a) :=
+    calc ∫⁻ ω, ⨆ n, g n ω ∂μ = ⨆ n, ∫⁻ ω, g n ω ∂μ := lintegral_iSup_ae hg_meas hg_mono
+      _ ≤ c / ENNReal.ofReal (b - a) := iSup_le fun n => by
+          rw [ENNReal.le_div_iff_mul_le (.inl hba_pos) (.inl (by simp)), mul_comm]
+          exact hg_bound n
   calc ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
       = ENNReal.ofReal (b - a) * ∫⁻ ω, ⨆ n, g n ω ∂μ := by simp only [hiSup_eq]
-    _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := by
-        apply mul_le_mul_left'
-        apply lintegral_le_of_monotone_bounded_iSup g hg_meas hg_mono
-        intro n; rw [ENNReal.le_div_iff_mul_le (.inl hba_pos) (.inl (by simp)), mul_comm]
-        exact hg_bound n
+    _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := mul_le_mul_left' hg_int_bound _
     _ = c := ENNReal.mul_div_cancel hba_pos (by simp)
 
 theorem Submartingale.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part
