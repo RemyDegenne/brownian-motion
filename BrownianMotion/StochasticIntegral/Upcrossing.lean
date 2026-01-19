@@ -1029,75 +1029,28 @@ theorem Countable.increasing_family_saturates_Iic (N : ι) :
     (∀ n, N ∈ s n) ∧
     (∀ t : Set ι, Finite t → t ⊆ Set.Iic N → ∃ n, t ⊆ s n ∧ s n ⊆ Set.Iic N) := by
   obtain ⟨f, hf⟩ := Countable.exists_injective_nat ι
-  -- f enumerates elements of ι, but not all natural numbers must be present
   let s₀ : ℕ → Set ι := fun n => {i | f i < n}
-  -- Augment each s₀ n with ⊥ and N, and intersect with Set.Iic N
   let s : ℕ → Set ι := fun n => (s₀ n ∩ Set.Iic N) ∪ {⊥, N}
-  refine ⟨s, ?_, ?_, ?_, ?_, ?_⟩
-  · -- Monotone s
-    intro m n hmn x hx
+  have hs_subset n : s n ⊆ Set.Iic N := fun x hx => by
     simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
+      Set.mem_singleton_iff] at hx
+    rcases hx with ⟨-, h⟩ | rfl | rfl <;> simp_all
+  refine ⟨s, fun m n hmn x hx => ?_, fun n => ?_, fun n => ?_, fun n => ?_, fun t ht htIic => ?_⟩
+  · simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
       Set.mem_singleton_iff, Set.mem_setOf_eq, s₀] at hx ⊢
-    cases hx with
-    | inl h =>
-      left
-      constructor
-      · exact Nat.lt_of_lt_of_le h.1 hmn
-      · exact h.2
-    | inr h => right; exact h
-  · -- ∀ n, Finite (s n)
-    intro n
-    apply Set.Finite.union
-    · apply Set.Finite.inter_of_left
-      let g : s₀ n → Fin n := fun ⟨i, hi⟩ => ⟨f i, hi⟩
-      have g_inj : Function.Injective g := fun ⟨x, _⟩ ⟨y, _⟩ h =>
-        Subtype.ext (hf (Fin.ext_iff.mp h))
-      exact Finite.of_injective g g_inj
-    · exact Set.finite_singleton N |>.insert ⊥
-  · -- ∀ n, ⊥ ∈ s n
-    intro n
-    simp only [s, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]
-    right; left; trivial
-  · -- ∀ n, N ∈ s n
-    intro n
-    simp only [s, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]
-    right; right; trivial
-  · -- saturation
-    intro t ht htIcc
-    haveI : Fintype t := Set.Finite.fintype ht
-    by_cases hempty : t = ∅
-    · use 0
-      constructor
-      · simp [hempty, Set.empty_subset]
-      · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
-          Set.mem_singleton_iff] at hx
-        cases hx with
-        | inl h => exact h.2
-        | inr h =>
-          cases h with
-          | inl h => subst h; simp
-          | inr h => subst h; simp
-    · use (Finset.univ.image (fun i : t => f i)).sup id + 1
-      constructor
-      · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
-          Set.mem_singleton_iff, Set.mem_setOf_eq, s₀]
-        left
-        constructor
-        · have : f x ∈ Finset.univ.image (fun j : t => f j) :=
-            Finset.mem_image.mpr ⟨⟨x, hx⟩, Finset.mem_univ _, rfl⟩
-          exact Nat.lt_succ_of_le (Finset.le_sup (f := id) this)
-        · exact htIcc hx
-      · intro x hx
-        simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_insert_iff,
-          Set.mem_singleton_iff] at hx
-        cases hx with
-        | inl h => exact h.2
-        | inr h =>
-          cases h with
-          | inl h => subst h; simp
-          | inr h => subst h; simp
+    rcases hx with ⟨h1, h2⟩ | h
+    · left; exact ⟨h1.trans_le hmn, h2⟩
+    · right; exact h
+  · exact (Set.Finite.inter_of_left (Finite.of_injective (fun ⟨i, hi⟩ => (⟨f i, hi⟩ : Fin n))
+      (fun ⟨_, _⟩ ⟨_, _⟩ h => Subtype.ext (hf (Fin.ext_iff.mp h)))) _).union (Set.toFinite _)
+  · simp only [s, Set.mem_union, Set.mem_insert_iff]; right; left; trivial
+  · simp only [s, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff]; right; right; trivial
+  · haveI : Fintype t := Set.Finite.fintype ht
+    use (Finset.univ.image (fun i : t => f i)).sup id + 1
+    refine ⟨fun x hx => ?_, hs_subset _⟩
+    simp only [s, Set.mem_union, Set.mem_inter_iff, Set.mem_Iic, Set.mem_setOf_eq, s₀]
+    exact .inl ⟨Nat.lt_succ_of_le (Finset.le_sup (f := id)
+      (Finset.mem_image.mpr ⟨⟨x, hx⟩, Finset.mem_univ _, rfl⟩)), htIic hx⟩
 
 theorem Countable.increasing_finset_family_saturates_Iic (N : ι) :
     ∃ s : ℕ → Finset ι,
@@ -1107,36 +1060,15 @@ theorem Countable.increasing_finset_family_saturates_Iic (N : ι) :
     (∀ t : Set ι, Finite t → t ⊆ Set.Iic N → ∃ n, t ⊆ s n ∧ ↑(s n) ⊆ Set.Iic N) := by
   obtain ⟨s, hsmon, hsfin, hsbot, hsN, hsaturate⟩ :=
     Countable.increasing_family_saturates_Iic (ι := ι) N
-  -- Convert Set to Finset
-  have fintype_s : ∀ n, Fintype (s n) := fun n => Fintype.ofFinite (s n)
-  let s' : ℕ → Finset ι := fun n => @Set.toFinset ι (s n) (fintype_s n)
-  refine ⟨s', ?_, ?_, ?_, ?_⟩
-  · -- Monotone s'
-    intro m n hmn
-    simp only [s', Finset.le_iff_subset]
-    intro x hx
-    simp only [Set.mem_toFinset] at hx ⊢
-    exact hsmon hmn hx
-  · -- ∀ n, ⊥ ∈ s' n
-    intro n
-    simp only [s', Set.mem_toFinset]
-    exact hsbot n
-  · -- ∀ n, N ∈ s' n
-    intro n
-    simp only [s', Set.mem_toFinset]
-    exact hsN n
-  · -- saturation
-    intro t ht htIcc
-    obtain ⟨n, hn, hnIcc⟩ := hsaturate t ht htIcc
-    use n
-    constructor
-    · intro x hx
-      change x ∈ @Set.toFinset ι (s n) (fintype_s n)
-      rw [Set.mem_toFinset]
-      exact hn hx
-    · intro x hx
-      simp only [Finset.mem_coe, s', Set.mem_toFinset] at hx
-      exact hnIcc hx
+  have fintype_s n : Fintype (s n) := Fintype.ofFinite (s n)
+  refine ⟨fun n => (s n).toFinset,
+    fun m n hmn => ?_, fun n => ?_, fun n => ?_, fun t ht htIic => ?_⟩
+  · simp only [Finset.le_iff_subset]
+    exact fun x hx => Set.mem_toFinset.mpr (hsmon hmn (Set.mem_toFinset.mp hx))
+  · simp only [Set.mem_toFinset]; exact hsbot n
+  · simp only [Set.mem_toFinset]; exact hsN n
+  · obtain ⟨n, hn, hnIic⟩ := hsaturate t ht htIic
+    exact ⟨n, fun x hx => Set.mem_toFinset.mpr (hn hx), fun x hx => hnIic (Set.mem_toFinset.mp hx)⟩
 
 variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
@@ -1209,44 +1141,25 @@ theorem upcrossingSequenceENat_eq_iSup_finset
     (hab : a < b) :
     upcrossingSequenceENat a b f N ω = ⨆ n, upcrossingSequenceENat_finset hbot hN a b f n ω := by
   apply le_antisymm
-  · -- LHS ≤ RHS: any K upcrossings on ι uses finitely many witness points in some s n
-    by_cases hNbot : N ≤ ⊥
-    · -- N ≤ ⊥ implies LHS = 0
-      simp only [upcrossingSequenceENat_zero_of_N_bot a b f N ω hNbot]
-      exact zero_le _
-    · -- N > ⊥: use witness sets
-      simp only [upcrossingSequenceENat]
-      apply iSup₂_le
-      intro K hK
-      -- Extract the witness from hK
+  · by_cases hNbot : N ≤ ⊥
+    · simp only [upcrossingSequenceENat_zero_of_N_bot a b f N ω hNbot]; exact zero_le _
+    · simp only [upcrossingSequenceENat]; apply iSup₂_le; intro K hK
       simp only [ltUpcrossingData, hNbot, ↓reduceIte] at hK
       by_cases hKzero : K = 0
       · simp only [hKzero, Nat.cast_zero]; exact zero_le _
-      · simp only [hKzero, ↓reduceIte] at hK
-        obtain ⟨hseq, ht_lt_N⟩ := hK
-        -- The witness set
-        set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i) with hwit
-        have hwit_finite : Finite witness := Set.finite_range _
-        have hwit_Icc : witness ⊆ Set.Iic N := by
-          intro x hx
-          obtain ⟨i, rfl⟩ := hx
-          have : hseq.t i ≤ hseq.t (2 * K - 1) := hseq.mono (by omega)
-          exact le_of_lt (lt_of_le_of_lt this ht_lt_N)
-        -- Find n₀ such that witness ⊆ s n₀
-        obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness hwit_finite hwit_Icc
-        -- The upcrossings on s n₀ are at least K
-        have h_ge : (K : ℕ∞) ≤ upcrossingSequenceENat_finset hbot hN a b f n₀ ω := by
-          simp only [upcrossingSequenceENat_finset]
-          exact upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀)
-            (Nat.one_le_iff_ne_zero.mpr hKzero) hseq ht_lt_N
-            (fun i hi => hn₀_wit (Set.mem_range.mpr ⟨⟨i, hi⟩, rfl⟩))
-        exact le_trans h_ge (le_iSup (fun n => upcrossingSequenceENat_finset hbot hN a b f n ω) n₀)
-  · -- RHS ≤ LHS: each finset is a subset, so finset upcrossings ≤ full upcrossings
-    apply iSup_le; intro n
-    simp only [upcrossingSequenceENat_finset]
-    exact upcrossingSequenceENat_ge_finset_of_subset (hbot n) ⟨N, hN n⟩
+      · simp only [hKzero, ↓reduceIte] at hK; obtain ⟨hseq, ht_lt_N⟩ := hK
+        set witness : Set ι := Set.range (fun i : Fin (2 * K) => hseq.t i)
+        have hwit_Iic : witness ⊆ Set.Iic N := fun x ⟨i, hi⟩ =>
+          le_of_lt (hi ▸ (hseq.mono (by omega : i ≤ 2 * K - 1)).trans_lt ht_lt_N)
+        obtain ⟨n₀, hn₀_wit, _⟩ := hsaturate witness (Set.finite_range _) hwit_Iic
+        calc (K : ℕ∞) ≤ upcrossingSequenceENat_finset hbot hN a b f n₀ ω :=
+              upcrossingSequenceENat_finset_ge_of_witness (hbot n₀) (hN n₀)
+                (Nat.one_le_iff_ne_zero.mpr hKzero) hseq ht_lt_N
+                (fun i hi => hn₀_wit ⟨⟨i, hi⟩, rfl⟩)
+          _ ≤ ⨆ n, upcrossingSequenceENat_finset hbot hN a b f n ω :=
+              le_iSup (fun n => upcrossingSequenceENat_finset hbot hN a b f n ω) n₀
+  · exact iSup_le fun n => upcrossingSequenceENat_ge_finset_of_subset (hbot n) ⟨N, hN n⟩
       (fun i : s n => f i) f (fun _ => rfl) a b ω hab
-
 
 end Approximation
 
@@ -1305,61 +1218,35 @@ theorem mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part [Is
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
     ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
-  -- We approximate Set.Iic N by an increasing family of finsets
   obtain ⟨s, hsmon, hsbot, hsN, hsaturate⟩ := Countable.increasing_finset_family_saturates_Iic N
-  -- For each n, define g_n as ENNReal-valued upcrossings on s n
   let g : ℕ → Ω → ℝ≥0∞ := fun n ω => (upcrossingSequenceENat_finset hsbot hsN a b f n ω : ℝ≥0∞)
-  -- The bound c
-  set c := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ with hc
-  have hk : ∀ n, #(s n) = Finset.card (s n) := by intro n; rfl
-  have hne : ∀ n, (s n).Nonempty := by intro n; use ⊥; exact hsbot n
-  have hnz : ∀ n, #(s n) ≠ 0 := by intro n; exact Finset.card_ne_zero.mpr (hne n)
-  have hNZ : ∀ n, NeZero #(s n) := by intro n; exact ⟨hnz n⟩
-  let hFiltr := fun n => Filtration.restrictFinset 𝓕 (s n)
-  have hsub : ∀ n, Submartingale (fun i : s n => f i) (hFiltr n) μ :=
-    fun n => Submartingale.restrictFinset 𝓕 (s n) hf
-  -- Measurability of g n
-  have hg_meas : ∀ n, Measurable (g n) := fun n =>
+  set c := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ
+  have hNZ n : NeZero #(s n) := ⟨Finset.card_ne_zero.mpr ⟨⊥, hsbot n⟩⟩
+  have hsub n : Submartingale (fun i : s n => f i) (Filtration.restrictFinset 𝓕 (s n)) μ :=
+    Submartingale.restrictFinset 𝓕 (s n) hf
+  have hg_meas n : Measurable (g n) :=
     Adapted.measurable_upcrossingSequenceENat_finset hsbot hsN hf.adapted hab n
-  -- Monotonicity of g
-  have hg_mono : ∀ n, ∀ᵐ ω ∂μ, g n ω ≤ g n.succ ω := by
-    intro n
-    filter_upwards with ω
-    simp only [g, ENat.toENNReal_le]
+  have hg_mono n : ∀ᵐ ω ∂μ, g n ω ≤ g n.succ ω := by
+    filter_upwards with ω; simp only [g, ENat.toENNReal_le]
     exact upcrossingSequenceENat_ge_finset (hsbot n) (hsbot n.succ) (hsmon (Nat.le_succ n))
       ⟨N, hsN n⟩ (fun i : s n => f i) (fun i : s n.succ => f i) (fun _ => rfl) a b ω hab
-  -- Bound for each g n
-  have hg_bound : ∀ n, ENNReal.ofReal (b - a) * ∫⁻ ω, g n ω ∂μ ≤ c := by
-    intro n
-    simp only [g, upcrossingSequenceENat_finset, hc]
-    haveI := hNZ n
+  have hg_bound n : ENNReal.ofReal (b - a) * ∫⁻ ω, g n ω ∂μ ≤ c := by
+    simp only [g, upcrossingSequenceENat_finset]; haveI := hNZ n
     exact mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part_aux
       (hbot := hsbot n) (hk := rfl) (hf := hsub n) (N := ⟨N, hsN n⟩) hab
-  -- By upcrossingSequenceENat_eq_iSup_finset, the supremum equals the full upcrossings
-  have hiSup_eq : ∀ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) = ⨆ n, g n ω := by
-    intro ω
-    simp only [g]
-    rw [upcrossingSequenceENat_eq_iSup_finset hsbot hsN hsaturate hab (ω := ω)]
-    exact ENat.toENNReal_iSup _
-  -- The integral of the supremum
-  have hg_int_bound : ∀ n, ∫⁻ ω, g n ω ∂μ ≤ c / ENNReal.ofReal (b - a) := by
-    intro n
-    by_cases hba_zero : ENNReal.ofReal (b - a) = 0
-    · have : b - a ≤ 0 := by simpa using hba_zero
-      exact absurd (sub_pos.mpr hab) (not_lt.mpr this)
-    · rw [ENNReal.le_div_iff_mul_le (Or.inl hba_zero) (Or.inl (by simp)), mul_comm]
-      exact hg_bound n
-  -- Apply lintegral_le_of_monotone_bounded_iSup
+  have hiSup_eq ω : (upcrossingSequenceENat a b f N ω : ℝ≥0∞) = ⨆ n, g n ω := by
+    simp only [g, upcrossingSequenceENat_eq_iSup_finset hsbot hsN hsaturate hab,
+      ENat.toENNReal_iSup]
+  have hba_pos : ENNReal.ofReal (b - a) ≠ 0 := by
+    simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le, sub_pos]; exact hab
   calc ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
       = ENNReal.ofReal (b - a) * ∫⁻ ω, ⨆ n, g n ω ∂μ := by simp only [hiSup_eq]
     _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := by
         apply mul_le_mul_left'
-        exact lintegral_le_of_monotone_bounded_iSup g hg_meas hg_mono _ hg_int_bound
-    _ ≤ c := by
-        have hba_zero : ENNReal.ofReal (b - a) ≠ 0 := by
-          simp only [ne_eq, ENNReal.ofReal_eq_zero, not_le, sub_pos]
-          exact hab
-        rw [ENNReal.mul_div_cancel hba_zero (by simp)]
+        apply lintegral_le_of_monotone_bounded_iSup g hg_meas hg_mono
+        intro n; rw [ENNReal.le_div_iff_mul_le (.inl hba_pos) (.inl (by simp)), mul_comm]
+        exact hg_bound n
+    _ = c := ENNReal.mul_div_cancel hba_pos (by simp)
 
 theorem Submartingale.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part
     [IsFiniteMeasure μ]
@@ -1405,45 +1292,33 @@ Now, letting $ε\to0$ gives our claim, by monotone convergence in numerator.
 lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
     ∃ s' : ℚ≥0, (s' : ℝ≥0) < t ∧ (s' : ℝ≥0) > s ∧ f s' ω ≤ a + ε := by
-  have hRC_s : ContinuousWithinAt (f · ω) (Set.Ioi s) s := hRC ω s
-  rw [Metric.continuousWithinAt_iff] at hRC_s
-  obtain ⟨δ, hδpos, hδ⟩ := hRC_s ε hεpos
+  obtain ⟨δ, hδpos, hδ⟩ := Metric.continuousWithinAt_iff.mp (hRC ω s) ε hεpos
   have hts_pos : (0 : ℝ) < t - s := sub_pos.mpr hst
   set δ' : ℝ≥0 := ⟨min (δ / 2) ((t - s) / 2), by positivity⟩
   have hδ'pos : (0 : ℝ≥0) < δ' := (lt_min (by linarith) (by linarith) : (0 : ℝ) < _)
-  -- Pick a rational in (s, s + δ')
   obtain ⟨q, hqs, hqδ⟩ := exists_rat_btwn
     (show (s : ℝ) < s + δ' by exact_mod_cast lt_add_of_pos_right s hδ'pos)
   have hq_pos : 0 ≤ q := Rat.cast_nonneg.mp ((NNReal.coe_nonneg s).trans (le_of_lt hqs))
   set s' : ℚ≥0 := ⟨q, hq_pos⟩
-  have hs'_val : (s' : ℝ) = q := rfl
-  have hs'_gt_s : (s : ℝ) < s' := hqs
-  have hs'_lt_δ : (s' : ℝ) < s + δ' := hqδ
-  refine ⟨s', ?_, ?_, ?_⟩
-  · -- s' < t
-    have : (δ' : ℝ) < t - s := (min_le_right _ _).trans_lt (by linarith)
-    calc (s' : ℝ) < s + δ' := hs'_lt_δ
-      _ < s + (t - s) := add_lt_add_left this s
+  refine ⟨s', ?_, hqs, ?_⟩
+  · have : (δ' : ℝ) < t - s := (min_le_right _ _).trans_lt (by linarith)
+    calc (s' : ℝ) < s + δ' := hqδ
+      _ < s + (t - s) := by linarith
       _ = t := by ring
-  · -- s' > s
-    exact hs'_gt_s
-  · have hs'_lt_δ' : dist (s' : ℝ≥0) s < δ := by
-      have : ((s' : ℝ≥0) : ℝ) = (s' : ℝ) := rfl
-      simp only [NNReal.dist_eq, this]
-      rw [abs_of_nonneg (sub_nonneg.mpr (le_of_lt hs'_gt_s))]
-      calc (s' : ℝ) - s < s + δ' - s := by linarith
-        _ = δ' := by ring
+  · have hs'_lt_δ : dist (s' : ℝ≥0) s < δ := by
+      have hsq : ((s' : ℝ≥0) : ℝ) = (q : ℝ) := rfl
+      simp only [NNReal.dist_eq, hsq, abs_of_nonneg (sub_nonneg.mpr (le_of_lt hqs))]
+      calc (q : ℝ) - s < δ' := by linarith
         _ ≤ δ / 2 := min_le_left _ _
         _ < δ := by linarith
-    have hdist : dist (f s' ω) (f s ω) < ε := hδ hs'_gt_s hs'_lt_δ'
-    linarith [abs_sub_lt_iff.mp (Real.dist_eq _ _ ▸ hdist)]
+    linarith [abs_sub_lt_iff.mp (Real.dist_eq _ _ ▸ hδ hqs hs'_lt_δ)]
 
 lemma disturbed_crossing_ge_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (hb : f s ω ≥ b) :
     ∃ s' : ℚ≥0, (s' : ℝ≥0) < t ∧ (s' : ℝ≥0) > s ∧ f s' ω ≥ b - ε := by
   obtain ⟨s', h1, h2, h3⟩ := disturbed_crossing_le_close_of_crossing (f := -f) (a := -b)
     (fun ω x => (hRC ω x).neg) hεpos hst (neg_le_neg hb)
-  exact ⟨s', h1, h2, by simp only [Pi.neg_apply] at h3; linarith⟩
+  exact ⟨s', h1, h2, by linarith [show -f s' ω ≤ -b + ε from h3]⟩
 
 /-- Given `UpcrossingData a b f K ω` with witness times ending before `N`, and `0 < ε < (b-a)/2`,
     we can construct `UpcrossingData (a + ε) (b - ε) f K ω` with witness times in `ℚ≥0` before `N`.
@@ -1525,49 +1400,23 @@ lemma upcrossingSequenceENat_le_upcrossingSequenceENat_restrict_DSet
     (ω : Ω) :
     upcrossingSequenceENat a b f N ω ≤
       upcrossingSequenceENat (a + ε) (b - ε) (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω := by
-  set DN := DSet N
-  set Nelem : DN := ⟨N, N_mem_DSet N⟩
-  haveI : Countable DN := DSet_countable_inst N
-  have hNelem_bot : Nelem ≤ ⊥ ↔ N ≤ ⊥ := by simp only [le_bot_iff, Nelem, Subtype.ext_iff]; rfl
-  -- Use biSup_mono to reduce to showing inclusion of conditions
-  simp only [upcrossingSequenceENat]
-  apply biSup_mono
-  intro K hK
-  -- We need to show: ltUpcrossingData a b f N K ω → ltUpcrossingData (a+ε) (b-ε) (f|D) Nelem K ω
+  set DN := DSet N; set Nelem : DN := ⟨N, N_mem_DSet N⟩
+  simp only [upcrossingSequenceENat]; apply biSup_mono; intro K hK
   simp only [ltUpcrossingData] at hK ⊢
-  -- If N ≤ ⊥, the LHS condition is False
   by_cases hNbot : N ≤ ⊥
   · simp only [hNbot, ↓reduceIte] at hK
-  · simp only [hNbot, hNelem_bot, ↓reduceIte] at hK ⊢
-    rcases K with _ | K
-    · trivial
-    · -- K ≥ 1, so hK : ∃ seq, seq.t (2 * (K+1) - 1) < N
-      obtain ⟨hseq, ht_lt_N⟩ := hK
-      -- Use disturb to get rational times
-      obtain ⟨t', hseq', ht'_eq, ht'_lt_N⟩ := hseq.disturb hRC (by omega : K + 1 ≥ 1)
-        ht_lt_N hεpos hε_small
-      -- Build UpcrossingData for f|D using the rational times t' (which are in D)
-      let t'' : ℕ → DN := fun i => ⟨t' i, mem_DSet_of_NNRat (t' i)⟩
-      have ht'_eq' : ∀ i, hseq'.t i = t' i := fun i => congrFun ht'_eq i
-      refine ⟨⟨hseq'.hab, t'', ?_, ?_, ?_⟩, ?_⟩
-      · -- Monotonicity of t''
-        intro i j hij
-        simp only [t'', Subtype.mk_le_mk]
-        rw [← ht'_eq' i, ← ht'_eq' j]
-        exact hseq'.mono hij
-      · -- f(t'' i) ≤ a + ε for even i
-        intro i hi he
-        simp only [t'']
-        rw [← ht'_eq' i]
-        exact hseq'.ft_le_a i hi he
-      · -- f(t'' i) ≥ b - ε for odd i
-        intro i hi ho
-        simp only [t'']
-        rw [← ht'_eq' i]
-        exact hseq'.ft_ge_b i hi ho
-      · -- t'' (2 * (K+1) - 1) < Nelem
-        simp only [t'']
-        exact ht'_lt_N
+  · have hNelem_bot : Nelem ≤ ⊥ ↔ N ≤ ⊥ := by simp only [le_bot_iff, Nelem, Subtype.ext_iff]; rfl
+    simp only [hNbot, hNelem_bot, ↓reduceIte] at hK ⊢
+    rcases K with _ | K; · trivial
+    obtain ⟨hseq, ht_lt_N⟩ := hK
+    obtain ⟨t', hseq', ht'_eq, ht'_lt_N⟩ := hseq.disturb hRC (by omega : K + 1 ≥ 1)
+      ht_lt_N hεpos hε_small
+    let t'' : ℕ → DN := fun i => ⟨t' i, mem_DSet_of_NNRat (t' i)⟩
+    have ht'_eq' i : hseq'.t i = t' i := congrFun ht'_eq i
+    refine ⟨⟨hseq'.hab, t'', fun i j hij => ?_, fun i hi he => ?_, fun i hi ho => ?_⟩, ht'_lt_N⟩
+    · simp only [t'', Subtype.mk_le_mk, ← ht'_eq' i, ← ht'_eq' j]; exact hseq'.mono hij
+    · simp only [t'']; rw [← ht'_eq' i]; exact hseq'.ft_le_a i hi he
+    · simp only [t'']; rw [← ht'_eq' i]; exact hseq'.ft_ge_b i hi ho
 
 /-- Restrict a filtration on ℝ≥0 to DSet N. -/
 def Filtration.restrictDSet (𝓕 : Filtration ℝ≥0 m0) (N : ℝ≥0) :
@@ -1675,7 +1524,7 @@ theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : 
       have : (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) = (fun n : ℕ => 1 / ((n + 1 : ℕ) + 1 : ℝ)) := by
         ext n; simp only [Nat.cast_add, Nat.cast_one]; ring
       rw [this]; exact (tendsto_add_atTop_iff_nat 1).mpr tendsto_one_div_add_atTop_nhds_zero_nat
-    convert Tendsto.sub tendsto_const_nhds htend using 1; ring
+    convert Tendsto.sub tendsto_const_nhds htend using 1; ring_nf
   have h_sup : ⨆ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) =
       ENNReal.ofReal (b - a) := by
     apply le_antisymm
