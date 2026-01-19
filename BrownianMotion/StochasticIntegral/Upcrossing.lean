@@ -5,6 +5,8 @@ Authors: Rémy Degenne, Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Cadlag
+ļimport Mathlib.Data.ENNReal.Basic
+import Mathlib.Data.ENNReal.Real
 import Mathlib.Data.Finset.Sort
 import Mathlib.MeasureTheory.Function.L1Space.Integrable
 import Mathlib.Order.BoundedOrder.Basic
@@ -1667,86 +1669,43 @@ theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : 
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
     ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
-  set L := ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ with hL
-  set R := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ with hR
+  set L := ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
+  set R := ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ
   have hba_pos : 0 < b - a := sub_pos.mpr hab
-  -- For each n, let ε_n = (b-a)/(2*(n+2)), then 2*ε_n < b-a
-  have h_eps_n : ∀ n : ℕ, ENNReal.ofReal (b - a - 2 * ((b - a) / (2 * ((n : ℝ) + 2)))) * L ≤ R := by
-    intro n
-    set ε := (b - a) / (2 * ((n : ℝ) + 2)) with hε_def
-    have hn2_pos : 0 < (n : ℝ) + 2 := by positivity
-    have hεpos : 0 < ε := by simp only [hε_def]; positivity
-    have hε_small : 2 * ε < b - a := by
-      simp only [hε_def]
-      have h2ε : 2 * ((b - a) / (2 * ((n : ℝ) + 2))) = (b - a) / ((n : ℝ) + 2) := by field_simp
-      rw [h2ε, div_lt_iff₀ hn2_pos]
-      nlinarith
-    exact mul_lintegral_upcrossingSequenceENat_NNReal_eps hf hRC hεpos hε_small
-  -- The coefficients = (b-a) * (n+1)/(n+2)
-  have h_coeff : ∀ n : ℕ,
-      b - a - 2 * ((b - a) / (2 * ((n : ℝ) + 2))) =
-        (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)) := by
-    intro n
+  -- For each n, ε_n = (b-a)/(2*(n+2)) yields (b-a-2ε_n) = (b-a)*(n+1)/(n+2)
+  have h_coeff (n : ℕ) : b - a - 2 * ((b - a) / (2 * ((n : ℝ) + 2))) =
+      (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)) := by
     have hn2_ne : (n : ℝ) + 2 ≠ 0 := by positivity
-    field_simp
-    ring
-  have h_eps_n' : ∀ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) * L ≤ R := by
-    intro n
+    field_simp; ring
+  have h_eps_n' (n : ℕ) : ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) * L ≤ R := by
     rw [← h_coeff n]
-    exact h_eps_n n
-  -- sup_n (b-a)*(n+1)/(n+2) = (b-a), so (b-a) * L = sup_n (...) * L ≤ R
+    have hn2_pos : 0 < (n : ℝ) + 2 := by positivity
+    have hε_small : 2 * ((b - a) / (2 * ((n : ℝ) + 2))) < b - a := by
+      rw [show 2 * ((b - a) / (2 * ((n : ℝ) + 2))) = (b - a) / ((n : ℝ) + 2) by field_simp,
+        div_lt_iff₀ hn2_pos]; nlinarith
+    exact mul_lintegral_upcrossingSequenceENat_NNReal_eps hf hRC (by positivity) hε_small
+  -- sup_n (b-a)*(n+1)/(n+2) = (b-a) by monotone limit
+  have h_mono (n m : ℕ) (hnm : n ≤ m) : (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)) ≤
+      (b - a) * (((m : ℝ) + 1) / ((m : ℝ) + 2)) := by
+    apply mul_le_mul_of_nonneg_left _ (le_of_lt hba_pos)
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    have h_cast : (n : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hnm
+    nlinarith
+  have h_tendsto_frac : Tendsto (fun n : ℕ => ((n : ℝ) + 1) / ((n : ℝ) + 2)) atTop (nhds 1) := by
+    simp_rw [show ∀ n : ℕ, ((n : ℝ) + 1) / ((n : ℝ) + 2) = 1 - 1 / ((n : ℝ) + 2) by intros; field_simp; ring]
+    have h1 : (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) = (fun n : ℕ => 1 / ((n + 1 : ℕ) + 1 : ℝ)) := by
+      ext n; simp only [Nat.cast_add, Nat.cast_one]; ring
+    rw [h1]; convert Tendsto.sub (tendsto_const_nhds (x := (1 : ℝ)))
+      ((tendsto_add_atTop_iff_nat 1).mpr tendsto_one_div_add_atTop_nhds_zero_nat) using 1; ring
   have h_sup : ⨆ n : ℕ, ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) =
       ENNReal.ofReal (b - a) := by
     apply le_antisymm
-    · apply iSup_le
-      intro n
-      apply ENNReal.ofReal_le_ofReal
-      apply mul_le_of_le_one_right (le_of_lt hba_pos)
-      have hn2 : 0 < (n : ℝ) + 2 := by positivity
-      rw [div_le_one hn2]
-      linarith
-    · -- For monotone sequence with limit L, sup = L
-      -- (n+1)/(n+2) → 1, so (b-a)*(n+1)/(n+2) → (b-a)
-      have h_mono : Monotone (fun n : ℕ => (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) := by
-        intro n m hnm
-        apply mul_le_mul_of_nonneg_left _ (le_of_lt hba_pos)
-        have hn2 : 0 < (n : ℝ) + 2 := by positivity
-        have hm2 : 0 < (m : ℝ) + 2 := by positivity
-        rw [div_le_div_iff₀ hn2 hm2]
-        have : (n : ℝ) ≤ (m : ℝ) := Nat.cast_le.mpr hnm
-        nlinarith
-      have h_tendsto_frac :
-        Tendsto (fun n : ℕ => ((n : ℝ) + 1) / ((n : ℝ) + 2)) atTop (nhds 1) := by
-        have h1 : ∀ n : ℕ, ((n : ℝ) + 1) / ((n : ℝ) + 2) = 1 - 1 / ((n : ℝ) + 2) := by
-          intro n
-          have hn2 : (n : ℝ) + 2 ≠ 0 := by positivity
-          field_simp
-          ring
-        simp_rw [h1]
-        have h_tendsto_inv : Tendsto (fun n : ℕ => (1 : ℝ) / ((n : ℝ) + 2)) atTop (nhds 0) := by
-          have h_tendsto_n2 : Tendsto (fun n : ℕ => (n : ℝ) + 2) atTop atTop :=
-            tendsto_atTop_add_const_right atTop 2 tendsto_natCast_atTop_atTop
-          apply Tendsto.comp _ h_tendsto_n2
-          exact tendsto_const_nhds.div_atTop tendsto_id
-        convert Tendsto.sub tendsto_const_nhds h_tendsto_inv using 1
-        ring_nf
-      have h_tendsto_mul :
-          Tendsto (fun n : ℕ => (b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)))
-          atTop (nhds (b - a)) := by
-        convert Tendsto.const_mul (b - a) h_tendsto_frac using 1
-        ring_nf
-      have h_tendsto_ENNReal :
-          Tendsto (fun n : ℕ => ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))))
-          atTop (nhds (ENNReal.ofReal (b - a))) :=
-        ENNReal.tendsto_ofReal h_tendsto_mul
-      have h_mono_ENNReal :
-          Monotone (fun n : ℕ => ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2)))) := by
-        intro n m hnm
-        exact ENNReal.ofReal_le_ofReal (h_mono hnm)
-      -- For monotone sequence, limit = sup
-      rw [show ENNReal.ofReal (b - a) = ⨆ n : ℕ,
-          ENNReal.ofReal ((b - a) * (((n : ℝ) + 1) / ((n : ℝ) + 2))) from
-        h_tendsto_ENNReal.limUnder_eq.symm.trans (tendsto_atTop_iSup h_mono_ENNReal).limUnder_eq]
+    · exact iSup_le fun n => ENNReal.ofReal_le_ofReal <|
+        mul_le_of_le_one_right (le_of_lt hba_pos) (div_le_one_of_le₀ (by linarith) (by positivity))
+    · have h_tendsto := ENNReal.tendsto_ofReal (h_tendsto_frac.const_mul (b - a))
+      simp only [mul_one] at h_tendsto
+      rw [h_tendsto.limUnder_eq.symm.trans (tendsto_atTop_iSup fun n m hnm =>
+        ENNReal.ofReal_le_ofReal (h_mono n m hnm)).limUnder_eq]
   rw [← h_sup, ENNReal.iSup_mul]
   exact iSup_le h_eps_n'
 
