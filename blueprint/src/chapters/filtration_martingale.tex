@@ -1061,6 +1061,91 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+\section{Doob's upcrossing inequality}
+
+\begin{definition}[Recursive hitting times]\label{def:hittingBtwn}
+  \mathlibok
+  \lean{MeasureTheory.hittingBtwn}
+Let $X : T \to \Omega \to E$ be a stochastic process, $B$ a subset of $E$ and $t_0$, $t_1 \in T$, the hitting time of $X$ in $B$ between $t_0$ and $t_1$ is the random variable $\Omega \to T$ defined by
+\begin{align*}
+  \tau_{B, t_0, t_1}(\omega) = \inf\{t \in T \mid t_0 \le t \le t_1, \: X_t(\omega) \in B\} \: ,
+\end{align*}
+in which the infimum is $t_1$ if the set is empty.
+\end{definition}
+
+\begin{definition}[Upcrossings]\label{def:upcrossings}
+  \uses{def:hittingBtwn}
+  \mathlibok
+  \lean{MeasureTheory.upperCrossingTime, MeasureTheory.lowerCrossingTime, MeasureTheory.upcrossingsBefore, MeasureTheory.upcrossingsBeforeENat}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers, write $A=$(-\infty,a]$ and $B=[b,\infty)$. For each $n \in \mathbb{N}$, we define recursively the stopping times:
+\begin{align*}
+  \tau_0(\omega) & = \inf T \: , \\
+  \sigma_n(\omega) & = \tau_{A, \tau_n(\omega), t}(\omega) \: , \\
+  \tau_{n+1}(\omega) & = \tau_{B, \sigma_n(\omega), t}(\omega) \: .
+\end{align*}
+The number of upcrossings of the interval $[a,b]$ by time $t$ is defined as
+\begin{align*}
+  U_{a}^{b}(X, t)(\omega) = \sup\{n \in \mathbb{N} \mid \tau_n(\omega) < t\} \: .
+\end{align*}
+\end{definition}
+
+\begin{theorem}[Doob's upcrossing inequality for $\mathbb{N}$]\label{thm:upcrossingInequalityNat}
+  \uses{def:Submartingale, def:upcrossings}
+  \mathlibok
+  \lean{MeasureTheory.mul_integral_upcrossingsBefore_le_integral_pos_part_aux, MeasureTheory.mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part}
+Let $X : \mathbb{N} \to \Omega \to \mathbb{R}$ be a sub-martingale. Then, for every $n \in \mathbb{N}$ and $a < b$, we have
+\begin{align*}
+  (b - a) \mathbb{E}[U_{a}^{b}(X, n)] \le \mathbb{E}[(X_n - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{definition}[Upcrossing sequence]\label{def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.UpcrossingData, MeasureTheory.upcrossingSequenceENat}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers. The upcrossing sequence of the interval $[a,b]$ by time $t$
+given $\omega\in\Omega$, is any sequence of elements of $T$, $s_1<t_1<s_2<\ldots<t_n<t$, such that for every $i \le n$, $X_{s_i}(\omega) \le a$ and $X_{t_i}(\omega) \ge b$. We define $N_a^b(X,t)(\omega)$ as the (possibly infinite) supremum of the lengths of all upcrossing sequences of the interval $[a,b]$ by time $t$, given $\omega$.
+\end{definition}
+
+\begin{theorem}[Upcrossings definition equivalence]\label{thm:upcrossings_equiv}
+  \uses{def:upcrossings, def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.upcrossingsBeforeENat_eq_upcrossingSequenceENat}
+Suppose the index set admits a conditionally complete linear order, and is such that every non-empty subset has an infimum (e.g. $\mathbb{N}$, $\mathbb{R}_+$; but not $\mathbb{Q}_+$).
+ Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers. Assume that
+\begin{align*}
+  X(\tau_{C, t_0, t_1}(\omega), \omega) \in C \text{ whenever } \tau_{C, t_0, t_1}(\omega) < t_1 \: ,
+\end{align*}
+where $C$ is either $(-\infty, a]$ or $[b, \infty)$. Then, for every $\omega \in \Omega$, we have
+\begin{align*}
+  U_{a}^{b}(X, t)(\omega) = N_a^b(X,t)(\omega) \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\uses{def:upcrossings, def:upcrossingSeq}
+Fix $\omega \in \Omega$.
+We introduce the notation:
+\begin{align*}
+  P_n & : \tau_n(\omega) < t \: , \\
+  Q_n & : \text{ there exists an upcrossing sequence of length } n \text{ such that } t_n\le\tau_n(\omega) \: , \\
+  L_n & : \text{ there exists an upcrossing sequence of length } n \text{ by time } t \: .
+\end{align*}
+The aim is to show that for every $n \in \mathbb{N}$, $P_n \Leftrightarrow L_n$;
+as the properly defined hitting times constitute the earliest possible times for upcrossings to occur,
+$L_n\Rightarrow P_n$. The opposite direction is less immediate, and we introduce the intermediate statement $Q_n$ to help with the proof.
+Clearly, $(P_n \wedge Q_n) \implies L_n$.
+By induction on $n$, we show $P_n \implies Q_n$:
+for $n=1$ it is easy to check;
+since $P_{n+1}$ implies $P_n$, it suffices to note that,
+extending the upcrossing sequence by one more upcrossing, we get $(P_{n+1} \wedge Q_n) \implies Q_{n+1}$.
+This completes the proof.
+\end{proof}
+
+
+
 \section{Martingale convergence}
 
 \begin{definition}\label{def:limitProcess}
