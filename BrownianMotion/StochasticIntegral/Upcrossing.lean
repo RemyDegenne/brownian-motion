@@ -50,7 +50,7 @@ example : sSup (Set.univ : Set ℕ) = 0 := by
 
 variable {Ω ι : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {a b : ℝ}
 
-/- Upcrossings number that is infinite when optional times accumulate before N. -/
+/-- Upcrossings number that is infinite when optional times accumulate before N. -/
 noncomputable def upcrossingsBeforeENat [Preorder ι] [OrderBot ι] [InfSet ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) : ℕ∞ :=
   ⨆ (n : ℕ) (_ : upperCrossingTime a b f N n ω < N), (n : ℕ∞)
@@ -114,9 +114,10 @@ theorem mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part [IsFiniteMeasu
   simp_rw [upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab, ENat.toENNReal_coe]
   exact mul_lintegral_upcrossingsBefore_le_lintegral_pos_part hf hab
 
+/-- Data structure representing an upcrossing sequence for a stochastic process. -/
 structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
   hab : a < b
-  t : ℕ → ι
+  t : ℕ → ι -- sequence s_1 < t_1 < s_2 < t_2 < ... < s_n < t_n ≤ ..., see blueprint
   mono: Monotone t
   ft_le_a  : ∀ i : ℕ, i < 2 * n → Even i → f (t i) ω ≤ a
   ft_ge_b  : ∀ i : ℕ, i < 2 * n → Odd i → f (t i) ω ≥ b
@@ -144,17 +145,21 @@ lemma t_strict_mono' {i j} (hij : i < j) (hj : j < 2 * n) : h.t i < h.t j := by
   have hti : h.t i < h.t (i + 1) := lt_of_le_of_ne (h.mono (Nat.le_succ i)) (h.ti_ne_ti1 hi1n)
   exact lt_of_lt_of_le hti (h.mono (Nat.succ_le_of_lt hij))
 
+/-- Restricts the infinite sequence to the finite set `Fin (2 * n)`. -/
 def t_on_Fin2n : Fin (2 * n) → ι := fun x => h.t x.toNat
 
 lemma t_strict_mono_on_Fin2n : StrictMono h.t_on_Fin2n := by
   intro x y hxy
   exact h.t_strict_mono' hxy y.isLt
 
+/-- Shortens an upcrossing sequence by removing the last two points,
+    so that the length decreases by one. -/
 def toShorter {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω} (h : UpcrossingData a b f (n + 1) ω) :
     UpcrossingData a b f n ω := ⟨ h.hab, h.t, h.mono,
     fun i hi hi_even => h.ft_le_a i (by grind) hi_even,
     fun i hi hi_odd => h.ft_ge_b i (by grind) hi_odd ⟩
 
+/-- An extension of an upcrossing sequence by adding two more points `s` and `t`. -/
 def extend {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
     (h : UpcrossingData a b f n ω)
     (s t : ι)
@@ -193,7 +198,7 @@ lemma extend_t {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
 
 end UpcrossingData
 
-/-! The `ltUpcrossingData a b f N n ω` is shortened as `L n`. -/
+/-- The `ltUpcrossingData a b f N n ω` is shortened as `L n`, see the blueprint. -/
 noncomputable def ltUpcrossingData [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else -- to make {n | ...} empty when N = ⊥, same as in upperCrossingTime
@@ -238,14 +243,14 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
       (hseq2.ft_le_a (2 * n + 2) (by grind) (by grind))
       (hseq2.ft_ge_b (2 * n + 3) (by grind) (by grind))
 
-/-! The `upcrossingsBeforeUpperCrossingTime a b f N n ω` is shortened as `Q n`. -/
+/-- The `upcrossingsBeforeUpperCrossingTime a b f N n ω` is shortened `Q n`, see the blueprint. -/
 noncomputable def upcrossingsBeforeUpperCrossingTime [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω
 
-/-! The `upperCrossingTimeLT a b f N n ω` is shortened as `P n`. -/
+/-- The `upperCrossingTimeLT a b f N n ω` is shortened as `P n`, see the blueprint. -/
 noncomputable def upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
@@ -713,6 +718,7 @@ section FinToNat
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
 variable {u : (Fin n) → Ω → ℝ} {N : Fin n}
 
+/-- Clamps a natural number to the range of `Fin n`. -/
 def Fin.clamp (i : ℕ) (n : ℕ) [NeZero n] : Fin n :=
   ⟨min i (n - 1),
     Nat.lt_of_le_of_lt (Nat.min_le_right i (n - 1)) (Nat.sub_lt (NeZero.pos n) Nat.one_pos)⟩
@@ -749,6 +755,7 @@ def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
 
 variable {𝓕 : Filtration (Fin n) m0}
 
+/-- Embedding of a process defined on `Fin n` into a process defined on `ℕ`. -/
 def Process.natOfFin (u : Fin n → Ω → ℝ) : ℕ → Ω → ℝ := fun k => u (Fin.clamp k n)
 
 lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
@@ -769,12 +776,12 @@ lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
       exact Submartingale.integrable hf (Fin.clamp i n) ⟩
 
 lemma Process.natOfFin_eq (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
-    (hNatOfFin : u = Process.natOfFin v) (N : ℕ) :
-    ∀ i ≤ N, v (Fin.clamp i n) = u i := fun i _ => by rw [hNatOfFin, Process.natOfFin]
+    (hNatOfFin : u = Process.natOfFin v) :
+    ∀ i, v (Fin.clamp i n) = u i := fun i => by rw [hNatOfFin, Process.natOfFin]
 
 lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
-    (hNatOfFin : v = Process.natOfFin u) (N : Fin n) :
-    ∀ i ≤ N, v i.val = u i := fun i _ => by
+    (hNatOfFin : v = Process.natOfFin u) :
+    ∀ i, v i.val = u i := fun i => by
   rw [hNatOfFin, Process.natOfFin, Fin.clamp.eq_of_fin n i]
 
 lemma Process.natOfFin.upcrossingSequenceENat_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
@@ -782,7 +789,7 @@ lemma Process.natOfFin.upcrossingSequenceENat_le (u : ℕ → Ω → ℝ) (v : F
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Fin.clamp N n) := by
   set f : ℕ → Fin n := fun i => Fin.clamp i n with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.clamp.StrictMonoOn hNn
-  have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq u v hNatOfFin N
+  have hv : ∀ i ≤ N, v (f i) = u i :=  fun i _ => Process.natOfFin_eq u v hNatOfFin i
   intro ω
   exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
@@ -791,7 +798,7 @@ lemma Process.natOfFin.upcrossingSequenceENat_ge (u : Fin n → Ω → ℝ) (v :
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v N := by
   set f : Fin n → ℕ := fun i => i.val with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.val.StrictMonoOn N
-  have hv : ∀ i ≤ N, v (f i) = u i := Process.natOfFin_eq' u v hNatOfFin N
+  have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.natOfFin_eq' u v hNatOfFin i
   intro ω
   exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
 
@@ -811,10 +818,13 @@ variable [LinearOrder ι]
 
 variable {s : Finset ι} {k : ℕ} (hne : s.Nonempty) (hk : #s = k) -- (hbot : ⊥ ∈ s)
 
+/-- Order isomorphism between `Fin k` and a finite set. -/
 def Finset.orderIso : Fin k ≃o s := by exact Finset.orderIsoOfFin s hk
 
+/-- Order embedding from `Fin k` to a finite set, constructed from `Finset.orderIso`. -/
 def Finset.FromFin : Fin k → s := fun n => Finset.orderIso hk n
 
+/-- Order embedding from a finite set to `Fin k`, the inverse of `Finset.FromFin`. -/
 def Finset.ToFin : s → Fin k := fun i => (Finset.orderIso hk).symm i
 
 lemma Finset.FromFin.StrictMono : StrictMono (Finset.FromFin hk) :=
@@ -834,6 +844,7 @@ lemma Finset.FromFin.ToFin_eq (i : s) :
   rw [Finset.ToFin, Finset.FromFin]
   exact OrderIso.apply_symm_apply (Finset.orderIso hk) i
 
+/-- Filtration defined on a finite set converted to a filtration on `Fin k`. -/
 def Filtration.finOfFinset (𝓕 : Filtration s m0) : Filtration (Fin k) m0 :=
   ⟨ fun i => 𝓕 (Finset.FromFin hk i),
     fun i j hij => by refine 𝓕.mono ?_; exact (Finset.FromFin.StrictMono hk).monotone hij,
@@ -841,6 +852,7 @@ def Filtration.finOfFinset (𝓕 : Filtration s m0) : Filtration (Fin k) m0 :=
 
 variable {𝓕 : Filtration s m0}
 
+/-- Process defined on a finite set converted to a process on `Fin k`. -/
 def Process.finOfFinset (u : s → Ω → ℝ) : Fin k → Ω → ℝ := fun i => u (Finset.FromFin hk i)
 
 variable {u : s → Ω → ℝ} {N : s}
@@ -855,13 +867,13 @@ lemma Submartingale.finOfFinset (hf : Submartingale u 𝓕 μ) :
     fun i => hf.integrable (Finset.FromFin hk i) ⟩
 
 lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
-    (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) :
-    ∀ i ≤ N, v (Finset.ToFin hk i) = u i := fun i _ => by
+    (hFinOfFinset : v = Process.finOfFinset hk u) :
+    ∀ i, v (Finset.ToFin hk i) = u i := fun i => by
   rw [hFinOfFinset, Process.finOfFinset, (Finset.FromFin.ToFin_eq hk i)]
 
 lemma Process.finOfFinset_eq' (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
-    (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) :
-    ∀ i ≤ N, v (Finset.FromFin hk i) = u i := fun i _ => by rw [hFinOfFinset, Process.finOfFinset]
+    (hFinOfFinset : u = Process.finOfFinset hk v) :
+    ∀ i, v (Finset.FromFin hk i) = u i := fun i => by rw [hFinOfFinset, Process.finOfFinset]
 
 variable [OrderBot ι] (hbot : ⊥ ∈ s) [NeZero k] -- to avoid issues with `Fin 0`
 
@@ -871,7 +883,7 @@ lemma Process.finOfFinset.upcrossingSequenceENat_le (u : Fin k → Ω → ℝ) (
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.FromFin hk N) := by
   set f : Fin k → s := fun i => Finset.FromFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.FromFin.StrictMonoOn hk N
-  have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq' hk u v hFinOfFinset N
+  have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.finOfFinset_eq' hk u v hFinOfFinset i
   intro ω
   convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
 
@@ -881,7 +893,7 @@ lemma Process.finOfFinset.upcrossingSequenceENat_ge (u : s → Ω → ℝ) (v : 
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
   set f : s → Fin k := fun i => Finset.ToFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.ToFin.StrictMonoOn hk N
-  have hv : ∀ i ≤ N, v (f i) = u i := Process.finOfFinset_eq hk u v hFinOfFinset N
+  have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.finOfFinset_eq hk u v hFinOfFinset i
   intro ω
   convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
 
@@ -967,7 +979,7 @@ theorem mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part [IsFinite
   have heq : upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v N := by
     exact Process.natOfFin.upcrossingSequenceENat_eq u v hNatOfFin N a b hab
   rw [heq]
-  have huNvN : v N = u N := Process.natOfFin_eq' u v hNatOfFin N N le_rfl
+  have huNvN : v N = u N := Process.natOfFin_eq' u v hNatOfFin N
   rw [← huNvN]
   exact mul_lintegral_upcrossingSequenceENat_le_lintegral_pos_part N hvsub hab
 
@@ -991,7 +1003,7 @@ theorem mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part [IsFin
   have hFinOfFinset : v = Process.finOfFinset hk f := rfl
   have heq := Process.finOfFinset.upcrossingSequenceENat_eq hk hbot f v hFinOfFinset N a b hab
   rw [heq]
-  have huNvN : v (Finset.ToFin hk N) = f N := Process.finOfFinset_eq hk f v hFinOfFinset N N le_rfl
+  have huNvN : v (Finset.ToFin hk N) = f N := Process.finOfFinset_eq hk f v hFinOfFinset N
   rw [← huNvN]
   exact mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part hvsub hab
 
