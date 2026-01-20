@@ -21,7 +21,7 @@ import Mathlib.Topology.Defs.Filter
 open MeasureTheory Filter Finset Function
 open scoped ENNReal NNReal
 
-namespace ProbabilityTheory
+namespace MeasureTheory
 
 /-! The original definitions, valid for InfSet (hence not for NNRat), are:
 
@@ -1574,4 +1574,4 @@ theorem upcrossingSequenceENat_ae_lt_top (hf : Submartingale f 𝓕 μ)
 
 end DoobInequalityNNReal
 
-end ProbabilityTheory
+end MeasureTheory
