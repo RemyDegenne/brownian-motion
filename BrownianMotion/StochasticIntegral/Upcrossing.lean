@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2025 Rémy Degenne. All rights reserved.
+Copyright (c) 2025 Wojciech Czernous. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne, Wojciech Czernous
+Authors: Wojciech Czernous
 -/
 import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Cadlag
