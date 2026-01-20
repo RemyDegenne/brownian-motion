@@ -1136,7 +1136,7 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 \begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
   \uses{def:Submartingale}
   \leanok
-  \lean{ProbabilityTheory.maximal_ineq_countable}
+  \lean{MeasureTheory.Submartingale.ae_bddAbove_Iic, ProbabilityTheory.maximal_ineq_countable}
   Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
   Then for every $M \in I,\lambda > 0$ and $p>1$ we have
   \begin{align*}
@@ -1149,6 +1149,7 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 
 \begin{proof}
   \uses{lem:maximal_ineq}
+  \leanok
 For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
 \begin{align*}
   P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)

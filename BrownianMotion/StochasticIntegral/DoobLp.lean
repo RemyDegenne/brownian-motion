@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne
+Authors: Rémy Degenne, Thomas Zhu
 -/
 import BrownianMotion.Auxiliary.Martingale
 import Mathlib.Probability.Martingale.OptionalStopping
@@ -79,18 +79,16 @@ lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
 
 variable [Countable ι]
 
-#synth AddLeftReflectLE ℝ≥0
-#check Monotone.measure_iUnion
-
-lemma tendsto_inv_add_atTop_nhds_zero_nat {𝕜 : Type*} [DivisionSemiring 𝕜] [CharZero 𝕜]
+lemma _root_.tendsto_inv_add_atTop_nhds_zero_nat {𝕜 : Type*} [DivisionSemiring 𝕜] [CharZero 𝕜]
     [TopologicalSpace 𝕜] [ContinuousSMul ℚ≥0 𝕜] :
     Tendsto (fun n : ℕ ↦ ((n : 𝕜) + 1)⁻¹) atTop (𝓝 0) :=
   by simpa using tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := 𝕜)
 
-lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0)
+lemma maximal_ineq_countable_ennReal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0)
     (n : ι) :
     ε • P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
       ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+  let supY (ω : Ω) := ⨆ i ≤ n, ENNReal.ofReal (Y i ω)
   -- WLOG `ε > 0`
   rcases eq_or_ne ε 0 with rfl | hε0
   · simpa using integral_nonneg (hnonneg n)
@@ -108,8 +106,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
     simpa [J, h] using .inr ⟨k, by omega, rfl⟩
   -- The long inequality (see blueprint)
   have hlt (ε' : ℝ≥0) (hε' : ε' < ε) :
-    ε' • P.real {ω | (ε' : ℝ≥0∞) < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
-      ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+    ε' • P.real {ω | (ε' : ℝ≥0∞) < supY ω} ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ supY ω}, Y n ω ∂P := by
     have hbdd : BddAbove <| Set.range fun k ↦
         ∫ ω in {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
       use ∫ ω, Y n ω ∂P
@@ -118,7 +115,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
     calc
       _ = ε' • P.real (⋃ i ≤ n, {ω | (ε' : ℝ) < Y i ω}) := by
         congr!; ext ω
-        simp_rw [lt_iSup_iff]
+        simp_rw [supY, lt_iSup_iff]
         lift Y to ι → Ω → ℝ≥0 using hnonneg
         simp
       _ = ε' • P.real (⋃ k, {ω | (ε' : ℝ) < (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}) := by
@@ -152,7 +149,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         gcongr with k
         · exact hbdd
         · exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
-      _ ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+      _ ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ supY ω}, Y n ω ∂P := by
         refine (ciSup_le_iff hbdd).mpr fun k ↦ ?_
         gcongr with ω
         · filter_upwards; exact fun ω ↦ hnonneg _ _
@@ -167,7 +164,8 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
   -- `tendsto_setIntegral_of_antitone` lemmas require `atTop` instead of `𝓝[<] ε`)
   clear * - hε0 hsub hlt
   let ε' (r : ℕ) : ℝ≥0 := ε - (r + 1 : ℝ≥0)⁻¹
-  have hinter (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r < c ω} := by
+  -- TODO: is there a way to avoid duplicaiton below
+  have hinter_lt (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r < c ω} := by
     ext ω
     simp only [Set.mem_setOf_eq, Set.mem_iInter]
     constructor
@@ -181,7 +179,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
       obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
       exact (lt_tsub_comm.mp hr).trans (h r)
-  have hinter' (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r ≤ c ω} := by
+  have hinter_le (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r ≤ c ω} := by
     -- same as hinter, but with ≤ instead of <
     ext ω
     simp only [Set.mem_setOf_eq, Set.mem_iInter]
@@ -196,106 +194,136 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
       obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
       exact (lt_tsub_comm.mp hr).trans_le (h r)
-  have hmeas (r : ℕ) : MeasurableSet {ω | ε' r < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
-    apply measurableSet_lt measurable_const
-    have (i : ι) : Measurable (Y i) :=
-      (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
-    fun_prop
-  have hmeas' (r : ℕ) : MeasurableSet {ω | ε' r ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
-    -- same as hmeas, but with ≤ instead of <
-    apply measurableSet_le measurable_const
-    have (i : ι) : Measurable (Y i) :=
-      (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
-    fun_prop
-  have hanti (c : Ω → ℝ≥0∞) : Antitone fun r : ℕ ↦ {ω | ε' r < c ω} := by
-    intro r1 r2 hr ω
-    dsimp [ε']
-    gcongr
-  have hanti' (c : Ω → ℝ≥0∞) : Antitone fun r : ℕ ↦ {ω | ε' r ≤ c ω} := by
-    -- same as hanti, but with ≤ instead of <
-    intro r1 r2 hr ω
-    dsimp [ε']
-    gcongr
+  have hmeasY (i : ι) : Measurable (Y i) :=
+    (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
+  have hε'mono : Monotone fun r ↦ (ε' r : ℝ≥0∞) := by intro _ _ _; dsimp [ε']; gcongr
   -- LHS of `hlt` tends to LHS of `⊢`
   have hl : Tendsto
-      (fun r : ℕ ↦ ε' r • P.real {ω | ε' r < ⨆ i ≤ n, ENNReal.ofReal (Y i ω)})
-      atTop (𝓝 <| ε • P.real {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}) := by
+      (fun r : ℕ ↦ ε' r • P.real {ω | ε' r < supY ω})
+      atTop (𝓝 <| ε • P.real {ω | ε ≤ supY ω}) := by
     apply (show Tendsto .. by simpa using tendsto_inv_add_atTop_nhds_zero_nat.const_sub ε).smul
     erw [ENNReal.tendsto_toReal_iff (by finiteness) (by finiteness)]
-    convert tendsto_measure_iInter_atTop (fun r ↦ (hmeas r).nullMeasurableSet) (hanti _) ?_
-    · exact hinter _
-    · use 0
-      finiteness
+    convert tendsto_measure_iInter_atTop ?_ ?_ ?_
+    · exact hinter_lt _
+    · infer_instance
+    · exact fun r ↦ (measurableSet_lt measurable_const (by fun_prop)).nullMeasurableSet
+    · exact Set.monotone_preimage.comp_antitone hε'mono.Ioi
+    · use 0; finiteness
   -- RHS of `hlt` tends to RHS of `⊢`
   have hr : Tendsto
-      (fun r : ℕ ↦ ∫ ω in {ω | ε' r ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P)
-      atTop (𝓝 <| ∫ ω in {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P) := by
-    convert tendsto_setIntegral_of_antitone hmeas' (hanti' _) ?_
-    · exact hinter' _
-    · use 0
-      exact (hsub.integrable n).restrict
+      (fun r : ℕ ↦ ∫ ω in {ω | ε' r ≤ supY ω}, Y n ω ∂P)
+      atTop (𝓝 <| ∫ ω in {ω | ε ≤ supY ω}, Y n ω ∂P) := by
+    convert tendsto_setIntegral_of_antitone ?_ ?_ ?_
+    · exact hinter_le _
+    · infer_instance
+    · exact fun r ↦ measurableSet_le measurable_const (by fun_prop)
+    · exact Set.monotone_preimage.comp_antitone hε'mono.Ici
+    · use 0; exact (hsub.integrable n).integrableOn
   -- Conclude
   exact le_of_tendsto_of_tendsto hl hr (.of_forall fun r ↦ hlt _ (by simpa [ε'] using hε0.bot_lt))
 
--- lemma _root_.Finset.measurable_sup'' {α : Type*} {m : MeasurableSpace α} {δ : Type*}
---     [MeasurableSpace δ] [SemilatticeSup α] [MeasurableSup₂ α] {ι : Type*} {s : Finset ι}
---     (hs : s.Nonempty) {f : ι → δ → α} (hf : ∀ n ∈ s, Measurable (f n)) :
---     Measurable (fun x => s.sup' hs fun k => f k x) := by
---   convert Finset.measurable_sup' hs hf
---   simp
+-- TODO: add this to Mathlib
+attribute [aesop (rule_sets := [finiteness]) safe apply] ENNReal.nnreal_smul_ne_top
 
--- theorem _root_.le_ciSup_iff {α ι : Type*} [Nonempty ι] [ConditionallyCompleteLattice α] {f : ι → α}
---     {a : α} (h : BddAbove (Set.range f)) : a ≤ iSup f ↔ ∀ b, (∀ i, f i ≤ b) → a ≤ b := by
---   simp [iSup, le_csSup_iff h (Set.range_nonempty f), upperBounds]
+theorem _root_.ENNReal.ofReal_smul {a : ℝ≥0} {b : ℝ} :
+    ENNReal.ofReal (a • b) = a • ENNReal.ofReal b := by
+  erw [ENNReal.ofReal_mul (by simp)]
+  simp
+  rfl
 
-#check lt_ciSup_iff
-#check Monotone.measure_iUnion
-#check tendsto_setIntegral_of_monotone
+/-- Alternative form of `Submartingale.ae_bddAbove`. -/
+lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
+    (hnonneg : 0 ≤ Y) (n : ι) : ∀ᵐ ω ∂P, ⨆ i ≤ n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
+  let supY (ω : Ω) := ⨆ i ≤ n, ENNReal.ofReal (Y i ω)
+  have hmeasY (i : ι) : Measurable (Y i) :=
+    (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
+  change P {ω | ¬supY ω ≠ ∞} = 0
+  push_neg
+  convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
+  · ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    constructor
+    · simp +contextual
+    · apply ENNReal.eq_top_of_forall_nnreal_le
+  · symm
+    erw [← le_bot_iff]
+    calc
+      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω in {ω | ε ≤ supY ω}, Y n ω ∂P) := by
+        gcongr with ε
+        refine le_iInf fun hε0 ↦ ?_
+        rw [ENNReal.ofReal_smul, le_inv_smul_iff_of_pos hε0, ENNReal.le_ofReal_iff_toReal_le]
+        · simpa using maximal_ineq_countable_ennReal hsub hnonneg ε n
+        · finiteness
+        · exact setIntegral_nonneg (measurableSet_le measurable_const (by fun_prop))
+            fun ω _ ↦ hnonneg n ω
+      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω, Y n ω ∂P) := by
+        gcongr with ε hε0
+        · exact .of_forall (hnonneg n)
+        · exact hsub.integrable n
+        · exact P.restrict_le_self
+      _ = 0 := by
+        apply iInf_eq_of_tendsto
+        · intro ε₁ ε₂ h
+          refine le_iInf fun hε₁ ↦ ?_
+          simp only [iInf_pos (hε₁.trans_le h)]
+          gcongr
+          exact integral_nonneg (hnonneg n)
+        · convert (ENNReal.tendsto_ofReal ((tendsto_inv_atTop_zero (𝕜 := ℝ≥0)).smul_const
+            (∫ ω, Y n ω ∂P))).congr' ?_
+          · simp
+          · filter_upwards [eventually_gt_atTop 0] with ε hε0
+            simp [hε0]
+  · exact Set.monotone_preimage.comp_antitone ENNReal.coe_mono.Ici
+  · exact fun r ↦ (measurableSet_le measurable_const (by fun_prop)).nullMeasurableSet
+  · use 0; finiteness
+
+/-- Doob's maximal inequality implies that the supremum process of a nonnegative submartingale is
+a.s. bounded. -/
+theorem _root_.MeasureTheory.Submartingale.ae_bddAbove_Iic (hsub : Submartingale Y 𝓕 P)
+    (hnonneg : 0 ≤ Y) (n : ι) :
+    ∀ᵐ ω ∂P, BddAbove ((fun i ↦ Y i ω) '' Set.Iic n) := by
+  filter_upwards [hsub.iSup_ofReal_ne_top hnonneg n] with ω h
+  use (⨆ i ≤ n, ENNReal.ofReal (Y i ω)).toReal
+  rintro _ ⟨i, hi : i ≤ n, rfl⟩
+  rw [← ENNReal.ofReal_le_iff_le_toReal h]
+  exact le_iSup₂ (f := fun i _ ↦ ENNReal.ofReal (Y i ω)) i hi
+
 /-- **Doob's maximal inequality** for a countable index set. -/
 theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P) := by
+    -- We use `⨆ i : Set.Iic n` instead of `⨆ i ≤ n` because of incomplete API for `cbiSup`.
+    ε • P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
+  have (ω : Ω) : ⨆ i : Set.Iic n, Y i ω = (⨆ i ≤ n, ENNReal.ofReal (Y i ω)).toReal := by
+    rw [iSup_subtype', ENNReal.toReal_iSup]
+    · congr with i
+      rw [ENNReal.toReal_ofReal (hnonneg _ _)]
+    · finiteness
+  have : {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} =ᵐ[P] {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
+    filter_upwards [hsub.iSup_ofReal_ne_top hnonneg n] with ω htop
+    ext
+    change _ ≤ _ ↔ _ ≤ _
+    rw [← ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_le_iff_le_toReal htop, this]
+  rw [measureReal_congr this, setIntegral_congr_set this]
+  exact maximal_ineq_countable_ennReal hsub hnonneg ε n
 
-  -- Monotone convergence works here but dominated convergence seems easier
-  have htendsto (x : Ω → ℝ) (hx : Integrable x P) : Tendsto
-      (fun k ↦ ∫ ω in {ω | (ε : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, x ω ∂P) atTop
-      (𝓝 <| ∫ ω in {ω | (ε : ℝ) ≤ ⨆ k, (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, x ω ∂P) := by
-    convert tendsto_setIntegral_of_monotone _ _ hx.integrableOn
-    · ext ω
-      simp
-      have : ⨆ i : Set.Iic n, Y i ω = ⨆ k : ℕ, (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω := by
-        sorry
-      -- simp [this]
-      refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-      · #check le_ciSup_iff'
-      sorry
-    · infer_instance
-    · intro k
-      apply measurableSet_le measurable_const
-      apply Finset.measurable_sup'' ⟨n, hnJ k⟩ fun i _ ↦
-        (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
-    · intro k l hkl
-      simpa using fun ω i hi h ↦ ⟨i, hJmono hkl hi, h⟩
-
-theorem maximal_ineq_norm_countable [Countable ι] [IsFiniteMeasure P]
-    (hsub : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
-  sorry
+theorem maximal_ineq_norm_countable (hmar : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
+    ε • P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P :=
+  maximal_ineq_countable hmar.submartingale_norm (fun _ _ ↦ norm_nonneg _) ε n
 
 end Countable
 
 variable [TopologicalSpace ι] [SecondCountableTopology ι]
 
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P) := by
+    ε • P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
   obtain ⟨T, hT_countable, hT_dense⟩ := TopologicalSpace.exists_countable_dense ι
   sorry
 
-theorem maximal_ineq_norm (hsub : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
-    ε • P {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
-     ENNReal.ofReal (∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P) := by
+theorem maximal_ineq_norm (hmar : Martingale X 𝓕 P) (ε : ℝ≥0) (n : ι) :
+    ε • P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P := by
   sorry
 
 end ProbabilityTheory
