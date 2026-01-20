@@ -105,6 +105,7 @@ theorem mul_lintegral_upcrossingsBefore_le_lintegral_pos_part [IsFiniteMeasure �
   apply ENNReal.ofReal_le_ofReal
   exact hDoob
 
+/-- Doob's upcrossing inequality on ℕ, with `upcrossingsBeforeENat` and Lebesgue integral. -/
 theorem mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part [IsFiniteMeasure μ]
     {𝓕 : Filtration ℕ m0} {f : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ}
     (hf : Submartingale f 𝓕 μ) (hab : a < b) :
@@ -621,7 +622,7 @@ lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N
       rcases hn with ⟨hseq, ht_lt_N⟩
       grind
 
-/-! Monotonicity of upcrossingSequenceENat in the index set, assuming finitely many upcrossings. -/
+/-! Monotonicity of upcrossingSequenceENat in the index set. -/
 lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
@@ -1057,8 +1058,6 @@ theorem Countable.increasing_finset_family_saturates_Iic (N : ι) :
   · simp only [Set.mem_toFinset]; exact hsN n
   · obtain ⟨n, hn, hnIic⟩ := hsaturate t ht htIic
     exact ⟨n, fun x hx => Set.mem_toFinset.mpr (hn hx), fun x hx => hnIic (Set.mem_toFinset.mp hx)⟩
-
-variable (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
 
 end Countable
 
