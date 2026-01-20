@@ -1144,6 +1144,42 @@ extending the upcrossing sequence by one more upcrossing, we get $(P_{n+1} \wedg
 This completes the proof.
 \end{proof}
 
+\begin{lemma}[Upcrossings number monotonicity]\label{lem:upcrossings_monotonicity}
+  \uses{def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.upcrossingSequenceENat_mono_index_set}
+Take two index sets, $S$ and $T$, and $t\inS$.
+Assume that there is an order embedding $f$ from $\{s\in S \mid s \le t\}$ to $T$.
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in S$. Let $a < b$ be real numbers. Then, for every $\omega \in \Omega$, we have
+\begin{align*}
+  N_a^b(X \circ f, t)(\omega) \le N_a^b(X, f(t))(\omega) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+Of course, existence of an upcrossing sequence for $X \circ f$ implies existence of an upcrossing sequence for $X$ by applying $f$ to each element of the sequence.
+\end{proof}
+
+\begin{theorem}[Doob's upcrossing inequality for finite sets]\label{thm:upcrossingInequalityFinite}
+\uses{def:Submartingale, def:upcrossingSeq, def:upcrossings}
+\mathlibok
+\lean{%
+MeasureTheory.mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part, %
+MeasureTheory.mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part%
+}
+Let $T$ be an index set (ordered, with bottom element $\bot$) and $s$ be its finite subset, such that $\bot\in s$. Let $X : s \to \Omega \to \mathbb{R}$ be a sub-martingale. Then, for every $t\in s$ and $a < b$, we have
+\begin{align*}
+  (b - a) \mathbb{E}[N_{a}^{b}(X, t)] \le \mathbb{E}[(X_t - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\uses{thm:upcrossings_equiv, lem:upcrossings_monotonicity, thm:upcrossingInequalityNat}
+When the map between two index sets, properly restricted, is an order isomorphism,
+the upcrossing numbers on those two index sets are equal by applying Lemma~\ref{lem:upcrossings_monotonicity} twice. A careful choice of such an isomorphism allows to reduce the problem to the case of $\mathbb{N}$.
+But this is given by Theorem~\ref{thm:upcrossingInequalityNat},
+thanks to the equivalence established in Theorem~\ref{thm:upcrossings_equiv}.
+\end{proof}
 
 
 \section{Martingale convergence}
