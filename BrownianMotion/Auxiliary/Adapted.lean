@@ -59,14 +59,16 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
     ProgMeasurable 𝓕 X := by
   intro t
   -- separate into two cases because the partition we defined below cannot contain empty sets
-  by_cases hΩ : Nonempty Ω
-  swap; · simp_all [stronglyMeasurable_const']
+  rcases isEmpty_or_nonempty Ω with hΩ | hΩ
+  · fun_prop
   -- ip is the set of points in (-∞,t] that are isolated on the right
   let ip := {x : Iic t | 𝓝[>] x = ⊥}
   have tmemip : ⟨t, le_rfl⟩ ∈ ip := by
     simp only [← not_neBot, nhdsWithin_neBot, not_forall,
       not_nonempty_iff_eq_empty, mem_setOf_eq, ip]
-    use univ; simp; rfl
+    use univ
+    simp
+    rfl
   have ipc : ip.Countable := countable_setOf_isolated_right (α := Iic t)
   -- d is the set of points dense in (-∞,t]
   obtain ⟨d, dc, dd⟩ := TopologicalSpace.exists_countable_dense (Iic t)
@@ -89,9 +91,6 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
         Finset.mem_image, Finset.mem_range, comp_apply]
       exact ⟨⟨k, by linarith, by simp [hk]⟩, fun a ha _ => ha⟩
     simpa [l] using mem_Iic.mp a.1.2
-  have LEM (a : Iic t × Ω) (n : ℕ) := (Option.isSome_iff_exists.mp (Fin.isSome_find_iff.mpr
-    (Exists.intro (p := fun i ↦ a.1 ≤ v n i) ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩
-    (hav a n))))
   have disj (n : ℕ) : Pairwise (Disjoint on (f n)) := by
     simp only [pairwise_disjoint_on]
     intro i j hij
@@ -105,6 +104,16 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
         not_isEmpty_of_nonempty, or_false, f]
       simp only [Fin.lt_def, ← Nat.le_sub_one_iff_lt hj0] at hij
       exact Or.inr (Or.inl hij)
+  have h_exists (a : Iic t × Ω) (n : ℕ) : ∃ i, a.1 ≤ v n i := by
+    use ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩
+    exact hav a n
+  let LEM (a : Iic t × Ω) (n : ℕ) := Fin.find (fun i ↦ a.1 ≤ v n i) (h_exists a n)
+  have h_LEM (a : Iic t × Ω) (n : ℕ) : a.1 ≤ v n (LEM a n) := Fin.find_spec (h_exists a n)
+  have h_LEM_min (a : Iic t × Ω) (n : ℕ) (i : Fin (r n).card) (hi : i < LEM a n) : v n i < a.1 := by
+    rw [← not_le]
+    exact Fin.find_min (h_exists a n) hi
+  have h_LEM_le (a : Iic t × Ω) (n : ℕ) (i : Fin (r n).card) (ha : a.1 ≤ v n i) : LEM a n ≤ i :=
+    Fin.find_le_of_pos (h_exists a n) ha
   -- create a partition of (Iic t) × Ω
   let P (n : ℕ) : IndexedPartition (f n) :=
     { eq_of_mem {a i j} hai haj := by_contradiction fun h => (disj n h).le_bot ⟨hai, haj⟩
@@ -113,17 +122,21 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
         by_cases h0 : i = ⟨0, by simp [r]⟩
         · simp [f, h0]
         · simp [f, h0, Fin.lt_def, Nat.sub_one_lt (fun j => h0 (Fin.eq_of_val_eq j))]
-      index a := (LEM a n).choose -- choose the smallest i such that a.1 ≤ v n i
+      index a := LEM a n -- choose the smallest i such that a.1 ≤ v n i
       mem_index a := by
-        have hi := (LEM a n).choose_spec
-        by_cases h0 : (LEM a n).choose = ⟨0, by simp [r]⟩
+        have hi := h_LEM a n
+        by_cases h0 : LEM a n = ⟨0, by simp [r]⟩
         · simp_all only [nonempty_subtype, Subtype.exists, mem_Iic, ↓reduceDIte, mem_prod, mem_univ,
             and_true, f]
-          exact Fin.find_spec (fun i ↦ a.1 ≤ (v n) i) hi
         · simp only [h0, ↓reduceDIte, mem_prod, mem_Ioc, mem_univ, and_true, f]
+          rw [← not_lt] at hi
           constructor
-          · exact lt_of_not_ge (Fin.find_min hi (Nat.sub_one_lt (fun j => h0 (Fin.eq_of_val_eq j))))
-          · exact Fin.find_spec (fun i ↦ a.1 ≤ (v n) i) hi }
+          · refine lt_of_not_ge ?_
+            rw [not_le]
+            refine h_LEM_min a n _ ?_
+            simp [Fin.ext_iff, Fin.lt_def] at h0 ⊢
+            grind
+          · exact h_LEM a n }
   -- discrete approximation of X
   let U : ℕ → (Iic t) × Ω → β := fun n p => (P n).piecewise (fun m => fun q => X (v n m) q.2) p
   -- X is strongly measurable because it is the pointwise limit of strongly measurable functions
@@ -186,9 +199,8 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
               simp only [← empty_mem_iff_bot, ← this, mem_setOf_eq, ip, inter]
               apply inter_mem_nhdsWithin (Ioi a.1) (IsOpen.mem_nhds isOpen_Iio (by simp [hep.1]))
             exact has (Or.inl this)
-          have : ((Ioo a.1 ep) ∩ d).Nonempty := Dense.inter_open_nonempty dd (Ioo a.1 ep)
+          obtain ⟨e, he⟩ : ((Ioo a.1 ep) ∩ d).Nonempty := Dense.inter_open_nonempty dd (Ioo a.1 ep)
             isOpen_Ioo this
-          obtain ⟨e, he⟩ := this
           obtain ⟨N, hN⟩ := hu ⟨_, Or.inr he.2⟩
           refine ⟨N, fun n hn => ?_⟩
           suffices w n ∈ Subtype.val '' Ico a.1 ep from by
@@ -200,7 +212,10 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
           have hev : e ∈ univ.image (v n) := by simpa [v, r] using ⟨N, by linarith, by simp [hN]⟩
           obtain ⟨M, hM⟩ := hev
           simp only [← hM.2, Subtype.coe_le_coe, OrderEmbedding.le_iff_le, ge_iff_le, w]
-          exact (Fin.find_eq_some_iff.mp (LEM a n).choose_spec).2 M (by simp [hM.2, he.1.1.le])
+          -- `change LEM a n ≤ M`
+          refine h_LEM_le a n M ?_
+          rw [hM.2]
+          exact he.1.1.le
         · simp only [mem_Ioi, Subtype.coe_lt_coe, w]
           have lem2 : v n ((P n).index a) ≠ a.1 := by
             intro hva

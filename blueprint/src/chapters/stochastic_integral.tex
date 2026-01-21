@@ -3,11 +3,111 @@
 The lecture notes at \href{https://dec41.user.srcf.net/h/III_L/stochastic_calculus_and_applications/}{this link} as well as chapter 18 of \cite{kallenberg2021} are good references for this chapter.
 Some of the proofs are taken from \cite{pascucci2024}.
 
+
+
 \section{Total variation and Lebesgue-Stieltjes integral}
 
 TODO: in Mathlib, we can integrate with respect to the measure given by a right-continuous monotone function (\texttt{StieltjesFunction.measure}). This will be useful to integrate against the quadratic variation of a local martingale.
 However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
 We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
+
+
+\begin{definition}\label{def:eVariationOn}
+  \mathlibok
+  \lean{eVariationOn}
+The (extended-real-valued) variation of a function $f : T \to E$ on a set $s$ inside a linear order is the supremum of $\sum_i \mathrm{edist}(f(u_{i+1}, f(u_i)))$ over all finite increasing sequences $u : N \to T$ in $s$.
+We denote it by $V_f(s)$~.
+\end{definition}
+
+
+\begin{definition}\label{def:BoundedVariationOn}
+  \uses{def:eVariationOn}
+  \mathlibok
+  \lean{BoundedVariationOn}
+A function $f : T \to E$ is of bounded variation on a set $s$ if its variation $V_f(s)$ is finite.
+\end{definition}
+
+
+\begin{definition}\label{def:LocallyBoundedVariationOn}
+  \uses{def:BoundedVariationOn}
+  \mathlibok
+  \lean{LocallyBoundedVariationOn}
+A function $f : T \to E$ is of locally bounded variation on a set $s$ if for every $a, b$ in $s$, the variation $V_f(s \cap [a, b])$ is finite.
+\end{definition}
+
+
+% \begin{lemma}\label{lem:MonotoneOn.locallyBoundedVariationOn}
+%   \uses{def:LocallyBoundedVariationOn}
+%   \mathlibok
+%   \lean{MonotoneOn.locallyBoundedVariationOn}
+% If $f : T \to ℝ$ is monotone on a set $s$, then it is of locally bounded variation on $s$~.
+% \end{lemma}
+
+% \begin{proof}\leanok
+
+% \end{proof}
+
+
+\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
+  \uses{def:LocallyBoundedVariationOn}
+  \mathlibok
+  \lean{LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
+If a real-valued function has bounded variation on a set, then it is a difference of monotone functions there.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}
+  \uses{def:LocallyBoundedVariationOn}
+If a real-valued right-continuous function has bounded variation on a set, then it is a difference of right-continuous monotone functions there.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}\label{def:StieltjesFunction.measure}
+  \mathlibok
+  \lean{StieltjesFunction.measure}
+Let $f : T \to ℝ$ be a cadlag monotone function on a conditionally complete linear order $T$.
+We denote by $df$ the measure on $T$ defined by $df((a, b]) = f(b) - f(a)$ for all $a, b \in T$~.
+
+TODO: in Mathlib this is only for $T = \mathbb{R}$ for now, but will be generalized.
+\end{definition}
+
+
+\begin{definition}\label{def:LocallyBoundedVariationOn.signedMeasure}
+  \uses{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn, def:StieltjesFunction.measure}
+Let $f : T \to E$ be a cadlag function of locally bounded variation on a conditionally complete linear order $T$ (TODO: and probably more assumptions?).
+Then by Lemma~\ref{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}, $f$ can be written as a difference of two cadlag monotone functions, say $f = f_+ - f_-$~.
+We denote by $df$ the signed measure on $T$ associated to $f$ defined by $df = df_+ - df_-$, in which $df_+$ and $df_-$ are given by Definition~\ref{def:StieltjesFunction.measure}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:totalVariation_signedMeasure}
+  \uses{def:LocallyBoundedVariationOn.signedMeasure}
+$\vert df \vert = df_+ + df_-$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:eVariationOn_eq_totalVariation}
+  \uses{def:LocallyBoundedVariationOn.signedMeasure}
+$V_f([0, t]) = \vert df \vert([0, t])$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:totalVariation_signedMeasure}
+
+\end{proof}
+
 
 \section{Square integrable martingales}
 
@@ -19,17 +119,16 @@ In this section, $E$ denotes a complete normed space.
   \lean{ProbabilityTheory.IsSquareIntegrable}
 Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
 We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
-We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of square integrable martingales with values in $E$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:IsSquareIntegrable.module}
   \uses{def:IsSquareIntegrable}
-$\mathcal{M}^2(E)$ is a real vector space.
+If $M$ and $N$ are square integrable martingales and $a \in \mathbb{R}$, then $M + N$ and $a M$ are square integrable martingales.
 \end{lemma}
 
 \begin{proof}
-
+  \leanok
 \end{proof}
 
 
@@ -42,6 +141,7 @@ If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submarting
 
 \begin{proof}
   \uses{lem:Martingale.submartingale_convex_comp}
+  \leanok
 Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex function $f: x \mapsto \Vert x \Vert^2$~.
 \end{proof}
 
@@ -50,11 +150,12 @@ Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex funct
   \uses{def:IsSquareIntegrable}
   \leanok
   \lean{ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono}
-For $M \in \mathcal{M}^2(E)$, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
+For $M$ a square integrable martingale, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:IsSquareIntegrable.submartingale_sq}
+  \leanok
 By Lemma~\ref{lem:IsSquareIntegrable.submartingale_sq}, $\Vert M_t \Vert^2$ is a submartingale.
 Thus, for $s \le t$~,
 \begin{align*}
@@ -71,7 +172,7 @@ Thus, for $s \le t$~,
 
 \begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
-For $M \in \mathcal{M}^2(E)$, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
+For $M$ a square integrable martingale, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
 \end{lemma}
 
 \begin{proof}
@@ -82,7 +183,7 @@ TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tends
 
 \begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
-For $M \in \mathcal{M}^2(E)$, we have
+For $M$ a square integrable martingale,
 \begin{align*}
   \sup_{t \in T} \Vert M_t \Vert_{L^2}
   &= \Vert M_\infty \Vert_{L^2}
@@ -91,13 +192,30 @@ For $M \in \mathcal{M}^2(E)$, we have
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono}
+  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono, lem:IsSquareIntegrable.tendsto_limitProcess}
 
 \end{proof}
 
 
-\begin{definition}\label{def:IsSquareIntegrable.norm}
-  \uses{def:IsSquareIntegrable, def:limitProcess}
+\begin{definition}\label{def:L2Martingales}
+  \uses{def:IsSquareIntegrable}
+We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of equivalence classes with respect to indistinguishability of square integrable martingales $T \to \Omega \to E$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:L2Martingales.module}
+  \uses{def:L2Martingales}
+The space $\mathcal{M}^2(E)$ is a real vector space.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.module}
+
+\end{proof}
+
+
+\begin{definition}\label{def:L2Martingales.norm}
+  \uses{def:L2Martingales, def:limitProcess}
 We define a norm on $\mathcal{M}^2$ by
 \begin{align*}
   \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
@@ -106,9 +224,9 @@ We define a norm on $\mathcal{M}^2$ by
 \end{definition}
 
 
-\begin{lemma}\label{lem:IsSquareIntegrable.norm_eq_zero}
-  \uses{def:IsSquareIntegrable.norm}
-For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M$ is the zero process.
+\begin{lemma}\label{lem:L2Martingales.norm_eq_zero}
+  \uses{def:L2Martingales.norm}
+For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M = 0$.
 \end{lemma}
 
 \begin{proof}
@@ -117,8 +235,8 @@ By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Ver
 \end{proof}
 
 
-\begin{definition}\label{def:IsSquareIntegrable.inner}
-  \uses{def:IsSquareIntegrable.norm}
+\begin{definition}\label{def:L2Martingales.inner}
+  \uses{def:L2Martingales.norm}
 We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle = \mathbb{E}[M_\infty N_\infty]
@@ -127,13 +245,13 @@ We define an inner product on $\mathcal{M}^2$ by
 \end{definition}
 
 
-\begin{theorem}\label{thm:hilbertSpace_isSquareIntegrable}
-  \uses{def:IsSquareIntegrable.inner, lem:IsSquareIntegrable.norm_eq_zero}
+\begin{theorem}\label{thm:hilbertSpace_L2Martingales}
+  \uses{def:L2Martingales.inner, lem:L2Martingales.norm_eq_zero}
 The space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm, lem:IsSquareIntegrable.module}
+  \uses{cor:doob_lp_norm, lem:L2Martingales.module}
 We already know that $\mathcal{M}^2$ is an inner product space.
 We need to show that it is complete.
 
@@ -212,6 +330,9 @@ For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
 \end{proof}
 
 
+
+
+
 \section{Local martingales}
 
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
@@ -233,24 +354,151 @@ If $M$ is a cadlag local martingale, then $\Vert M \Vert^2$ is a cadlag local su
   \uses{def:IsLocalMartingale, thm:local_doobMeyer, lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
   \leanok
   \lean{ProbabilityTheory.quadraticVariation}
-For any continuous local martingale $M$, there exists a continuous process $[M]$ with $[M]_0 = 0$ such that $\Vert M \Vert^2 - [M]$ is a local martingale. That process is a.s. unique and is called the \emph{quadratic variation} of $M$.
-$[M]$ is defined as the predictable part of the Doob-Meyer decomposition of the local sub-martingale $\Vert M \Vert^2$~.
+For $M$ a local martingale, the predictable quadratic variation of $M$ is defined as the predictable part of the Doob-Meyer decomposition of the local sub-martingale $\Vert M \Vert^2$~.
+We denote it by $\langle M \rangle$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_quadraticVariation}
+  \uses{def:quadraticVariation}
+The quadratic variation $\langle M \rangle$ of a local martingale $M$ is a predictable process.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:cadlag_quadraticVariation}
+  \uses{def:quadraticVariation}
+The quadratic variation $\langle M \rangle$ of a local martingale $M$ is cadlag.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:locallyIntegrable_quadraticVariation}
+  \uses{def:quadraticVariation}
+The quadratic variation $\langle M \rangle$ of a local martingale $M$ is locally integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:quadraticVariation_zero}
+  \uses{def:quadraticVariation}
+$\langle M \rangle_0 = 0$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:monotone_quadraticVariation}
+  \uses{def:quadraticVariation}
+The quadratic variation $\langle M \rangle$ of a local martingale $M$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_martingale_sub_quadraticVariation}
+  \uses{def:quadraticVariation}
+For $M$ a local martingale, the process $\Vert M_t \Vert^2 - \langle M \rangle_t$ is a local martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{definition}\label{def:quadraticVariationMeasure}
+  \uses{def:quadraticVariation, def:StieltjesFunction.measure}
+For $M$ a local martingale, we denote by $d\langle M \rangle$ the measure on $\mathbb{R}_+$ associated to the non-decreasing càdlàg function $\langle M \rangle$~.
 \end{definition}
 
 
 \begin{definition}[Covariation]\label{def:covariation}
   \uses{def:IsLocalMartingale, def:quadraticVariation}
-For any continuous local martingales $M$ and $N$, there exists a continuous process $[M,N]$ with $[M,N]_0 = 0$ such that $MN - [M,N]$ is a local martingale. That process is a.s. unique and is called the \emph{covariation} of $M$ and $N$.
+For $M$ and $N$ local martingales, the covariation $\langle M, N \rangle$ is a stochastic process defined by polarization of the quadratic variation:
+\begin{align*}
+  \langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)
+  \: .
+\end{align*}
+% For any local martingales $M$ and $N$, there exists a cadlag process $\langle M,N \rangle$ with $\langle M,N \rangle_0 = 0$ such that $MN - \langle M,N \rangle$ is a local martingale. That process is a.s. unique and is called the \emph{covariation} of $M$ and $N$.
 
-It can be defined by $[M, N]_t = \frac{1}{4}\left([M+N]_t - [M-N]_t \right)$~.
+% It can be defined by $\langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)$~.
 \end{definition}
+
+
+\begin{lemma}\label{lem:predictable_covariation}
+  \uses{def:covariation}
+The covariation $\langle M, N \rangle$ of local martingales $M$ and $N$ is a predictable process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictable_quadraticVariation}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:cadlag_covariation}
+  \uses{def:covariation}
+The covariation $\langle M, N \rangle$ of local martingales $M$ and $N$ is cadlag.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:cadlag_quadraticVariation}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covariation_zero}
+  \uses{def:covariation}
+$\langle M, N \rangle_0 = 0$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:quadraticVariation_zero}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_martingale_sub_covariation}
+  \uses{def:covariation}
+For $M, N$ local martingales, the process $\langle M_t, N_t \rangle_E - \langle M, N \rangle_t$ is a local martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:local_martingale_sub_quadraticVariation}
+\begin{align*}
+  &\langle M_t, N_t \rangle_E - \langle M, N \rangle_t
+  \\
+  &= \frac{1}{4}\left( \left(\Vert M_t + N_t \Vert^2 - \langle M+N \rangle_t\right) - \left(\Vert M_t - N_t \Vert^2 - \langle M-N \rangle_t\right) \right)
+  \: .
+\end{align*}
+The two differences are local martingales by Lemma~\ref{lem:local_martingale_sub_quadraticVariation}, so their linear combination is also a local martingale.
+\end{proof}
 
 
 \begin{lemma}\label{lem:covariation_eq_inner}
   \uses{def:covariation, def:IsSquareIntegrable}
-Let $M$ and $N$ be continuous square integrable martingales. Then
+Let $M$ and $N$ be square integrable martingales. Then
 \begin{align*}
-  \mathbb{E}\left[[M,N]_\infty\right] = \langle M - M_0, N - N_0 \rangle_{\mathcal{M}^2}
+  \mathbb{E}\left[\langle M,N \rangle_\infty\right] = \langle M - M_0, N - N_0 \rangle_{\mathcal{M}^2}
   \: .
 \end{align*}
 \end{lemma}
@@ -262,7 +510,7 @@ Let $M$ and $N$ be continuous square integrable martingales. Then
 
 \begin{lemma}\label{lem:quadraticVariation_brownian}
   \uses{def:brownian, def:quadraticVariation}
-Let $B$ be a standard Brownian motion. Then the quadratic variation of $B$ is given by $[B]_t = t$~.
+Let $B$ be a standard Brownian motion. Then the quadratic variation of $B$ is given by $\langle B \rangle_t = t$~.
 \end{lemma}
 
 \begin{proof}
@@ -282,30 +530,129 @@ The decomposition is a.s. unique.
 \end{definition}
 
 
+
+
+
+
 \section{Stochastic integral}
 
 TODO: relax continuity of the martingales, be clear about continuous quadratic variation vs general càdlàg quadratic variation.
 
-For $M$ a continuous local martingale and $X$ a stochastic process, we will use integrals of the form $\int_0^t X_s \: d[M]_s$~.
-Let's explain what those integrals mean. For all $\omega \in \Omega$, $[M](\omega)$ is a right-continuous non-decreasing function (called a Stieltjes function in Mathlib) so it defines a measure on $\mathbb{R}_+$, denoted by $d[M]$~.
-Then, for each fixed $\omega \in \Omega$, if the function $s \mapsto X_s(\omega)$ is integrable with respect to the measure $d[M](\omega)$, the Bochner integral $\int_0^t X_s(\omega) \: d[M](\omega)$ is well-defined.
-By $\int_0^t X_s \: d[M]_s$, we mean the random variable $\omega \mapsto \int_0^t X_s(\omega) \: d[M](\omega)$~.
+For $M$ a local martingale and $X$ a stochastic process, we will use integrals of the form $\int_0^t X_s \: d\langle M \rangle_s$~.
+Let's explain what those integrals mean. For all $\omega \in \Omega$, $\langle M \rangle(\omega)$ is a right-continuous non-decreasing function (called a Stieltjes function in Mathlib) so it defines a measure on $\mathbb{R}_+$, denoted by $d\langle M \rangle$~.
+Then, for each fixed $\omega \in \Omega$, if the function $s \mapsto X_s(\omega)$ is integrable with respect to the measure $d\langle M \rangle(\omega)$, the Bochner integral $\int_0^t X_s(\omega) \: d\langle M \rangle(\omega)$ is well-defined.
+By $\int_0^t X_s \: d\langle M \rangle_s$, we mean the random variable $\omega \mapsto \int_0^t X_s(\omega) \: d\langle M \rangle(\omega)$~.
 If we also vary $t$, we get a stochastic process.
+
 
 
 \subsection{Itô isometry}
 
-\begin{definition}\label{def:L2M}
-  \uses{def:IsSquareIntegrable, def:quadraticVariation, def:predictableMeasurableSpace}
-Let $M \in \mathcal{M}^2$ be a continuous square integrable martingale. We define
-\begin{align*}
-  L^2(M) = L^2(\Omega \times \mathbb{R}_+, \mathcal{P}, \mathbb{P} \times d[M])
-\end{align*}
-in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d[M]$ is the measure induced by the quadratic variation of $M$.
-The norm on that Hilbert space is $\Vert X \Vert^2 = \mathbb{E}\left[ \int_0^{\infty} X_t^2 \: d[M]_t \right]$~.
+
+\begin{lemma}\label{lem:Filtration.predictable_le_prod}
+  \uses{def:predictableMeasurableSpace}
+  \leanok
+  \lean{MeasureTheory.Filtration.predictable_le_prod}
+The predictable $\sigma$-algebra on $T \times \Omega$ is a sub-$\sigma$-algebra of the product $\sigma$-algebra $\mathcal{B}(T) \otimes \mathcal{F}$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[L2 space of predictable processes]\label{def:L2Predictable}
+  \uses{lem:Filtration.predictable_le_prod}
+  \leanok
+  \lean{ProbabilityTheory.L2Predictable}
+Let $\mu$ be a measure on $T$ and $P$ a measure on $\Omega$.
+We denote by $L^2(\mu, P)$ the space $L^2(T \times \Omega, \mathcal{P}, \mu \times P)$, in which $\mathcal{P}$ is the predictable $\sigma$-algebra, and the measure $\mu \times P$ is the restriction of the product measure on $\mathcal{B}(T) \otimes \mathcal{F}$ to $\mathcal{P}$~.
 \end{definition}
 
-TODO the sources don't use the same assumptions: predictable vs progressive (\texttt{MeasureTheory.ProgMeasurable}). Progressive would be more general.
+TODO: the measures should be at least finite, I guess.
+
+TODO: we will write that a stochastic process $X : T \to \Omega \to E$ ``is in $L^2(\mu, P)$'', but this means that the L2 equivalence class of the function $(t, \omega) \mapsto X_t(\omega)$ is in $L^2(\mu, P)$~.
+In Lean, we can use \texttt{MemLp} for the uncurried function.
+
+
+\begin{lemma}\label{lem:L2Predictable.inner_eq}
+  \uses{def:L2Predictable}
+For $X, Y \in L^2(\mu, P)$, we have
+\begin{align*}
+  \langle X, Y \rangle_{L^2(\mu, P)} = P\left[ \int_0^{\infty} \langle X_t, Y_t\rangle \: d\mu \right]
+  \: .
+\end{align*}
+The norm is $\Vert X \Vert_{L^2(\mu, P)}^2 = P\left[ \int_0^{\infty} \Vert X_t \Vert^2 \: d\mu \right]$~.
+\end{lemma}
+
+\begin{proof}
+The inner product in $L^2$ spaces is defined as the integral of the pointwise inner products.
+\begin{align*}
+  \langle X, Y \rangle_{L^2(\mu, P)}
+  &= \int_{T \times \Omega} \langle X_t(\omega), Y_t(\omega) \rangle \: d(\mu \times P)(t, \omega)
+  \\
+  &= P\left[ \int_0^{\infty} \langle X_t, Y_t\rangle \: d\mu \right]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:simpleProcess_mem_L2Predictable}
+  \uses{def:simpleProcess, def:L2Predictable}
+Any simple process in $\mathcal{E}_{T, E}$ is in $L^2(\mu, P)$~.
+
+(Lean remark: we mean that the uncurried version of its coercion to a function satisfies \texttt{MemLp})
+\end{lemma}
+
+\begin{proof}
+A simple process is bounded by definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:L2Predictable.sq_norm_simpleProcess}
+  \uses{def:simpleProcess, def:L2Predictable, lem:simpleProcess_mem_L2Predictable}
+Let $V \in \mathcal{E}_{T, E}$ and $\mu$ a measure on $T$~.
+Let $f$ be a right-continuous non-decreasing function such that for all $s < t$, $\mu((s,t]) = f(t) - f(s)$ (the CDF of $\mu$, but that's only defined for $\mathbb{R}$ in Lean).
+Then
+\begin{align*}
+  \Vert V \Vert^2_{L^2(\mu, P)}
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: (f(t_k) - f(s_k)) \right]
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:L2Predictable.inner_eq}
+TODO: this proof (and the result of the lemma) assumes that the intervals defining the simple process are disjoint.
+
+Let $V \in \mathcal{E}_{T, E}$~, with $V_t(\omega) = \sum_{k=1}^n \eta_k(\omega) \mathbf{1}_{(s_k, t_k]}(t)$~.
+\begin{align*}
+  \Vert V \Vert^2_{L^2(\mu, P)}
+  &= P\left[ \int_0^{\infty} \Vert V_t \Vert^2 \: d\mu \right]
+  \\
+  &= P\left[ \int_0^{\infty} \left\Vert \sum_{k=1}^n \eta_k \mathbf{1}_{(s_k, t_k]}(t) \right\Vert^2 \: d\mu \right]
+  \\
+  &= P\left[ \int_0^{\infty} \sum_{k=1}^n \Vert \eta_k \Vert^2 \mathbf{1}_{(s_k, t_k]}(t) \: d\mu \right]
+  \\
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: \mu((s_k, t_k]) \right]
+  \\
+  &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: (f(t_k) - f(s_k)) \right]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{definition}[L2 space with respect to a square integrable martingale]\label{def:L2M}
+  \uses{def:IsSquareIntegrable, def:quadraticVariation, def:L2Predictable, def:quadraticVariationMeasure}
+Let $M$ be a square integrable martingale. We define
+\begin{align*}
+  L^2(M)
+  = L^2(d\langle M \rangle, P)
+  = L^2(T \times \Omega, \mathcal{P}, d\langle M \rangle \times P)
+\end{align*}
+in which $\mathcal{P}$ is the predictable $\sigma$-algebra and $d\langle M \rangle$ is the measure induced by the quadratic variation of $M$.
+\end{definition}
+
 
 \begin{lemma}\label{lem:sq_norm_elemStochIntegral}
   \uses{def:elemStochIntegral, def:IsSquareIntegrable, def:quadraticVariation, def:L2M}
@@ -318,7 +665,7 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathca
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Martingale.elemStochIntegral, lem:isSquareIntegrable_elemStochIntegralBilin}
+  \uses{lem:Martingale.elemStochIntegral, lem:isSquareIntegrable_elemStochIntegralBilin, lem:L2Predictable.sq_norm_simpleProcess}
   There are two steps to the proof.
 
   First, in order to make sense of $\Vert V \Vert_{L^2(M)}$,
@@ -333,36 +680,36 @@ For $V \in \mathcal{E}$ and $M \in \mathcal{M}^2$, then $V \bullet M \in \mathca
 
 \begin{lemma}\label{lem:integral_process_eq_zero}
   \uses{def:L2M}
-Let $X\in L^2(M)$ such that $\int_0^t X_s \: d[M]_s = 0$ for all $t \ge 0$ a.s.. Then $X = 0$ $(\mathbb{P} \times d[M])$-almost everywhere.
+Let $X\in L^2(M)$ such that $\int_0^t X_s \: d\langle M \rangle_s = 0$ for all $t \ge 0$ a.s.. Then $X = 0$ $(\mathbb{P} \times d\langle M \rangle)$-almost everywhere.
 \end{lemma}
 
 \begin{proof}
-For $B$ a measurable set of $\mathbb{R}_+$ and $\omega \in \Omega$, let $\nu_\omega(B) = \int_B X_s(\omega) \: d[M]_s(\omega)$~. This is a signed measure on $\mathbb{R}_+$~.
-Then if for all $t$, $\int_0^t X_s(\omega) \: d[M]_s(\omega) = 0$ then $\nu_\omega([0,t]) = 0$ for all $t$.
+For $B$ a measurable set of $\mathbb{R}_+$ and $\omega \in \Omega$, let $\nu_\omega(B) = \int_B X_s(\omega) \: d\langle M \rangle_s(\omega)$~. This is a signed measure on $\mathbb{R}_+$~.
+Then if for all $t$, $\int_0^t X_s(\omega) \: d\langle M \rangle_s(\omega) = 0$ then $\nu_\omega([0,t]) = 0$ for all $t$.
 Those intervals generate the Borel $\sigma$-algebra on $\mathbb{R}_+$, so $\nu_\omega$ is the zero measure.
 Thus, for almost all $\omega$, $\nu_\omega$ is the zero measure.
 
-The measure $\nu_\omega$ is absolutely continuous with respect to the measure $d[M](\omega)$~, and its Radon-Nikodym derivative is $X(\omega)$~.
-Since $\nu_\omega$ is the zero measure for almost all $\omega$, we have that $X(\omega) = 0$ $d[M](\omega)$-almost everywhere for almost all $\omega$~.
-Equivalently, $X = 0$ $(\mathbb{P} \times d[M])$-almost everywhere.
+The measure $\nu_\omega$ is absolutely continuous with respect to the measure $d\langle M \rangle(\omega)$~, and its Radon-Nikodym derivative is $X(\omega)$~.
+Since $\nu_\omega$ is the zero measure for almost all $\omega$, we have that $X(\omega) = 0$ $d\langle M \rangle(\omega)$-almost everywhere for almost all $\omega$~.
+Equivalently, $X = 0$ $(\mathbb{P} \times d\langle M \rangle)$-almost everywhere.
 \end{proof}
 
 
 \begin{lemma}[Injectivity of the integral]\label{lem:integral_process_injective}
   \uses{def:L2M}
-Let $X, Y \in L^2(M)$ such that $\int_0^t X_s \: d[M]_s = \int_0^t Y_s \: d[M]_s$ for all $t \ge 0$ a.s.. Then $X = Y$ almost everywhere.
+Let $X, Y \in L^2(M)$ such that $\int_0^t X_s \: d\langle M \rangle_s = \int_0^t Y_s \: d\langle M \rangle_s$ for all $t \ge 0$ a.s.. Then $X = Y$ almost everywhere.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:integral_process_eq_zero}
-By linearity of the integral, we have $\int_0^t (X_s - Y_s) \: d[M]_s = 0$ for all $t \ge 0$ a.s..
+By linearity of the integral, we have $\int_0^t (X_s - Y_s) \: d\langle M \rangle_s = 0$ for all $t \ge 0$ a.s..
 Then apply Lemma~\ref{lem:integral_process_eq_zero} to $X - Y$~.
 \end{proof}
 
 
 \begin{lemma}\label{lem:martingale_integral_of_forall_eq_zero}
   \uses{def:L2M}
-Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Let $A_t = \int_0^t X_s \: d[M]_s$. Then $A_t$ is a martingale.
+Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Let $A_t = \int_0^t X_s \: d\langle M \rangle_s$. Then $A_t$ is a martingale.
 \end{lemma}
 
 \begin{proof}
@@ -370,7 +717,7 @@ Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V
 By Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero}, it is enough to show that for any bounded real simple process $V$, $\mathbb{E}[(V \bullet A)_\infty] = 0$~.
 \begin{align*}
   \mathbb{E}\left[(V \bullet A)_\infty\right]
-  &= \mathbb{E}\left[ \int_0^{\infty} V_t X_t \: d[M]_t \right]
+  &= \mathbb{E}\left[ \int_0^{\infty} V_t X_t \: d\langle M \rangle_t \right]
   \\
   &= \langle X, V \rangle
   \\
@@ -382,12 +729,12 @@ By Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero}, it is enou
 
 \begin{lemma}\label{lem:integral_eq_zero_of_forall_eq_zero}
   \uses{def:L2M}
-Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Then for all $t$, $\int_0^t X_s \: d[M]_s = 0$.
+Let $X \in L^2(M)$ such that $\langle X, V\rangle = 0$ for any simple process $V$. Then for all $t$, $\int_0^t X_s \: d\langle M \rangle_s = 0$.
 \end{lemma}
 
 \begin{proof}
   \uses{thm:IsLocalMartingale.eq_zero_of_finiteVariation, lem:martingale_integral_of_forall_eq_zero, lem:Martingale.IsLocalMartingale}
-$A_t := \int_0^t X_s \: d[M]_s$ is a finite variation process such that $A_t$ is integrable for all $t \ge 0$~.
+$A_t := \int_0^t X_s \: d\langle M \rangle_s$ is a finite variation process such that $A_t$ is integrable for all $t \ge 0$~.
 By Theorem~\ref{thm:IsLocalMartingale.eq_zero_of_finiteVariation}, it is enough to show that $A$ is a local martingale. We have by Lemma~\ref{lem:martingale_integral_of_forall_eq_zero} that $A$ is a martingale, and hence a local martingale (Lemma~\ref{lem:Martingale.IsLocalMartingale}).
 \end{proof}
 
@@ -400,8 +747,8 @@ The set of simple processes is dense in $L^2(M)$.
 \begin{proof}
   \uses{lem:integral_eq_zero_of_forall_eq_zero, lem:integral_process_eq_zero}
 Since $L^2(M)$ is a Hilbert space, it is enough to show that if $X \in L^2(M)$ is orthogonal to all simple processes, then $X = 0$~.
-Let $X \in L^2(M)$ such that for any simple process $V$, $\mathbb{E}\left[ \int_0^{\infty} X_t V_t \: d[M]_t \right] = 0$~.
-Let $A_t = \int_0^t X_s \: d[M]_s$.
+Let $X \in L^2(M)$ such that for any simple process $V$, $\mathbb{E}\left[ \int_0^{\infty} X_t V_t \: d\langle M \rangle_t \right] = 0$~.
+Let $A_t = \int_0^t X_s \: d\langle M \rangle_s$.
 It suffices to show that $A = 0$ by Lemma~\ref{lem:integral_process_eq_zero}~.
 This is proved in Lemma~\ref{lem:integral_eq_zero_of_forall_eq_zero}~.
 
@@ -411,7 +758,7 @@ is \texttt{IsDenseInducing}. The Itô isometry is then defined using \texttt{IsD
 
 
 \begin{definition}[Itô isometry]\label{def:itoIsometry}
-  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_isSquareIntegrable}
+  \uses{lem:dense_simpleProcess, lem:sq_norm_elemStochIntegral, thm:hilbertSpace_L2Martingales}
 Let $M \in \mathcal{M}^2$. Then the elementary stochastic integral map $\mathcal{E} \to \mathcal{M}^2$ defined by $V \mapsto V \bullet M$ extends to an isometry $L^2(M) \to \mathcal{M}^2$.
 \end{definition}
 
@@ -431,7 +778,7 @@ $\langle X \cdot M, Y \cdot M \rangle_{\mathcal{M}^2} = (XY) \cdot \langle M, N 
 \begin{definition}[$L^2_{loc}(M)$]\label{def:L2locM}
   \uses{def:L2M}
 Let $M$ be a continuous local martingale.
-We define $L^2_{loc}(M)$ as the space of predictable processes $X$ such that for all $t \ge 0$, $\mathbb{E}\left[ \int_0^t X_s^2 \: d[M]_s \right] < \infty$.
+We define $L^2_{loc}(M)$ as the space of predictable processes $X$ such that for all $t \ge 0$, $\mathbb{E}\left[ \int_0^t X_s^2 \: d\langle M \rangle_s \right] < \infty$.
 \end{definition}
 
 
@@ -440,7 +787,7 @@ We define $L^2_{loc}(M)$ as the space of predictable processes $X$ such that for
 Let $M$ be a continuous local martingale and let $X \in L^2_{loc}(M)$.
 We define the local stochastic integral $X \cdot M$ as the unique continuous local martingale with $(X \cdot M)_0 = 0$ such that for any continuous local martingale $N$, almost surely,
 \begin{align*}
-  [X \cdot M, N] = X \cdot [M, N]
+  \langle X \cdot M, N \rangle = X \cdot \langle M, N \rangle
   \: .
 \end{align*}
 \end{definition}

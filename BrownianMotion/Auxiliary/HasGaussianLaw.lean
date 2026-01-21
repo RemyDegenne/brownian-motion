@@ -16,7 +16,7 @@ lemma HasGaussianLaw.charFun_toLp_pi {X : ι → Ω → ℝ} [hX : HasGaussianLa
     charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
       exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
   have := hX.isProbabilityMeasure
-  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_pi, EuclideanSpace.real_inner_eq]
+  nth_rw 1 [IsGaussian.charFun_eq', covarianceBilin_apply_pi, EuclideanSpace.real_inner_eq]
   · simp_rw [ofReal_sum, Finset.sum_mul, ← mul_div_assoc, Finset.sum_div,
       integral_complex_ofReal, ← ofReal_mul]
     congrm exp (∑ i, Complex.ofReal (_ * ?_) * I - _)
@@ -36,7 +36,7 @@ lemma HasGaussianLaw.charFun_toLp_prodMk {X Y : Ω → ℝ} [hXY : HasGaussianLa
         (ξ.fst ^ 2 * Var[X; P] +
           2 * ξ.fst * ξ.snd * cov[X, Y; P] + ξ.snd ^ 2 * Var[Y; P]) / 2) := by
   have := hXY.isProbabilityMeasure
-  nth_rw 1 [IsGaussian.charFun_eq, covInnerBilin_apply_prod]
+  nth_rw 1 [IsGaussian.charFun_eq', covarianceBilin_apply_prod]
   · simp only [id_eq, prod_inner_apply, ofLp_fst, RCLike.inner_apply, conj_trivial, mul_comm,
     ofLp_snd, ofReal_add, ofReal_mul, add_div, integral_complex_ofReal, pow_two]
     rw [mul_comm (ξ.fst : ℂ), mul_comm (ξ.snd : ℂ)]
@@ -201,7 +201,7 @@ lemma HasGaussianLaw.iIndepFun_of_cov'' {κ : ι → Type*} [∀ i, Fintype (κ 
   · simp only [EuclideanSpace.basisFun_repr, conj_trivial, Function.comp_apply,
       EuclideanSpace.basisFun_inner]
     refine Finset.sum_eq_zero fun k _ ↦ Finset.sum_eq_zero fun l _ ↦ ?_
-    rw [covariance_mul_left, covariance_mul_right, h' i j hij k l, mul_zero, mul_zero]
+    rw [covariance_const_mul_left, covariance_const_mul_right, h' i j hij k l, mul_zero, mul_zero]
   · simp only [EuclideanSpace.basisFun_repr, conj_trivial, Function.comp_apply,
       EuclideanSpace.basisFun_inner]
     exact fun _ ↦ HasGaussianLaw.memLp_two.const_mul _
@@ -216,7 +216,7 @@ lemma HasGaussianLaw.iIndepFun_of_covariance_eq_zero {X : ι → Ω → ℝ}
   refine h1.iIndepFun_of_cov fun i j hij L₁ L₂ ↦ ?_
   simp [← inner_toDual_symm_eq_self, Function.comp_def,
     mul_comm _ ((InnerProductSpace.toDual ℝ ℝ).symm _),
-    covariance_mul_right, covariance_mul_left, h2, hij]
+    covariance_const_mul_right, covariance_const_mul_left, h2, hij]
 
 open ContinuousLinearMap RealInnerProductSpace in
 lemma HasGaussianLaw.indepFun_of_cov'' {κ : Type*} [Fintype κ]
@@ -245,7 +245,7 @@ lemma HasGaussianLaw.indepFun_of_cov'' {κ : Type*} [Fintype κ]
   · simp only [EuclideanSpace.basisFun_repr, conj_trivial, Function.comp_apply,
       EuclideanSpace.basisFun_inner]
     refine Finset.sum_eq_zero fun k _ ↦ Finset.sum_eq_zero fun l _ ↦ ?_
-    rw [covariance_mul_left, covariance_mul_right, h', mul_zero, mul_zero]
+    rw [covariance_const_mul_left, covariance_const_mul_right, h', mul_zero, mul_zero]
   · simp only [EuclideanSpace.basisFun_repr, conj_trivial, Function.comp_apply,
     EuclideanSpace.basisFun_inner]
     exact fun _ ↦ HasGaussianLaw.memLp_two.const_mul _
@@ -259,7 +259,7 @@ lemma HasGaussianLaw.indepFun_of_covariance_eq_zero {X Y : Ω → ℝ}
   refine h1.indepFun_of_cov fun L₁ L₂ ↦ ?_
   simp [← inner_toDual_symm_eq_self, Function.comp_def,
     mul_comm _ ((InnerProductSpace.toDual ℝ ℝ).symm _),
-    covariance_mul_right, covariance_mul_left, h2]
+    covariance_const_mul_right, covariance_const_mul_left, h2]
 
 variable {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
 

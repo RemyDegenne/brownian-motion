@@ -32,7 +32,7 @@ noncomputable def ofFin (i : Fin #I) : T := (I.sort (· ≤ ·)).get
   (Fin.cast (I.length_sort (· ≤ ·)).symm i)
 
 lemma monotone_ofFin : Monotone I.ofFin :=
-  fun i j hij ↦ (I.sort_sorted (· ≤ ·)).rel_get_of_le (by simpa)
+  fun i j hij ↦ (I.pairwise_sort (· ≤ ·)).rel_get_of_le (by simpa)
 
 lemma ofFin_mem (i : Fin #I) : I.ofFin i ∈ I := I.mem_sort (· ≤ ·) |>.1 <| List.get_mem _ _
 
@@ -358,7 +358,7 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
   hasLaw I := by
     refine ⟨aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _, ?_⟩
     apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
-    rw [MeasurableEquiv.coe_toLp, ← PiLp.continuousLinearEquiv_symm_apply 2 ℝ]
+    rw [MeasurableEquiv.coe_toLp, ← PiLp.coe_symm_continuousLinearEquiv 2 ℝ]
     apply IsGaussian.ext
     · rw [integral_map, integral_map, integral_map]
       · simp only [PiLp.continuousLinearEquiv_symm_apply, id_eq]
@@ -374,10 +374,11 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
         · exact IsGaussian.integrable_id
       any_goals fun_prop
       exact aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _
-    · refine ContinuousBilinForm.ext_of_isSymm (isPosSemidef_covInnerBilin ?_).isSymm
-        (isPosSemidef_covInnerBilin ?_).isSymm fun x ↦ ?_
-      any_goals exact IsGaussian.memLp_two_id
-      rw [PiLp.continuousLinearEquiv_symm_apply, covInnerBilin_apply_pi, covInnerBilin_apply_pi]
+    · rw [← ContinuousLinearMap.toBilinForm_inj]
+      refine LinearMap.BilinForm.ext_of_isSymm isSymm_covarianceBilin isSymm_covarianceBilin
+        fun x ↦ ?_
+      simp only [ContinuousLinearMap.toBilinForm_apply]
+      rw [PiLp.coe_symm_continuousLinearEquiv, covarianceBilin_apply_pi, covarianceBilin_apply_pi]
       · congrm ∑ i, ∑ j, _ * ?_
         rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
         · wlog hij : i.1 ≤ j.1 generalizing i j
@@ -421,7 +422,7 @@ lemma IsPreBrownian.smul [IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
   · rw [covariance_fun_div_left, covariance_fun_div_right, IsPreBrownian.covariance_eval,
       min_eq_left]
     · simp [field]
-    · exact mul_le_mul_left' hst c
+    · exact mul_le_mul_right hst c
 
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
@@ -472,7 +473,7 @@ lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
   · exact (IsGaussianProcess.comp_right _).smul _
   · rw [integral_const_mul, IsPreBrownian.integral_eval, mul_zero]
   · have := h.isGaussianProcess.isProbabilityMeasure
-    rw [covariance_mul_left, covariance_mul_right, h.covariance_eval]
+    rw [covariance_const_mul_left, covariance_const_mul_right, h.covariance_eval]
     obtain rfl | hs := eq_or_ne s 0
     · simp
     have : 0 < t := (pos_of_ne_zero hs).trans_le hst
