@@ -742,7 +742,7 @@ lemma Fin.clamp.monotone (i j : ℕ) (hij : i ≤ j) (n : ℕ) [NeZero n] :
 lemma Fin.clamp.StrictMonoOn {N n : ℕ} (hnN : N < n) [NeZero n] :
     StrictMonoOn (fun i => Fin.clamp i n) {i | i ≤ N} := by
   intro i hi j hj hij
-  simp only [Fin.lt_iff_val_lt_val, Fin.clamp]
+  simp only [Fin.lt_def, Fin.clamp]
   grind
 
 lemma Fin.val.StrictMonoOn {n : ℕ} (N : Fin n) :
@@ -1233,7 +1233,7 @@ theorem mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part [Is
           exact hg_bound n
   calc ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ
       = ENNReal.ofReal (b - a) * ∫⁻ ω, ⨆ n, g n ω ∂μ := by simp only [hiSup_eq]
-    _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := mul_le_mul_left' hg_int_bound _
+    _ ≤ ENNReal.ofReal (b - a) * (c / ENNReal.ofReal (b - a)) := mul_le_mul_right hg_int_bound _
     _ = c := ENNReal.mul_div_cancel hba_pos (by simp)
 
 end DoobInequalityCountable
@@ -1463,7 +1463,7 @@ lemma mul_lintegral_upcrossingSequenceENat_NNReal_eps (hf : Submartingale f 𝓕
       ≤ ENNReal.ofReal (b - a - 2 * ε) *
         ∫⁻ ω, (upcrossingSequenceENat (a + ε) (b - ε)
           (fun d : DSet N => f d) ⟨N, N_mem_DSet N⟩ ω : ℝ≥0∞) ∂μ :=
-        mul_le_mul_left' h1 _
+        mul_le_mul_right h1 _
       _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ := h2
       _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := h3
 
