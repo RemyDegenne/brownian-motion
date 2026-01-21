@@ -23,7 +23,7 @@ open scoped ENNReal NNReal
 
 namespace MeasureTheory
 
-/-! The original definitions, valid for InfSet (hence not for NNRat), are:
+/-! The original definitions, valid for `InfSet` (hence not for `NNRat`), are:
 
 noncomputable def upperCrossingTime [Preorder ι] [OrderBot ι] [InfSet ι] (a b : ℝ) (f : ι → Ω → ℝ)
     (N : ι) : ℕ → Ω → ι
@@ -56,7 +56,7 @@ noncomputable def upcrossingsBeforeENat [Preorder ι] [OrderBot ι] [InfSet ι]
   ⨆ (n : ℕ) (_ : upperCrossingTime a b f N n ω < N), (n : ℕ∞)
 
 /-- `upcrossingsBeforeENat` agrees with `upcrossingsBefore` whenever the set of crossing indices
-is bounded above. -/
+    is bounded above. -/
 lemma upcrossingsBeforeENat_eq_upcrossingsBefore_of_finite [Preorder ι] [OrderBot ι] [InfSet ι]
     {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
     (hbdd : BddAbove {n | upperCrossingTime a b f N n ω < N}) :
@@ -117,7 +117,9 @@ theorem mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part [IsFiniteMeasu
 /-- Data structure representing an upcrossing sequence for a stochastic process. -/
 structure UpcrossingData [PartialOrder ι] (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) where
   hab : a < b
-  t : ℕ → ι -- sequence s_1 < t_1 < s_2 < t_2 < ... < s_n < t_n ≤ ..., see blueprint
+  /-- Sequence `s_1 < t_1 < s_2 < t_2 < ... < s_n < t_n ≤ ...`, see blueprint;
+      renamed as `t_0 < t_1 < ...`. -/
+  t : ℕ → ι
   mono: Monotone t
   ft_le_a  : ∀ i : ℕ, i < 2 * n → Even i → f (t i) ω ≤ a
   ft_ge_b  : ∀ i : ℕ, i < 2 * n → Odd i → f (t i) ω ≥ b
@@ -198,7 +200,7 @@ lemma extend_t {a b : ℝ} {f : ι → Ω → ℝ} {n : ℕ} {ω : Ω}
 
 end UpcrossingData
 
-/-- The `ltUpcrossingData a b f N n ω` is shortened as `L n`, see the blueprint. -/
+/-- The term `ltUpcrossingData a b f N n ω` is abbreviated as `L n`; see the blueprint. -/
 noncomputable def ltUpcrossingData [LinearOrder ι] [OrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else -- to make {n | ...} empty when N = ⊥, same as in upperCrossingTime
@@ -210,7 +212,7 @@ noncomputable def upcrossingSequenceENat [LinearOrder ι] [OrderBot ι] (a b : �
     (N : ι) (ω : Ω) : ℕ∞ :=
   ⨆ (n : ℕ) (_ : ltUpcrossingData a b f N n ω), (n : ℕ∞)
 
-/-! ltUpcrossingData a b f N n ω ↔ upperCrossingTime a b f N n ω < N -/
+/-! `ltUpcrossingData a b f N n ω ↔ upperCrossingTime a b f N n ω < N` -/
 section DefsEquivalence
 
 private lemma upperCrossingTime_le_of_UpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
@@ -243,14 +245,15 @@ lemma upperCrossingTime_le_of_UpcrossingData [ConditionallyCompleteLinearOrderBo
       (hseq2.ft_le_a (2 * n + 2) (by grind) (by grind))
       (hseq2.ft_ge_b (2 * n + 3) (by grind) (by grind))
 
-/-- The `upcrossingsBeforeUpperCrossingTime a b f N n ω` is shortened `Q n`, see the blueprint. -/
+/-- The term `upcrossingsBeforeUpperCrossingTime a b f N n ω` is abbreviated as `Q n`;
+    see the blueprint. -/
 noncomputable def upcrossingsBeforeUpperCrossingTime [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
     if n = 0 then True else
       ∃ seq : UpcrossingData a b f n ω, seq.t (2 * n - 1) ≤ upperCrossingTime a b f N n ω
 
-/-- The `upperCrossingTimeLT a b f N n ω` is shortened as `P n`, see the blueprint. -/
+/-- The term `upperCrossingTimeLT a b f N n ω` is abbreviated as `P n`; see the blueprint. -/
 noncomputable def upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) : Prop :=
   if N ≤ ⊥ then False else
@@ -258,10 +261,10 @@ noncomputable def upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
       upperCrossingTime a b f N n ω < N
 
 /-!
-  The current aim is to establish ∀ n, P n ↔ L n.
+  The current aim is to establish `∀ n, P n ↔ L n`.
 -/
 
-/-! An auxiliary equivalence lemma. -/
+/-! Auxiliary equivalence lemma. -/
 lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
@@ -274,14 +277,14 @@ lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
     · simp [upperCrossingTime, hN]
     · simp [hn]
 
-/-! The equivalence P n ↔ L n, in the case N = ⊥. -/
+/-! The equivalence `P n ↔ L n` in the case `N = ⊥`. -/
 lemma upperCrossingTimeLT_bot_iff_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : N ≤ ⊥) :
     upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingData a b f N n ω := by
   simp only [ltUpcrossingData, hN, if_true]
   simp only [upperCrossingTimeLT, hN, if_true]
 
-/-! The left implication: ∀ n, L n → P n, in the case N ≠ ⊥ -/
+/-! The left implication `∀ n, L n → P n` in the case `N ≠ ⊥`. -/
 lemma upperCrossingTimeLT_of_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (h : ¬ N ≤ ⊥) :
     ltUpcrossingData a b f N n ω → upperCrossingTimeLT a b f N n ω := by
@@ -299,10 +302,10 @@ lemma upperCrossingTimeLT_of_ltUpcrossingData [ConditionallyCompleteLinearOrderB
         simpa using upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ht_le_N
 
 /-!
-  It remains to prove the right implication: ∀ n, P n → L n, in the case N ≠ ⊥.
+  It remains to prove the right implication `∀ n, P n → L n` in the case `N ≠ ⊥`.
 -/
 
-/-! Clearly, P n → Q n → L n, in the case N ≠ ⊥. -/
+/-! Clearly, `P n → Q n → L n` in the case `N ≠ ⊥`. -/
 lemma ltUpcrossingData_of_upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : ¬ N ≤ ⊥) :
@@ -362,7 +365,7 @@ private lemma nondegenerate_of_hittingBtwn_lt' [ConditionallyCompleteLinearOrder
   obtain ⟨j, hjIco, _⟩ := h
   exact lt_of_le_of_lt hjIco.1 hjIco.2
 
-/-! P n gives a pair of witnesses, useful for establishing Q n. -/
+/-! `P n` gives a pair of witnesses, useful for establishing `Q n`. -/
 lemma upcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (m N : ι) (ω : Ω)
     (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -384,7 +387,7 @@ lemma upcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBo
   have hsltt : s ≤ t := le_hittingBtwn (le_of_lt hsN) ω
   simp_all
 
-/-! P 1 → Q 1, in the case N ≠ ⊥. -/
+/-! `P 1 → Q 1` in the case `N ≠ ⊥`. -/
 lemma upcrossingData_of_first_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
     (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -406,7 +409,7 @@ lemma upcrossingData_of_first_upperCrossingTimeLT' [ConditionallyCompleteLinearO
   simp only [ht1]
   exact ht_u
 
-/-! P (n+1) → Q n → Q (n+1), in the case N ≠ ⊥. -/
+/-! `P (n+1) → Q n → Q (n+1)` in the case `N ≠ ⊥`. -/
 lemma upcrossingData_extend_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
     (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (ω : Ω) (hN : ¬ N ≤ ⊥)
     (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -438,7 +441,7 @@ lemma upcrossingData_extend_of_upperCrossingTimeLT' [ConditionallyCompleteLinear
   simp only [ht2n1];
   exact ht'u
 
-/-! P (n+1) → P n. -/
+/-! `P (n+1) → P n`. -/
 lemma upperCrossingTimeLT_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) :
   upperCrossingTimeLT a b f N (n+1) ω → upperCrossingTimeLT a b f N n ω := by
@@ -448,7 +451,7 @@ lemma upperCrossingTimeLT_of_upperCrossingTimeLT [ConditionallyCompleteLinearOrd
   refine lt_of_le_of_lt ?_ hup
   exact upperCrossingTime_mono (Nat.le_succ n)
 
-/-! ∀ n ≥ 1, P n → Q n, in the case N ≠ ⊥. -/
+/-! `∀ n ≥ 1, P n → Q n` in the case `N ≠ ⊥`. -/
 lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω)
@@ -470,7 +473,7 @@ lemma upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
           a b f N ω hNbot hspecIci hspecIic n hn1 hup ?_
         simp_all
 
-/-! The right implication: ∀ n, P n → L n, in the case N ≠ ⊥. -/
+/-! The right implication `∀ n, P n → L n` in the case `N ≠ ⊥`. -/
 lemma ltUpcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b) (hN : ¬ N ≤ ⊥)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -484,7 +487,7 @@ lemma ltUpcrossingData_of_upperCrossingTimeLT' [ConditionallyCompleteLinearOrder
     exact upcrossingsBeforeUpperCrossingTime_of_upperCrossingTimeLT_all'
       a b f N n ω hab (by grind) (by simp_all) hspecIci hspecIic hup
 
-/-! Finally, the equivalence ∀ n, P n ↔ L n. -/
+/-! Finally, the equivalence `∀ n, P n ↔ L n`. -/
 theorem upperCrossingTimeLT_iff_ltUpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -496,7 +499,7 @@ theorem upperCrossingTimeLT_iff_ltUpcrossingData' [ConditionallyCompleteLinearOr
             a b f N n ω hab (not_le.mpr hN) hspecIci hspecIic,
             upperCrossingTimeLT_of_ltUpcrossingData a b f N n ω (not_le.mpr hN)⟩
 
-/-! Auxiliary lemma. -/
+/-! Auxiliary lemma for converting between `upperCrossingTime` and `ltUpcrossingData`. -/
 lemma upperCrossingTime_lt_iff_ltUpcrossingData' [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hab : a < b)
   (hspecIci : ∀ n, HittingBtwnSpec f (Set.Ici b) n N ω)
@@ -510,7 +513,8 @@ lemma upcrossingSequenceENat_zero_of_N_bot [LinearOrder ι] [OrderBot ι]
     upcrossingSequenceENat a b f N ω = 0 := by
   simp only [upcrossingSequenceENat, ltUpcrossingData, hN, if_true]; simp
 
-/-! The two definitions of upcrossing*ENat are equivalent; measurable via `upcrossingsBeforeENat`.-/
+/-! The two definitions of `upcrossing*ENat` are equivalent; measurability follows via
+    `upcrossingsBeforeENat`. -/
 theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat
   [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (hab : a < b)
@@ -538,7 +542,7 @@ theorem upcrossingSequenceENat_eq_upcrossingsBefore_Nat {f : ℕ → Ω → ℝ}
   rw [← upcrossingsBeforeENat_eq_upcrossingSequenceENat_Nat hab]
   exact upcrossingsBeforeENat_eq_upcrossingsBefore_Nat hab
 
-/-- `BddAbove` for `ltUpcrossingData` on `ℕ`, derived from `upperCrossingTime_lt_bddAbove`. -/
+/-! `BddAbove` for `ltUpcrossingData` on `ℕ`, derived from `upperCrossingTime_lt_bddAbove`. -/
 lemma ltUpcrossingData_bddAbove_Nat {f : ℕ → Ω → ℝ} {N : ℕ} {ω : Ω} (hab : a < b) :
     BddAbove {n | ltUpcrossingData a b f N n ω} := by
   have heq : {n | ltUpcrossingData a b f N n ω} = {n | upperCrossingTime a b f N n ω < N} := by
@@ -556,7 +560,8 @@ section MonotonicityAndBoundedness
 
 variable [LinearOrder ι]
 
-/-! Given a finite {i | i < N}, size of UpcrossingData is bounded, assuming UpcrossingData < N. -/
+/-! Given a finite `{i | i < N}`, the size of `UpcrossingData` is bounded,
+    assuming `UpcrossingData < N`. -/
 lemma upcrossingData_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
     (hfin : Finite {i | i < N}) :
     ∃ M : ℕ,  ∀ n ω, ∀ hseq : UpcrossingData a b f n ω,
@@ -574,7 +579,7 @@ lemma upcrossingData_bounded_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : 
 variable [OrderBot ι]
 variable {κ : Type*} [LinearOrder κ] [OrderBot κ]
 
-/-! Monotonicity of ltUpcrossingData with respect to the index set, on {i | i ≤ N}. -/
+/-! Monotonicity of `ltUpcrossingData` with respect to the index set on `{i | i ≤ N}`. -/
 lemma ltUpcrossingData_mono_index_set_before (f : ι → κ) (N : ι)
     (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
@@ -608,7 +613,7 @@ lemma ltUpcrossingData_mono_index_set_before (f : ι → κ) (N : ι)
       · simp only [(by grind : 2 * n - 1 < 2 * n), ↓reduceIte]
         exact hsmon (htIn _ (by grind)) le_rfl ht_lt_N
 
-/-! Uniform boundedness of ltUpcrossingData, assuming {i | i < N} is finite. -/
+/-! Uniform boundedness of `ltUpcrossingData`, assuming `{i | i < N}` is finite. -/
 lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N : ι)
     (hfin : Finite {i | i < N}) :
     ∃ M, ∀ n ω, ltUpcrossingData a b f N n ω → n ≤ M := by
@@ -627,7 +632,7 @@ lemma ltUpcrossingData_unif_bdd_of_finite (a b : ℝ) (f : ι → Ω → ℝ) (N
       rcases hn with ⟨hseq, ht_lt_N⟩
       grind
 
-/-! Monotonicity of upcrossingSequenceENat in the index set. -/
+/-! Monotonicity of `upcrossingSequenceENat` with respect to the index set. -/
 lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
     (N : ι) (hsmon : StrictMonoOn f {i | i ≤ N})
     (u : ι → Ω → ℝ) (v : κ → Ω → ℝ) (hv : ∀ i ≤ N, v (f i) = u i) -- u is a restriction of v to f(ι)
@@ -745,6 +750,7 @@ lemma Fin.val.StrictMonoOn {n : ℕ} (N : Fin n) :
   intro i hi j hj hij
   assumption
 
+/-- Embedding of a filtration defined on `Fin n` into a filtration defined on `ℕ`. -/
 def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
   ⟨ fun i => 𝓕 (Fin.clamp i n),
     fun i j hij => by
@@ -1020,7 +1026,7 @@ section Countable
 
 variable [Countable ι] [LinearOrder ι] [OrderBot ι]
 
-/-! Approximating `Set.Iic N` by finite sets that always contain ⊥ and N. -/
+/-! Approximating `Set.Iic N` by finite sets that always contain `⊥` and `N`. -/
 
 theorem Countable.increasing_family_saturates_Iic (N : ι) :
     ∃ s : ℕ → Set ι,
@@ -1074,8 +1080,8 @@ theorem Countable.increasing_finset_family_saturates_Iic (N : ι) :
 end Countable
 
 /-- Helper definition for `upcrossingSequenceENat` on a finset, bundling the `OrderBot` instance.
-    This avoids repeating `letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, ... }` throughout
-    theorem statements and proofs. -/
+    This avoids repeating `letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, ... }` in theorem
+    statements and proofs. -/
 noncomputable def upcrossingSequenceENat_finset [LinearOrder ι] [OrderBot ι] {N : ι}
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ∞ :=
@@ -1087,7 +1093,8 @@ section Approximation
 variable [LinearOrder ι] [OrderBot ι]
   {a b : ℝ} {f : ι → Ω → ℝ} {N : ι} {ω : Ω}
 
-/-- ι-UpcrossingData of length K, contained in s : Finset ι, yield s-upcrossingSequenceENat ≥ K. -/
+/-- An `ι`-valued `UpcrossingData` of length `K`, contained in `s : Finset ι`,
+    yields `s`-indexed `upcrossingSequenceENat ≥ K`. -/
 lemma upcrossingSequenceENat_finset_ge_of_witness
     {s : Finset ι} (hbot : ⊥ ∈ s) (hN : N ∈ s)
     {K : ℕ} (hKpos : K ≥ 1)
@@ -1128,7 +1135,7 @@ lemma upcrossingSequenceENat_finset_ge_of_witness
   exact le_ciSup_of_le hbdd K (le_iSup_of_le hlt le_rfl)
 
 /-- The upcrossings count on the full countable index set equals the supremum of upcrossings
-    counts on the approximating finsets. This holds unconditionally - both when the supremum
+    counts on the approximating finsets. This holds unconditionally—both when the supremum
     is finite and when it is infinite. This is the main approximation theorem for upcrossings
     on countable index sets. -/
 theorem upcrossingSequenceENat_eq_iSup_finset
@@ -1508,7 +1515,7 @@ theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : 
   rw [← h_sup, ENNReal.iSup_mul]
   exact iSup_le h_eps_n'
 
-/-- Right-continuous process hits the closed set at the corresponding hitting time. -/
+/-- A right-continuous process hits the closed set at the corresponding hitting time. -/
 lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω)
     (hs : IsClosed s) (hRC : Function.RightContinuous (f · ω)) :
     HittingBtwnSpec f s n m ω := by
@@ -1532,7 +1539,7 @@ lemma hittingBtwnSpec_of_right_continuous (s : Set ℝ) (n m : ℝ≥0) (ω : Ω
       (Filter.Eventually.of_forall fun n => (hu_mem n).2)
 
 /-- For right-continuous processes, `upcrossingsBeforeENat` agrees with `upcrossingSequenceENat`.
-  This is important for measurability of the latter. -/
+    This is important for measurability of the latter. -/
 theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, RightContinuous (f · ω))
     (hab : a < b) :
     upcrossingsBeforeENat a b f N = upcrossingSequenceENat a b f N :=
@@ -1540,7 +1547,7 @@ theorem upcrossingsBeforeENat_eq_upcrossingSequenceENat_NNReal (hRC : ∀ ω, Ri
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Ici b) n N ω isClosed_Ici (hRC ω))
     (fun n ω => hittingBtwnSpec_of_right_continuous (Set.Iic a) n N ω isClosed_Iic (hRC ω))
 
-/-- Obviously, integrability of a submartingale yields finite RHS in Doob upcrossing inequality. -/
+/-- Integrability of a submartingale yields a finite RHS in Doob's upcrossing inequality. -/
 lemma pos_sub_integrable_of_submartingale (hf : Submartingale f 𝓕 μ) :
     ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ < ⊤ := by
   rw [← hasFiniteIntegral_iff_ofReal (ae_of_all _ (fun _ => posPart_nonneg _))]
@@ -1556,7 +1563,8 @@ lemma pos_sub_integrable_of_submartingale (hf : Submartingale f 𝓕 μ) :
     exact hInt_sub.aestronglyMeasurable.sup aestronglyMeasurable_const
   exact (hInt_sub.mono h_meas (Filter.Eventually.of_forall h_bound)).hasFiniteIntegral
 
-/-- The `upcrossingSequenceENat` is a.s. finite, assuming it is (by debut thm) `AEMeasurable`. -/
+/-- The `upcrossingSequenceENat` is a.s. finite, assuming it is `AEMeasurable`
+    (which follows from the début theorem). -/
 theorem upcrossingSequenceENat_ae_lt_top (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b)
     (hmeas : AEMeasurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) μ) :
