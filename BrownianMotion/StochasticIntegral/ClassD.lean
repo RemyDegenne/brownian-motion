@@ -429,8 +429,7 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
             exact (WithTop.untopA_le_iff (ne_of_lt (lt_of_le_of_lt (τ.2.2 ω) (by simp)))).mpr
               (τ.2.2 ω)
   -- apply domination lemma with p = 1
-  exact uniformIntegrable_of_dominated_enorm_singleton
-    le_rfl (by simp) hY mX hDom
+  exact uniformIntegrable_of_dominated_enorm_singleton hY mX hDom
 
 lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [Nonempty ι] [MeasurableSpace ι]
   [TopologicalSpace ι] [OrderTopology ι] [BorelSpace ι]
