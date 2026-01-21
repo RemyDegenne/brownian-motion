@@ -1077,7 +1077,9 @@ in which the infimum is $t_1$ if the set is empty.
   \uses{def:hittingBtwn}
   \mathlibok
   \lean{MeasureTheory.upperCrossingTime, MeasureTheory.lowerCrossingTime, MeasureTheory.upcrossingsBefore, MeasureTheory.upcrossingsBeforeENat}
-Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers, write $A=$(-\infty,a]$ and $B=[b,\infty)$. For each $n \in \mathbb{N}$, we define recursively the stopping times:
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$.
+Let $a < b$ be real numbers, write $A=(-\infty,a]$ and $B=[b,\infty)$.
+For each $n \in \mathbb{N}$, we define recursively the stopping times:
 \begin{align*}
   \tau_0(\omega) & = \inf T \: , \\
   \sigma_n(\omega) & = \tau_{A, \tau_n(\omega), t}(\omega) \: , \\
@@ -1124,12 +1126,12 @@ where $C$ is either $(-\infty, a]$ or $[b, \infty)$. Then, for every $\omega \in
 \end{align*}
 \end{theorem}
 
-\begin{remark}[Upcrossings hitting assumption]\label{rem:upcrossings_equiv_assumption}
+\begin{lemma}[Upcrossings hitting assumption]\label{rem:upcrossings_equiv_assumption}
   \uses{thm:upcrossings_equiv}
   \leanok
   \lean{MeasureTheory.hittingBtwnSpec_of_right_continuous}
   The assumption in Theorem~\ref{thm:upcrossings_equiv} is satisfied when $X$ is right-continuous.
-\end{remark}
+\end{lemma}
 
 \begin{proof}[Remark~\ref{rem:upcrossings_equiv_assumption}]\leanok
 If $\tau_{C, t_0, t_1}(\omega) < t_1$, then by right-continuity of $X$ at $\tau=\tau_{C, t_0, t_1}$, we have that $X(\tau(\omega), \omega) \in C$, since $C$ is closed and $\tau$ is the hitting time.
@@ -1159,7 +1161,7 @@ This completes the proof.
   \uses{def:upcrossingSeq}
   \leanok
   \lean{MeasureTheory.upcrossingSequenceENat_mono_index_set}
-Take two index sets, $S$ and $T$, and $t\inS$.
+Take two index sets, $S$ and $T$, and $t\in S$.
 Assume that there is an order embedding $f$ from $\{s\in S \mid s \le t\}$ to $T$.
 Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in S$. Let $a < b$ be real numbers. Then, for every $\omega \in \Omega$, we have
 \begin{align*}
