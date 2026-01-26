@@ -69,9 +69,9 @@ lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι �
   uniformIntegrable_of_dominated (κ := ι) (uniformIntegrable_const hp hp_ne_top hY) mX
     <| fun i ↦ ⟨i, by filter_upwards [hX i] with ω hω using hω.trans <| Real.le_norm_self _⟩
 
-private lemma norm_le'_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E} :
-    ‖x‖ₑ ≤ r → ‖x‖ ≤ r.toReal := by
-  intro hle
+lemma norm_le_toReal_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E}
+    (hle : ‖x‖ₑ ≤ r) :
+    ‖x‖ ≤ r.toReal := by
   -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
   have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
   exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
