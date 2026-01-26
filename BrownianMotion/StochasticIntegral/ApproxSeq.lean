@@ -51,8 +51,7 @@ a discrete approximation sequence of `τ`. -/
 class Approximable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace ι] [LinearOrder ι]
     [OrderTopology ι] (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac) where
   /-- For any stopping time `τ`, there exists a discrete approximation sequence of `τ`. -/
-  approxSeq :
-    ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
+  approxSeq : ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
 
 /-- Given a stopping time `τ` on an approximable time index, we obtain an associated discrete
 approximation sequence. -/
@@ -60,7 +59,11 @@ def IsStoppingTime.discreteApproxSequence
     (h : IsStoppingTime 𝓕 τ) (μ : Measure Ω) [Approximable 𝓕 μ] :
     DiscreteApproxSequence 𝓕 τ μ := Approximable.approxSeq τ h
 
-instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := sorry
+instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := by
+  refine ⟨fun τ hτ ↦ ?_⟩
+  refine ⟨fun _ ↦ τ, fun _ ↦ hτ, ?_, antitone_const, fun _ ↦ le_rfl, ae_of_all _ fun _ ↦ by simp⟩
+  simp only [forall_const]
+  exact (Set.range τ).to_countable
 
 instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable 𝓕 μ := sorry
 

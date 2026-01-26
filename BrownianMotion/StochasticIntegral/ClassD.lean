@@ -38,14 +38,13 @@ is strongly measurable and if for all `t`, the random variable `ω ↦ sup_{s �
 is integrable. -/
 def HasIntegrableSup [LinearOrder ι] [MeasurableSpace ι] (X : ι → Ω → E)
     (P : Measure Ω := by volume_tac) : Prop :=
-  (HasStronglyMeasurableSupProcess (mΩ:= mΩ) X) ∧
-     (∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P)
+  HasStronglyMeasurableSupProcess (mΩ:= mΩ) X ∧ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P
 
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
 for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrable. -/
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [MeasurableSpace ι] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
-    (P : Measure Ω := by volume_tac) : Prop :=
+    [MeasurableSpace ι]
+    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω := by volume_tac) : Prop :=
   Locally (HasIntegrableSup · P) 𝓕 X P
 
 section Defs
@@ -54,16 +53,14 @@ variable [Preorder ι] [Nonempty ι] [MeasurableSpace ι]
 
 /-- A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is adapted
 and the set $\{X_\tau \mid \tau \text{ is a finite stopping time}\}$ is uniformly integrable. -/
-structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
-    Prop where
+structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop where
   progMeasurable : ProgMeasurable 𝓕 X
   uniformIntegrable : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦ stoppedValue X τ.1) 1 P
 
 /-- A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t$, the set
 $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. -/
-structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
-    Prop where
+structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop where
   progMeasurable : ProgMeasurable 𝓕 X
   uniformIntegrable (t : ι) : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t}) ↦ stoppedValue X τ.1) 1 P
@@ -78,7 +75,7 @@ lemma ClassD.classDL {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : Clas
 
 end Defs
 
-section PartialOrder
+section LinearOrder
 
 variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
@@ -210,12 +207,6 @@ lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martin
 
 end RightContinuous
 
-end PartialOrder
-
-section LinearOrder
-
-variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
-
 lemma isStable_stronglyMeasurable_uncurry [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ StronglyMeasurable (uncurry X)) := by
@@ -246,7 +237,6 @@ lemma isStable_progMeasurable [OrderBot ι] [MeasurableSpace ι] [TopologicalSpa
     convert (MeasurableSet.compl (𝓕.mono bot_le _ (hτ ⊥)))
   exact StronglyMeasurable.indicator (hX i) <| measurable_snd h_prog
 
-
 lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [OrderBot ι]
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hX : ProgMeasurable 𝓕 X) (t : ι) :
@@ -273,7 +263,7 @@ lemma ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop
   rw [←WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
 
 private lemma ProgMeasurable.aestronglyMeasurable_stoppedValue_stoppedProcess
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [NoMaxOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
     [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
     {X : ι → Ω → E} (hX_prog : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
     (sigma : {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≠ ⊤}) :
@@ -322,11 +312,11 @@ lemma HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag [OrderBot �
     [TopologicalSpace ι] [MeasurableSpace ι] {X : ι → Ω → E}
     (hX1 : StronglyMeasurable (uncurry X)) (hX2 : ∀ ω : Ω, IsCadlag (X · ω)) :
     HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
-      sorry
+  sorry
 
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
-    IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
+    IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) ·) := by
   intro X hX τ hτ
   unfold HasStronglyMeasurableSupProcess at hX ⊢
   let M : ι × Ω → ι × Ω := fun p ↦ ((min ↑p.1 (τ p.2)).untopA, p.2)
@@ -358,6 +348,7 @@ lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace �
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
+/-- The class of processes with integrable supremum is stable. -/
 lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (HasIntegrableSup (E := E) · P) := by
@@ -377,13 +368,15 @@ lemma isStable_hasIntegrableSup [OrderBot ι] [TopologicalSpace ι] [SecondCount
       · exact ne_of_lt (lt_of_le_of_lt (min_le_left _ _) (WithTop.coe_lt_top s))
   · simp only [enorm_zero, zero_le]
 
+/-- The class of processes with locally integrable supremum is stable. -/
 lemma isStable_hasLocallyIntegrableSup [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
   IsStable.isStable_locally isStable_hasIntegrableSup
 
+/-- The Class D is stable. -/
 lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] [NoMaxOrder ι] :
+    [PseudoMetrizableSpace ι] [BorelSpace ι] [SecondCountableTopology ι] :
     IsStable 𝓕 (ClassD (E := E) · 𝓕 P) := by
   refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, ?_⟩
   refine uniformIntegrable_of_dominated hUI_X
@@ -392,8 +385,9 @@ lemma isStable_classD [OrderBot ι] [MeasurableSpace ι] [TopologicalSpace ι] [
   rcases stoppedValue_stoppedProcess_dominated_le X hτ sigma with ⟨rho, _, h_dom⟩
   exact ⟨rho, h_dom⟩
 
+/-- The Class DL is stable. -/
 lemma isStable_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
-    [NoMaxOrder ι] [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι] :
+    [BorelSpace ι] [SecondCountableTopology ι] [PseudoMetrizableSpace ι] :
     IsStable 𝓕 (ClassDL (E := E) · 𝓕 P) := by
   refine fun X ⟨hX_prog, hUI_X⟩ τ hτ ↦ ⟨isStable_progMeasurable X hX_prog τ hτ, fun t ↦ ?_⟩
   let embed : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ ↑t} →
@@ -558,12 +552,6 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E]
     _ = K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
       simp [stoppedValue, ht]
 
-/-- The norm of an adapted process is adapted. (TODO: Into mathlib) -/
-lemma _root_.MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
-    (𝓕 : Filtration ι mΩ) {X : ι → Ω → E}
-    (hX : Adapted 𝓕 X) :
-    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
-
 lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
@@ -572,10 +560,9 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-  unfold HasLocallyIntegrableSup
   rcases hX2 with ⟨hX2, hX3⟩
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
-  have hY1 : Adapted 𝓕 Y := MeasureTheory.Adapted.norm 𝓕 hX2.adapted
+  have hY1 : Adapted 𝓕 Y := hX2.adapted.norm
   have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) :=
     fun ω ↦ (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
