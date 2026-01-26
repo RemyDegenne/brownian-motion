@@ -3,6 +3,7 @@ import BrownianMotion.Auxiliary.Algebra
 import BrownianMotion.Auxiliary.Analysis
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
+import BrownianMotion.Auxiliary.Filtration
 import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw

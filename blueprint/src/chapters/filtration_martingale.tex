@@ -1136,7 +1136,7 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 \begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
   \uses{def:Submartingale}
   \leanok
-  \lean{ProbabilityTheory.maximal_ineq_countable}
+  \lean{MeasureTheory.Submartingale.ae_bddAbove_Iic, ProbabilityTheory.maximal_ineq_countable}
   Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
   Then for every $M \in I,\lambda > 0$ and $p>1$ we have
   \begin{align*}
@@ -1149,13 +1149,27 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 
 \begin{proof}
   \uses{lem:maximal_ineq}
+  \leanok
 For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
 \begin{align*}
   P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)
   \le \frac{\mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J, i \le M}X_i \ge \lambda}\right]}{\lambda}
   \: .
 \end{align*}
-Then we build a countable increasing sequence of finite sets $J_n$ with $\sup_{i\in I, i\leq M}X_i = \sup_n\sup_{i\in J_n, i \le M}X_i$ and conclude by monotone convergence.
+Then we build a countable increasing sequence of finite sets $J_n$ with $\bigcup_nJ_n=I$.
+Note for any $\lambda' < \lambda$,
+\begin{align*}
+  \lambda' P\left( \sup_{i\in I, i\leq M}X_i>\lambda' \right)
+  &= \lambda' P\left( \bigcup_{i\in I, i\leq M}\{X_i>\lambda'\} \right) \\
+  &= \lambda' \lim_{n\to\infty} P\left( \bigcup_{i\in J_n, i\leq M}\{X_i>\lambda'\} \right) \\
+  &\le \lim_{n\to\infty} \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J_n, i \le M}X_i \ge \lambda'}\right] \\
+  &\le \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in I, i \le M}X_i \ge \lambda'}\right]
+\end{align*}
+Now take $\lambda'\uparrow\lambda$ and use monotone or dominated convergence to derive the desired inequality.
+
+In the above, we first interpret $\sup_{i\in I, i\leq M}X_i$ in extended reals for well-definedness,
+then observe by the (now proved) maximal inequality that $\sup_{i\in I, i\leq M}X_i < \infty$ a.s.\ by taking $\lambda\to\infty$,
+so the supremum is well-defined in $\mathbb{R}$.
 %See 8.1.1 Pascucci.
 \end{proof}
 

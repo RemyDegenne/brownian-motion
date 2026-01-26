@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Thomas Zhu
 -/
 import BrownianMotion.Auxiliary.Jensen
+import BrownianMotion.Auxiliary.Filtration
 import Mathlib.Probability.Martingale.Basic
 
 /-! # Properties of martingales and submartingales
@@ -37,6 +38,14 @@ lemma Martingale.indicator [OrderBot ι] {s : Set Ω}
     Martingale (fun t ↦ s.indicator (X t)) 𝓕 P :=
   ⟨fun i ↦ (hX.adapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦
     (condExp_indicator (hX.integrable _) (𝓕.mono bot_le _ hs)).trans (hX.2 i j hij).indicator⟩
+
+lemma Martingale.indexComap {ι' : Type*} [Preorder ι'] (hX : Martingale X 𝓕 P) {f : ι' → ι}
+    (hf : Monotone f) : Martingale (X ∘ f) (𝓕.indexComap hf) P :=
+  ⟨hX.adapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
+
+lemma Submartingale.indexComap {ι' : Type*} [Preorder ι'] [LE E] (hX : Submartingale X 𝓕 P)
+    {f : ι' → ι} (hf : Monotone f) : Submartingale (X ∘ f) (𝓕.indexComap hf) P :=
+  ⟨hX.adapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij), fun _ ↦ hX.integrable _⟩
 
 end
 
