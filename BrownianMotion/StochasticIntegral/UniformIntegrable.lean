@@ -107,7 +107,7 @@ lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X :
     hY.1.aemeasurable this
   refine uniformIntegrable_of_dominated_singleton (by simp) (by simp) hY_real mX fun i => ?_
   filter_upwards [hX i, hY_fin] with ω hbound hfin
-  exact norm_le'_of_enorm_le hfin.ne hbound
+  exact norm_le_toReal_of_enorm_le hfin.ne hbound
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
