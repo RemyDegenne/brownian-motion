@@ -184,9 +184,25 @@ lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) :
-    ClassDL X 𝓕 P := sorry
+lemma _root_.MeasureTheory.Martingale.classDL
+    [IsFiniteMeasure P] [PseudoMetrizableSpace ι] [BorelSpace ι]
+    (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
+    ClassDL X 𝓕 P := by
+  let Y := fun t ω ↦ ‖X t ω‖
+  have hY_sub : Submartingale Y 𝓕 P := hX1.submartingale_convex_comp
+    (convexOn_norm convex_univ) continuous_norm
+    (fun t ↦ (hX1.integrable t).norm)
+  have hY_cont : ∀ ω, RightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
+  have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
+  have hY_DL : ClassDL Y 𝓕 P :=
+    MeasureTheory.Submartingale.classDL hY_sub hY_cont hY_nonneg
+  have h_prog := hX1.adapted.progMeasurable_of_rightContinuous hX2
+  refine ⟨h_prog, fun t ↦ ?_⟩
+  rw [uniformIntegrable_iff_norm]
+  · exact hY_DL.uniformIntegrable t
+  · intro T
+    exact ((stronglyMeasurable_stoppedValue_of_le h_prog T.2.1 T.2.2).mono
+      (𝓕.le' t)).aestronglyMeasurable
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) :
@@ -478,11 +494,63 @@ lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [Topo
     (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
     IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
 
-lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E] [InfSet ι] [Bot ι]
-    {X : ι → Ω → E} (t : ι) (K : ℝ) (ω : Ω) :
+lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E]
+    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] {X : ι → Ω → E} (t : ι) (K : ℝ)
+    (hK : 0 ≤ K) (ω : Ω) :
     ⨆ s ≤ t, ‖stoppedProcess X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) s ω‖ ≤
     K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
-      (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := sorry
+      (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := by
+  let τ := hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥
+  have bound1 (i : ι) (hi : i < τ ω) : ‖X i ω‖ ≤ K := by
+    by_contra! h
+    have := Exists.intro i (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
+    simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, ↓reduceIte, WithTop.coe_lt_coe, τ]
+    have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
+    grind
+  by_cases ht : ¬ τ ω ≤ t
+  · calc
+    _ ≤ K := by
+      refine ciSup_le fun i => ?_
+      by_cases hN : Nonempty (i ≤ t)
+      · have hi : i < τ ω := lt_of_le_of_lt (WithTop.coe_le_coe.mpr hN.some) (not_le.mp ht)
+        simp_all [stoppedProcess, τ, min_eq_left hi.le]
+      · simp_all
+    _ ≤ K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by simp [ht]
+  · simp only [not_le, not_lt] at ht
+    have : τ ω ≠ ⊤ := by simpa [← WithTop.lt_top_iff_ne_top] using lt_of_le_of_lt ht (by simp)
+    have bound2 (i : ι) : ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖ ≤ K + ‖X (τ ω).untopA ω‖ := by
+      by_cases hNi : Nonempty (i ≤ (τ ω).untopA)
+      · refine ciSup_le fun q => ?_
+        rcases lt_or_eq_of_le q with ha | hb
+        · linarith [bound1 i ((WithTop.lt_untopA_iff this).mp ha), norm_nonneg (X (τ ω).untopA ω)]
+        · simp [hb, hK]
+      · simp_all
+        linarith [norm_nonneg (X (τ ω).untopA ω)]
+    calc
+    _ ≤ ⨆ s ≤ (τ ω).untopA, ‖X s ω‖ := by
+      refine ciSup_le fun i => ?_
+      by_cases hN : Nonempty (i ≤ t)
+      · by_cases hi : i ≤ τ ω
+        · simp_all only [nonempty_prop, stoppedProcess, inf_of_le_left, WithTop.untopD_coe,
+            ciSup_unique, τ]
+          have : i ≤ (τ ω).untopA := (WithTop.le_untopA_iff this).mpr hi
+          have : ‖X i ω‖ ≤ ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖ := by
+            refine le_ciSup (f := fun h : i ≤ (τ ω).untopA => ‖X i ω‖) ?_ this
+            exact ⟨‖X i ω‖, fun _ _ => by grind⟩
+          refine le_trans this (le_ciSup (f := fun i => ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖) ?_ i)
+          exact ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => hx ▸ bound2 x⟩
+        · simp_all only [nonempty_prop, not_le, stoppedProcess, τ]
+          simp_all only [min_eq_right hi.le, ciSup_unique]
+          refine le_trans (le_ciSup (f := fun h : (τ ω).untopA ≤ (τ ω).untopA =>
+            ‖X (τ ω).untopA ω‖) ?_ le_rfl) (le_ciSup (f := fun i =>
+            ⨆ (_ : i ≤ (τ ω).untopA), ‖X i ω‖) ?_ (τ ω).untopA)
+          · exact ⟨‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => by simp [hx]⟩
+          · exact ⟨K + ‖X (τ ω).untopA ω‖, fun y ⟨x, hx⟩ => hx ▸ bound2 x⟩
+      · simp_all only [nonempty_prop, Real.iSup_of_isEmpty]
+        exact Real.iSup_nonneg fun i => Real.iSup_nonneg fun h => norm_nonneg _
+    _ ≤ K + ‖X (τ ω).untopA ω‖ := ciSup_le fun i => bound2 i
+    _ = K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
+      simp [stoppedValue, ht]
 
 lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
     [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [MeasurableSpace ι]

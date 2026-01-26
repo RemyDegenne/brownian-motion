@@ -1,6 +1,8 @@
 import BrownianMotion.Auxiliary.LinearAlgebra
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.SchurComplement
+import Mathlib.Analysis.InnerProductSpace.Positive
+import Mathlib.LinearAlgebra.SesquilinearForm.Star
 
 /-!
 # Continuous bilinear forms
@@ -226,8 +228,16 @@ lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
 
 variable {f} [Fintype n] [DecidableEq n]
 
+lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
+    (b : Basis n ℝ E) :
+    f.IsPosSemidef ↔ (BilinForm.toMatrix b f).PosSemidef := by
+  classical
+  rw [LinearMap.BilinForm.isPosSemidef_iff, BilinForm.toMatrix]
+  rw [LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
+  rfl
+
 lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
-  rw [isPosSemidef_iff, Matrix.PosSemidef]
+  rw [isPosSemidef_iff, Matrix.posSemidef_iff_dotProduct_mulVec]
   apply and_congr (f.isSymm_iff_isHermitian_toMatrix b)
   rw [isPos_def]
   refine ⟨fun h x ↦ ?_, fun h x ↦ ?_⟩
