@@ -184,9 +184,25 @@ lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
 
 end Order
 
-lemma _root_.MeasureTheory.Martingale.classDL (hX1 : Martingale X 𝓕 P)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) :
-    ClassDL X 𝓕 P := sorry
+lemma _root_.MeasureTheory.Martingale.classDL
+    [IsFiniteMeasure P] [PseudoMetrizableSpace ι] [BorelSpace ι]
+    (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
+    ClassDL X 𝓕 P := by
+  let Y := fun t ω ↦ ‖X t ω‖
+  have hY_sub : Submartingale Y 𝓕 P := hX1.submartingale_convex_comp
+    (convexOn_norm convex_univ) continuous_norm
+    (fun t ↦ (hX1.integrable t).norm)
+  have hY_cont : ∀ ω, RightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
+  have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
+  have hY_DL : ClassDL Y 𝓕 P :=
+    MeasureTheory.Submartingale.classDL hY_sub hY_cont hY_nonneg
+  have h_prog := hX1.adapted.progMeasurable_of_rightContinuous hX2
+  refine ⟨h_prog, fun t ↦ ?_⟩
+  rw [uniformIntegrable_iff_norm]
+  · exact hY_DL.uniformIntegrable t
+  · intro T
+    exact ((stronglyMeasurable_stoppedValue_of_le h_prog T.2.1 T.2.2).mono
+      (𝓕.le' t)).aestronglyMeasurable
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) :

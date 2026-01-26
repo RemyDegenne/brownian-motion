@@ -227,13 +227,13 @@ lemma constL_lt_top (hT : EMetric.diam U < ∞)
   exact Tendsto.comp tendsto_norm_atTop_atTop (tendsto_natCast_atTop_iff.mpr tendsto_id)
 
 theorem finite_kolmogorov_chentsov
-    (hT : HasBoundedInternalCoveringNumber U c d)
+    (hT : HasBoundedCoveringNumber U c d)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] (hT'U : T' ⊆ U) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β U := by
-  have h_diam : EMetric.diam U < ∞ := hT.diam_lt_top hd_pos
+  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp only [constL, ← ENNReal.tsum_mul_left, ge_iff_le] at *
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
@@ -273,12 +273,15 @@ theorem finite_kolmogorov_chentsov
     · have : 0 < (k + 2) * d := by positivity
       simp [this]
     · simp [le_of_lt hdq_lt]
-  apply le_trans
-  · apply mul_le_mul_right
-    refine finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hdq_lt ?_
-    · exact hT.subset hT'U hd_pos.le
-    · finiteness
-    · simp
+  have h_two : ENNReal.toNNReal 2 = 2 := rfl
+  have h := finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hdq_lt ?_
+    (δ := (2 * 2⁻¹ ^ k * (EMetric.diam U + 1)).toNNReal)
+  rotate_left
+  · exact hT.subset hT'U hd_pos.le
+  · finiteness
+  · simp [h_two, ENNReal.toNNReal_eq_zero_iff, h_diam.ne]
+  rw [ENNReal.coe_toNNReal (by finiteness)] at h
+  grw [h]
   rw [ENNReal.mul_rpow_of_ne_top (by finiteness) (by finiteness), ← mul_assoc,
     ← mul_assoc _ (2 ^ ((k : ℝ) * _)), ← mul_assoc (M : ℝ≥0∞)]
   refine mul_le_mul' (le_of_eq ?_) ?_
@@ -302,28 +305,48 @@ theorem finite_kolmogorov_chentsov
         ring_nf
     _ = _ := by ring
   by_cases hc_zero : c.toReal = 0
-  · simp only [ENNReal.toReal_mul, hc_zero, mul_zero, zero_mul, ENNReal.toReal_ofNat,
-      ENNReal.toReal_pow, ENNReal.toReal_inv, inv_pow, mul_inv_rev, inv_inv, Real.logb_zero,
-      ENNReal.ofReal_zero, zero_add]
+  · simp only [ENNReal.toReal_mul, hc_zero, mul_zero, zero_mul, ENNReal.toNNReal_mul,
+      ENNReal.toNNReal_pow, ENNReal.toNNReal_inv, inv_pow, NNReal.coe_mul, NNReal.coe_inv,
+      NNReal.coe_pow, mul_inv_rev, inv_inv, Real.logb_zero, ENNReal.ofReal_zero, zero_add]
     gcongr
     exact zero_le _
   gcongr with k
-  simp only [← ENNReal.rpow_natCast, ENNReal.toReal_mul, ← ENNReal.toReal_rpow, ENNReal.toReal_inv,
-    ENNReal.toReal_ofNat, mul_inv_rev]
-  rw [ENNReal.toReal_add (by finiteness) (by finiteness)]
-  repeat rw [Real.mul_rpow (by positivity) (by positivity)]
-  repeat rw [Real.logb_mul (by positivity) (by positivity)]
-  grw [inv_lt_one_of_one_lt₀ (by simp [h_diam_real])]
-  · apply le_of_eq
-    rw [(by norm_num : (4 : ℝ) = 2 ^ (2 : ℝ)), ← Real.inv_rpow (by positivity), inv_inv,
-      ← Real.rpow_neg_one]
-    repeat rw [← Real.rpow_mul (by positivity)]
-    repeat rw [Real.logb_rpow (by norm_num) (by norm_num)]
-    simp
-    ring
-  · norm_num
+  simp only [ENNReal.toReal_mul, ENNReal.toNNReal_mul, h_two, ENNReal.toNNReal_pow,
+    ENNReal.toNNReal_inv, inv_pow, NNReal.coe_mul, NNReal.coe_ofNat, NNReal.coe_inv, NNReal.coe_pow,
+    mul_inv_rev, inv_inv, ← ENNReal.toReal_rpow, ENNReal.toReal_ofNat]
+  calc Real.logb 2 (2^ d * c.toReal * 4 ^ d
+      * (((EMetric.diam U + 1).toNNReal)⁻¹ * (2 ^ k * 2⁻¹)) ^ d)
+  _ ≤ Real.logb 2 (2^ d * c.toReal * 4 ^ d * (2 ^ k * 2⁻¹) ^ d) := by
+    gcongr 3
+    · simp
+    · refine mul_pos (by positivity) ?_
+      refine Real.rpow_pos_of_pos ?_ _
+      refine mul_pos ?_ (by positivity)
+      simp [ENNReal.toNNReal_pos_iff, h_diam]
+    · conv_rhs => rw [← one_mul (2 ^ k * 2⁻¹)]
+      gcongr
+      simp only [NNReal.coe_inv]
+      rw [inv_le_one_iff₀]
+      right
+      simp only [NNReal.one_le_coe]
+      rw [← ENNReal.toNNReal_one]
+      gcongr
+      · finiteness
+      · exact CanonicallyOrderedAdd.le_add_self 1 (EMetric.diam U)
+  _ = Real.logb 2 (c.toReal * (2^ d * 4 ^ d * (2 ^ k * 2⁻¹) ^ d)) := by ring_nf
+  _ = Real.logb 2 (c.toReal * 2 ^ ((k + 2) * d)) := by
+    congr
+    rw [Real.mul_rpow (by simp) (by simp), Real.inv_rpow (by simp)]
+    field_simp
+    rw [add_mul, add_comm, Real.rpow_add (by simp), Real.rpow_mul (by simp),
+      Real.rpow_mul (by simp)]
+    norm_num
+  _ ≤ Real.logb 2 c.toReal + (k + 2) * d := by
+    rw [Real.logb_mul (by positivity) (by positivity)]
+    gcongr
+    rw [Real.logb_rpow (by simp) (by simp)]
 
-theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber U c d)
+theorem countable_kolmogorov_chentsov (hT : HasBoundedCoveringNumber U c d)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β)
     (T' : Set T) [hT' : Countable T'] (hT'U : T' ⊆ U) :
@@ -346,14 +369,14 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedInternalCoveringNumber U c
     exact iSup_le_iSup_of_subset (Set.prod_mono (K.mono h) (K.mono h))
 
 lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
-    (hT : HasBoundedInternalCoveringNumber U c d)
+    (hT : HasBoundedCoveringNumber U c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
     {T' : Set T} (hT' : T'.Countable) (hT'U : T' ⊆ U) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
-  have h_diam : EMetric.diam U < ∞ := hT.diam_lt_top hd_pos
+  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
   refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsAEKolmogorovProcess hd_pos
     hdq_lt hβ_pos T' hT'U).trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))
