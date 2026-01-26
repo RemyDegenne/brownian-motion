@@ -564,47 +564,42 @@ lemma _root_.MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [P
     (hX : Adapted 𝓕 X) :
     Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
 
-lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [BorelSpace ι]
-    [SecondCountableTopology ι] [PseudoMetrizableSpace ι] [IsFiniteMeasure P]
+lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
+    [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
+    [MeasurableSpace ι] [BorelSpace ι]
+    [IsFiniteMeasure P]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
     (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
   unfold HasLocallyIntegrableSup
   rcases hX2 with ⟨hX2, hX3⟩
-
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
   have hY1 : Adapted 𝓕 Y := MeasureTheory.Adapted.norm 𝓕 hX2.adapted
   have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) :=
     fun ω ↦ (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
-
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
   have hτ : IsLocalizingSequence 𝓕 τ P:= isLocalizingSequence_hittingAfter_Ici 𝓕 τ hY1 hY2 h𝓕
   refine ⟨τ, ⟨hτ, ?_⟩⟩
   intro n
-
-  have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n ω
+  have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n (by simp) ω
   have hX5 : StronglyMeasurable (uncurry X) :=
     ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hX2
   have hX6 := HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag hX5 hX1
-
   let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
   have hX1s : ∀ ω,  IsCadlag fun t ↦ Xs t ω := isStable_isCadlag X (hX1) (τ n) (hτ.isStoppingTime n)
-
   let rhs := fun (t : ι) (ω : Ω) ↦
     ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
     (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
-
   constructor
   · refine HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag ?_ hX1s
     refine ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop (𝓕 := 𝓕) ?_
     exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
   · intro t
     let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
-
     let σ : Ω → WithTop ι := (τ n) ⊓ (fun _ ↦ t : Ω → WithTop ι)
     have hσ : IsStoppingTime 𝓕 σ := (hτ.isStoppingTime n).min (isStoppingTime_const 𝓕 t)
     have hσ_le : σ ≤ (fun _ ↦ t : Ω → WithTop ι) := inf_le_right
-
     refine Integrable.mono_enorm (g := dom) ?_ ?_ ?_
     · change Integrable ((fun ω : Ω ↦ (n : ℝ)) + (fun ω ↦ ‖stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω‖)) P
       refine Integrable.add (integrable_const (n : ℝ)) ( ?_)
@@ -631,7 +626,6 @@ lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [
             rw [WithTop.untopA_eq_untop, WithTop.untop_le_iff]
             · exact inf_le_right
             · exact ne_top_of_le_ne_top (WithTop.coe_ne_top) inf_le_right
-
         apply BddAbove.mono h_subset
         have h_metric_bdd :=
           isBounded_image_of_isCadlag_of_isCompact (hX1 ω) hS_compact

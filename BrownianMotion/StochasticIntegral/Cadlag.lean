@@ -25,7 +25,8 @@ variable {ι E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
 abbrev Function.RightContinuous [PartialOrder ι] (f : ι → E) :=
   ∀ a, ContinuousWithinAt f (Set.Ioi a) a
 
-lemma Function.RightContinuous.continuous_comp {F : Type*} [TopologicalSpace F] {g : E → F}
+lemma Function.RightContinuous.continuous_comp {F : Type*} [TopologicalSpace F] [PartialOrder ι]
+    {g : E → F}
     {f : ι → E} (hg : Continuous g) (hf : RightContinuous f) : RightContinuous (g ∘ f) :=
   fun x ↦ (hg.tendsto (f x)).comp (hf x)
 
