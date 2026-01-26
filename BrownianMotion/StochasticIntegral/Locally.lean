@@ -326,8 +326,7 @@ lemma isPreLocalizingSequence_of_isLocalizingSequence
 variable [DenselyOrdered ι] [NoMaxOrder ι] [Zero E]
 
 /-- A stable property holding locally is idempotent. -/
-lemma locally_locally
-    (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable 𝓕 p) :
+lemma locally_locally (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable 𝓕 p) :
     Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
   refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
   · have hLL := hL.stoppedProcess
@@ -412,6 +411,8 @@ lemma isLocalizingSequence_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Pr
 variable [Zero E]
 
 open Classical in
+/-- If the filtration satisfies the usual conditions, then a property of the paths of a process
+that holds almost surely holds locally. -/
 lemma locally_of_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω))
     (hp₀ : p (0 : ι → E)) :
     Locally (fun X ↦ ∀ ω, p (X · ω)) 𝓕 X P := by
@@ -475,6 +476,7 @@ lemma Locally.isCadlag
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
+/-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
   intro X hX τ hτ ω a
@@ -506,6 +508,7 @@ lemma isStable_rightContinuous :
       rfl
     simp only [min_eq_right (not_lt.mp h_stop)]
 
+/-- The processes with left limits are a stable class. -/
 lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
   intro X hX τ hτ ω x
@@ -564,6 +567,7 @@ lemma isStable_left_limit :
         filter_upwards [self_mem_nhdsWithin] with y _
         simp [ne_bot]
 
+/-- The càdlàg processes are a stable class. -/
 lemma isStable_isCadlag :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω)) :=
   fun X hX τ hτ ω ↦

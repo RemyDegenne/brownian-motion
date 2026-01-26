@@ -328,23 +328,21 @@ lemma isStable_hasStronglyMeasurableSupProcess [SecondCountableTopology ι] :
       {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) := by
     ext ⟨t, ω⟩; simp only [M, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
     split_ifs with h
-    · apply le_antisymm
-      · apply iSup₂_le
-        intro s hst
-        apply le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_
-        · exact le_rfl
-        · refine WithTop.untopA_mono (by simp) ?_
-          gcongr
-          exact mod_cast hst
-      · apply iSup₂_le
-        intro u hu
-        rw [WithTop.le_untopA_iff (by simp)] at hu
-        · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
-          · rw [min_eq_left]
-            · exact le_rfl
-            · exact le_trans hu (min_le_right _ _)
-          · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
-    · simp
+    swap; · simp
+    apply le_antisymm
+    · refine iSup₂_le fun s hst ↦ ?_
+      apply le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_
+      · exact le_rfl
+      · refine WithTop.untopA_mono (by simp) ?_
+        gcongr
+        exact mod_cast hst
+    · refine iSup₂_le fun u hu ↦ ?_
+      rw [WithTop.le_untopA_iff (by simp)] at hu
+      · apply le_iSup₂_of_le (α := ℝ≥0∞) u ?_
+        · rw [min_eq_left]
+          · exact le_rfl
+          · exact le_trans hu (min_le_right _ _)
+        · exact WithTop.coe_le_coe.mp (le_trans hu (min_le_left _ _))
   rw [key_eq]
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
@@ -362,7 +360,7 @@ lemma isStable_hasIntegrableSup [SecondCountableTopology ι] :
   intro s hs
   simp only [stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
   split_ifs with h_bot
-  · refine le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_ (le_refl _)
+  · refine le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_ le_rfl
     · rw [WithTop.untopA_le_iff]
       · exact le_trans (min_le_left _ _) (WithTop.coe_le_coe.mpr hs)
       · exact ne_top_of_le_ne_top WithTop.coe_ne_top (min_le_left _ _)
@@ -420,6 +418,12 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [SecondCountableTopo
         (τ.2.2 ω)
   -- apply domination lemma with p = 1
   exact uniformIntegrable_of_dominated_enorm_singleton hY mX (fun τ ↦ ae_of_all _ (hDom τ))
+
+omit [OrderBot ι] in
+lemma HasIntegrableSup.classDL [Nonempty ι] [SecondCountableTopology ι]
+    (hX1 : ProgMeasurable 𝓕 X) (hX2 : HasIntegrableSup X P) :
+    ClassDL X 𝓕 P :=
+  Integrable.classDL hX1 (fun t ↦ hX2.2 t)
 
 lemma HasLocallyIntegrableSup.locally_classDL [Nonempty ι] [SecondCountableTopology ι]
     (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
