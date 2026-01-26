@@ -166,7 +166,7 @@ MeasureTheory.Adapted
 MeasureTheory.ProgMeasurable
 Function.RightContinuous
 IsCadlag
-MeasureTheory.Adapted.progMeasurable_of_rightContinuous
+MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
@@ -198,7 +198,7 @@ MeasureTheory.Filtration.le_rightCont
 MeasureTheory.Filtration.rightCont_self
 MeasureTheory.Filtration.IsRightContinuous
 MeasureTheory.Filtration.IsRightContinuous.eq
-MeasureTheory.Filtration.isRightContinuous_rightCont
+MeasureTheory.Filtration.instIsRightContinuousRightCont
 MeasureTheory.Filtration.IsRightContinuous.measurableSet
 MeasureTheory.Filtration.HasUsualConditions
 MeasureTheory.Filtration.predictable
@@ -217,7 +217,7 @@ MeasureTheory.uniformIntegrable_iff_norm
 MeasureTheory.UniformIntegrable.comp
 MeasureTheory.Submartingale.uniformIntegrable_stoppedValue
 MeasureTheory.UniformIntegrable.memLp_of_tendstoInMeasure
-MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendsto_ae
+MeasureTheory.UniformIntegrable.uniformIntegrable_of_ae_tendsto
 MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
 MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite
 IsOrderedAddMonoid
@@ -322,7 +322,7 @@ tendsto_of_no_upcrossings
 MeasureTheory.predictablePart
 MeasureTheory.predictablePart_zero
 MeasureTheory.predictablePart_add_one
-MeasureTheory.adapted_predictablePart
+MeasureTheory.stronglyAdapted_predictablePart
 MeasureTheory.martingalePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
