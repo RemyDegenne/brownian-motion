@@ -76,7 +76,7 @@ lemma norm_le_toReal_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r
   have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
   exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
 
-private lemma MemLp.enorm_ae_finite [TopologicalSpace E] [ContinuousENorm E]
+lemma MemLp.enorm_ae_lt_top [TopologicalSpace E] [ContinuousENorm E]
     {f : Ω → E} {p : ℝ≥0∞} (hlp : MemLp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
     ∀ᵐ x ∂μ, ‖f x‖ₑ < ∞ := by
   let f_to_p := fun x ↦ ‖f x‖ₑ ^ p.toReal
