@@ -49,10 +49,11 @@ variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [Pseu
 lemma isStable_martingale :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
   intro X ⟨hX, hC⟩ τ hτ
-  refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
+  refine ⟨⟨ProgMeasurable.stronglyAdapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
     isStable_isCadlag X hC τ hτ⟩
-  · refine Adapted.progMeasurable_of_rightContinuous
-      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _) (fun ω ↦ ?_)
+  · refine StronglyAdapted.progMeasurable_of_rightContinuous
+      (fun i ↦ (hX.stronglyAdapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _)
+      (fun ω ↦ ?_)
     by_cases hω : ω ∈ {ω | ⊥ < τ ω}
     · simp_rw [Set.indicator_of_mem hω]
       exact (hC ω).right_continuous

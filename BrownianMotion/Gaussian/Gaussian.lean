@@ -47,7 +47,7 @@ lemma HasGaussianLaw.map_eq_gaussianReal {Ω : Type*} {mΩ : MeasurableSpace Ω}
 
 lemma HasGaussianLaw.charFun_map_real {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {X : Ω → ℝ} [HasGaussianLaw X P] (t : ℝ) :
-    charFun (P.map X) t = exp (t * P[X] * I - t ^ 2 * Var[X; P] / 2) := by
+    charFun (P.map X) t = cexp (t * P[X] * I - t ^ 2 * Var[X; P] / 2) := by
   rw [HasGaussianLaw.map_eq_gaussianReal, IsGaussian.charFun_eq', covarianceBilin_real_self]
   simp [variance_nonneg, integral_complex_ofReal, mul_comm]
 

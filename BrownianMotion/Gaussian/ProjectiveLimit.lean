@@ -18,7 +18,7 @@ open scoped ENNReal NNReal
 
 namespace L2
 
-variable {ι : Type*} [Fintype ι]
+variable {ι : Type*} [Finite ι]
 variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
 
 /- In an `L2` space, the matrix of intersections of pairs of sets is positive semi-definite. -/

@@ -109,7 +109,7 @@ lemma classD_of_uniformIntegrable_bounded_stoppingTime {𝓕 : Filtration ι mΩ
       rw [stoppedValue, Pi.inf_apply, ← this, ← WithTop.coe_min (v n) (T.1 ω).untopA,
         min_eq_right (hN n hn)]
       simpa using hU
-  exact ⟨hm, (hX.uniformIntegrable_of_tendsto_ae 1).comp
+  exact ⟨hm, (hX.uniformIntegrable_of_ae_tendsto _).comp
     (fun T : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} => ⟨stoppedValue X T.1, this T⟩)⟩
 
 variable [NormedSpace ℝ E] [CompleteSpace E]
@@ -122,7 +122,7 @@ variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
-  refine ⟨Adapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
+  refine ⟨StronglyAdapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
   refine uniformIntegrable_of_dominated this (fun T => ?_) (fun T => ⟨T, ?_⟩)
@@ -196,7 +196,7 @@ lemma _root_.MeasureTheory.Martingale.classDL
   have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
   have hY_DL : ClassDL Y 𝓕 P :=
     MeasureTheory.Submartingale.classDL hY_sub hY_cont hY_nonneg
-  have h_prog := hX1.adapted.progMeasurable_of_rightContinuous hX2
+  have h_prog := hX1.stronglyAdapted.progMeasurable_of_rightContinuous hX2
   refine ⟨h_prog, fun t ↦ ?_⟩
   rw [uniformIntegrable_iff_norm]
   · exact hY_DL.uniformIntegrable t
@@ -410,7 +410,7 @@ lemma _root_.MeasureTheory.Integrable.classDL [Nonempty ι] [MeasurableSpace ι]
 
 lemma HasLocallyIntegrableSup.locally_classDL [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι]
-    (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : StronglyAdapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 

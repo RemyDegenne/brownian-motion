@@ -63,7 +63,7 @@ variable [FiniteDimensional ℝ E]
 /-- Covariance matrix of a measure on a finite dimensional inner product space. -/
 noncomputable
 def covMatrix (μ : Measure E) : Matrix (Fin (Module.finrank ℝ E)) (Fin (Module.finrank ℝ E)) ℝ :=
-  BilinForm.toMatrix (stdOrthonormalBasis ℝ E).toBasis (covarianceBilin μ).toBilinForm
+  LinearMap.BilinForm.toMatrix (stdOrthonormalBasis ℝ E).toBasis (covarianceBilin μ).toBilinForm
 
 lemma covMatrix_apply (μ : Measure E) (i j : Fin (Module.finrank ℝ E)) :
     covMatrix μ i j =
@@ -80,7 +80,7 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
     x ⬝ᵥ (covMatrix μ).mulVec y =
       covarianceBilin μ (∑ j, x j • stdOrthonormalBasis ℝ E j)
         (∑ j, y j • stdOrthonormalBasis ℝ E j) := by
-  simp_rw [covMatrix, BilinForm.dotProduct_toMatrix_mulVec,
+  simp_rw [covMatrix, LinearMap.BilinForm.dotProduct_toMatrix_mulVec,
     Module.Basis.equivFun_symm_apply, OrthonormalBasis.coe_toBasis]
   simp
 

@@ -108,7 +108,7 @@ section toMatrix
 
 /-- A continuous bilinear map on a finite dimensional space can be represented by a matrix. -/
 noncomputable def toMatrix : Matrix n n 𝕜 :=
-  BilinForm.toMatrix b f.toBilinForm
+  LinearMap.BilinForm.toMatrix b f.toBilinForm
 
 @[simp]
 lemma toMatrix_apply (i j : n) : f.toMatrix b i j = f (b i) (b j) := by
@@ -238,9 +238,9 @@ variable {f} [Fintype n] [DecidableEq n]
 
 lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
     (b : Basis n ℝ E) :
-    f.IsPosSemidef ↔ (BilinForm.toMatrix b f).PosSemidef := by
+    f.IsPosSemidef ↔ (LinearMap.BilinForm.toMatrix b f).PosSemidef := by
   classical
-  rw [LinearMap.BilinForm.isPosSemidef_iff, BilinForm.toMatrix]
+  rw [LinearMap.BilinForm.isPosSemidef_iff, LinearMap.BilinForm.toMatrix]
   rw [LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
   rfl
 

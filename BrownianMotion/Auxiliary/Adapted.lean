@@ -54,8 +54,8 @@ variable [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [SecondCounta
   [MeasurableSpace ι] [OpensMeasurableSpace ι] [PseudoMetrizableSpace β] {X : ι → Ω → β}
   {τ : Ω → WithTop ι} {n : ι}
 
-lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
-    (h : Adapted 𝓕 X) (hu_cont : ∀ ω, RightContinuous (X · ω)) :
+lemma StronglyAdapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
+    (h : StronglyAdapted 𝓕 X) (hu_cont : ∀ ω, RightContinuous (X · ω)) :
     ProgMeasurable 𝓕 X := by
   intro t
   -- separate into two cases because the partition we defined below cannot contain empty sets

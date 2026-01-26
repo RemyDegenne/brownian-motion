@@ -149,12 +149,13 @@ end Prod
 
 section Pi
 
-variable [SecondCountableTopology E] {ι : Type*} [Fintype ι] {X : ι → Ω → E}
+variable [SecondCountableTopology E] {ι : Type*} [Finite ι] {X : ι → Ω → E}
 
 section Nondependent
 
 instance HasGaussianLaw.sub [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i j : ι) :
     HasGaussianLaw (X i - X j) P := by
+  have := Fintype.ofFinite ι
   have : X i - X j = (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) i -
       ContinuousLinearMap.proj (R := ℝ) (φ := fun _ ↦ E) j) ∘ (fun ω ↦ (X · ω)) := by ext; simp
   rw [this]
@@ -167,6 +168,7 @@ instance IsGaussian.hasGaussianLaw_sub_eval {μ : Measure (ι → E)} [IsGaussia
 instance IsGaussian.hasGaussianLaw_sub_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)]
     {μ : Measure (PiLp p (fun _ ↦ E))} [IsGaussian μ] (i j : ι) :
     HasGaussianLaw (fun x ↦ x i - x j) μ :=
+  have := Fintype.ofFinite ι
   HasGaussianLaw.sub
     (h := IsGaussian.hasGaussianLaw_id.map_equiv (PiLp.continuousLinearEquiv p ℝ (fun _ : ι ↦ E)))
     i j
@@ -180,6 +182,7 @@ variable {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)]
 instance HasGaussianLaw.eval [∀ i, SecondCountableTopology (E i)] {X : (i : ι) → Ω → E i}
     [h : HasGaussianLaw (fun ω ↦ (X · ω)) P] (i : ι) :
     HasGaussianLaw (X i) P := by
+  have := Fintype.ofFinite ι
   have : X i = (ContinuousLinearMap.proj (R := ℝ) (φ := E) i) ∘ (fun ω ↦ (X · ω)) := by ext; simp
   rw [this]
   infer_instance
@@ -187,6 +190,7 @@ instance HasGaussianLaw.eval [∀ i, SecondCountableTopology (E i)] {X : (i : ι
 instance HasGaussianLaw.toLp_comp_pi (p : ℝ≥0∞) [Fact (1 ≤ p)]
     [hX : HasGaussianLaw (fun ω ↦ (X · ω)) P] :
     HasGaussianLaw (fun ω ↦ toLp p (X · ω)) P :=
+  have := Fintype.ofFinite ι
   hX.map_equiv (PiLp.continuousLinearEquiv p ℝ E).symm
 
 instance IsGaussian.hasGaussianLaw_eval {μ : Measure (Π i, E i)} [IsGaussian μ] (i : ι) :
@@ -195,6 +199,7 @@ instance IsGaussian.hasGaussianLaw_eval {μ : Measure (Π i, E i)} [IsGaussian �
 
 instance IsGaussian.hasGaussianLaw_eval_piLp (p : ℝ≥0∞) [Fact (1 ≤ p)]
     {μ : Measure (PiLp p E)} [IsGaussian μ] (i : ι) : HasGaussianLaw (fun x ↦ x i) μ :=
+  have := Fintype.ofFinite ι
   HasGaussianLaw.eval
     (h := IsGaussian.hasGaussianLaw_id.map_equiv (PiLp.continuousLinearEquiv p ℝ E)) i
 

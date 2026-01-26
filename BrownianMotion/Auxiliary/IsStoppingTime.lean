@@ -60,9 +60,9 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous'
     IsStoppingTime 𝓕 τ := by
   intro i
   by_cases hmax : IsMax i
-  · rw [h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
+  · rw [← h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
     exact hτ2 i hmax
-  rw [h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
+  rw [← h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
   rw [not_isMax_iff] at hmax
   obtain ⟨j, hj⟩ := hmax
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto' hj
