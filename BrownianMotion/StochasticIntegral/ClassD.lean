@@ -318,6 +318,12 @@ private lemma stoppedValue_stoppedProcess_dominated_le
     exact sigma.prop.2 ω
   · simp only [norm_zero]; exact norm_nonneg _
 
+lemma HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag [OrderBot ι]
+    [TopologicalSpace ι] [MeasurableSpace ι] {X : ι → Ω → E}
+    (hX1 : StronglyMeasurable (uncurry X)) (hX2 : ∀ ω : Ω, IsCadlag (X · ω)) :
+    HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
+      sorry
+
 lemma isStable_hasStronglyMeasurableSupProcess [OrderBot ι] [TopologicalSpace ι]
     [SecondCountableTopology ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] :
     IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) · ) := by
@@ -552,12 +558,143 @@ lemma sup_stoppedProcess_hittingAfter_Ici_le {E : Type*} [NormedAddCommGroup E]
     _ = K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
       simp [stoppedValue, ht]
 
-lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι]
-    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [MeasurableSpace ι]
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P)
-    (h𝓕 : 𝓕.IsRightContinuous) :
+/-- The norm of an adapted process is adapted. (TODO: Into mathlib) -/
+lemma _root_.MeasureTheory.Adapted.norm {ι E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
+    (𝓕 : Filtration ι mΩ) {X : ι → Ω → E}
+    (hX : Adapted 𝓕 X) :
+    Adapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
+
+lemma ClassDL.hasLocallyIntegrableSup [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι]
+    [FirstCountableTopology ι] [InfSet ι] [CompactIccSpace ι] [OrderBot ι] [BorelSpace ι]
+    [SecondCountableTopology ι] [PseudoMetrizableSpace ι] [IsFiniteMeasure P]
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.IsRightContinuous) :
     HasLocallyIntegrableSup X 𝓕 P := by
-  sorry
+  unfold HasLocallyIntegrableSup
+  rcases hX2 with ⟨hX2, hX3⟩
+
+  let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
+  have hY1 : Adapted 𝓕 Y := MeasureTheory.Adapted.norm 𝓕 hX2.adapted
+  have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) :=
+    fun ω ↦ (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
+
+  let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
+  have hτ : IsLocalizingSequence 𝓕 τ P:= isLocalizingSequence_hittingAfter_Ici 𝓕 τ hY1 hY2 h𝓕
+  refine ⟨τ, ⟨hτ, ?_⟩⟩
+  intro n
+
+  have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n ω
+  have hX5 : StronglyMeasurable (uncurry X) :=
+    ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hX2
+  have hX6 := HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag hX5 hX1
+
+  let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
+  have hX1s : ∀ ω,  IsCadlag fun t ↦ Xs t ω := isStable_isCadlag X (hX1) (τ n) (hτ.isStoppingTime n)
+
+  let rhs := fun (t : ι) (ω : Ω) ↦
+    ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
+    (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
+
+  constructor
+  · refine HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag ?_ hX1s
+    refine ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop (𝓕 := 𝓕) ?_
+    exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
+  · intro t
+    let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
+
+    let σ : Ω → WithTop ι := (τ n) ⊓ (fun _ ↦ t : Ω → WithTop ι)
+    have hσ : IsStoppingTime 𝓕 σ := (hτ.isStoppingTime n).min (isStoppingTime_const 𝓕 t)
+    have hσ_le : σ ≤ (fun _ ↦ t : Ω → WithTop ι) := inf_le_right
+
+    refine Integrable.mono_enorm (g := dom) ?_ ?_ ?_
+    · change Integrable ((fun ω : Ω ↦ (n : ℝ)) + (fun ω ↦ ‖stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω‖)) P
+      refine Integrable.add (integrable_const (n : ℝ)) ( ?_)
+      rcases hX3 t with ⟨h_meas, _, ⟨C, h_bound⟩⟩
+      refine ⟨(h_meas ⟨σ, ⟨hσ, hσ_le⟩ ⟩).norm , ?_⟩
+      · simp_rw [HasFiniteIntegral, enorm_norm, ← eLpNorm_one_eq_lintegral_enorm]
+        exact lt_of_le_of_lt (h_bound ⟨σ, ⟨hσ, hσ_le⟩⟩) ENNReal.coe_lt_top
+    · apply StronglyMeasurable.aestronglyMeasurable
+      have h_stopped := isStable_hasStronglyMeasurableSupProcess X hX6 (τ n) (hτ.isStoppingTime n)
+      exact h_stopped.comp_measurable (measurable_const.prodMk measurable_id)
+    · filter_upwards with ω
+      have h_LE (ω : Ω): 0 ≤ dom ω :=
+        add_nonneg (Nat.cast_nonneg' n) (norm_nonneg (stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω))
+      have h_bdd_subtype : BddAbove (Set.range fun (u : {x // x ≤ t}) ↦
+            ‖stoppedProcess X (τ n) u ω‖) := by
+        let S := Set.Icc (⊥ : ι) t
+        have hS_compact : IsCompact S := isCompact_Icc
+        have h_subset : (Set.range fun (u : {x // x ≤ t}) ↦ ‖stoppedProcess X (τ n) u ω‖) ⊆
+                        (fun x ↦ ‖X x ω‖) '' S := by
+          rintro _ ⟨u, rfl⟩
+          simp only [stoppedProcess, Set.mem_image]
+          refine ⟨((τ n ⊓ fun _ ↦ ↑u) ω).untopA, ⟨bot_le, ?_ ⟩, by rw [min_comm, Pi.inf_apply]⟩
+          · apply le_trans _ u.2
+            rw [WithTop.untopA_eq_untop, WithTop.untop_le_iff]
+            · exact inf_le_right
+            · exact ne_top_of_le_ne_top (WithTop.coe_ne_top) inf_le_right
+
+        apply BddAbove.mono h_subset
+        have h_metric_bdd :=
+          isBounded_image_of_isCadlag_of_isCompact (hX1 ω) hS_compact
+        obtain ⟨C, hC⟩ : ∃ C, ∀ x ∈ (X · ω) '' S, ‖x‖ ≤ C := by
+          rw [Metric.isBounded_iff_subset_ball (0 : E)] at h_metric_bdd
+          rcases h_metric_bdd with ⟨C, h_subset_ball⟩
+          use C
+          intro x hx
+          specialize h_subset_ball hx
+          rw [Metric.mem_ball, dist_zero_right] at h_subset_ball
+          exact le_of_lt h_subset_ball
+        use C
+        rintro y ⟨x, hx, rfl⟩
+        exact hC _ (Set.mem_image_of_mem _ hx)
+      have h_val_le_rhs : ∀ (s : ι) (hs : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ ≤ rhs t ω := by
+        intro s hs
+        apply le_trans ?_ (hX4 t ω)
+        have h_bdd_nested :
+            BddAbove (Set.range fun s ↦ ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖) := by
+          obtain ⟨M, hM⟩ := h_bdd_subtype
+          use max M 0
+          intro y hy
+          obtain ⟨s', rfl⟩ := hy
+          by_cases hs' : s' ≤ t
+          · calc ⨆ (_ : s' ≤ t), ‖stoppedProcess X (τ n) s' ω‖
+                = ‖stoppedProcess X (τ n) s' ω‖ := ciSup_pos hs'
+              _ ≤ M := hM ⟨⟨s', hs'⟩, rfl⟩
+              _ ≤ max M 0 := le_max_left M 0
+          · show (fun s ↦ ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖) s' ≤ max M 0
+            have : IsEmpty (s' ≤ t) := ⟨fun h => hs' h⟩
+            simp only [Real.iSup_of_isEmpty, le_sup_right]
+        refine le_ciSup_of_le h_bdd_nested s ?_
+        refine le_ciSup_of_le (?_) hs le_rfl
+        use ‖stoppedProcess X (τ n) s ω‖
+        rintro _ ⟨_, rfl⟩
+        exact le_rfl
+      have h_rhs_le_dom : rhs t ω ≤ dom ω := by
+        simp only [rhs, dom, add_le_add_iff_left]
+        rw [Set.indicator]
+        split_ifs with h
+        · simp only [Set.mem_setOf_eq] at h
+          simp only [stoppedValue, Pi.inf_apply]
+          rw [min_eq_left h]
+        · simp only [norm_nonneg]
+      calc
+        ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ
+          ≤ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ := by
+            apply iSup₂_mono
+            intro s hs
+            simp only [stoppedProcess, Set.indicator, Set.mem_setOf_eq]
+            split_ifs <;> simp
+        _ ≤ ENNReal.ofReal (rhs t ω) := by
+            rw [iSup_subtype']
+            simp only [iSup_le_iff, Subtype.forall]
+            intro s hs
+            rw [← enorm_norm, Real.enorm_of_nonneg]
+            · exact ENNReal.ofReal_le_ofReal <| h_val_le_rhs s hs
+            · exact norm_nonneg (stoppedProcess X (τ n) s ω)
+        _ ≤ ENNReal.ofReal (dom ω) := ENNReal.ofReal_le_ofReal h_rhs_le_dom
+        _ ≤ ‖dom ω‖ₑ := by
+            rw [← Real.enorm_of_nonneg <| h_LE ω]
+
+
 
 end LinearOrder
 
