@@ -17,6 +17,9 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
+variable {ι Ω E : Type*} [LinearOrder ι] [NormedAddCommGroup E]
+  {mΩ : MeasurableSpace Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+
 variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
@@ -41,35 +44,40 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
-variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
-  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
+variable [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
+  [MeasurableSpace ι] [BorelSpace ι]
+
+omit [NormedSpace ℝ E] [CompleteSpace E] in
+lemma _root_.MeasureTheory.Adapted.stoppedProcess_indicator
+    (hX : Adapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
+    {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    Adapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
+  ((hX.progMeasurable_of_rightContinuous hC).stoppedProcess_indicator hτ).adapted
+
+variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
 
-/-- Martingales are a stable class. -/
-lemma isStable_martingale :
-    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
-  intro X ⟨hX, hC⟩ τ hτ
-  refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
-    isStable_isCadlag X hC τ hτ⟩
-  · refine Adapted.progMeasurable_of_rightContinuous
-      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _) (fun ω ↦ ?_)
-    by_cases hω : ω ∈ {ω | ⊥ < τ ω}
-    · simp_rw [Set.indicator_of_mem hω]
-      exact (hC ω).right_continuous
-    · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
-  · have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
-      hX.indicator (hτ.measurableSet_gt _)
-    conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
-    refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
-      (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
-      (fun ω ↦ min_le_left _ _) i)
-    · rw [stoppedProcess_eq_stoppedValue]
-    · by_cases hω : ω ∈ {ω | ⊥ < τ ω}
-      · simp_rw [Set.indicator_of_mem hω]
-        exact (hC ω).right_continuous
-      · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
+    (hX : Martingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+    {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    Martingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P := by
+  refine ⟨hX.adapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
+  have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
+    hX.indicator (hτ.measurableSet_gt _)
+  conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
+  refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
+    (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
+    (fun ω ↦ min_le_left _ _) i)
+  · rw [stoppedProcess_eq_stoppedValue]
+  · exact rightContinuous_indicator (fun ω ↦ hC ω) {ω | ⊥ < τ ω} ω
 
-/-- Submartingales are a stable class. -/
+/-- Càdlàg martingales are a stable class. -/
+lemma isStable_martingale :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) :=
+  fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
+    isStable_isCadlag X hC τ hτ⟩
+
+/-- Càdlàg submartingales are a stable class. -/
 lemma isStable_submartingale :
     IsStable 𝓕 (fun (X : ι → Ω → ℝ) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
   sorry

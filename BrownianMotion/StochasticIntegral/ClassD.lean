@@ -244,20 +244,6 @@ lemma isStable_stronglyMeasurable_uncurry [SecondCountableTopology ι] :
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
-/-- The class of progressively measurable processes is stable. -/
-lemma isStable_progMeasurable [PseudoMetrizableSpace ι] [SecondCountableTopology ι] :
-    IsStable (E := E) 𝓕 (ProgMeasurable 𝓕) := by
-  refine fun X hX τ hτ ↦ ProgMeasurable.stoppedProcess ?_ hτ
-  intro i
-  have h_prog : MeasurableSet[𝓕 i] {ω | ⊥ < τ ω} := by
-    have hw : {ω | ⊥ < τ ω} = {ω | τ ω ≤ ⊥}ᶜ := by
-      ext ω
-      simp only [Set.mem_setOf_eq, Set.mem_compl_iff]
-      exact lt_iff_not_ge
-    rw [hw]
-    exact MeasurableSet.compl (𝓕.mono bot_le _ (hτ ⊥))
-  exact StronglyMeasurable.indicator (hX i) <| measurable_snd h_prog
-
 lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
     (hX : ProgMeasurable 𝓕 X) (t : ι) :
     StronglyMeasurable <| uncurry (stoppedProcess X (fun _ ↦ t)) := by

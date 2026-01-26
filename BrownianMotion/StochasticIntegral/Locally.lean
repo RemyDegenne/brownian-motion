@@ -609,4 +609,38 @@ end ConditionallyCompleteLinearOrderBot
 
 end cadlag
 
+section ProgMeasurable
+
+open Function
+
+variable [LinearOrder ι] [NormedAddCommGroup E] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+
+lemma rightContinuous_indicator [TopologicalSpace ι]
+    (hC : ∀ ω, RightContinuous (X · ω)) (s : Set Ω) (ω : Ω) :
+    RightContinuous fun t ↦ s.indicator (X t) ω := by
+  by_cases hω : ω ∈ s
+  · simpa [Set.indicator_of_mem hω] using hC ω
+  · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+
+lemma adapted_indicator [OrderBot ι]
+    (hX : Adapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    Adapted 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) :=
+  fun i ↦ (hX i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _
+
+lemma progMeasurable_indicator [OrderBot ι] [MeasurableSpace ι]
+    (hX : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    ProgMeasurable 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) := by
+  refine fun i ↦ StronglyMeasurable.indicator (hX i) ?_
+  exact MeasurableSet.preimage (𝓕.mono bot_le _ <| hτ.measurableSet_gt _) measurable_snd
+
+variable [TopologicalSpace ι] [SecondCountableTopology ι] [TopologicalSpace.PseudoMetrizableSpace ι]
+  [OrderBot ι] [OrderTopology ι]
+  [MeasurableSpace ι] [BorelSpace ι]
+
+/-- The class of progressively measurable processes is stable. -/
+lemma isStable_progMeasurable : IsStable 𝓕 (ProgMeasurable 𝓕 (β := E) ·) :=
+  fun _ hX _ hτ ↦ (progMeasurable_indicator hX hτ).stoppedProcess hτ
+
+end ProgMeasurable
+
 end ProbabilityTheory
