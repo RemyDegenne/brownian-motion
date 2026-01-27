@@ -25,6 +25,11 @@ variable {ι E : Type*} [TopologicalSpace ι] [TopologicalSpace E]
 abbrev Function.RightContinuous [PartialOrder ι] (f : ι → E) :=
   ∀ a, ContinuousWithinAt f (Set.Ioi a) a
 
+lemma Function.RightContinuous.continuous_comp {F : Type*} [TopologicalSpace F] [PartialOrder ι]
+    {g : E → F}
+    {f : ι → E} (hg : Continuous g) (hf : RightContinuous f) : RightContinuous (g ∘ f) :=
+  fun x ↦ (hg.tendsto (f x)).comp (hf x)
+
 /-- A function is cadlag if it is right-continuous and has left limits. -/
 structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.RightContinuous f
