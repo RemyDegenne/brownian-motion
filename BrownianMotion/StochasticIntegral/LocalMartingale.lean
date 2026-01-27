@@ -52,7 +52,7 @@ lemma _root_.MeasureTheory.Adapted.stoppedProcess_indicator
     (hX : Adapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     Adapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
-  ((hX.progMeasurable_of_rightContinuous hC).stoppedProcess_indicator hτ).adapted
+  (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).adapted
 
 variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
