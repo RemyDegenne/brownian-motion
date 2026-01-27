@@ -181,7 +181,7 @@ lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
       infer_instance
     have := incrementsToRestrict_increments_ofFin'_ae_eq_restrict ℝ h_bot I
     refine @HasGaussianLaw.congr _ _ _ _ _ _ _ _ _ _ ?_ this.symm
-    refine @HasGaussianLaw.map _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ?_
+    refine HasGaussianLaw.map ?_ _
     exact (incr _ _ (monotone_ofFin' I)).hasGaussianLaw fun i ↦
       incr.indepFun_eval_sub bot_le
         (monotone_ofFin' I (Fin.castSucc_le_succ i)) h_bot |>.hasGaussianLaw_sub (law _) (law _)
@@ -210,8 +210,8 @@ lemma IsPreBrownian.congr {Y : ℝ≥0 → Ω → ℝ} [hX : IsPreBrownian X P] 
 instance IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess X P where
   hasGaussianLaw I := (IsPreBrownian.hasLaw I).hasGaussianLaw
 
-lemma IsPreBrownian.aemeasurable [IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
-  HasGaussianLaw.aemeasurable
+lemma IsPreBrownian.aemeasurable [hX : IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
+  HasGaussianLaw.aemeasurable (hX.isGaussianProcess.hasGaussianLaw_eval t)
 
 lemma IsPreBrownian.hasLaw_gaussianLimit [IsPreBrownian X P]
     (hX : AEMeasurable (fun ω ↦ (X · ω)) P) :
@@ -339,7 +339,8 @@ lemma IsPreBrownian.continuous_mk [h : IsPreBrownian X P] (ω : Ω) :
 
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
-  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero fun i j hij ↦ ?_
+  refine fun n t ht ↦ HasGaussianLaw.iIndepFun_of_covariance_eq_zero ?_ fun i j hij ↦ ?_
+  · sorry
   rw [covariance_fun_sub_left, covariance_fun_sub_right, covariance_fun_sub_right]
   · simp_rw [IsPreBrownian.covariance_fun_eval]
     wlog h' : i < j generalizing i j
@@ -350,7 +351,7 @@ lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncreme
     have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
     rw [min_eq_left (ht h1), min_eq_left (ht h'), min_eq_left (ht h2), min_eq_left (ht h3)]
     simp
-  all_goals exact HasGaussianLaw.memLp_two
+  all_goals exact HasGaussianLaw.memLp_two sorry
 
 lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
     (h2 : ∀ t, P[X t] = 0) (h3 : ∀ s t, s ≤ t → cov[X s, X t; P] = s) :

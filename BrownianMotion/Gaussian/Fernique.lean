@@ -22,18 +22,4 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : Ω → E}
 
-/-- A Gaussian random variable has moments of all orders. -/
-lemma HasGaussianLaw.memLp [hX : HasGaussianLaw X P] {p : ℝ≥0∞} (hp : p ≠ ∞) :
-    MemLp X p P := by
-  rw [← Function.id_comp X, ← memLp_map_measure_iff]
-  · exact IsGaussian.memLp_id _ p hp
-  · exact aestronglyMeasurable_id
-  · exact hX.aemeasurable
-
-lemma HasGaussianLaw.memLp_two [HasGaussianLaw X P] :
-    MemLp X 2 P := HasGaussianLaw.memLp (by norm_num)
-
-lemma HasGaussianLaw.integrable [HasGaussianLaw X P] :
-    Integrable X P := memLp_one_iff_integrable.1 <| HasGaussianLaw.memLp (by norm_num)
-
 end ProbabilityTheory
