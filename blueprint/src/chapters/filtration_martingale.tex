@@ -46,7 +46,7 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 \begin{lemma}\label{lem:Adapted.progMeasurable_of_rightContinuous}
   \uses{def:adapted, def:ProgMeasurable, def:RightContinuous}
   \leanok
-  \lean{MeasureTheory.Adapted.progMeasurable_of_rightContinuous}
+  \lean{MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous}
 Suppose $T$ is a linearly ordered set equipped with the order topology. If $T$ is second countable and a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
 \end{lemma}
 
@@ -515,7 +515,7 @@ Fake lemma for the dependency graph. Import this to depend on Definition~\ref{de
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
   \uses{def:rightLimitFiltration, lem:rightLimitFiltration_basic}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
@@ -523,7 +523,7 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 
 \begin{lemma}\label{lem:eqRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous.eq}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
@@ -536,8 +536,8 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
-  \lean{MeasureTheory.Filtration.isRightContinuous_rightCont}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.instIsRightContinuousRightCont}
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
@@ -834,7 +834,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 
 \begin{lemma}\label{lem:uniformIntegrable_of_tendsto_ae}
   \leanok
-  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendsto_ae}
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_ae_tendsto}
   Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in almost everywhere convergence of sequences of $X$ is $p$-uniformly integrable.
 \end{lemma}
 

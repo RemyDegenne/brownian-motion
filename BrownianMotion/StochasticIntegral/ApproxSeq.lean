@@ -246,7 +246,7 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
   tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
     ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le
-    τn).memLp_of_tendstoInMeasure 1 (tendstoInMeasure_of_tendsto_ae
+    τn).memLp_of_tendstoInMeasure (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC))
     (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).2.1

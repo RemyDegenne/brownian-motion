@@ -78,22 +78,22 @@ section PseudoEMetricSpace
 
 variable [PseudoEMetricSpace T] [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
 
-lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
+lemma lintegral_div_edist_le_sum_integral_edist_le (hT : Metric.ediam U < ∞)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hβ : 0 < β) {J : Set T} [Countable J] (hJU : J ⊆ U) :
     ∫⁻ ω, ⨆ (s : J) (t : J), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ ∑' (k : ℕ), 2 ^ (k * β * p)
           * ∫⁻ ω, ⨆ (s : J)
-              (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (EMetric.diam U + 1)}),
+              (t : {t : J // edist s t ≤ 2 * 2⁻¹ ^ k * (Metric.ediam U + 1)}),
                 edist (X s ω) (X t ω) ^p ∂P := by
-  let η k := 2⁻¹ ^ k * (EMetric.diam U + 1)
+  let η k := 2⁻¹ ^ k * (Metric.ediam U + 1)
   have hp_pos := hX.p_pos
   have hq_pos := hX.q_pos
   have hη_ge (k : ℕ) : 2⁻¹ ^ (k : ℝ) ≤ η k := by simp [η, mul_add]
   have hη_succ (k : ℕ) : η (k + 1) = 2⁻¹ * η k := by simp [η, pow_add, mul_comm]; grind
   have hη_lim : Filter.Tendsto η Filter.atTop (nhds 0) := by
     unfold η
-    rw [← zero_mul (EMetric.diam U + 1)]
+    rw [← zero_mul (Metric.ediam U + 1)]
     apply ENNReal.Tendsto.mul_const (ENNReal.tendsto_pow_atTop_nhds_zero_of_lt_one (by norm_num))
     simp [← lt_top_iff_ne_top, hT]
   conv in 2 ^ _ * _ => rw [← lintegral_const_mul' _ _ (by simp)]
@@ -121,7 +121,7 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
     refine ⟨Nat.find hη_dist, Nat.find_spec hη_dist, ?_⟩
     match hk : Nat.find hη_dist with
     | 0 =>
-        apply le_trans (EMetric.edist_le_diam_of_mem (hJU hs) (hJU ht))
+        apply le_trans (Metric.edist_le_ediam_of_mem (hJU hs) (hJU ht))
         simp only [pow_zero, one_mul, η]
         exact le_mul_of_one_le_of_le (by norm_num) (le_add_right (le_refl _))
     | k + 1 =>
@@ -140,11 +140,11 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : EMetric.diam U < ∞)
 noncomputable
 -- the `max 0 ...` in the blueprint is performed by `ENNReal.ofReal` here
 def constL (T : Type*) [PseudoEMetricSpace T] (c : ℝ≥0∞) (d p q β : ℝ) (U : Set T) : ℝ≥0∞ :=
-  2 ^ (2 * p + 5 * q + 1) * c * (EMetric.diam U + 1) ^ (q - d)
+  2 ^ (2 * p + 5 * q + 1) * c * (Metric.ediam U + 1) ^ (q - d)
   * ∑' (k : ℕ), 2 ^ (k * (β * p - (q - d)))
       * (4 ^ d * (ENNReal.ofReal (Real.logb 2 c.toReal + (k + 2) * d)) ^ q + Cp d p q)
 
-lemma constL_lt_top (hT : EMetric.diam U < ∞)
+lemma constL_lt_top (hT : Metric.ediam U < ∞)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hp_pos : 0 < p) (hdq_lt : d < q) (hβ_lt : β < (q - d) / p) :
     constL T c d p q β U < ∞ := by
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
@@ -233,11 +233,14 @@ theorem finite_kolmogorov_chentsov
     (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] (hT'U : T' ⊆ U) :
     ∫⁻ ω, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) ∂P
       ≤ M * constL T c d p q β U := by
-  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
+  have h_diam : Metric.ediam U < ∞ := hT.ediam_lt_top
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp only [constL, ← ENNReal.tsum_mul_left, ge_iff_le] at *
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
-  · convert zero_le'
+  · convert zero_le _
+    rotate_left
+    · infer_instance
+    · infer_instance
     apply lintegral_eq_zero_of_ae_eq_zero
     filter_upwards [h_ae] with ω h
     rw [Pi.zero_apply]
@@ -250,14 +253,14 @@ theorem finite_kolmogorov_chentsov
     rw [Filter.eventually_all]; intro t
     rw_mod_cast [h_ae] at hX
     exact hX.edist_eq_zero_of_const_eq_zero _ _
-  have h_diam_zero : 0 < EMetric.diam U := by
+  have h_diam_zero : 0 < Metric.ediam U := by
     contrapose! h_ae
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
     apply hX.edist_eq_zero
-    rw [← le_zero_iff]
-    exact le_trans (EMetric.edist_le_diam_of_mem (hT'U s.2) (hT'U t.2)) h_ae
-  have h_diam_real : 0 < (EMetric.diam U).toReal :=
+    refine le_antisymm ?_ (zero_le _)
+    exact le_trans (Metric.edist_le_ediam_of_mem (hT'U s.2) (hT'U t.2)) h_ae
+  have h_diam_real : 0 < (Metric.ediam U).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
   apply le_trans
     (lintegral_div_edist_le_sum_integral_edist_le h_diam hX hβ_pos hT'U)
@@ -275,7 +278,7 @@ theorem finite_kolmogorov_chentsov
     · simp [le_of_lt hdq_lt]
   have h_two : ENNReal.toNNReal 2 = 2 := rfl
   have h := finite_set_bound_of_edist_le (c := 2 ^ d * c) ?_ hT' hX ?_ hd_pos hdq_lt ?_
-    (δ := (2 * 2⁻¹ ^ k * (EMetric.diam U + 1)).toNNReal)
+    (δ := (2 * 2⁻¹ ^ k * (Metric.ediam U + 1)).toNNReal)
   rotate_left
   · exact hT.subset hT'U hd_pos.le
   · finiteness
@@ -286,17 +289,17 @@ theorem finite_kolmogorov_chentsov
     ← mul_assoc _ (2 ^ ((k : ℝ) * _)), ← mul_assoc (M : ℝ≥0∞)]
   refine mul_le_mul' (le_of_eq ?_) ?_
   · calc 2 ^ (k * β * p) * (2 ^ (2 * p + 4 * q + 1) * M * (2 ^ d * c)
-        * ((2 * 2⁻¹ ^ k) ^ (q - d) * (EMetric.diam U + 1) ^ (q - d)))
+        * ((2 * 2⁻¹ ^ k) ^ (q - d) * (Metric.ediam U + 1) ^ (q - d)))
     _ = 2 ^ (k * β * p) * (2 ^ (2 * p + 4 * q + 1) * M * (2 ^ d * c)
         * ((2 ^ (q - d) * 2 ^ (- k * (q - d)))
-        * (EMetric.diam U + 1) ^ (q - d))) := by
+        * (Metric.ediam U + 1) ^ (q - d))) := by
       congr
       rw [ENNReal.rpow_mul, ENNReal.mul_rpow_of_nonneg _ _ (by bound), ENNReal.rpow_neg,
         ← ENNReal.inv_pow, ENNReal.rpow_natCast]
     _ = M * (2 ^ (2 * p + 4 * q + 1) * (2 ^ (q - d) * 2 ^ d)) * c
-        * (EMetric.diam U + 1) ^ (q - d)
+        * (Metric.ediam U + 1) ^ (q - d)
         * (2 ^ (k * β * p) * 2 ^ (- k * (q - d))) := by ring
-    _ = M * 2 ^ (2 * p + 5 * q + 1) * c * (EMetric.diam U + 1) ^ (q - d)
+    _ = M * 2 ^ (2 * p + 5 * q + 1) * c * (Metric.ediam U + 1) ^ (q - d)
         * 2 ^ (↑k * (↑β * p - (q - d))) := by
       congr
       · rw [← ENNReal.rpow_add _ _ (by simp) (by simp), ← ENNReal.rpow_add _ _ (by simp) (by simp)]
@@ -315,7 +318,7 @@ theorem finite_kolmogorov_chentsov
     ENNReal.toNNReal_inv, inv_pow, NNReal.coe_mul, NNReal.coe_ofNat, NNReal.coe_inv, NNReal.coe_pow,
     mul_inv_rev, inv_inv, ← ENNReal.toReal_rpow, ENNReal.toReal_ofNat]
   calc Real.logb 2 (2^ d * c.toReal * 4 ^ d
-      * (((EMetric.diam U + 1).toNNReal)⁻¹ * (2 ^ k * 2⁻¹)) ^ d)
+      * (((Metric.ediam U + 1).toNNReal)⁻¹ * (2 ^ k * 2⁻¹)) ^ d)
   _ ≤ Real.logb 2 (2^ d * c.toReal * 4 ^ d * (2 ^ k * 2⁻¹) ^ d) := by
     gcongr 3
     · simp
@@ -332,7 +335,7 @@ theorem finite_kolmogorov_chentsov
       rw [← ENNReal.toNNReal_one]
       gcongr
       · finiteness
-      · exact CanonicallyOrderedAdd.le_add_self 1 (EMetric.diam U)
+      · exact CanonicallyOrderedAdd.le_add_self 1 (Metric.ediam U)
   _ = Real.logb 2 (c.toReal * (2^ d * 4 ^ d * (2 ^ k * 2⁻¹) ^ d)) := by ring_nf
   _ = Real.logb 2 (c.toReal * 2 ^ ((k + 2) * d)) := by
     congr
@@ -376,7 +379,7 @@ lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
     {T' : Set T} (hT' : T'.Countable) (hT'U : T' ⊆ U) :
     ∀ᵐ ω ∂P, ⨆ (s : T') (t : T'), edist (X s ω) (X t ω) ^ p / edist s t ^ (β * p) < ∞ := by
   have : Countable T' := hT'
-  have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
+  have h_diam : Metric.ediam U < ∞ := hT.ediam_lt_top
   refine ae_lt_top' ?_ ((countable_kolmogorov_chentsov hT hX.IsAEKolmogorovProcess hd_pos
     hdq_lt hβ_pos T' hT'U).trans_lt ?_).ne
   · refine AEMeasurable.iSup (fun s ↦ AEMeasurable.iSup (fun t ↦ ?_))

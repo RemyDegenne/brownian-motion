@@ -94,7 +94,7 @@ lemma externalCoveringNumber_mono_set (h : A ⊆ B) :
   simp only [externalCoveringNumber, le_iInf_iff]
   exact fun C hC ↦ iInf_le_of_le C <| iInf_le_of_le (hC.anti h) le_rfl
 
-lemma coveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ ε) :
+lemma coveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty) (hA : Metric.ediam A ≤ ε) :
     coveringNumber ε A = 1 := by
   refine le_antisymm ?_ ?_
   · have ⟨a, ha⟩ := h_nonempty
@@ -106,7 +106,7 @@ lemma coveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty) (hA : EMetric.
     exact coveringNumber_pos h_nonempty
 
 lemma externalCoveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty)
-    (hA : EMetric.diam A ≤ ε) :
+    (hA : Metric.ediam A ≤ ε) :
     externalCoveringNumber ε A = 1 := by
   refine le_antisymm ?_ ?_
   · exact (externalCoveringNumber_le_coveringNumber ε A).trans_eq
@@ -114,14 +114,14 @@ lemma externalCoveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty)
   · rw [Order.one_le_iff_pos]
     exact externalCoveringNumber_pos h_nonempty
 
-lemma externalCoveringNumber_le_one_of_ediam_le (hA : EMetric.diam A ≤ ε) :
+lemma externalCoveringNumber_le_one_of_ediam_le (hA : Metric.ediam A ≤ ε) :
     externalCoveringNumber ε A ≤ 1 := by
   rcases eq_empty_or_nonempty A with h_eq_empty | h_nonempty
   · rw [← externalCoveringNumber_eq_zero (ε := ε)] at h_eq_empty
     simp [h_eq_empty]
   · exact (externalCoveringNumber_eq_one_of_ediam_le h_nonempty hA).le
 
-lemma coveringNumber_le_one_of_ediam_le (hA : EMetric.diam A ≤ ε) : coveringNumber ε A ≤ 1 := by
+lemma coveringNumber_le_one_of_ediam_le (hA : Metric.ediam A ≤ ε) : coveringNumber ε A ≤ 1 := by
   rcases eq_empty_or_nonempty A with h_eq_empty | h_nonempty
   · rw [← coveringNumber_eq_zero (ε := ε)] at h_eq_empty
     simp [h_eq_empty]
@@ -205,9 +205,9 @@ lemma packingNumber_singleton (r : ℝ≥0) (x : E) :
   rw [Set.encard_le_one_iff]
   grind
 
-lemma isCover_singleton_finset_of_diam_le {a : E} (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
+lemma isCover_singleton_finset_of_diam_le {a : E} (hA : Metric.ediam A ≤ ε) (ha : a ∈ A) :
     IsCover ε A ({a} : Finset E) :=
-  fun x hxA ↦ ⟨a, by simp, (EMetric.edist_le_diam_of_mem hxA ha).trans hA⟩
+  fun x hxA ↦ ⟨a, by simp, (Metric.edist_le_ediam_of_mem hxA ha).trans hA⟩
 
 @[simp]
 lemma coveringNumber_singleton {x : E} :

@@ -48,11 +48,11 @@ variable [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
   [MeasurableSpace ι] [BorelSpace ι]
 
 omit [NormedSpace ℝ E] [CompleteSpace E] in
-lemma _root_.MeasureTheory.Adapted.stoppedProcess_indicator
-    (hX : Adapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
+lemma _root_.MeasureTheory.StronglyAdapted.stoppedProcess_indicator
+    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
-    Adapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
-  (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).adapted
+    StronglyAdapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
+  (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).stronglyAdapted
 
 variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
@@ -61,7 +61,7 @@ lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
     (hX : Martingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     Martingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P := by
-  refine ⟨hX.adapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
+  refine ⟨hX.stronglyAdapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
   have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
     hX.indicator (hτ.measurableSet_gt _)
   conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]

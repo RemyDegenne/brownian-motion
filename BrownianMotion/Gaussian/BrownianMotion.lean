@@ -48,7 +48,7 @@ lemma ofFin_toFin (i : I) : I.ofFin (I.toFin i) = i.1 := by
   nth_rw 2 [← (I.sort (· ≤ ·)).idxOf_get (a := i.1)]
   · congr
     ext
-    simp only [Fin.ofNat_eq_cast, Fin.coe_cast, Fin.val_natCast]
+    simp only [Fin.ofNat_eq_cast, Fin.val_cast, Fin.val_natCast]
     rw [Nat.mod_eq_of_lt]
     rw [← I.length_sort (· ≤ ·)]
     exact List.idxOf_lt_length_of_mem <| I.mem_sort (· ≤ ·) |>.2 i.2
@@ -399,7 +399,7 @@ lemma HasIndepIncrements.isPreBrownian_of_hasLaw
     rw [(law t).integral_eq, integral_id_gaussianReal]
   · intro s t hst
     have h1 := incr.indepFun_eval_sub (zero_le s) hst (law 0).ae_eq_const_of_gaussianReal
-    have := (law 0).isProbabilityMeasure_iff.1 inferInstance
+    have := (law 0).isProbabilityMeasure_iff.2 inferInstance
     have h2 : X t = X t - X s + X s := by simp
     rw [h2, covariance_add_right, h1.covariance_eq_zero, covariance_self, (law s).variance_eq,
       variance_id_gaussianReal]

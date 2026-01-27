@@ -505,15 +505,16 @@ theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semirin
       · have : p.2 < q.1 ∨ q.2 < p.1 := by contrapose! h_le; exact h_le
         have : p.2 ⊓ q.2 < p.1 ⊔ q.1 := by simp; tauto
         simp [Set.Ioc_eq_empty_of_le this.le]
-    _ = _ := by
+    _ = B (V i ω) (W i ω) := by
       have h1 (s t : Set ι) (f : ι → E) (g : ι → F) (i : ι) :
           B (s.indicator f i) (t.indicator g i) = (s ∩ t).indicator (fun j ↦ B (f j) (g j)) i := by
         rw [← Set.indicator_indicator]
         unfold Set.indicator
         split_ifs <;> simp
-      have h2 (i j : ι) : Set.Ioc i j ∩ {⊥} = ∅ := by simp
-      have h3 (i j : ι) : {⊥} ∩ Set.Ioc i j = ∅ := by simp
-      simp [apply_eq, map_finsuppSum, h1, h2, h3, Set.Ioc_inter_Ioc]
+      by_cases hi : i = ⊥
+      · simp [hi, apply_eq]
+      · simp [apply_eq, map_finsuppSum, h1, Set.Ioc_inter_Ioc, Pi.single_apply]
+        simp [hi]
 
 end map₂
 
