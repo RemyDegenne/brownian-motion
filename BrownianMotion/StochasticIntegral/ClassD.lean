@@ -193,7 +193,7 @@ lemma _root_.MeasureTheory.Martingale.classDL [PseudoMetrizableSpace ι] [BorelS
   have hY_cont : ∀ ω, RightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
   have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
   have hY_DL : ClassDL Y 𝓕 P := hY_sub.classDL hY_cont hY_nonneg
-  have h_prog := hX1.adapted.progMeasurable_of_rightContinuous hX2
+  have h_prog := hX1.stronglyAdapted.progMeasurable_of_rightContinuous hX2
   refine ⟨h_prog, fun t ↦ ?_⟩
   rw [uniformIntegrable_iff_norm]
   · exact hY_DL.uniformIntegrable t
@@ -426,7 +426,7 @@ lemma HasIntegrableSup.classDL [Nonempty ι] [SecondCountableTopology ι]
   Integrable.classDL hX1 (fun t ↦ hX2.2 t)
 
 lemma HasLocallyIntegrableSup.locally_classDL [Nonempty ι] [SecondCountableTopology ι]
-    (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : Adapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : StronglyAdapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   sorry
 
@@ -492,7 +492,7 @@ end ClassDClassDL
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
     [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι] [CompactIccSpace ι]
-    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) {X : ι → Ω → ℝ} (hX1 : Adapted 𝓕 X)
+    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
     (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
     IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
 
@@ -565,7 +565,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     HasLocallyIntegrableSup X 𝓕 P := by
   rcases hX2 with ⟨hX2, hX3⟩
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
-  have hY1 : Adapted 𝓕 Y := hX2.adapted.norm
+  have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
   have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) :=
     fun ω ↦ (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)

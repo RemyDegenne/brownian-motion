@@ -626,9 +626,9 @@ lemma rightContinuous_indicator [TopologicalSpace ι]
   · simpa [Set.indicator_of_mem hω] using hC ω
   · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
 
-lemma adapted_indicator [OrderBot ι]
-    (hX : Adapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
-    Adapted 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) :=
+lemma stronglyAdapted_indicator [OrderBot ι]
+    (hX : StronglyAdapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    StronglyAdapted 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) :=
   fun i ↦ (hX i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _
 
 lemma progMeasurable_indicator [OrderBot ι] [MeasurableSpace ι]

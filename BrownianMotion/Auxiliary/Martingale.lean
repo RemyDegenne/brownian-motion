@@ -42,11 +42,12 @@ lemma Martingale.indicator [OrderBot ι] {s : Set Ω}
 
 lemma Martingale.indexComap {ι' : Type*} [Preorder ι'] (hX : Martingale X 𝓕 P) {f : ι' → ι}
     (hf : Monotone f) : Martingale (X ∘ f) (𝓕.indexComap hf) P :=
-  ⟨hX.adapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
+  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
 
 lemma Submartingale.indexComap {ι' : Type*} [Preorder ι'] [LE E] (hX : Submartingale X 𝓕 P)
     {f : ι' → ι} (hf : Monotone f) : Submartingale (X ∘ f) (𝓕.indexComap hf) P :=
-  ⟨hX.adapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij), fun _ ↦ hX.integrable _⟩
+  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij),
+    fun _ ↦ hX.integrable _⟩
 
 end
 

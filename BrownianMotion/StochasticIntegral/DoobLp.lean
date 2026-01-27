@@ -59,7 +59,6 @@ lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
     · refine sup'_le _ _ fun i hi ↦ ?_
       refine le_sup'_of_le _ (b := ((J.orderIsoOfFin rfl).symm ⟨i, hi⟩ : ℕ)) ?_ ?_
       · simp
-        omega
       · simp [orderEmbOfFin]
     · refine sup'_le _ _ fun k hk ↦ ?_
       apply le_sup' fun i ↦ Y i ω

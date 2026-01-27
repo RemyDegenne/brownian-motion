@@ -25,8 +25,8 @@ variable {𝓕 : Filtration ι mΩ} {f : ι' → ι} (hf : Monotone f)
 
 variable {E : Type*} [TopologicalSpace E] {X : ι → Ω → E}
 
-theorem Adapted.indexComap (hX : Adapted 𝓕 X) (hf : Monotone f) :
-    Adapted (𝓕.indexComap hf) (X ∘ f) := fun i ↦ hX (f i)
+theorem StronglyAdapted.indexComap (hX : StronglyAdapted 𝓕 X) (hf : Monotone f) :
+    StronglyAdapted (𝓕.indexComap hf) (X ∘ f) := fun i ↦ hX (f i)
 
 end Comp
 
