@@ -360,6 +360,10 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
     refine ⟨aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _, ?_⟩
     apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
     rw [MeasurableEquiv.coe_toLp, ← PiLp.coe_symm_continuousLinearEquiv 2 ℝ]
+    have : IsGaussian
+        (Measure.map (⇑(PiLp.continuousLinearEquiv 2 ℝ fun a ↦ ℝ).symm)
+        (Measure.map (fun ω ↦ I.restrict fun x ↦ X x ω) P)) := by
+      sorry
     apply IsGaussian.ext
     · rw [integral_map, integral_map, integral_map]
       · simp only [PiLp.continuousLinearEquiv_symm_apply, id_eq]
@@ -379,6 +383,8 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
       refine LinearMap.BilinForm.ext_of_isSymm isSymm_covarianceBilin isSymm_covarianceBilin
         fun x ↦ ?_
       simp only [ContinuousLinearMap.toBilinForm_apply]
+      have : IsFiniteMeasure (Measure.map (fun ω ↦ I.restrict fun x ↦ X x ω) P) := by
+        sorry
       rw [PiLp.coe_symm_continuousLinearEquiv, covarianceBilin_apply_pi, covarianceBilin_apply_pi]
       · congrm ∑ i, ∑ j, _ * ?_
         rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
@@ -388,7 +394,7 @@ lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
           exact h3 i j hij
         any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
         exact aemeasurable_pi_lambda _ (fun _ ↦ h1.aemeasurable _)
-      all_goals exact fun _ ↦ HasGaussianLaw.memLp_two
+      all_goals exact fun _ ↦ HasGaussianLaw.memLp_two sorry
 
 lemma HasIndepIncrements.isPreBrownian_of_hasLaw
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
