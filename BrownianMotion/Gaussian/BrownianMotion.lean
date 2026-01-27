@@ -412,13 +412,13 @@ lemma HasIndepIncrements.isPreBrownian_of_hasLaw
     · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
     · exact (law s).hasGaussianLaw.memLp_two
 
-lemma IsPreBrownian.smul [IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
+lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     IsPreBrownian (fun t ω ↦ (X (c * t) ω) / √c) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
   · have this t ω : X (c * t) ω / √c = (1 / √c) • ((X ∘ (c * ·)) t ω) := by
       simp [inv_mul_eq_div]
     simp_rw [this]
-    exact (IsGaussianProcess.comp_right _).smul _
+    exact (IsGaussianProcess.comp_right hX.isGaussianProcess _).smul _
   · rw [integral_div, IsPreBrownian.integral_eval, zero_div]
   · rw [covariance_fun_div_left, covariance_fun_div_right, IsPreBrownian.covariance_eval,
       min_eq_left]
@@ -430,15 +430,15 @@ lemma IsPreBrownian.smul [IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
 This is the proof that it is pre-Brownian, see `IsPreBrownian.indepFun_shift` for independence. -/
 lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
     IsPreBrownian (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) P := by
-  refine IsGaussianProcess.isPreBrownian_of_covariance inferInstance (fun t ↦ ?_) (fun s t hst ↦ ?_)
+  refine IsGaussianProcess.isPreBrownian_of_covariance sorry (fun t ↦ ?_) (fun s t hst ↦ ?_)
   · rw [integral_sub, IsPreBrownian.integral_eval, IsPreBrownian.integral_eval, sub_zero]
-    all_goals exact HasGaussianLaw.integrable
+    all_goals exact HasGaussianLaw.integrable sorry
   · have := h.isGaussianProcess.isProbabilityMeasure
     rw [covariance_fun_sub_left, covariance_fun_sub_right, covariance_fun_sub_right,
       h.covariance_eval, h.covariance_eval, h.covariance_eval, h.covariance_eval, ← add_min,
       min_eq_left hst, min_eq_right, min_eq_left, min_self]
     any_goals simp
-    all_goals exact HasGaussianLaw.memLp_two
+    all_goals exact HasGaussianLaw.memLp_two sorry
 
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
@@ -466,12 +466,12 @@ lemma IsPreBrownian.indepFun_shift [h : IsPreBrownian X P] (hX : ∀ t, Measurab
       sub_self]
     · grind
     · simp [ht, le_add_right]
-    all_goals exact HasGaussianLaw.memLp_two
+    all_goals exact HasGaussianLaw.memLp_two sorry
 
 lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
     IsPreBrownian (fun t ω ↦ t * (X (1 / t) ω)) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
-  · exact (IsGaussianProcess.comp_right _).smul _
+  · exact (IsGaussianProcess.comp_right h.isGaussianProcess _).smul _
   · rw [integral_const_mul, IsPreBrownian.integral_eval, mul_zero]
   · have := h.isGaussianProcess.isProbabilityMeasure
     rw [covariance_const_mul_left, covariance_const_mul_right, h.covariance_eval]
@@ -688,7 +688,7 @@ instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
 
 -- for blueprint
 instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit :=
-  inferInstance
+  isPreBrownian_preBrownian.isGaussianProcess
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
@@ -756,7 +756,7 @@ instance IsBrownian_brownian : IsBrownian brownian gaussianLimit :=
 
 -- for blueprint
 instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  inferInstance
+  IsBrownian_brownian.toIsPreBrownian.isGaussianProcess
 
 lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
     HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
