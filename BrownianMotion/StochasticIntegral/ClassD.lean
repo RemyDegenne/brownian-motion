@@ -425,10 +425,10 @@ lemma HasIntegrableSup.classDL [Nonempty ι] [SecondCountableTopology ι]
     ClassDL X 𝓕 P :=
   Integrable.classDL hX1 (fun t ↦ hX2.2 t)
 
-lemma HasLocallyIntegrableSup.locally_classDL [Nonempty ι] [SecondCountableTopology ι]
-    (hX1 : HasLocallyIntegrableSup X 𝓕 P) (hX2 : StronglyAdapted 𝓕 X) (h𝓕 : 𝓕.IsRightContinuous) :
-    Locally (ClassDL · 𝓕 P) 𝓕 X P := by
-  sorry
+lemma HasLocallyIntegrableSup.locally_classDL [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
+    (hX1 : ProgMeasurable 𝓕 X) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
+    Locally (ClassDL · 𝓕 P) 𝓕 X P :=
+  locally_mono_of_stable isStable_progMeasurable hX1 hX2 (fun _ ⟨h1, h2⟩ ↦ h2.classDL h1)
 
 /-- A process of class DL is locally of class D. -/
 lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace ι]

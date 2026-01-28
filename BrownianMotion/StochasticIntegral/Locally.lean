@@ -153,6 +153,16 @@ lemma locally_and (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
       rfl
     · rfl
 
+lemma locally_and_of_stable (hp : IsStable 𝓕 p) (hpX : p X) (hqX : Locally q 𝓕 X P) :
+    Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P := by
+  refine ⟨hqX.localSeq, hqX.IsLocalizingSequence, fun n ↦ ⟨?_, hqX.stoppedProcess n⟩⟩
+  convert hp _ hpX _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
+
+lemma locally_mono_of_stable (hp : IsStable 𝓕 p) (hpX : p X) (hqX : Locally q 𝓕 X P)
+    {r : (ι → Ω → E) → Prop} (hpqr : ∀ Y, p Y ∧ q Y → r Y) :
+    Locally r 𝓕 X P :=
+  (locally_and_of_stable hp hpX hqX).mono hpqr
+
 end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
