@@ -164,50 +164,11 @@ instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] 
 
 variable [SecondCountableTopology E]
 
-lemma IsGaussianProcess.indepFun [CompleteSpace E] {X : S → Ω → E} {Y : T → Ω → E}
-    (h : IsGaussianProcess (Sum.elim X Y) P) (hX : ∀ s, Measurable (X s))
-    (hY : ∀ t, Measurable (Y t))
-    (h' : ∀ s t (L₁ L₂ : StrongDual ℝ E), cov[L₁ ∘ X s, L₂ ∘ Y t; P] = 0) :
-    IndepFun (fun ω s ↦ X s ω) (fun ω t ↦ Y t ω) P := by
-  exact indepFun_of_covariance_strongDual h hX hY h'
-
-lemma IsGaussianProcess.iIndepFun [CompleteSpace E] {S : T → Type*}
-    {X : (t : T) → (s : S t) → Ω → E}
-    (h : IsGaussianProcess (fun (p : (t : T) × S t) ω ↦ X p.1 p.2 ω) P)
-    (hX : ∀ t s, Measurable (X t s))
-    (h' : ∀ t₁ t₂, t₁ ≠ t₂ → ∀ (s₁ : S t₁) (s₂ : S t₂) (L₁ L₂ : StrongDual ℝ E),
-      cov[L₁ ∘ X t₁ s₁, L₂ ∘ X t₂ s₂; P] = 0) :
-    iIndepFun (fun t ω s ↦ X t s ω) P := by
-  exact iIndepFun_of_covariance_strongDual h hX h'
-
-open RealInnerProductSpace in
-lemma IsGaussianProcess.indepFun'
-    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] [CompleteSpace E]
-    {X : S → Ω → E} {Y : T → Ω → E}
-    (h : IsGaussianProcess (Sum.elim X Y) P) (hX : ∀ s, Measurable (X s))
-    (hY : ∀ t, Measurable (Y t))
-    (h' : ∀ s t x y, cov[fun ω ↦ ⟪x, X s ω⟫, fun ω ↦ ⟪y, Y t ω⟫; P] = 0) :
-    IndepFun (fun ω s ↦ X s ω) (fun ω t ↦ Y t ω) P :=
-  h.indepFun hX hY fun _ _ _ _ ↦ by simpa [← inner_toDual_symm_eq_self] using h' ..
-
-open RealInnerProductSpace in
-lemma IsGaussianProcess.iIndepFun'
-    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] [CompleteSpace E] {S : T → Type*}
-    {X : (t : T) → (s : S t) → Ω → E}
-    (h : IsGaussianProcess (fun (p : (t : T) × S t) ω ↦ X p.1 p.2 ω) P)
-    (hX : ∀ t s, Measurable (X t s))
-    (h' : ∀ t₁ t₂, t₁ ≠ t₂ → ∀ (s₁ : S t₁) (s₂ : S t₂) (x y : E),
-      cov[fun ω ↦ ⟪x, X t₁ s₁ ω⟫, fun ω ↦ ⟪y, X t₂ s₂ ω⟫; P] = 0) :
-    ProbabilityTheory.iIndepFun (fun t ω s ↦ X t s ω) P :=
-  h.iIndepFun hX fun _ _ h'' _ _ _ _ ↦ by simpa [← inner_toDual_symm_eq_self] using h' _ _ h'' ..
-
 lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
     (h : IsGaussianProcess (Sum.elim X Y) P) (hX : ∀ s, Measurable (X s))
     (hY : ∀ t, Measurable (Y t)) (h' : ∀ s t, cov[X s, Y t; P] = 0) :
     IndepFun (fun ω s ↦ X s ω) (fun ω t ↦ Y t ω) P :=
-  h.indepFun' hX hY fun _ _ _ _ ↦ by
+  h.indepFun_of_covariance_inner hX hY fun _ _ _ _ ↦ by
     simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h']
 
 lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
@@ -216,7 +177,7 @@ lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
     (hX : ∀ t s, Measurable (X t s))
     (h' : ∀ t₁ t₂, t₁ ≠ t₂ → ∀ (s₁ : S t₁) (s₂ : S t₂), cov[X t₁ s₁, X t₂ s₂; P] = 0) :
     ProbabilityTheory.iIndepFun (fun t ω s ↦ X t s ω) P :=
-  h.iIndepFun' hX fun _ _ h'' _ _ _ _ ↦ by
+  h.iIndepFun_of_covariance_inner hX fun _ _ h'' _ _ _ _ ↦ by
     simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h' _ _ h'']
 
 end ProbabilityTheory

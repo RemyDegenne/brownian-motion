@@ -17,7 +17,6 @@ lemma HasGaussianLaw.charFun_toLp_pi {X : ι → Ω → ℝ} (hX : HasGaussianLa
     (ξ : EuclideanSpace ℝ ι) :
     charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
       exp (∑ i, ξ i * P[X i] * I - ∑ i, ∑ j, (ξ i : ℂ) * ξ j * (cov[X i, X j; P] / 2)) := by
-  -- sorry
   have := hX.isProbabilityMeasure
   nth_rw 1 [(hX.toLp_pi 2).isGaussian_map.charFun_eq', covarianceBilin_apply_pi,
     EuclideanSpace.real_inner_eq]
@@ -61,62 +60,6 @@ lemma HasGaussianLaw.charFun_toLp_prodMk {X Y : Ω → ℝ} (hXY : HasGaussianLa
 end charFun
 
 variable [Finite ι]
-
-open ContinuousLinearMap in
-lemma HasGaussianLaw.iIndepFun_of_cov {E : ι → Type*}
-    [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
-    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
-    {X : Π i, Ω → (E i)} (h : HasGaussianLaw (fun ω i ↦ X i ω) P)
-    (h' : ∀ i j, i ≠ j → ∀ (L₁ : StrongDual ℝ (E i)) (L₂ : StrongDual ℝ (E j)),
-      cov[L₁ ∘ (X i), L₂ ∘ (X j); P] = 0) :
-    iIndepFun X P := by
-  exact iIndepFun_of_covariance_strongDual h h'
-
-open ContinuousLinearMap in
-lemma HasGaussianLaw.indepFun_of_cov {E F : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E]
-    [CompleteSpace E] [BorelSpace E] [SecondCountableTopology E]
-    [NormedAddCommGroup F] [NormedSpace ℝ F] [MeasurableSpace F]
-    [CompleteSpace F] [BorelSpace F] [SecondCountableTopology F]
-    {X : Ω → E} {Y : Ω → F} (h : HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P)
-    (h' : ∀ (L₁ : StrongDual ℝ E) (L₂ : StrongDual ℝ F), cov[L₁ ∘ X, L₂ ∘ Y; P] = 0) :
-    IndepFun X Y P := by
-  exact indepFun_of_covariance_strongDual h h'
-
-open ContinuousLinearMap RealInnerProductSpace in
-lemma HasGaussianLaw.iIndepFun_of_cov' {E : ι → Type*}
-    [∀ i, NormedAddCommGroup (E i)] [∀ i, InnerProductSpace ℝ (E i)] [∀ i, MeasurableSpace (E i)]
-    [∀ i, CompleteSpace (E i)] [∀ i, BorelSpace (E i)] [∀ i, SecondCountableTopology (E i)]
-    {X : Π i, Ω → (E i)} (h : HasGaussianLaw (fun ω i ↦ X i ω) P)
-    (h' : ∀ i j, i ≠ j → ∀ (x : E i) (y : E j),
-      cov[fun ω ↦ ⟪x, X i ω⟫, fun ω ↦ ⟪y, X j ω⟫; P] = 0) :
-    iIndepFun X P :=
-  iIndepFun_of_covariance_inner h h'
-
-open ContinuousLinearMap RealInnerProductSpace in
-lemma HasGaussianLaw.indepFun_of_cov' {E F : Type*}
-    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [MeasurableSpace E]
-    [CompleteSpace E] [BorelSpace E] [SecondCountableTopology E]
-    [NormedAddCommGroup F] [InnerProductSpace ℝ F] [MeasurableSpace F]
-    [CompleteSpace F] [BorelSpace F] [SecondCountableTopology F]
-    {X : Ω → E} {Y : Ω → F} (h : HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P)
-    (h' : ∀ x y, cov[fun ω ↦ ⟪x, X ω⟫, fun ω ↦ ⟪y, Y ω⟫; P] = 0) :
-    IndepFun X Y P := by
-  exact indepFun_of_covariance_inner h h'
-
-open ContinuousLinearMap RealInnerProductSpace in
-lemma HasGaussianLaw.iIndepFun_of_cov'' {κ : ι → Type*} [∀ i, Finite (κ i)]
-    {X : (i : ι) → κ i → Ω → ℝ} (h : HasGaussianLaw (fun ω i j ↦ X i j ω) P)
-    (h' : ∀ i j, i ≠ j → ∀ k l, cov[X i k, X j l; P] = 0) :
-    iIndepFun (fun i ω j ↦ X i j ω) P := by
-  exact iIndepFun_of_covariance_eval h h'
-
-open ContinuousLinearMap RealInnerProductSpace in
-lemma HasGaussianLaw.indepFun_of_cov'' {κ : Type*} [Finite κ]
-    {X : ι → Ω → ℝ} {Y : κ → Ω → ℝ} (h : HasGaussianLaw (fun ω ↦ (fun i ↦ X i ω, fun j ↦ Y j ω)) P)
-    (h' : ∀ i j, cov[X i, Y j; P] = 0) :
-    IndepFun (fun ω i ↦ X i ω) (fun ω j ↦ Y j ω) P := by
-  exact indepFun_of_covariance_eval h h'
 
 variable {X Y : Ω → ℝ} {μX μY : ℝ} {vX vY : ℝ≥0}
 
@@ -163,12 +106,5 @@ lemma IndepFun.hasGaussianLaw_of_add_real
     have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
     have := h.hasLaw_gaussianReal_of_add h1 h2
     exact this.hasGaussianLaw.isGaussian_map
-
-lemma IndepFun.hasGaussianLaw_sub {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] {X Y : Ω → E} (hX : HasGaussianLaw X P)
-    (hY : HasGaussianLaw Y P) (h : IndepFun X (Y - X) P) :
-    HasGaussianLaw (Y - X) P := by
-  exact hasGaussianLaw_sub_of_sub hX hY h
 
 end ProbabilityTheory

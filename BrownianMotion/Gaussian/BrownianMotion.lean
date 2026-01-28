@@ -184,7 +184,8 @@ lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
     refine HasGaussianLaw.map ?_ _
     exact (incr _ _ (monotone_ofFin' I)).hasGaussianLaw fun i ↦
       incr.indepFun_eval_sub bot_le
-        (monotone_ofFin' I (Fin.castSucc_le_succ i)) h_bot |>.hasGaussianLaw_sub (law _) (law _)
+        (monotone_ofFin' I (Fin.castSucc_le_succ i)) h_bot
+          |>.hasGaussianLaw_sub_of_sub (law _) (law _)
 
 end Increments
 
