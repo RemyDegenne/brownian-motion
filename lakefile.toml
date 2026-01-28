@@ -11,11 +11,6 @@ weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible ta
 weak.linter.mathlibStandardSet = true
 
 [[require]]
-name = "mathlib"
-git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "v4.27.0"
-
-[[require]]
 name = "kolmogorov_extension4"
 git = "https://github.com/RemyDegenne/kolmogorov_extension4"
 
