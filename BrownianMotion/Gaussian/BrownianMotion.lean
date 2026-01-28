@@ -208,7 +208,7 @@ lemma IsPreBrownian.congr {Y : ℝ≥0 → Ω → ℝ} [hX : IsPreBrownian X P] 
     have : ∀ᵐ ω ∂P, ∀ i : I, X i ω = Y i ω := ae_all_iff.2 fun _ ↦ h _
     filter_upwards [this] with ω hω using funext fun i ↦ (hω i).symm
 
-instance IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess X P where
+lemma IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess X P where
   hasGaussianLaw I := (IsPreBrownian.hasLaw I).hasGaussianLaw
 
 lemma IsPreBrownian.aemeasurable [hX : IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
