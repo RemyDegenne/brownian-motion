@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.NNReal
+import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.MultivariateGaussian
 import KolmogorovExtension4.KolmogorovExtension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix
@@ -122,7 +123,8 @@ lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   map_eq := by
     rw [HasGaussianLaw.map_eq_gaussianReal, variance_eval_gaussianProjectiveFamily,
       Real.toNNReal_coe]
-    swap; · sorry
+    swap
+    · sorry
     conv => enter [1, 1, 2]; change fun x ↦ ContinuousLinearMap.proj (R := ℝ) s x
     rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero]
     exact IsGaussian.integrable_id

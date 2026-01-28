@@ -30,7 +30,6 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Continuity.KolmogorovChentsovInequality
 import BrownianMotion.Gaussian.BrownianMotion
 import BrownianMotion.Gaussian.CovMatrix
-import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.Gaussian
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment

@@ -1,5 +1,6 @@
 import BrownianMotion.Gaussian.CovMatrix
-import BrownianMotion.Gaussian.Fernique
+import BrownianMotion.Auxiliary.HasLaw
+import Mathlib.Probability.Distributions.Gaussian.Fernique
 import Mathlib.Probability.Distributions.Gaussian.CharFun
 import Mathlib.Probability.Moments.CovarianceBilinDual
 
@@ -12,24 +13,6 @@ open Complex MeasureTheory WithLp NormedSpace
 open scoped Matrix NNReal Real InnerProductSpace ProbabilityTheory
 
 namespace ProbabilityTheory
-
-section NormedSpace
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
-  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
-
-attribute [simp] ContinuousLinearMap.coe_zero'
-
-end NormedSpace
-
-section InnerProductSpace
-
-variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-  [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
-
-variable [SecondCountableTopology E]
-
-end InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}

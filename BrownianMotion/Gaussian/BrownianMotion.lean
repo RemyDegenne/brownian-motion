@@ -693,7 +693,7 @@ instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
   hasLaw_preBrownian.isPreBrownian
 
 -- for blueprint
-instance isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit :=
+lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit :=
   isPreBrownian_preBrownian.isGaussianProcess
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
@@ -761,7 +761,7 @@ instance IsBrownian_brownian : IsBrownian brownian gaussianLimit :=
   IsPreBrownian.isBrownian_mk
 
 -- for blueprint
-instance isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
+lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
   IsBrownian_brownian.toIsPreBrownian.isGaussianProcess
 
 lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
