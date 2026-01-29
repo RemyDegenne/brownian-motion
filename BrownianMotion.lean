@@ -46,6 +46,7 @@ import BrownianMotion.StochasticIntegral.Komlos
 import BrownianMotion.StochasticIntegral.L2M
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
+import BrownianMotion.StochasticIntegral.LocalizingSequence
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
 import BrownianMotion.StochasticIntegral.OptionalSampling

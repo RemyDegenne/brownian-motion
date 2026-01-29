@@ -3,10 +3,9 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.OptionalSampling
-import Mathlib.Probability.Martingale.Basic
-import BrownianMotion.Auxiliary.Martingale
 
 /-! # Local (sub)martingales
 
@@ -16,9 +15,6 @@ open MeasureTheory Filter TopologicalSpace Function
 open scoped ENNReal
 
 namespace ProbabilityTheory
-
-variable {ι Ω E : Type*} [LinearOrder ι] [NormedAddCommGroup E]
-  {mΩ : MeasurableSpace Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
@@ -44,8 +40,19 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
-variable [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
-  [MeasurableSpace ι] [BorelSpace ι]
+variable [SecondCountableTopology ι] [MeasurableSpace ι] [BorelSpace ι]
+
+lemma IsLocalMartingale.locally_progMeasurable (hX : IsLocalMartingale X 𝓕 P) :
+    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+    (fun ω ↦ (hC ω).right_continuous)) hX
+
+lemma IsLocalSubmartingale.locally_progMeasurable [LE E] (hX : IsLocalSubmartingale X 𝓕 P) :
+    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+    (fun ω ↦ (hC ω).right_continuous)) hX
+
+variable [PseudoMetrizableSpace ι]
 
 omit [NormedSpace ℝ E] [CompleteSpace E] in
 lemma _root_.MeasureTheory.StronglyAdapted.stoppedProcess_indicator
@@ -78,8 +85,8 @@ lemma isStable_martingale :
     isStable_isCadlag X hC τ hτ⟩
 
 /-- Càdlàg submartingales are a stable class. -/
-lemma isStable_submartingale :
-    IsStable 𝓕 (fun (X : ι → Ω → ℝ) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
+lemma isStable_submartingale [LE E] :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
   sorry
 
 end ProbabilityTheory
