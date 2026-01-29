@@ -3,9 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.StochasticIntegral.OptionalSampling
+import BrownianMotion.StochasticIntegral.LocalMartingale
 import Mathlib.Probability.Process.HittingTime
 
 /-! # Locally integrable, class D, class DL
@@ -20,6 +18,60 @@ open scoped ENNReal
 @[simp]
 lemma WithTop.untopA_coe {α : Type*} [Nonempty α] {σ : α} :
     (σ : WithTop α).untopA = σ := rfl
+
+namespace MeasureTheory
+
+variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [MeasurableSpace ι] [BorelSpace ι] [NormedAddCommGroup E] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+  {X : ι → Ω → E} {τ : Ω → WithTop ι} {𝓕 : Filtration ι mΩ}
+
+lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
+    (hX : ProgMeasurable 𝓕 X) (t : ι) :
+    StronglyMeasurable <| uncurry (MeasureTheory.stoppedProcess X (fun _ ↦ t)) := by
+  let g : ι × Ω → (Set.Iic t) × Ω := fun p ↦ (⟨min p.1 t, min_le_right p.1 t⟩, p.2)
+  have hg_meas : Measurable[_, MeasurableSpace.prod inferInstance (𝓕 t)] g := by
+    apply Measurable.prodMk _ (measurable_snd.mono le_rfl (𝓕.le t))
+    fun_prop
+  exact StronglyMeasurable.comp_measurable (hX t) hg_meas
+
+lemma ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop
+    [IsCountablyGenerated (atTop : Filter ι)] (hX : ProgMeasurable 𝓕 X) :
+    StronglyMeasurable (uncurry X) := by
+  rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
+  refine stronglyMeasurable_of_tendsto atTop
+    (fun n ↦ stronglyMeasurable_uncurry_stoppedProcess_const hX (t n)) ?_
+  rw [tendsto_pi_nhds]
+  intro ⟨s, ω⟩
+  apply tendsto_const_nhds.congr'
+  filter_upwards [ht_lim.eventually (Filter.eventually_ge_atTop s)] with n hn
+  simp only [uncurry_apply_pair, MeasureTheory.stoppedProcess]
+  rw [← WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
+
+private lemma ProgMeasurable.stronglyMeasurable_stoppedValue_stoppedProcess
+    [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
+    (hX_prog : ProgMeasurable 𝓕 X) (hτ : IsStoppingTime 𝓕 τ)
+    (σ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) :
+    StronglyMeasurable (stoppedValue
+      (MeasureTheory.stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) σ.1) := by
+  have hY_prog := ProbabilityTheory.isStable_progMeasurable X hX_prog τ hτ
+  have hY_sm := ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hY_prog
+  let idx_map : Ω → ι := fun ω ↦ (σ.val ω).untop (σ.property.2 ω)
+  have h_idx_meas : Measurable[mΩ] idx_map := by
+    have h_emb : MeasurableEmbedding (fun x : ι ↦ (x : WithTop ι)) := by
+      apply Topology.IsEmbedding.measurableEmbedding WithTop.isEmbedding_coe
+      rw [WithTop.range_coe]
+      exact IsOpen.measurableSet isOpen_Iio
+    apply (MeasurableEmbedding.measurable_comp_iff h_emb).mp
+    convert IsStoppingTime.measurable' (m := mΩ) σ.property.1
+    ext
+    simp [idx_map]
+  convert (hY_sm.comp_measurable (h_idx_meas.prodMk measurable_id))
+  ext ω
+  simp only [stoppedValue, uncurry, Function.comp_apply]
+  congr 2
+  rw [WithTop.untopA_eq_untop]
+
+end MeasureTheory
 
 namespace ProbabilityTheory
 
@@ -244,52 +296,6 @@ lemma isStable_stronglyMeasurable_uncurry [SecondCountableTopology ι] :
   exact StronglyMeasurable.indicator (hX.comp_measurable hM)
     (measurableSet_lt measurable_const (hτ.measurable'.comp measurable_snd))
 
-lemma ProgMeasurable.stronglyMeasurable_uncurry_stoppedProcess_const
-    (hX : ProgMeasurable 𝓕 X) (t : ι) :
-    StronglyMeasurable <| uncurry (stoppedProcess X (fun _ ↦ t)) := by
-  let g : ι × Ω → (Set.Iic t) × Ω := fun p ↦ (⟨min p.1 t, min_le_right p.1 t⟩, p.2)
-  have hg_meas : Measurable[_, MeasurableSpace.prod inferInstance (𝓕 t)] g := by
-    apply Measurable.prodMk _ (measurable_snd.mono le_rfl (𝓕.le t))
-    fun_prop
-  exact StronglyMeasurable.comp_measurable (hX t) hg_meas
-
-lemma ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop
-    [IsCountablyGenerated (atTop : Filter ι)] (hX : ProgMeasurable 𝓕 X) :
-    StronglyMeasurable (uncurry X) := by
-  rcases exists_seq_monotone_tendsto_atTop_atTop (α := ι) with ⟨t, -, ht_lim⟩
-  refine stronglyMeasurable_of_tendsto atTop
-    (fun n ↦ stronglyMeasurable_uncurry_stoppedProcess_const hX (t n)) ?_
-  rw [tendsto_pi_nhds]
-  intro ⟨s, ω⟩
-  apply tendsto_const_nhds.congr'
-  filter_upwards [ht_lim.eventually (Filter.eventually_ge_atTop s)] with n hn
-  simp only [uncurry_apply_pair, stoppedProcess]
-  rw [←WithTop.coe_min, WithTop.untopA_coe, min_eq_left hn]
-
-private lemma ProgMeasurable.stronglyMeasurable_stoppedValue_stoppedProcess
-    [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
-    (hX_prog : ProgMeasurable 𝓕 X) (hτ : IsStoppingTime 𝓕 τ)
-    (σ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) :
-    StronglyMeasurable
-      (stoppedValue (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) σ.1) := by
-  have hY_prog := isStable_progMeasurable X hX_prog τ hτ
-  have hY_sm := ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hY_prog
-  let idx_map : Ω → ι := fun ω ↦ (σ.val ω).untop (σ.property.2 ω)
-  have h_idx_meas : Measurable[mΩ] idx_map := by
-    have h_emb : MeasurableEmbedding (fun x : ι ↦ (x : WithTop ι)) := by
-      apply Topology.IsEmbedding.measurableEmbedding WithTop.isEmbedding_coe
-      rw [WithTop.range_coe]
-      exact IsOpen.measurableSet isOpen_Iio
-    apply (MeasurableEmbedding.measurable_comp_iff h_emb).mp
-    convert IsStoppingTime.measurable' (m := mΩ) σ.property.1
-    ext
-    simp [idx_map]
-  convert (hY_sm.comp_measurable (h_idx_meas.prodMk measurable_id))
-  ext ω
-  simp only [stoppedValue, uncurry, Function.comp_apply]
-  congr 2
-  rw [WithTop.untopA_eq_untop]
-
 omit [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] in
 private lemma stoppedValue_stoppedProcess_dominated_le (X : ι → Ω → E) (hτ : IsStoppingTime 𝓕 τ)
     (σ : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) :
@@ -315,6 +321,13 @@ lemma HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag
     (hX1 : StronglyMeasurable (uncurry X)) (hX2 : ∀ ω : Ω, IsCadlag (X · ω)) :
     HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
   sorry
+
+lemma _root_.MeasureTheory.ProgMeasurable.hasStronglyMeasurableSupProcess_of_isCadlag
+    [IsCountablyGenerated (atTop : Filter ι)]
+    (hX_prog : ProgMeasurable 𝓕 X) (hX_cadlag : ∀ ω : Ω, IsCadlag (X · ω)) :
+    HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
+  refine HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag ?_ hX_cadlag
+  exact ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hX_prog
 
 lemma isStable_hasStronglyMeasurableSupProcess [SecondCountableTopology ι] :
     IsStable 𝓕 (HasStronglyMeasurableSupProcess (E := E) (mΩ := mΩ) ·) := by
@@ -426,9 +439,14 @@ lemma HasIntegrableSup.classDL [Nonempty ι] [SecondCountableTopology ι]
   Integrable.classDL hX1 (fun t ↦ hX2.2 t)
 
 lemma HasLocallyIntegrableSup.locally_classDL [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
-    (hX1 : ProgMeasurable 𝓕 X) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
-    Locally (ClassDL · 𝓕 P) 𝓕 X P :=
-  (locally_and_of_isStable isStable_progMeasurable hX1 hX2).mono (fun _ ⟨h1, h2⟩ ↦ h2.classDL h1)
+    (hX1 : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
+    Locally (ClassDL · 𝓕 P) 𝓕 X P := by
+  have h_and : Locally (fun X ↦ ProgMeasurable 𝓕 X ∧ HasIntegrableSup X P) 𝓕 X P := by
+    rw [locally_and]
+    · exact ⟨hX1, hX2⟩
+    · exact isStable_progMeasurable
+    · exact isStable_hasIntegrableSup
+  exact h_and.mono fun X ⟨hX_prog, hX_int⟩ ↦ hX_int.classDL hX_prog
 
 /-- A process of class DL is locally of class D. -/
 lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
@@ -572,17 +590,14 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
   have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_hittingAfter_Ici 𝓕 τ hY1 hY2 h𝓕
   refine ⟨τ, hτ, fun n ↦ ?_⟩
   have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n (by simp) ω
-  have hX5 : StronglyMeasurable (uncurry X) :=
-    ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop hX2
-  have hX6 := HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag hX5 hX1
+  have hX6 :=  hX2.hasStronglyMeasurableSupProcess_of_isCadlag hX1
   let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
   have hX1s : ∀ ω,  IsCadlag fun t ↦ Xs t ω := isStable_isCadlag X (hX1) (τ n) (hτ.isStoppingTime n)
   let rhs := fun (t : ι) (ω : Ω) ↦
     ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
     (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
   constructor
-  · refine HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag ?_ hX1s
-    refine ProgMeasurable.stronglyMeasurable_uncurry_of_isCountablyGenerated_atTop (𝓕 := 𝓕) ?_
+  · refine ProgMeasurable.hasStronglyMeasurableSupProcess_of_isCadlag (𝓕 := 𝓕) ?_ hX1s
     exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
   · intro t
     let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
@@ -679,11 +694,64 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
   [MeasurableSpace ι] [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
   [PseudoMetrizableSpace ι] [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
-lemma hasLocallyIntegrableSup_of_locally_classDL {h𝓕 : 𝓕.IsRightContinuous}
+lemma hasLocallyIntegrableSup_of_locally_classDL (h𝓕 : 𝓕.IsRightContinuous)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
   locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
      isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
+
+lemma locally_classDL_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.IsRightContinuous)
+    (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
+    (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
+    Locally (ClassDL · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P :=
+  ⟨hasLocallyIntegrableSup_of_locally_classDL h𝓕 hX1, fun h_sup ↦ h_sup.locally_classDL hX_prog⟩
+
+lemma locally_classD_iff_locally_classDL (h𝓕 : 𝓕.IsRightContinuous) :
+    Locally (ClassD · 𝓕 P) 𝓕 X P ↔ Locally (ClassDL · 𝓕 P) 𝓕 X P :=
+  ⟨fun hD ↦ hD.mono fun _ hXD ↦ hXD.classDL, fun hDL ↦ locally_classD_of_locally_classDL hDL h𝓕⟩
+
+lemma locally_classD_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.IsRightContinuous)
+    (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
+    (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
+    Locally (ClassD · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P := by
+  rw [locally_classD_iff_locally_classDL h𝓕,
+      locally_classDL_iff_hasLocallyIntegrableSup h𝓕 hX_prog hX1]
+
+/-- A right-continuous, nonnegative submartingale is locally of class D. -/
+lemma _root_.MeasureTheory.Submartingale.locally_classD
+    [NormedSpace ℝ E] [CompleteSpace E] [Lattice E] [HasSolidNorm E]
+    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
+    (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+    (hX_nonneg : 0 ≤ X) :
+    Locally (ClassD · 𝓕 P) 𝓕 X P := by
+  rw [locally_classD_iff_locally_classDL h𝓕]
+  exact locally_of_prop (hX.classDL hC hX_nonneg)
+
+/-- A nonnegative local submartingale is locally of class D. -/
+lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] [Lattice E]
+    [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
+    [MeasureSpace E] [BorelSpace E] [SecondCountableTopology E]
+    [Approximable 𝓕 P]
+    (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
+    Locally (ClassD · 𝓕 P) 𝓕 X P := by
+  refine locally_induction h𝓕 ?_ isStable_classD ?_
+    (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
+  · intro X ⟨hX, hXC, hX_nonneg⟩
+    exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
+  · simp_rw [← and_assoc]
+    rw [locally_and]
+    · constructor
+      · exact hX
+      · exact locally_of_prop hX_nonneg
+    · exact isStable_submartingale
+    · intro X hX τ hτ
+      -- todo: stoppedProcess_nonneg
+      unfold stoppedProcess
+      intro i ω
+      simp only [Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
+      split_ifs with h
+      · exact hX _ _
+      · rfl
 
 end ConditionallyCompleteLinearOrderBot
 
