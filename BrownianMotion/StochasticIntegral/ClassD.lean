@@ -428,7 +428,7 @@ lemma HasIntegrableSup.classDL [Nonempty ι] [SecondCountableTopology ι]
 lemma HasLocallyIntegrableSup.locally_classDL [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
     (hX1 : ProgMeasurable 𝓕 X) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P :=
-  locally_mono_of_stable isStable_progMeasurable hX1 hX2 (fun _ ⟨h1, h2⟩ ↦ h2.classDL h1)
+  (locally_and_of_isStable isStable_progMeasurable hX1 hX2).mono (fun _ ⟨h1, h2⟩ ↦ h2.classDL h1)
 
 /-- A process of class DL is locally of class D. -/
 lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
