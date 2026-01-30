@@ -3,17 +3,9 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.Probability.Moments.Basic
+import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.ENNRealLogExp
-import Mathlib.Analysis.SpecialFunctions.Log.PosLog
-
-import Mathlib.Probability.Notation
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
-import Mathlib.Analysis.Normed.Lp.WithLp
-import Mathlib.Topology.UniformSpace.Cauchy
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-!
 # Komlos lemmas
@@ -455,9 +447,6 @@ lemma convexHull_real_subset_convexHull_ennreal (f : ℕ → Ω → ℝ≥0∞) 
   exact (mem_convexHull_iff (𝕜 := ℝ≥0)).1 hg_mem _ hS (Convex.lift ℝ≥0 hS_conv)
 
 end MeasureTheory
-
-open ContinuousLinearMap PiLp WithLp
-
 
 end ENNReal
 
