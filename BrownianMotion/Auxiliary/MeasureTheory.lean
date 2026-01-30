@@ -23,14 +23,6 @@ theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β
 
 namespace ProbabilityTheory
 
-@[simp]
-lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
-    [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : StrongDual ℝ E) :
-    charFun μ ((InnerProductSpace.toDual ℝ E).symm L) = charFunDual μ L := by
-  rw [charFun_eq_charFunDual_toDualMap]
-  congr with x
-  simp
-
 lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥0}
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
   simp [h]
@@ -243,11 +235,11 @@ lemma covariance_fun_sub_right [IsFiniteMeasure μ]
 
 lemma covariance_fun_div_left :
     cov[fun ω ↦ X ω / c, Y; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_left]
+  simp_rw [← inv_mul_eq_div, covariance_const_mul_left]
 
 lemma covariance_fun_div_right :
     cov[X, fun ω ↦ Y ω / c; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_right]
+  simp_rw [← inv_mul_eq_div, covariance_const_mul_right]
 
 lemma variance_fun_div (hX : AEMeasurable X μ) :
     Var[fun ω ↦ X ω / c; μ] = Var[X; μ] / c ^ 2 := by

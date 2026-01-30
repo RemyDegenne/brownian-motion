@@ -1,6 +1,8 @@
 import BrownianMotion.Auxiliary.LinearAlgebra
 import Mathlib.LinearAlgebra.Matrix.BilinearForm
 import Mathlib.LinearAlgebra.Matrix.SchurComplement
+import Mathlib.Analysis.InnerProductSpace.Positive
+import Mathlib.LinearAlgebra.SesquilinearForm.Star
 
 /-!
 # Continuous bilinear forms
@@ -28,6 +30,8 @@ def toBilinForm : LinearMap.BilinForm 𝕜 E where
   toFun x := f x
   map_add' x y := by simp
   map_smul' m x := by simp
+
+lemma toBilinForm_eq : f.toBilinForm = ContinuousLinearMap.toBilinForm f := rfl
 
 @[simp]
 lemma toBilinForm_apply (x y : E) : f.toBilinForm x y = f x y := rfl
@@ -104,7 +108,7 @@ section toMatrix
 
 /-- A continuous bilinear map on a finite dimensional space can be represented by a matrix. -/
 noncomputable def toMatrix : Matrix n n 𝕜 :=
-  BilinForm.toMatrix b f.toBilinForm
+  LinearMap.BilinForm.toMatrix b f.toBilinForm
 
 @[simp]
 lemma toMatrix_apply (i j : n) : f.toMatrix b i j = f (b i) (b j) := by
@@ -137,7 +141,7 @@ variable (M : Matrix n n 𝕜) (b : Basis n 𝕜 E)
 
 noncomputable
 def ofMatrix : ContinuousBilinForm 𝕜 E :=
-  haveI : FiniteDimensional 𝕜 E := FiniteDimensional.of_fintype_basis b
+  haveI : FiniteDimensional 𝕜 E := Module.Basis.finiteDimensional_of_finite b
   LinearMap.mkContinuous₂OfFiniteDimensional (M.toBilin b)
 
 lemma ofMatrix_apply' (x y : E) : ofMatrix M b x y = M.toBilin b x y := rfl
@@ -224,10 +228,24 @@ lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
   mp h := ⟨h.isSymm, h.isPos⟩
   mpr := fun ⟨h₁, h₂⟩ ↦ ⟨h₁, h₂⟩
 
+lemma isPosSemidef_iff_bilinForm :
+    f.IsPosSemidef ↔ (f.toBilinForm).IsPosSemidef := by
+  rw [isPosSemidef_iff, LinearMap.BilinForm.isPosSemidef_def]
+  simp [ContinuousBilinForm.isSymm_def, LinearMap.BilinForm.isSymm_def,
+    ContinuousBilinForm.isPos_def, LinearMap.BilinForm.isNonneg_def]
+
 variable {f} [Fintype n] [DecidableEq n]
 
+lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
+    (b : Basis n ℝ E) :
+    f.IsPosSemidef ↔ (LinearMap.BilinForm.toMatrix b f).PosSemidef := by
+  classical
+  rw [LinearMap.BilinForm.isPosSemidef_iff, LinearMap.BilinForm.toMatrix]
+  rw [LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
+  rfl
+
 lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
-  rw [isPosSemidef_iff, Matrix.PosSemidef]
+  rw [isPosSemidef_iff, Matrix.posSemidef_iff_dotProduct_mulVec]
   apply and_congr (f.isSymm_iff_isHermitian_toMatrix b)
   rw [isPos_def]
   refine ⟨fun h x ↦ ?_, fun h x ↦ ?_⟩

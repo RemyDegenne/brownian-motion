@@ -1,5 +1,6 @@
 name = "BrownianMotion"
 defaultTargets = ["BrownianMotion"]
+lintDriver = "batteries/runLinter"
 
 [leanOptions]
 pp.unicode.fun = true
@@ -8,10 +9,6 @@ relaxedAutoImplicit = false
 weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible tactic (e.g. `simp`)
 # Enable all mathlib linters: automatically matches what mathlib uses.
 weak.linter.mathlibStandardSet = true
-
-[[require]]
-name = "mathlib"
-git = "https://github.com/leanprover-community/mathlib4.git"
 
 [[require]]
 name = "kolmogorov_extension4"

@@ -6,71 +6,63 @@ Authors: Rémy Degenne
 import BrownianMotion.Continuity.CoveringNumber
 
 /-!
-# HasBoundedInternalCoveringNumber
+# HasBoundedCoveringNumber
 
 -/
 
-open MeasureTheory
+open MeasureTheory Metric
 open scoped ENNReal NNReal
 
-variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c ε : ℝ≥0∞} {d : ℝ}
+variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c : ℝ≥0∞} {ε : ℝ≥0} {d : ℝ}
 
-def HasBoundedInternalCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop :=
-  ∀ ε, ε ≤ EMetric.diam A → internalCoveringNumber ε A ≤ c * ε⁻¹ ^ d
+/-- A set `A` in a pseudoemetric space has bounded covering number with constant `c` and exponent
+`d` if it has finite diameter and for all `ε ∈ (0, diam(A)]`, the covering number of `A`
+at scale `ε` is bounded by `c * ε^{-d}`. -/
+structure HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop where
+  ediam_lt_top : Metric.ediam A < ∞
+  coveringNumber_le : ∀ ε : ℝ≥0, ε ≤ Metric.ediam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
 
-lemma HasBoundedInternalCoveringNumber.internalCoveringNumber_lt_top
-    (h : HasBoundedInternalCoveringNumber A c d) (hε_ne : ε ≠ 0)
+lemma HasBoundedCoveringNumber.coveringNumber_lt_top
+    (h : HasBoundedCoveringNumber A c d) (hε_ne : ε ≠ 0)
     (hc : c ≠ ∞) (hd : 0 ≤ d) :
-    internalCoveringNumber ε A < ⊤ := by
-  by_cases hε_le : ε ≤ EMetric.diam A
-  · suffices (internalCoveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
-    calc (internalCoveringNumber ε A : ℝ≥0∞)
-    _ ≤ c * ε⁻¹ ^ d := h _ hε_le
+    coveringNumber ε A < ⊤ := by
+  by_cases hε_le : ε ≤ Metric.ediam A
+  · suffices (coveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
+    calc (coveringNumber ε A : ℝ≥0∞)
+    _ ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d := h.coveringNumber_le _ hε_le
     _ < ∞ := by
       refine ENNReal.mul_lt_top hc.lt_top ?_
       exact ENNReal.rpow_lt_top_of_nonneg hd (by simp [hε_ne])
-  · calc internalCoveringNumber ε A
-    _ ≤ 1 := internalCoveringNumber_le_one_of_diam_le (not_le.mp hε_le).le
+  · calc coveringNumber ε A
+    _ ≤ 1 := coveringNumber_le_one_of_ediam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
-lemma HasBoundedInternalCoveringNumber.diam_lt_top
-    (h : HasBoundedInternalCoveringNumber A c d) (hd : 0 < d) :
-    EMetric.diam A < ∞ := by
-  specialize h _ le_rfl
-  by_contra!
-  simp only [top_le_iff] at this
-  simp only [this, ENNReal.inv_top, hd, ENNReal.zero_rpow_of_pos, mul_zero, nonpos_iff_eq_zero] at h
-  norm_cast at h
-  simp only [internalCoveringNumber, ENat.iInf_eq_zero, Nat.cast_eq_zero, Finset.card_eq_zero,
-    exists_prop, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff, Set.empty_subset] at h
-  simp [h] at this
-
-lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
-    (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
-    HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by
+lemma HasBoundedCoveringNumber.subset {B : Set T}
+    (h : HasBoundedCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
+    HasBoundedCoveringNumber B (2 ^ d * c) d := by
+  constructor
+  · exact lt_of_le_of_lt (Metric.ediam_mono hBA) h.ediam_lt_top
   intro ε hε_le
-  by_cases hdA : d = 0 ∧ EMetric.diam A = ∞
+  by_cases hdA : d = 0 ∧ Metric.ediam A = ∞
   · simp only [hdA.1, ENNReal.rpow_zero, one_mul, mul_one]
-    specialize h 0 zero_le'
-    simp only [ENNReal.inv_zero, hdA.1, ENNReal.rpow_zero, mul_one] at h
-    calc (internalCoveringNumber ε B : ℝ≥0∞)
-    _ ≤ internalCoveringNumber 0 B := mod_cast internalCoveringNumber_anti zero_le'
-    _ ≤ internalCoveringNumber (0 / 2) A := mod_cast internalCoveringNumber_subset_le (by simp) hBA
-    _ = internalCoveringNumber 0 A := by simp
+    replace h := h.coveringNumber_le 0 (by simp)
+    simp only [hdA.1, ENNReal.rpow_zero, mul_one] at h
+    calc (coveringNumber ε B : ℝ≥0∞)
+    _ ≤ coveringNumber 0 B := mod_cast coveringNumber_anti zero_le'
+    _ ≤ coveringNumber (0 / 2) A := mod_cast coveringNumber_subset_le hBA
+    _ = coveringNumber 0 A := by simp
     _ ≤ c := h
   push_neg at hdA
-  calc (internalCoveringNumber ε B : ℝ≥0∞)
-  _ ≤ internalCoveringNumber (ε / 2) A := by
-    refine mod_cast internalCoveringNumber_subset_le (ne_of_lt ?_) hBA
-    refine (hε_le.trans (EMetric.diam_mono hBA)).trans_lt ?_
-    by_cases hd_zero : d = 0
-    · exact (hdA hd_zero).lt_top
-    · exact h.diam_lt_top (lt_of_le_of_ne' hd hd_zero)
-  _ ≤ c * (ε / 2)⁻¹ ^ d := h _ <| by
-    calc ε / 2 ≤ ε := ENNReal.half_le_self
-    _ ≤ EMetric.diam B := hε_le
-    _ ≤ EMetric.diam A := EMetric.diam_mono hBA
-  _ = 2 ^ d * c * ε⁻¹ ^ d := by
+  calc (coveringNumber ε B : ℝ≥0∞)
+  _ ≤ coveringNumber (ε / 2) A := mod_cast coveringNumber_subset_le hBA
+  _ ≤ c * (ε / 2 : ℝ≥0∞)⁻¹ ^ d := by
+    replace h := h.coveringNumber_le (ε / 2) ?_
+    · simpa using h
+    · simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_ofNat]
+      calc (ε / 2 : ℝ≥0∞) ≤ ε := ENNReal.half_le_self
+      _ ≤ Metric.ediam B := hε_le
+      _ ≤ Metric.ediam A := Metric.ediam_mono hBA
+  _ = 2 ^ d * c * (ε : ℝ≥0∞)⁻¹ ^ d := by
     rw [div_eq_mul_inv, ENNReal.mul_inv (by simp) (by simp), inv_inv,
       ENNReal.mul_rpow_of_nonneg _ _ hd]
     ring
@@ -81,7 +73,7 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
   d_pos : ∀ n, 0 < d n
   isOpen : ∀ n, IsOpen (C n)
   totallyBounded : ∀ n, TotallyBounded (C n)
-  hasBoundedCoveringNumber : ∀ n, HasBoundedInternalCoveringNumber (C n) (c n) (d n)
+  hasBoundedCoveringNumber : ∀ n, HasBoundedCoveringNumber (C n) (c n) (d n)
   mono : ∀ n m, n ≤ m → C n ⊆ C m
   subset_iUnion : A ⊆ ⋃ i, C i
 
@@ -93,10 +85,8 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
   d_pos := by simp
   isOpen n := NNReal.isOpen_Ico_zero
   totallyBounded n := totallyBounded_Ico _ _
-  hasBoundedCoveringNumber n ε hε_le := by
-    simp only [ENNReal.rpow_one]
+  hasBoundedCoveringNumber n := by
     have h_iso : Isometry ((↑) : ℝ≥0 → ℝ) := fun x y ↦ rfl
-    rw [← h_iso.internalCoveringNumber_image]
     have h_image : ((↑) : ℝ≥0 → ℝ) '' (Set.Ico (0 : ℝ≥0) (n + 1)) = Set.Ico (0 : ℝ) (n + 1) := by
       ext x
       simp only [Set.mem_image, Set.mem_Ico, zero_le, true_and]
@@ -104,12 +94,16 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       · rw [← hy_eq]
         exact ⟨y.2, hy⟩
       · exact ⟨⟨x, h.1⟩, h.2, rfl⟩
-    rw [h_image]
     -- todo : extract that have as a lemma
-    have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
+    have h_diam : Metric.ediam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
       rw [← h_iso.ediam_image, h_image]
       simp only [Real.ediam_Ico, sub_zero]
       norm_cast
+    constructor
+    · simp [h_diam]
+    intro ε hε_le
+    simp only [ENNReal.rpow_one]
+    rw [← h_iso.coveringNumber_image, h_image]
     rw [h_diam] at hε_le
     have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
       intro x hx
@@ -120,24 +114,30 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       refine abs_le.mpr ⟨?_, ?_⟩
       · linarith
       · simp [hx.2.le]
-    calc (internalCoveringNumber ε (Set.Ico (0 : ℝ) (n + 1)) : ℝ≥0∞)
-    _ ≤ internalCoveringNumber (ε / 2) (EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
+    calc (coveringNumber ε (Set.Ico (0 : ℝ) (n + 1)) : ℝ≥0∞)
+    _ ≤ coveringNumber (ε / 2) (EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
       gcongr
-      refine internalCoveringNumber_subset_le ?_ this
-      exact ne_top_of_le_ne_top (by finiteness) hε_le
-    _ ≤ 3 * ((n + 1) / 2) / (ε / 2) := by
-      refine (internalCoveringNumber_closedBall_le_three_mul ?_ ?_ ?_).trans_eq (by simp)
+      exact coveringNumber_subset_le this
+    _ ≤ 3 * ((n + 1) / 2 : ℝ≥0) / (ε / 2 : ℝ≥0) := by
+      have h := coveringNumber_closedBall_le_three_mul (r := (n + 1) / 2) (ε := ε / 2)
+        (x := ((n : ℝ) + 1) / 2) ?_ ?_
+      · simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_add,
+          ENNReal.coe_natCast, ENNReal.coe_one, ENNReal.coe_ofNat, Module.finrank_self, pow_one]
+          at h
+        rwa [ENNReal.coe_div (by simp), ENNReal.coe_div (by simp)]
       · simp
-      · finiteness
       · gcongr
+        exact mod_cast hε_le
     _ = 3 * (n + 1) / ε := by
       conv_lhs => rw [mul_div_assoc]
       conv_rhs => rw [mul_div_assoc]
       congr 1
+      simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_add,
+        ENNReal.coe_natCast, ENNReal.coe_one, ENNReal.coe_ofNat]
       simp_rw [div_eq_mul_inv]
       rw [ENNReal.mul_inv (by simp) (by simp), inv_inv, mul_assoc, mul_comm _ (2 : ℝ≥0∞),
         ← mul_assoc _ (2 : ℝ≥0∞), ENNReal.inv_mul_cancel (by simp) (by simp), one_mul]
-    _ = 3 * (n + 1) * ε⁻¹ := by rw [div_eq_mul_inv]
+    _ ≤ 3 * (n + 1) * (ε : ℝ≥0∞)⁻¹ := by rw [div_eq_mul_inv]
   mono n m hnm x hx := by
     simp only [Set.mem_Ico, zero_le, true_and] at hx ⊢
     exact hx.trans_le (mod_cast (by gcongr))

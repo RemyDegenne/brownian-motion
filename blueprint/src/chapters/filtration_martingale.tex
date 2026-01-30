@@ -28,21 +28,41 @@ A process $X : T \to \Omega \to E$ is said to be adapted with respect to a filtr
 A stochastic process $X$ is said to be progressively measurable with respect to a filtration $\mathcal{F}$ if at each point in time $i$, $X$ restricted to $(-\infty, i] \times \Omega$ is measurable with respect to the product $\sigma$-algebra where the $\sigma$-algebra used for $\Omega$ is $\mathcal{F}_i$.
 \end{definition}
 
+\begin{definition}[Right continuous function]\label{def:RightContinuous}
+  \leanok
+  \lean{Function.RightContinuous}
+  Let $T$ be equipped with a partial order and $f : T \to E$ be a function. Then $f$ is right
+  continuous if for all $t \in T$, $\lim_{s \downarrow t} f(s) = f(t)$.
+\end{definition}
+
+\begin{definition}[Cadlag function]\label{def:IsCadlag}
+  \uses{def:RightContinuous}
+  \leanok
+  \lean{IsCadlag}
+  A function $f : T \to E$ is cadlag if it is right continuous and the limit $\lim_{s \uparrow t} f(s)$ exists for all $t \in T$.
+\end{definition}
+
 
 \begin{lemma}\label{lem:Adapted.progMeasurable_of_rightContinuous}
-  \uses{def:adapted, def:ProgMeasurable}
+  \uses{def:adapted, def:ProgMeasurable, def:RightContinuous}
   \leanok
-  \lean{MeasureTheory.Adapted.progMeasurable_of_rightContinuous}
-If a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
+  \lean{MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous}
+Suppose $T$ is a linearly ordered set equipped with the order topology. If $T$ is second countable and a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
 \end{lemma}
 
 \begin{proof}
-  Fixing $t \in T$, we need to show that $X$ restricted to $[0, t] \times \Omega$ is measurable with respect to $\mathcal{B}([0, t]) \otimes \mathcal{F}_t$.
-  To this end, we define a left continuous discrete approximation of $X$ on $[0, t]$ by
-  $$X^n_s = X_{(k + 1)t 2^{-n}} \text{ for } s \in (k t 2^{-n}, (k + 1) t 2^{-n}]$$
-  and $X^n_0 = X_0$. As $X$ is right continuous, it is easy to see that $X^n \to X$ pointwise as $n \to \infty$.
-  Thus, as each $X^n$ is progressively measurable, it follows that $X$ is also progressively measurable
-  (by e.g. using \verb|MeasureTheory.progMeasurable_of_tendsto|).
+  \leanok
+  Fixing $t \in T$, let $S$ be a union of a dense set of $(-\infty,t]$ and the set of points isolated from right in $(-\infty,t]$.
+  As $T$ is second countable, $S$ can be chosen so that it is countable, which means that there exists a surjective function $u: \mathbb{N} \rightarrow S$.
+  We need to show that $X$ restricted to $(-\infty, t] \times \Omega$ is measurable with respect to $\mathcal{B}((-\infty, t]) \otimes \mathcal{F}_t$.
+  To this end, we rearrange the image of the first $n$ numbers under the map $u$ in nondecreasing order, denoted by $v_0\le v_1\le \cdots\le v_n$,
+  and define a left continuous discrete approximation of $X$ on $(-\infty, t]$ by
+  $$X^n_s = \begin{cases}
+    X_{v_0} & \text{if } s \le v_0 \\
+    X_{v_i} & \text{if } s \in (- v_{i-1}, v_i]
+  \end{cases}$$
+  As $X$ is right continuous, it is easy to see that $X^n \to X$ pointwise as $n \to \infty$.
+  Thus, as each $X^n$ is measurable, it follows that $X$ is also measurable (by using \verb|stronglyMeasurable_of_tendsto|).
 \end{proof}
 
 
@@ -94,7 +114,7 @@ Let $X$ be a submartingale. Then for all bounded stopping times $\tau$, the stop
 If $X$ is a martingale and $Y$ is an adapted modification of $X$, then $Y$ is a martingale.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] = Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP = \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -115,7 +135,7 @@ Let then $A \in \mathcal{F}_i$.
 If $X$ is a submartingale and $Y$ is an adapted modification of $X$, then $Y$ is a submartingale.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] \ge Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP \ge \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -225,7 +245,7 @@ A stopping time with respect to some filtration $\mathcal{F}$ indexed by $T$ is 
   \mathlibok
   \lean{MeasureTheory.IsStoppingTime.measurableSpace}
   Given a stopping time $\tau$ on a time index $T$, define
-  $\mathcal{F}_\tau = \bigcup_{t \in T} \{A \in \mathcal{F} \mid A \cap \{\tau \le t\} \in \mathcal{F}_t\}.$
+  $\mathcal{F}_\tau = \bigcap_{t \in T} \{A \in \mathcal{F} \mid A \cap \{\tau \le t\} \in \mathcal{F}_t\}.$
 \end{definition}
 
 
@@ -495,7 +515,7 @@ Fake lemma for the dependency graph. Import this to depend on Definition~\ref{de
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
   \uses{def:rightLimitFiltration, lem:rightLimitFiltration_basic}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
@@ -503,7 +523,7 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 
 \begin{lemma}\label{lem:eqRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous.eq}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
@@ -516,8 +536,8 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
-  \lean{MeasureTheory.Filtration.isRightContinuous_rightCont}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.instIsRightContinuousRightCont}
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
@@ -653,8 +673,200 @@ $$X^{-1}(S) = \bigcup_{n \in \mathbb{N}} \{n\} \times X_n^{-1}(S) = {0} \times X
 Thus, as $\{0\} \times X_0^{-1}(S) \in \Sigma_{\mathcal{F}}$ by construction and $\{n + 1\} \times X_{n + 1}^{-1}(S) = (n, n + 1] \times X_{n + 1}^{-1}(S) \in \Sigma_{\mathcal{F}}$ by Lemma~\ref{lem:predictable_Ioc_prod} and the fact that $X_{n + 1}^{-1}(S) \in \mathcal{F}_n$, we have that $X^{-1}(S) \in \Sigma_{\mathcal{F}}$ as required.
 \end{proof}
 
+\section{Uniformly integrable}
+
+\begin{lemma}\label{lem:condExpUI}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.condExp'}
+  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
+  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
+  there exists some \(\delta > 0\) such that
+  for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
+
+  On the other hand, by Markov's inequality, for any $\lambda > 0$, $i \in \iota$ and $j \in \kappa$ we have that
+  \[P(|P[X_i \mid \mathcal{F}_j]| \ge \lambda) \le \lambda^{-1}P[|P[X_i \mid \mathcal{F}_j]|] \le \lambda^{-1}P[|X_i|].\]
+  Now set \(\lambda := \delta^{-1} \sup_{i \in \iota} P[|X_i|] + 1\). Then for any $i \in \iota$ and $j \in \kappa$ we have that
+  \[P(|P[X_i \mid \mathcal{F}_j]| \ge \lambda) \le \frac{P[|X_i|]}{\delta^{-1} \sup_{k \in \iota} P[|X_k|] + 1} < \delta,\]
+  and so,
+  \begin{align*}
+    P[|P[X_i \mid \mathcal{F}_j]| \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda}]
+    & = P[|P[X_i \mid \mathcal{F}_j] \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda}|] \\
+    & = P[|P[X_i \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda} \mid \mathcal{F}_j]|] \\
+    & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
+    & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
+  \end{align*}
+  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
+\end{proof}
 
 
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale}
+  \uses{def:Martingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue}
+Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
+  \leanok
+By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
+Thus, the result follows by Lemma~\ref{lem:condExpUI} as $\{X_n\}$ is uniformly integrable.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
+  \uses{def:Martingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range}
+Let $X$ be a martingale and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable if for each $k$, $\tau_k$ takes value in a countable set.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:optionalSampling_discrete, lem:condExpUI}
+  Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrableAdd}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.add}
+Let $(X_t)_{t \in T}$ and $(Y_t)_{t \in T}$ be two families of uniformly integrable random variables.
+Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrableDominated}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated}
+Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables. If for all $s$, there exists $t$ such that $\|X_s\| \le \|Y_t\|$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C \ge 0$ such that for $t \in T$, $P[\|Y_t\|^p \mathbb{I}_{\|Y_t\| \ge C}]^{1/p} \le \epsilon$. For all $s$, there exists $t$ such that $\|X_s\|^p \le \|Y_t\|^p$, so $P[\|X_s\|^p \mathbb{I}_{\|X_s\| \ge C}]^{1/p} \le \epsilon$. Thus $X$ is uniformly integrable.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrableDominatedSingleton}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_dominated_singleton} % and MeasureTheory.uniformIntegrable_of_dominated_enorm_singleton
+Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, (possibly infinite) $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrableDominated}
+Because $Y$ is in $L^p$, we deduce that $\{Y\}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableNorm}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.norm}
+If $(X_t)_{t \in T}$ is a family of uniformly integrable random variables, then so is $(\|X_t\|)_{t \in T}$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:uniformIntegrableDominated}
+Apply Lemma~\ref{lem:uniformIntegrableDominated} with $Y := X$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableIffNorm}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_iff_norm}
+Let $(X_t)_{t \in T}$ be a family of uniformly integrable random variables. It is uniformly integrable if and only if $(\|X_t\|)_{t \in T}$ is.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:uniformIntegrableNorm, lem:uniformIntegrableDominated}
+The forward direction is Lemma~\ref{lem:uniformIntegrableNorm}. The converse direction follows from Lemma~\ref{lem:uniformIntegrableDominated} with $Y := (\|X_t\|)_{t \in T}$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrableComp}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.comp}
+If $(X_t)_{t \in T}$ is uniformly integrable and $\phi : S \to T$, then $(X_{\phi(s)})_{s \in S}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+This is immediate from the definition.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_submartingale}
+  \uses{def:Submartingale, def:IsStoppingTime}
+  \leanok
+  \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
+Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
+Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
+We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
+\end{proof}
+
+\begin{lemma}\label{lem:memLp_of_tendstoInMeasure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.memLp_of_tendstoInMeasure}
+  Let $(X_n)_{n \in \mathbb{N}}$ be a sequence of $p$-uniformly integrable stochastic processes and suppose $X_n \to X$
+  in probability as $n \to \infty$. Then, $X$ is $L^p$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
+  to $X$ almost surely. Thus, we have by Fatou's lemma that
+  \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
+  where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_of_tendsto_ae}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_ae_tendsto}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in almost everywhere convergence of sequences of $X$ is $p$-uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
+  \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
+  Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges almost everywhere to $Y$. We have by Fatou's lemma that
+  \[P[\|Y\|^p \mathbb{I}_{S}]^{1/p} = P[\liminf_{n \to \infty} \|X_{t_{n}}\|^p \mathbb{I}_{S}]^{1/p} \le \liminf_{n \to \infty} P[\|X_{t_{n}}\|^p \mathbb{I}_{S}]^{1/p} \le \epsilon.\]
+  This proves that the family of limits in a.e convergence of sequences of $X$ is $p$-uniformly integrable in the measure theory sense. One can prove uniform boundedness of this family by using Fatou's lemma in a similar way.
+\end{proof}
+
+\begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
+  \leanok
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
+  Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is $p$-uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  A subfamily of a $p$-uniformly integrable family is $p$-uniformly integrable. As convergence in probability implies the existence of a subsequence that converges almost everywhere, the family of limits in probability is a subfamily of the family of limits in almost everywhere convergence, which is $p$-uniformly integrable by Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}.
+\end{proof}
+
+\begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
+  \mathlibok
+  \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
+  A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
 
 \section{Optional sampling}
 
@@ -712,151 +924,12 @@ concluding the proof.
   \uses{def:orderClosedTopology, def:isOrderedAddMonoid, def:isOrderedModule, def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Supermartingale.condExp_ae_le_stoppedValue_min_nat}
-Let $X$ be a discrete time submartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
+Let $X$ be a discrete time supermartingale with respect to the filtration $\mathcal{F}$ taking values in a real Banach space $E$. Assume $E$ is an order-closed partial order, an ordered monoid and an ordered module. Let $\tau, \sigma$ be stopping times. Then, if $\tau$ is bounded, we have that almost surely, $X_{\tau \wedge \sigma} \ge P[X_{\tau} \mid \mathcal{F}_{\sigma}]$.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:optionalSampling_discrete_submartingale}
 We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_discrete_submartingale} we obtain that almost surely, $-X_{\tau \wedge \sigma} \le P[-X_{\tau} \mid \mathcal{F}_{\sigma}]$. Multiplying by $-1$ yields the desired result.
-\end{proof}
-
-
-\begin{lemma}\label{lem:condExpUI}
-  \leanok
-  \lean{MeasureTheory.UniformIntegrable.condExp'}
-  If $(X_i)_{i \in \iota}$ is a family of (probabilistically) uniformly integrable functions and $(\mathcal{F}_j)_{j \in \kappa}$ is a family of $\sigma$-algebras,
-  then the family $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}\leanok
-  Since $(X_i)_{i \in \iota}$ is uniformly integrable, it is uniformly bounded in $L^1$, thus so is $(P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}$. Moreover, for any \(\epsilon > 0\),
-  there exists some \(\delta > 0\) such that
-  for any measurable set \(A\) with \(P(A) < \delta\), we have that \(\sup_{i \in \iota} P[|X_i| \mathbb{I}_A] < \epsilon\).
-
-  On the other hand, by Markov's inequality, for any $\lambda > 0$, $i \in \iota$ and $j \in \kappa$ we have that
-  \[P(|P[X_i \mid \mathcal{F}_j]| \ge \lambda) \le \lambda^{-1}P[|P[X_i \mid \mathcal{F}_j]|] \le \lambda^{-1}P[|X_i|].\]
-  Now set \(\lambda := \delta^{-1} \sup_{i \in \iota} P[|X_i|] + 1\). Then for any $i \in \iota$ and $j \in \kappa$ we have that
-  \[P(|P[X_i \mid \mathcal{F}_j]| \ge \lambda) \le \frac{P[|X_i|]}{\delta^{-1} \sup_{k \in \iota} P[|X_k|] + 1} < \delta,\]
-  and so,
-  \begin{align*}
-    P[|P[X_i \mid \mathcal{F}_j]| \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda}]
-    & = P[|P[X_i \mid \mathcal{F}_j] \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda}|] \\
-    & = P[|P[X_i \mathbb{I}_{|P[X_i \mid \mathcal{F}_i]| \ge \lambda} \mid \mathcal{F}_j]|] \\
-    & \le P[P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda} \mid \mathcal{F}_j]] \\
-    & = P[|X_i|\mathbb{I}_{|P[X_i \mid \mathcal{F}_j]| \ge \lambda}] < \epsilon,
-  \end{align*}
-  showing that \((P[X_i \mid \mathcal{F}_j])_{i \in \iota, j \in \kappa}\) is uniformly integrable.
-\end{proof}
-
-
-\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale}
-  \uses{def:Martingale, def:IsStoppingTime}
-  \leanok
-  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue}
-Let $X$ be a martingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:condExpUI}
-  \leanok
-By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that for each $k$, $X_{\tau_k} = P[X_n \mid \mathcal{F}_{\tau_k}]$.
-Thus, the result follows by Lemma~\ref{lem:condExpUI} as $\{X_n\}$ is uniformly integrable.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
-  \uses{def:Martingale, def:IsStoppingTime}
-  \leanok
-  \lean{MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range}
-Let $X$ be a martingale and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $n$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable if for each $k$, $\tau_k$ takes value in a countable set.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:optionalSampling_discrete, lem:condExpUI}
-  Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrableAdd}
-  \leanok
-  \lean{MeasureTheory.UniformIntegrable.add}
-Let $(X_t)_{t \in T}$ and $(Y_t)_{t \in T}$ be two families of uniformly integrable random variables.
-Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}
-The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrableDominated}
-  \leanok
-  \lean{MeasureTheory.uniformIntegrable_of_dominated}
-Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a family of uniformly integrable random variables.. If for all $s$, there exists $t$ such that $\|X_t\| \le \|Y s\|$ almost surely, then $X$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}
-Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C \ge 0$ such that for $t \in T$, $P[\|Y_t\|^p \mathbb{I}_{\|Y_t\| \ge C}]^{1/p} \le \epsilon$. For all $s$, there exists $t$ such that $\|X_s\|^p \le \|Y_t\|^p$, so $P[\|X_s\|^p \mathbb{I}_{\|X_s\| \ge C}]^{1/p} \le \epsilon$. Thus $X$ is uniformly integrable.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrableDominatedSingleton}
-  \leanok
-  \lean{MeasureTheory.uniformIntegrable_of_dominated_singleton}
-Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:uniformIntegrableDominated}
-Because $Y$ is in $L^p$, we deduce that ${Y}$ is uniformly integrable. The conclusion then follows from Lemma~\ref{lem:uniformIntegrableDominated}.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrableComp}
-  \leanok
-  \lean{MeasureTheory.UniformIntegrable.comp}
-If $(X_t)_{t \in T}$ is uniformly integrable and $\phi : S \to T$, then $(X_{\phi(s)})_{s \in S}$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}\leanok
-This is immediate from the definition.
-\end{proof}
-
-\begin{lemma}\label{lem:uniformIntegrable_stoppedValue_submartingale}
-  \uses{def:Submartingale, def:IsStoppingTime}
-  \leanok
-  \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
-Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
-Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
-\end{lemma}
-
-\begin{proof}
-  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:nondecreasing_predictablePart_of_submartingale}
-  \leanok
-  \ref{lem:nondecreasing_predictablePart_of_submartingale}
-Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
-We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:nondecreasing_predictablePart_of_submartingale}.
-\end{proof}
-
-\begin{lemma}\label{lem:memLp_of_tendstoInMeasure}
-  \leanok
-  \lean{MeasureTheory.UniformIntegrable.memLp_of_tendstoInMeasure}
-  Let $(X_n)_{n \in \mathbb{N}}$ be a sequence of $p$-uniformly integrable stochastic processes and suppose $X_n \to X$
-  in probability as $n \to \infty$. Then, $X$ is $L^p$.
-\end{lemma}
-
-\begin{proof}
-  Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
-  to $X$ almost surely. Thus, we have by Fatou's lemma that
-  \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
-  where the last inequality follows as uniform integrability implies that $(X_n)$ is uniform bounded in $L^p$.
-\end{proof}
-
-\begin{lemma}[Vitali convergence theorem]\label{lem:vitali}
-  \mathlibok
-  \lean{MeasureTheory.tendstoInMeasure_iff_tendsto_Lp_finite}
-  A sequence of functions converges in $L^1$ if and only if it converges in probability and is uniformly integrable.
-\end{lemma}
-
-\begin{proof}\leanok
-
 \end{proof}
 
 \begin{definition}[Discrete approximation sequence]\label{def:approxSeq}
@@ -867,8 +940,15 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   discrete approximation of \(\tau\) if \(\tau_n(\Omega)\) is countable for each \(n\) and \(\tau_n \downarrow \tau\) a.s. as \(n \to \infty\).
 \end{definition}
 
-\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+\begin{definition}[Approximable time index]\label{def:approximableTimeIndex}
   \uses{def:IsStoppingTime, def:approxSeq}
+  \leanok
+  \lean{MeasureTheory.Approximable}
+  A time index set \(T\) is said to be approximable if for any stopping time \(\tau : \Omega \to T \cup \{\infty\}\), there exists a discrete approximation sequence \((\tau_n)\) of \(\tau\).
+\end{definition}
+
+\begin{lemma}\label{lem:tendsto_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.tendsto_stoppedValue_discreteApproxSequence}
   Given a right continuous process \(X\) and a discrete approximation sequence \((\tau_n)\) of the stopping time \(\tau\), we have that
@@ -876,6 +956,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{lemma}
 
 \begin{proof}
+  \leanok
   This follows directly as \(X\) is right continuous and \(\tau_n \downarrow \tau\) a.s.
 \end{proof}
 
@@ -892,6 +973,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_discreteApproxSequence}
+  \uses{def:IsStoppingTime, def:approxSeq}
   \leanok
   \lean{MeasureTheory.uniformIntegrable_stoppedValue_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
@@ -905,6 +987,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
+  \uses{def:RightContinuous, def:IsStoppingTime, def:approxSeq}
   \leanok
   \lean{MeasureTheory.tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence}
   Let \(\tau\) be a stopping time bounded by \(t \in T\) and \((\tau_n)\) be a discrete approximation sequence of \(\tau\).
@@ -921,10 +1004,12 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:stoppingTime_approximation}
-  \uses{def:IsStoppingTime}
-  Let $\tau$ be a stopping time on $\overline{\mathbb{R}_+}$ with respect to the filtration $\mathcal{F}$.
-  Then defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
-  we have that for each $n$, $\tau_n$ is a stopping time and $\tau_n \downarrow \tau$ as $n \to \infty$.
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{NNReal.approximable}
+  $T = \mathbb{R}_+$ is an approximable time index. In particular,
+  for any stopping time $\tau$ on $\overline{\mathbb{R}_+}$, defining $\tau_n =  2^{-n} \lceil 2^n \tau \rceil$,
+  we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
 
 \begin{proof}
@@ -935,21 +1020,33 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
   where the last inclusion follows as \(2^{-n} \lfloor 2^n t\rfloor \le t\).
 \end{proof}
 
+\begin{lemma}\label{lem:stoppingTime_approximationNat}
+  \uses{def:IsStoppingTime, def:approximableTimeIndex}
+  \leanok
+  \lean{Nat.approximable}
+  $T = \mathbb{N}$ is an approximable time index.
+\end{lemma}
+\begin{proof}
+  Immediate as we can take \(\tau_n = \tau\) for all \(n\).
+\end{proof}
+
 \begin{lemma}[Optional sampling (continuous time)]\label{lem:optionalSampling}
-  \uses{def:Martingale, def:IsStoppingTime, def:rightContinuous}
-  Let $X$ be a right-continuous martingale with respect to the filtration $\mathcal{F}$. Then for
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
+  \leanok
+  \lean{MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'}
+  Let $X$ be a right-continuous $\mathcal{F}$-martingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} = P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
+  \leanok
+  \uses{lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_martingale,
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] = P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete}) that
   $$X_{\sigma_n \wedge \tau_n} = P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
@@ -961,10 +1058,10 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:optionalSamplingSubmartingale}
-  \uses{def:Submartingale, def:IsStoppingTime, def:rightContinuous}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
   \leanok
   \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a right-continuous submartingale with respect to the filtration $\mathcal{F}$. Then for
+  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximable time index. Then, for
   any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
   $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
 \end{lemma}
@@ -974,9 +1071,8 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
     lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
   Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
 
-  Denoting $\tau_n = 2^{-n} \lceil 2^n \tau \rceil$ and $\sigma_n = 2^{-n} \lceil 2^n \sigma \rceil$ as in
-  Lemma~\ref{lem:stoppingTime_approximation}, $(\tau_n), (\sigma_n)$ are sequences of stopping times
-  decreasing to $\tau$ and $\sigma$ respectively. Now, as $\tau_n, \sigma_n$ take values in a countable set,
+  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
+  As $\tau_n, \sigma_n$ take values in a countable set,
   we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
   $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
   and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
@@ -1003,7 +1099,8 @@ In Mathlib, we have results about convergence of martingales to their limit in d
 
 
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
-  \uses{def:Martingale, def:limitProcess}
+  \uses{def:Martingale, def:limitProcess, def:IsCadlag}
+  \notready
 Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
 Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
 Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
@@ -1044,7 +1141,7 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 \begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
   \uses{def:Submartingale}
   \leanok
-  \lean{ProbabilityTheory.maximal_ineq_countable}
+  \lean{MeasureTheory.Submartingale.ae_bddAbove_Iic, ProbabilityTheory.maximal_ineq_countable}
   Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
   Then for every $M \in I,\lambda > 0$ and $p>1$ we have
   \begin{align*}
@@ -1057,13 +1154,27 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 
 \begin{proof}
   \uses{lem:maximal_ineq}
+  \leanok
 For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
 \begin{align*}
   P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)
   \le \frac{\mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J, i \le M}X_i \ge \lambda}\right]}{\lambda}
   \: .
 \end{align*}
-Then we build a countable increasing sequence of finite sets $J_n$ with $\sup_{i\in I, i\leq M}X_i = \sup_n\sup_{i\in J_n, i \le M}X_i$ and conclude by monotone convergence.
+Then we build a countable increasing sequence of finite sets $J_n$ with $\bigcup_nJ_n=I$.
+Note for any $\lambda' < \lambda$,
+\begin{align*}
+  \lambda' P\left( \sup_{i\in I, i\leq M}X_i>\lambda' \right)
+  &= \lambda' P\left( \bigcup_{i\in I, i\leq M}\{X_i>\lambda'\} \right) \\
+  &= \lambda' \lim_{n\to\infty} P\left( \bigcup_{i\in J_n, i\leq M}\{X_i>\lambda'\} \right) \\
+  &\le \lim_{n\to\infty} \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J_n, i \le M}X_i \ge \lambda'}\right] \\
+  &\le \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in I, i \le M}X_i \ge \lambda'}\right]
+\end{align*}
+Now take $\lambda'\uparrow\lambda$ and use monotone or dominated convergence to derive the desired inequality.
+
+In the above, we first interpret $\sup_{i\in I, i\leq M}X_i$ in extended reals for well-definedness,
+then observe by the (now proved) maximal inequality that $\sup_{i\in I, i\leq M}X_i < \infty$ a.s.\ by taking $\lambda\to\infty$,
+so the supremum is well-defined in $\mathbb{R}$.
 %See 8.1.1 Pascucci.
 \end{proof}
 
@@ -1110,7 +1221,7 @@ We then divide the two sides by $\left(\mathbb{E}\left[\sup_{i \le M}X_i^p \righ
 
 
 \begin{theorem}[Doob Inequality]\label{thm:doob_ineq}
-  \uses{def:Submartingale}
+  \uses{def:Submartingale, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.maximal_ineq}
   Let $X: \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a right-continuous non-negative sub-martingale.
@@ -1135,7 +1246,7 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 
 
 \begin{corollary}[Doob Inequality for normed spaces]\label{cor:doob_ineq_norm}
-  \uses{def:Martingale}
+  \uses{def:Martingale, def:RightContinuous}
   \leanok
   \lean{ProbabilityTheory.maximal_ineq_norm}
   Let $X:\mathbb{R}_+ \to \Omega \to E$ be a right-continuous martingale with values in a normed space $E$.
@@ -1154,6 +1265,7 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 
 
 \begin{theorem}[Doob's Lp inequality in $\mathbb{R}$]\label{thm:doob_lp}
+  \uses{def:Submartingale, def:RightContinuous}
   Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $T, \lambda>0$ and $p>1$ we have
   \begin{align*}
@@ -1179,6 +1291,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 
 
 \begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp_norm}
+  \uses{def:Martingale, def:RightContinuous}
   Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $T, \lambda>0$ and $p>1$ we have
   \begin{align*}
@@ -1200,7 +1313,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 
 
 \begin{lemma}[Stopped Submartingale]\label{lem:Submartingale.stoppedProcess_of_cadlag}
-  \uses{def:Submartingale, def:stoppedProcess}
+  \uses{def:Submartingale, def:stoppedProcess, def:IsCadlag, def:IsStoppingTime}
   Let $X:\mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a cadlag submartingale and $\tau$ a stopping time.
   Then the stopped process $X^\tau$ is a submartingale.
 \end{lemma}
@@ -1211,6 +1324,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{lemma}[Doob Inequality for stopping times]\label{lem:doob_ineq_stop}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1223,6 +1337,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{corollary}[Doob Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop}
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1236,6 +1351,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{lemma}[Doob's Lp Inequality for stopping times]\label{lem:doob_ineq_stop_exp_val}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$
@@ -1248,6 +1364,7 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{proof}
 
 \begin{corollary}[Doob's Lp Inequality for stopping times in normed spaces]\label{cor:doob_ineq_stop_exp_val}
+  \uses{def:Martingale, def:IsStoppingTime, def:RightContinuous}
   Let $X:\mathbb{R}\times\Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
   For every $\lambda>0$ and $p>1$ and $\tau$ stopping time a.s. bounded by $T>0$, we have
   $$

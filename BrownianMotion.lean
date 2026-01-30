@@ -1,7 +1,9 @@
 import BrownianMotion.Auxiliary.Adapted
 import BrownianMotion.Auxiliary.Algebra
+import BrownianMotion.Auxiliary.Analysis
 import BrownianMotion.Auxiliary.ContinuousBilinForm
 import BrownianMotion.Auxiliary.ENNReal
+import BrownianMotion.Auxiliary.Filtration
 import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.HasGaussianLaw
 import BrownianMotion.Auxiliary.HasLaw
@@ -15,6 +17,7 @@ import BrownianMotion.Auxiliary.Metric
 import BrownianMotion.Auxiliary.NNReal
 import BrownianMotion.Auxiliary.Nat
 import BrownianMotion.Auxiliary.Real
+import BrownianMotion.Auxiliary.SetAlgebra
 import BrownianMotion.Auxiliary.StoppedProcess
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
@@ -27,7 +30,6 @@ import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Continuity.KolmogorovChentsovInequality
 import BrownianMotion.Gaussian.BrownianMotion
 import BrownianMotion.Gaussian.CovMatrix
-import BrownianMotion.Gaussian.Fernique
 import BrownianMotion.Gaussian.Gaussian
 import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.Moment
@@ -41,14 +43,17 @@ import BrownianMotion.StochasticIntegral.ClassD
 import BrownianMotion.StochasticIntegral.DoobLp
 import BrownianMotion.StochasticIntegral.DoobMeyer
 import BrownianMotion.StochasticIntegral.Komlos
+import BrownianMotion.StochasticIntegral.L2M
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import BrownianMotion.StochasticIntegral.LocalMonad
+import BrownianMotion.StochasticIntegral.LocalizingSequence
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.MathlibImports
 import BrownianMotion.StochasticIntegral.OptionalSampling
 import BrownianMotion.StochasticIntegral.Predictable
 import BrownianMotion.StochasticIntegral.QuadraticVariation
 import BrownianMotion.StochasticIntegral.SimpleProcess
+import BrownianMotion.StochasticIntegral.SquareIntegrable
 import BrownianMotion.StochasticIntegral.UniformIntegrable
 import BrownianMotion.Verso.Brownian
 import BrownianMotion.Verso.Processes

@@ -53,7 +53,7 @@ which concludes the proof.
 \begin{lemma}\label{lem:adapted_predictablePart}
   \uses{def:predictablePart}
   \mathlibok
-  \lean{MeasureTheory.adapted_predictablePart}
+  \lean{MeasureTheory.stronglyAdapted_predictablePart}
 The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \in \mathbb{N}}$.
 \end{lemma}
 
@@ -511,8 +511,8 @@ Define $M^n_t$ on $[0,T]$ using $M^n_t=\mathbb{E}[M^n_T\vert\mathcal{F}_t]$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:mg_is_cadlag}
-  By theorem \ref{lem:mg_is_cadlag}
+  \uses{thm:Martingale.exists_cadlag_modification}
+  By theorem \ref{thm:Martingale.exists_cadlag_modification}
 \end{proof}
 
 From this point onwards $M^n_t$ will be redefined as the modification from lemma \ref{lem:M_n_cadlag_mg}.
@@ -541,8 +541,8 @@ Let \begin{equation}\label{equation_DM_e6} M_t = \mathbb{E}[M\vert\mathcal{F}_t]
   $M_t$ admits a martingale cadlag modification.
 \end{lemma}
 \begin{proof}
-  \uses{lem:M_cal_converges_L1, lem:mg_is_cadlag}
-  By construction $M_t$ is a martingale and thus by theorem \ref{lem:mg_is_cadlag} admits a cadlag martingale modification
+  \uses{lem:M_cal_converges_L1, thm:Martingale.exists_cadlag_modification}
+  By construction $M_t$ is a martingale and thus by theorem \ref{thm:Martingale.exists_cadlag_modification} admits a cadlag martingale modification
   ($M_t$ is a version of $\mathbb{E}[M\vert\mathcal{F}_t]$ and thus passing to modification does not pose any problem).
 \end{proof}
 

@@ -60,9 +60,9 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous'
     IsStoppingTime 𝓕 τ := by
   intro i
   by_cases hmax : IsMax i
-  · rw [h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
+  · rw [← h𝓕.eq, 𝓕.rightCont_eq_of_isMax hmax]
     exact hτ2 i hmax
-  rw [h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
+  rw [← h𝓕.eq, 𝓕.rightCont_eq_of_not_isMax hmax]
   rw [not_isMax_iff] at hmax
   obtain ⟨j, hj⟩ := hmax
   obtain ⟨u, hu₁, hu₂, hu₃⟩ := exists_seq_strictAnti_tendsto' hj
@@ -112,5 +112,10 @@ lemma IsStoppingTime.iInf {𝓕 : Filtration ι mΩ} {τ : ℕ → Ω → WithTo
   · exact MeasurableSet.iInter <| fun n ↦ MeasurableSet.iInter <| fun hn ↦ (hτ n).measurableSet_ge i
   · ext ω
     simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_lt, le_iInf_iff, Set.mem_iInter]
+
+lemma stoppedProcess_min_eq_stoppedProcess {ι Ω E : Type*} [Nonempty ι] [LinearOrder ι]
+    (X : ι → Ω → E) (τ : Ω → WithTop ι) {i j : ι} (hij : i ≤ j) :
+    stoppedProcess X (fun ω ↦ min j (τ ω)) i = stoppedProcess X τ i := by
+  simp [stoppedProcess_eq_stoppedValue, ← min_assoc, min_eq_left (WithTop.coe_le_coe.2 hij)]
 
 end MeasureTheory

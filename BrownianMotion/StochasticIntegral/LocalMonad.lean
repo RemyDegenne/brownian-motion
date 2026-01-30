@@ -28,30 +28,32 @@ abbrev StableCat (E : Type*) [Zero E] (𝓕 : Filtration ι mΩ) :=
 def Local (P : Measure Ω) (p : StableCat E 𝓕) : StableCat E 𝓕 :=
   ⟨(Locally p.1 𝓕 · P), p.2.isStable_locally⟩
 
-/-- The local functor is monotone. -/
-lemma LocalMono (P : Measure Ω) {p q : StableCat E 𝓕} (h : p ⟶ q) (u : ι → Ω → E) :
-    (Local P p).1 u ≤ (Local P q).1 u :=
-  Locally.mono <| fun v ↦ leOfHom <| h v
+-- TODO: restore the lemmas below. They broke after a bump to 4.27.0
 
-/-- The local functor. -/
-noncomputable
-def LocalFunctor (P : Measure Ω) : StableCat E 𝓕 ⥤ StableCat E 𝓕 where
-  obj X := Local P X
-  map f _ := homOfLE <| LocalMono P f _
-  map_id _ := rfl
-  map_comp _ _ := rfl
+-- /-- The local functor is monotone. -/
+-- lemma LocalMono (P : Measure Ω) {p q : StableCat E 𝓕} (h : p ⟶ q) (u : ι → Ω → E) :
+--     (Local P p).1 u ≤ (Local P q).1 u :=
+--   Locally.mono <| fun v ↦ leOfHom <| h v
 
-variable [IsFiniteMeasure P] [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
-    [SecondCountableTopology ι]
+-- /-- The local functor. -/
+-- noncomputable
+-- def LocalFunctor (P : Measure Ω) : StableCat E 𝓕 ⥤ StableCat E 𝓕 where
+--   obj X := Local P X
+--   map f _ := homOfLE <| LocalMono P f _
+--   map_id _ := rfl
+--   map_comp _ _ := rfl
 
-/-- The Stable properties form a monad with the local functor. -/
-noncomputable
-def StableMonad (h𝓕 : IsRightContinuous 𝓕) :
-    Monad (StableCat E 𝓕) where
-  toFunctor := LocalFunctor P
-  η := { app _ _ := homOfLE locally_of_prop
-         naturality _ _ _ := rfl }
-  μ := { app p _ := homOfLE (locally_locally h𝓕 p.2).1
-         naturality _ _ _ := rfl }
+-- variable [IsFiniteMeasure P] [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
+--     [SecondCountableTopology ι]
+
+-- /-- The Stable properties form a monad with the local functor. -/
+-- noncomputable
+-- def StableMonad (h𝓕 : IsRightContinuous 𝓕) :
+--     Monad (StableCat E 𝓕) where
+--   toFunctor := LocalFunctor P
+--   η := { app _ _ := homOfLE locally_of_prop
+--          naturality _ _ _ := rfl }
+--   μ := { app p _ := homOfLE (locally_locally h𝓕 p.2).1
+--          naturality _ _ _ := rfl }
 
 end ProbabilityTheory
