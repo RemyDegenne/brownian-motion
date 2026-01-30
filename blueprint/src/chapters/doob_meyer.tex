@@ -167,6 +167,7 @@ Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:komlos_convex}
 Consider $\phi : H \to \mathbb{R}_+$ defined by $\phi(f) = \|f\|_2^2$, which is convex.
 Then Lemma \ref{lem:komlos_convex} applied to $(f_n)_{n\in\mathbb{N}}$ and $\phi$ gives us functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that for every $\delta>0$ there exists $N$ such that for $n,m\geq N$, $(g_n,g_m)\notin S_\delta$.
