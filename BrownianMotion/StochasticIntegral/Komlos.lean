@@ -83,25 +83,24 @@ lemma komlos_convex [AddCommMonoid E] [Module ℝ≥0 E]
 lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     {f : ℕ → E} (h_bdd : ∃ M : ℝ, ∀ n, ‖f n‖ ≤ M) :
     ∃ (g : ℕ → E) (x : E), (∀ n, g n ∈ convexHull ℝ≥0 (Set.range fun m ↦ f (n + m))) ∧
-    Tendsto g atTop (𝓝 x) := by
-  let φ : E → ℝ := fun f ↦ ‖f‖^2
-  have φ_nonneg : 0 ≤ φ := (fun f ↦ sq_nonneg ‖f‖)
+      Tendsto g atTop (𝓝 x) := by
+  let φ : E → ℝ := fun f ↦ ‖f‖ ^ 2
+  have φ_nonneg : 0 ≤ φ := fun f ↦ sq_nonneg ‖f‖
   have φ_bdd : ∃ M : ℝ, ∀ n, φ (f n) ≤ M := by
     rcases h_bdd with ⟨M, hM⟩
-    exact ⟨M ^ 2, fun n => pow_le_pow_left₀ (norm_nonneg _) (hM n) 2⟩
+    exact ⟨M ^ 2, fun n ↦ pow_le_pow_left₀ (norm_nonneg _) (hM n) 2⟩
   rcases komlos_convex φ_nonneg φ_bdd with ⟨g, hg, h⟩
   use g
   have parallelogram_identity (x y : E) :
       2⁻¹ * ‖x‖ ^ 2 + 2⁻¹ * ‖y‖ ^ 2 - ‖(2 : ℝ≥0)⁻¹ • (x + y)‖ ^ 2 = ‖y - x‖ ^ 2 / 4 := by
-      intro x y
-      have : (2 : ℝ≥0)⁻¹ • (x + y) = (2 : ℝ)⁻¹ • (x + y) := by rfl
-      rw [this, norm_smul_of_nonneg (by norm_num), mul_pow, add_comm x y]
-      let para := parallelogram_law_with_norm ℝ y x
-      linear_combination -para/4
+    have : (2 : ℝ≥0)⁻¹ • (x + y) = (2 : ℝ)⁻¹ • (x + y) := by rfl
+    rw [this, norm_smul_of_nonneg (by norm_num), mul_pow, add_comm x y]
+    let para := parallelogram_law_with_norm ℝ y x
+    linear_combination - para / 4
   have g_cauchy : CauchySeq g := by
     rw [Metric.cauchySeq_iff]
     intro δ δpos
-    rcases h (δ ^ 2/4) (by positivity) with ⟨N, hn⟩
+    rcases h (δ ^ 2 / 4) (by positivity) with ⟨N, hn⟩
     use N
     intro m mgeN n ngeN
     specialize hn n m ngeN mgeN
@@ -111,8 +110,7 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
     rw [dist_eq_norm]
     exact (pow_lt_pow_iff_left₀ (norm_nonneg (g m - g n)) (by positivity) (by norm_num)).mp this
   rcases CompleteSpace.complete g_cauchy with ⟨x, hx⟩
-  exact ⟨x, g, hg, hx⟩
-
+  exact ⟨x, hg, hx⟩
 
 -- todo: check measurability hypothesis/conclusion
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
