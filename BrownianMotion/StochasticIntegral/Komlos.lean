@@ -13,6 +13,7 @@ import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 import Mathlib.Analysis.Normed.Lp.WithLp
+import Mathlib.Topology.UniformSpace.Cauchy
 
 /-!
 # Komlos lemmas
