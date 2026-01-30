@@ -274,11 +274,11 @@ lemma _root_.IsCoverWithBoundedCoveringNumber.HasBoundedCoveringNumber_univ
   refine ⟨?_, fun ε hε ↦ ?_⟩
   · refine lt_of_le_of_lt (le_of_eq ?_) h.ediam_lt_top
     -- missing lemma
-    unfold EMetric.diam
+    unfold Metric.ediam
     simp [iSup_subtype]
   replace h := h.coveringNumber_le ε (hε.trans_eq ?_)
   swap
-  · unfold EMetric.diam
+  · unfold Metric.ediam
     simp [iSup_subtype]
   refine le_of_eq_of_le ?_ h
   simp only [ENat.toENNReal_inj]
@@ -391,7 +391,7 @@ lemma holderOnWith_of_mem_holderSet (hT : HasBoundedCoveringNumber U c d)
     HolderOnWith (C ω ^ p⁻¹).toNNReal β (fun (t : T') ↦ X t ω) {t' | (t' : T) ∈ U} := by
   intro s hs t ht
   have h_edist_lt_top : edist s t < ∞ := by
-    calc edist s t ≤ EMetric.diam U := EMetric.edist_le_diam_of_mem hs ht
+    calc edist s t ≤ Metric.ediam U := Metric.edist_le_ediam_of_mem hs ht
     _ < ∞ := hT.ediam_lt_top
   have h_dist_top : edist s t ^ (β : ℝ) ≠ ∞
   · simp only [ne_eq, ENNReal.rpow_eq_top_iff, NNReal.coe_pos, not_or, not_and, not_lt,
@@ -455,7 +455,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) := by
   refine tendstoInMeasure_of_ne_top fun ε hε hε_top ↦ ?_
   have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le')
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _)
       (fun n ↦ hX.kolmogorovCondition (u n) t)
     have : Tendsto (fun n ↦ edist (u n).1 t) atTop (𝓝 0) := by
       rwa [← tendsto_iff_edist_tendsto_0]
@@ -470,7 +470,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     ext ω
     simp only [Set.mem_setOf_eq]
     rw [ENNReal.rpow_le_rpow_iff hX.p_pos]
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') ?_
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _) ?_
     (h := fun n ↦ (ε ^ p)⁻¹ * ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P)
   · rw [← mul_zero (ε ^ p)⁻¹]
     exact ENNReal.Tendsto.const_mul h_tendsto (by simp [hε_top, hε.ne'])
@@ -1051,7 +1051,7 @@ lemma edist_modification_holderModification (hT : HasBoundedCoveringNumber U c d
     _ = P {ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by rw [hPA]
     _ ≤ P {ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
         + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_add_ge_le_add_measure_ge_half
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le') hP_le
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _) hP_le
   rw [← add_zero (0 : ℝ≥0∞)]
   exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
     (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
@@ -1099,11 +1099,11 @@ lemma exists_modification_holder_aux' (hT : HasBoundedCoveringNumber U c d)
   · obtain ⟨A, hA_meas, hA_ae, hY_tendsto, hYU, hYUc⟩ := hY_limit
     refine ⟨A, hA_meas, hA_ae, hY_tendsto, fun t htU ω ↦ ?_, fun t htU ω ↦ ?_⟩
     · specialize hYU t htU ω
-      refine le_antisymm ?_ zero_le'
+      refine le_antisymm ?_ (zero_le _)
       refine (edist_triangle _ (Y t ω) _).trans ?_
       simpa [hZ_edist]
     · specialize hYUc t htU ω
-      refine le_antisymm ?_ zero_le'
+      refine le_antisymm ?_ (zero_le _)
       refine (edist_triangle _ (Y t ω) _).trans ?_
       simpa [hZ_edist]
 
@@ -1207,10 +1207,10 @@ lemma exists_modification_holder'' (hT : HasBoundedCoveringNumber U c d)
       exact ⟨n, mod_cast hn⟩
     suffices ∃ C, HolderOnWith C (β n) (fun x ↦ Z 0 x ω) U by
       obtain ⟨C, hC⟩ := this
-      refine HolderOnWith.mono_right' hC hn.le (C' := (EMetric.diam U).toNNReal) ?_
-      have h_diam : EMetric.diam U < ∞ := hT.ediam_lt_top
+      refine HolderOnWith.mono_right' hC hn.le (C' := (Metric.ediam U).toNNReal) ?_
+      have h_diam : Metric.ediam U < ∞ := hT.ediam_lt_top
       rw [ENNReal.coe_toNNReal h_diam.ne]
-      exact fun x hx y hy ↦ EMetric.edist_le_diam_of_mem hx hy
+      exact fun x hx y hy ↦ Metric.edist_le_ediam_of_mem hx hy
     simp only [Set.mem_setOf_eq, A] at hω
     obtain ⟨C, hC⟩ := hZ_holder n ω
     refine ⟨C, fun s hs t ht ↦ ?_⟩

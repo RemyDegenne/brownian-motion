@@ -46,7 +46,7 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 \begin{lemma}\label{lem:Adapted.progMeasurable_of_rightContinuous}
   \uses{def:adapted, def:ProgMeasurable, def:RightContinuous}
   \leanok
-  \lean{MeasureTheory.Adapted.progMeasurable_of_rightContinuous}
+  \lean{MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous}
 Suppose $T$ is a linearly ordered set equipped with the order topology. If $T$ is second countable and a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
 \end{lemma}
 
@@ -515,7 +515,7 @@ Fake lemma for the dependency graph. Import this to depend on Definition~\ref{de
 
 \begin{definition}[Right-continuous filtration]\label{def:rightContinuous}
   \uses{def:rightLimitFiltration, lem:rightLimitFiltration_basic}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous}
 We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathcal{F}_t$.
 \end{definition}
@@ -523,7 +523,7 @@ We say that the filtration is \emph{right-continuous} if for all $t \in T$, $\ma
 
 \begin{lemma}\label{lem:eqRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous.eq}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, $\mathcal{F}_t = \mathcal{F}_{t+}$.
 \end{lemma}
@@ -536,8 +536,8 @@ This is a direct consequence of Definition~\ref{def:rightContinuous} and Lemma~\
 
 \begin{lemma}\label{lem:rightContinuousRightCont}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
-  \lean{MeasureTheory.Filtration.isRightContinuous_rightCont}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.instIsRightContinuousRightCont}
 The right continuation of $\mathcal{F}$ is right-continuous.
 \end{lemma}
 
@@ -718,6 +718,7 @@ By optional sampling (Lemma~\ref{lem:optionalSampling_discrete}), we have that f
 Thus, the result follows by Lemma~\ref{lem:condExpUI} as $\{X_n\}$ is uniformly integrable.
 \end{proof}
 
+
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}
   \uses{def:Martingale, def:IsStoppingTime}
   \leanok
@@ -727,9 +728,11 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:optionalSampling_discrete, lem:condExpUI}
   Same proof as in Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale}.
 \end{proof}
+
 
 \begin{lemma}\label{lem:uniformIntegrableAdd}
   \leanok
@@ -743,6 +746,7 @@ Then the family $(X_t + Y_t)_{t \in T}$ is uniformly integrable.
 The families $X$ and $Y$ are uniformly integrable in the measure-theoretic sense and almost-everywhere strongly measurable, so $X + Y$ is too (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/UniformIntegrable.html#MeasureTheory.UnifIntegrable.add}{MeasureTheory.UnifIntegrable.add}). Moreover, $X$ and $Y$ are bounded in $L^p$, so $X + Y$ is too. So $X + Y$ is uniformly integrable.
 \end{proof}
 
+
 \begin{lemma}\label{lem:uniformIntegrableDominated}
   \leanok
   \lean{MeasureTheory.uniformIntegrable_of_dominated}
@@ -753,10 +757,11 @@ Let $(X_s)_{s \in S}$ be a family of random variables and $(Y_t)_{t \in T}$ be a
 Let $\epsilon > 0$. The family $Y$ is uniformly integrable, thus there exists $C \ge 0$ such that for $t \in T$, $P[\|Y_t\|^p \mathbb{I}_{\|Y_t\| \ge C}]^{1/p} \le \epsilon$. For all $s$, there exists $t$ such that $\|X_s\|^p \le \|Y_t\|^p$, so $P[\|X_s\|^p \mathbb{I}_{\|X_s\| \ge C}]^{1/p} \le \epsilon$. Thus $X$ is uniformly integrable.
 \end{proof}
 
+
 \begin{lemma}\label{lem:uniformIntegrableDominatedSingleton}
   \leanok
-  \lean{MeasureTheory.uniformIntegrable_of_dominated_singleton}
-Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
+  \lean{MeasureTheory.uniformIntegrable_of_dominated_singleton} % and MeasureTheory.uniformIntegrable_of_dominated_enorm_singleton
+Let $(X_t)_{t \in T}$ be a family of random variables and $Y$ be a real random variable in $L^p$. If for all $t$, (possibly infinite) $\|X_t\| \le Y$ almost surely, then $X$ is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
@@ -829,7 +834,7 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 
 \begin{lemma}\label{lem:uniformIntegrable_of_tendsto_ae}
   \leanok
-  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendsto_ae}
+  \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_ae_tendsto}
   Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in almost everywhere convergence of sequences of $X$ is $p$-uniformly integrable.
 \end{lemma}
 
@@ -1136,7 +1141,7 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 \begin{lemma}[Doob's maximal Inequality for countable]\label{lem:doob_countable}
   \uses{def:Submartingale}
   \leanok
-  \lean{ProbabilityTheory.maximal_ineq_countable}
+  \lean{MeasureTheory.Submartingale.ae_bddAbove_Iic, ProbabilityTheory.maximal_ineq_countable}
   Let $X : I \rightarrow \Omega \rightarrow \mathbb{R}$ be a non-negative sub-martingale with $I$ countable.
   Then for every $M \in I,\lambda > 0$ and $p>1$ we have
   \begin{align*}
@@ -1149,13 +1154,27 @@ Then for every $n \in \mathbb{N}$ and $\lambda > 0$,
 
 \begin{proof}
   \uses{lem:maximal_ineq}
+  \leanok
 For any finite subset $J \subset I$ with $M \in J$, we have by Lemma~\ref{lem:maximal_ineq}
 \begin{align*}
   P\left( \sup_{i\in J, i \le M}X_i\geq\lambda \right)
   \le \frac{\mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J, i \le M}X_i \ge \lambda}\right]}{\lambda}
   \: .
 \end{align*}
-Then we build a countable increasing sequence of finite sets $J_n$ with $\sup_{i\in I, i\leq M}X_i = \sup_n\sup_{i\in J_n, i \le M}X_i$ and conclude by monotone convergence.
+Then we build a countable increasing sequence of finite sets $J_n$ with $\bigcup_nJ_n=I$.
+Note for any $\lambda' < \lambda$,
+\begin{align*}
+  \lambda' P\left( \sup_{i\in I, i\leq M}X_i>\lambda' \right)
+  &= \lambda' P\left( \bigcup_{i\in I, i\leq M}\{X_i>\lambda'\} \right) \\
+  &= \lambda' \lim_{n\to\infty} P\left( \bigcup_{i\in J_n, i\leq M}\{X_i>\lambda'\} \right) \\
+  &\le \lim_{n\to\infty} \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in J_n, i \le M}X_i \ge \lambda'}\right] \\
+  &\le \mathbb{E}\left[X_{M} \mathbb{I}_{\sup_{i \in I, i \le M}X_i \ge \lambda'}\right]
+\end{align*}
+Now take $\lambda'\uparrow\lambda$ and use monotone or dominated convergence to derive the desired inequality.
+
+In the above, we first interpret $\sup_{i\in I, i\leq M}X_i$ in extended reals for well-definedness,
+then observe by the (now proved) maximal inequality that $\sup_{i\in I, i\leq M}X_i < \infty$ a.s.\ by taking $\lambda\to\infty$,
+so the supremum is well-defined in $\mathbb{R}$.
 %See 8.1.1 Pascucci.
 \end{proof}
 

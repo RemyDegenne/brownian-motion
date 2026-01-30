@@ -3,10 +3,9 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Auxiliary.Martingale
 import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.OptionalSampling
-import Mathlib.Probability.Martingale.Basic
-import BrownianMotion.Auxiliary.Martingale
 
 /-! # Local (sub)martingales
 
@@ -41,37 +40,53 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
     IsLocalSubmartingale X 𝓕 P :=
   locally_of_prop ⟨hX, hC⟩
 
-variable [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
-  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
+variable [SecondCountableTopology ι] [MeasurableSpace ι] [BorelSpace ι]
+
+lemma IsLocalMartingale.locally_progMeasurable (hX : IsLocalMartingale X 𝓕 P) :
+    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+    (fun ω ↦ (hC ω).right_continuous)) hX
+
+lemma IsLocalSubmartingale.locally_progMeasurable [LE E] (hX : IsLocalSubmartingale X 𝓕 P) :
+    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+    (fun ω ↦ (hC ω).right_continuous)) hX
+
+variable [PseudoMetrizableSpace ι]
+
+omit [NormedSpace ℝ E] [CompleteSpace E] in
+lemma _root_.MeasureTheory.StronglyAdapted.stoppedProcess_indicator
+    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
+    {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    StronglyAdapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
+  (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).stronglyAdapted
+
+variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
 
-/-- Martingales are a stable class. -/
-lemma isStable_martingale :
-    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
-  intro X ⟨hX, hC⟩ τ hτ
-  refine ⟨⟨ProgMeasurable.adapted_stoppedProcess ?_ hτ, fun i j hij ↦ ?_⟩,
-    isStable_isCadlag X hC τ hτ⟩
-  · refine Adapted.progMeasurable_of_rightContinuous
-      (fun i ↦ (hX.adapted i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _) (fun ω ↦ ?_)
-    by_cases hω : ω ∈ {ω | ⊥ < τ ω}
-    · simp_rw [Set.indicator_of_mem hω]
-      exact (hC ω).right_continuous
-    · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
-  · have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
-      hX.indicator (hτ.measurableSet_gt _)
-    conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
-    refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
-      (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
-      (fun ω ↦ min_le_left _ _) i)
-    · rw [stoppedProcess_eq_stoppedValue]
-    · by_cases hω : ω ∈ {ω | ⊥ < τ ω}
-      · simp_rw [Set.indicator_of_mem hω]
-        exact (hC ω).right_continuous
-      · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
+    (hX : Martingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+    {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    Martingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P := by
+  refine ⟨hX.stronglyAdapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
+  have : Martingale (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) 𝓕 P :=
+    hX.indicator (hτ.measurableSet_gt _)
+  conv_rhs => rw [← stoppedProcess_min_eq_stoppedProcess _ τ hij]
+  refine EventuallyEq.trans ?_ (Martingale.condExp_stoppedValue_ae_eq_stoppedProcess
+    (μ := P) (n := j) this (fun ω ↦ ?_) ((isStoppingTime_const 𝓕 j).min hτ)
+    (fun ω ↦ min_le_left _ _) i)
+  · rw [stoppedProcess_eq_stoppedValue]
+  · exact rightContinuous_indicator (fun ω ↦ hC ω) {ω | ⊥ < τ ω} ω
 
-/-- Submartingales are a stable class. -/
-lemma isStable_submartingale :
-    IsStable 𝓕 (fun (X : ι → Ω → ℝ) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
+/-- Càdlàg martingales are a stable class. -/
+lemma isStable_martingale :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) :=
+  fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
+    isStable_isCadlag X hC τ hτ⟩
+
+/-- Càdlàg submartingales are a stable class. -/
+lemma isStable_submartingale [LE E] :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
   sorry
 
 end ProbabilityTheory
