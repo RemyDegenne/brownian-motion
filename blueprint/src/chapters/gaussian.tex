@@ -445,7 +445,7 @@ The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
 \begin{lemma}\label{lem:covMatrix_multivariateGaussian}
   \uses{def:multivariateGaussian}
   \leanok
-  \lean{ProbabilityTheory.covInnerBilin_multivariateGaussian}
+  \lean{ProbabilityTheory.covarianceBilin_multivariateGaussian}
 The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $\Sigma$.
 \end{lemma}
 
@@ -492,7 +492,7 @@ This is given by Lemma~\ref{lem:integral_id_multivariateGaussian} and Lemma~\ref
 
 \begin{definition}[Gaussian process]\label{def:IsGaussianProcess}
   \uses{def:IsGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.IsGaussianProcess}
 A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, \ldots, t_n \in T$, the random vector $(X_{t_1}, \ldots, X_{t_n})$ has a Gaussian distribution.
 \end{definition}
@@ -500,8 +500,8 @@ A process $X : T \to \Omega \to E$ is Gaussian if for every finite subset $t_1, 
 
 \begin{lemma}\label{lem:isGaussianProcess_of_modification}
   \uses{def:IsGaussianProcess}
-  \leanok
-  \lean{ProbabilityTheory.IsGaussianProcess.modification}
+  \mathlibok
+  \lean{ProbabilityTheory.IsGaussianProcess.congr}
 Let $X, Y : T \to \Omega \to E$ be two stochastic processes that are modifications of each other (that is, for all $t \in T$, $X_t =_{a.e.} Y_t$).
 If $X$ is a Gaussian process, then $Y$ is a Gaussian process as well.
 \end{lemma}

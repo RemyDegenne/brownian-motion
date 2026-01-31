@@ -27,7 +27,7 @@ variable [SecondCountableTopology E] [MeasurableSpace E] [BorelSpace E]
 
 lemma isPredictable_predictablePart : IsPredictable 𝓕 (predictablePart X 𝓕 μ) :=
   isPredictable_of_measurable_add_one (by simp [measurable_const'])
-    fun n ↦ (adapted_predictablePart n).measurable
+    fun n ↦ (stronglyAdapted_predictablePart n).measurable
 
 -- todo: feel free to replace `Preorder E` by something stonger if needed
 lemma Submartingale.monotone_predictablePart {X : ℕ → Ω → ℝ} (hX : Submartingale X 𝓕 μ) :

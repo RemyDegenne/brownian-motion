@@ -12,6 +12,10 @@
 
 \newcommand{\putbib}{} % we are using bibunits in print.tex, but not here
 
+% \bigsqcap is not correctly rendered (https://github.com/mathjax/MathJax/issues/1588)
+% so we define a fallback.
+\renewcommand{\bigsqcap}{\mathop{\Large\sqcap}}
+
 \input{macros/common}
 \input{macros/web}
 
@@ -29,6 +33,14 @@
 \input{content}
 
 \bibliographystyle{amsalpha}
-\bibliography{bib}
+% HACK: bibunits in print.tex generates bu1.bbl and bu2.bbl, but
+% `leanblueprint pdf` expects a single print.bbl to be copied to web.bbl,
+% which is input by \bibliography.
+% We manually input the bbl files instead of using \bibliography.
+\part*{Bibliography}
+\subsection*{Part 1 Bibliography}
+\input{../print/bu1.bbl}
+\subsection*{Part 2 Bibliography}
+\input{../print/bu2.bbl}
 
 \end{document}

@@ -41,20 +41,16 @@ jobs:
           swap-storage: false
 
       - name: Checkout project
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
         with:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
-      - name: Build the project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # v1.3.0
+      - name: Build and lint project
+        uses: leanprover/lean-action@65f454bc22ec83143241456eee965c2ab702ba6e # 2026-01-15
         with:
-          use-github-cache: false
-
-      - name: check that BrownianMotion.lean is up to date
-        run: ~/.elan/bin/lake exe mk_all --check
-
-      - name: Lint project
-        run: env LEAN_ABORT_ON_PANIC=1 ~/.elan/bin/lake exe runLinter BrownianMotion
+          build: true
+          lint: true
+          mk_all-check: true
 
       - name: Build Verso Documentation
         run: |
@@ -62,7 +58,7 @@ jobs:
           ./build_manual.sh
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        uses: leanprover-community/docgen-action@3dbd3475a9bc8d22fd786a8f8efe1869457da7cc # 2026-01-15
         with:
           blueprint: true
           homepage: home_page
