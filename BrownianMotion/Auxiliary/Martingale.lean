@@ -51,7 +51,7 @@ lemma Submartingale.indexComap {ι' : Type*} [Preorder ι'] [LE E] (hX : Submart
 
 end
 
-variable {ι Ω E : Type*} [LinearOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+variable {ι Ω E : Type*} [PartialOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} [SigmaFinite P] {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 lemma Martingale.submartingale_convex_comp (hX : Martingale X 𝓕 P) {φ : E → ℝ}
