@@ -3,10 +3,6 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.Auxiliary.Adapted
-import BrownianMotion.StochasticIntegral.ApproxSeq
-import BrownianMotion.StochasticIntegral.Locally
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import Mathlib.Probability.Process.HittingTime
 
