@@ -362,17 +362,18 @@ defect; this used in the L1 Cauchy argument in Part 5.
 
 section MeasureTheory
 
-variable (P : Measure Ω) [IsProbabilityMeasure P]
+variable (P : Measure Ω)
 
 lemma measurable_expInv : Measurable expInv := continuous_expInv.measurable
 
-lemma integrable_expInv_comp {f : Ω → ℝ≥0∞} (hf : Measurable f) : Integrable (expInv ∘ f) P := by
+lemma integrable_expInv_comp [IsFiniteMeasure P] {f : Ω → ℝ≥0∞} (hf : Measurable f) :
+    Integrable (expInv ∘ f) P := by
   refine ⟨((measurable_expInv.comp hf).aestronglyMeasurable), ?_⟩
   apply MeasureTheory.HasFiniteIntegral.of_bounded
   · filter_upwards with i
     simpa [Function.comp_apply, Real.norm_eq_abs, expInv_abs_eq_self] using expInv_le_one _
 
-lemma integrable_defect {f g : Ω → ℝ≥0∞}
+lemma integrable_defect [IsFiniteMeasure P] {f g : Ω → ℝ≥0∞}
    (hf : Measurable f) (hg : Measurable g) : Integrable (fun ω ↦ defect (f ω) (g ω)) P := by
   have h_D_meas : Measurable (fun ω ↦ defect (f ω) (g ω)) := by
     refine Measurable.sub ?_ <| measurable_expInv.comp <| (hf.add hg).const_mul _
@@ -390,7 +391,7 @@ lemma integrable_defect {f g : Ω → ℝ≥0∞}
 noncomputable
 def Defect_val (f g : Ω → ℝ≥0∞) := (∫ ω, (defect (f ω) (g ω)) ∂P)
 
-lemma Defect_val_eq {f g : Ω → ℝ≥0∞} (hf : Measurable f) (hg : Measurable g) :
+lemma Defect_val_eq [IsFiniteMeasure P] {f g : Ω → ℝ≥0∞} (hf : Measurable f) (hg : Measurable g) :
    Defect_val P f g =  2⁻¹ * (∫ (ω : Ω), (f ω).expInv ∂P + ∫ (ω : Ω), (g ω).expInv ∂P) -
     ∫ (ω : Ω), (2⁻¹ * (f ω + g ω)).expInv ∂P := by
   have hfx : Integrable (fun ω ↦ (f ω).expInv) P := integrable_expInv_comp P hf
@@ -402,13 +403,12 @@ lemma Defect_val_eq {f g : Ω → ℝ≥0∞} (hf : Measurable f) (hg : Measurab
   dsimp [Defect_val, defect]
   rwa [integral_sub hmul hmid, integral_const_mul, integral_add hfx]
 
-omit [IsProbabilityMeasure P] in
 lemma defect_val_nonneg (f g : Ω → ℝ≥0∞) : 0 ≤ Defect_val P f g  := by
   apply integral_nonneg
   intro ω
   exact defect_nonneg (f ω) (g ω)
 
-lemma prob_large_diff_le_defect (ε : ℝ) (hε : 0 < ε) :
+lemma prob_large_diff_le_defect [IsFiniteMeasure P] (ε : ℝ) (hε : 0 < ε) :
     ∃ δ > 0, ∀ (f g : Ω → ℝ≥0∞), Measurable f → Measurable g →
       P {ω | ε ≤ dist (f ω).expInv (g ω).expInv} ≤ ENNReal.ofReal (δ⁻¹ * (Defect_val P f g)) := by
   obtain ⟨δ, hδ_pos, hδ⟩ := quantitative_convexity ε hε
@@ -461,7 +461,7 @@ is Cauchy in L1, then extract a subsequence with a.e. convergence, and finally i
 `expInv` using `logNeg` to obtain a.e. convergence of `g_n` itself.
 -/
 
-lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
+lemma komlos_ennreal' (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
     {P : Measure Ω} [IsProbabilityMeasure P] :
     ∃ (Y : ℕ → Ω → ℝ≥0∞) (Y_lim : Ω → ℝ≥0∞),
       (∀ n, Y n ∈ convexHull ℝ≥0∞ (Set.range fun m ↦ X (n + m))) ∧ Measurable Y_lim ∧
@@ -657,3 +657,27 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
   use (ns N - N) + n
   rw [← Nat.add_sub_cancel' (h_ns_ge N)] at nh
   rwa [← add_assoc]
+
+lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
+    {P : Measure Ω} [IsFiniteMeasure P] :
+    ∃ (Y : ℕ → Ω → ℝ≥0∞) (Y_lim : Ω → ℝ≥0∞),
+      (∀ n, Y n ∈ convexHull ℝ≥0∞ (Set.range fun m ↦ X (n + m))) ∧ Measurable Y_lim ∧
+      ∀ᵐ ω ∂P, Tendsto (Y · ω) atTop (𝓝 (Y_lim ω)) := by
+  by_cases hP : P = 0
+  · simp only [hP, ae_zero, eventually_bot, and_true, exists_and_left, exists_and_right]
+    refine ⟨⟨X, fun n ↦ ?_⟩, ⟨0, by fun_prop⟩⟩
+    rw [mem_convexHull_iff]
+    intro s hs _
+    refine hs ?_
+    simp only [mem_range]
+    exact ⟨0, rfl⟩
+  have : IsProbabilityMeasure ((P univ)⁻¹ • P) := by
+    constructor
+    simp only [Measure.smul_apply, smul_eq_mul]
+    rw [ENNReal.inv_mul_cancel]
+    · simp [hP]
+    · simp
+  obtain ⟨Y, Ylim, hY_convex, hYlim_meas, hYlim_tendsto⟩ :=
+    komlos_ennreal' X hX (P := (P univ)⁻¹ • P)
+  refine ⟨Y, Ylim, hY_convex, hYlim_meas, ?_⟩
+  rwa [Measure.ae_ennreal_smul_measure_iff (by simp)] at hYlim_tendsto
