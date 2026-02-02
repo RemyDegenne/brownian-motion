@@ -32,7 +32,7 @@ Let $(E, d_E)$ be a pseudo-metric space.
 
 \begin{definition}[External covering number]\label{def:externalCoveringNumber}
   \uses{def:IsCover}
-  \leanok
+  \mathlibok
   \lean{Metric.externalCoveringNumber}
   The external covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$.
   Denote it by $N^{ext}_\varepsilon(A)$.
@@ -41,7 +41,7 @@ Let $(E, d_E)$ be a pseudo-metric space.
 
 \begin{definition}[Internal covering number]\label{def:internalCoveringNumber}
   \uses{def:IsCover}
-  \leanok
+  \mathlibok
   \lean{Metric.coveringNumber}
   The internal covering number of a set $A \subseteq E$ for $\varepsilon \ge 0$ is the smallest cardinality of an $\varepsilon$-cover of $A$ which is a subset of $A$.
   Denote it by $N^{int}_\varepsilon(A)$.
@@ -57,7 +57,7 @@ A set $c \subseteq E$ is $\varepsilon$-separated if for all $x, y \in c$, $d_E(x
 
 \begin{definition}[Packing number]\label{def:packingNumber}
   \uses{def:IsSeparated}
-  \leanok
+  \mathlibok
   \lean{Metric.packingNumber}
 The packing number of a set $A \subseteq E$ for $\varepsilon > 0$ is the largest cardinality of an $\varepsilon$-separated subset of $A$.
 Denote it by $P_\varepsilon(A)$.
@@ -66,7 +66,7 @@ Denote it by $P_\varepsilon(A)$.
 
 \begin{lemma}\label{lem:externalCoveringNumber_le_internalCoveringNumber}
   \uses{def:externalCoveringNumber, def:internalCoveringNumber}
-  \leanok
+  \mathlibok
   \lean{Metric.externalCoveringNumber_le_coveringNumber}
 $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 \end{lemma}
@@ -78,8 +78,8 @@ $N^{ext}_\varepsilon(A) \le N^{int}_\varepsilon(A)$.
 
 \begin{lemma}\label{lem:internalCoveringNumber_le_packingNumber}
   \uses{def:internalCoveringNumber, def:packingNumber}
-  \leanok
-  \lean{coveringNumber_le_packingNumber}
+  \mathlibok
+  \lean{Metric.coveringNumber_le_packingNumber}
 $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
 \end{lemma}
 
@@ -90,7 +90,7 @@ $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$.
 
 \begin{lemma}\label{lem:packingNumber_two_le_externalCoveringNumber}
   \uses{def:packingNumber, def:externalCoveringNumber}
-  \leanok
+  \mathlibok
   \lean{Metric.packingNumber_two_mul_le_externalCoveringNumber}
 $P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 \end{lemma}
@@ -102,7 +102,7 @@ $P_{2\varepsilon}(A) \le N^{ext}_\varepsilon(A)$.
 
 \begin{lemma}\label{lem:internalCoveringNumber_eq_one_of_diam_le}
   \uses{def:internalCoveringNumber}
-  \leanok
+  \mathlibok
   \lean{Metric.coveringNumber_eq_one_of_ediam_le}
 If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\varepsilon(A) = 1$.
 \end{lemma}
@@ -114,7 +114,7 @@ If $\mathrm{diam}(A) \le \varepsilon$ and $A$ is nonempty, then $N^{int}_\vareps
 
 \begin{lemma}\label{lem:externalCoveringNumber_mono}
   \uses{def:externalCoveringNumber}
-  \leanok
+  \mathlibok
   \lean{Metric.externalCoveringNumber_mono_set}
 For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
 \end{lemma}
@@ -126,8 +126,8 @@ For $B \subseteq A$, $N^{ext}_\varepsilon(B) \le N^{ext}_{\varepsilon}(A)$.
 
 \begin{lemma}\label{lem:internalCoveringNumber_subset_le}
   \uses{def:internalCoveringNumber}
-  \leanok
-  \lean{coveringNumber_subset_le}
+  \mathlibok
+  \lean{Metric.coveringNumber_subset_le}
 For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
 \end{lemma}
 
