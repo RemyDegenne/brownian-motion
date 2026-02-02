@@ -106,7 +106,7 @@ lemma chainingSequenceReverse_mem (hC : ∀ i, IsCover (ε i) A (C i)) (hA : A.N
   | succ n ih =>
     simp only [chainingSequenceReverse_add_one]
     refine nearestPt_mem ?_
-    exact IsCover.Nonempty (hC _) hA
+    exact (hC _).nonempty hA
 
 noncomputable
 def chainingSequence (C : ℕ → Finset E) (x : E) (k n : ℕ) : E :=

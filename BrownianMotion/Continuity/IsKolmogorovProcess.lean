@@ -688,13 +688,13 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     convert this
     simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := by positivity
-  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
-  have hC'_subset n : C' n ⊆ J := minimalCover_subset (hε₀_mul_pos n)
-  have hC'_fin n : (C' n).Finite := finite_minimalCover (hε₀_mul_pos n)
+  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J
+  have hC'_subset n : C' n ⊆ J := minimalCover_subset
+  have hC'_fin n : (C' n).Finite := finite_minimalCover
   have hC'_card n : (C' n).encard = coveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    encard_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   have hC' n : IsCover (ε₀ * 2⁻¹ ^ n) J (C' n) :=
-    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    isCover_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   let C : ℕ → Finset T := fun n ↦ (hC'_fin n).toFinset
   have hC_subset n : (C n : Set T) ⊆ J := by simpa [C] using hC'_subset n
   have hC_card n : #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J := by
@@ -792,13 +792,13 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
     simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   -- introduce covers
   have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := by positivity
-  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
-  have hC'_subset n : C' n ⊆ J := minimalCover_subset (hε₀_mul_pos n)
-  have hC'_fin n : (C' n).Finite := finite_minimalCover (hε₀_mul_pos n)
+  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J
+  have hC'_subset n : C' n ⊆ J := minimalCover_subset
+  have hC'_fin n : (C' n).Finite := finite_minimalCover
   have hC'_card n : (C' n).encard = coveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    encard_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   have hC' n : IsCover (ε₀ * 2⁻¹ ^ n) J (C' n) :=
-    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    isCover_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   let C : ℕ → Finset T := fun n ↦ (hC'_fin n).toFinset
   have hC_subset n : (C n : Set T) ⊆ J := by simpa [C] using hC'_subset n
   have hC_card n : #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J := by
