@@ -19,28 +19,9 @@ import Mathlib.Topology.MetricSpace.CoveringNumbers
 open EMetric Set Metric
 open scoped ENNReal NNReal
 
-
-
 section PseudoEMetricSpace
 
 variable {E : Type*} [PseudoEMetricSpace E] {r ε ε' : ℝ≥0} {A B C : Set E}
-
-lemma Set.Nonempty.one_le_coveringNumber (hA : A.Nonempty) (r : ℝ≥0) :
-    1 ≤ coveringNumber r A := by
-  rw [Order.one_le_iff_pos]
-  simpa
-
-lemma not_isCover_empty (ε : ℝ≥0) (A : Set E) (h_nonempty : A.Nonempty) :
-    ¬ IsCover ε A (∅ : Set E) := by
-  simp [Set.nonempty_iff_ne_empty.mp h_nonempty]
-
-lemma isCover_singleton_finset_of_diam_le {a : E} (hA : Metric.ediam A ≤ ε) (ha : a ∈ A) :
-    IsCover ε A ({a} : Finset E) :=
-  fun x hxA ↦ ⟨a, by simp, (Metric.edist_le_ediam_of_mem hxA ha).trans hA⟩
-
-lemma subset_iUnion_of_isCover (hC : IsCover ε A C) :
-    A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
-  exact isCover_iff_subset_iUnion_emetricClosedBall.mp hC
 
 lemma TotallyBounded.coveringNumber_ne_top (hA : TotallyBounded A) {r : ℝ≥0} (hr : r ≠ 0) :
     coveringNumber r A ≠ ⊤:= by
@@ -365,7 +346,7 @@ lemma coveringNumber_closedBall_ge (ε : ℝ≥0) (x : E) {r : ℝ≥0} (hr : 0 
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
-    exact EMetric.nonempty_closedBall.one_le_coveringNumber _
+    simp [Order.one_le_iff_pos]
   obtain rfl | hε := eq_zero_or_pos ε
   · simp only [coveringNumber_zero]
     rw [Set.encard_eq_top]
