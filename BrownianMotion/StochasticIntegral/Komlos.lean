@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 import Mathlib.Analysis.InnerProductSpace.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.ENNRealLogExp
 import Mathlib.MeasureTheory.Integral.Bochner.Set
+import Mathlib.MeasureTheory.Measure.WithDensityFinite
 
 /-!
 # Komlos lemmas
@@ -659,7 +660,7 @@ lemma komlos_ennreal' (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X
   rwa [← add_assoc]
 
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
-    {P : Measure Ω} [IsFiniteMeasure P] :
+    {P : Measure Ω} [SFinite P] :
     ∃ (Y : ℕ → Ω → ℝ≥0∞) (Y_lim : Ω → ℝ≥0∞),
       (∀ n, Y n ∈ convexHull ℝ≥0∞ (Set.range fun m ↦ X (n + m))) ∧ Measurable Y_lim ∧
       ∀ᵐ ω ∂P, Tendsto (Y · ω) atTop (𝓝 (Y_lim ω)) := by
@@ -671,13 +672,8 @@ lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X 
     refine hs ?_
     simp only [mem_range]
     exact ⟨0, rfl⟩
-  have : IsProbabilityMeasure ((P univ)⁻¹ • P) := by
-    constructor
-    simp only [Measure.smul_apply, smul_eq_mul]
-    rw [ENNReal.inv_mul_cancel]
-    · simp [hP]
-    · simp
+  have : NeZero P := ⟨hP⟩
   obtain ⟨Y, Ylim, hY_convex, hYlim_meas, hYlim_tendsto⟩ :=
-    komlos_ennreal' X hX (P := (P univ)⁻¹ • P)
+    komlos_ennreal' X hX (P := P.toFinite)
   refine ⟨Y, Ylim, hY_convex, hYlim_meas, ?_⟩
-  rwa [Measure.ae_ennreal_smul_measure_iff (by simp)] at hYlim_tendsto
+  exact absolutelyContinuous_toFinite P hYlim_tendsto
