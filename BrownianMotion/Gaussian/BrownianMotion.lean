@@ -499,17 +499,17 @@ lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
       field_simp
     exact one_div_le_one_div_of_le (pos_of_ne_zero hs) hst
 
-/-- A pre-Brownian motion `X` is **filtered** with respect to a filtration `𝓕` if it is adapted 
+/-- A pre-Brownian motion `X` is **filtered** with respect to a filtration `𝓕` if it is adapted
 to `𝓕` and the increments of `X` after time `t` are independent of `𝓕 t` -/
 class IsFilteredPreBrownian (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω) : Prop
   extends IsPreBrownian X P where
-    adap : Adapted 𝓕 X
+    stronglyAdapted : StronglyAdapted 𝓕 X
     indep : ∀ s t, s ≤ t → Indep (MeasurableSpace.comap (X t - X s) inferInstance) (𝓕 s) P
 
 instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
     (hX : ∀ t : ℝ≥0, Measurable (X t)) :
     IsFilteredPreBrownian X (natural X (fun t ↦ (hX t).stronglyMeasurable)) P where
-  adap  := adapted_natural (fun t ↦ (hX t).stronglyMeasurable)
+  stronglyAdapted := stronglyAdapted_natural (fun t ↦ (hX t).stronglyMeasurable)
   indep s t hst := by
     have h := (IndepFun_iff_Indep _ _ _).1 (h.indepFun_shift hX s)
     refine indep_of_indep_of_le_right (indep_of_indep_of_le_left h ?_) ?_
@@ -523,8 +523,8 @@ instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
 
 lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω)
     [IsProbabilityMeasure P] [hX : IsFilteredPreBrownian X 𝓕 P] : Martingale X 𝓕 P := by
-  refine ⟨hX.adap, fun s t hst => ?_⟩
-  have hM := fun t ↦ ((hX.adap t).mono (𝓕.le t)).measurable
+  refine ⟨hX.stronglyAdapted, fun s t hst => ?_⟩
+  have hM := fun t ↦ ((hX.stronglyAdapted t).mono (𝓕.le t)).measurable
   have h_no_cond : P[X t - X s | 𝓕 s] =ᵐ[P] fun _ ↦ P[X t - X s] := by
     refine condExp_indep_eq ?_ (𝓕.le s) ?_ (hX.indep s t hst)
     · exact Measurable.comap_le (Measurable.sub (hM t) (hM s))
@@ -534,10 +534,10 @@ lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration
     _ = ↑0 := by simp [hX.integral_eval]
   calc
     _ = P[(X t - X s) + X s | 𝓕 s] := by simp
-    _ =ᵐ[P] P[X t - X s | 𝓕 s] + P[X s | 𝓕 s] := condExp_add ((Integrable.sub 
+    _ =ᵐ[P] P[X t - X s | 𝓕 s] + P[X s | 𝓕 s] := condExp_add ((Integrable.sub
       (hX.integrable_eval t) (hX.integrable_eval s))) (hX.integrable_eval s) (𝓕 s)
-    _ = P[X t - X s | 𝓕 s] + X s := by 
-      rw [condExp_of_stronglyMeasurable (𝓕.le s) (hX.adap s) (hX.integrable_eval s)]
+    _ = P[X t - X s | 𝓕 s] + X s := by
+      rw [condExp_of_stronglyMeasurable (𝓕.le s) (hX.stronglyAdapted s) (hX.integrable_eval s)]
     _ =ᵐ[P] (fun _ ↦ P[X t - X s]) + X s := by filter_upwards [h_no_cond] with ω hω; simp [hω]
     _ = X s := by aesop
 
