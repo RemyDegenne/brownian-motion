@@ -184,41 +184,45 @@ But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram id
 \begin{lemma}\label{lem:convex_of_converg_seq_is_converg}
   Let $X$ be a normed vector space (over $\mathbb{R}$).
   %For topological spaces we need that a convex combinations of elements of neighborhoods are still in the neighborhood (just like balls). Also for metric space we want that $d(ax,ay)\leq a d(x,y)$ (in lean dist_pair_smul).
-  Let $(x_n)_{n\in\mathbb{N}}$ be a sequence in $X$ converging to $x$ w.r.t. the topology of $X$.
-  Let $(N_n)_{n\in\mathbb{N}}$ be a sequence in $\mathbb{N}$ such that $n\leq N_n$ for every $n\in\mathbb{N}$ (maybe here we could have $N_n$ increasing WLOG).
-  Let $(a_{n,m})_{n\in\mathbb{N},m\in\left\lbrace n,\cdots,N_n\right\rbrace}$ be a triangular array in $\mathbb{R}$ such that $0\leq a_{n,m}\leq 1$ and $\sum_{m=n}^{N_n}a_{n,m}=1$.
-  Then $(\sum_{m=n}^{N_n}a_{n,m}x_m)_{n\in\mathbb{N}}$ converges to $x$ uniformly w.r.t. the triangular array.
+  Let $(x_n)_{n \in \mathbb{N}}$ be a sequence in $X$ converging to $x$ w.r.t. the topology of $X$.
+  Let $(N_n)_{n \in \mathbb{N}}$ be a sequence in $\mathbb{N}$ such that $n \le N_n$ for every $n\in\mathbb{N}$ (maybe here we could have $N_n$ increasing WLOG).
+  Let $(a_{n,m})_{n \in \mathbb{N}, m \in \left\lbrace n, \cdots, N_n \right\rbrace}$ be a triangular array in $\mathbb{R}$ such that $0 \le a_{n,m} \le 1$ and $\sum_{m = n}^{N_n} a_{n, m} = 1$.
+  Then $(\sum_{m = n}^{N_n} a_{n, m} x_m)_{n \in \mathbb{N}}$ converges to $x$ uniformly w.r.t. the triangular array.
 \end{lemma}
 
 \begin{proof}
-  Let $\epsilon>0$.
-  By convergence of $x_n$ we have $\exists \bar{n}$ such that $\forall n\geq\bar{n}$ $|x_n-x|\leq \epsilon$.
-  By triangular inequality it follows that
-  $$
-  |\sum_{m=n}^{N_n}a_{n,m}x_m - x|\leq \sum_{m=n}^{N_n}a_{n,m}|x_m-x|\leq\epsilon.
-  $$
+Let $\epsilon>0$.
+By convergence of $x_n$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, $|x_n-x|\le \epsilon$.
+By triangular inequality it follows that
+\begin{align*}
+  |\sum_{m = n}^{N_n} a_{n, m} x_m - x|
+  \le \sum_{m = n}^{N_n} a_{n, m} |x_m - x|
+  \le \epsilon
+  \: .
+\end{align*}
 \end{proof}
 
 
 \begin{lemma}\label{lem:komlos_convex_aux}
-  For $i,n\in\mathbb{N}$ set $f_{n}^{(i)}:=f_n \mathbb{1}_{(|f_n|\leq i)}$ such that $f_{n}^{(i)}\in L^2$.
-  There exists the sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
-  $ (\lambda_n^{n} f_n^{(i)} + \ldots+\lambda_{N_n}^{n} f_{N_n}^{(i)})_{n\in\mathbb{N}}$
+  For $i, n \in \mathbb{N}$ set $f_{n}^{(i)} := f_n \mathbb{1}_{(|f_n| \le i)}$ such that $f_{n}^{(i)} \in L^2$.
+  There exists a sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
+  $\left(\lambda_n^{n} f_n^{(i)} + \ldots + \lambda_{N_n}^{n} f_{N_n}^{(i)} \right)_{n\in\mathbb{N}}$
   converge in $L^2$ for every $i\in\mathbb{N}$ uniformly.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:komlos_aux, lem:convex_of_converg_seq_is_converg}
-  Firstly by lemma \ref{lem:komlos_aux} over $(f_n^{(1)})_{n\in\mathbb{N}}$ there exist convex weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$ such that
-  $g^1_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf_m^{(1)}$ converges to some $g^1$.
-  Secondly apply the lemma to $(\tilde{g}^2_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf^{(2)}_m)_{n\in\mathbb{N}}$, there exists convex weights $\tilde{\lambda}^n_n,\cdots,\tilde{\lambda}^n_{\tilde{N}_n}$ such that
-  $g^2_n=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(2)}=\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(2)}$ converges to some $g^2$.
-  Notice that $\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(1)}=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(1)}$ and thus this sequence by lemma \ref{lem:convex_of_converg_seq_is_converg} converges still to $g^1$.
-  By iteration we may define $\prescript{i}{}{\lambda}^n_n,\cdots,\prescript{i}{}{\lambda}^n_{N^i_n}$ convex weights such that if used on $(f^j_n)_{n\in\mathbb{N}}$ they make the sequence convergent if $1\leq j\leq i$.
-  At this point consider $\lambda^n_m=\prescript{n}{}{\lambda}^n_m$.
-  Since $\forall m\geq i$ $\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j\rightarrow g^i$ and even better
-  $\forall\epsilon>0$ $\exists\bar{n}$, $\forall n\geq\bar{n}$, $\forall m\geq i$ $|\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j - g^i|\leq\epsilon$
-  (this works by lemma \ref{lem:convex_of_converg_seq_is_converg} uniformity of convergence w.r.t. triangular array) this concludes.
+Firstly by lemma \ref{lem:komlos_aux} over $(f_n^{(1)})_{n\in\mathbb{N}}$ there exist convex weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$ such that
+$g^1_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf_m^{(1)}$ converges to some $g^1$.
+Secondly apply the lemma to $(\tilde{g}^2_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf^{(2)}_m)_{n\in\mathbb{N}}$, there exists convex weights $\tilde{\lambda}^n_n,\cdots,\tilde{\lambda}^n_{\tilde{N}_n}$ such that
+$g^2_n=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(2)}=\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(2)}$ converges to some $g^2$.
+Notice that $\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(1)}=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(1)}$ and thus this sequence by lemma \ref{lem:convex_of_converg_seq_is_converg} converges still to $g^1$.
+By iteration we may define $\prescript{i}{}{\lambda}^n_n,\cdots,\prescript{i}{}{\lambda}^n_{N^i_n}$ convex weights such that if used on $(f^j_n)_{n\in\mathbb{N}}$ they make the sequence convergent if $1\leq j\leq i$.
+
+At this point consider $\lambda^n_m=\prescript{n}{}{\lambda}^n_m$.
+Since $\forall m\geq i$ $\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j\rightarrow g^i$ and even better
+$\forall\epsilon>0$ $\exists\bar{n}$, $\forall n\geq\bar{n}$, $\forall m\geq i$ $|\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j - g^i|\leq\epsilon$
+(this works by lemma \ref{lem:convex_of_converg_seq_is_converg} uniformity of convergence w.r.t. triangular array) this concludes.
 \end{proof}
 
 
