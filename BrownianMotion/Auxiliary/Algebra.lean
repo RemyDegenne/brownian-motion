@@ -10,7 +10,8 @@ attribute [simp] Module.finrank_zero_of_subsingleton
 
 @[simp]
 lemma Module.finrank_ne_zero {R M : Type*} [Ring R] [AddCommGroup M] [Module R M]
-    [StrongRankCondition R] [Module.Finite R M] [NoZeroSMulDivisors R M] [h : Nontrivial M] :
+    [StrongRankCondition R] [Module.Finite R M] [IsDomain R] [IsTorsionFree R M]
+    [h : Nontrivial M] :
     finrank R M ≠ 0 := finrank_pos.ne'
 
 open Finset

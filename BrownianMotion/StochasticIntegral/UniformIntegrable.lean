@@ -69,6 +69,46 @@ lemma uniformIntegrable_of_dominated_singleton [NormedAddCommGroup E] {X : ι �
   uniformIntegrable_of_dominated (κ := ι) (uniformIntegrable_const hp hp_ne_top hY) mX
     <| fun i ↦ ⟨i, by filter_upwards [hX i] with ω hω using hω.trans <| Real.le_norm_self _⟩
 
+lemma norm_le_toReal_of_enorm_le [NormedAddCommGroup E] {r : ℝ≥0∞} (hr : r ≠ ∞) {x : E}
+    (hle : ‖x‖ₑ ≤ r) :
+    ‖x‖ ≤ r.toReal := by
+  -- `‖x‖ₑ = ENNReal.ofReal ‖x‖`; translate the bound via `ofReal_le_iff_le_toReal`.
+  have hx : ENNReal.ofReal ‖x‖ ≤ r := by simpa using hle
+  exact (ENNReal.ofReal_le_iff_le_toReal hr).1 hx
+
+lemma MemLp.enorm_ae_lt_top [TopologicalSpace E] [ContinuousENorm E]
+    {f : Ω → E} {p : ℝ≥0∞} (hlp : MemLp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+    ∀ᵐ x ∂μ, ‖f x‖ₑ < ∞ := by
+  let f_to_p := fun x ↦ ‖f x‖ₑ ^ p.toReal
+  have hf : Integrable f_to_p μ :=
+    MemLp.integrable_enorm_rpow hlp hp_ne_zero hp_ne_top
+  have hfin : ∀ᵐ ω ∂μ, f_to_p ω ≠ ∞ := by
+    refine (ae_lt_top' hf.1.aemeasurable (ne_of_lt hf.2)).mono ?_
+    intro ω hω; exact ne_of_lt hω
+  have hpos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
+  have hpos_ne : p.toReal ≠ 0 := hpos.ne'
+  refine hfin.mono ?_
+  intro x hx
+  have hne : ‖f x‖ₑ ≠ ∞ := by
+    by_contra htop
+    have hpow : (∞ : ℝ≥0∞) ^ p.toReal = ∞ := ENNReal.top_rpow_of_pos hpos
+    have : f_to_p x = ∞ := by simpa [f_to_p, htop] using hpow
+    exact hx this
+  exact lt_of_le_of_ne le_top hne
+
+lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X : ι → Ω → E}
+    {Y : Ω → ℝ≥0∞} (hY : MemLp Y 1 μ)
+    (mX : ∀ i, AEStronglyMeasurable (X i) μ) (hX : ∀ i, ∀ᵐ ω ∂μ, ‖X i ω‖ₑ ≤ Y ω) :
+    UniformIntegrable X 1 μ := by
+  have : ∫⁻ x, Y x ∂μ ≠ ⊤ := by
+    simpa [eLpNorm_one_eq_lintegral_enorm, enorm_eq_self] using ne_of_lt hY.2
+  have hY_fin : ∀ᵐ ω ∂μ, Y ω < ∞ := ae_lt_top' hY.1.aemeasurable this
+  have hY_real : MemLp (fun ω => (Y ω).toReal) 1 μ := mem_L1_toReal_of_lintegral_ne_top
+    hY.1.aemeasurable this
+  refine uniformIntegrable_of_dominated_singleton (by simp) (by simp) hY_real mX fun i => ?_
+  filter_upwards [hX i, hY_fin] with ω hbound hfin
+  exact norm_le_toReal_of_enorm_le hfin.ne hbound
+
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
@@ -202,78 +242,5 @@ lemma tendstoInMeasure_bounded
     (hf : ∀ i, AEStronglyMeasurable (f i) μ) : eLpNorm g p μ ≤ C := by
   obtain ⟨l, hl⟩ := h_tendsto.exists_seq_tendsto_ae'
   exact seq_tendsto_ae_bounded p (fun n => bound (l n)) hl.2 (fun n => hf (l n))
-
-lemma UniformIntegrable.memLp_of_tendstoInMeasure
-    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ℕ → α → β} {f : α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ)
-    (htends : TendstoInMeasure μ fn atTop f) :
-    MemLp f p μ := by
-  refine ⟨htends.aestronglyMeasurable hUI.1, ?_⟩
-  obtain ⟨C, hC⟩ := hUI.2.2
-  exact lt_of_le_of_lt (tendstoInMeasure_bounded p (fun i => hC i) htends (fun i => hUI.1 i))
-    ENNReal.coe_lt_top
-
-lemma UnifIntegrable.unifIntegrable_of_tendsto_ae
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UnifIntegrable fn p μ)
-    (hfn : ∀ i, AEStronglyMeasurable (fn i) μ) :
-    UnifIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
-      ∀ᵐ (x : α) ∂μ, Tendsto (fun n ↦ fn (ni n) x) atTop (nhds (g x))}) ↦ f.1) p μ := by
-  refine fun ε hε => ?_
-  obtain ⟨δ, hδ, hδ'⟩ := hUI hε
-  refine ⟨δ, hδ, fun ⟨f, s, hs⟩ t ht ht' => ?_⟩
-  refine seq_tendsto_ae_bounded p (fun n => hδ' (s n) t ht ht') ?_ ?_
-  · filter_upwards [hs] with a ha
-    by_cases memt : a ∈ t
-    · simpa [memt]
-    · simp [memt]
-  · exact fun n => (hfn (s n)).indicator ht
-
-lemma UnifIntegrable.unifIntegrable_of_tendstoInMeasure
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UnifIntegrable fn p μ)
-    (hfn : ∀ i, AEStronglyMeasurable (fn i) μ) :
-    UnifIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
-      TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
-  refine fun ε hε => ?_
-  obtain ⟨δ, hδ, hδ'⟩ := hUI hε
-  refine ⟨δ, hδ, fun ⟨f, s, hs⟩ t ht ht' => ?_⟩
-  obtain ⟨u, hu⟩ := hs.exists_seq_tendsto_ae
-  refine seq_tendsto_ae_bounded p (fun n => hδ' (s (u n)) t ht ht') ?_ ?_
-  · filter_upwards [hu.2] with a ha
-    by_cases memt : a ∈ t
-    · simpa [memt]
-    · simp [memt]
-  · exact fun n => (hfn (s (u n))).indicator ht
-
-lemma UniformIntegrable.uniformIntegrable_of_tendsto_ae
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
-    UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
-      ∀ᵐ (x : α) ∂μ, Tendsto (fun n ↦ fn (ni n) x) atTop (nhds (g x))}) ↦ f.1) p μ := by
-  refine ⟨fun ⟨f, s, hs⟩ => ?_, hUI.2.1.unifIntegrable_of_tendsto_ae p (fun i => hUI.1 i), ?_⟩
-  · exact aestronglyMeasurable_of_tendsto_ae atTop (fun n => hUI.1 (s n)) hs
-  · obtain ⟨C, hC⟩ := hUI.2.2
-    refine ⟨C, fun ⟨f, s, hs⟩ => ?_⟩
-    exact seq_tendsto_ae_bounded p (fun n => hC (s n)) hs (fun n => hUI.1 (s n))
-
-lemma UniformIntegrable.uniformIntegrable_of_tendstoInMeasure
-    {α β ι : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ι → α → β} (p : ℝ≥0∞) (hUI : UniformIntegrable fn p μ) :
-    UniformIntegrable (fun (f : {g : α → β | ∃ ni : ℕ → ι,
-      TendstoInMeasure μ (fn ∘ ni) atTop g}) ↦ f.1) p μ := by
-  refine ⟨fun ⟨f, s, hs⟩ => ?_, hUI.2.1.unifIntegrable_of_tendstoInMeasure p (fun i => hUI.1 i), ?_⟩
-  · exact hs.aestronglyMeasurable (fun n => hUI.1 (s n))
-  · obtain ⟨C, hC⟩ := hUI.2.2
-    refine ⟨C, fun ⟨f, s, hs⟩ => ?_⟩
-    exact tendstoInMeasure_bounded p (fun n => hC (s n)) hs (fun n => hUI.1 (s n))
-
-lemma UniformIntegrable.integrable_of_tendstoInMeasure
-    {α β : Type*} {m : MeasurableSpace α} {μ : Measure α} [NormedAddCommGroup β]
-    {fn : ℕ → α → β} {f : α → β} (hUI : UniformIntegrable fn 1 μ)
-    (htends : TendstoInMeasure μ fn atTop f) :
-    Integrable f μ := by
-  rw [← memLp_one_iff_integrable]
-  exact hUI.memLp_of_tendstoInMeasure 1 htends
 
 end MeasureTheory

@@ -7,7 +7,7 @@ import BrownianMotion.Auxiliary.ENNReal
 import BrownianMotion.Auxiliary.MeasureTheory
 import BrownianMotion.Auxiliary.Nat
 import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Topology.MetricSpace.Cover
+import Mathlib.Topology.MetricSpace.CoveringNumbers
 
 /-!
 # Covering and packing numbers
@@ -19,392 +19,15 @@ import Mathlib.Topology.MetricSpace.Cover
 open EMetric Set Metric
 open scoped ENNReal NNReal
 
-namespace Metric
-
-variable {X : Type*} [PseudoEMetricSpace X] {A B C : Set X} {ε δ : ℝ≥0} {x : X}
-
-section Definitions
-
-/-- The external covering number of a set `A` in `X` for radius `ε` is the minimal cardinality
-(in `ℕ∞`) of an `ε`-cover by points in `X` (not necessarily in `A`). -/
-noncomputable
-def externalCoveringNumber (ε : ℝ≥0) (A : Set X) : ℕ∞ :=
-  ⨅ (C : Set X) (_ : IsCover ε A C), C.encard
-
-/-- The covering number (or internal covering number) of a set `A` for radius `ε` is
-the minimal cardinality (in `ℕ∞`) of an `ε`-cover contained in `A`. -/
-noncomputable
-def coveringNumber (ε : ℝ≥0) (A : Set X) : ℕ∞ :=
-  ⨅ (C : Set X) (_ : C ⊆ A) (_ : IsCover ε A C), C.encard
-
-/-- The packing number of a set `A` for radius `ε` is the maximal cardinality (in `ℕ∞`)
-of an `ε`-separated set in `A`. -/
-noncomputable
-def packingNumber (ε : ℝ≥0) (A : Set X) : ℕ∞ :=
-  ⨆ (C : Set X) (_ : C ⊆ A) (_ : IsSeparated ε C), C.encard
-
-end Definitions
-
-@[simp]
-lemma externalCoveringNumber_empty (ε : ℝ≥0) : externalCoveringNumber ε (∅ : Set X) = 0 := by
-  simp [externalCoveringNumber]
-
-@[simp]
-lemma coveringNumber_empty (ε : ℝ≥0) : coveringNumber ε (∅ : Set X) = 0 := by simp [coveringNumber]
-
-@[simp]
-lemma externalCoveringNumber_eq_zero :
-    externalCoveringNumber ε A = 0 ↔ A = ∅ := by simp [externalCoveringNumber]
-
-@[simp]
-lemma externalCoveringNumber_pos (hA : A.Nonempty) :
-    0 < externalCoveringNumber ε A := Ne.bot_lt (by simpa using hA.ne_empty)
-
-@[simp]
-lemma coveringNumber_eq_zero : coveringNumber ε A = 0 ↔ A = ∅ := by simp [coveringNumber]
-
-@[simp]
-lemma coveringNumber_pos (hA : A.Nonempty) :
-    0 < coveringNumber ε A := Ne.bot_lt (by simpa using hA.ne_empty)
-
-lemma externalCoveringNumber_le_coveringNumber (ε : ℝ≥0) (A : Set X) :
-    externalCoveringNumber ε A ≤ coveringNumber ε A := by
-  simp only [externalCoveringNumber, coveringNumber, le_iInf_iff]
-  exact fun C _ hC_cover ↦ iInf₂_le C hC_cover
-
-lemma IsCover.externalCoveringNumber_le_encard (hC : IsCover ε A C) :
-    externalCoveringNumber ε A ≤ C.encard := iInf₂_le C hC
-
-lemma IsCover.coveringNumber_le_encard (h_subset : C ⊆ A) (hC : IsCover ε A C) :
-    coveringNumber ε A ≤ C.encard := (iInf₂_le C h_subset).trans (iInf_le _ hC)
-
-lemma externalCoveringNumber_anti (h : ε ≤ δ) :
-    externalCoveringNumber δ A ≤ externalCoveringNumber ε A := by
-  simp_rw [externalCoveringNumber]
-  gcongr
-  exact iInf_const_mono (fun h_cover ↦ h_cover.mono_radius h)
-
-lemma coveringNumber_anti (h : ε ≤ δ) : coveringNumber δ A ≤ coveringNumber ε A := by
-  simp_rw [coveringNumber]
-  gcongr
-  exact iInf_const_mono (fun h_cover ↦ h_cover.mono_radius h)
-
-lemma externalCoveringNumber_mono_set (h : A ⊆ B) :
-    externalCoveringNumber ε A ≤ externalCoveringNumber ε B := by
-  simp only [externalCoveringNumber, le_iInf_iff]
-  exact fun C hC ↦ iInf_le_of_le C <| iInf_le_of_le (hC.anti h) le_rfl
-
-lemma coveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty) (hA : EMetric.diam A ≤ ε) :
-    coveringNumber ε A = 1 := by
-  refine le_antisymm ?_ ?_
-  · have ⟨a, ha⟩ := h_nonempty
-    calc coveringNumber ε A
-      _ ≤ ({a} : Set X).encard :=
-        (IsCover.singleton_of_ediam_le hA ha).coveringNumber_le_encard (by simp [ha])
-      _ ≤ 1 := by simp
-  · rw [Order.one_le_iff_pos]
-    exact coveringNumber_pos h_nonempty
-
-lemma externalCoveringNumber_eq_one_of_ediam_le (h_nonempty : A.Nonempty)
-    (hA : EMetric.diam A ≤ ε) :
-    externalCoveringNumber ε A = 1 := by
-  refine le_antisymm ?_ ?_
-  · exact (externalCoveringNumber_le_coveringNumber ε A).trans_eq
-      (coveringNumber_eq_one_of_ediam_le h_nonempty hA)
-  · rw [Order.one_le_iff_pos]
-    exact externalCoveringNumber_pos h_nonempty
-
-lemma externalCoveringNumber_le_one_of_ediam_le (hA : EMetric.diam A ≤ ε) :
-    externalCoveringNumber ε A ≤ 1 := by
-  rcases eq_empty_or_nonempty A with h_eq_empty | h_nonempty
-  · rw [← externalCoveringNumber_eq_zero (ε := ε)] at h_eq_empty
-    simp [h_eq_empty]
-  · exact (externalCoveringNumber_eq_one_of_ediam_le h_nonempty hA).le
-
-lemma coveringNumber_le_one_of_ediam_le (hA : EMetric.diam A ≤ ε) : coveringNumber ε A ≤ 1 := by
-  rcases eq_empty_or_nonempty A with h_eq_empty | h_nonempty
-  · rw [← coveringNumber_eq_zero (ε := ε)] at h_eq_empty
-    simp [h_eq_empty]
-  · exact (coveringNumber_eq_one_of_ediam_le h_nonempty hA).le
-
-/-- The packing number of a set `A` for radius `2 * ε` is at most the external covering number
-of `A` for radius `ε`. -/
-theorem packingNumber_two_mul_le_externalCoveringNumber (ε : ℝ≥0) (A : Set X) :
-    packingNumber (2 * ε) A ≤ externalCoveringNumber ε A := by
-  simp only [packingNumber, ENNReal.coe_mul, ENNReal.coe_ofNat, externalCoveringNumber, le_iInf_iff,
-    iSup_le_iff]
-  intro C hC_cover D hD_subset hD_separated
-  -- For each point in D, choose a point in C which is ε-close to it
-  let f : D → C := fun x ↦
-    ⟨(hC_cover (hD_subset x.2)).choose, (hC_cover (hD_subset x.2)).choose_spec.1⟩
-  have hf' (x : D) : edist x.1 (f x) ≤ ε := (hC_cover (hD_subset x.2)).choose_spec.2
-  -- `⊢ D.encard ≤ C.encard`
-  -- It suffices to prove that `f` is injective
-  simp only [← Set.toENat_cardinalMk]
-  gcongr
-  refine Cardinal.mk_le_of_injective (f := f) fun x y hxy ↦ Subtype.ext ?_
-  apply Set.Pairwise.eq hD_separated x.2 y.2
-  simp only [not_lt]
-  calc
-    edist (x : X) y ≤ edist (x : X) (f x) + edist (f x : X) y := edist_triangle ..
-    _ ≤ 2 * ε := by
-      rw [two_mul]
-      gcongr
-      · exact hf' x
-      · simpa [edist_comm, hxy] using hf' y
-
-end Metric
-
-
-
 section PseudoEMetricSpace
 
 variable {E : Type*} [PseudoEMetricSpace E] {r ε ε' : ℝ≥0} {A B C : Set E}
 
-@[simp]
-lemma coveringNumber_zero {E : Type*} [EMetricSpace E] (A : Set E) :
-    coveringNumber 0 A = A.encard := by
-  obtain hA | hA := A.finite_or_infinite
-  · refine le_antisymm (IsCover.coveringNumber_le_encard subset_rfl (by simp)) ?_
-    refine le_iInf fun C ↦ le_iInf fun hC₁ ↦ le_iInf fun hC₂ ↦ ?_
-    rw [isCover_zero] at hC₂
-    simp [subset_antisymm hC₂ hC₁]
-  · rw [hA.encard_eq, coveringNumber]
-    simp only [isCover_zero, iInf_eq_top, encard_eq_top_iff]
-    intro B hBA hAB
-    simpa [subset_antisymm hAB hBA] using hA
-
-lemma Set.Nonempty.one_le_coveringNumber (hA : A.Nonempty) (r : ℝ≥0) :
-    1 ≤ coveringNumber r A := by
-  rw [Order.one_le_iff_pos]
-  exact coveringNumber_pos hA
-
--- lemma Set.Nonempty.coveringNumber_top (hA : A.Nonempty) :
---     coveringNumber ⊤ A = 1 := by
---   refine le_antisymm ?_ (hA.one_le_coveringNumber _)
---   obtain ⟨x, hx⟩ := hA
---   exact iInf_le_of_le {x} <| iInf_le_of_le (by simpa) <|
---     iInf_le_of_le (fun _ _ ↦ ⟨x, by simp⟩) (by simp)
-
-lemma not_isCover_empty (ε : ℝ≥0) (A : Set E) (h_nonempty : A.Nonempty) :
-    ¬ IsCover ε A (∅ : Set E) := by
-  simp [Set.nonempty_iff_ne_empty.mp h_nonempty]
-
-@[simp]
-lemma packingNumber_empty (r : ℝ≥0) :
-    packingNumber r (∅ : Set E) = 0 := by simp [packingNumber]
-
-@[simp]
-lemma packingNumber_singleton (r : ℝ≥0) (x : E) :
-    packingNumber r ({x} : Set E) = 1 := by
-  refine le_antisymm ?_ <|
-    le_iSup_of_le ({x} : Finset E) <| le_iSup_of_le (by simp) <| le_iSup_of_le (by simp) (by simp)
-  rw [packingNumber]
-  simp only [subset_singleton_iff, iSup_le_iff]
-  intro C hC _
-  rw [Set.encard_le_one_iff]
-  grind
-
-lemma isCover_singleton_finset_of_diam_le {a : E} (hA : EMetric.diam A ≤ ε) (ha : a ∈ A) :
-    IsCover ε A ({a} : Finset E) :=
-  fun x hxA ↦ ⟨a, by simp, (EMetric.edist_le_diam_of_mem hxA ha).trans hA⟩
-
-@[simp]
-lemma coveringNumber_singleton {x : E} :
-    coveringNumber r ({x} : Set E) = 1 :=
-  coveringNumber_eq_one_of_ediam_le (by simp) (by simp)
-
-@[simp]
-lemma externalCoveringNumber_singleton {x : E} :
-    externalCoveringNumber r ({x} : Set E) = 1 :=
-  externalCoveringNumber_eq_one_of_ediam_le (by simp) (by simp)
-
-lemma subset_iUnion_of_isCover (hC : IsCover ε A C) :
-    A ⊆ ⋃ x ∈ C, EMetric.closedBall x ε := by
-  intro a ha
-  simp only [Set.mem_iUnion, EMetric.mem_closedBall, exists_prop]
-  exact hC ha
-
-lemma TotallyBounded.exists_isCover (hA : TotallyBounded A) (r : ℝ≥0) (hr : 0 < r) :
-    ∃ C : Finset E, ↑C ⊆ A ∧ IsCover r A C := by
-  obtain ⟨C, hCA, hC_fin, hC_cov⟩ := exists_finite_isCover_of_totallyBounded hr.ne' hA
-  refine ⟨hC_fin.toFinset, by simpa, by simpa⟩
-
-lemma IsCover.Nonempty (hC : IsCover ε A C) (hA : A.Nonempty) : C.Nonempty := by
-  obtain ⟨a, haA⟩ := hA
-  obtain ⟨c, hcC, hc⟩ := hC haA
-  exact ⟨c, hcC⟩
-
-section minimalCover
-
-lemma exists_set_encard_eq_coveringNumber (h : TotallyBounded A) (hr : 0 < r) :
-    ∃ C, C ⊆ A ∧ C.Finite ∧ IsCover r A C ∧ C.encard = coveringNumber r A := by
-  obtain ⟨C', hC'A, hC'_fin, hC'⟩ := exists_finite_isCover_of_totallyBounded hr.ne' h
-  have : Nonempty { s : Set E // s ⊆ A ∧ IsCover r A s } := ⟨C', hC'A, hC'⟩
-  let h := ENat.exists_eq_iInf (fun C : {s : Set E // s ⊆ A ∧ IsCover r A s} ↦ (C : Set E).encard)
-  obtain ⟨C, hC⟩ := h
-  refine ⟨C, C.2.1, ?_, C.2.2, ?_⟩
-  · refine Set.encard_lt_top_iff.mp ?_
-    simp only [hC, iInf_lt_top, encard_lt_top_iff, Subtype.exists, exists_prop]
-    exact ⟨C', ⟨hC'A, hC'⟩, hC'_fin⟩
-  · rw [hC]
-    simp_rw [iInf_subtype, iInf_and]
-    rfl
-
-open Classical in
-/-- An internal `r`-cover of `A` with minimal cardinal. -/
-noncomputable
-def minimalCover (r : ℝ≥0) (A : Set E) (hr : 0 < r) : Set E :=
-  if h : TotallyBounded A then (exists_set_encard_eq_coveringNumber h hr).choose else ∅
-
-lemma minimalCover_subset (hr : 0 < r) : minimalCover r A hr ⊆ A := by
-  by_cases h : TotallyBounded A
-  · simp only [minimalCover, h, dite_true]
-    exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.1
-  · simp [minimalCover, h]
-
-lemma finite_minimalCover (hr : 0 < r) :
-    (minimalCover r A hr).Finite := by
-  by_cases h : TotallyBounded A
-  · simp only [minimalCover, h, dite_true]
-    exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.1
-  · simp [minimalCover, h]
-
-lemma isCover_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
-    IsCover r A (minimalCover r A hr) := by
-  simp only [minimalCover, h, dite_true]
-  exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.2.1
-
-lemma card_minimalCover (h : TotallyBounded A) (hr : 0 < r) :
-    (minimalCover r A hr).encard = coveringNumber r A := by
-  simp only [minimalCover, h, dite_true]
-  exact (exists_set_encard_eq_coveringNumber h hr).choose_spec.2.2.2
-
-end minimalCover
-
-section maximalSeparatedSet
-
-lemma exists_set_encard_eq_packingNumber (h : packingNumber r A < ⊤) :
-    ∃ C, C ⊆ A ∧ C.Finite ∧ IsSeparated r (C : Set E) ∧ C.encard = packingNumber r A := by
-  rcases Set.eq_empty_or_nonempty A with hA | hA
-  · simp [hA, packingNumber]
-  have : Nonempty { s : Set E // s ⊆ A ∧ IsSeparated r s } := by
-    obtain ⟨a, ha⟩ := hA
-    exact ⟨⟨{a}, by simp [ha], by simp⟩⟩
-  let h_exists := ENat.exists_eq_iSup_of_lt_top
-    (f := fun C : { s : Set E // s ⊆ A ∧ IsSeparated r s } ↦ (C : Set E).encard)
-  simp_rw [packingNumber] at h ⊢
-  simp_rw [iSup_subtype, iSup_and] at h_exists
-  specialize h_exists h
-  obtain ⟨C, hC⟩ := h_exists
-  refine ⟨C, C.2.1, ?_, C.2.2, ?_⟩
-  · refine Set.encard_lt_top_iff.mp ?_
-    rwa [hC]
-  · rw [hC]
-
-/-- A maximal `r`-separated finite subset of `A`. -/
-noncomputable
-def maximalSeparatedSet (r : ℝ≥0) (A : Set E) : Set E :=
-  if h : packingNumber r A < ⊤ then (exists_set_encard_eq_packingNumber h).choose else ∅
-
-lemma maximalSeparatedSet_subset : ↑(maximalSeparatedSet r A) ⊆ A := by
-  by_cases h : packingNumber r A < ⊤
-  · simp only [maximalSeparatedSet, h, dite_true]
-    exact (exists_set_encard_eq_packingNumber h).choose_spec.1
-  · simp only [maximalSeparatedSet, h, dite_false, Set.empty_subset]
-
-lemma isSeparated_maximalSeparatedSet :
-    IsSeparated r (maximalSeparatedSet r A : Set E) := by
-  by_cases h : packingNumber r A < ⊤
-  · simp only [maximalSeparatedSet, h, dite_true]
-    exact (exists_set_encard_eq_packingNumber h).choose_spec.2.2.1
-  · simp only [maximalSeparatedSet, h, dite_false, IsSeparated.empty]
-
-lemma card_maximalSeparatedSet (h : packingNumber r A < ⊤) :
-    (maximalSeparatedSet r A).encard = packingNumber r A := by
-  simp only [maximalSeparatedSet, h, dite_true]
-  exact (exists_set_encard_eq_packingNumber h).choose_spec.2.2.2
-
-lemma card_le_of_isSeparated {C : Set E} (h_subset : C ⊆ A)
-    (h_sep : IsSeparated r (C : Set E)) (h : packingNumber r A < ⊤) :
-    C.encard ≤ (maximalSeparatedSet r A).encard := by
-  rw [card_maximalSeparatedSet h]
-  exact le_iSup_of_le C <| le_iSup_of_le h_subset <| le_iSup_of_le h_sep (by simp)
-
-lemma isCover_maximalSeparatedSet (h : packingNumber r A < ⊤) :
-    IsCover r A (maximalSeparatedSet r A) := by
-  intro x hxA
-  by_contra h_dist
-  push_neg at h_dist
-  have hx_not_mem : x ∉ maximalSeparatedSet r A := by
-    intro hx_mem
-    specialize h_dist x hx_mem
-    simp at h_dist
-  classical
-  let C := {x} ∪ maximalSeparatedSet r A
-  have hC_subset : C ⊆ A := by
-    simp [C, hxA, maximalSeparatedSet_subset, Set.insert_subset]
-  have hC_separated : IsSeparated r (C : Set E) := by
-    intro a ha b hb hab
-    by_cases hax : a = x
-    · subst hax
-      have hb' : b ∈ maximalSeparatedSet r A := by simpa [C, hab.symm] using hb
-      simpa using h_dist b hb'
-    by_cases hbx : b = x
-    · subst hbx
-      have ha' : a ∈ maximalSeparatedSet r A := by simpa [C, hab] using ha
-      have h := h_dist a ha'
-      simp only [mem_setOf_eq, not_le] at h
-      rwa [edist_comm] at h
-    simp only [singleton_union, mem_insert_iff, hax, false_or, hbx, C] at ha hb
-    exact isSeparated_maximalSeparatedSet ha hb hab
-  refine absurd (card_le_of_isSeparated hC_subset hC_separated h) ?_
-  simp only [singleton_union, not_le, C]
-  rw [encard_insert_of_notMem hx_not_mem, ENat.lt_add_one_iff]
-  rw [card_maximalSeparatedSet h]
-  exact h.ne
-
-end maximalSeparatedSet
-
-section comparisons
-
-theorem coveringNumber_le_packingNumber (r : ℝ≥0) (A : Set E) :
-    coveringNumber r A ≤ packingNumber r A := by
-  by_cases h_top : packingNumber r A < ⊤
-  · rw [← card_maximalSeparatedSet h_top]
-    refine (iInf_le _ (maximalSeparatedSet r A : Set E)).trans (le_of_eq ?_)
-    simp [maximalSeparatedSet_subset, iInf_pos, isCover_maximalSeparatedSet h_top]
-  · rw [not_lt_top_iff] at h_top
-    simp [h_top]
-
-theorem coveringNumber_two_le_externalCoveringNumber (r : ℝ≥0) (A : Set E) :
-    coveringNumber (2 * r) A ≤ externalCoveringNumber r A := by
-  rcases Set.eq_empty_or_nonempty A with (h_empty | h_nonempty)
-  · simp [h_empty]
-  refine (coveringNumber_le_packingNumber _ A).trans ?_
-  exact packingNumber_two_mul_le_externalCoveringNumber r A
-
-lemma coveringNumber_subset_le (h : A ⊆ B) :
-    coveringNumber r A ≤ coveringNumber (r / 2) B := by
-  calc coveringNumber r A
-  _ ≤ packingNumber r A := coveringNumber_le_packingNumber r A
-  _ = packingNumber (2 * (r / 2)) A := by ring_nf
-  _ ≤ externalCoveringNumber (r / 2) A :=
-    packingNumber_two_mul_le_externalCoveringNumber _ A
-  _ ≤ externalCoveringNumber (r / 2) B := externalCoveringNumber_mono_set h
-  _ ≤ coveringNumber (r / 2) B :=
-    externalCoveringNumber_le_coveringNumber (r / 2) B
-
-lemma coveringNumber_le_encard (r : ℝ≥0) :
-    coveringNumber r A ≤ A.encard := by
-  by_cases h_top : A.encard = ⊤
-  · simp [h_top]
-  rw [coveringNumber]
-  refine iInf_le_of_le (Set.encard_ne_top_iff.mp h_top).toFinset <| iInf_le_of_le (by simp) <|
-    iInf_le_of_le (fun a _ ↦ ⟨a, by simpa⟩) ?_
-  simp
-
-end comparisons
+lemma TotallyBounded.coveringNumber_ne_top (hA : TotallyBounded A) {r : ℝ≥0} (hr : r ≠ 0) :
+    coveringNumber r A ≠ ⊤:= by
+  obtain ⟨C, hC_subset, hC_finite, hC_cov⟩ := exists_finite_isCover_of_totallyBounded hr hA
+  refine ne_top_of_le_ne_top (b := C.encard) ?_ (IsCover.coveringNumber_le_encard hC_subset hC_cov)
+  simpa
 
 lemma Isometry.isCover_image_iff {F : Type*} [PseudoEMetricSpace F]
     {f : E → F} (hf : Isometry f) (C : Set E) :
@@ -695,7 +318,7 @@ lemma packingNumber_mul_le_volume (A : Set E) (ε : ℝ≥0) :
     · simp
   obtain h | h := eq_top_or_lt_top (packingNumber ε A)
   · simp [volume_eq_top_of_packingNumber A hε h]
-  rw [← card_maximalSeparatedSet h]
+  rw [← encard_maximalSeparatedSet h.ne]
   exact le_volume_of_isSeparated isSeparated_maximalSeparatedSet maximalSeparatedSet_subset
 
 lemma volume_div_le_coveringNumber (A : Set E) (hε : 0 < ε) :
@@ -723,7 +346,7 @@ lemma coveringNumber_closedBall_ge (ε : ℝ≥0) (x : E) {r : ℝ≥0} (hr : 0 
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
-    exact EMetric.nonempty_closedBall.one_le_coveringNumber _
+    simp [Order.one_le_iff_pos]
   obtain rfl | hε := eq_zero_or_pos ε
   · simp only [coveringNumber_zero]
     rw [Set.encard_eq_top]
@@ -743,7 +366,7 @@ lemma coveringNumber_closedBall_le (ε : ℝ≥0) (x : E) (r : ℝ≥0) :
   obtain _ | _ := subsingleton_or_nontrivial E
   · simp only [Module.finrank_zero_of_subsingleton, pow_zero]
     norm_cast
-    grw [coveringNumber_le_encard, Set.encard_le_one_iff]
+    grw [coveringNumber_le_encard_self, Set.encard_le_one_iff]
     exact fun a b _ _ ↦ Subsingleton.allEq a b
   obtain rfl | hr := eq_zero_or_pos r
   · simp
