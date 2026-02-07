@@ -40,7 +40,7 @@ lemma isLocalizingSequence_const_top [Preorder ι] [TopologicalSpace ι] [OrderT
     (𝓕 : Filtration ι mΩ) (P : Measure Ω) : IsLocalizingSequence 𝓕 (fun _ _ ↦ ⊤) P where
   isStoppingTime n := by simp [IsStoppingTime]
   mono := ae_of_all _ fun _ _ _ _ ↦ by simp
-  tendsto_top := by filter_upwards [] with ω using tendsto_const_nhds
+  tendsto_top := by filter_upwards with ω using tendsto_const_nhds
 
 section LinearOrder
 

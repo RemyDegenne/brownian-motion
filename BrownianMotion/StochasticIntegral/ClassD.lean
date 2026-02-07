@@ -507,24 +507,73 @@ lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinea
 
 end ClassDClassDL
 
+variable {ι β : Type*}
+noncomputable def leastGE [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
+    (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
+  hittingAfter f (Set.Ici r) ⊥
+
+instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι where
+  top := ⊤
+  le_top := OrderTop.le_top
+  bot := ⊥
+  bot_le := OrderBot.bot_le
+
 -- TODO: The assumptions should be refined with those of Début theorem.
-lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [PartialOrder ι] [TopologicalSpace ι]
-    [OrderTopology ι] [FirstCountableTopology ι] [InfSet ι] [Bot ι] [CompactIccSpace ι]
-    (𝓕 : Filtration ι mΩ) (τ : ℕ → Ω → WithTop ι) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
-    IsLocalizingSequence 𝓕 (fun n ↦ hittingAfter X (Set.Ici n) ⊥) P := sorry
+lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
+    [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι]
+    (𝓕 : Filtration ι mΩ) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
+    (hX2 : ∀ ω, IsCadlag (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
+    IsLocalizingSequence 𝓕 (fun n => leastGE X n) P where
+  isStoppingTime n := sorry
+  mono := by filter_upwards with ω n m hnm using
+    hittingAfter_anti X ⊥ (Set.Ici_subset_Ici.2 (Nat.cast_le.2 hnm)) ω
+  tendsto_top := by
+    filter_upwards with ω
+    -- Consider two cases. If `ι` has a top element, then `ι` is compact and the range of `X · ω` is
+    -- bounded. Hence, `leastGE X n` is eventually equal to `⊤`.
+    rcases topOrderOrNoTopOrder ι with ha | hb
+    · have : Bornology.IsBounded (Set.range (X · ω)) := by
+        have : Set.Icc (⊥ : ι) ⊤ = Set.univ := Set.Icc_bot_top
+        exact Set.image_univ ▸ this ▸ isBounded_image_of_isCadlag_of_isCompact (hX2 ω) isCompact_Icc
+      obtain ⟨m, hm⟩ : ∃ (m : ℕ), ∀ i, X i ω ≤ m := by
+        obtain ⟨x, hx⟩ := bddAbove_def.1 this.bddAbove
+        exact ⟨⌈x⌉₊, fun i => (hx (X i ω) (Set.mem_range_self i)).trans (Nat.le_ceil x)⟩
+      apply tendsto_nhds_of_eventually_eq
+      filter_upwards [Ioi_mem_atTop m] with n hn
+      simpa [leastGE, hittingAfter] using fun i => lt_of_le_of_lt (hm i) (Nat.cast_lt.2 hn)
+    -- If `ι` does not have a top element, then it suffices to show that every `i : ι`,
+    -- `leastGE X n` is eventually larger than `i`.
+    refine nhds_top_basis.tendsto_right_iff.2 fun i hi => ?_
+    obtain ⟨c, hc⟩ := (NoTopOrder.to_noMaxOrder ι).exists_gt (i.untop (lt_top_iff_ne_top.1 hi))
+    have : Bornology.IsBounded ((X · ω) '' (Set.Icc ⊥ c)) :=
+      isBounded_image_of_isCadlag_of_isCompact (hX2 ω) isCompact_Icc
+    obtain ⟨m, hm⟩ : ∃ (m : ℕ), ∀ j ≤ c, X j ω ≤ m := by
+      obtain ⟨x, hx⟩ := bddAbove_def.1 this.bddAbove
+      exact ⟨⌈x⌉₊, fun i hi => (hx (X i ω)
+        (Set.mem_image_of_mem _ ⟨bot_le, hi⟩)).trans (Nat.le_ceil x)⟩
+    filter_upwards [Ioi_mem_atTop m] with n hn
+    simp only [leastGE, hittingAfter]
+    by_cases hj : ∃ j, X j ω ∈ Set.Ici ↑n
+    · simp_all only [bot_le, true_and, ↓reduceIte]
+      have : c ≤ sInf {j | ↑n ≤ X j ω} := by
+        refine le_csInf hj fun k hk1 => ?_
+        by_contra! hk2
+        grind [Nat.cast_le.1 (hk1.trans (hm k hk2.le))]
+      exact lt_of_le_of_lt' (mod_cast this) (by simp_all : i < c)
+    · grind
 
 lemma sup_stoppedProcess_hittingAfter_Ici_le
     {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] {X : ι → Ω → E} (t : ι) (K : ℝ)
     (hK : 0 ≤ K) (ω : Ω) :
-    ⨆ s ≤ t, ‖stoppedProcess X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) s ω‖ ≤
-    K + Set.indicator {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥ ω ≤ t}
-      (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥) ω‖) ω := by
-  let τ := hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici K) ⊥
+    ⨆ s ≤ t, ‖stoppedProcess X (leastGE  (fun t ω ↦ ‖X t ω‖) K) s ω‖ ≤
+    K + Set.indicator {ω | leastGE (fun t ω ↦ ‖X t ω‖) K ω ≤ t}
+      (fun ω ↦ ‖stoppedValue X (leastGE (fun t ω ↦ ‖X t ω‖) K) ω‖) ω := by
+  let τ := leastGE (fun t ω ↦ ‖X t ω‖) K
   have bound1 (i : ι) (hi : i < τ ω) : ‖X i ω‖ ≤ K := by
     by_contra! h
     have := Exists.intro i (p := fun j => ⊥ ≤ j ∧ ‖X j ω‖ ∈ Set.Ici K) ⟨by simp, by grind⟩
-    simp_all only [hittingAfter, bot_le, Set.mem_Ici, true_and, ↓reduceIte, WithTop.coe_lt_coe, τ]
+    simp_all only [leastGE, hittingAfter, bot_le, Set.mem_Ici, true_and, ↓reduceIte,
+      WithTop.coe_lt_coe, τ]
     have := csInf_le (OrderBot.bddBelow {j | K ≤ ‖X j ω‖}) h.le
     grind
   by_cases ht : ¬ τ ω ≤ t
@@ -584,10 +633,13 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
   rcases hX2 with ⟨hX2, hX3⟩
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
   have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
-  have hY2 : ∀ (ω : Ω), RightContinuous (Y · ω) :=
-    fun ω ↦ (Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1)
+  have hY2 : ∀ (ω : Ω), IsCadlag (Y · ω) := by
+    refine fun ω ↦ ⟨?_, fun i ↦ ?_⟩
+    · exact Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1
+    · obtain ⟨l, hl⟩ := (hX1 ω).2 i
+      exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
-  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_hittingAfter_Ici 𝓕 τ hY1 hY2 h𝓕
+  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_hittingAfter_Ici 𝓕 hY1 hY2 h𝓕
   refine ⟨τ, hτ, fun n ↦ ?_⟩
   have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n (by simp) ω
   have hX6 :=  hX2.hasStronglyMeasurableSupProcess_of_isCadlag hX1
