@@ -43,8 +43,7 @@ lemma isBounded_image_of_isLocallyBounded_of_isCompact {X Y : Type*} [Topologica
   choose U hU using hf
   obtain ⟨I, hI⟩ := hs.elim_nhds_subcover U (fun x _ => (hU x).1)
   have : f '' ⋃ x ∈ I, U x = ⋃ x ∈ I, f '' U x := by simp [Set.image_iUnion₂]
-  exact IsBounded.subset ((isBounded_biUnion_finset I).2 fun i _ => (hU i).2)
-    (this ▸ Set.image_mono hI.2)
+  exact ((isBounded_biUnion_finset I).2 fun i _ => (hU i).2).subset (this ▸ Set.image_mono hI.2)
 
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
