@@ -508,6 +508,8 @@ lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinea
 end ClassDClassDL
 
 variable {ι β : Type*}
+
+/-- `leastGE f r` is the stopping time corresponding to the first time `f ≥ r`. -/
 noncomputable def leastGE [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
     (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
   hittingAfter f (Set.Ici r) ⊥
