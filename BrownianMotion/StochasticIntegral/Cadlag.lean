@@ -53,7 +53,7 @@ lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpa
   obtain ⟨V, ⟨⟨B, ⟨hq, ⟨R, hR⟩⟩⟩, hV⟩⟩ := Metric.exists_isBounded_image_of_tendsto (hf.1 x).tendsto
   refine ⟨A ∩ B, inter_mem hp hq, ?_⟩
   apply IsBounded.subset ((hU.union hV).union (isBounded_singleton : Bornology.IsBounded ({f x})))
-  rintro x ⟨y, ⟨hyL, hyR⟩ , rfl⟩
+  rintro _ ⟨y, ⟨hyL, hyR⟩ , rfl⟩
   rcases lt_trichotomy y x with (hlt | heq | hgt)
   · have : y ∈ U := hW.2 ▸ ⟨hyL, hW.1 hlt⟩
     grind
