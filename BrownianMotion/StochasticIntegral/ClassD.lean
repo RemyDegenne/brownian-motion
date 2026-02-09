@@ -513,10 +513,6 @@ noncomputable def leastGE [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
   hittingAfter f (Set.Ici r) ⊥
 
 instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι where
-  top := ⊤
-  le_top := OrderTop.le_top
-  bot := ⊥
-  bot_le := OrderBot.bot_le
 
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
