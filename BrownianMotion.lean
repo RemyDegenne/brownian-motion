@@ -28,11 +28,8 @@ import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 import BrownianMotion.Continuity.IsKolmogorovProcess
 import BrownianMotion.Continuity.KolmogorovChentsov
 import BrownianMotion.Continuity.KolmogorovChentsovInequality
-<<<<<<< HEAD
 import BrownianMotion.Debut.Approximation
 import BrownianMotion.Debut.Basic
-=======
->>>>>>> origin/master
 import BrownianMotion.Gaussian.BrownianMotion
 import BrownianMotion.Gaussian.CovMatrix
 import BrownianMotion.Gaussian.Gaussian

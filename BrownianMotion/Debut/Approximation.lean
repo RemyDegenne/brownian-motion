@@ -202,7 +202,6 @@ lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B �
     have ⟨i, hi⟩ := hg.surjective ⟨b, hb⟩
     have ⟨i, hi⟩ : ∃ i, g i = b := ⟨i, by rw [hi]⟩
     exact hi ▸ hx i i (le_refl i)
-
   have h_desc : ∀ (i : ℕ), G (i + 1) ⊆ G i := by
     unfold G
     refine fun i x hx ↦ ?_
@@ -211,7 +210,6 @@ lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B �
     by_cases h : n ≤ i
     · exact fun _ ↦ hx n (n.le_succ_of_le h)
     · exact fun hn ↦ (h hn).elim
-
   have hG_mem (i : ℕ) : G i ∈ 𝓚 f t := by
     induction i with
     | zero =>

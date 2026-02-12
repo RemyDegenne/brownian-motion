@@ -38,7 +38,7 @@ lemma debut_eq_hittingAfter_indicator [Preorder ι] [InfSet ι] (E : Set (ι × 
     debut E n = hittingAfter (fun t ω ↦ if (t, ω) ∈ E then 1 else 0) {1} n := by
   ext ω
   simp only [debut, hittingAfter]
-  split_ifs <;> grind
+  split_ifs <;> simp <;> grind
 
 lemma hittingAfter_eq_debut [Preorder ι] [InfSet ι] {β : Type*} (u : ι → Ω → β)
     (s : Set β) (n : ι) :
