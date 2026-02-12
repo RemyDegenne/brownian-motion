@@ -108,8 +108,8 @@ The predictable part of a real-valued submartingale is an almost surely nondecre
   \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
 Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
 \begin{align*}
-  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right] \\
-  &\ge A_n
+  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
+  \ge A_n
   \: .
 \end{align*}
 The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
@@ -122,7 +122,6 @@ Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 \section{Komlòs Lemma}
 
 
-Firstly we will need Komlos' Lemma.
 %technically a more general version with Cesaro sums exists, but it is not needed for this case
 %(see "J. Komlòs, A generalization of a problem of Steinhaus, Acta Math. Acad. Sci. Hungar. 18 (1967) 217–229").
 
@@ -160,7 +159,7 @@ Thus, for $n, m \ge \bar{n}$, $(g_n, g_m) \notin S_\delta$.
 \end{proof}
 
 
-\begin{lemma}\label{lem:komlos_aux}
+\begin{lemma}\label{lem:komlos_norm}
   \leanok
   \lean{komlos_norm}
 Let $H$ be a Hilbert space and $(f_n)_{n\in\mathbb{N}}$ a bounded sequence in $H$. Then there exist functions $g_n\in convex(f_n,f_{n+1},\cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $H$.
@@ -182,49 +181,113 @@ But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram id
 
 
 \begin{lemma}\label{lem:convex_of_converg_seq_is_converg}
-  Let $X$ be a normed vector space (over $\mathbb{R}$).
-  %For topological spaces we need that a convex combinations of elements of neighborhoods are still in the neighborhood (just like balls). Also for metric space we want that $d(ax,ay)\leq a d(x,y)$ (in lean dist_pair_smul).
-  Let $(x_n)_{n\in\mathbb{N}}$ be a sequence in $X$ converging to $x$ w.r.t. the topology of $X$.
-  Let $(N_n)_{n\in\mathbb{N}}$ be a sequence in $\mathbb{N}$ such that $n\leq N_n$ for every $n\in\mathbb{N}$ (maybe here we could have $N_n$ increasing WLOG).
-  Let $(a_{n,m})_{n\in\mathbb{N},m\in\left\lbrace n,\cdots,N_n\right\rbrace}$ be a triangular array in $\mathbb{R}$ such that $0\leq a_{n,m}\leq 1$ and $\sum_{m=n}^{N_n}a_{n,m}=1$.
-  Then $(\sum_{m=n}^{N_n}a_{n,m}x_m)_{n\in\mathbb{N}}$ converges to $x$ uniformly w.r.t. the triangular array.
+  Let $(x_n)_{n \in \mathbb{N}}$ be a sequence in a real vector space converging to $x$.
+  Let $\mathcal{C}((x_n))$ be the set of sequences $(y_n)_{n \in \mathbb{N}}$ such that for all $n$, $y_n \in convex(x_n, x_{n+1}, \ldots)$.
+  Then we have
+  \begin{enumerate}
+    \item uniform convergence over $\mathcal{C}((x_n))$: for all $\varepsilon > 0$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, for all $(y_n)_{n \in \mathbb{N}} \in \mathcal{C}((x_n))$, $\Vert y_n - x \Vert \le \varepsilon$;
+    \item pointwise convergence: for all $(y_n)_{n \in \mathbb{N}} \in \mathcal{C}((x_n))$, $(y_n)_{n \in \mathbb{N}}$ converges to $x$.
+  \end{enumerate}
 \end{lemma}
 
 \begin{proof}
-  Let $\epsilon>0$.
-  By convergence of $x_n$ we have $\exists \bar{n}$ such that $\forall n\geq\bar{n}$ $|x_n-x|\leq \epsilon$.
-  By triangular inequality it follows that
-  $$
-  |\sum_{m=n}^{N_n}a_{n,m}x_m - x|\leq \sum_{m=n}^{N_n}a_{n,m}|x_m-x|\leq\epsilon.
-  $$
+The second point is a direct consequence of the first one, so we only prove the first one.
+Let $\varepsilon>0$.
+By convergence of $x_n$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, $\Vert x_n-x \Vert \le \varepsilon$.
+Let $a_{n, m}$ be convex weights such that $y_n = \sum_{m = n}^{N_n} a_{n, m} x_m$.
+By triangular inequality it follows that for $n \ge \bar{n}$,
+\begin{align*}
+  \Vert y_n - x \Vert
+  = \left\Vert \sum_{m = n}^{N_n} a_{n, m} x_m - x \right\Vert
+  = \left\Vert \sum_{m = n}^{N_n} a_{n, m} (x_m - x) \right\Vert
+  \le \sum_{m = n}^{N_n} a_{n, m} \Vert x_m - x \Vert
+  \le \varepsilon
+  \: .
+\end{align*}
+\end{proof}
+
+By convex weights on $\mathbb{N}$, we mean a sequence of non-negative real numbers $(a_n)_{n \in \mathbb{N}}$ with finitely many nonzero entries such that $\sum_{n \in \mathbb{N}} a_n = 1$.
+If $(a_m)_{m \in \mathbb{N}}$ are convex weights and $(b^n_m)_{n,m \in \mathbb{N}}$ is such that for all $n$, the $(b^n_m)$ are convex weights, then we denote by $(a_\cdot) * (b^\cdot_\cdot)$ the convex weights defined by $((a_\cdot) * (b^\cdot_\cdot))_m = \sum_{k} a_k b^k_m$.
+
+
+\begin{lemma}\label{lem:komlos_convex_weights} Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$. Then there exists a sequence of convex weights $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ with $\lambda^{k,n}_m = 0$ for $m < n$ such that for all $k \in \mathbb{N}$, $\left(\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(k)}\right)_{n \in \mathbb{N}}$ converges.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:komlos_norm}
+First by lemma \ref{lem:komlos_norm} applied to $(x_n^{(1)})_{n\in\mathbb{N}}$ in the Hilbert space $E$, there exist $g_n^1 \in convex(x_n^{(1)}, x_{n+1}^{(1)}, \ldots)$ (call its weights $\lambda^{1,n}_n,\cdots,\lambda^{1,n}_{N^1_n}$) such that $g_n^1$ converges to some $g^1$.
+
+Secondly define $\tilde{g}_n^2$, convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $\lambda^{1,n}_n,\cdots,\lambda^{1,n}_{N^1_n}$.
+Applying lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^2)_{n\in\mathbb{N}}$ gives us $g_n^2 \in convex(\tilde{g}_n^2, \tilde{g}_{n+1}^2, \ldots)$ (call its weights $\lambda^{1,n}_n,\cdots,\lambda^{2,n}_{N^2_n}$) such that $g_n^2$ converges to some $g^2$.
+$g_n^2$ is a convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $(\lambda^{2,n}_\cdot) * (\lambda^{1,\cdot}_\cdot)$.
+
+We continue iterating this process inductively.
+At iteration $k$ we have weights $(\lambda^{k,n}_\cdot * \ldots * \lambda^{1,\cdot}_\cdot)$.
+We define $\tilde{g}_n^{k+1}$ as the convex combination of $x_n^{(k+1)}, x_{n+1}^{(k+1)}, \ldots$ with those weights.
+We apply Lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^{k+1})_{n\in\mathbb{N}}$ to get $g_n^{k+1} \in convex(\tilde{g}_n^{k+1}, \tilde{g}_{n+1}^{k+1}, \ldots)$ such that $g_n^{k+1}$ converges to some $g^{k+1}$. We denote its weights by $\lambda^{k+1,n}_n,\cdots,\lambda^{k+1,n}_{N^{k+1}_n}$.
+
+We have thus defined, for all $k, n \in \mathbb{N}$, convex weights $(\lambda^{k,n}_m)$ (that are zero for $m < n$) such that $\sum_{m \ge n}((\lambda^{k,n}_\cdot * \ldots * \lambda^{1, \cdot}_\cdot))_m x_m^{(k)}$ converges to $g^k$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:komlos_convex_weights_tendsto}
+  \uses{lem:komlos_convex_weights}
+Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$.
+Let $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
+
+Then for every $k \ge i$, the sequence $\left(\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$, uniformly in $k$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:convex_of_converg_seq_is_converg}
+Let $i \in \mathbb{N}$.
+By Lemma~\ref{lem:convex_of_converg_seq_is_converg}, there is uniform convergence over all convex combinations of the sequence $\left(\sum_{m \ge n} \left((\lambda^{i,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ to $g^i$.
+All sums $\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}$ for $k \ge i$ are convex combinations of $\sum_{m \ge n} \left((\lambda^{i,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}$, hence they converge to $g^i$ uniformly in $k$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:komlos_convex_weights_diagonal}
+Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$.
+Then there exists a sequence of convex weights $(\eta^n_\cdot)_{n \in \mathbb{N}}$ with $\eta^n_m = 0$ for $m < n$ such that for all $i \in \mathbb{N}$, the sequence $\left(\sum_{m \ge n} \eta^n_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:komlos_convex_weights, lem:komlos_convex_weights_tendsto}
+Let $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
+Let $\eta^n_m = (\lambda^{n,n}_\cdot * \ldots * \lambda^{1,\cdot}_\cdot)_m$.
+We show that for all $i \in \mathbb{N}$, the sequence $\left(\sum_{m \ge n} \eta^n_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$.
+
+Let $i \in \mathbb{N}$.
+By Lemma~\ref{lem:komlos_convex_weights_tendsto}, for all $\varepsilon > 0$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, for all $k \ge i$, $\left\Vert\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert \le \varepsilon$.
+Hence for $n \ge \max(\bar{n}, i)$,
+\begin{align*}
+  \left\Vert\sum_{m \ge n} \eta^n_m x_m^{(i)} - g^i\right\Vert
+  &= \left\Vert\sum_{m \ge n} \left((\lambda^{n,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert
+  \le \varepsilon
+  \: .
+\end{align*}
 \end{proof}
 
 
 \begin{lemma}\label{lem:komlos_convex_aux}
-  For $i,n\in\mathbb{N}$ set $f_{n}^{(i)}:=f_n \mathbb{1}_{(|f_n|\leq i)}$ such that $f_{n}^{(i)}\in L^2$.
-  There exists the sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
-  $ (\lambda_n^{n} f_n^{(i)} + \ldots+\lambda_{N_n}^{n} f_{N_n}^{(i)})_{n\in\mathbb{N}}$
-  converge in $L^2$ for every $i\in\mathbb{N}$ uniformly.
+Let $E$ be a Hilbert space and let $(f_n)_{n \in \mathbb{N}}$ be a sequence in $\Omega \to E$.
+For $i \in \mathbb{N}$, set $f_n^{(i)} = f_n \mathbb{1}_{(\Vert f_n \Vert \le i)}$, such that $f_n^{(i)} \in L^2(E)$.
+Then there exists a sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
+$\left(\lambda_n^{n} f_n^{(i)} + \ldots + \lambda_{N_n}^{n} f_{N_n}^{(i)} \right)_{n\in\mathbb{N}}$
+converge in $L^2(E)$ for every $i \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:komlos_aux, lem:convex_of_converg_seq_is_converg}
-  Firstly by lemma \ref{lem:komlos_aux} over $(f_n^{(1)})_{n\in\mathbb{N}}$ there exist convex weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$ such that
-  $g^1_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf_m^{(1)}$ converges to some $g^1$.
-  Secondly apply the lemma to $(\tilde{g}^2_n=\sum_{m=n}^{N^1_n}\prescript{1}{}{\lambda}^n_mf^{(2)}_m)_{n\in\mathbb{N}}$, there exists convex weights $\tilde{\lambda}^n_n,\cdots,\tilde{\lambda}^n_{\tilde{N}_n}$ such that
-  $g^2_n=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(2)}=\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(2)}$ converges to some $g^2$.
-  Notice that $\sum_{m=n}^{N^2_n}\prescript{2}{}{\lambda}^n_mf_m^{(1)}=\sum_{m=n}^{\tilde{N}_n}\tilde{\lambda}^n_m\tilde{g}_m^{(1)}$ and thus this sequence by lemma \ref{lem:convex_of_converg_seq_is_converg} converges still to $g^1$.
-  By iteration we may define $\prescript{i}{}{\lambda}^n_n,\cdots,\prescript{i}{}{\lambda}^n_{N^i_n}$ convex weights such that if used on $(f^j_n)_{n\in\mathbb{N}}$ they make the sequence convergent if $1\leq j\leq i$.
-  At this point consider $\lambda^n_m=\prescript{n}{}{\lambda}^n_m$.
-  Since $\forall m\geq i$ $\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j\rightarrow g^i$ and even better
-  $\forall\epsilon>0$ $\exists\bar{n}$, $\forall n\geq\bar{n}$, $\forall m\geq i$ $|\sum_{j=n}^{N^m_n}\prescript{m}{}{\lambda}^n_j f^{(i)}_j - g^i|\leq\epsilon$
-  (this works by lemma \ref{lem:convex_of_converg_seq_is_converg} uniformity of convergence w.r.t. triangular array) this concludes.
+  \uses{lem:komlos_convex_weights_diagonal}
+Use Lemma~\ref{lem:komlos_convex_weights_diagonal} in the Hilbert space $L^2(E)$ with the sequence of sequences $(f_n^{(i)})$, which are bounded in $L^2(E)$ for each $i \in \mathbb{N}$.
 \end{proof}
 
 
 \begin{lemma}[Komlòs Lemma]\label{lem:komlos}
-  Let $( f_n)_{n\in\mathbb{N}}$ be a uniformly integrable sequence of functions on a probability space $(\Omega , \mathcal{F} , P)$.
-  Then there exist functions $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in  $L^1 (\Omega )$.
+  \leanok
+  \lean{komlos_L1}
+Let $(f_n)_{n\in\mathbb{N}}$ be a uniformly integrable sequence of functions $\Omega \to E$, for $E$ a Hilbert space.
+Then there exist functions $g_n \in convex(f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $L^1$.
 \end{lemma}
 
 \begin{proof}
@@ -241,7 +304,7 @@ But the left-hand side is equal to $\|g_n - g_m\|_2^2/4$ by the parallelogram id
 
 \paragraph{Komlòs lemma for nonnegative random variables}
 
-\begin{lemma}\label{lem:komlos_ennreal}
+\begin{lemma}[Komlòs lemma - nonnegative, a.e. convergence]\label{lem:komlos_ennreal}
   \leanok
   \lean{komlos_ennreal}
 Let $(f_n)_{n\in\mathbb{N}}$ be a sequence of random variables with values in $[0, \infty]$.
@@ -301,7 +364,11 @@ Finally, the subsequence of $g_n$ converges almost surely to $g = -\log(h)$.
 For uniqueness of Doob-Meyer Decomposition we will need theorem \ref{thm:IsLocalMartingale.eq_zero_of_finiteVariation}.
 
 We now start the construction for the existence part.
-Let $T>0$ and recall that $\mathcal{D}_n^T=\left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$.
+
+
+\begin{definition}[Dyadics]\label{def:dyadics}
+For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$ be the set of dyadics at scale $n$ and let $\mathcal{D}^T=\bigcup_{n\in\mathbb{N}}\mathcal{D}_n^T$ be the set of all dyadics of $[0,T]$.
+\end{definition}
 
 TODO: everywhere below, $S$ is a cadlag submartingale of class D on $[0,T]$?
 
