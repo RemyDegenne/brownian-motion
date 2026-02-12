@@ -90,7 +90,7 @@ lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : 
     simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
   calc
   _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm]
+    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
   _ = (ENNReal.ofReal (∫ ω, ‖X i ω‖ ^ 2 ∂P)) ^ (1 / (2 : ℝ≥0∞).toReal) := by
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq i)).symm
@@ -99,6 +99,6 @@ lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : 
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq j))
   _ = eLpNorm (X j) 2 P := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm]
+    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
 
 end ProbabilityTheory
