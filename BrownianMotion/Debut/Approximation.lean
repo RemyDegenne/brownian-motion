@@ -97,6 +97,9 @@ lemma mem_𝓚_iff (f : Filtration T mΩ) (t : T) (B : Set (T × Ω)) :
       · exact 𝓚.base _ (hs (Set.mem_insert _ _))
       · grind
 
+@[simp]
+lemma empty_mem_𝓚 : ∅ ∈ 𝓚 f t := 𝓚.base _ (empty_mem_𝓚₀ f t)
+
 lemma subset_Iic_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
     B ⊆ Set.Iic t ×ˢ .univ := by
   induction hB with
@@ -152,6 +155,9 @@ lemma subset_Iic_of_mem_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) :
 lemma 𝓚_subset_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚δ f t :=
   ⟨{B}, fun _ h ↦ h ▸ hB, ⟨B, rfl⟩, (Set.finite_singleton B).countable,
     Eq.symm Set.iInter_iInter_eq_left⟩
+
+@[simp]
+lemma empty_mem_𝓚δ : ∅ ∈ 𝓚δ f t := 𝓚_subset_𝓚δ (by simp)
 
 /-- `𝓚δ(t)` is closed under union. -/
 @[grind .]
@@ -325,8 +331,9 @@ lemma B_subset_B' (𝒜 : Approximation f P t A) (n : ℕ) [NeZero n] :
   simp_rw [Finset.mem_Icc, le_refl, and_true, NeZero.one_le]
 
 lemma B'_mem (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ∈ 𝓚δ f t := by
-  -- easy, use the definition of B', B_mem and the fact that 𝓚δ is closed under union
-  sorry
+  induction n with
+  | zero => simp
+  | succ n hn => rw [B'_succ]; exact union_mem_𝓚δ hn (𝒜.B_mem _ (by simp))
 
 lemma B'_subset_A (𝒜 : Approximation f P t A) (n : ℕ) : 𝒜.B' n ⊆ A := by
   have hB'_subset_A : ∀ m ∈ Finset.Icc 1 n, 𝒜.B (1 / m) ⊆ A :=
@@ -338,9 +345,8 @@ lemma le' (𝒜 : Approximation f P t A) (n : ℕ) :
   -- easy, use the definition of B', le and the fact that B (1 / n) ⊆ B' n
   sorry
 
-lemma B'_mono (𝒜 : Approximation f P t A) : Monotone 𝒜.B' := by
-  -- easy, use the definition of B'
-  sorry
+lemma B'_mono (𝒜 : Approximation f P t A) : Monotone 𝒜.B' :=
+  monotone_nat_of_le_succ fun n ↦ by simp [B'_succ]
 
 lemma measurableSet_snd_iUnion_B' [T2Space T] (𝒜 : Approximation f P t A) :
     MeasurableSet[f t] (Prod.snd '' (⋃ n, 𝒜.B' n)) := by
