@@ -22,12 +22,6 @@ open scoped ENNReal NNReal Matrix
 
 namespace ProbabilityTheory
 
-lemma isPosSemidef_covarianceBilinDual {E : Type*} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E} :
-    ContinuousBilinForm.IsPosSemidef (covarianceBilinDual μ) where
-  map_symm := covarianceBilinDual_comm
-  nonneg_re_apply_self := covarianceBilinDual_self_nonneg
-
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
@@ -60,21 +54,16 @@ lemma covarianceBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
   · exact (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2
       (MemLp.of_fst_of_snd_prodLp ⟨hX, hY⟩)
 
-lemma isPosSemidef_covarianceBilin' :
-    LinearMap.BilinForm.IsPosSemidef (covarianceBilin μ).toBilinForm := by
-  rw [LinearMap.BilinForm.isPosSemidef_iff]
-  exact isPosSemidef_covarianceBilin
-
 lemma isSymm_covarianceBilin :
     LinearMap.BilinForm.IsSymm (covarianceBilin μ).toBilinForm :=
- isPosSemidef_covarianceBilin'.1
+ isPosSemidef_covarianceBilin.1
 
 variable [FiniteDimensional ℝ E]
 
 /-- Covariance matrix of a measure on a finite dimensional inner product space. -/
 noncomputable
 def covMatrix (μ : Measure E) : Matrix (Fin (Module.finrank ℝ E)) (Fin (Module.finrank ℝ E)) ℝ :=
-  BilinForm.toMatrix (stdOrthonormalBasis ℝ E).toBasis (covarianceBilin μ).toBilinForm
+  LinearMap.BilinForm.toMatrix (stdOrthonormalBasis ℝ E).toBasis (covarianceBilin μ).toBilinForm
 
 lemma covMatrix_apply (μ : Measure E) (i j : Fin (Module.finrank ℝ E)) :
     covMatrix μ i j =
@@ -91,7 +80,7 @@ lemma dotProduct_covMatrix_mulVec (x y : Fin (Module.finrank ℝ E) → ℝ) :
     x ⬝ᵥ (covMatrix μ).mulVec y =
       covarianceBilin μ (∑ j, x j • stdOrthonormalBasis ℝ E j)
         (∑ j, y j • stdOrthonormalBasis ℝ E j) := by
-  simp_rw [covMatrix, BilinForm.dotProduct_toMatrix_mulVec,
+  simp_rw [covMatrix, LinearMap.BilinForm.dotProduct_toMatrix_mulVec,
     Module.Basis.equivFun_symm_apply, OrthonormalBasis.coe_toBasis]
   simp
 
@@ -111,8 +100,7 @@ lemma covMatrix_map {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F]
   rw [covMatrix_apply, covarianceBilin_map h, covarianceBilin_eq_dotProduct_covMatrix_mulVec]
 
 lemma posSemidef_covMatrix : (covMatrix μ).PosSemidef := by
-  rw [covMatrix, ← LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix,
-    LinearMap.BilinForm.isPosSemidef_iff]
+  rw [covMatrix, ← LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix]
   exact isPosSemidef_covarianceBilin
 
 end ProbabilityTheory

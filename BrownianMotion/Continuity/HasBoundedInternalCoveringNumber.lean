@@ -19,14 +19,14 @@ variable {T : Type*} [PseudoEMetricSpace T] {A : Set T} {c : ℝ≥0∞} {ε : �
 `d` if it has finite diameter and for all `ε ∈ (0, diam(A)]`, the covering number of `A`
 at scale `ε` is bounded by `c * ε^{-d}`. -/
 structure HasBoundedCoveringNumber (A : Set T) (c : ℝ≥0∞) (d : ℝ) : Prop where
-  ediam_lt_top : EMetric.diam A < ∞
-  coveringNumber_le : ∀ ε : ℝ≥0, ε ≤ EMetric.diam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
+  ediam_lt_top : Metric.ediam A < ∞
+  coveringNumber_le : ∀ ε : ℝ≥0, ε ≤ Metric.ediam A → coveringNumber ε A ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d
 
 lemma HasBoundedCoveringNumber.coveringNumber_lt_top
     (h : HasBoundedCoveringNumber A c d) (hε_ne : ε ≠ 0)
     (hc : c ≠ ∞) (hd : 0 ≤ d) :
     coveringNumber ε A < ⊤ := by
-  by_cases hε_le : ε ≤ EMetric.diam A
+  by_cases hε_le : ε ≤ Metric.ediam A
   · suffices (coveringNumber ε A : ℝ≥0∞) < ∞ by norm_cast at this
     calc (coveringNumber ε A : ℝ≥0∞)
     _ ≤ c * (ε : ℝ≥0∞)⁻¹ ^ d := h.coveringNumber_le _ hε_le
@@ -41,11 +41,11 @@ lemma HasBoundedCoveringNumber.subset {B : Set T}
     (h : HasBoundedCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
     HasBoundedCoveringNumber B (2 ^ d * c) d := by
   constructor
-  · exact lt_of_le_of_lt (EMetric.diam_mono hBA) h.ediam_lt_top
+  · exact lt_of_le_of_lt (Metric.ediam_mono hBA) h.ediam_lt_top
   intro ε hε_le
-  by_cases hdA : d = 0 ∧ EMetric.diam A = ∞
+  by_cases hdA : d = 0 ∧ Metric.ediam A = ∞
   · simp only [hdA.1, ENNReal.rpow_zero, one_mul, mul_one]
-    replace h := h.coveringNumber_le 0 zero_le'
+    replace h := h.coveringNumber_le 0 (by simp)
     simp only [hdA.1, ENNReal.rpow_zero, mul_one] at h
     calc (coveringNumber ε B : ℝ≥0∞)
     _ ≤ coveringNumber 0 B := mod_cast coveringNumber_anti zero_le'
@@ -60,8 +60,8 @@ lemma HasBoundedCoveringNumber.subset {B : Set T}
     · simpa using h
     · simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_ofNat]
       calc (ε / 2 : ℝ≥0∞) ≤ ε := ENNReal.half_le_self
-      _ ≤ EMetric.diam B := hε_le
-      _ ≤ EMetric.diam A := EMetric.diam_mono hBA
+      _ ≤ Metric.ediam B := hε_le
+      _ ≤ Metric.ediam A := Metric.ediam_mono hBA
   _ = 2 ^ d * c * (ε : ℝ≥0∞)⁻¹ ^ d := by
     rw [div_eq_mul_inv, ENNReal.mul_inv (by simp) (by simp), inv_inv,
       ENNReal.mul_rpow_of_nonneg _ _ hd]
@@ -95,7 +95,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
         exact ⟨y.2, hy⟩
       · exact ⟨⟨x, h.1⟩, h.2, rfl⟩
     -- todo : extract that have as a lemma
-    have h_diam : EMetric.diam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
+    have h_diam : Metric.ediam (Set.Ico (0 : ℝ≥0) (n + 1)) = n + 1 := by
       rw [← h_iso.ediam_image, h_image]
       simp only [Real.ediam_Ico, sub_zero]
       norm_cast
@@ -105,9 +105,9 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     simp only [ENNReal.rpow_one]
     rw [← h_iso.coveringNumber_image, h_image]
     rw [h_diam] at hε_le
-    have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
+    have : Set.Ico (0 : ℝ) (n + 1) ⊆ Metric.closedEBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
       intro x hx
-      simp only [Set.mem_Ico, EMetric.mem_closedBall, edist_dist, dist] at hx ⊢
+      simp only [Set.mem_Ico, Metric.mem_closedEBall, edist_dist, dist] at hx ⊢
       refine ENNReal.ofReal_le_of_le_toReal ?_
       simp only [ENNReal.toReal_div, ENNReal.toReal_ofNat]
       norm_cast
@@ -115,7 +115,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       · linarith
       · simp [hx.2.le]
     calc (coveringNumber ε (Set.Ico (0 : ℝ) (n + 1)) : ℝ≥0∞)
-    _ ≤ coveringNumber (ε / 2) (EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
+    _ ≤ coveringNumber (ε / 2) (Metric.closedEBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
       gcongr
       exact coveringNumber_subset_le this
     _ ≤ 3 * ((n + 1) / 2 : ℝ≥0) / (ε / 2 : ℝ≥0) := by

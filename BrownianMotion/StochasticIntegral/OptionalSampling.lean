@@ -44,7 +44,7 @@ theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
       rw [Set.inter_comm _ t] at ht ⊢
       rw [hτ.measurableSet_inter_le_iff hσ, IsStoppingTime.measurableSet_min_iff hτ hσ] at ht
       exact ht.2
-    · exact (measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
+    · exact (measurable_stoppedValue (h.stronglyAdapted.progMeasurable_of_rightContinuous hRC)
         hτ).stronglyMeasurable.indicator (hτ.measurableSet_le_stopping_time hσ)
     · intro x hx
       simp only [hx, Set.indicator_of_notMem, not_false_iff]
@@ -76,7 +76,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_countable_range
     · have h1 : μ[stoppedValue X τ|hτ.measurableSpace] = stoppedValue X τ := by
         apply condExp_of_stronglyMeasurable hτ.measurableSpace_le
         · exact Measurable.stronglyMeasurable <|
-            measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC) hτ
+            measurable_stoppedValue (h.stronglyAdapted.progMeasurable_of_rightContinuous hRC) hτ
         · exact h.integrable_stoppedValue_of_countable_range τ hτ hτ_le hτ_countable_range
       rw [h1]
       exact (h.condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range hRC hτ_le
@@ -102,7 +102,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
   have hintgbl : Integrable (stoppedValue X τ) μ :=
     integrable_stoppedValue_of_discreteApproxSequence' h hRC hτ_le τn
   refine ae_eq_condExp_of_forall_setIntegral_eq _ hintgbl ?_ ?_
-    ((measurable_stoppedValue (h.adapted.progMeasurable_of_rightContinuous hRC)
+    ((measurable_stoppedValue (h.stronglyAdapted.progMeasurable_of_rightContinuous hRC)
       (hτ.min hσ)).mono ((hτ.min hσ).measurableSpace_mono hσ <| fun ω ↦ min_le_right _ _)
       le_rfl).aestronglyMeasurable
   · exact fun s hs _ ↦ (integrable_stoppedValue_of_discreteApproxSequence' h hRC

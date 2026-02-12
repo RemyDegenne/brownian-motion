@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import BrownianMotion.Auxiliary.NNReal
+import BrownianMotion.Gaussian.GaussianProcess
 import BrownianMotion.Gaussian.MultivariateGaussian
 import KolmogorovExtension4.KolmogorovExtension
 import Mathlib.Analysis.InnerProductSpace.GramMatrix
@@ -18,7 +19,7 @@ open scoped ENNReal NNReal
 
 namespace L2
 
-variable {ι : Type*} [Fintype ι]
+variable {ι : Type*} [Finite ι]
 variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
 
 /- In an `L2` space, the matrix of intersections of pairs of sets is positive semi-definite. -/
@@ -122,6 +123,8 @@ lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
   map_eq := by
     rw [HasGaussianLaw.map_eq_gaussianReal, variance_eval_gaussianProjectiveFamily,
       Real.toNNReal_coe]
+    swap
+    · exact IsGaussian.hasGaussianLaw_id.eval s
     conv => enter [1, 1, 2]; change fun x ↦ ContinuousLinearMap.proj (R := ℝ) s x
     rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero]
     exact IsGaussian.integrable_id
@@ -144,7 +147,9 @@ lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily (I : Finset ℝ≥0) (s t : 
           NNReal.add_sub_two_mul_min_eq_max]
         nth_grw 1 [two_mul, min_le_left, min_le_right]
       · exact IsGaussian.integrable_id
-    any_goals exact HasGaussianLaw.memLp_two
+    · exact (IsGaussian.hasGaussianLaw_id.eval s).memLp_two
+    · exact (IsGaussian.hasGaussianLaw_id.eval t).memLp_two
+    · exact (IsGaussian.hasGaussianLaw_id.prodMk s t).sub
 
 lemma isProjectiveMeasureFamily_gaussianProjectiveFamily :
     IsProjectiveMeasureFamily (α := fun _ ↦ ℝ) gaussianProjectiveFamily := by

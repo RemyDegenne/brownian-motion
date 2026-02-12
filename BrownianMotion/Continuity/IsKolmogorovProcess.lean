@@ -7,6 +7,7 @@ import BrownianMotion.Auxiliary.FiniteInf
 import BrownianMotion.Auxiliary.MeanInequalities
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
+import Mathlib.Analysis.SpecialFunctions.Log.Base
 import Mathlib.Order.CompleteLattice.Group
 import Mathlib.Probability.Process.Kolmogorov
 import Mathlib.Topology.EMetricSpace.PairReduction
@@ -304,7 +305,7 @@ lemma lintegral_sup_rpow_edist_le_sum (hp : 1 ≤ p) (hX : IsAEKolmogorovProcess
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     (hX : IsAEKolmogorovProcess X P p q M)
-    (hε : ∀ n, ε n ≤ EMetric.diam J)
+    (hε : ∀ n, ε n ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasBoundedCoveringNumber J c₁ d)
@@ -338,7 +339,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     rw [ENNReal.inv_rpow, neg_div, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
-    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
@@ -349,7 +350,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
   refine (lintegral_sup_rpow_edist_le_of_minimal_cover hp hX ?_ hC hC_subset hC_card
     h_cov hm).trans ?_
   · intro n
-    rw [← mul_one (EMetric.diam J), ENNReal.coe_mul]
+    rw [← mul_one (Metric.ediam J), ENNReal.coe_mul]
     gcongr
     norm_cast
     apply pow_le_one₀ <;> norm_num
@@ -440,7 +441,7 @@ lemma lintegral_sup_rpow_edist_le_sum_of_le_one (hp : p ≤ 1)
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp : p ≤ 1)
     (hX : IsAEKolmogorovProcess X P p q M)
-    (hε : ∀ n, ε n ≤ EMetric.diam J)
+    (hε : ∀ n, ε n ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasBoundedCoveringNumber J c₁ d)
@@ -459,7 +460,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp : p ≤ 1)
   · rw [ENNReal.inv_rpow, ENNReal.rpow_neg]
 
 lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp : p ≤ 1)
-    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
@@ -467,12 +468,12 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp : p ≤ 1)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * (ε₀ : ℝ≥0∞) * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
-  have h_diam_lt_top : EMetric.diam J < ∞ := h_cov.ediam_lt_top
+  have h_diam_lt_top : Metric.ediam J < ∞ := h_cov.ediam_lt_top
   have hε' : ε₀ ≠ ∞ := (hε.trans_lt h_diam_lt_top).ne
   refine (lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one hp hX ?_ hC hC_subset
     hC_card h_cov hm).trans ?_
   · intro n
-    rw [← mul_one (EMetric.diam J), ENNReal.coe_mul]
+    rw [← mul_one (Metric.ediam J), ENNReal.coe_mul]
     gcongr
     norm_cast
     apply pow_le_one₀ <;> norm_num
@@ -530,7 +531,7 @@ def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
 
 lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ}
-    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ EMetric.diam J)
+    (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
@@ -538,7 +539,7 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ}
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
-  have h_diam_lt_top : EMetric.diam J < ∞ := h_cov.ediam_lt_top
+  have h_diam_lt_top : Metric.ediam J < ∞ := h_cov.ediam_lt_top
   rw [Cp, mul_max, mul_one_div, mul_one_div]
   rcases le_total p 1 with hX.p_pos | hX.p_pos
   · exact (lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one hX.p_pos hX hε
@@ -620,10 +621,10 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Set T} {ε : ℝ≥0}
 
 open Filter in
 open scoped Topology in
-lemma exists_nat_pow_lt_iInf (hJ : EMetric.diam J < ∞) (hJ_finite : J.Finite)
+lemma exists_nat_pow_lt_iInf (hJ : Metric.ediam J < ∞) (hJ_finite : J.Finite)
     (hJ_nonempty : J.Nonempty) :
-    ∃ k : ℕ, EMetric.diam J * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
-  let ε₀ := EMetric.diam J
+    ∃ k : ℕ, Metric.ediam J * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
+  let ε₀ := Metric.ediam J
   suffices 0 < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t by
     suffices ∀ᶠ k in atTop,
         ε₀ * 2⁻¹ ^ k < ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t from this.exists
@@ -664,22 +665,22 @@ lemma scale_change_lintegral_iSup
 
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
-    (hd_pos : 0 < d) (hdq_lt : d < q) (hδ_le : EMetric.diam J ≤ δ / 4) :
+    (hd_pos : 0 < d) (hdq_lt : d < q) (hδ_le : Metric.ediam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 4 ^ p * 2 ^ q * M * c * δ ^ (q - d) * Cp d p q := by
   rcases isEmpty_or_nonempty J with hJ_empty | hJ_nonempty
   · simp
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
-  have hε' : EMetric.diam J < ∞ := hJ.ediam_lt_top
-  let ε₀ := (EMetric.diam J).toNNReal
+  have hε' : Metric.ediam J < ∞ := hJ.ediam_lt_top
+  let ε₀ := (Metric.ediam J).toNNReal
   rcases eq_zero_or_pos ε₀ with hε₀_eq_zero | hε₀_pos
   · simp only [ENNReal.toNNReal_eq_zero_iff, hε'.ne, or_false, ε₀] at hε₀_eq_zero
     suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
       by simp [this]
     refine hX.lintegral_sup_rpow_edist_eq_zero' hJ_finite.countable ?_
-    refine fun s t ↦ le_antisymm ?_ zero_le'
+    refine fun s t ↦ le_antisymm ?_ (zero_le _)
     calc edist s t
-    _ ≤ EMetric.diam J := EMetric.edist_le_diam_of_mem s.2 t.1.2
+    _ ≤ Metric.ediam J := Metric.edist_le_ediam_of_mem s.2 t.1.2
     _ = 0 := hε₀_eq_zero
   obtain ⟨k, hk⟩ : ∃ k : ℕ, (ε₀ : ℝ≥0∞) * 2⁻¹ ^ k <
       ⨅ (s : J) (t : J) (_h : 0 < edist s t), edist s t := by
@@ -687,13 +688,13 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     convert this
     simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := by positivity
-  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
-  have hC'_subset n : C' n ⊆ J := minimalCover_subset (hε₀_mul_pos n)
-  have hC'_fin n : (C' n).Finite := finite_minimalCover (hε₀_mul_pos n)
+  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J
+  have hC'_subset n : C' n ⊆ J := minimalCover_subset
+  have hC'_fin n : (C' n).Finite := finite_minimalCover
   have hC'_card n : (C' n).encard = coveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    encard_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   have hC' n : IsCover (ε₀ * 2⁻¹ ^ n) J (C' n) :=
-    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    isCover_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   let C : ℕ → Finset T := fun n ↦ (hC'_fin n).toFinset
   have hC_subset n : (C n : Set T) ⊆ J := by simpa [C] using hC'_subset n
   have hC_card n : #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J := by
@@ -733,7 +734,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     zero_le').trans ?_
   · simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   simp only [pow_zero, mul_one]
-  have hδ_le' : EMetric.diam J ≤ δ := by
+  have hδ_le' : Metric.ediam J ≤ δ := by
     refine hδ_le.trans ?_
     rw [ENNReal.div_le_iff (by simp) (by simp)]
     conv_lhs => rw [← mul_one δ, ENNReal.coe_mul]
@@ -754,7 +755,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ Metric.ediam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ (2 * p + 4 * q + 1) * M * δ ^ (q - d)
         * (δ ^ d * (Nat.log2 (coveringNumber (δ / 4) J).toNat) ^ q
@@ -763,16 +764,16 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
   rcases isEmpty_or_nonempty J with hJ_empty | hJ_nonempty
   · simp
   replace hJ_nonempty : J.Nonempty := Set.nonempty_coe_sort.mp hJ_nonempty
-  have hε' : EMetric.diam J < ∞ := hJ.ediam_lt_top
-  let ε₀ := (EMetric.diam J).toNNReal
+  have hε' : Metric.ediam J < ∞ := hJ.ediam_lt_top
+  let ε₀ := (Metric.ediam J).toNNReal
   rcases eq_zero_or_pos ε₀ with hε₀_eq_zero | hε₀_pos
   · simp only [ENNReal.toNNReal_eq_zero_iff, hε'.ne, or_false, ε₀] at hε₀_eq_zero
     suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
       by simp [this]
     refine hX.lintegral_sup_rpow_edist_eq_zero' hJ_finite.countable ?_
-    refine fun s t ↦ le_antisymm ?_ zero_le'
+    refine fun s t ↦ le_antisymm ?_ (zero_le _)
     calc edist s t
-    _ ≤ EMetric.diam J := EMetric.edist_le_diam_of_mem s.2 t.1.2
+    _ ≤ Metric.ediam J := Metric.edist_le_ediam_of_mem s.2 t.1.2
     _ = 0 := hε₀_eq_zero
   have hδ_le_mul : δ ≤ ε₀ * 4 := by
     rw [← ENNReal.coe_toNNReal hε'.ne, ENNReal.div_le_iff (by simp) (by simp)] at hδ_le
@@ -791,13 +792,13 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
     simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   -- introduce covers
   have hε₀_mul_pos n : 0 < ε₀ * 2⁻¹ ^ n := by positivity
-  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J (hε₀_mul_pos n)
-  have hC'_subset n : C' n ⊆ J := minimalCover_subset (hε₀_mul_pos n)
-  have hC'_fin n : (C' n).Finite := finite_minimalCover (hε₀_mul_pos n)
+  let C' : ℕ → Set T := fun n ↦ minimalCover (ε₀ * 2⁻¹ ^ n) J
+  have hC'_subset n : C' n ⊆ J := minimalCover_subset
+  have hC'_fin n : (C' n).Finite := finite_minimalCover
   have hC'_card n : (C' n).encard = coveringNumber (ε₀ * 2⁻¹ ^ n) J :=
-    card_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    encard_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   have hC' n : IsCover (ε₀ * 2⁻¹ ^ n) J (C' n) :=
-    isCover_minimalCover hJ_finite.totallyBounded (hε₀_mul_pos n)
+    isCover_minimalCover (hJ_finite.totallyBounded.coveringNumber_ne_top (by positivity))
   let C : ℕ → Finset T := fun n ↦ (hC'_fin n).toFinset
   have hC_subset n : (C n : Set T) ⊆ J := by simpa [C] using hC'_subset n
   have hC_card n : #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J := by
@@ -930,12 +931,12 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
 lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
-    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ EMetric.diam J) :
+    (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ Metric.ediam J) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P
       ≤ 2 ^ (2 * p + 4 * q + 1) * M * c * δ ^ (q - d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  have h_diam_lt_top : EMetric.diam J < ∞ := hJ.ediam_lt_top
+  have h_diam_lt_top : Metric.ediam J < ∞ := hJ.ediam_lt_top
   refine (finite_set_bound_of_edist_le_of_le_diam hJ hJ_finite hX hd_pos hdq_lt hδ
     hδ_le).trans ?_
   simp_rw [mul_assoc]
@@ -949,7 +950,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedCoveringNumber J 
     have hδ_ne_top : δ ≠ ∞ := by
       refine ne_of_lt ?_
       calc (δ : ℝ≥0∞)
-      _ ≤ 4 * EMetric.diam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
+      _ ≤ 4 * Metric.ediam J := by rwa [ENNReal.div_le_iff' (by simp) (by simp)] at hδ_le
       _ < ∞ := ENNReal.mul_lt_top (by simp) h_diam_lt_top
     have hJδ := hJ.coveringNumber_le (δ / 4) (by simpa)
     have hJ' : coveringNumber (δ / 4) J ≤ c * 4 ^ d * δ⁻¹ ^ d := by
@@ -1008,7 +1009,7 @@ lemma finite_set_bound_of_edist_le (hJ : HasBoundedCoveringNumber J c d)
       ≤ 2 ^ (2 * p + 4 * q + 1) * M * c * δ ^ (q - d)
         * (4 ^ d * (ENNReal.ofReal (Real.logb 2 (c.toReal * 4 ^ d * δ.toReal⁻¹ ^ d))) ^ q
             + Cp d p q) := by
-  by_cases hδ_le : δ / 4 ≤ EMetric.diam J
+  by_cases hδ_le : δ / 4 ≤ Metric.ediam J
   · exact finite_set_bound_of_edist_le_of_le_diam' hJ hJ_finite hX hc hd_pos hdq_lt hδ hδ_le
   refine (finite_set_bound_of_edist_le_of_diam_le hJ hJ_finite hX hd_pos hdq_lt ?_).trans ?_
   · exact (not_le.mp hδ_le).le

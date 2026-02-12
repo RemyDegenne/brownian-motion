@@ -141,7 +141,7 @@ def _root_.MeasureTheory.ProgMeasurableSet [Preorder ι]
     [MeasurableSpace ι] (E : Set (ι × Ω)) (f : Filtration ι mΩ) :=
   ProgMeasurable f (E.indicator fun _ ↦ 1).curry
 
-/-- **Debùt Therorem**: The debut of a progressively measurable set `E` is a stopping time. -/
+/-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem debut_isStoppingTime [MeasurableSpace ι] [Preorder ι] [InfSet ι]
     {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) (n : ι) :
     IsStoppingTime f (debut E n) := by

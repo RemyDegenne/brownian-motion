@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # 2025-07-02
+        uses: leanprover/lean-action@65f454bc22ec83143241456eee965c2ab702ba6e # 2026-01-15
         with:
           build: true
           lint: true
@@ -58,7 +58,7 @@ jobs:
           ./build_manual.sh
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        uses: leanprover-community/docgen-action@99573be5e68d529995066f7c302b13e802783194 # 2026-02-05
         with:
           blueprint: true
           homepage: home_page

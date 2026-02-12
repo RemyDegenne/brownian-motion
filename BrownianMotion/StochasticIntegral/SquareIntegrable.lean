@@ -34,7 +34,7 @@ structure IsSquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P
 lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     Integrable (fun ω ↦ ‖X i ω‖ ^ 2) P := by
   constructor
-  · have hX_meas := (hX.martingale.adapted i).mono (𝓕.le i)
+  · have hX_meas := (hX.martingale.stronglyAdapted i).mono (𝓕.le i)
     fun_prop
   · have hX_bound : eLpNorm (X i) 2 P < ∞ := by
       calc eLpNorm (X i) 2 P
@@ -55,8 +55,9 @@ lemma IsSquareIntegrable.add (hX : IsSquareIntegrable X 𝓕 P)
     calc ⨆ i, eLpNorm (fun ω ↦ X i ω + Y i ω) 2 P
         ≤ ⨆ i, (eLpNorm (X i) 2 P + eLpNorm (Y i) 2 P) := by
           refine iSup_mono fun i ↦ ?_
-          exact eLpNorm_add_le ((hX.martingale.adapted i).mono (𝓕.le i)).aestronglyMeasurable
-            ((hY.martingale.adapted i).mono (𝓕.le i)).aestronglyMeasurable (by simp)
+          exact eLpNorm_add_le
+            ((hX.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable
+            ((hY.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable (by simp)
       _ ≤ (⨆ i, eLpNorm (X i) 2 P) + ⨆ i, eLpNorm (Y i) 2 P := by
           refine iSup_le fun i => ?_
           gcongr
@@ -89,7 +90,7 @@ lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : 
     simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
   calc
   _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm]
+    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
   _ = (ENNReal.ofReal (∫ ω, ‖X i ω‖ ^ 2 ∂P)) ^ (1 / (2 : ℝ≥0∞).toReal) := by
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq i)).symm
@@ -98,6 +99,6 @@ lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : 
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq j))
   _ = eLpNorm (X j) 2 P := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm]
+    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
 
 end ProbabilityTheory
