@@ -242,6 +242,8 @@ MeasureTheory.Submartingale.ae_bddAbove_Iic
 ProbabilityTheory.maximal_ineq_countable
 ProbabilityTheory.maximal_ineq
 ProbabilityTheory.maximal_ineq_norm
+MeasureTheory.exists_measurable_superset
+Monotone.measure_iUnion
 MeasureTheory.leastGE
 ProbabilityTheory.IsPreLocalizingSequence
 ProbabilityTheory.IsLocalizingSequence
