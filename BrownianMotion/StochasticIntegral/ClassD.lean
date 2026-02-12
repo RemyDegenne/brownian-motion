@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import Mathlib.Probability.Process.HittingTime
+import Mathlib.Probability.Martingale.BorelCantelli
 
 /-! # Locally integrable, class D, class DL
 
