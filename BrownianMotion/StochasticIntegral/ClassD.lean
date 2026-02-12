@@ -509,11 +509,6 @@ end ClassDClassDL
 
 variable {ι β : Type*}
 
-/-- `leastGE f r` is the stopping time corresponding to the first time `f ≥ r`. -/
-noncomputable def leastGE [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
-    (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
-  hittingAfter f (Set.Ici r) ⊥
-
 instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι where
 
 -- TODO: The assumptions should be refined with those of Début theorem.
