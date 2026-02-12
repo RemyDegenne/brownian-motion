@@ -140,7 +140,7 @@ def _root_.MeasureTheory.ProgMeasurableSet [Preorder ι]
   ProgMeasurable f (E.indicator fun _ ↦ 1).curry
 
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
-theorem debut_isStoppingTime [MeasurableSpace ι] [Preorder ι] [InfSet ι]
+theorem isStoppingTime_debut [MeasurableSpace ι] [Preorder ι] [InfSet ι]
     {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) (n : ι) :
     IsStoppingTime f (debut E n) := by
   /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
@@ -156,7 +156,7 @@ section HittingTime
 /- We may need to add some hypotheses, like the filtration being right continuous. After proving
 the theorem consider if this completely subsumes `hitting_isStoppingTime`, in that case we can
 remove the latter. Also, consider if the fact that `β` is a borel space is actually needed. -/
-theorem hitting_isStoppingTime' [ConditionallyCompleteLinearOrder ι] [MeasurableSpace ι]
+theorem isStoppingTime_hittingAfter' [ConditionallyCompleteLinearOrder ι] [MeasurableSpace ι]
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
     {f : Filtration ι mΩ} {X : ι → Ω → β} (hX : ProgMeasurable f X)
     {s : Set β} {n m : ι} (hs : MeasurableSet s) :
