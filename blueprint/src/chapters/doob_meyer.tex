@@ -284,8 +284,10 @@ Use Lemma~\ref{lem:komlos_convex_weights_diagonal} in the Hilbert space $L^2(E)$
 
 
 \begin{lemma}[Komlòs Lemma]\label{lem:komlos}
-  Let $( f_n)_{n\in\mathbb{N}}$ be a uniformly integrable sequence of functions on a probability space $(\Omega , \mathcal{F} , P)$.
-  Then there exist functions $g_n \in convex( f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in  $L^1$.
+  \leanok
+  \lean{komlos_L1}
+Let $(f_n)_{n\in\mathbb{N}}$ be a uniformly integrable sequence of functions $\Omega \to E$, for $E$ a Hilbert space.
+Then there exist functions $g_n \in convex(f_n, f_{n+1}, \cdots)$ such that $(g_n)_{n\in\mathbb{N}}$ converges in $L^1$.
 \end{lemma}
 
 \begin{proof}

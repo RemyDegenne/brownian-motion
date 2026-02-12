@@ -112,6 +112,13 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
   rcases CompleteSpace.complete g_cauchy with ⟨x, hx⟩
   exact ⟨x, hg, hx⟩
 
+theorem komlos_L1 [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P : Measure Ω}
+    (hf : UniformIntegrable f 1 P) :
+    ∃ (g : ℕ → Ω → E) (glim : Ω → E), (∀ n, g n ∈ convexHull ℝ≥0 (Set.range fun m ↦ f (n + m))) ∧
+      Tendsto (fun n ↦ eLpNorm (g n - glim) 1 P) atTop (𝓝 0) := by
+  sorry
+
 -- todo: check measurability hypothesis/conclusion
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
     {P : Measure Ω} [IsProbabilityMeasure P] :
