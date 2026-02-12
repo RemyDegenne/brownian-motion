@@ -242,6 +242,8 @@ MeasureTheory.Submartingale.ae_bddAbove_Iic
 ProbabilityTheory.maximal_ineq_countable
 ProbabilityTheory.maximal_ineq
 ProbabilityTheory.maximal_ineq_norm
+MeasureTheory.MonotoneClass
+MeasureTheory.MonotoneClass.generateFrom_eq
 MeasureTheory.ProgMeasurableSet
 MeasureTheory.debut
 MeasureTheory.𝓚₀
