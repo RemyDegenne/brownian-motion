@@ -105,9 +105,9 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     simp only [ENNReal.rpow_one]
     rw [← h_iso.coveringNumber_image, h_image]
     rw [h_diam] at hε_le
-    have : Set.Ico (0 : ℝ) (n + 1) ⊆ EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
+    have : Set.Ico (0 : ℝ) (n + 1) ⊆ Metric.closedEBall (((n : ℝ) + 1) / 2) ((n + 1) / 2) := by
       intro x hx
-      simp only [Set.mem_Ico, EMetric.mem_closedBall, edist_dist, dist] at hx ⊢
+      simp only [Set.mem_Ico, Metric.mem_closedEBall, edist_dist, dist] at hx ⊢
       refine ENNReal.ofReal_le_of_le_toReal ?_
       simp only [ENNReal.toReal_div, ENNReal.toReal_ofNat]
       norm_cast
@@ -115,7 +115,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       · linarith
       · simp [hx.2.le]
     calc (coveringNumber ε (Set.Ico (0 : ℝ) (n + 1)) : ℝ≥0∞)
-    _ ≤ coveringNumber (ε / 2) (EMetric.closedBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
+    _ ≤ coveringNumber (ε / 2) (Metric.closedEBall (((n : ℝ) + 1) / 2) ((n + 1) / 2)) := by
       gcongr
       exact coveringNumber_subset_le this
     _ ≤ 3 * ((n + 1) / 2 : ℝ≥0) / (ε / 2 : ℝ≥0) := by

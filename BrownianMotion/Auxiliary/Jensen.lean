@@ -96,7 +96,8 @@ theorem eLpNorm_condExp_le_eLpNorm {p : ℝ≥0∞} (hp : 1 ≤ p) (f : Ω → E
       ofReal_condExp_norm_ae_le_eLpNormEssSup hf.aestronglyMeasurable] with ω hω1 hω2 using
       hω1.trans hω2
   have hff : MemLp f p μ := ⟨hf.aestronglyMeasurable, h.lt_top⟩
-  simp_rw [eLpNorm_eq_lintegral_rpow_enorm ((show (0 : ℝ≥0∞) < 1 by simp).trans_le hp |>.ne') hp']
+  simp_rw [eLpNorm_eq_lintegral_rpow_enorm_toReal ((show (0 : ℝ≥0∞) < 1 by simp).trans_le hp |>.ne')
+    hp']
   calc
   _ ≤ (∫⁻ ω, (.ofReal (μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] ω)) ∂μ) ^ (1 / p.toReal) := by
     gcongr 1

@@ -132,44 +132,44 @@ lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_ball_const'
     {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
-  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_ball, ← Measure.map_apply,
+    μ (Metric.eball a r) = μ (Metric.eball b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_eball, ← Measure.map_apply,
     map_mul_left_eq_self]
   · fun_prop
-  · exact EMetric.isOpen_ball.measurableSet
+  · exact Metric.isOpen_eball.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulRightInvariant.measure_ball_const'
     {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
-  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_ball, ← Measure.map_apply,
+    μ (Metric.eball a r) = μ (Metric.eball b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_eball, ← Measure.map_apply,
     map_mul_right_eq_self]
   · fun_prop
-  · exact EMetric.isOpen_ball.measurableSet
+  · exact Metric.isOpen_eball.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_closedBall_const'
     {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
-  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_closedBall, ← Measure.map_apply,
+    μ (Metric.closedEBall a r) = μ (Metric.closedEBall b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_closedEBall, ← Measure.map_apply,
     map_mul_left_eq_self]
   · fun_prop
-  · exact EMetric.isClosed_closedBall.measurableSet
+  · exact Metric.isClosed_closedEBall.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const'
     {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
-  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_closedBall, ← Measure.map_apply,
+    μ (Metric.closedEBall a r) = μ (Metric.closedEBall b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_closedEBall, ← Measure.map_apply,
     map_mul_right_eq_self]
   · fun_prop
-  · exact EMetric.isClosed_closedBall.measurableSet
+  · exact Metric.isClosed_closedEBall.measurableSet
 
 open Metric
 
@@ -188,21 +188,21 @@ lemma InnerProductSpace.volume_closedBall_div {E : Type*} [NormedAddCommGroup E]
 lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     (x y : E) (r s : ℝ≥0∞) :
-    volume (EMetric.closedBall x r) / volume (EMetric.closedBall y s) =
+    volume (Metric.closedEBall x r) / volume (Metric.closedEBall y s) =
       (r / s) ^ (Module.finrank ℝ E) := by
   nontriviality E
   obtain rfl | hr := eq_top_or_lt_top r <;> obtain rfl | hs := eq_top_or_lt_top s
   · simp
   · lift s to ℝ≥0 using hs.ne
-    simp [ENNReal.top_div, emetric_closedBall_nnreal, (isCompact_closedBall _ _).measure_ne_top]
+    simp [ENNReal.top_div, closedEBall_coe, (isCompact_closedBall _ _).measure_ne_top]
   · simp
   · obtain rfl | hr' := eq_zero_or_pos r <;> obtain rfl | hs' := eq_zero_or_pos s
     · simp
     · simp
-    · simp [ENNReal.div_zero, hr'.ne', EMetric.measure_closedBall_pos volume x hr'.ne' |>.ne']
+    · simp [ENNReal.div_zero, hr'.ne', Metric.measure_closedEBall_pos volume x hr'.ne' |>.ne']
     lift r to ℝ≥0 using hr.ne
     lift s to ℝ≥0 using hs.ne
-    simp_rw [emetric_closedBall_nnreal]
+    simp_rw [closedEBall_coe]
     rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
     · simp
     all_goals simp_all
