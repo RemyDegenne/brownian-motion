@@ -59,6 +59,7 @@ lemma measurableSet_snd_of_mem_𝓚₀ {B : Set (T × Ω)} (hB : B ∈ 𝓚₀ f
   rwa [hB_eq, Set.snd_image_prod (Set.nonempty_iff_ne_empty.mpr hK_empty)]
 
 /-- `𝓚₀(t)` is closed under intersection. -/
+@[grind .]
 lemma inter_mem_𝓚₀ [T2Space T] {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚₀ f t) (hB' : B' ∈ 𝓚₀ f t) : B ∩ B' ∈ 𝓚₀ f t := by
   obtain ⟨K, C, rfl, hK_sub, hK_comp, hC_meas⟩ := hB
@@ -103,6 +104,7 @@ lemma subset_Iic_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
   | union _ _ _ _ hB hB' => exact Set.union_subset hB hB'
 
 /-- `𝓚(t)` is closed under union. -/
+@[grind .]
 lemma union_mem_𝓚 {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) : B ∪ B' ∈ 𝓚 f t := by
   classical
@@ -121,21 +123,20 @@ lemma measurableSet_snd_of_mem_𝓚 {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) :
   exact s.measurableSet_biUnion (fun x hx ↦ measurableSet_snd_of_mem_𝓚₀ (hs hx))
 
 /-- `𝓚(t)` is closed under intersection. -/
+@[grind .]
 lemma inter_mem_𝓚 [T2Space T] {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚 f t) (hB' : B' ∈ 𝓚 f t) : B ∩ B' ∈ 𝓚 f t := by
   classical
   rw [mem_𝓚_iff] at hB hB'
-  obtain ⟨s, hs, hB_eq⟩ := hB
-  obtain ⟨s', hs', hB'_eq⟩ := hB'
-  have : B ∩ B' = ⋃ bb' ∈ s ×ˢ s', bb'.1 ∩ bb'.2 := by
-    rw [hB_eq, hB'_eq, Set.iUnion_inter_iUnion]
-    aesop
+  obtain ⟨s, hs, rfl⟩ := hB
+  obtain ⟨s', hs', rfl⟩ := hB'
+  have : (⋃ x ∈ s, x) ∩ ⋃ x ∈ s', x = ⋃ bb' ∈ s ×ˢ s', bb'.1 ∩ bb'.2 := by ext; simp; grind
   rw [this, mem_𝓚_iff]
   let S : Finset (Set (T × Ω)) := (s ×ˢ s').image fun p ↦ p.1 ∩ p.2
   refine ⟨S, fun x hx ↦ ?_, ?_⟩
   · obtain ⟨bb, hbb, rfl⟩ := Finset.mem_image.mp hx
     rw [Finset.mem_product] at hbb
-    exact inter_mem_𝓚₀ (hs hbb.1) (hs' hbb.2)
+    grind
   · aesop
 
 /-- `𝓚δ(t)` is the collection of countable intersections of sets in `𝓚(t)`. -/
@@ -153,15 +154,15 @@ lemma 𝓚_subset_𝓚δ {B : Set (T × Ω)} (hB : B ∈ 𝓚 f t) : B ∈ 𝓚�
     Eq.symm Set.iInter_iInter_eq_left⟩
 
 /-- `𝓚δ(t)` is closed under union. -/
+@[grind .]
 lemma union_mem_𝓚δ {f : Filtration T mΩ} {t : T}
     {B B' : Set (T × Ω)} (hB : B ∈ 𝓚δ f t) (hB' : B' ∈ 𝓚δ f t) : B ∪ B' ∈ 𝓚δ f t := by
   have ⟨ℬ, hℬ_sub, ⟨b, hb⟩, hℬ_count, hB_eq⟩ := hB
   have ⟨ℬ', hℬ_sub', ⟨b', hb'⟩, hℬ_count', hB_eq'⟩ := hB'
-  refine ⟨{x | ∃ bb ∈ ℬ, ∃ bb' ∈ ℬ', x = bb ∪ bb'}, fun x ⟨bb, hbb, bb', hbb', hx⟩ ↦ ?_,
+  refine ⟨{x | ∃ bb ∈ ℬ, ∃ bb' ∈ ℬ', x = bb ∪ bb'}, fun x ⟨bb, hbb, bb', hbb', hx⟩ ↦ by grind,
     ⟨b ∪ b', b, hb, b', hb', rfl⟩, ?_, ?_⟩
-  · exact hx ▸ union_mem_𝓚 (hℬ_sub hbb) (hℬ_sub' hbb')
   · have : {x | ∃ bb ∈ ℬ, ∃ bb' ∈ ℬ', x = bb ∪ bb'} = (fun p ↦ p.1 ∪ p.2) '' (ℬ ×ˢ ℬ') := by
-      aesop
+      ext; simp; grind
     exact this ▸ .image (.prod hℬ_count hℬ_count') _
   · simp only [Set.mem_setOf_eq, Set.iInter_exists, Set.biInter_and', Set.iInter_iInter_eq_left,
       hB_eq, hB_eq']
@@ -206,33 +207,14 @@ lemma measurableSet_snd_of_mem_𝓚δ [T2Space T] {B : Set (T × Ω)} (hB : B �
     unfold G
     refine fun i x hx ↦ ?_
     simp only [Set.mem_iInter] at hx ⊢
-    intro n
-    by_cases h : n ≤ i
-    · exact fun _ ↦ hx n (n.le_succ_of_le h)
-    · exact fun hn ↦ (h hn).elim
+    grind
   have hG_mem (i : ℕ) : G i ∈ 𝓚 f t := by
     induction i with
-    | zero =>
-      simp only [nonpos_iff_eq_zero, Set.iInter_iInter_eq_left, G]
-      exact h𝓚 (g 0).coe_prop
+    | zero => simp [G]; grind
     | succ i ih =>
-      have : G (i + 1) = G i ∩ g (i + 1) := by
-        simp only [G]
-        induction i with
-        | zero =>
-          ext x
-          simp_rw [zero_add, nonpos_iff_eq_zero, Set.iInter_iInter_eq_left]
-          refine ⟨?_, fun hx ↦ Set.mem_iInter₂_of_mem fun i _ ↦ ?_⟩
-          · simp_all only [Set.mem_iInter, Set.mem_inter_iff, zero_le, le_refl,
-              and_self, implies_true]
-          · interval_cases i
-            · exact hx.left
-            · exact hx.right
-        | succ i ih =>
-          ext x
-          simp_rw [Set.mem_inter_iff, Set.mem_iInter]
-          grind
-      exact this ▸ inter_mem_𝓚 ih (h𝓚 (g (i + 1)).coe_prop)
+      have : G (i + 1) = G i ∩ g (i + 1) := by ext; simp [G]; grind
+      rw [this]
+      grind
   have hG_mem' : ∀ i, G i ∈ 𝓚δ f t := fun i ↦ 𝓚_subset_𝓚δ (hG_mem i)
   rw [hG, ← iInf_snd_eq_snd_iInf_of_mem_𝓚δ hG_mem' h_desc]
   exact .iInter fun i ↦ measurableSet_snd_of_mem_𝓚 (hG_mem i)

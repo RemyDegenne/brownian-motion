@@ -71,11 +71,9 @@ lemma debut_prod [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) (A : Set Ω) :
     simp only [Set.mem_prod, not_exists, not_and]
     exact fun i hni hiI _ ↦ Set.notMem_empty i (hI ▸ ⟨hni, hiI⟩)
 
-open scoped Classical in
-lemma debut_prod_univ [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) :
+lemma debut_prod_univ [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) [Decidable (Set.Ici n ∩ I ≠ ∅)] :
     debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if .Ici n ∩ I ≠ ∅ then
-      ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by
-  simp
+      ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by simp
 
 lemma debut_univ_prod [ConditionallyCompleteLattice ι] (n : ι) (A : Set Ω) [DecidablePred (· ∈ A)] :
     debut ((.univ : Set ι) ×ˢ A) n = fun ω ↦ if ω ∈ A then (n : WithTop ι) else ⊤ := by
