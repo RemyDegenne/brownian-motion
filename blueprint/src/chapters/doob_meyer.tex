@@ -210,41 +210,39 @@ By convex weights on $\mathbb{N}$, we mean a sequence of non-negative real numbe
 If $(a_m)_{m \in \mathbb{N}}$ are convex weights and $(b^n_m)_{n,m \in \mathbb{N}}$ is such that for all $n$, the $(b^n_m)$ are convex weights, then we denote by $(a_\cdot) * (b^\cdot_\cdot)$ the convex weights defined by $((a_\cdot) * (b^\cdot_\cdot))_m = \sum_{k} a_k b^k_m$.
 
 
-\begin{lemma}\label{lem:komlos_convex_weights}
-Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$.
-Then there exists a sequence of convex weights $(\prescript{k}{}{\lambda}^n_\cdot)_{k, n \in \mathbb{N}}$ with $\prescript{k}{}{\lambda}^n_m = 0$ for $m < n$ such that for all $k \in \mathbb{N}$, $\left(\sum_{m \ge n} \left((\prescript{k}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(k)}\right)_{n \in \mathbb{N}}$ converges.
+\begin{lemma}\label{lem:komlos_convex_weights} Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$. Then there exists a sequence of convex weights $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ with $\lambda^{k,n}_m = 0$ for $m < n$ such that for all $k \in \mathbb{N}$, $\left(\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(k)}\right)_{n \in \mathbb{N}}$ converges.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:komlos_norm}
-Firstly by lemma \ref{lem:komlos_norm} applied to $(x_n^{(1)})_{n\in\mathbb{N}}$ in the Hilbert space $E$, there exist $g_n^1 \in convex(x_n^{(1)}, x_{n+1}^{(1)}, \ldots)$ (call its weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$) such that $g_n^1$ converges to some $g^1$.
+First by lemma \ref{lem:komlos_norm} applied to $(x_n^{(1)})_{n\in\mathbb{N}}$ in the Hilbert space $E$, there exist $g_n^1 \in convex(x_n^{(1)}, x_{n+1}^{(1)}, \ldots)$ (call its weights $\lambda^{1,n}_n,\cdots,\lambda^{1,n}_{N^1_n}$) such that $g_n^1$ converges to some $g^1$.
 
-Secondly define $\tilde{g}_n^2$, convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $\prescript{1}{}{\lambda}^n_n,\cdots,\prescript{1}{}{\lambda}^n_{N^1_n}$.
-Applying lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^2)_{n\in\mathbb{N}}$ gives us $g_n^2 \in convex(\tilde{g}_n^2, \tilde{g}_{n+1}^2, \ldots)$ (call its weights $\prescript{2}{}{\lambda}^n_n,\cdots,\prescript{2}{}{\lambda}^n_{N^2_n}$) such that $g_n^2$ converges to some $g^2$.
-$g_n^2$ is a convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $(\prescript{2}{}{\lambda}^n_\cdot) * (\prescript{1}{}{\lambda}^\cdot_\cdot)$.
+Secondly define $\tilde{g}_n^2$, convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $\lambda^{1,n}_n,\cdots,\lambda^{1,n}_{N^1_n}$.
+Applying lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^2)_{n\in\mathbb{N}}$ gives us $g_n^2 \in convex(\tilde{g}_n^2, \tilde{g}_{n+1}^2, \ldots)$ (call its weights $\lambda^{1,n}_n,\cdots,\lambda^{2,n}_{N^2_n}$) such that $g_n^2$ converges to some $g^2$.
+$g_n^2$ is a convex combination of $x_n^{(2)}, x_{n+1}^{(2)}, \ldots$ with weights $(\lambda^{2,n}_\cdot) * (\lambda^{1,\cdot}_\cdot)$.
 
 We continue iterating this process inductively.
-At iteration $k$ we have weights $(\prescript{k}{}{\lambda}^n_\cdot * \ldots * \prescript{1}{}{\lambda}^\cdot_\cdot)$.
+At iteration $k$ we have weights $(\lambda^{k,n}_\cdot * \ldots * \lambda^{1,\cdot}_\cdot)$.
 We define $\tilde{g}_n^{k+1}$ as the convex combination of $x_n^{(k+1)}, x_{n+1}^{(k+1)}, \ldots$ with those weights.
-We apply Lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^{k+1})_{n\in\mathbb{N}}$ to get $g_n^{k+1} \in convex(\tilde{g}_n^{k+1}, \tilde{g}_{n+1}^{k+1}, \ldots)$ such that $g_n^{k+1}$ converges to some $g^{k+1}$. We denote its weights by $\prescript{k+1}{}{\lambda}^n_n,\cdots,\prescript{k+1}{}{\lambda}^n_{N^{k+1}_n}$.
+We apply Lemma~\ref{lem:komlos_norm} to $(\tilde{g}_n^{k+1})_{n\in\mathbb{N}}$ to get $g_n^{k+1} \in convex(\tilde{g}_n^{k+1}, \tilde{g}_{n+1}^{k+1}, \ldots)$ such that $g_n^{k+1}$ converges to some $g^{k+1}$. We denote its weights by $\lambda^{k+1,n}_n,\cdots,\lambda^{k+1,n}_{N^{k+1}_n}$.
 
-We have thus defined, for all $k, n \in \mathbb{N}$, convex weights $(\prescript{k}{}{\lambda}^n_m)$ (that are zero for $m < n$) such that $\sum_{m \ge n}((\prescript{k}{}{\lambda}^n_\cdot * \ldots * \prescript{1}{}{\lambda}^\cdot_\cdot))_m x_m^{(k)}$ converges to $g^k$.
+We have thus defined, for all $k, n \in \mathbb{N}$, convex weights $(\lambda^{k,n}_m)$ (that are zero for $m < n$) such that $\sum_{m \ge n}((\lambda^{k,n}_\cdot * \ldots * \lambda^{1, \cdot}_\cdot))_m x_m^{(k)}$ converges to $g^k$.
 \end{proof}
 
 
 \begin{lemma}\label{lem:komlos_convex_weights_tendsto}
   \uses{lem:komlos_convex_weights}
 Let $E$ be a Hilbert space and for $i \in \mathbb{N}$, let $(x_n^{(i)})_{n \in \mathbb{N}}$ be a bounded sequence in $E$.
-Let $(\prescript{k}{}{\lambda}^n_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
+Let $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
 
-Then for every $k \ge i$, the sequence $\left(\sum_{m \ge n} \left((\prescript{k}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$, uniformly in $k$.
+Then for every $k \ge i$, the sequence $\left(\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$, uniformly in $k$.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:convex_of_converg_seq_is_converg}
 Let $i \in \mathbb{N}$.
-By Lemma~\ref{lem:convex_of_converg_seq_is_converg}, there is uniform convergence over all convex combinations of the sequence $\left(\sum_{m \ge n} \left((\prescript{i}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ to $g^i$.
-All sums $\sum_{m \ge n} \left((\prescript{k}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)}$ for $k \ge i$ are convex combinations of $\sum_{m \ge n} \left((\prescript{i}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)}$, hence they converge to $g^i$ uniformly in $k$.
+By Lemma~\ref{lem:convex_of_converg_seq_is_converg}, there is uniform convergence over all convex combinations of the sequence $\left(\sum_{m \ge n} \left((\lambda^{i,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ to $g^i$.
+All sums $\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}$ for $k \ge i$ are convex combinations of $\sum_{m \ge n} \left((\lambda^{i,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)}$, hence they converge to $g^i$ uniformly in $k$.
 \end{proof}
 
 
@@ -255,16 +253,16 @@ Then there exists a sequence of convex weights $(\eta^n_\cdot)_{n \in \mathbb{N}
 
 \begin{proof}
   \uses{lem:komlos_convex_weights, lem:komlos_convex_weights_tendsto}
-Let $(\prescript{k}{}{\lambda}^n_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
-Let $\eta^n_m = (\prescript{n}{}{\lambda}^n_\cdot * \ldots * \prescript{1}{}{\lambda}^\cdot_\cdot)_m$.
+Let $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
+Let $\eta^n_m = (\lambda^{n,n}_\cdot * \ldots * \lambda^{1,\cdot}_\cdot)_m$.
 We show that for all $i \in \mathbb{N}$, the sequence $\left(\sum_{m \ge n} \eta^n_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$.
 
 Let $i \in \mathbb{N}$.
-By Lemma~\ref{lem:komlos_convex_weights_tendsto}, for all $\varepsilon > 0$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, for all $k \ge i$, $\left\Vert\sum_{m \ge n} \left((\prescript{k}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert \le \varepsilon$.
+By Lemma~\ref{lem:komlos_convex_weights_tendsto}, for all $\varepsilon > 0$, there exists $\bar{n}$ such that for all $n \ge \bar{n}$, for all $k \ge i$, $\left\Vert\sum_{m \ge n} \left((\lambda^{k,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert \le \varepsilon$.
 Hence for $n \ge \max(\bar{n}, i)$,
 \begin{align*}
   \left\Vert\sum_{m \ge n} \eta^n_m x_m^{(i)} - g^i\right\Vert
-  &= \left\Vert\sum_{m \ge n} \left((\prescript{n}{}{\lambda}^n_\cdot) * \ldots * (\prescript{1}{}{\lambda}^\cdot_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert
+  &= \left\Vert\sum_{m \ge n} \left((\lambda^{n,n}_\cdot) * \ldots * (\lambda^{1,\cdot}_\cdot)\right)_m x_m^{(i)} - g^i\right\Vert
   \le \varepsilon
   \: .
 \end{align*}
