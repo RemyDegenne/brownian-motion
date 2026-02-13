@@ -114,6 +114,31 @@ def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω �
   ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
     iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
 
+lemma HasIndepIncrements.iff_increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
+    {X : T → Ω → E} {P : Measure Ω} [IsProbabilityMeasure P] :
+    HasIndepIncrements X P ↔ ∀ t : ℕ → T, Monotone t →
+      iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P := by
+  constructor
+  · intro h t ht
+    rw [ProbabilityTheory.iIndepFun_iff_finset]
+    intro s
+    by_cases! hs : s.Nonempty
+    · rcases s.max_of_nonempty hs with ⟨n,hn⟩
+      let g : (s → Fin n.succ) :=
+        fun x ↦ ⟨x, Nat.lt_succ_of_le <| by simpa [hn] using s.le_max x.mem⟩
+      apply iIndepFun.precomp (g := g) _ <| h n.succ (fun m ↦ t m) _
+      · simp [g, Function.Injective]
+      · exact ht.comp Fin.val_strictMono.monotone
+    · rw [hs]; aesop
+  · intro h n t ht
+    let t' := fun x ↦ t ⟨min n x, by aesop⟩
+    convert iIndepFun.precomp (g := Fin.val) _ <| h t' _
+    · apply (min_eq_right <| Nat.add_one_le_of_lt (Fin.is_lt _)).symm
+    · aesop
+    · simpa [Function.Injective] using by aesop
+    · intro x y hxy
+      apply ht; aesop
+
 /-- `incrementsToRestrict I` is a continuous linear map `f` such that
 `f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
 noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] [AddCommMonoid E]
