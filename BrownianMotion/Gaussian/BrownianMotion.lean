@@ -130,17 +130,19 @@ lemma HasIndepIncrements.increments_nat {T E : Type*} [Preorder T] [Sub E] [Meas
   · have := (h 0 (fun _ ↦ t 0) (fun _ ↦ by aesop)).isProbabilityMeasure
     rw [hs]; aesop
 
-lemma HasIndepIncrements.iff_increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
-    {P : Measure Ω} {X : T → Ω → E} :
-    HasIndepIncrements X P ↔ ∀ t : ℕ → T, Monotone t →
-      iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P := by
-  refine ⟨HasIndepIncrements.increments_nat, ?_⟩
-  intro h n t ht
+lemma HasIndepIncrements.of_increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
+    {P : Measure Ω} {X : T → Ω → E}
+    (h : ∀ t : ℕ → T, Monotone t ∧ EventuallyConst t atTop →
+    iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P) :
+    HasIndepIncrements X P := by
+  intro n t ht
   let t' := fun x ↦ t ⟨min n x, by aesop⟩
-  convert iIndepFun.precomp Fin.val_injective <| h t' <| _
+  convert iIndepFun.precomp Fin.val_injective <| h t' _
   · simp
   · aesop
-  · exact fun _ _ _ ↦ by apply ht; aesop
+  · refine ⟨fun _ _ _ ↦ by apply ht; aesop,?_⟩
+    rw [eventuallyConst_atTop]
+    use n; aesop
 
 /-- `incrementsToRestrict I` is a continuous linear map `f` such that
 `f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
