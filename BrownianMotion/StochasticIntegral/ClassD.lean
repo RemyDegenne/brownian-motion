@@ -513,7 +513,7 @@ variable {ι β : Type*}
 instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι where
 
 -- TODO: The assumptions should be refined with those of Début theorem.
-lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
+lemma isLocalizingSequence_leastGE {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
     [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι]
     (𝓕 : Filtration ι mΩ) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
     (hX2 : ∀ ω, IsCadlag (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
@@ -556,7 +556,7 @@ lemma isLocalizingSequence_hittingAfter_Ici {ι : Type*} [ConditionallyCompleteL
       exact lt_of_le_of_lt' (mod_cast this) (by simp_all : i < c)
     · grind
 
-lemma sup_stoppedProcess_hittingAfter_Ici_le
+lemma sup_stoppedProcess_leastGE_le
     {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] {X : ι → Ω → E} (t : ι) (K : ℝ)
     (hK : 0 ≤ K) (ω : Ω) :
     ⨆ s ≤ t, ‖stoppedProcess X (leastGE  (fun t ω ↦ ‖X t ω‖) K) s ω‖ ≤
@@ -633,9 +633,9 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     · obtain ⟨l, hl⟩ := (hX1 ω).2 i
       exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
-  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_hittingAfter_Ici 𝓕 hY1 hY2 h𝓕
+  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_leastGE 𝓕 hY1 hY2 h𝓕
   refine ⟨τ, hτ, fun n ↦ ?_⟩
-  have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_hittingAfter_Ici_le (X := X) t n (by simp) ω
+  have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_leastGE_le (X := X) t n (by simp) ω
   have hX6 :=  hX2.hasStronglyMeasurableSupProcess_of_isCadlag hX1
   let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
   have hX1s : ∀ ω,  IsCadlag fun t ↦ Xs t ω := isStable_isCadlag X (hX1) (τ n) (hτ.isStoppingTime n)
