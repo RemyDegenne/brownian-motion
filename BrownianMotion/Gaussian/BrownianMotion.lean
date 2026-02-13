@@ -427,6 +427,13 @@ lemma HasIndepIncrements.isPreBrownian_of_hasLaw
     · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
     · exact (law s).hasGaussianLaw.memLp_two
 
+lemma IsPreBrownian.neg [hX : IsPreBrownian X P] : IsPreBrownian (-X) P := by
+  apply HasIndepIncrements.isPreBrownian_of_hasLaw _ _
+  · exact fun t ↦ by simpa using gaussianReal_neg (hX.hasLaw_eval t)
+  intro n s hs
+  convert (hX.hasIndepIncrements n s hs).comp (fun _ x ↦ -x) (by measurability)
+  simp; linarith
+
 lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     IsPreBrownian (fun t ω ↦ (X (c * t) ω) / √c) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
@@ -558,6 +565,21 @@ instance IsPreBrownian.isBrownian_mk [h : IsPreBrownian X P] :
     IsBrownian (h.mk X) P where
   toIsPreBrownian := h.congr fun _ ↦ (h.mk_ae_eq _).symm
   cont := ae_of_all _ h.continuous_mk
+
+lemma IsBrownian.mk_ae_forall_eq [h : IsBrownian X P] :
+    ∀ᵐ ω ∂P, ∀ t : ℝ≥0, (h.toIsPreBrownian.mk) t ω = X t ω := by
+  apply indistinguishable_of_modification _ h.cont h.toIsPreBrownian.mk_ae_eq
+  exact .of_forall h.toIsPreBrownian.continuous_mk
+
+lemma IsBrownian.aemeasurable [h : IsBrownian X P] :
+    AEMeasurable (fun ω t ↦ X t ω) P := by
+  refine ⟨Function.swap h.toIsPreBrownian.mk, by measurability, ?_⟩
+  exact h.mk_ae_forall_eq.mono <| fun _ ↦ by aesop
+
+lemma IsBrownian.neg [h : IsBrownian X P] :
+    IsBrownian (-X) P where
+  toIsPreBrownian := h.toIsPreBrownian.neg
+  cont := h.cont.mono (fun _ _ ↦ by simpa [← Pi.neg_def, continuous_neg_iff])
 
 lemma IsBrownian.smul [h : IsBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     IsBrownian (fun t ω ↦ (X (c * t) ω) / √c) P where
