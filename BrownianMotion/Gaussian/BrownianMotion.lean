@@ -174,7 +174,7 @@ lemma HasIndepIncrements.indepFun_sub_sub [Preorder T] [MeasurableSpace E] [AddG
     | 0 => r
     | 1 => s
     | _ => t
-  refine h.increments_nat τ' (fun _ ↦ by grind)|>.indepFun (by norm_num : 0 ≠ 1)
+  exact h.increments_nat τ' (fun _ ↦ by grind)|>.indepFun (by norm_num : 0 ≠ 1)
 
 lemma HasIndepIncrements.indepFun_eval_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
     {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t)
