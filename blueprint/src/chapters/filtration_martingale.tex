@@ -1083,6 +1083,245 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+\section{Doob's upcrossing inequality}
+
+\begin{definition}[Recursive hitting times]\label{def:hittingBtwn}
+  \mathlibok
+  \lean{MeasureTheory.hittingBtwn}
+Let $X : T \to \Omega \to E$ be a stochastic process, $B$ a subset of $E$ and $t_0$, $t_1 \in T$, the hitting time of $X$ in $B$ between $t_0$ and $t_1$ is the random variable $\Omega \to T$ defined by
+\begin{align*}
+  \tau_{B, t_0, t_1}(\omega) = \inf\{t \in T \mid t_0 \le t \le t_1, \: X_t(\omega) \in B\} \: ,
+\end{align*}
+in which the infimum is $t_1$ if the set is empty.
+\end{definition}
+
+\begin{definition}[Upcrossings]\label{def:upcrossings}
+  \uses{def:hittingBtwn}
+  \mathlibok
+  \lean{MeasureTheory.upperCrossingTime, MeasureTheory.lowerCrossingTime, MeasureTheory.upcrossingsBefore, MeasureTheory.upcrossingsBeforeENat}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$.
+Let $a < b$ be real numbers, write $A=(-\infty,a]$ and $B=[b,\infty)$.
+For each $n \in \mathbb{N}$, we define recursively the stopping times:
+\begin{align*}
+  \tau_0(\omega) & = \inf T \: , \\
+  \sigma_n(\omega) & = \tau_{A, \tau_n(\omega), t}(\omega) \: , \\
+  \tau_{n+1}(\omega) & = \tau_{B, \sigma_n(\omega), t}(\omega) \: .
+\end{align*}
+The number of upcrossings of the interval $[a,b]$ by time $t$ is defined as
+\begin{align*}
+  U_{a}^{b}(X, t)(\omega) = \sup\{n \in \mathbb{N} \mid \tau_n(\omega) < t\} \: .
+\end{align*}
+\end{definition}
+
+\begin{theorem}[Doob's upcrossing inequality for $\mathbb{N}$]\label{thm:upcrossingInequalityNat}
+  \uses{def:Submartingale, def:upcrossings}
+  \mathlibok
+  \lean{MeasureTheory.mul_integral_upcrossingsBefore_le_integral_pos_part_aux, MeasureTheory.mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part}
+Let $X : \mathbb{N} \to \Omega \to \mathbb{R}$ be a sub-martingale. Then, for every $n \in \mathbb{N}$ and $a < b$, we have
+\begin{align*}
+  (b - a) \mathbb{E}[U_{a}^{b}(X, n)] \le \mathbb{E}[(X_n - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{definition}[Upcrossing sequence]\label{def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.UpcrossingData, MeasureTheory.upcrossingSequenceENat}
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers. The upcrossing sequence of the interval $[a,b]$ by time $t$
+given $\omega\in\Omega$, is any sequence of elements of $T$, $s_1<t_1<s_2<\ldots<t_n<t$, such that for every $i \le n$, $X_{s_i}(\omega) \le a$ and $X_{t_i}(\omega) \ge b$. We define $N_a^b(X,t)(\omega)$ as the (possibly infinite) supremum of the lengths of all upcrossing sequences of the interval $[a,b]$ by time $t$, given $\omega$.
+\end{definition}
+
+\begin{theorem}[Upcrossings definition equivalence]\label{thm:upcrossings_equiv}
+  \uses{def:upcrossings, def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.upcrossingsBeforeENat_eq_upcrossingSequenceENat}
+Suppose the index set admits a conditionally complete linear order, and is such that every non-empty subset has an infimum (e.g. $\mathbb{N}$, $\mathbb{R}_+$; but not $\mathbb{Q}_+$).
+ Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers. Assume that
+\begin{align*}
+  X(\tau_{C, t_0, t_1}(\omega), \omega) \in C \text{ whenever } \tau_{C, t_0, t_1}(\omega) < t_1 \: ,
+\end{align*}
+where $C$ is either $(-\infty, a]$ or $[b, \infty)$. Then, for every $\omega \in \Omega$, we have
+\begin{align*}
+  U_{a}^{b}(X, t)(\omega) = N_a^b(X,t)(\omega) \: .
+\end{align*}
+\end{theorem}
+
+\begin{lemma}[Upcrossings hitting assumption]\label{rem:upcrossings_equiv_assumption}
+  \uses{thm:upcrossings_equiv}
+  \leanok
+  \lean{MeasureTheory.hittingBtwnSpec_of_right_continuous}
+  The assumption in Theorem~\ref{thm:upcrossings_equiv} is satisfied when $X$ is right-continuous.
+\end{lemma}
+
+\begin{proof}[Remark~\ref{rem:upcrossings_equiv_assumption}]\leanok
+If $\tau_{C, t_0, t_1}(\omega) < t_1$, then by right-continuity of $X$ at $\tau=\tau_{C, t_0, t_1}$, we have that $X(\tau(\omega), \omega) \in C$, since $C$ is closed and $\tau$ is the hitting time.
+\end{proof}
+
+\begin{proof}\leanok
+\uses{def:upcrossings, def:upcrossingSeq}
+Fix $\omega \in \Omega$.
+We introduce the notation:
+\begin{align*}
+  P_n & : \tau_n(\omega) < t \: , \\
+  Q_n & : \text{ there exists an upcrossing sequence of length } n \text{ such that } t_n\le\tau_n(\omega) \: , \\
+  L_n & : \text{ there exists an upcrossing sequence of length } n \text{ by time } t \: .
+\end{align*}
+The aim is to show that for every $n \in \mathbb{N}$, $P_n \Leftrightarrow L_n$;
+as the properly defined hitting times constitute the earliest possible times for upcrossings to occur,
+$L_n\Rightarrow P_n$. The opposite direction is less immediate, and we introduce the intermediate statement $Q_n$ to help with the proof.
+Clearly, $(P_n \wedge Q_n) \implies L_n$.
+By induction on $n$, we show $P_n \implies Q_n$:
+for $n=1$ it is easy to check;
+since $P_{n+1}$ implies $P_n$, it suffices to note that,
+extending the upcrossing sequence by one more upcrossing, we get $(P_{n+1} \wedge Q_n) \implies Q_{n+1}$.
+This completes the proof.
+\end{proof}
+
+\begin{lemma}[Upcrossings number monotonicity]\label{lem:upcrossings_monotonicity}
+  \uses{def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.upcrossingSequenceENat_mono_index_set}
+Take two index sets, $S$ and $T$, and $t\in S$.
+Assume that there is an order embedding $f$ from $\{s\in S \mid s \le t\}$ to $T$.
+Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in S$. Let $a < b$ be real numbers. Then, for every $\omega \in \Omega$, we have
+\begin{align*}
+  N_a^b(X \circ f, t)(\omega) \le N_a^b(X, f(t))(\omega) \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}\leanok
+Of course, existence of an upcrossing sequence for $X \circ f$ implies existence of an upcrossing sequence for $X$ by applying $f$ to each element of the sequence.
+\end{proof}
+
+\begin{theorem}[Doob's upcrossing inequality for finite sets]\label{thm:upcrossingInequalityFinite}
+\uses{def:Submartingale, def:upcrossingSeq, def:upcrossings}
+\mathlibok
+\lean{%
+MeasureTheory.mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part, %
+MeasureTheory.mul_lintegral_upcrossingSequenceENat_Fin_le_lintegral_pos_part%
+}
+Let $T$ be an index set (ordered, with bottom element $\bot$) and $s$ be its finite subset, such that $\bot\in s$. Let $X : s \to \Omega \to \mathbb{R}$ be a sub-martingale. Then, for every $t\in s$ and $a < b$, we have
+\begin{align*}
+  (b - a) \mathbb{E}[N_{a}^{b}(X, t)] \le \mathbb{E}[(X_t - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\uses{thm:upcrossings_equiv, lem:upcrossings_monotonicity, thm:upcrossingInequalityNat}
+When the map between two index sets, properly restricted, is an order isomorphism,
+the upcrossing numbers on those two index sets are equal by applying Lemma~\ref{lem:upcrossings_monotonicity} twice. A careful choice of such an isomorphism allows to reduce the problem to the case of $\mathbb{N}$ (possibly going through the index set $\{0,1,\ldots,n-1\}$ as an intermediate step).
+But this is given by Theorem~\ref{thm:upcrossingInequalityNat},
+thanks to the equivalence established in Theorem~\ref{thm:upcrossings_equiv}.
+\end{proof}
+
+\begin{theorem}[Supremum of upcrossings over finite subsets]\label{thm:supremum_upcrossings_of_countable}
+  \uses{def:upcrossingSeq}
+  \leanok
+\lean{%
+MeasureTheory.Countable.increasing_finset_family_saturates_Iic, %
+MeasureTheory.upcrossingSequenceENat_eq_iSup_finset
+}
+Let $T$ be a countable index set with bottom element $\bot$. Let $X : T \to \Omega \to \mathbb{R}$ be a stochastic process, and fix $t\in T$. Let $a < b$ be real numbers. Then, for every $\omega \in \Omega$, we have
+\begin{align*}
+  N_a^b(X, t)(\omega) = \sup_{\substack{S \subseteq T \cap [\bot, t] \\ S \text{ finite}, \bot,t \in S}} N_a^b(X|_{S}, t)(\omega) \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+As $T$ is countable, we can write it as $T = \{t_0, t_1, \ldots\}$.
+It suffices then to define $S_n = \{\bot, t, t_0, t_1, \ldots, t_n\} \cap [\bot, t]$.
+Take any upcrossing sequence for $X$ of length $k$ by time $t$.
+Then, there exists $n$ large enough such that all elements of the sequence are in $S_n$.
+Thus, the upcrossing number for $X|_{S_n}$ is at least $k$.
+By the arbitrariness of $k$, we conclude.
+\end{proof}
+
+\begin{theorem}[Doob's upcrossing inequality for countable sets]\label{thm:upcrossingInequalityCountable}
+  \uses{def:Submartingale, def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.mul_lintegral_upcrossingSequenceENat_Countable_le_lintegral_pos_part}
+Let $T$ be a countable index set with bottom element $\bot$.
+Let $X : T \to \Omega \to \mathbb{R}$ be a sub-martingale.
+Then, for every $t\in T$ and $a < b$, we have
+\begin{align*}
+  (b - a) \mathbb{E}[N_{a}^{b}(X, t)] \le \mathbb{E}[(X_t - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\uses{thm:supremum_upcrossings_of_countable, thm:upcrossingInequalityFinite}
+By Theorem ~\ref{thm:supremum_upcrossings_of_countable}, we have
+\begin{align*}
+  N_a^b(X, t)(\omega) = \sup_{\substack{S \subseteq T \cap [\bot, t] \\ S \text{ finite}, \bot,t \in S}} N_a^b(X|_{S}, t)(\omega) \: .
+\end{align*}
+Thus, by the (weaker version of the) monotone convergence theorem and Theorem~\ref{thm:upcrossingInequalityFinite},
+we get the second equality in the following chain:
+\begin{align*}
+  \mathbb{E}[N_{a}^{b}(X, t)]
+  & = \mathbb{E}\left[\sup_{\substack{S \subseteq T \cap [\bot, t] \\ S \text{ finite}, \bot,t \in S}} N_a^b(X|_{S}, t)\right] \\
+  & = \sup_{\substack{S \subseteq T \cap [\bot, t] \\ S \text{ finite}, \bot,t \in S}} \mathbb{E}\left[N_a^b(X|_{S}, t)\right] \\
+  & \le \sup_{\substack{S \subseteq T \cap [\bot, t] \\ S \text{ finite}, \bot,t \in S}} \frac{\mathbb{E}[(X_t - a)^+]}{b - a} \\
+  & = \frac{\mathbb{E}[(X_t - a)^+]}{b - a} \: .
+\end{align*}
+\end{proof}
+
+\begin{theorem}[Doob's upcrossing inequality for $\mathbb{R}_+$]\label{thm:upcrossingInequalityRPlus}
+  \uses{def:Submartingale, def:upcrossingSeq}
+  \leanok
+  \lean{MeasureTheory.mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part}
+Let $X : \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a sub-martingale.
+Take $a < b$ and $t\in\mathbb{R}_+$ and assume that $N_a^b(X,t)$ is measurable. Then
+\begin{align*}
+  (b - a) \mathbb{E}[N_{a}^{b}(X, t)] \le \mathbb{E}[(X_t - a)^+] \: .
+\end{align*}
+\end{theorem}
+
+\begin{proof}\leanok
+\uses{thm:upcrossingInequalityCountable, lem:upcrossings_monotonicity}
+For a fixed $t\in \mathbb{R}_+$, let $D=\mathbb{Q}_+\cup\{t\}$. With $0<\epsilon<(b-a)/2$,
+\begin{align*}
+  EN_a^b(X,t) \le EN_{a+\epsilon}^{b-\epsilon}(X|_D,t) \le \frac{E(X_t-a-\epsilon)^+}{b-a-2\epsilon}
+  \:,
+\end{align*}
+where the latter inequality is the Doob upcrossing inequality applied to $X|_D$, $D$ countable.
+Indeed, let us fix a right-continuous trajectory $X · (\omega)$ and denote it by $X$, again;
+by continuity, for every $s\le t$,
+\begin{align*}
+  X_s\le a  &\implies (X|_D)_{s_n}\le a+\epsilon \text{for some} s_n\downarrow s, \\
+  X_s\ge b  &\implies (X|_D)_{s_n}\ge b-\epsilon \text{for some} s_n\downarrow s,
+\end{align*}
+which yields
+$
+  N_a^b(X,t) \le N_{a+\epsilon}^{b-\epsilon}(X|_D,t)
+$.
+The sequence $(s_n)\subset D$; if $s=t$, we take $s_n=t\in D$.
+Now, letting $\epsilon\to0$ gives our claim, by monotone convergence in numerator.
+\end{proof}
+
+\begin{corollary}[Finite upcrossings number]\label{cor:finite_upcrossings_of_cadlag_submartingale}
+  \uses{def:Submartingale, def:upcrossingSeq, thm:upcrossingInequalityRPlus}
+  \leanok
+  \lean{MeasureTheory.upcrossingSequenceENat_ae_lt_top}
+Let $X : \mathbb{R}_+ \to \Omega \to \mathbb{R}$ be a cadlag sub-martingale.
+Take $a < b$ and $t\in\mathbb{R}_+$ and assume that $N_a^b(X,t)$ is measurable.
+Then $X$ has a.s. finite upcrossings number of the interval $[a,b]$ by time $t$, i.e.
+\begin{align*}
+  P\left( \{\omega \in \Omega \mid N_{a}^{b}(X, t)(\omega) = \infty \} \right) = 0 \: .
+\end{align*}
+\end{corollary}
+
+\begin{proof}\leanok
+\uses{thm:upcrossingInequalityRPlus}
+By Theorem~\ref{thm:upcrossingInequalityRPlus}, we have
+\begin{align*}
+  (b - a) \mathbb{E}[N_{a}^{b}(X, t)] \le \mathbb{E}[(X_t - a)^+] < \infty \: ,
+\end{align*}
+where the last inequality follows from the integrability of $X_t$.
+Thus, $N_{a}^{b}(X, t) < \infty$ almost surely.
+\end{proof}
+
 \section{Martingale convergence}
 
 \begin{definition}\label{def:limitProcess}
@@ -1107,7 +1346,13 @@ Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 \end{theorem}
 
 \begin{proof}
+% This follows from Theorems 9.22 and 9.24 in Kallenberg.
+% The 9.24, in particular, gives the almost sure convergence to the limit.
+% Then measurability with respect to \(\mathcal{F}_\infty\) follows from the fact that \(\mathcal{F}_t \subseteq \mathcal{F}_\infty\) for all \(t\) and the limit of measurable functions is measurable.
 
+% Let's generalize the (9.18 in Kallenberg) result
+% MeasureTheory.Submartingale.mul_integral_upcrossingsBefore_le_integral_pos_part
+% to the case of a countable time index.
 \end{proof}
 
 
