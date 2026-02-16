@@ -675,10 +675,10 @@ Let $K \subseteq T$ be a compact set and $\omega \in \Omega$. Assume that $X(\om
 
 
 TODO: refine the hypotheses with those of Début theorem.
-\begin{lemma}\label{lem:isLocalizingSequence_hittingAfter_Ici}
+\begin{lemma}\label{lem:isLocalizingSequence_leastGE}
   \uses{def:leastGE, def:localizingSequence, def:IsCadlag, def:rightContinuous}
   \leanok
-  \lean{ProbabilityTheory.isLocalizingSequence_hittingAfter_Ici}
+  \lean{ProbabilityTheory.isLocalizingSequence_leastGE}
 Assume $T$ has a bottom element and that its closed intervals are compact, and that the filtration is right-continuous.
 If $X$ is a real-valued càdlàg and adapted process, then the sequence $\tau_n := \inf \{t | X_t \ge n\}$ is a localizing sequence.
 \end{lemma}
@@ -692,7 +692,7 @@ By Corollary~\ref{cor:isStoppingTime_leastGE_of_rightContinuous}, each $\tau_n$ 
 \begin{lemma}\label{lem:sup_stoppedProcess_le}
   \uses{def:stoppedProcess}
   \leanok
-  \lean{ProbabilityTheory.sup_stoppedProcess_hittingAfter_Ici_le}
+  \lean{ProbabilityTheory.sup_stoppedProcess_leastGE_le}
 For $Y$ a stochastic process, let $Y^*_t = \sup_{s \le t} \Vert Y_s \Vert$.
 Let $X$ be a stochastic process and let $\tau = \inf \{t \mid \Vert X_t \Vert \ge n\}$ for some $n \in \mathbb{R}$.
 Then
@@ -717,8 +717,8 @@ If $X$ is a càdlàg process of class DL, then it has locally integrable supremu
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:isLocalizingSequence_hittingAfter_Ici, lem:sup_stoppedProcess_le, lem:HasStronglyMeasurableSup_of_isCadlag}
-Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_hittingAfter_Ici}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
+  \uses{lem:isLocalizingSequence_leastGE, lem:sup_stoppedProcess_le, lem:HasStronglyMeasurableSup_of_isCadlag}
+Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_leastGE}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
 \end{proof}
 
 
