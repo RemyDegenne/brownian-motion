@@ -157,11 +157,19 @@ section HittingTime
 the theorem consider if this completely subsumes `hitting_isStoppingTime`, in that case we can
 remove the latter. Also, consider if the fact that `β` is a borel space is actually needed. -/
 theorem isStoppingTime_hittingAfter' [ConditionallyCompleteLinearOrder ι] [MeasurableSpace ι]
+    [WellFoundedLT ι] [Countable ι]
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
+    [TopologicalSpace.PseudoMetrizableSpace β]
     {f : Filtration ι mΩ} {X : ι → Ω → β} (hX : ProgMeasurable f X)
-    {s : Set β} {n m : ι} (hs : MeasurableSet s) :
+    {s : Set β} {n : ι} (hs : MeasurableSet s) :
     IsStoppingTime f (hittingAfter X s n) := by
-  sorry
+  apply Adapted.isStoppingTime_hittingAfter _ hs
+  intro i
+  change @Measurable _ _ (f i) _ (fun ω => X i ω)
+  have : (fun ω => X i ω) = (fun p : ↥(Set.Iic i) × Ω => X (↑p.1) p.2) ∘
+      fun ω => (⟨i, le_refl i⟩, ω) := by ext ω; simp
+  rw [this]
+  exact (hX i).measurable.comp measurable_prodMk_left
 
 end HittingTime
 
