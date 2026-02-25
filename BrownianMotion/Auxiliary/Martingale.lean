@@ -68,6 +68,19 @@ lemma Martingale.submartingale_norm (hX : Martingale X 𝓕 P) :
     Submartingale (fun t ω ↦ ‖X t ω‖) 𝓕 P :=
   hX.submartingale_convex_comp convexOn_univ_norm continuous_norm fun i ↦ (hX.integrable i).norm
 
+lemma Martingale.submartingale_sq_norm (hX : Martingale X 𝓕 P)
+    (h_int : ∀ t, Integrable (fun ω ↦ ‖X t ω‖ ^ 2) P) :
+    Submartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := by
+  refine hX.submartingale_convex_comp (φ := fun x => ‖x‖ ^ 2) ?_ (by fun_prop) h_int
+  have s : (fun x : E => ‖x‖)'' (Set.univ : Set E) ⊆ Set.Ici 0 := by intro; aesop
+  have ic : Convex ℝ ((fun x : E => ‖x‖)'' (Set.univ : Set E)) := by
+    by_cases Nontrivial E
+    · simp [convex_Ici]
+    · refine Set.Subsingleton.convex (Set.Subsingleton.image ?_ fun x => ‖x‖)
+      simp_all [not_nontrivial_iff_subsingleton]
+  simpa using ((convexOn_rpow (p := 2) (by linarith)).subset s ic).comp convexOn_univ_norm
+    ((Real.monotoneOn_rpow_Ici_of_exponent_nonneg (r := 2) (by linarith)).mono s)
+
 lemma Submartingale.monotone_convex_comp [Preorder E] (hX : Submartingale X 𝓕 P) {φ : E → ℝ}
     (hφ_mono : Monotone φ) (hφ_cvx : ConvexOn ℝ Set.univ φ) (hφ_cont : Continuous φ)
     (hφ_int : ∀ t, Integrable (fun ω ↦ φ (X t ω)) P) :
