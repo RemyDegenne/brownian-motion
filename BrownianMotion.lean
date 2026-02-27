@@ -22,6 +22,9 @@ import BrownianMotion.Auxiliary.StoppedProcess
 import BrownianMotion.Auxiliary.Topology
 import BrownianMotion.Auxiliary.WithLp
 import BrownianMotion.Auxiliary.WithTop
+import BrownianMotion.Choquet.AnalyticSet
+import BrownianMotion.Choquet.Capacity
+import BrownianMotion.Choquet.CompactSystem
 import BrownianMotion.Continuity.Chaining
 import BrownianMotion.Continuity.CoveringNumber
 import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
