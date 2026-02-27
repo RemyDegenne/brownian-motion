@@ -121,6 +121,7 @@ lemma _root_.IsCompactSystem.mono {q' : Set 𝓚 → Prop} (hq : IsCompactSystem
     IsCompactSystem q' :=
   fun C hC_cc hC_inter ↦ hq C (fun i ↦ h_mono (C i) (hC_cc i)) hC_inter
 
+/-- Product of two sets of sets. -/
 def memProd (p : Set 𝓧 → Prop) (q : Set 𝓚 → Prop) : Set (𝓧 × 𝓚) → Prop :=
   fun s ↦ ∃ A B, p A ∧ q B ∧ s = A ×ˢ B
 
@@ -133,6 +134,7 @@ lemma memProd.mono {p' : Set 𝓧 → Prop} (hp : ∀ s, p s → p' s) {q' : Set
   obtain ⟨A, B, hpA, hqB, rfl⟩ := hs
   exact ⟨A, B, hp _ hpA, hq _ hqB, rfl⟩
 
+/-- The set is a countable union of sets that satisfy the property. -/
 def memSigma (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
   fun s ↦ ∃ A : ℕ → Set 𝓧, (∀ n, p (A n)) ∧ s = ⋃ n, A n
 
@@ -145,15 +147,19 @@ lemma memSigma.union (hs : memSigma p s) (ht : memSigma p t) :
   obtain ⟨B, hB, rfl⟩ := ht
   sorry
 
+/-- The set is a countable intersection of sets that satisfy the property. -/
 def memDelta (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
   fun s ↦ ∃ A : ℕ → Set 𝓧, (∀ n, p (A n)) ∧ s = ⋂ n, A n
 
 lemma memDelta_of_prop (hs : p s) : memDelta p s :=
   ⟨fun _ ↦ s, by simp [hs, Set.iInter_const]⟩
 
+/-- The set is a countable intersection of countable unions of sets that can be written as a
+product of two sets, each satisfying a property. -/
 def memProdSigmaDelta (p : Set 𝓧 → Prop) (q : Set 𝓚 → Prop) : Set (𝓧 × 𝓚) → Prop :=
   memDelta (memSigma (memProd p q))
 
+/-- The set is a finite intersection of sets that satisfy the property. -/
 def memFiniteInter (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
   fun s ↦ ∃ (t : Finset ℕ) (A : ℕ → Set 𝓧), (∀ n ∈ t, p (A n)) ∧ s = ⋂ n ∈ t, A n
 
@@ -166,6 +172,7 @@ lemma memFiniteInter.inter (hs : memFiniteInter p s) (ht : memFiniteInter p t) :
   obtain ⟨T, B, hB, rfl⟩ := ht
   sorry
 
+/-- The set is a finite union of sets that satisfy the property. -/
 def memFiniteUnion (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
   fun s ↦ ∃ (t : Finset ℕ) (A : ℕ → Set 𝓧), (∀ n ∈ t, p (A n)) ∧ s = ⋃ n ∈ t, A n
 

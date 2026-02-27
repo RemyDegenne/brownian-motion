@@ -23,10 +23,16 @@ variable {𝓧 𝓨 𝓚 : Type*} {p : Set 𝓧 → Prop} {q : Set 𝓚 → Prop
 
 namespace MeasureTheory
 
+/-- A set `s` is analytic for a paving (predicate) `p` and a type `𝓚` if there exists a compact
+system `q` of `𝓚` such that `s` is the projections of a set `t` that satisfies
+`memProdSigmaDelta p q`. -/
 def IsPavingAnalyticFor (p : Set 𝓧 → Prop) (𝓚 : Type*) (s : Set 𝓧) : Prop :=
   ∃ q : Set 𝓚 → Prop, q ∅ ∧ IsCompactSystem q ∧
     ∃ t : Set (𝓧 × 𝓚), memProdSigmaDelta p q t ∧ s = Prod.fst '' t
 
+/-- A set `s` is analytic for a paving (predicate) `p` if there exists a type `𝓚` and a compact
+system `q` of `𝓚` such that `s` is the projections of a set `t` that satisfies
+`memProdSigmaDelta p q`. -/
 def IsPavingAnalytic (p : Set 𝓧 → Prop) (s : Set 𝓧) : Prop :=
   ∃ 𝓚 : Type, Nonempty 𝓚 ∧ IsPavingAnalyticFor p 𝓚 s
 
@@ -123,7 +129,7 @@ lemma IsPavingAnalytic.union {t : Set 𝓧}
   choose 𝓚' h𝓚' ht𝓚' using ht
   exact (IsPavingAnalyticFor.union hs𝓚 ht𝓚').isPavingAnalytic
 
-lemma isPavingAnalyticFor_of_memDelta_of_imp [Nonempty 𝓚] {p' : Set 𝓧 → Prop}
+lemma isPavingAnalyticFor_of_memDelta_of_imp {p' : Set 𝓧 → Prop}
     (hs : memDelta p' s) (hqp : ∀ x, p' x → IsPavingAnalyticFor p 𝓚 x) :
     IsPavingAnalyticFor p (Π _ : ℕ, 𝓚) s := by
   obtain ⟨A, hA, rfl⟩ := hs
@@ -135,7 +141,7 @@ lemma isPavingAnalytic_of_memDelta_of_imp {p' : Set 𝓧 → Prop}
   obtain ⟨A, hA, rfl⟩ := hs
   exact IsPavingAnalytic.iInter fun n ↦ hqp _ (hA n)
 
-lemma isPavingAnalyticFor_of_memSigma_of_imp [Nonempty 𝓚] {p' : Set 𝓧 → Prop}
+lemma isPavingAnalyticFor_of_memSigma_of_imp {p' : Set 𝓧 → Prop}
     (hs : memSigma p' s) (hqp : ∀ x, p' x → IsPavingAnalyticFor p 𝓚 x) :
     IsPavingAnalyticFor p (Σ _ : ℕ, 𝓚) s := by
   obtain ⟨A, hA, rfl⟩ := hs
@@ -238,7 +244,7 @@ lemma isPavingAnalytic_of_memProd_isPavingAnalytic_right {𝓨 : Type*} {r : Set
   obtain ⟨A, s, hA, hs, rfl⟩ := ht
   exact hA.prod_right hs
 
-lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_left [Nonempty 𝓚]
+lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_left
     {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set (𝓨 × 𝓧)}
     (ht : memSigma (memProd r (IsPavingAnalyticFor p 𝓚)) t) :
     IsPavingAnalyticFor (memProd r p) (Σ _ : ℕ, 𝓚) t := by
@@ -246,7 +252,7 @@ lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_left [Nonempty
   intro s hs
   exact isPavingAnalyticFor_of_memProd_isPavingAnalyticFor_left hs
 
-lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_right [Nonempty 𝓚]
+lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_right
     {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set (𝓧 × 𝓨)}
     (ht : memSigma (memProd (IsPavingAnalyticFor p 𝓚) r) t) :
     IsPavingAnalyticFor (memProd p r) (Σ _ : ℕ, 𝓚) t := by
@@ -254,7 +260,7 @@ lemma isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_right [Nonempt
   intro s hs
   exact isPavingAnalyticFor_of_memProd_isPavingAnalyticFor_right hs
 
-lemma IsPavingAnalyticFor.prod_memSigma_left {𝓨 : Type*} [Nonempty 𝓚] {r : Set 𝓨 → Prop} {t : Set 𝓨}
+lemma IsPavingAnalyticFor.prod_memSigma_left {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
     (ht : memSigma r t) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (memProd r p) (Σ _ : ℕ, 𝓚) (t ×ˢ s) := by
   refine isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_left ?_
@@ -262,7 +268,7 @@ lemma IsPavingAnalyticFor.prod_memSigma_left {𝓨 : Type*} [Nonempty 𝓚] {r :
   refine ⟨fun n ↦ A n ×ˢ s, fun n ↦ memProd_prod (hA n) hs, ?_⟩
   rw [Set.iUnion_prod_const]
 
-lemma IsPavingAnalyticFor.prod_memSigma_right {𝓨 : Type*} [Nonempty 𝓚] {r : Set 𝓨 → Prop}
+lemma IsPavingAnalyticFor.prod_memSigma_right {𝓨 : Type*} {r : Set 𝓨 → Prop}
     {t : Set 𝓨} (hs : IsPavingAnalyticFor p 𝓚 s) (ht : memSigma r t) :
     IsPavingAnalyticFor (memProd p r) (Σ _ : ℕ, 𝓚) (s ×ˢ t) := by
   refine isPavingAnalyticFor_of_memSigma_memProd_isPavingAnalyticFor_right ?_
@@ -271,8 +277,7 @@ lemma IsPavingAnalyticFor.prod_memSigma_right {𝓨 : Type*} [Nonempty 𝓚] {r 
   rw [Set.prod_iUnion]
 
 -- He 1.27
-lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} [Nonempty 𝓚] [Nonempty 𝓚']
-    {r : Set 𝓨 → Prop} {t : Set 𝓨}
+lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
     (ht : IsPavingAnalyticFor r 𝓚' t) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (memProd r p) ((Σ _ : ℕ, 𝓚') × (Σ _ : ℕ, 𝓚)) (t ×ˢ s) := by
   obtain ⟨t₁, ht₁, ht₁_subset⟩ := ht.exists_memSigma_superset
@@ -291,7 +296,7 @@ lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨
   exact (IsPavingAnalyticFor.prod ht' hs').isPavingAnalytic
 
 -- He 1.29
-lemma isPavingAnalyticFor_isPavingAnalyticFor [Nonempty 𝓚]
+lemma isPavingAnalyticFor_isPavingAnalyticFor
     (hs : IsPavingAnalyticFor (IsPavingAnalyticFor p 𝓚) 𝓚 s) :
     IsPavingAnalyticFor p (𝓚 × (ℕ → (_ : ℕ) × 𝓚)) s := by
   obtain ⟨q, hq_empty, hq, t, ht, rfl⟩ := hs
@@ -475,10 +480,14 @@ lemma _root_.MeasurableSet.isPavingAnalytic_fst {m𝓧 : MeasurableSpace 𝓧} {
   isPavingAnalytic_fst_of_memProd_measurableSet_isCompact
     (MeasurableSet.isPavingAnalytic_memProd hs)
 
+/-- A set `s` of a measurable space `𝓧` is measurably analytic for a measurable space `𝓚` if it
+is the projection of a measurable set of `𝓧 × 𝓚`. -/
 def IsMeasurableAnalyticFor (𝓚 : Type*) [MeasurableSpace 𝓚] [MeasurableSpace 𝓧] (s : Set 𝓧) :
     Prop :=
   ∃ t : Set (𝓧 × 𝓚), MeasurableSet t ∧ s = Prod.fst '' t
 
+/-- A set `s` of a measurable space `𝓧` is measurably analytic if it is the projection of
+a measurable set of `𝓧 × ℝ`. -/
 def IsMeasurableAnalytic [MeasurableSpace 𝓧] (s : Set 𝓧) : Prop :=
   IsMeasurableAnalyticFor ℝ s
 

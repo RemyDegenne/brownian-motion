@@ -16,6 +16,11 @@ variable {𝓧 𝓚 : Type*} {x y : 𝓧} {p : Set 𝓧 → Prop} {q : Set 𝓚 
 
 namespace MeasureTheory
 
+/-- A capacity is a set function that is monotone, continuous from above for decreasing sequences
+of sets satisfying `p`, and continuous from below for increasing sequences of sets.
+
+Any finite measure defines a capacity, but capacities have only the monotonicity properties of
+measures. The notable difference is that a capacity is not additive. -/
 structure Capacity (p : Set 𝓧 → Prop) where
   /-- The set function associated with a capacity. -/
   capacityOf : Set 𝓧 → ℝ≥0∞
@@ -58,6 +63,7 @@ lemma Measure.capacity_apply {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) 
     μ.capacity s = μ s := rfl
 
 -- Bichteler A.5.8 (ii); He 1.35
+/-- The capacity obtained by composition of a capacity with a projection. -/
 def Capacity.comp_fst (hp_empty : p ∅) (hp_union : ∀ s t, p s → p t → p (s ∪ t)) (m : Capacity p)
     (hq : IsCompactSystem q) :
     Capacity (memFiniteUnion (memProd p q)) where
