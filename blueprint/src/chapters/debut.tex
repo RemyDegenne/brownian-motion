@@ -1,6 +1,625 @@
 \chapter{Debut Theorem}
 \label{chap:debut_theorem}
 
+
+\section{Choquet's capacitability theorem}
+
+
+\subsection{Pavings and Compact systems}
+
+A paving is simply a set of sets.
+
+\begin{definition}\label{def:memProd}
+  \leanok
+  \lean{MeasureTheory.memProd}
+The product of two pavings $S$ and $T$ is the set of sets of the form $s \times t$ where $s \in S$ and $t \in T$. We denote that product by $S \times T$.
+\end{definition}
+
+
+\begin{definition}\label{def:memFiniteUnion}
+  \leanok
+  \lean{MeasureTheory.memFiniteUnion}
+For a paving $S$, we denote by $S^{\cup f}$ the set of finite unions of sets in $S$.
+\end{definition}
+
+
+\begin{definition}\label{def:memFiniteInter}
+  \leanok
+  \lean{MeasureTheory.memFiniteInter}
+For a paving $S$, we denote by $S^{\cap f}$ the set of finite intersections of sets in $S$.
+\end{definition}
+
+
+\begin{definition}\label{def:memSigma}
+  \leanok
+  \lean{MeasureTheory.memSigma}
+We denote by $S_\sigma$ the set of countable unions of sets in $S$.
+\end{definition}
+
+
+\begin{definition}\label{def:memDelta}
+  \leanok
+  \lean{MeasureTheory.memDelta}
+We denote by $S_\delta$ the set of countable intersections of sets in $S$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:memDelta_iff_of_inter}
+  \uses{def:memDelta}
+  \leanok
+  \lean{MeasureTheory.memDelta_iff_of_inter}
+If a paving $S$ is closed under pairwise intersection, then a set $s$ is in $S_\delta$ if and only if there exists a monotone decreasing family of sets $(A_n)_{n\in\mathbb{N}}$ in $S$ such that $s = \bigcap_{n\in\mathbb{N}} A_n$.
+\end{lemma}
+
+\begin{proof}\leanok
+The ``monotone decreasing'' condition is the only non-trivial part of the statement: without it it would just be the definition of $S_\delta$.
+If $s \in S_\delta$ there exists a family $(B_n)$ that satisfies the condition but may not be monotone. We can then define $A_n = \bigcap_{k \le n} B_k$, and the family $(A_n)$ is monotone decreasing and satisfies $\bigcap_{n\in\mathbb{N}} A_n = \bigcap_{n\in\mathbb{N}} B_n = s$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:memSigma_iff_of_union}
+  \uses{def:memSigma}
+  \leanok
+  \lean{MeasureTheory.memSigma_iff_of_union}
+If a paving $S$ is closed under pairwise union, then a set $s$ is in $S_\sigma$ if and only if there exists a monotone increasing family of sets $(A_n)_{n\in\mathbb{N}}$ in $S$ such that $s = \bigcup_{n\in\mathbb{N}} A_n$.
+\end{lemma}
+
+\begin{proof}\leanok
+Similar to the proof of Lemma~\ref{lem:memDelta_iff_of_inter}.
+\end{proof}
+
+
+
+\begin{definition}\label{def:IsCompactSystem}
+  \leanok
+  \lean{IsCompactSystem}
+A set of sets $K$ is a compact system if for every countable family $(C_n)_{n \in \mathbb{N}}$ of sets in $K$ such that $\bigcap_{n \in\mathbb{N}} C_n = \emptyset$, there exists a finite subset $S$ of $\mathbb{N}$ such that $\bigcap_{n \in S} C_n = \emptyset$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isCompactSystem_isCompact_isClosed}
+  \uses{def:IsCompactSystem}
+  \leanok
+  \lean{isCompactSystem_isCompact_isClosed}
+The family of compact closed sets of a topological space is a compact system.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:IsCompactSystem}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isCompactSystem_isCompact}
+  \uses{def:IsCompactSystem}
+  \leanok
+  \lean{isCompactSystem_isCompact}
+The family of compact sets of a T2 topological space is a compact system.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isCompactSystem_isCompact_isClosed}
+The T2 assumption ensures that compact sets are closed, so the family of compact sets is the family of compact closed sets, which is a compact system by Lemma~\ref{lem:isCompactSystem_isCompact_isClosed}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsCompactSystem.mono}
+  \uses{def:IsCompactSystem}
+  \leanok
+  \lean{IsCompactSystem.mono}
+If $S \subseteq T$ and $T$ is a compact system, then $S$ is a compact system.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:IsCompactSystem}
+Any sequence of sets in $S$ is a sequence of sets in $T$, so if the intersection of the sequence is empty, then there is a finite subset of the sequence whose intersection is empty by the compact system property of $T$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsCompactSystem.memProd}
+  \uses{def:IsCompactSystem}
+  \leanok
+  \lean{IsCompactSystem.memProd}
+The product of two compact systems $S \times T$ is a compact system.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsCompactSystem.memFiniteUnion}
+  \uses{def:IsCompactSystem, def:memFiniteUnion}
+  \leanok
+  \lean{IsCompactSystem.memFiniteUnion}
+If $S$ is a compact system, then $S^{\cup f}$ is a compact system.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsCompactSystem.memFiniteInter}
+  \uses{def:IsCompactSystem, def:memFiniteInter}
+  \leanok
+  \lean{IsCompactSystem.memFiniteInter}
+If $S$ is a compact system, then $S^{\cap f}$ is a compact system.
+\end{lemma}
+
+TODO: $S_\delta$ is also a compact system, but we won't need that. We could prove the result for $S^{\cap f}$ by proving it for $S_\delta$ and then using the fact that $S^{\cap f} \subseteq S_\delta$ and applying Lemma~\ref{lem:IsCompactSystem.mono}.
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:fst_iInter_of_memFiniteUnion_memProd_of_antitone}
+  \uses{def:IsCompactSystem, def:memFiniteUnion, def:memProd}
+  \leanok
+  \lean{MeasureTheory.fst_iInter_of_memFiniteUnion_memProd_of_antitone}
+Let $S$ be a paving of $\mathcal{X}$ and $T$ be a compact system of $\mathcal{K}$.
+Let $(B_n)_{n \in \mathbb{N}}$ be a monotone decreasing sequence of sets in $(S \times T)^{\cup f}$.
+Let $\pi_{\mathcal{X}} : \mathcal{X} \times \mathcal{K} \to \mathcal{X}$ be the projection on $\mathcal{X}$.
+Then
+\begin{align*}
+  \pi_{\mathcal{X}}\left(\bigcap_{n\in\mathbb{N}} B_n\right) = \bigcap_{n\in\mathbb{N}} \pi_{\mathcal{X}}(B_n).
+\end{align*}
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:IsCompactSystem.memFiniteUnion}
+
+\end{proof}
+
+
+
+
+\subsection{Analytic sets}
+
+\begin{definition}[Analytic set]\label{def:IsPavingAnalytic}
+  \uses{def:IsCompactSystem, def:memSigma, def:memDelta, def:memProd}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic, MeasureTheory.IsPavingAnalyticFor}
+Let $F$ be a paving of a type $\mathcal{X}$.
+A set $s$ of $\mathcal{X}$ is said to be $F$-analytic if there exists a nonempty type $\mathcal{K}$ and a compact system $K$ of $\mathcal{K}$ with $\emptyset \in K$ such that $s$ is the projection on $\mathcal{X}$ of a set in $(F \times K)_{\sigma \delta}$.
+
+We denote the set of $F$-analytic sets by $\mathcal{A}(F)$.
+\end{definition}
+
+Lean note: we can't quantify over universes, so we have to restrict $\mathcal{K}$ to \texttt{Type}. We have an auxiliary definition \texttt{IsPavingAnalyticFor} that specifies which $\mathcal{K}$ is used.
+
+
+\begin{lemma}\label{lem:isPavingAnalytic_of_prop}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.isPavingAnalytic_of_prop}
+Every set in $F$ is $F$-analytic: $F \subseteq \mathcal{A}(F)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.mono}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.mono}
+If $F \subseteq G$ and $s$ is $F$-analytic, then $s$ is $G$-analytic: $\mathcal{A}(F) \subseteq \mathcal{A}(G)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.exists_memSigma_superset}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalyticFor.exists_memSigma_superset}
+If $s$ is $F$-analytic, then there exists a set $t$ in $F_\sigma$ such that $s \subseteq t$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.iUnion}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.iUnion, MeasureTheory.IsPavingAnalytic.union}
+A countable union of $F$-analytic sets is $F$-analytic.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.iInter}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.iInter, MeasureTheory.IsPavingAnalytic.inter}
+A countable intersection of $F$-analytic sets is $F$-analytic.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.fst}
+  \uses{def:IsPavingAnalytic, def:IsCompactSystem}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.fst}
+Let $F$ be a set of sets of $\mathcal{X}$ and $K$ be a compact system of $\mathcal{K}$, with $\emptyset \in K$.
+If a set $s$ of $\mathcal{X} \times \mathcal{K}$ is $F \times K$-analytic, then its projection on $\mathcal{X}$ is $F$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsCompactSystem.memProd}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.prod_left}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.prod_left}
+If $t \in T$ and $s$ is $F$-analytic, then $t \times s$ is $(T \times F)$-analytic: $T \times \mathcal{A}(F) \subseteq \mathcal{A}(T \times F)$.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.prod}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.prod}
+If $s$ is $F$-analytic and $t$ is $G$-analytic, then $s \times t$ is $(F \times G)$-analytic: $\mathcal{A}(F) \times \mathcal{A}(G) \subseteq \mathcal{A}(F \times G)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsPavingAnalytic.prod_left, lem:IsPavingAnalytic.exists_memSigma_superset}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isPavingAnalytic_isPavingAnalytic}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.isPavingAnalytic_isPavingAnalytic}
+$\mathcal{A}(\mathcal{A}(F)) = \mathcal{A}(F)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsPavingAnalytic.iInter, lem:IsPavingAnalytic.iUnion, lem:IsPavingAnalytic.prod, lem:IsPavingAnalytic.fst}
+
+\end{proof}
+
+
+
+\subsection{Analytic sets in measurable spaces}
+
+We denote by $K_{\mathbb{R}}$ the paving of compact sets of $\mathbb{R}$.
+For a measurable space $\mathcal{X}$, we denote by $M_{\mathcal{X}}$ the paving of measurable sets of $\mathcal{X}$.
+
+\begin{lemma}\label{lem:isPavingAnalytic_of_measurableSet_generateFrom}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.isPavingAnalytic_of_measurableSet_generateFrom}
+Let $F$ be a paving with $\emptyset \in F$ and let $\sigma(F)$ be the $\sigma$-algebra generated by $F$.
+Suppose that for every $t \in F$, $t^c$ is $F$-analytic.
+Then every set in $\sigma(F)$ is $F$-analytic: $\sigma(F) \subseteq \mathcal{A}(F)$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isPavingAnalytic_of_prop, lem:IsPavingAnalytic.iUnion, lem:IsPavingAnalytic.iInter}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:MeasurableSet.isPavingAnalytic_isCompact_real}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasurableSet.isPavingAnalytic_isCompact_real}
+A measurable set of $\mathbb{R}$ is $K_{\mathbb{R}}$-analytic.
+That is, $M_{\mathbb{R}} \subseteq \mathcal{A}(K_{\mathbb{R}})$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isPavingAnalytic_of_measurableSet_generateFrom, lem:IsPavingAnalytic.iUnion, lem:isPavingAnalytic_of_prop}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic_measurableSet_iff_isPavingAnalytic_compact}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic_measurableSet_iff_isPavingAnalytic_compact}
+A set of $\mathbb{R}$ is $M_{\mathbb{R}}$-analytic if and only if it is $K_{\mathbb{R}}$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isPavingAnalytic_isPavingAnalytic, lem:MeasurableSet.isPavingAnalytic_isCompact_real}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:MeasurableSet.isPavingAnalytic_memProd}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasurableSet.isPavingAnalytic_memProd}
+Let $\mathcal{X}$ be a measurable space and $s$ be a measurable set of $\mathcal{X} \times \mathbb{R}$.
+Then $s$ is $(M_{\mathcal{X}} \times K_{\mathbb{R}})$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:isPavingAnalytic_of_measurableSet_generateFrom, lem:IsPavingAnalytic.iUnion, lem:isPavingAnalytic_of_prop}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isPavingAnalytic_fst_of_memProd_measurableSet_isCompact}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.isPavingAnalytic_fst_of_memProd_measurableSet_isCompact}
+Let $\mathcal{X}$ be a measurable space and $s$ be a set of $\mathcal{X} \times \mathbb{R}$ which is $(M_{\mathcal{X}} \times K_{\mathbb{R}})$-analytic.
+Then the projection $\pi_{\mathcal{X}}(s)$ is $M_{\mathcal{X}}$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsPavingAnalytic.fst}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:MeasurableSet.isPavingAnalytic_fst}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasurableSet.isPavingAnalytic_fst}
+Let $\mathcal{X}$ be a measurable space and $s$ be a measurable set of $\mathcal{X} \times \mathbb{R}$.
+Then the projection of $s$ on $\mathcal{X}$ is $M_{\mathcal{X}}$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:MeasurableSet.isPavingAnalytic_memProd, lem:isPavingAnalytic_fst_of_memProd_measurableSet_isCompact}
+
+\end{proof}
+
+
+\begin{definition}\label{def:IsMeasurableAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsMeasurableAnalytic, MeasureTheory.IsMeasurableAnalyticFor}
+We say that a set $s$ of a measurable space $\mathcal{X}$ is measurably analytic for a measurable space $\mathcal{K}$ if it is the projection of a measurable set of $\mathcal{X} \times \mathcal{K}$.
+
+We say that $s$ is measurably analytic if it is measurably analytic for $\mathbb{R}$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsMeasurableAnalyticFor.isMeasurableAnalytic}
+  \uses{def:IsMeasurableAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsMeasurableAnalyticFor.isMeasurableAnalytic}
+Let $\mathcal{K}$ be a standard Borel space.
+If a set $s$ of $\mathcal{X}$ is measurably analytic for $\mathcal{K}$, then it is measurably analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+There is a measurable embedding of $\mathcal{K}$ into $\mathbb{R}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsMeasurableAnalytic.isPavingAnalytic}
+  \uses{def:IsMeasurableAnalytic, def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsMeasurableAnalytic.isPavingAnalytic}
+If a set $s$ of $\mathcal{X}$ is measurably analytic, then it is $M_{\mathcal{X}}$-analytic.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:MeasurableSet.isPavingAnalytic_fst}
+
+\end{proof}
+
+
+
+\subsection{Capacities and capacitable sets}
+
+\begin{definition}\label{def:Capacity}
+  \leanok
+  \lean{MeasureTheory.Capacity}
+Let $F$ be a set of sets of a type $\mathcal{X}$.
+An $F$-capacity is a function $I$ from the sets of $\mathcal{X}$ to $\mathbb{R}_{+,\infty}$ such that
+\begin{enumerate}
+  \item $I$ is monotone for set inclusion: for $s \subseteq t$, $I(s) \le I(t)$,
+  \item if $(s_n)_{n\in\mathbb{N}}$ is an increasing sequence of sets of $\mathcal{X}$, then $I(s_n)$ tends to $I(\bigcup_{n\in\mathbb{N}} s_n)$ at infinity,
+  \item if $(s_n)_{n\in\mathbb{N}}$ is a decreasing sequence of sets in $F$, then $I(s_n)$ tends to $I(\bigcap_{n\in\mathbb{N}} s_n)$ at infinity.
+\end{enumerate}
+\end{definition}
+
+
+\begin{lemma}\label{lem:Capacity.comp_fst_aux}
+  \uses{def:Capacity, def:IsCompactSystem}
+  \leanok
+  \lean{MeasureTheory.Capacity.comp_fst}
+Let $F$ be a set of sets of $\mathcal{X}$ and let $I$ be an $F$-capacity.
+Suppose that $\emptyset \in F$ and $F$ is closed under pairwise unions.
+Let $K$ be a compact system of $\mathcal{K}$.
+Let $\pi_{\mathcal{X}} : \mathcal{X} \times \mathcal{K} \to \mathcal{X}$ be the projection on the first coordinate.
+Then the function $I_{\mathcal{X}}(u) = I(\pi_{\mathcal{X}}(u))$ is a capacity for $(F \times K)^{\cup f}$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:fst_iInter_of_memFiniteUnion_memProd_of_antitone}
+
+\end{proof}
+
+
+\begin{definition}\label{def:Capacity.comp_fst}
+  \uses{def:Capacity, def:IsCompactSystem}
+  \leanok
+  \lean{MeasureTheory.Capacity.comp_fst}
+Let $F$ be a set of sets of $\mathcal{X}$ and let $I$ be an $F$-capacity.
+Suppose that $\emptyset \in F$ and $F$ is closed under pairwise unions.
+Let $K$ be a compact system of $\mathcal{K}$.
+Let $\pi_{\mathcal{X}} : \mathcal{X} \times \mathcal{K} \to \mathcal{X}$ be the projection on the first coordinate.
+Then we define a capacity for $(F \times K)^{\cup f}$ by $I_{\mathcal{X}}(u) = I(\pi_{\mathcal{X}}(u))$ (it is indeed a capacity by Lemma~\ref{lem:Capacity.comp_fst_aux}).
+\end{definition}
+
+
+\begin{definition}\label{def:IsCapacitable}
+  \uses{def:Capacity}
+  \leanok
+  \lean{MeasureTheory.IsCapacitable}
+Let $F$ be a set of sets of $\mathcal{X}$ and let $I$ be an $F$-capacity.
+A set $s$ of $\mathcal{X}$ is said to be $I$-capacitable if for all $a < I(s)$, there exists a set $t \in F_\delta$ such that $t \subseteq s$ and $a \le I(t)$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isCapacitable_of_prop}
+  \uses{def:IsCapacitable}
+  \leanok
+  \lean{MeasureTheory.isCapacitable_of_prop}
+For $I$ an $F$-capacity, every set in $F$ is $I$-capacitable.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:isCapacitable_memDelta_memSigma}
+  \uses{def:IsCapacitable, def:Capacity, def:memDelta, def:memSigma}
+  \leanok
+  \lean{MeasureTheory.isCapacitable_memDelta_memSigma}
+Suppose that $F$ contains the empty set and is closed under pairwise intersections and unions, and let $I$ be an $F$-capacity.
+Then every set of $F_{\sigma \delta}$ is $I$-capacitable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:memSigma_iff_of_union}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:memDelta_fst}
+  \uses{def:memDelta, def:memProd, def:IsCompactSystem}
+  \leanok
+  \lean{MeasureTheory.memDelta_fst}
+Suppose that $F$ contains the empty set and is closed under pairwise intersections and unions, and let $I$ be an $F$-capacity.
+Let $K$ be a compact system which is also closed under pairwise intersections.
+Let $s \in ((F \times K)^{\cup f})_\delta$.
+Then $\pi_{\mathcal{X}}(s) \in F_\delta$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:fst_iInter_of_memFiniteUnion_memProd_of_antitone, lem:memDelta_iff_of_inter}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsCapacitable.fst}
+  \uses{def:IsCapacitable, def:Capacity, def:Capacity.comp_fst, def:IsCompactSystem}
+  \leanok
+  \lean{MeasureTheory.IsCapacitable.fst}
+Let $F$ be a set of sets of $\mathcal{X}$ and let $I$ be an $F$-capacity.
+Suppose that $F$ contains the empty set and is closed under pairwise intersections and unions.
+Let $K$ be a compact system of $\mathcal{K}$ which is also closed under pairwise intersections.
+If a set $s$ of $\mathcal{X} \times \mathcal{K}$ is capacitable with respect to the capacity $I_{\mathcal{X}}$ of Definition~\ref{def:Capacity.comp_fst}, then its projection on $\mathcal{X}$ is capacitable with respect to $I$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:memDelta_fst}
+
+\end{proof}
+
+
+\begin{theorem}[Choquet's capacitability theorem]\label{thm:IsPavingAnalytic.isCapacitable}
+  \uses{def:IsPavingAnalytic, def:IsCapacitable}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.isCapacitable}
+Let $F$ be a set of sets of $\mathcal{X}$ and let $I$ be an $F$-capacity.
+Suppose that $F$ contains the empty set and is closed under pairwise intersections and unions.
+Then every $F$-analytic set is $I$-capacitable.
+\end{theorem}
+
+\begin{proof}\leanok
+  \uses{lem:isCapacitable_memDelta_memSigma, lem:IsCompactSystem.memFiniteInter, lem:IsCapacitable.fst}
+
+\end{proof}
+
+
+
+\subsection{Capacities and measures}
+
+
+\begin{definition}\label{def:Measure.capacity}
+  \uses{def:Capacity}
+  \leanok
+  \lean{MeasureTheory.Measure.capacity}
+Every finite measure defines a capacity by $I(s) = \mu(s)$ (where $\mu(s)$ is the value of the outer measure defined by $\mu$, but in Lean that's how $\mu(s)$ is defined already).
+\end{definition}
+
+
+\begin{lemma}\label{lem:isCapacitable_measure_iff}
+  \uses{def:IsCapacitable, def:Measure.capacity}
+  \leanok
+  \lean{MeasureTheory.isCapacitable_measure_iff}
+A set is capacitable with respect to the capacity defined by a finite measure if and only if it is null-measurable for this measure.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPavingAnalytic.nullMeasurableSet}
+  \uses{def:IsPavingAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsPavingAnalytic.nullMeasurableSet}
+An $M_{\mathcal{X}}$-analytic set of a measurable space $\mathcal{X}$ is universally measurable: it is null-measurable for every finite measure on $\mathcal{X}$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:IsPavingAnalytic.isCapacitable, def:Measure.capacity, lem:isCapacitable_measure_iff}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsMeasurableAnalytic.nullMeasurableSet}
+  \uses{def:IsMeasurableAnalytic}
+  \leanok
+  \lean{MeasureTheory.IsMeasurableAnalytic.nullMeasurableSet}
+A measurably analytic set of a measurable space $\mathcal{X}$ is universally measurable: it is null-measurable for every finite measure on $\mathcal{X}$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsMeasurableAnalytic.isPavingAnalytic, lem:IsPavingAnalytic.nullMeasurableSet}
+
+\end{proof}
+
+
+\begin{theorem}[Measurable projection]\label{thm:MeasurableSet.nullMeasurableSet_fst}
+  \uses{def:IsMeasurableAnalytic}
+  \leanok
+  \lean{MeasurableSet.nullMeasurableSet_fst}
+Let $\mathcal{X}$ and $\mathcal{Y}$ be measurable spaces, with $\mathcal{Y}$ standard Borel.
+Then the projection of a measurable set of $\mathcal{X} \times \mathcal{Y}$ on $\mathcal{X}$ is universally measurable.
+\end{theorem}
+
+\begin{proof}\leanok
+  \uses{lem:IsMeasurableAnalyticFor.isMeasurableAnalytic, lem:IsMeasurableAnalytic.nullMeasurableSet}
+
+\end{proof}
+
+
+
+
 \section{Monotone class theorem}
 
 
