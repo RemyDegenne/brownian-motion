@@ -7,6 +7,7 @@ Authors: Lorenzo Luccioli
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.Probability.Process.HittingTime
 import BrownianMotion.Debut.Approximation
+import BrownianMotion.Choquet.Capacity
 
 /-!
 This file contains the basic definitions and properties of the debut of a set.
@@ -17,6 +18,9 @@ This file contains the basic definitions and properties of the debut of a set.
 We follow the implementation of hitting times in `Mathlib.Probability.Process.HittingTime`.
 The debut has values in `WithTop ι`, ensuring that it is always well-defined.
 -/
+
+open Filter
+open scoped Topology
 
 namespace MeasureTheory
 
@@ -110,11 +114,35 @@ lemma debut_mem_set_of_ne_top [WellFoundedLT ι] (h : debut E n ω ≠ ⊤) :
 lemma debut_le_of_mem (ht : n ≤ t) (h_mem : (t, ω) ∈ E) :
     debut E n ω ≤ t := hittingAfter_le_of_mem ht h_mem
 
+-- todo: replace `hittingAfter_lt_iff` with this
+lemma hittingAfter_lt_iff' {Ω β ι : Type*} [ConditionallyCompleteLinearOrder ι]
+    {u : ι → Ω → β} {s : Set β} {n : ι} {ω : Ω} {i : ι} :
+    hittingAfter u s n ω < i ↔ ∃ j ∈ Set.Ico n i, u j ω ∈ s := by
+  constructor <;> intro h'
+  · have h_top : hittingAfter u s n ω ≠ ⊤ := fun h ↦ by simp [h] at h'
+    have h_top' : ∃ j, n ≤ j ∧ u j ω ∈ s := by
+      rw [ne_eq, hittingAfter_eq_top_iff] at h_top
+      push_neg at h_top
+      exact h_top
+    have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
+    rw [hittingAfter, if_pos h_top'] at h'
+    norm_cast at h'
+    rw [csInf_lt_iff] at h'
+    rotate_left
+    · exact ⟨n, by simp [mem_lowerBounds]; grind⟩
+    · exact h_top'
+    simp only [Set.mem_setOf_eq] at h'
+    obtain ⟨j, hj₁, hj₂⟩ := h'
+    refine ⟨j, ⟨hj₁.1, hj₂⟩, hj₁.2⟩
+  · obtain ⟨j, hj₁, hj₂⟩ := h'
+    refine lt_of_le_of_lt ?_ (mod_cast hj₁.2 : (j : WithTop ι) < i)
+    exact hittingAfter_le_of_mem hj₁.1 hj₂
+
 lemma debut_le_iff [WellFoundedLT ι] : debut E n ω ≤ t ↔ ∃ j ∈ Set.Icc n t, (j, ω) ∈ E :=
   hittingAfter_le_iff
 
-lemma debut_lt_iff [WellFoundedLT ι] : debut E n ω < t ↔ ∃ j ∈ Set.Ico n t, (j, ω) ∈ E :=
-  hittingAfter_lt_iff
+lemma debut_lt_iff : debut E n ω < t ↔ ∃ j ∈ Set.Ico n t, (j, ω) ∈ E :=
+  hittingAfter_lt_iff'
 
 lemma debut_mono (E : Set (ι × Ω)) (ω : Ω) : Monotone (debut E · ω) := hittingAfter_apply_mono _ _ _
 
@@ -140,12 +168,34 @@ def _root_.MeasureTheory.ProgMeasurableSet [Preorder ι]
   ProgMeasurable f (E.indicator fun _ ↦ 1).curry
 
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
-theorem isStoppingTime_debut [MeasurableSpace ι] [Preorder ι] [InfSet ι]
-    {E : Set (ι × Ω)} {f : Filtration ι mΩ} (hE : ProgMeasurableSet E f) (n : ι) :
-    IsStoppingTime f (debut E n) := by
+theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [StandardBorelSpace ι] {P : Measure Ω} [IsFiniteMeasure P]
+    {𝓕 : Filtration ι mΩ} (h𝓕 : ∀ s, P s = 0 → ∀ t, MeasurableSet[𝓕 t] s)
+    (h𝓕_cont : 𝓕.IsRightContinuous)
+    {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n : ι) :
+    IsStoppingTime 𝓕 (debut E n) := by
+  letI := upgradeStandardBorel ι
   /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
   usual hypotheses on the filtration (in particular the right continuity of the filtration, see
   `MeasureTheory.Filtration.IsRightContinuous` from the `Predictable` file) -/
+  intro t
+  obtain ⟨s, hs⟩ : ∃ s : ℕ → ι, ∀ n, t ≤ s n ∧ Tendsto s atTop (𝓝 t) := by
+    sorry
+  suffices ∀ m : ℕ, MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} by
+    sorry
+  intro m
+  have h_eq_fst : {ω | debut E n ω < ↑(s m)} = Prod.snd '' (E ∩ (Set.Ico n (s m) ×ˢ .univ)) := by
+    simp_rw [debut_lt_iff]
+    ext
+    simp
+    grind
+  rw [h_eq_fst]
+  have : (P.trim (𝓕.le (s m))).IsComplete := by
+    constructor
+    intro s hs
+    exact h𝓕 s (measure_eq_zero_of_trim_eq_zero _ hs) _
+  refine NullMeasurableSet.measurable_of_complete (m0 := 𝓕 (s m)) (μ := P.trim (𝓕.le (s m))) ?_
+  refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le (s m)))
   sorry
 
 end Debut

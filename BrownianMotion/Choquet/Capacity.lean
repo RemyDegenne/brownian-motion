@@ -255,4 +255,10 @@ theorem _root_.MeasurableSet.nullMeasurableSet_fst {𝓨 : Type*}
   have hs_for : IsMeasurableAnalyticFor 𝓨 (Prod.fst '' s) := ⟨s, hs, rfl⟩
   exact hs_for.isMeasurableAnalytic.nullMeasurableSet μ
 
+theorem _root_.MeasurableSet.nullMeasurableSet_snd {𝓨 : Type*}
+    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
+    (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    NullMeasurableSet (Prod.snd '' s) μ := by
+  sorry
+
 end MeasureTheory
