@@ -8,6 +8,7 @@ import Mathlib.Order.CompletePartialOrder
 import Mathlib.Probability.Process.HittingTime
 import BrownianMotion.Debut.Approximation
 import BrownianMotion.Choquet.Capacity
+import BrownianMotion.StochasticIntegral.Predictable
 
 /-!
 This file contains the basic definitions and properties of the debut of a set.
@@ -163,40 +164,86 @@ progressively measurable set, but we can just add the necessary hypothesis manua
 
 /-- A set `E : Set ι × Ω` is *Progressively measurable* with respect to a filtration `f` if the
 indicator function of `E` is a progressively measurable process with respect to `f`. -/
-def _root_.MeasureTheory.ProgMeasurableSet [Preorder ι]
-    [MeasurableSpace ι] (E : Set (ι × Ω)) (f : Filtration ι mΩ) :=
-  ProgMeasurable f (E.indicator fun _ ↦ 1).curry
+def ProgMeasurableSet [Preorder ι] [MeasurableSpace ι] (E : Set (ι × Ω)) (𝓕 : Filtration ι mΩ) :=
+  ProgMeasurable 𝓕 (E.indicator fun _ ↦ 1).curry
 
-/-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
-theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [StandardBorelSpace ι] {P : Measure Ω} [IsFiniteMeasure P]
-    {𝓕 : Filtration ι mΩ} (h𝓕 : ∀ s, P s = 0 → ∀ t, MeasurableSet[𝓕 t] s)
-    (h𝓕_cont : 𝓕.IsRightContinuous)
-    {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n : ι) :
-    IsStoppingTime 𝓕 (debut E n) := by
-  letI := upgradeStandardBorel ι
-  /- see the proof in the blueprint, we will probably need some more hypotheses, for example the
-  usual hypotheses on the filtration (in particular the right continuity of the filtration, see
-  `MeasureTheory.Filtration.IsRightContinuous` from the `Predictable` file) -/
-  intro t
-  obtain ⟨s, hs⟩ : ∃ s : ℕ → ι, ∀ n, t ≤ s n ∧ Tendsto s atTop (𝓝 t) := by
-    sorry
-  suffices ∀ m : ℕ, MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} by
-    sorry
-  intro m
-  have h_eq_fst : {ω | debut E n ω < ↑(s m)} = Prod.snd '' (E ∩ (Set.Ico n (s m) ×ˢ .univ)) := by
+lemma ProgMeasurableSet.measurableSet_prod [Preorder ι] [MeasurableSpace ι]
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
+    MeasurableSet[Subtype.instMeasurableSpace.prod (𝓕 t)]
+      {p : Set.Iic t × Ω | ((p.1 : ι), p.2) ∈ E} := by
+  rw [← measurable_indicator_const_iff (b := 1)]
+  exact (hE t).measurable
+
+lemma ProgMeasurableSet.measurableSet_inter_Iic [Preorder ι] {mι : MeasurableSpace ι}
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
+    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iic t ×ˢ .univ)) := by
+  have h_prod := hE.measurableSet_prod t
+  sorry
+
+lemma ProgMeasurableSet.measurableSet_inter_Iio [LinearOrder ι] {mι : MeasurableSpace ι}
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
+    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio t ×ˢ .univ)) := by
+  -- write Iio as a countable union of Iic and use the previous lemma
+  sorry
+
+@[gcongr]
+lemma MeasurableSpace.prod_mono {mι : MeasurableSpace ι} {mι' : MeasurableSpace ι}
+    {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω}
+    (h₂ : mι ≤ mι') (h₁ : mΩ ≤ mΩ') :
+    mι.prod mΩ ≤ mι'.prod mΩ' := by
+  simp only [MeasurableSpace.prod, sup_le_iff]
+  refine ⟨le_sup_of_le_left ?_, le_sup_of_le_right ?_⟩
+  · sorry
+  · sorry
+
+lemma ProgMeasurableSet.measurableSet_inter_Ico [LinearOrder ι] {mι : MeasurableSpace ι}
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (s t : ι) :
+    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Ico s t ×ˢ .univ)) := by
+  rcases le_total t s with h_ts | h_st
+  · simp [h_ts]
+  -- write Ico as Iio \ Iio and use the previous lemmas
+  have h_meas_s : MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio s ×ˢ .univ)) := by
+    have hs := hE.measurableSet_inter_Iio s
+    have h_le : mι.prod (𝓕 s) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl (𝓕.mono h_st)
+    exact h_le _ hs
+  have h_meas_t := hE.measurableSet_inter_Iio t
+  convert h_meas_t.diff h_meas_s using 1
+  ext
+  simp
+  grind
+
+lemma ProgMeasurableSet.measurableSet_debut_lt
+    [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [StandardBorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n s : ι) :
+    MeasurableSet[𝓕 s] {ω | debut E n ω < s} := by
+  have h_eq_fst : {ω | debut E n ω < s} = Prod.snd '' (E ∩ (Set.Ico n s ×ˢ .univ)) := by
     simp_rw [debut_lt_iff]
     ext
     simp
     grind
   rw [h_eq_fst]
-  have : (P.trim (𝓕.le (s m))).IsComplete := by
-    constructor
-    intro s hs
-    exact h𝓕 s (measure_eq_zero_of_trim_eq_zero _ hs) _
-  refine NullMeasurableSet.measurable_of_complete (m0 := 𝓕 (s m)) (μ := P.trim (𝓕.le (s m))) ?_
-  refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le (s m)))
-  sorry
+  refine NullMeasurableSet.measurable_of_complete (m0 := 𝓕 s) (μ := P.trim (𝓕.le s)) ?_
+  refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le s))
+  exact hE.measurableSet_inter_Ico n s
+
+/-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
+theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
+    [StandardBorelSpace ι] {P : Measure Ω} [IsFiniteMeasure P]
+    {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n : ι) :
+    IsStoppingTime 𝓕 (debut E n) := by
+  letI := upgradeStandardBorel ι
+  intro t
+  -- todo: case on whether `t` is isolated on the right or not
+  -- if it's isolated then `{debut ≤} = {debut <} ∪ {(t, ω) ∈ E}`
+  -- TODO
+  -- now `t` is a limit point on the right
+  obtain ⟨s, hs⟩ : ∃ s : ℕ → ι, ∀ n, t ≤ s n ∧ Tendsto s atTop (𝓝 t) := by
+    sorry
+  suffices ∀ m : ℕ, MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} by
+    sorry
+  exact fun _ ↦ hE.measurableSet_debut_lt h𝓕 n _
 
 end Debut
 

@@ -259,6 +259,9 @@ theorem _root_.MeasurableSet.nullMeasurableSet_snd {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
     (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
-  sorry
+  convert MeasurableSet.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧)
+    (_m𝓨 := _m𝓨) (hs.preimage (by fun_prop)) μ
+  ext
+  simp
 
 end MeasureTheory
