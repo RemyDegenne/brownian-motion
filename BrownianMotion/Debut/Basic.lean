@@ -289,20 +289,20 @@ end Debut
 
 section HittingTime
 
-lemma _root_.MeasurableSet.progMeasurableSet_preimage
-    [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
-    {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
+lemma _root_.MeasurableSet.progMeasurableSet_preimage [MeasurableSpace ι] [Preorder ι]
+    {β : Type*} [TopologicalSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
+    [MeasurableSpace β] [BorelSpace β]
     {𝓕 : Filtration ι mΩ}
     {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) :
     ProgMeasurableSet (X.uncurry ⁻¹' s) 𝓕 :=
-  sorry
+  fun t ↦ StronglyMeasurable.indicator (by fun_prop) (hs.preimage (hX t).measurable)
 
 /-- The hitting time of a measurable set by a progressively measurable process for a filtration
 satisfying the usual conditions is a stopping time. -/
 theorem isStoppingTime_hittingAfter' [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
-    {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
+    {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
+    [BorelSpace β]
     {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
     {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) (n : ι) :
     IsStoppingTime 𝓕 (hittingAfter X s n) := by
