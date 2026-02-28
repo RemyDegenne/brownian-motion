@@ -189,19 +189,21 @@ lemma ProgMeasurableSet.measurableSet_inter_Iio [LinearOrder ι] {mι : Measurab
 @[gcongr]
 lemma MeasurableSpace.prod_mono {mι : MeasurableSpace ι} {mι' : MeasurableSpace ι}
     {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω}
-    (h₂ : mι ≤ mι') (h₁ : mΩ ≤ mΩ') :
+    (h₁ : mι ≤ mι') (h₂ : mΩ ≤ mΩ') :
     mι.prod mΩ ≤ mι'.prod mΩ' := by
   simp only [MeasurableSpace.prod, sup_le_iff]
   refine ⟨le_sup_of_le_left ?_, le_sup_of_le_right ?_⟩
-  · sorry
-  · sorry
+  · rw [MeasurableSpace.comap_le_iff_le_map]
+    exact h₁.trans MeasurableSpace.le_map_comap
+  · rw [MeasurableSpace.comap_le_iff_le_map]
+    exact h₂.trans MeasurableSpace.le_map_comap
 
 lemma ProgMeasurableSet.measurableSet_inter_Ico [LinearOrder ι] {mι : MeasurableSpace ι}
     {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (s t : ι) :
     MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Ico s t ×ˢ .univ)) := by
   rcases le_total t s with h_ts | h_st
   · simp [h_ts]
-  -- write Ico as Iio \ Iio and use the previous lemmas
+  -- write `Ico s t` as `Iio t \ Iio s` and use the previous lemmas
   have h_meas_s : MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio s ×ˢ .univ)) := by
     have hs := hE.measurableSet_inter_Iio s
     have h_le : mι.prod (𝓕 s) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl (𝓕.mono h_st)
@@ -229,20 +231,59 @@ lemma ProgMeasurableSet.measurableSet_debut_lt
 
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
-    [StandardBorelSpace ι] {P : Measure Ω} [IsFiniteMeasure P]
+    [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
     {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n : ι) :
     IsStoppingTime 𝓕 (debut E n) := by
-  letI := upgradeStandardBorel ι
   intro t
-  -- todo: case on whether `t` is isolated on the right or not
+  -- case on whether `t` is isolated on the right or not
+  by_cases ht_gt : (𝓝[>] t).NeBot
+  swap
   -- if it's isolated then `{debut ≤} = {debut <} ∪ {(t, ω) ∈ E}`
-  -- TODO
+  · sorry
   -- now `t` is a limit point on the right
-  obtain ⟨s, hs⟩ : ∃ s : ℕ → ι, ∀ n, t ≤ s n ∧ Tendsto s atTop (𝓝 t) := by
-    sorry
+  obtain ⟨s, hs_gt, hs_tendsto⟩ : ∃ s : ℕ → ι, (∀ n, t < s n) ∧ Tendsto s atTop (𝓝 t) := by
+    have h_freq : ∃ᶠ x in 𝓝[>] t, t < x :=
+      Eventually.frequently <| eventually_nhdsWithin_of_forall fun _ hx ↦ hx
+    have := exists_seq_forall_of_frequently h_freq
+    simp_rw [tendsto_nhdsWithin_iff] at this
+    obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
+    exact ⟨s, hs_gt, hs_tendsto⟩
   suffices ∀ m : ℕ, MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} by
-    sorry
+    have h_eq_iInter : {ω | debut E n ω ≤ t} = ⋂ m, {ω | debut E n ω < s m} := by
+      ext ω
+      simp only [Set.mem_setOf_eq, Set.mem_iInter]
+      refine ⟨fun h_le m ↦ h_le.trans_lt (mod_cast (hs_gt m)), fun h_lt ↦ ?_⟩
+      refine le_of_forall_gt fun u hu ↦ ?_
+      obtain ⟨i, hi⟩ : ∃ i, s i < u := by
+        refine Eventually.exists (f := atTop) ?_
+        have hs_tendsto' : Tendsto (fun n ↦ (s n : WithTop ι)) atTop (𝓝 (t : WithTop ι)) :=
+          WithTop.continuous_coe.continuousAt.tendsto.comp hs_tendsto
+        exact hs_tendsto'.eventually_lt_const hu
+      exact (h_lt i).trans hi
+    rw [h_eq_iInter]
+    have h𝓕_eq_iInf : 𝓕 t = ⨅ m, 𝓕 (s m) := by
+      have ht_cont : 𝓕 t = 𝓕.rightCont t := by
+        congr
+        exact (h𝓕.toIsRightContinuous (μ := P)).eq.symm
+      rw [ht_cont, Filtration.rightCont_eq_of_neBot_nhdsGT]
+      sorry
+    rw [h𝓕_eq_iInf]
+    simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
+      forall_apply_eq_imp_iff]
+    intro k
+    have h_eq_k : ⋂ m, {ω | debut E n ω < s m} =
+        ⋂ (m) (hm : s m ≤ s k), {ω | debut E n ω < s m} := by
+      ext x
+      simp only [Set.mem_iInter, Set.mem_setOf_eq]
+      refine ⟨fun h m _ ↦ h m, fun h m ↦ ?_⟩
+      rcases le_total (s m) (s k) with hmk | hkm
+      · exact h m hmk
+      · exact (h k le_rfl).trans_le (mod_cast hkm)
+    rw [h_eq_k]
+    refine MeasurableSet.iInter fun m ↦ MeasurableSet.iInter fun hm ↦ ?_
+    exact 𝓕.mono hm _ (this m)
   exact fun _ ↦ hE.measurableSet_debut_lt h𝓕 n _
 
 end Debut
