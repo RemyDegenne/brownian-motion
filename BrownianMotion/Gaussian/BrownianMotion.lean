@@ -114,6 +114,36 @@ def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω �
   ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
     iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
 
+lemma HasIndepIncrements.increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
+    {P : Measure Ω} {X : T → Ω → E} (h : HasIndepIncrements X P) :
+    ∀ t : ℕ → T, Monotone t → iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P := by
+  intro t ht
+  rw [ProbabilityTheory.iIndepFun_iff_finset]
+  intro s
+  by_cases! hs : s.Nonempty
+  · rcases s.max_of_nonempty hs with ⟨n, hn⟩
+    let g : (s → Fin n.succ) :=
+      fun x ↦ ⟨x, by simpa [hn] using s.le_max x.mem⟩
+    apply iIndepFun.precomp (g := g) _ <| h n.succ (fun m ↦ t m) _
+    · simp [g, Function.Injective]
+    · exact ht.comp Fin.val_strictMono.monotone
+  · have := (h 0 (fun _ ↦ t 0) (fun _ ↦ by aesop)).isProbabilityMeasure
+    rw [hs]; aesop
+
+lemma HasIndepIncrements.of_increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
+    {P : Measure Ω} {X : T → Ω → E}
+    (h : ∀ t : ℕ → T, Monotone t ∧ EventuallyConst t atTop →
+    iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P) :
+    HasIndepIncrements X P := by
+  intro n t ht
+  let t' := fun x ↦ t ⟨min n x, by aesop⟩
+  convert iIndepFun.precomp Fin.val_injective <| h t' _
+  · simp
+  · aesop
+  · refine ⟨fun _ _ _ ↦ by apply ht; aesop,?_⟩
+    rw [eventuallyConst_atTop]
+    use n; aesop
+
 /-- `incrementsToRestrict I` is a continuous linear map `f` such that
 `f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
 noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] [AddCommMonoid E]
@@ -140,16 +170,11 @@ lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R :
 lemma HasIndepIncrements.indepFun_sub_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
     {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) :
     IndepFun (X s - X r) (X t - X s) P := by
-  let τ : Fin (2 + 1) → T := ![r, s, t]
-  have hτ : Monotone τ := by
-    intro i j hij
-    fin_cases i <;> fin_cases j
-    any_goals simp only [Nat.reduceAdd, Fin.zero_eta, Fin.isValue, Matrix.cons_val_zero, le_refl, τ]
-    any_goals assumption
-    any_goals contradiction
-    exact hrs.trans hst
-  have h' : (0 : Fin (1 + 1)) ≠ (1 : Fin (1 + 1)) := by simp
-  simpa using (h 2 τ hτ).indepFun h'
+  let τ' : ℕ → T
+    | 0 => r
+    | 1 => s
+    | _ => t
+  exact h.increments_nat τ' (fun _ ↦ by grind)|>.indepFun (by norm_num : 0 ≠ 1)
 
 lemma HasIndepIncrements.indepFun_eval_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
     {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t)
