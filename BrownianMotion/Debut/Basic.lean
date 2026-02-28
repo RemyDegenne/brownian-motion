@@ -249,41 +249,42 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     simp_rw [tendsto_nhdsWithin_iff] at this
     obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
     exact ⟨s, hs_gt, hs_tendsto⟩
-  suffices ∀ m : ℕ, MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} by
-    have h_eq_iInter : {ω | debut E n ω ≤ t} = ⋂ m, {ω | debut E n ω < s m} := by
-      ext ω
-      simp only [Set.mem_setOf_eq, Set.mem_iInter]
-      refine ⟨fun h_le m ↦ h_le.trans_lt (mod_cast (hs_gt m)), fun h_lt ↦ ?_⟩
-      refine le_of_forall_gt fun u hu ↦ ?_
-      obtain ⟨i, hi⟩ : ∃ i, s i < u := by
-        refine Eventually.exists (f := atTop) ?_
-        have hs_tendsto' : Tendsto (fun n ↦ (s n : WithTop ι)) atTop (𝓝 (t : WithTop ι)) :=
-          WithTop.continuous_coe.continuousAt.tendsto.comp hs_tendsto
-        exact hs_tendsto'.eventually_lt_const hu
-      exact (h_lt i).trans hi
-    rw [h_eq_iInter]
-    have h𝓕_eq_iInf : 𝓕 t = ⨅ m, 𝓕 (s m) := by
-      have ht_cont : 𝓕 t = 𝓕.rightCont t := by
-        congr
-        exact (h𝓕.toIsRightContinuous (μ := P)).eq.symm
-      rw [ht_cont, Filtration.rightCont_eq_of_neBot_nhdsGT]
-      sorry
-    rw [h𝓕_eq_iInf]
-    simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
-      forall_apply_eq_imp_iff]
-    intro k
-    have h_eq_k : ⋂ m, {ω | debut E n ω < s m} =
-        ⋂ (m) (hm : s m ≤ s k), {ω | debut E n ω < s m} := by
-      ext x
-      simp only [Set.mem_iInter, Set.mem_setOf_eq]
-      refine ⟨fun h m _ ↦ h m, fun h m ↦ ?_⟩
-      rcases le_total (s m) (s k) with hmk | hkm
-      · exact h m hmk
-      · exact (h k le_rfl).trans_le (mod_cast hkm)
-    rw [h_eq_k]
-    refine MeasurableSet.iInter fun m ↦ MeasurableSet.iInter fun hm ↦ ?_
-    exact 𝓕.mono hm _ (this m)
-  exact fun _ ↦ hE.measurableSet_debut_lt h𝓕 n _
+  -- we write `{debut ≤ t}` as a countable intersection of `{debut < s n}`
+  have h_eq_iInter : {ω | debut E n ω ≤ t} = ⋂ m, {ω | debut E n ω < s m} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    refine ⟨fun h_le m ↦ h_le.trans_lt (mod_cast (hs_gt m)), fun h_lt ↦ ?_⟩
+    refine le_of_forall_gt fun u hu ↦ ?_
+    obtain ⟨i, hi⟩ : ∃ i, s i < u := by
+      refine Eventually.exists (f := atTop) ?_
+      have hs_tendsto' : Tendsto (fun n ↦ (s n : WithTop ι)) atTop (𝓝 (t : WithTop ι)) :=
+        WithTop.continuous_coe.continuousAt.tendsto.comp hs_tendsto
+      exact hs_tendsto'.eventually_lt_const hu
+    exact (h_lt i).trans hi
+  rw [h_eq_iInter]
+  have h_meas_lt m : MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} :=
+    hE.measurableSet_debut_lt h𝓕 n (s m)
+  have h𝓕_eq_iInf : 𝓕 t = ⨅ m, 𝓕 (s m) := by
+    have ht_cont : 𝓕 t = 𝓕.rightCont t := by
+      congr
+      exact (h𝓕.toIsRightContinuous (μ := P)).eq.symm
+    rw [ht_cont, Filtration.rightCont_eq_of_neBot_nhdsGT]
+    sorry
+  rw [h𝓕_eq_iInf]
+  simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
+    forall_apply_eq_imp_iff]
+  intro k
+  have h_eq_k : ⋂ m, {ω | debut E n ω < s m} =
+      ⋂ (m) (hm : s m ≤ s k), {ω | debut E n ω < s m} := by
+    ext x
+    simp only [Set.mem_iInter, Set.mem_setOf_eq]
+    refine ⟨fun h m _ ↦ h m, fun h m ↦ ?_⟩
+    rcases le_total (s m) (s k) with hmk | hkm
+    · exact h m hmk
+    · exact (h k le_rfl).trans_le (mod_cast hkm)
+  rw [h_eq_k]
+  refine MeasurableSet.iInter fun m ↦ MeasurableSet.iInter fun hm ↦ ?_
+  exact 𝓕.mono hm _ (h_meas_lt m)
 
 end Debut
 
