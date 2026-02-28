@@ -1056,11 +1056,11 @@ If $A \in \mathcal{B}[0, t] \times \mathcal{F}_t$, then $A$ is $t$-approximable.
   \leanok
   \lean{MeasureTheory.isStoppingTime_debut}
   \uses{def:progr_meas_set, def:debut_set, def:IsStoppingTime}
-If $E$ is a progressively measurable set, then $D_E$ is a stopping time.
+If $E$ is a progressively measurable set and the filtration satisfies the usual conditions, then $D_E$ is a stopping time.
 \end{theorem}
 
 \begin{proof}
-  \uses{def:t_approx_set, lem:t_approx_of_Borel_measurable, lem:measurable_of_t_approx}
+  \uses{thm:MeasurableSet.nullMeasurableSet_fst}
   % See the proof of Theorem 2.1 in the corrected paper.
   % TODO: It seems we need right continuity of the filtration, should we state it as an assumption?
   Let $E$ be a progressively measurable set and let $A_u = E \cap ([0,u] \times \Omega)$.

@@ -4,11 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lorenzo Luccioli
 -/
 
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Probability.Process.HittingTime
-import BrownianMotion.Debut.Approximation
 import BrownianMotion.Choquet.Capacity
 import BrownianMotion.StochasticIntegral.Predictable
+import Mathlib.Order.CompletePartialOrder
+import Mathlib.Probability.Process.HittingTime
 
 /-!
 This file contains the basic definitions and properties of the debut of a set.
@@ -290,18 +289,27 @@ end Debut
 
 section HittingTime
 
--- This may be placed in `Mathlib.Probability.Process.HittingTime` in Mathlib.
-/- We may need to add some hypotheses, like the filtration being right continuous. After proving
-the theorem consider if this completely subsumes `hitting_isStoppingTime`, in that case we can
-remove the latter. Also, consider if the fact that `β` is a borel space is actually needed. -/
-theorem isStoppingTime_hittingAfter' [ConditionallyCompleteLinearOrder ι] [MeasurableSpace ι]
+lemma _root_.MeasurableSet.progMeasurableSet_preimage
+    [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
-    {f : Filtration ι mΩ} {X : ι → Ω → β} (hX : ProgMeasurable f X)
-    {s : Set β} {n m : ι} (hs : MeasurableSet s) :
-    IsStoppingTime f (hittingAfter X s n) := by
+    {𝓕 : Filtration ι mΩ}
+    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) :
+    ProgMeasurableSet (X.uncurry ⁻¹' s) 𝓕 :=
   sorry
 
-end HittingTime
+/-- The hitting time of a measurable set by a progressively measurable process for a filtration
+satisfying the usual conditions is a stopping time. -/
+theorem isStoppingTime_hittingAfter' [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+    {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β]
+    {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) (n : ι) :
+    IsStoppingTime 𝓕 (hittingAfter X s n) := by
+  rw [hittingAfter_eq_debut]
+  refine isStoppingTime_debut h𝓕 ?_ n
+  exact hs.progMeasurableSet_preimage hX
 
+end HittingTime
 
 end MeasureTheory
