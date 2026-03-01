@@ -242,6 +242,50 @@ lemma ProgMeasurableSet.measurableSet_debut_lt
   refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le s))
   exact hE.measurableSet_inter_Ico n s
 
+lemma debut_eq_iff_of_nhdsGT_eq_bot
+    [ConditionallyCompleteLinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+    (E : Set (ι × Ω)) {n t : ι} (hnt : n ≤ t) (ht : 𝓝[>] t = ⊥) (ω : Ω)
+    (h_ge : t ≤ debut E n ω) :
+    debut E n ω = t ↔ (t, ω) ∈ E := by
+  -- todo: extract a lemma about hittingAfter?
+  simp only [debut, hittingAfter] at h_ge ⊢
+  split_ifs with h_exists
+  swap
+  · simp only [not_exists, not_and] at h_exists
+    simp only [WithTop.top_ne_coe, false_iff]
+    exact h_exists t hnt
+  simp only [h_exists, ↓reduceIte, WithTop.coe_le_coe, WithTop.coe_inj] at h_ge ⊢
+  refine ⟨fun h_eq ↦ ?_, fun h_mem ↦ ?_⟩
+  · rw [nhdsGT_eq_bot_iff] at ht
+    cases ht with
+    | inl ht =>
+      obtain ⟨j, hj⟩ := h_exists
+      suffices htj : t ≤ j by
+        have htj_eq := le_antisymm htj (ht j)
+        simpa [htj_eq] using hj.2
+      refine h_ge.trans ?_
+      refine csInf_le ?_ hj
+      exact ⟨n, by simp [mem_lowerBounds]; grind⟩
+    | inr ht =>
+      obtain ⟨u, htu, hu⟩ := ht
+      simp only [not_lt] at hu
+      by_contra! h_notMem
+      suffices u ≤ sInf {j | n ≤ j ∧ (j, ω) ∈ E} by
+        refine not_le.mpr htu ?_
+        rwa [h_eq] at this
+      refine le_csInf h_exists fun j hj ↦ ?_
+      refine hu (lt_of_le_of_ne ?_ ?_)
+      · rw [le_csInf_iff] at h_ge
+        · exact h_ge j hj
+        · exact ⟨n, by simp [mem_lowerBounds]; grind⟩
+        · exact h_exists
+      · intro htj_eq
+        simp only [Set.mem_setOf_eq, ← htj_eq] at hj
+        exact h_notMem hj.2
+  · refine le_antisymm ?_ h_ge
+    refine csInf_le ?_ ⟨hnt, h_mem⟩
+    exact ⟨n, by simp [mem_lowerBounds]; grind⟩
+
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
@@ -250,6 +294,12 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n : ι) :
     IsStoppingTime 𝓕 (debut E n) := by
   intro t
+  rcases lt_or_ge t n with htn | hnt
+  · convert MeasurableSet.empty
+    ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_le]
+    refine (mod_cast htn : (t : WithTop ι) < n).trans_le ?_
+    exact le_debut ω
   -- case on whether `t` is isolated on the right or not
   by_cases ht_gt : (𝓝[>] t).NeBot
   swap
@@ -258,9 +308,12 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
       ext ω
       simp only [Set.mem_setOf_eq, Set.mem_union]
       rw [le_iff_lt_or_eq]
-      congr!
+      rcases lt_or_ge (debut E n ω) t with h_lt | h_ge
+      · simp [h_lt]
       -- `⊢ debut E n ω = ↑t ↔ (t, ω) ∈ E`; use `𝓝[>] t = ⊥`
-      sorry
+      congr!
+      rw [debut_eq_iff_of_nhdsGT_eq_bot E hnt ?_ _ h_ge]
+      simpa using ht_gt
     rw [h_eq]
     refine (hE.measurableSet_debut_lt h𝓕 n t).union (hE.measurableSet_preimage_prodMk h𝓕 t)
   -- now `t` is a limit point on the right
@@ -271,17 +324,20 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     simp_rw [tendsto_nhdsWithin_iff] at this
     obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
     exact ⟨s, hs_gt, hs_tendsto⟩
+  have h_exists_lt (u : ι) (hu : t < u) : ∃ i, s i < u :=
+    Eventually.exists (f := atTop) (hs_tendsto.eventually_lt_const hu)
+  have h_exists_lt' (u : WithTop ι) (hu : t < u) : ∃ i, s i < u := by
+    refine Eventually.exists (f := atTop) ?_
+    have hs_tendsto' : Tendsto (fun n ↦ (s n : WithTop ι)) atTop (𝓝 (t : WithTop ι)) :=
+      WithTop.continuous_coe.continuousAt.tendsto.comp hs_tendsto
+    exact hs_tendsto'.eventually_lt_const hu
   -- we write `{debut ≤ t}` as a countable intersection of `{debut < s n}`
   have h_eq_iInter : {ω | debut E n ω ≤ t} = ⋂ m, {ω | debut E n ω < s m} := by
     ext ω
     simp only [Set.mem_setOf_eq, Set.mem_iInter]
     refine ⟨fun h_le m ↦ h_le.trans_lt (mod_cast (hs_gt m)), fun h_lt ↦ ?_⟩
     refine le_of_forall_gt fun u hu ↦ ?_
-    obtain ⟨i, hi⟩ : ∃ i, s i < u := by
-      refine Eventually.exists (f := atTop) ?_
-      have hs_tendsto' : Tendsto (fun n ↦ (s n : WithTop ι)) atTop (𝓝 (t : WithTop ι)) :=
-        WithTop.continuous_coe.continuousAt.tendsto.comp hs_tendsto
-      exact hs_tendsto'.eventually_lt_const hu
+    obtain ⟨i, hi⟩ : ∃ i, s i < u := h_exists_lt' u hu
     exact (h_lt i).trans hi
   rw [h_eq_iInter]
   have h_meas_lt m : MeasurableSet[𝓕 (s m)] {ω | debut E n ω < s m} :=
@@ -291,7 +347,13 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
       congr
       exact (h𝓕.toIsRightContinuous (μ := P)).eq.symm
     rw [ht_cont, Filtration.rightCont_eq_of_neBot_nhdsGT]
-    sorry
+    refine le_antisymm ?_ ?_
+    · simp only [gt_iff_lt, le_iInf_iff]
+      exact fun i ↦ iInf₂_le (s i) (hs_gt i)
+    · simp only [gt_iff_lt, le_iInf_iff]
+      intro i hti
+      obtain ⟨m, hm⟩ := h_exists_lt i hti
+      exact (iInf_le _ m).trans (𝓕.mono hm.le)
   rw [h𝓕_eq_iInf]
   simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
     forall_apply_eq_imp_iff]
