@@ -148,21 +148,8 @@ lemma debut_mono (E : Set (ι × Ω)) (ω : Ω) : Monotone (debut E · ω) := hi
 
 end Inequalities
 
--- TODO: this may be put in a separate file, maybe in the file where ProgMeasurable is?
-/- TODO: can we find some condition equivalent to this definition that is easier to state, maybe
-something that does not involde the indicator function and only uses E as a set? Maybe there is a
-σ algebra over `ι × Ω` such that ProgMeasurableSet is equivalent to being measurable with respect
-to that σ-algebra?
-maybe something like (mι : MeasurableSpace ι) [BorelSpace ι]
-`∀ t, MeasurableSet[mι.prod (f t)] (E ∩ Set.Iic t ×ˢ Ω)`? I'm not completely sure this is actually
-equivalent, but if I stated the lemma `MeasureTheory.Approximation.of_mem_prod_borel` correctly
-this should be enough to prove the theorem below.
-before changing this definition it may be worth it to begin the proof of `debut.isStoppingTime`
-to identify exactly what is needed, maybe in the end we do not even need to define the concpet of
-progressively measurable set, but we can just add the necessary hypothesis manually. -/
-
-/-- A set `E : Set ι × Ω` is *Progressively measurable* with respect to a filtration `f` if the
-indicator function of `E` is a progressively measurable process with respect to `f`. -/
+/-- A set `E : Set ι × Ω` is progressively measurable with respect to a filtration `𝓕` if the
+indicator function of `E` is a progressively measurable process with respect to `𝓕`. -/
 def ProgMeasurableSet [Preorder ι] [MeasurableSpace ι] (E : Set (ι × Ω)) (𝓕 : Filtration ι mΩ) :=
   ProgMeasurable 𝓕 (E.indicator fun _ ↦ 1).curry
 
@@ -213,6 +200,33 @@ lemma ProgMeasurableSet.measurableSet_inter_Ico [LinearOrder ι] {mι : Measurab
   simp
   grind
 
+lemma ProgMeasurableSet.measurableSet_inter_Icc [LinearOrder ι] {mι : MeasurableSpace ι}
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (s t : ι) :
+    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Icc s t ×ˢ .univ)) := by
+  rcases le_or_gt s t with h_st | h_ts
+  swap; · simp [h_ts]
+  -- write `Icc s t` as `Iic t \ Iio s` and use the previous lemmas
+  have h_meas_s : MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio s ×ˢ .univ)) := by
+    have hs := hE.measurableSet_inter_Iio s
+    have h_le : mι.prod (𝓕 s) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl (𝓕.mono h_st)
+    exact h_le _ hs
+  convert (hE.measurableSet_inter_Iic t).diff h_meas_s using 1
+  ext
+  simp
+  grind
+
+lemma ProgMeasurableSet.measurableSet_preimage_prodMk [LinearOrder ι] [OrderBot ι]
+    {mι : MeasurableSpace ι} [StandardBorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P]
+    {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
+    MeasurableSet[𝓕 t] {ω | (t, ω) ∈ E} := by
+  have : {ω | (t, ω) ∈ E} = Prod.snd '' (E ∩ (Set.Icc t t ×ˢ .univ)) := by ext; simp
+  rw [this]
+  refine NullMeasurableSet.measurable_of_complete (m0 := 𝓕 t) (μ := P.trim (𝓕.le t)) ?_
+  refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le t))
+  exact hE.measurableSet_inter_Icc t t
+
 lemma ProgMeasurableSet.measurableSet_debut_lt
     [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [StandardBorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
@@ -240,7 +254,15 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
   by_cases ht_gt : (𝓝[>] t).NeBot
   swap
   -- if it's isolated then `{debut ≤} = {debut <} ∪ {(t, ω) ∈ E}`
-  · sorry
+  · have h_eq : {ω | debut E n ω ≤ t} = {ω | debut E n ω < t} ∪ {ω | (t, ω) ∈ E} := by
+      ext ω
+      simp only [Set.mem_setOf_eq, Set.mem_union]
+      rw [le_iff_lt_or_eq]
+      congr!
+      -- `⊢ debut E n ω = ↑t ↔ (t, ω) ∈ E`; use `𝓝[>] t = ⊥`
+      sorry
+    rw [h_eq]
+    refine (hE.measurableSet_debut_lt h𝓕 n t).union (hE.measurableSet_preimage_prodMk h𝓕 t)
   -- now `t` is a limit point on the right
   obtain ⟨s, hs_gt, hs_tendsto⟩ : ∃ s : ℕ → ι, (∀ n, t < s n) ∧ Tendsto s atTop (𝓝 t) := by
     have h_freq : ∃ᶠ x in 𝓝[>] t, t < x :=
