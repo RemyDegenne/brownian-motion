@@ -160,17 +160,19 @@ lemma ProgMeasurableSet.measurableSet_prod [Preorder ι] [MeasurableSpace ι]
   rw [← measurable_indicator_const_iff (b := 1)]
   exact (hE t).measurable
 
-lemma ProgMeasurableSet.measurableSet_inter_Iic [Preorder ι] {mι : MeasurableSpace ι}
+lemma ProgMeasurableSet.measurableSet_inter_Iic [Preorder ι]
+    [TopologicalSpace ι] [ClosedIicTopology ι] {mι : MeasurableSpace ι} [OpensMeasurableSpace ι]
     {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
     MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iic t ×ˢ .univ)) := by
   have h_prod := hE.measurableSet_prod t
-  sorry
-
-lemma ProgMeasurableSet.measurableSet_inter_Iio [LinearOrder ι] {mι : MeasurableSpace ι}
-    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
-    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio t ×ˢ .univ)) := by
-  -- write Iio as a countable union of Iic and use the previous lemma
-  sorry
+  have : (E ∩ Set.Iic t ×ˢ Set.univ) =
+      (Prod.map ((↑) : Set.Iic t → ι) id) '' {p : Set.Iic t × Ω | ((p.1 : ι), p.2) ∈ E} := by
+    ext; simp; grind
+  rw [this]
+  refine (@MeasurableEmbedding.measurableSet_image _ _ _ (Subtype.instMeasurableSpace.prod (𝓕 t))
+    (mι.prod (𝓕 t)) _ ?_).mpr h_prod
+  refine MeasurableEmbedding.prodMap ?_ .id
+  exact MeasurableEmbedding.subtype_coe measurableSet_Iic
 
 @[gcongr]
 lemma MeasurableSpace.prod_mono {mι : MeasurableSpace ι} {mι' : MeasurableSpace ι}
@@ -184,7 +186,49 @@ lemma MeasurableSpace.prod_mono {mι : MeasurableSpace ι} {mι' : MeasurableSpa
   · rw [MeasurableSpace.comap_le_iff_le_map]
     exact h₂.trans MeasurableSpace.le_map_comap
 
-lemma ProgMeasurableSet.measurableSet_inter_Ico [LinearOrder ι] {mι : MeasurableSpace ι}
+lemma ProgMeasurableSet.measurableSet_inter_Iio [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [FirstCountableTopology ι] [OrderTopology ι]
+    {mι : MeasurableSpace ι} [OpensMeasurableSpace ι]
+    {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
+    MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Iio t ×ˢ .univ)) := by
+  by_cases ht : 𝓝[<] t = ⊥
+  · rw [nhdsLT_eq_bot_iff] at ht
+    cases ht with
+    | inl ht =>
+      have h_empty : Set.Iio t = ∅ := by ext x; simp [ht x]
+      simp [h_empty]
+    | inr ht =>
+      obtain ⟨s, hst, hs⟩ := ht
+      simp only [not_lt] at hs
+      have h_eq_Iic : Set.Iio t = Set.Iic s := by
+        ext x
+        simp only [Set.mem_Iio, Set.mem_Iic]
+        rcases le_or_gt x s <;> grind
+      rw [h_eq_Iic]
+      have hs := hE.measurableSet_inter_Iic s
+      have h_le : mι.prod (𝓕 s) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl (𝓕.mono hst.le)
+      exact h_le _ hs
+  have : (𝓝[<] t).NeBot := ⟨ht⟩
+  -- write Iio as a countable union of Iic and use the previous lemma
+  obtain ⟨s, hs_gt, hs_tendsto⟩ : ∃ s : ℕ → ι, (∀ n, s n < t) ∧ Tendsto s atTop (𝓝 t) := by
+    have h_freq : ∃ᶠ x in 𝓝[<] t, x < t :=
+      Eventually.frequently <| eventually_nhdsWithin_of_forall fun _ hx ↦ hx
+    have := exists_seq_forall_of_frequently h_freq
+    simp_rw [tendsto_nhdsWithin_iff] at this
+    obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
+    exact ⟨s, hs_gt, hs_tendsto⟩
+  have h_iUnion : ⋃ i, Set.Iic (s i) = Set.Iio t :=
+    iUnion_Iic_eq_Iio_of_lt_of_tendsto hs_gt hs_tendsto
+  rw [← h_iUnion, Set.iUnion_prod_const, Set.inter_iUnion]
+  refine MeasurableSet.iUnion fun i ↦ ?_
+  have hs := hE.measurableSet_inter_Iic (s i)
+  have h_le : mι.prod (𝓕 (s i)) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl
+    (𝓕.mono (hs_gt _).le)
+  exact h_le _ hs
+
+lemma ProgMeasurableSet.measurableSet_inter_Ico [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [FirstCountableTopology ι] [OrderTopology ι]
+    {mι : MeasurableSpace ι} [OpensMeasurableSpace ι]
     {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (s t : ι) :
     MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Ico s t ×ˢ .univ)) := by
   rcases le_total t s with h_ts | h_st
@@ -200,7 +244,9 @@ lemma ProgMeasurableSet.measurableSet_inter_Ico [LinearOrder ι] {mι : Measurab
   simp
   grind
 
-lemma ProgMeasurableSet.measurableSet_inter_Icc [LinearOrder ι] {mι : MeasurableSpace ι}
+lemma ProgMeasurableSet.measurableSet_inter_Icc [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [FirstCountableTopology ι] [OrderTopology ι]
+    {mι : MeasurableSpace ι} [OpensMeasurableSpace ι]
     {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (s t : ι) :
     MeasurableSet[mι.prod (𝓕 t)] (E ∩ (Set.Icc s t ×ˢ .univ)) := by
   rcases le_or_gt s t with h_st | h_ts
@@ -215,8 +261,9 @@ lemma ProgMeasurableSet.measurableSet_inter_Icc [LinearOrder ι] {mι : Measurab
   simp
   grind
 
-lemma ProgMeasurableSet.measurableSet_preimage_prodMk [LinearOrder ι] [OrderBot ι]
-    {mι : MeasurableSpace ι} [StandardBorelSpace ι]
+lemma ProgMeasurableSet.measurableSet_preimage_prodMk [ConditionallyCompleteLinearOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι]
+    [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
     {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
@@ -228,7 +275,8 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [LinearOrder ι] [OrderBot
   exact hE.measurableSet_inter_Icc t t
 
 lemma ProgMeasurableSet.measurableSet_debut_lt
-    [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [StandardBorelSpace ι]
+    [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
+    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
     {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n s : ι) :
     MeasurableSet[𝓕 s] {ω | debut E n ω < s} := by
