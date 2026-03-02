@@ -221,14 +221,15 @@ noncomputable
 def LocalizingSequenceOfProp (X : ι → Ω → E) (p : (ι → E) → Prop) : ℕ → Ω → WithTop ι :=
   Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
 
+omit [OrderBot ι] in
 lemma isStoppingTime_ae_const [HasUsualConditions 𝓕 P] (τ : Ω → WithTop ι) (c : WithTop ι)
     (hτ : τ =ᵐ[P] Function.const _ c) :
     IsStoppingTime 𝓕 τ := by
   intros i
   suffices P {ω | τ ω ≤ i} = 0 ∨ P {ω | τ ω ≤ ↑i}ᶜ = 0 by
     obtain h | h := this
-    · exact 𝓕.mono bot_le _ <| HasUsualConditions.IsComplete h
-    · exact (𝓕.mono bot_le _ <| HasUsualConditions.IsComplete h).of_compl
+    · exact HasUsualConditions.IsComplete h i
+    · exact (HasUsualConditions.IsComplete h i).of_compl
   obtain hle | hgt := le_or_gt c i
   · refine Or.inr <| ae_iff.1 ?_
     filter_upwards [hτ] with ω rfl using hle

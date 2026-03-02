@@ -334,6 +334,7 @@ MeasureTheory.Approximation.of_mem_prod_borel
 MeasureTheory.isStoppingTime_debut
 MeasureTheory.isStoppingTime_hittingAfter'
 MeasureTheory.leastGE
+MeasureTheory.isStoppingTime_leastGE
 ProbabilityTheory.IsPreLocalizingSequence
 ProbabilityTheory.IsLocalizingSequence
 ProbabilityTheory.isLocalizingSequence_const_top
