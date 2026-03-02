@@ -3,6 +3,7 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import BrownianMotion.Debut.Basic
 import BrownianMotion.StochasticIntegral.LocalMartingale
 import Mathlib.Probability.Process.HittingTime
 import Mathlib.Probability.Martingale.BorelCantelli
@@ -514,11 +515,14 @@ instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι wher
 
 -- TODO: The assumptions should be refined with those of Début theorem.
 lemma isLocalizingSequence_leastGE {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
-    [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι]
+    [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι]
     (𝓕 : Filtration ι mΩ) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
-    (hX2 : ∀ ω, IsCadlag (X · ω)) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX2 : ∀ ω, IsCadlag (X · ω)) (h𝓕 : 𝓕.HasUsualConditions P) [IsFiniteMeasure P] :
     IsLocalizingSequence 𝓕 (fun n => leastGE X n) P where
-  isStoppingTime n := sorry
+  isStoppingTime n := by
+    borelize ι
+    refine isStoppingTime_leastGE h𝓕 ?_ _
+    · exact hX1.progMeasurable_of_rightContinuous (fun ω ↦ (hX2 ω).right_continuous)
   mono := by filter_upwards with ω n m hnm using
     hittingAfter_anti X ⊥ (Set.Ici_subset_Ici.2 (Nat.cast_le.2 hnm)) ω
   tendsto_top := by
@@ -618,11 +622,10 @@ lemma sup_stoppedProcess_leastGE_le
 
 lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [SecondCountableTopology ι] [PseudoMetrizableSpace ι]
-    [MeasurableSpace ι] [BorelSpace ι]
-    [IsFiniteMeasure P]
+    [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.HasUsualConditions P)
+    [IsFiniteMeasure P] :
     HasLocallyIntegrableSup X 𝓕 P := by
   rcases hX2 with ⟨hX2, hX3⟩
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
@@ -737,16 +740,17 @@ end LinearOrder
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι] [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
-  [PseudoMetrizableSpace ι] [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
+  [MeasurableSpace ι] [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
+  [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
-lemma hasLocallyIntegrableSup_of_locally_classDL (h𝓕 : 𝓕.IsRightContinuous)
+lemma hasLocallyIntegrableSup_of_locally_classDL (h𝓕 : 𝓕.HasUsualConditions P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  locally_induction₂ h𝓕 (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
-     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
+  locally_induction₂ (h𝓕.toIsRightContinuous (μ := P))
+    (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+    isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
-lemma locally_classDL_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.IsRightContinuous)
+lemma locally_classDL_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.HasUsualConditions P)
     (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P :=
@@ -756,11 +760,11 @@ lemma locally_classD_iff_locally_classDL (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassD · 𝓕 P) 𝓕 X P ↔ Locally (ClassDL · 𝓕 P) 𝓕 X P :=
   ⟨fun hD ↦ hD.mono fun _ hXD ↦ hXD.classDL, fun hDL ↦ locally_classD_of_locally_classDL hDL h𝓕⟩
 
-lemma locally_classD_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.IsRightContinuous)
+lemma locally_classD_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.HasUsualConditions P)
     (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P := by
-  rw [locally_classD_iff_locally_classDL h𝓕,
+  rw [locally_classD_iff_locally_classDL (h𝓕.toIsRightContinuous (μ := P)),
       locally_classDL_iff_hasLocallyIntegrableSup h𝓕 hX_prog hX1]
 
 /-- A right-continuous, nonnegative submartingale is locally of class D. -/

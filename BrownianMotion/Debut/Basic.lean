@@ -7,7 +7,7 @@ Authors: Lorenzo Luccioli
 import BrownianMotion.Choquet.Capacity
 import BrownianMotion.StochasticIntegral.Predictable
 import Mathlib.Order.CompletePartialOrder
-import Mathlib.Probability.Process.HittingTime
+import Mathlib.Probability.Martingale.BorelCantelli
 
 /-!
 This file contains the basic definitions and properties of the debut of a set.
@@ -262,7 +262,7 @@ lemma ProgMeasurableSet.measurableSet_inter_Icc [ConditionallyCompleteLinearOrde
   grind
 
 lemma ProgMeasurableSet.measurableSet_preimage_prodMk [ConditionallyCompleteLinearOrder ι]
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι]
+    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι]
     [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
@@ -275,7 +275,7 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [ConditionallyCompleteLine
   exact hE.measurableSet_inter_Icc t t
 
 lemma ProgMeasurableSet.measurableSet_debut_lt
-    [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
+    [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
     {E : Set (ι × Ω)} (hE : ProgMeasurableSet E 𝓕) (n s : ι) :
@@ -335,7 +335,7 @@ lemma debut_eq_iff_of_nhdsGT_eq_bot
     exact ⟨n, by simp [mem_lowerBounds]; grind⟩
 
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
-theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι] [OrderBot ι]
+theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
@@ -433,7 +433,7 @@ lemma _root_.MeasurableSet.progMeasurableSet_preimage [MeasurableSpace ι] [Preo
 /-- The hitting time of a measurable set by a progressively measurable process for a filtration
 satisfying the usual conditions is a stopping time. -/
 theorem isStoppingTime_hittingAfter' [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+    [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
     [BorelSpace β]
     {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
@@ -442,6 +442,15 @@ theorem isStoppingTime_hittingAfter' [MeasurableSpace ι] [ConditionallyComplete
   rw [hittingAfter_eq_debut]
   refine isStoppingTime_debut h𝓕 ?_ n
   exact hs.progMeasurableSet_preimage hX
+
+lemma isStoppingTime_leastGE [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+    {β : Type*} [Preorder β] [TopologicalSpace β] [ClosedIciTopology β]
+    [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
+    {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) (r : β) :
+    IsStoppingTime 𝓕 (leastGE X r) :=
+  isStoppingTime_hittingAfter' h𝓕 hX measurableSet_Ici _
 
 end HittingTime
 
