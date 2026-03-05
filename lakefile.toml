@@ -1,6 +1,7 @@
 name = "BrownianMotion"
 defaultTargets = ["BrownianMotion"]
 lintDriver = "batteries/runLinter"
+testDriver = "TestBM"
 
 [leanOptions]
 pp.unicode.fun = true
@@ -25,3 +26,7 @@ git = "https://github.com/leanprover/subverso"
 
 [[lean_lib]]
 name = "BrownianMotion"
+
+[[lean_lib]]
+name = "TestBM"
+globs = ["TestBM.+"] # Build all files in the directory `TestBM`.
