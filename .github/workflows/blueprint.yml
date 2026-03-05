@@ -52,6 +52,10 @@ jobs:
           lint: true
           mk_all-check: true
 
+      - name: Build test files
+        run: |
+          lake build TestBM.lean
+
       - name: Build Verso Documentation
         run: |
           cd verso
