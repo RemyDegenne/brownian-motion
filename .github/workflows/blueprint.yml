@@ -54,7 +54,7 @@ jobs:
 
       - name: Build test files
         run: |
-          ~/.elan/bin/lake build TestBM.lean
+          ~/.elan/bin/lake build TestBM
 
       - name: Build Verso Documentation
         run: |
