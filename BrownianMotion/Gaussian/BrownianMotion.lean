@@ -367,6 +367,7 @@ lemma IsPreBrownian.continuous_mk [h : IsPreBrownian X P] (ω : Ω) :
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
   refine fun n t ht ↦ h.isGaussianProcess.hasGaussianLaw_increments.iIndepFun_of_covariance_eq_zero
@@ -384,6 +385,7 @@ lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncreme
   any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
   exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
     (h2 : ∀ t, P[X t] = 0) (h3 : ∀ s t, s ≤ t → cov[X s, X t; P] = s) :
     IsPreBrownian X P where
@@ -459,6 +461,7 @@ lemma IsPreBrownian.neg [hX : IsPreBrownian X P] : IsPreBrownian (-X) P := by
   convert (hX.hasIndepIncrements n s hs).comp (fun _ x ↦ -x) (by measurability)
   simp; linarith
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     IsPreBrownian (fun t ω ↦ (X (c * t) ω) / √c) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
@@ -472,6 +475,7 @@ lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     · simp [field]
     · exact mul_le_mul_right hst c
 
+set_option backward.isDefEq.respectTransparency false in
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
 This is the proof that it is pre-Brownian, see `IsPreBrownian.indepFun_shift` for independence. -/
@@ -488,6 +492,7 @@ lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
     any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
     exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
 
+set_option backward.isDefEq.respectTransparency false in
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
 This is the proof that of independence, see `IsPreBrownian.shift` for the proof
@@ -516,6 +521,7 @@ lemma IsPreBrownian.indepFun_shift [h : IsPreBrownian X P] (hX : ∀ t, Measurab
     · simp [ht, le_add_right]
     all_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
     IsPreBrownian (fun t ω ↦ t * (X (1 / t) ω)) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
@@ -720,7 +726,7 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
   -- bounded continuous function `f : (I → ℝ) → ℝ`,
   -- `∫ ω in A, f (fun t ↦ X t) ∂P = P.real A * ∫ ω, f (fun t ↦ X t) ∂P`.
   refine indep_of_indep_of_le_right ?_ (hm3.trans this)
-  refine indep_comap_process_of_bcf hm3' (fun _ ↦ hX _) fun A hA I f ↦ ?_
+  refine indep_comap_process_of_bcf hm3' (fun _ ↦ (hX _).aemeasurable) fun A hA I f ↦ ?_
   -- If `I` is empty, there is nothing to do.
   obtain rfl | hI := I.eq_empty_or_nonempty
   · have : Subsingleton ((∅ : Finset (Set.Ioi (0 : ℝ≥0))) → ℝ) := inferInstance

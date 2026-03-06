@@ -29,61 +29,6 @@ lemma TotallyBounded.coveringNumber_ne_top (hA : TotallyBounded A) {r : ℝ≥0}
   refine ne_top_of_le_ne_top (b := C.encard) ?_ (IsCover.coveringNumber_le_encard hC_subset hC_cov)
   simpa
 
-lemma Isometry.isCover_image_iff {F : Type*} [PseudoEMetricSpace F]
-    {f : E → F} (hf : Isometry f) (C : Set E) :
-    IsCover r (f '' A) (f '' C) ↔ IsCover r A C := by
-  refine ⟨fun h x hx ↦ ?_, fun h x hx ↦ ?_⟩
-  · obtain ⟨c, hc_mem, hc⟩ := h (Set.mem_image_of_mem _ hx)
-    obtain ⟨c', hc', rfl⟩ := hc_mem
-    refine ⟨c', hc', le_of_eq_of_le (hf.edist_eq _ _).symm hc⟩
-  · obtain ⟨y, hy_mem, rfl⟩ := hx
-    obtain ⟨c, hc_mem, hc⟩ := h hy_mem
-    refine ⟨f c, Set.mem_image_of_mem _ hc_mem, ?_⟩
-    simp only [mem_setOf_eq] at hc ⊢
-    rwa [hf.edist_eq]
-
-lemma Isometry.coveringNumber_image' {F : Type*} [PseudoEMetricSpace F]
-    {f : E → F} (hf : Isometry f) (hf_inj : Set.InjOn f A) :
-    coveringNumber r (f '' A) = coveringNumber r A := by
-  unfold coveringNumber
-  classical
-  refine le_antisymm ?_ ?_
-  · simp only [le_iInf_iff]
-    intro C hC_subset hC_cover
-    refine (iInf_le _ (C.image f)).trans ?_
-    simp only [Set.image_subset_iff]
-    have : ↑C ⊆ f ⁻¹' (f '' A) := hC_subset.trans (Set.subset_preimage_image f A)
-    refine (iInf_le _ this).trans ?_
-    rw [hf.isCover_image_iff]
-    refine (iInf_le _ hC_cover).trans ?_
-    exact encard_image_le f C
-  · simp only [le_iInf_iff]
-    intro C hC_subset hC_cover
-    obtain ⟨C', hC'_subset, rfl⟩ : ∃ C', C' ⊆ A ∧ C = C'.image f := by
-      have (x : C) : ∃ y ∈ A, f y = x := by
-        have hx : (x : F) ∈ f '' A := hC_subset x.2
-        simpa only [Set.mem_image] using hx
-      choose g hg_mem hg using this
-      refine ⟨Set.range g, ?_, ?_⟩
-      · rwa [Set.range_subset_iff]
-      · ext x
-        simp only [mem_image, mem_range, Subtype.exists, ↓existsAndEq, true_and]
-        refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-        · refine ⟨x, h, ?_⟩
-          rw [hg]
-        · obtain ⟨x, hx, rfl⟩ := h
-          simp [hg, hx]
-    refine (iInf_le _ C').trans <| (iInf_le _ hC'_subset).trans ?_
-    simp only [hf.isCover_image_iff] at hC_cover
-    refine (iInf_le _ hC_cover).trans ?_
-    rw [InjOn.encard_image]
-    exact hf_inj.mono hC'_subset
-
-lemma Isometry.coveringNumber_image {E F : Type*} [EMetricSpace E] [PseudoEMetricSpace F]
-    {f : E → F} (hf : Isometry f) {A : Set E} :
-    coveringNumber r (f '' A) = coveringNumber r A :=
-  hf.coveringNumber_image' hf.injective.injOn
-
 theorem coveringNumber_Icc_zero_one_le_one_div (hε : ε ≤ 1) :
     (coveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤ 1 / ε := by
   obtain rfl | ε_pos := eq_zero_or_pos ε

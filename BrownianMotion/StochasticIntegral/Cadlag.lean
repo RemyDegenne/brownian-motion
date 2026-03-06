@@ -35,16 +35,6 @@ structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.RightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
-/-- A locally bounded function maps a compact set to a bounded set. -/
-lemma isBounded_image_of_isLocallyBounded_of_isCompact {X Y : Type*} [TopologicalSpace X]
-    [Bornology Y] {s : Set X} (hs : IsCompact s) {f : X → Y}
-    (hf : ∀ x, ∃ t ∈ 𝓝 x, IsBounded (f '' t)) :
-    IsBounded (f '' s) := by
-  choose U hU using hf
-  obtain ⟨I, hI⟩ := hs.elim_nhds_subcover U (fun x _ => (hU x).1)
-  have : f '' ⋃ x ∈ I, U x = ⋃ x ∈ I, f '' U x := by simp [Set.image_iUnion₂]
-  exact ((isBounded_biUnion_finset I).2 fun i _ => (hU i).2).subset (this ▸ Set.image_mono hI.2)
-
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
     {f : ι → E} (hf : IsCadlag f) (x : ι) : ∃ t ∈ 𝓝 x, IsBounded (f '' t) := by

@@ -6,6 +6,7 @@ open scoped NNReal
 
 namespace ProbabilityTheory
 
+set_option backward.isDefEq.respectTransparency false in
 lemma centralMoment_two_mul_gaussianReal (μ : ℝ) (σ : ℝ≥0) (n : ℕ) :
     centralMoment id (2 * n) (gaussianReal μ (σ^2))
     = σ ^ (2 * n) * Nat.doubleFactorial (2 * n - 1) := by

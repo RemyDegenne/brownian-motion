@@ -100,6 +100,7 @@ lemma integral_id_gaussianProjectiveFamily (I : Finset ℝ≥0) :
 lemma integral_id_gaussianProjectiveFamily' (I : Finset ℝ≥0) :
     ∫ x, id x ∂(gaussianProjectiveFamily I) = 0 := integral_id_gaussianProjectiveFamily I
 
+set_option backward.isDefEq.respectTransparency false in
 open scoped RealInnerProductSpace in
 lemma covariance_eval_gaussianProjectiveFamily (I : Finset ℝ≥0) (s t : I) :
     cov[fun x ↦ x s, fun x ↦ x t; gaussianProjectiveFamily I] = min s.1 t.1 := by
@@ -112,6 +113,7 @@ lemma covariance_eval_gaussianProjectiveFamily (I : Finset ℝ≥0) (s t : I) :
     ContinuousBilinForm.ofMatrix_orthonormalBasis, brownianCovMatrix_apply]
   exact IsGaussian.memLp_two_id
 
+set_option backward.isDefEq.respectTransparency false in
 lemma variance_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
     Var[fun x ↦ x s; gaussianProjectiveFamily I] = s := by
   rw [← covariance_self, covariance_eval_gaussianProjectiveFamily, min_self]
@@ -129,6 +131,7 @@ lemma hasLaw_eval_gaussianProjectiveFamily {I : Finset ℝ≥0} (s : I) :
     rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily, map_zero]
     exact IsGaussian.integrable_id
 
+set_option backward.isDefEq.respectTransparency false in
 open ContinuousLinearMap in
 lemma hasLaw_eval_sub_eval_gaussianProjectiveFamily (I : Finset ℝ≥0) (s t : I) :
     HasLaw ((fun x ↦ x s - x t)) (gaussianReal 0 (max (s - t) (t - s)))

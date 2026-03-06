@@ -334,6 +334,7 @@ lemma debut_eq_iff_of_nhdsGT_eq_bot
     refine csInf_le ?_ ⟨hnt, h_mem⟩
     exact ⟨n, by simp [mem_lowerBounds]; grind⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]

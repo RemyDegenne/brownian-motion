@@ -69,6 +69,7 @@ lemma iIndepFun_of_covariance_inner [InnerProductSpace ℝ E]
   hX.iIndepFun_of_covariance_strongDual mX fun t₁ t₂ ht s₁ s₂ L₁ L₂ ↦ by
     simpa using h t₁ t₂ ht s₁ s₂ ((toDual ℝ E).symm L₁) ((toDual ℝ E).symm L₂)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Assume that the processes $((X^t_s)_{s \in S_t})_{t \in T}$ are jointly Gaussian. Then they are
 independent if for all $t_1, t_2 \in T$ with $t_1 \ne t_2$ and
 $s_1 \in S_{t_1}$, $s_2 \in S_{t_2}$, $X^{t_1}_{s_1}$ and $X^{t_2}_{s_2}$ are uncorrelated. -/
@@ -122,6 +123,7 @@ lemma indepFun_of_covariance_inner [InnerProductSpace ℝ E]
   hXY.indepFun_of_covariance_strongDual mX mY fun s t L₁ L₂ ↦ by
     simpa using h s t ((toDual ℝ E).symm L₁) ((toDual ℝ E).symm L₂)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Two Gaussian processes $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ that are jointly Gaussian
 are independent if for all $s \in S$ and $t \in T$, $X_s$ and $Y_t$ are uncorrelated. -/
 lemma indepFun_of_covariance_eq_zero {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
@@ -147,23 +149,9 @@ end Basic
 
 variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
 
-instance {E ι : Type*} [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E] [Subsingleton ι] :
-    BorelSpace (ι → E) := by
-  refine ⟨le_antisymm pi_le_borel_pi ?_⟩
-  obtain h | h := isEmpty_or_nonempty ι
-  · exact fun s _ ↦ Subsingleton.set_cases .empty .univ s
-  have := @Unique.mk' ι ⟨Classical.choice h⟩ inferInstance
-  rw [borel]
-  refine MeasurableSpace.generateFrom_le fun s hs ↦ ?_
-  simp only [Pi.topologicalSpace, ciInf_unique, isOpen_induced_eq, Set.mem_image,
-    Set.mem_setOf_eq] at hs
-  simp_rw [MeasurableSpace.measurableSet_iSup, MeasurableSpace.measurableSet_comap]
-  refine MeasurableSpace.GenerateMeasurable.basic _ ⟨Classical.choice h, ?_⟩
-  obtain ⟨t, ht, rfl⟩ := hs
-  exact ⟨t, ht.measurableSet, by rw [Subsingleton.elim (Classical.choice h) default]⟩
-
 variable [SecondCountableTopology E]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
     (h : IsGaussianProcess (Sum.elim X Y) P) (hX : ∀ s, Measurable (X s))
     (hY : ∀ t, Measurable (Y t)) (h' : ∀ s t, cov[X s, Y t; P] = 0) :
@@ -171,6 +159,7 @@ lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
   h.indepFun_of_covariance_inner hX hY fun _ _ _ _ ↦ by
     simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h']
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
     {X : (t : T) → (s : S t) → Ω → ℝ}
     (h : IsGaussianProcess (fun (p : (t : T) × S t) ω ↦ X p.1 p.2 ω) P)
