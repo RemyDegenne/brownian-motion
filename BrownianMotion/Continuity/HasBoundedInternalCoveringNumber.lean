@@ -77,6 +77,7 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
   mono : ∀ n m, n ≤ m → C n ⊆ C m
   subset_iUnion : A ⊆ ⋃ i, C i
 
+set_option backward.isDefEq.respectTransparency false in
 open scoped Pointwise in
 lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) (n + 1)) Set.univ

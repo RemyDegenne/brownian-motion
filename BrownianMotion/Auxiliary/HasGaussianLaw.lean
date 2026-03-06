@@ -13,6 +13,7 @@ section charFun
 
 variable [Fintype ι]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma HasGaussianLaw.charFun_toLp_pi {X : ι → Ω → ℝ} (hX : HasGaussianLaw (fun ω ↦ (X · ω)) P)
     (ξ : EuclideanSpace ℝ ι) :
     charFun (P.map (fun ω ↦ toLp 2 (X · ω))) ξ =
@@ -31,6 +32,7 @@ lemma HasGaussianLaw.charFun_toLp_pi {X : ι → Ω → ℝ} (hX : HasGaussianLa
     · exact aestronglyMeasurable_id
   · exact fun i ↦ (hX.eval i).memLp_two
 
+set_option backward.isDefEq.respectTransparency false in
 lemma HasGaussianLaw.charFun_toLp_prodMk {X Y : Ω → ℝ} (hXY : HasGaussianLaw (fun ω ↦ (X ω, Y ω)) P)
     (ξ : WithLp 2 (ℝ × ℝ)) :
     charFun (P.map (fun ω ↦ toLp 2 (X ω, Y ω))) ξ =

@@ -135,6 +135,7 @@ theorem ae_bdd_condExp_of_ae_bdd' {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂
     (integrable_const _) hbdd] with ω hω1 hω2
   grw [hω1, hω2, condExp_const hm]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Given an integrable function `g`, the conditional expectations of `g` with respect to
 a sequence of sub-σ-algebras is uniformly integrable. -/
 theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}

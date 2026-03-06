@@ -19,7 +19,10 @@ lemma isStoppingTime_of_measurableSet_lt_of_isRightContinuous [NoMaxOrder ι]
   refine MeasurableSet.of_compl ?_
   rw [(_ : {ω | τ ω ≤ i}ᶜ = ⋃ n, {ω | u n ≤ τ ω})]
   · refine h𝓕.measurableSet ?_
-    simp_rw [𝓕.rightCont_eq, MeasurableSpace.measurableSet_iInf]
+    suffices MeasurableSet[⨅ j > i, 𝓕 j] (⋃ n, {ω | ↑(u n) ≤ τ ω}) by
+      convert this
+      rw [𝓕.rightCont_eq]
+    simp_rw [MeasurableSpace.measurableSet_iInf]
     intros j hj
     obtain ⟨N, hN⟩ := (hu₃.eventually_le_const hj).exists
     rw [(_ : ⋃ n, {ω | u n ≤ τ ω} = ⋃ n ≥ N, {ω | u n ≤ τ ω})]

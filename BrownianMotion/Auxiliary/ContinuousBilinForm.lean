@@ -236,6 +236,7 @@ lemma isPosSemidef_iff_bilinForm :
 
 variable {f} [Fintype n] [DecidableEq n]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
     (b : Basis n ℝ E) :
     f.IsPosSemidef ↔ (LinearMap.BilinForm.toMatrix b f).PosSemidef := by

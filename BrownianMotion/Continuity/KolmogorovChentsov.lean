@@ -875,7 +875,7 @@ lemma IsLimitOfIndicator.indicatorProcess {Y X : T → Ω → E}
     · simp only [indicatorProcess_apply, hω, ↓reduceIte, Dense.extend, IsDenseInducing.extend,
         Set.mem_inter_iff, false_and]
       rw [edist_comm]
-      have : @NeBot (Subtype (denseCountable T)) (comap Subtype.val (𝓝 t)) := by
+      have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 t)) := by
         apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
       exact edist_limUnder_const
   · by_cases hω : ω ∈ A
@@ -1341,7 +1341,7 @@ lemma exists_modification_holder''' {C : ℕ → Set T} {c : ℕ → ℝ≥0∞}
       by_cases hω : ω ∈ A ∩ ⋂ n, A' n
       swap
       · simp only [hω, ↓reduceIte, Y, Dense.extend, IsDenseInducing.extend]
-        have : @NeBot (Subtype (denseCountable T)) (comap Subtype.val (𝓝 t)) := by
+        have : @NeBot { x // x ∈ denseCountable T } (comap Subtype.val (𝓝 t)) := by
           apply IsDenseInducing.comap_nhds_neBot (Dense.isDenseInducing_val dense_denseCountable)
         rw [edist_comm]
         exact edist_limUnder_const

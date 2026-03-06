@@ -31,6 +31,7 @@ lemma IsGaussian.covarianceBilin_apply [IsGaussian μ] [SecondCountableTopology 
     covarianceBilin μ x y = ∫ z, ⟪x, z - μ[id]⟫_ℝ * ⟪y, z - μ[id]⟫_ℝ ∂μ :=
   covarianceBilin_apply IsGaussian.memLp_two_id x y
 
+set_option backward.isDefEq.respectTransparency false in
 lemma covarianceBilin_apply_prod {Ω : Type*} {mΩ : MeasurableSpace Ω}
     {μ : Measure Ω} [IsFiniteMeasure μ] {X Y : Ω → ℝ}
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (x y : WithLp 2 (ℝ × ℝ)) :

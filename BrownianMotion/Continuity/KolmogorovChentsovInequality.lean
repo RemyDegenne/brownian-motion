@@ -39,6 +39,7 @@ lemma Set.FiniteExhaustion.subset {α : Type*} {s : Set α} (K : FiniteExhaustio
   simp_rw [← K.iUnion_eq]
   exact Set.subset_iUnion K n
 
+set_option backward.isDefEq.respectTransparency false in
 lemma measure_add_ge_le_add_measure_ge {Ω : Type*} {_ : MeasurableSpace Ω} {P : Measure Ω}
     {f g : Ω → ℝ≥0∞} {x u : ℝ≥0∞} (hu : u ≤ x) :
     P {ω | x ≤ f ω + g ω} ≤ P {ω | u ≤ f ω} + P {ω | x - u ≤ g ω} := by

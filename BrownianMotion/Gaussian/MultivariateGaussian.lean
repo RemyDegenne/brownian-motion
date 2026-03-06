@@ -82,6 +82,7 @@ lemma variance_dual_stdGaussian (L : StrongDual ℝ E) : Var[L; stdGaussian E] =
   · exact L.continuous.aemeasurable
   · exact Measurable.aemeasurable (by fun_prop)
 
+set_option backward.isDefEq.respectTransparency false in
 lemma charFun_stdGaussian (t : E) : charFun (stdGaussian E) t = Complex.exp (- ‖t‖ ^ 2 / 2) := by
   rw [charFun_apply, stdGaussian, integral_map]
   · simp_rw [sum_inner, Complex.ofReal_sum, Finset.sum_mul, Complex.exp_sum,
@@ -103,6 +104,7 @@ instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
     exact ContinuousBilinForm.isPosSemidef_inner
   · simp [charFun_stdGaussian, neg_div]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma charFunDual_stdGaussian (L : StrongDual ℝ E) :
     charFunDual (stdGaussian E) L = Complex.exp (- ‖L‖ ^ 2 / 2) := by
   rw [IsGaussian.charFunDual_eq, integral_complex_ofReal, isCentered_stdGaussian,
@@ -154,6 +156,7 @@ lemma stdGaussian_eq_pi_map_orthonormalBasis {ι : Type*} [Fintype ι] (b : Orth
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Multivariate Gaussian measure on `EuclideanSpace ℝ ι` with mean `μ` and covariance
 matrix `S`. -/
 noncomputable
@@ -163,6 +166,7 @@ def multivariateGaussian (μ : EuclideanSpace ℝ ι) (S : Matrix ι ι ℝ) :
 
 variable {μ : EuclideanSpace ℝ ι} {S : Matrix ι ι ℝ} {hS : S.PosSemidef}
 
+set_option backward.isDefEq.respectTransparency false in
 instance isGaussian_multivariateGaussian : IsGaussian (multivariateGaussian μ S) := by
   have h : (fun x ↦ μ + x) ∘ ((toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S))) =
     (fun x ↦ μ + (toEuclideanCLM (𝕜 := ℝ) (CFC.sqrt S)) x) := rfl
@@ -177,6 +181,7 @@ lemma integral_id_multivariateGaussian : ∫ x, x ∂(multivariateGaussian μ S)
   · simp [ContinuousLinearMap.integral_comp_comm _ IsGaussian.integrable_fun_id]
   · exact IsGaussian.integrable_id.comp_measurable (by fun_prop)
 
+set_option backward.isDefEq.respectTransparency false in
 lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫
       = (EuclideanSpace.basisFun ι ℝ).toBasis.repr x ⬝ᵥ S
@@ -193,6 +198,7 @@ lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
   rw [mul_comm (x.ofLp i)]
   simp [Pi.single_apply]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma covarianceBilin_multivariateGaussian (hS : S.PosSemidef) :
     covarianceBilin (multivariateGaussian μ S)
       = ContinuousBilinForm.ofMatrix S (EuclideanSpace.basisFun ι ℝ).toBasis := by
@@ -224,6 +230,7 @@ lemma covarianceBilin_multivariateGaussian (hS : S.PosSemidef) :
   _ = ((EuclideanSpace.basisFun ι ℝ).toBasis.repr x) ⬝ᵥ
       S *ᵥ ((EuclideanSpace.basisFun ι ℝ).toBasis.repr y) := inner_toEuclideanCLM _ _
 
+set_option backward.isDefEq.respectTransparency false in
 lemma covariance_eval_multivariateGaussian (hS : S.PosSemidef) (i j : ι) :
     cov[fun x ↦ x i, fun x ↦ x j; multivariateGaussian μ S] = S i j := by
   have (i : ι) : (fun x : EuclideanSpace ℝ ι ↦ x i) =
@@ -277,6 +284,7 @@ lemma _root_.Finset.restrict₂CLM_apply {ι R : Type*} {M : ι → Type*} [Semi
     Finset.restrict₂CLM (R := R) hIJ x i = x ⟨i.1, hIJ i.2⟩ := rfl
 
 /-- The restriction from `EuclideanSpace 𝕜 J` to `EuclideanSpace κ I` when `I ⊆ J`. -/
+noncomputable
 def _root_.EuclideanSpace.restrict₂ {ι 𝕜 : Type*} [RCLike 𝕜] {I J : Finset ι} (hIJ : I ⊆ J) :
     EuclideanSpace 𝕜 J →L[𝕜] EuclideanSpace 𝕜 I :=
   (EuclideanSpace.equiv I 𝕜).symm.toContinuousLinearMap ∘L
@@ -296,6 +304,7 @@ variable {ι : Type*} [DecidableEq ι] {I J : Finset ι}
 
 variable {μ : EuclideanSpace ℝ I} {S : Matrix I I ℝ} {hS : S.PosSemidef}
 
+set_option backward.isDefEq.respectTransparency false in
 lemma measurePreserving_restrict_multivariateGaussian (hS : S.PosSemidef) (hJI : J ⊆ I) :
     MeasurePreserving (EuclideanSpace.restrict₂ hJI) (multivariateGaussian μ S)
       (multivariateGaussian (μ.restrict₂ hJI)
@@ -318,10 +327,12 @@ lemma measurePreserving_restrict_multivariateGaussian (hS : S.PosSemidef) (hJI :
     · fun_prop
     · exact IsGaussian.memLp_two_id
 
+set_option backward.isDefEq.respectTransparency false in
 open scoped ComplexOrder in
 lemma _root_.Matrix.PosSemidef.sqrt_one {n 𝕜 : Type*} [Fintype n] [RCLike 𝕜] [DecidableEq n] :
     CFC.sqrt (1 : Matrix n n 𝕜) = 1 := by simp
 
+set_option backward.isDefEq.respectTransparency false in
 lemma multivariateGaussian_zero_one [Fintype ι] :
     multivariateGaussian 0 (1 : Matrix ι ι ℝ) = stdGaussian (EuclideanSpace ℝ ι) := by
   simp [multivariateGaussian]
