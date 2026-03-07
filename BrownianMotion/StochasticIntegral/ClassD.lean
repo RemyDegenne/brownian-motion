@@ -254,10 +254,44 @@ lemma _root_.MeasureTheory.Martingale.classDL [PseudoMetrizableSpace ι] [BorelS
   · exact fun T ↦ ((stronglyMeasurable_stoppedValue_of_le h_prog T.2.1 T.2.2).mono
       (𝓕.le' t)).aestronglyMeasurable
 
-lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable (hX1 : Martingale X 𝓕 P)
+lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable
+  [PseudoMetrizableSpace ι] [BorelSpace ι] [IsFiniteMeasure P] (hX1 : Martingale X 𝓕 P)
     (hX2 : ∀ ω, RightContinuous (X · ω)) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
-  sorry
+  let V :={T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
+  let S := {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}
+  let Y :=(fun t => fun ω => ‖X t ω‖)
+  have h_prog := hX1.stronglyAdapted.progMeasurable_of_rightContinuous hX2
+  have hY_sub : Submartingale Y 𝓕 P := hX1.submartingale_convex_comp
+    (convexOn_norm convex_univ) continuous_norm
+    (fun t ↦ (hX1.integrable t).norm)
+  have hY_cont : ∀ ω, RightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
+  have hY_prog := hY_sub.stronglyAdapted.progMeasurable_of_rightContinuous hY_cont
+  have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
+  refine ⟨ fun hX_classD => ?_,fun hX_UI => ?_⟩
+  · have hstX_UI : UniformIntegrable (fun (T: S)=>stoppedValue X T) 1 P := hX_classD.2
+    let f (t:ι):S := ⟨fun ω=>t,⟨isStoppingTime_const 𝓕 t,by simp ⟩⟩
+    exact hstX_UI.comp f
+  apply classD_of_uniformIntegrable_bounded_stoppingTime
+  · rw [uniformIntegrable_iff_norm] at hX_UI
+    · have hY_classD : ClassD Y 𝓕 P :=
+        (hY_sub.classD_iff_uniformIntegrable hY_cont hY_nonneg).mpr hX_UI
+      rw [uniformIntegrable_iff_norm]
+      · change UniformIntegrable
+          (fun (t:{T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t})=>stoppedValue Y t) 1 P
+        let STbounded_neq_infinite (t:V):S :=⟨t.1, ⟨t.2.1, fun ω =>
+    let ⟨c, hc⟩ := t.2.2
+    ne_top_of_le_ne_top WithTop.coe_ne_top (hc ω)⟩⟩
+        apply hY_classD.2.comp STbounded_neq_infinite
+      choose i
+      obtain ⟨t,ht⟩ := i.property.2
+      · exact ((stronglyMeasurable_stoppedValue_of_le h_prog i.property.1 ht).mono
+            (𝓕.le' t)).aestronglyMeasurable
+    choose i
+    · exact ((stronglyMeasurable_stoppedValue_of_le h_prog (isStoppingTime_const 𝓕 i)
+        (by simp)).mono
+        (𝓕.le' i)).aestronglyMeasurable
+  · exact h_prog
 
 end RightContinuous
 
