@@ -431,11 +431,36 @@ lemma IsPavingAnalytic.prod_left {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set
   obtain ⟨𝓚, h𝓚, hs𝓚⟩ := hs
   exact (hs𝓚.prod_left ht).isPavingAnalytic
 
+
+theorem Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι : Nonempty ι] :
+    (⋂ i, t i) ×ˢ s = ⋂ i, t i ×ˢ s := by
+  ext x
+  simp only [Set.mem_prod, Set.mem_iInter]
+  exact ⟨fun ⟨h1, h2⟩ i ↦ ⟨h1 i, h2⟩, fun h ↦ ⟨fun i ↦ (h i).1, (h hι.some).2⟩⟩
+
 lemma IsPavingAnalyticFor.prod_right {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : r t) :
     IsPavingAnalyticFor (memProd p r) 𝓚 (s ×ˢ t) := by
-  obtain ⟨q, hq_compact, s', hs_prod, hs_eq⟩ := hs
-  sorry -- adapt the left proof
+  obtain ⟨q, hq_empty, hq_compact, s', hs_prod, hs_eq⟩ := hs
+  have h_eq' : s ×ˢ t = Prod.fst '' ((Equiv.prodAssoc _ _ _).symm ''
+      (Prod.map id Prod.swap '' ((Equiv.prodAssoc _ _ _) '' (s' ×ˢ t)))) := by
+    rw [hs_eq]
+    ext
+    simp
+    grind
+  refine ⟨q, hq_empty, hq_compact, (Equiv.prodAssoc _ _ _).symm ''
+      (Prod.map id Prod.swap '' ((Equiv.prodAssoc _ _ _) '' (s' ×ˢ t))), ?_, h_eq'⟩
+  simp_rw [memProdSigmaDelta_iff] at hs_prod ⊢
+  obtain ⟨A, K, hA, hK, rfl⟩ := hs_prod
+  refine ⟨fun n m ↦ A n m ×ˢ t, K, fun n m ↦ ?_, hK, ?_⟩
+  · exact ⟨A n m, t, hA n m, ht, rfl⟩
+  · rw [Set.iInter_prod, Set.image_iInter (Equiv.prodAssoc _ _ _).bijective,
+      Set.image_iInter, Set.image_iInter (Equiv.prodAssoc _ _ _).symm.bijective]
+    swap
+    · exact Function.bijective_id.prodMap Prod.swap_bijective
+    congr with n x
+    simp
+    grind
 
 lemma IsPavingAnalytic.prod_right {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
     (hs : IsPavingAnalytic p s) (ht : r t) :
