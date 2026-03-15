@@ -108,53 +108,36 @@ lemma isPavingAnalyticFor_iff_eq_empty (𝓚 : Type*) [IsEmpty 𝓚] (hp_empty :
 lemma IsPavingAnalyticFor.iInter {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧} (hp_empty : p ∅)
     (hs : ∀ n, IsPavingAnalyticFor p (𝓚 n) (s n)) :
     IsPavingAnalyticFor p (Π n, 𝓚 n) (⋂ n, s n) := by
-  rcases isEmpty_or_nonempty (Π n, 𝓚 n) with h_empty | h_nonempty
-  · obtain ⟨n, hn⟩ := isEmpty_pi.mp h_empty
-    specialize hs n
-    rw [isPavingAnalyticFor_iff_eq_empty _ hp_empty] at hs ⊢
-    ext y
-    simp only [Set.mem_iInter, Set.mem_empty_iff_false, iff_false, not_forall]
-    exact ⟨n, by simp [hs]⟩
-  obtain ⟨f⟩ := h_nonempty
   choose q hq_empty hq_compact B hB_prod hB_eq using hs
   let C n : Set (𝓧 × ((i : ℕ) → 𝓚 i)) := {p | (p.1, p.2 n) ∈ B n}
-  let q' : Set (Π n, 𝓚 n) → Prop := fun t : Set (Π n, 𝓚 n) ↦ ∀ n,
-    q n (Function.eval n '' t) ∨ Function.eval n '' t = Set.univ
+  let q' : Set (Π n, 𝓚 n) → Prop := fun s : Set (Π n, 𝓚 n) ↦
+    -- modeled on squareCylinders, but with univ instead of a finset
+    s ∈ Set.univ.pi '' (Set.univ.pi (fun n ↦ {x | q n x ∨ x = Set.univ}))
   refine ⟨q', ?_, ?_, ⋂ n, C n, ?_, ?_⟩
-  · simp [q']
-    grind
+  · simp only [Set.mem_image, Set.mem_pi, Set.mem_univ, Set.mem_setOf_eq, forall_const,
+    Set.univ_pi_eq_empty_iff, q']
+    exact ⟨fun _ ↦ ∅, by simp only [exists_const, and_true]; exact fun _ ↦ .inl (hq_empty _)⟩
   · -- a product of compact systems is a compact system
-    intro C hC hC_empty
     sorry
   · refine memDelta.iInter fun n ↦ ?_
     rw [← memProdSigmaDelta]
     simp_rw [memProdSigmaDelta_iff] at hB_prod ⊢
     choose A K hA hK hB_eq using hB_prod
     refine ⟨A n, fun i j ↦ {y | y n ∈ K n i j}, hA n, fun i j ↦ ?_, ?_⟩
-    · simp only [Function.eval, q']
-      intro k
+    · simp only [Set.mem_image, Set.mem_pi, Set.mem_univ, Set.mem_setOf_eq, forall_const, q']
       rcases Set.eq_empty_or_nonempty (K n i j) with hK_empty | hK_nonempty
-      · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false, Set.image_empty]
-        exact .inl (hq_empty k)
-      classical
-      by_cases hk : k = n
-      · left
-        subst hk
-        have : (fun (a : (i : ℕ) → 𝓚 i) ↦ a k) '' {y | y k ∈ K k i j} = K k i j := by
-          ext y
-          simp only [Set.mem_image, Set.mem_setOf_eq]
-          refine ⟨fun ⟨z, hz, hz_eq⟩ ↦ ?_, fun hy ↦ ?_⟩
-          · rwa [← hz_eq]
-          · exact ⟨Function.update f k y, by simpa, by simp⟩
-        rw [this]
-        exact hK _ _ _
-      · right
-        ext y
-        simp only [Set.mem_image, Set.mem_setOf_eq, Set.mem_univ, iff_true]
-        obtain ⟨xn⟩ := hK_nonempty
-        exact ⟨Function.update (Function.update f k y) n xn, by simpa, by simp [hk]⟩
-    ext y
-    simp only [hB_eq, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Set.mem_setOf_eq, C]
+      · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false]
+        exact ⟨fun _ ↦ ∅, by
+          simp only [Set.univ_pi_empty, and_true]; exact fun _ ↦ .inl (hq_empty _)⟩
+      refine ⟨fun k ↦ if k = n then K k i j else Set.univ, fun k ↦ ?_, ?_⟩
+      · simp only [ite_eq_right_iff]
+        split_ifs with hk
+        · subst hk
+          exact .inl (hK k i j)
+        · simp [hk]
+      · ext; simp
+    ext
+    simp [hB_eq, C]
   · simp_rw [hB_eq]
     ext x
     simp only [Set.mem_iInter, Set.mem_image, Prod.exists, exists_and_right, exists_eq_right,
@@ -185,49 +168,49 @@ lemma IsPavingAnalytic.iUnion {s : ℕ → Set 𝓧}
 lemma IsPavingAnalyticFor.inter {𝓚' : Type*} {t : Set 𝓧} (hp_empty : p ∅)
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
     IsPavingAnalyticFor p (𝓚 × 𝓚') (s ∩ t) := by
-  rcases isEmpty_or_nonempty 𝓚 with h_empty | h_nonempty
-  · rw [isPavingAnalyticFor_iff_eq_empty _ hp_empty] at hs ⊢
-    simp [hs]
-  rcases isEmpty_or_nonempty 𝓚' with h_empty' | h_nonempty'
-  · rw [isPavingAnalyticFor_iff_eq_empty _ hp_empty] at ht ⊢
-    simp [ht]
   obtain ⟨q, hq_empty, hq_compact, B, hB_prod, hB_eq⟩ := hs
   obtain ⟨q', hq'_empty, hq'_compact, B', hB'_prod, hB'_eq⟩ := ht
   let C : Set (𝓧 × (𝓚 × 𝓚')) := {p | (p.1, p.2.1) ∈ B}
   let C' : Set (𝓧 × (𝓚 × 𝓚')) := {p | (p.1, p.2.2) ∈ B'}
-  let q'' : Set (𝓚 × 𝓚') → Prop := fun t : Set (𝓚 × 𝓚') ↦
-    (q (Prod.fst '' t) ∨ Prod.fst '' t = Set.univ) ∧
-    (q' (Prod.snd '' t) ∨ Prod.snd '' t = Set.univ)
+  let q'' : Set (𝓚 × 𝓚') → Prop :=
+    memProd (fun t ↦ q t ∨ t = Set.univ) (fun t ↦ q' t ∨ t = Set.univ)
   refine ⟨q'', ?_, ?_, C ∩ C', ?_, ?_⟩
-  · simp [q'']
+  · simp [q'', memProd]
     grind
-  · -- a product of compact systems is a compact system
-    sorry
+  · refine IsCompactSystem.memProd ?_ ?_
+    · sorry -- IsCompactSystem.insert_univ
+    · sorry
   · refine memDelta.inter ?_ ?_
     · rw [← memProdSigmaDelta]
       simp_rw [memProdSigmaDelta_iff] at hB_prod ⊢
       choose A K hA hK hB_eq using hB_prod
       refine ⟨A, fun i j ↦ {y | y.1 ∈ K i j}, hA, fun i j ↦ ?_, ?_⟩
-      · simp only [q'']
+      · simp only [memProd, exists_and_left, q'']
         rcases Set.eq_empty_or_nonempty (K i j) with hK_empty | hK_nonempty
-        · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false, Set.image_empty]
-          exact ⟨.inl hq_empty, .inl hq'_empty⟩
-        have h1 : Prod.fst '' {y : 𝓚 × 𝓚' | y.1 ∈ K i j} = K i j := by ext; simp
-        have h2 : Prod.snd '' {y : 𝓚 × 𝓚' | y.1 ∈ K i j} = Set.univ := by ext; simpa
-        simp [h1, h2, hK]
+        · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false]
+          exact ⟨∅, by simp [hq_empty]⟩
+        refine ⟨K i j, ?_⟩
+        simp only [hK, true_or, true_and]
+        refine ⟨Set.univ, ?_⟩
+        simp only [or_true, true_and]
+        ext
+        simp
       · ext y
         simp only [hB_eq, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Set.mem_setOf_eq, C]
     · rw [← memProdSigmaDelta]
       simp_rw [memProdSigmaDelta_iff] at hB'_prod ⊢
       choose A K hA hK hB_eq using hB'_prod
       refine ⟨A, fun i j ↦ {y | y.2 ∈ K i j}, hA, fun i j ↦ ?_, ?_⟩
-      · simp only [q'']
+      · simp only [memProd, exists_and_left, q'']
         rcases Set.eq_empty_or_nonempty (K i j) with hK_empty | hK_nonempty
-        · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false, Set.image_empty]
-          exact ⟨.inl hq_empty, .inl hq'_empty⟩
-        have h1 : Prod.fst '' {y : 𝓚 × 𝓚' | y.2 ∈ K i j} = Set.univ := by ext; simpa
-        have h2 : Prod.snd '' {y : 𝓚 × 𝓚' | y.2 ∈ K i j} = K i j := by ext; simp
-        simp [h1, h2, hK]
+        · simp only [hK_empty, Set.mem_empty_iff_false, Set.setOf_false]
+          exact ⟨∅, by simp [hq_empty]⟩
+        refine ⟨Set.univ, ?_⟩
+        simp only [or_true, true_and]
+        refine ⟨K i j, ?_⟩
+        simp only [hK, true_or, true_and]
+        ext
+        simp
       · ext y
         simp only [hB_eq, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Set.mem_setOf_eq, C']
   · ext
