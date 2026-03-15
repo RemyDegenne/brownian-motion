@@ -293,8 +293,12 @@ lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
       simp only [C, hB_eq, hB'_eq]
       rw [← Set.image_iInter (Equiv.bijective _)]
       congr
-      ext
-      sorry
+      calc Set.sumEquiv.symm (⋂ n, A n, ⋂ n, A' n)
+      _ = Set.sumEquiv.symm (⨅ n, (A n, A' n)) := by
+        congr 1
+        ext <;> simp [iInf, Prod.fst_sInf, Prod.snd_sInf]
+      _ = ⨅ n, Set.sumEquiv.symm (A n, A' n) := OrderIso.map_iInf _ _
+      _ = ⋂ i, Set.sumEquiv.symm (A i, A' i) := rfl
     rw [hC_eq]
     refine memDelta.iInter fun k ↦ memDelta_of_prop ?_
     simp_rw [memSigma_memProd_iff] at hA hA'
@@ -305,7 +309,14 @@ lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
           (⋃ n, B k n ×ˢ K k n, ⋃ n, B' k n ×ˢ K' k n)
         = ⋃ n, (Equiv.prodSumDistrib 𝓧 𝓚 𝓚').symm '' Set.sumEquiv.symm
           (B k n ×ˢ K k n, B' k n ×ˢ K' k n) := by
-      sorry
+      rw [← Set.image_iUnion]
+      congr 1
+      calc Set.sumEquiv.symm (⋃ n, B k n ×ˢ K k n, ⋃ n, B' k n ×ˢ K' k n)
+      _ = Set.sumEquiv.symm (⨆ n, (B k n ×ˢ K k n, B' k n ×ˢ K' k n)) := by
+        congr 1
+        ext <;> simp [iSup, Prod.fst_sSup, Prod.snd_sSup]
+      _ = ⨆ n, Set.sumEquiv.symm (B k n ×ˢ K k n, B' k n ×ˢ K' k n) := OrderIso.map_iSup _ _
+      _ = ⋃ i, Set.sumEquiv.symm (B k i ×ˢ K k i, B' k i ×ˢ K' k i) := rfl
     rw [h_eq]
     refine memSigma.iUnion fun i ↦ ?_
     simp only [Set.sumEquiv, Set.le_eq_subset, OrderIso.symm_mk, RelIso.coe_fn_mk,
@@ -315,14 +326,18 @@ lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
     · refine ⟨B k i, Sum.inl '' (K k i), hB _ _, ?_, ?_⟩
       · simp only [Set.mem_setOf_eq, Set.preimage_eq_univ_iff, Set.preimage_inr_image_inl, q'']
         refine ⟨.inl ?_, .inl hq'_empty⟩
-        sorry
+        convert hK k i
+        ext
+        simp
       · ext
         simp [Equiv.prodSumDistrib]
         grind
     · refine ⟨B' k i, Sum.inr '' (K' k i), hB' _ _, ?_, ?_⟩
       · simp only [Set.mem_setOf_eq, Set.preimage_eq_univ_iff, Set.preimage_inl_image_inr, q'']
         refine ⟨.inl hq_empty, .inl ?_⟩
-        sorry
+        convert hK' k i
+        ext
+        simp
       · ext
         simp [Equiv.prodSumDistrib]
         grind
