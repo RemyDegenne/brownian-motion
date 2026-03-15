@@ -74,6 +74,10 @@ def memSigma (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
 lemma memSigma_of_prop (hs : p s) : memSigma p s :=
   ⟨fun _ ↦ s, by simp [hs, Set.iUnion_const]⟩
 
+lemma memSigma.iUnion {s : ℕ → Set 𝓧} (hs : ∀ n, memSigma p (s n)) :
+    memSigma p (⋃ n, s n) := by
+  sorry
+
 lemma memSigma.union (hs : memSigma p s) (ht : memSigma p t) :
     memSigma p (s ∪ t) := by
   obtain ⟨A, hA, rfl⟩ := hs
@@ -143,6 +147,19 @@ lemma memProdSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
   · obtain ⟨A, K, hK, hA, rfl⟩ := h
     refine ⟨fun n ↦ ⋃ m, A n m ×ˢ K n m, fun n ↦ ⟨fun m ↦ A n m ×ˢ K n m, fun m ↦ ?_, rfl⟩, rfl⟩
     exact ⟨A n m, hA n m, ⟨K n m, hK n m, rfl⟩⟩
+
+lemma memSigma_memProd_iff {s : Set (𝓧 × 𝓚)} :
+    memSigma (memProd p q) s ↔
+      ∃ (A : ℕ → Set 𝓧) (K : ℕ → Set 𝓚) (_ : ∀ n, p (A n)) (_ : ∀ n, q (K n)),
+        s = ⋃ n, A n ×ˢ K n := by
+  simp only [memSigma, memProd, exists_and_left, exists_prop]
+  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
+  · choose A hA hs using h
+    choose B hB C hC hA_eq using hA
+    refine ⟨B, C, hC, hB, ?_⟩
+    simp_rw [hs, hA_eq]
+  · obtain ⟨A, K, hK, hA, rfl⟩ := h
+    exact ⟨fun n ↦ A n ×ˢ K n, fun n ↦ ⟨A n, hA n, K n, hK n, rfl⟩, rfl⟩
 
 lemma memProdSigmaDelta_of_prop {s : Set 𝓧} {t : Set 𝓚} (hs : p s) (hq : q t) :
     memProdSigmaDelta p q (s ×ˢ t) := by
