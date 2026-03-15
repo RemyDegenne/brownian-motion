@@ -87,6 +87,14 @@ def memDelta (p : Set 𝓧 → Prop) : Set 𝓧 → Prop :=
 lemma memDelta_of_prop (hs : p s) : memDelta p s :=
   ⟨fun _ ↦ s, by simp [hs, Set.iInter_const]⟩
 
+lemma memDelta.iInter {s : ℕ → Set 𝓧} (hs : ∀ n, memDelta p (s n)) :
+    memDelta p (⋂ n, s n) := by
+  sorry
+
+lemma memDelta.inter (hs : memDelta p s) (ht : memDelta p t) :
+    memDelta p (s ∩ t) := by
+  sorry
+
 /-- The set is a countable intersection of countable unions of sets that can be written as a
 product of two sets, each satisfying a property. -/
 def memProdSigmaDelta (p : Set 𝓧 → Prop) (q : Set 𝓚 → Prop) : Set (𝓧 × 𝓚) → Prop :=
