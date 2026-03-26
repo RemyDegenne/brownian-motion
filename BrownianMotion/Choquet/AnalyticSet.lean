@@ -646,69 +646,144 @@ lemma isPavingAnalytic_of_measurableSet_generateFrom (hp_empty : ∅ ∈ p)
     exact ⟨IsPavingAnalytic.iUnion fun n ↦ (hfG n).1,
       IsPavingAnalytic.iInter fun n ↦ (hfG n).2⟩
 
-lemma Iic_memSigma_Icc (u : ℝ) : Set.Iic u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
-  refine ⟨fun n ↦ Set.Icc (-(n : ℝ)) u, fun n ↦ ⟨-n, u, rfl⟩, ?_⟩
+lemma Iic_memSigma_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
+    (u : ι) :
+  Set.Iic u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
+  by_cases h_bot : ∃ x : ι, IsBot x
+  · obtain ⟨x, hx_bot⟩ := h_bot
+    refine memSigma_of_mem ⟨x, u, ?_⟩
+    ext y
+    simp only [Set.mem_Icc, Set.mem_Iic, and_iff_right_iff_imp]
+    exact fun _ ↦ hx_bot y
+  obtain ⟨u₁, hu₁_anti, hu₁_tendsto⟩ := Filter.exists_seq_antitone_tendsto_atTop_atBot ι
+  refine ⟨fun n ↦ Set.Icc (u₁ n) u, fun n ↦ ⟨u₁ n, u, rfl⟩, ?_⟩
   ext x
   simp only [Set.mem_Iic, Set.mem_iUnion, Set.mem_Icc, exists_and_right, iff_and_self]
   intro hxu
-  simp_rw [neg_le]
-  exact ⟨⌈-x⌉₊, Nat.le_ceil (-x)⟩
+  exact (hu₁_tendsto.eventually_le_atBot x).exists
 
-lemma Ici_memSigma_Icc (u : ℝ) : Set.Ici u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
-  refine ⟨fun n ↦ Set.Icc u n, fun n ↦ ⟨u, n, rfl⟩, ?_⟩
+lemma Ici_memSigma_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
+    (u : ι) :
+  Set.Ici u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
+  by_cases h_top : ∃ x : ι, IsTop x
+  · obtain ⟨x, hx_top⟩ := h_top
+    refine memSigma_of_mem ⟨u, x, ?_⟩
+    ext y
+    simp only [Set.mem_Icc, Set.mem_Ici, and_iff_left_iff_imp]
+    exact fun _ ↦ hx_top y
+  obtain ⟨u₁, hu₁_anti, hu₁_tendsto⟩ := Filter.exists_seq_monotone_tendsto_atTop_atTop ι
+  refine ⟨fun n ↦ Set.Icc u (u₁ n), fun n ↦ ⟨u, u₁ n, rfl⟩, ?_⟩
   ext x
   simp only [Set.mem_Ici, Set.mem_iUnion, Set.mem_Icc, exists_and_left, iff_self_and]
   intro hxu
-  exact ⟨⌈x⌉₊, Nat.le_ceil x⟩
+  exact (hu₁_tendsto.eventually_ge_atTop x).exists
 
-lemma Iio_memSigma_Icc (u : ℝ) : Set.Iio u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
-  obtain ⟨s, hs_mono, hs_lt, hs_tendsto⟩ := exists_seq_strictMono_tendsto u
+lemma Iio_memSigma_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
+    [DenselyOrdered ι]
+    (u : ι) :
+    Set.Iio u ∈ memSigma (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
+  by_cases h_bot : IsBot u
+  · have : Set.Iio u = ∅ := by
+      ext x
+      simp only [Set.mem_Iio, Set.mem_empty_iff_false, iff_false, not_lt]
+      exact h_bot x
+    rw [this]
+    refine memSigma_of_mem (Or.inl rfl)
+  obtain ⟨v, hvu⟩ : ∃ v, v < u := by simpa [IsBot] using h_bot
+  obtain ⟨s, hs_mono, hs_lt, hs_tendsto⟩ := exists_seq_strictMono_tendsto' hvu
   have : Set.Iio u = ⋃ n, Set.Iic (s n) := by
     ext x
     simp only [Set.mem_Iio, Set.mem_iUnion, Set.mem_Iic]
-    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ hi.trans_lt (hs_lt i)⟩
+    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ hi.trans_lt (hs_lt i).2⟩
     exact (hs_tendsto.eventually_const_le hxu).exists
   rw [this]
-  exact memSigma.iUnion fun n ↦ Iic_memSigma_Icc (s n)
+  refine memSigma.mono (p := {t | ∃ a b : ι, Set.Icc a b = t}) ?_ ?_
+  · intro s hs
+    exact Set.mem_insert_of_mem _ hs
+  · exact memSigma.iUnion fun n ↦ Iic_memSigma_Icc (s n)
 
-lemma Ioi_memSigma_Icc (u : ℝ) : Set.Ioi u ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
-  obtain ⟨s, hs_mono, hs_gt, hs_tendsto⟩ := exists_seq_strictAnti_tendsto u
+lemma Ioi_memSigma_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
+    [DenselyOrdered ι]
+    (u : ι) :
+    Set.Ioi u ∈ memSigma (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
+  by_cases h_top : IsTop u
+  · have : Set.Ioi u = ∅ := by
+      ext x
+      simp only [Set.mem_Ioi, Set.mem_empty_iff_false, iff_false, not_lt]
+      exact h_top x
+    rw [this]
+    refine memSigma_of_mem (Or.inl rfl)
+  obtain ⟨v, huv⟩ : ∃ v, u < v := by simpa [IsTop] using h_top
+  obtain ⟨s, hs_mono, hs_gt, hs_tendsto⟩ := exists_seq_strictAnti_tendsto' huv
   have : Set.Ioi u = ⋃ n, Set.Ici (s n) := by
     ext x
     simp only [Set.mem_Ioi, Set.mem_iUnion, Set.mem_Ici]
-    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ (hs_gt i).trans_le hi⟩
+    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ (hs_gt i).1.trans_le hi⟩
     exact (hs_tendsto.eventually_le_const hxu).exists
   rw [this]
-  exact memSigma.iUnion fun n ↦ Ici_memSigma_Icc (s n)
+  refine memSigma.mono (p := {t | ∃ a b : ι, Set.Icc a b = t}) ?_ ?_
+  · exact fun _ hs ↦ Set.mem_insert_of_mem _ hs
+  · exact memSigma.iUnion fun n ↦ Ici_memSigma_Icc (s n)
 
-lemma univ_memSigma_Icc : (Set.univ : Set ℝ) ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
-  have : (Set.univ : Set ℝ) = Set.Iic 0 ∪ Set.Ioi 0 := by ext; simp
+lemma univ_memSigma_Icc {ι : Type*} [hι : Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] :
+    (Set.univ : Set ι) ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
+  obtain x : ι := hι.some
+  have : (Set.univ : Set ι) = Set.Iic x ∪ Set.Ici x := by ext; simp
   rw [this]
-  exact memSigma.union (Iic_memSigma_Icc 0) (Ioi_memSigma_Icc 0)
+  exact memSigma.union (Iic_memSigma_Icc x) (Ici_memSigma_Icc x)
 
-lemma aux_Icc (l u : ℝ) : (Set.Icc l u)ᶜ ∈ memSigma {t | ∃ a b, Set.Icc a b = t} := by
+lemma aux_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] (l u : ι) :
+    (Set.Icc l u)ᶜ ∈ memSigma (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
   rcases lt_or_ge u l with hlu | hlu
   · simp only [not_le, hlu, Set.Icc_eq_empty, Set.compl_empty]
-    exact univ_memSigma_Icc
+    refine memSigma.mono (p := {t | ∃ a b : ι, Set.Icc a b = t}) ?_ ?_
+    · exact fun _ hs ↦ Set.mem_insert_of_mem _ hs
+    · exact univ_memSigma_Icc
   · have : (Set.Icc l u)ᶜ = Set.Iio l ∪ Set.Ioi u := by ext; simp; grind
     rw [this]
     exact memSigma.union (Iio_memSigma_Icc l) (Ioi_memSigma_Icc u)
 
-lemma aux'_Icc [MeasurableSpace 𝓧] (s : Set (𝓧 × ℝ))
-    (hs : s ∈ memProd MeasurableSet {t | ∃ a b, Set.Icc a b = t}) :
-     sᶜ ∈ memSigma (memProd MeasurableSet {t | ∃ a b, Set.Icc a b = t}) := by
-  obtain ⟨A, K, hA, ⟨l, u, rfl⟩, rfl⟩ := hs
-  have hK' := aux_Icc l u
-  rw [Set.compl_prod_eq_union]
-  refine memSigma.union ?_ ?_
-  · obtain ⟨B, hB, h_eq⟩ := univ_memSigma_Icc
-    rw [h_eq, Set.prod_iUnion]
-    refine ⟨fun i ↦ Aᶜ ×ˢ B i, fun n ↦ ?_, rfl⟩
-    exact ⟨Aᶜ, B n, hA.compl, hB n, rfl⟩
-  · obtain ⟨B, hB, h_eq⟩ := aux_Icc l u
-    rw [h_eq, Set.prod_iUnion]
+lemma aux'_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [MeasurableSpace 𝓧] (s : Set (𝓧 × ι))
+    (hs : s ∈ memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) :
+     sᶜ ∈ memSigma (memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) := by
+  obtain ⟨A, K, hA, hK_eq, rfl⟩ := hs
+  simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hK_eq
+  cases hK_eq with
+  | inl hK_eq =>
+    simp only [hK_eq, Set.prod_empty, Set.compl_empty]
+    refine memSigma.mono (p := memProd MeasurableSet {t | ∃ a b : ι, Set.Icc a b = t}) ?_ ?_
+    · intro s hs
+      refine memProd.mono (p := setOf (MeasurableSet (α := 𝓧)))
+        (q := {t | ∃ a b : ι, Set.Icc a b = t}) (fun _ hs ↦ hs) ?_ hs
+      exact fun _ hs ↦ Set.mem_insert_of_mem _ hs
+    have h_mem_sigma := univ_memSigma_Icc (ι := ι)
+    obtain ⟨B, hB, h_eq⟩ := h_mem_sigma
+    have h_univ_prod : (Set.univ : Set 𝓧) ×ˢ (Set.univ : Set ι) = Set.univ := by simp
+    rw [← h_univ_prod, h_eq, Set.prod_iUnion]
     refine ⟨fun i ↦ Set.univ ×ˢ B i, fun n ↦ ?_, rfl⟩
     exact ⟨Set.univ, B n, .univ, hB n, rfl⟩
+  | inr hK_eq =>
+    obtain ⟨l, u, rfl⟩ := hK_eq
+    have hK' := aux_Icc l u
+    rw [Set.compl_prod_eq_union]
+    refine memSigma.union ?_ ?_
+    · obtain ⟨B, hB, h_eq⟩ := univ_memSigma_Icc (ι := ι)
+      rw [h_eq, Set.prod_iUnion]
+      refine ⟨fun i ↦ Aᶜ ×ˢ B i, fun n ↦ ?_, rfl⟩
+      exact ⟨Aᶜ, B n, hA.compl, Set.mem_insert_of_mem _ (hB n), rfl⟩
+    · obtain ⟨B, hB, h_eq⟩ := aux_Icc l u
+      rw [h_eq, Set.prod_iUnion]
+      refine ⟨fun i ↦ Set.univ ×ˢ B i, fun n ↦ ?_, rfl⟩
+      exact ⟨Set.univ, B n, .univ, hB n, rfl⟩
 
 lemma borel_eq_generateFrom_isCompact : borel ℝ = MeasurableSpace.generateFrom IsCompact := by
   refine le_antisymm ?_ ?_
@@ -731,27 +806,59 @@ theorem borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCou
     · exact MeasurableSpace.measurableSet_generateFrom ⟨a, b, hab, rfl⟩
     · simp [hab]
 
--- Icc variant of He 1.32 (1)
-lemma _root_.MeasurableSet.isPavingAnalytic_Icc_real {s : Set ℝ} (hs : MeasurableSet s) :
-    IsPavingAnalytic {t | ∃ a b, Set.Icc a b = t} s := by
-  have hs' : MeasurableSet[MeasurableSpace.generateFrom {t | ∃ a b, Set.Icc a b = t}] s := by
-    rwa [Real.measurableSpace, borel_eq_generateFrom_Icc'] at hs
-  refine isPavingAnalytic_of_measurableSet_generateFrom ?_ ?_ hs'
-  · simp only [Set.mem_setOf_eq]
-    refine ⟨1, 0, by simp⟩
-  · rintro - ⟨l, u, rfl⟩
-    refine isPavingAnalytic_of_memSigma_of_imp (p' := {t | ∃ a b, Set.Icc a b = t}) ?_
-      (fun K hK ↦ isPavingAnalytic_of_mem hK)
-    exact aux_Icc l u
+theorem borel_eq_generateFrom_Icc'' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
+    [LinearOrder α] [OrderTopology α] :
+    borel α = .generateFrom (insert ∅ { S : Set α | ∃ (l u : α), Set.Icc l u = S }) := by
+  rw [MeasurableSpace.generateFrom_insert_empty]
+  exact borel_eq_generateFrom_Icc' α
 
-lemma IsPavingAnalytic_measurableSet_iff_isPavingAnalytic_Icc (s : Set ℝ) :
-    IsPavingAnalytic {t | MeasurableSet t} s ↔ IsPavingAnalytic {t | ∃ a b, Set.Icc a b = t} s := by
+-- Icc variant of He 1.32 (1)
+lemma _root_.MeasurableSet.isPavingAnalytic_Icc_real {ι : Type*} {mι : MeasurableSpace ι}
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [BorelSpace ι]
+    {s : Set ι} (hs : MeasurableSet s) :
+    IsPavingAnalytic (insert ∅ {t | ∃ a b, Set.Icc a b = t}) s := by
+  by_cases h_lt : ∃ l u : ι, l < u
+  swap
+  · sorry
+  obtain ⟨l₀, u₀, hlu₀⟩ := h_lt
+  have : Nonempty ι := ⟨l₀⟩
+  have hmι : mι = borel ι := BorelSpace.measurable_eq
+  have hs' : MeasurableSet[MeasurableSpace.generateFrom
+      (insert ∅ {t | ∃ a b, Set.Icc a b = t})] s := by
+    rwa [hmι, borel_eq_generateFrom_Icc''] at hs
+  refine isPavingAnalytic_of_measurableSet_generateFrom ?_ ?_ hs'
+  · simp
+  · intro s hs
+    refine isPavingAnalytic_of_memSigma_of_imp (p' := insert ∅ {t | ∃ a b, Set.Icc a b = t}) ?_
+      (fun K hK ↦ isPavingAnalytic_of_mem hK)
+    simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hs
+    cases hs with
+    | inl h =>
+      simp only [h, Set.compl_empty]
+      refine memSigma.mono (p := {t | ∃ a b : ι, Set.Icc a b = t}) ?_ ?_
+      · exact fun _ hs ↦ Set.mem_insert_of_mem _ hs
+      · exact univ_memSigma_Icc
+    | inr h =>
+      obtain ⟨l, u, rfl⟩ := h
+      exact aux_Icc l u
+
+lemma IsPavingAnalytic_measurableSet_iff_isPavingAnalytic_Icc {ι : Type*} {mι : MeasurableSpace ι}
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [BorelSpace ι]
+    (s : Set ι) :
+    IsPavingAnalytic {t | MeasurableSet t} s ↔
+      IsPavingAnalytic (insert ∅ {t | ∃ a b, Set.Icc a b = t}) s := by
   refine ⟨fun hs ↦ ?_, fun hs ↦ ?_⟩
   · rw [← isPavingAnalytic_isPavingAnalytic_iff]
     exact hs.mono fun s hs ↦ MeasurableSet.isPavingAnalytic_Icc_real hs
   · refine hs.mono fun s hs ↦ ?_
-    obtain ⟨l, u, rfl⟩ := hs
-    simp
+    simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hs
+    cases hs with
+    | inl h => simp [h]
+    | inr h =>
+      obtain ⟨l, u, rfl⟩ := h
+      simp
 
 lemma isCountablySpanning_isCompact : IsCountablySpanning (IsCompact (X := ℝ)) := by
   refine ⟨fun n : ℕ ↦ Set.Icc (-n : ℝ) n, fun _ ↦ isCompact_Icc, ?_⟩
@@ -767,45 +874,68 @@ lemma isCountablySpanning_Icc : IsCountablySpanning {t | ∃ a b : ℝ, Set.Icc 
   simp_rw [← abs_le]
   exact ⟨⌈|x|⌉₊, Nat.le_ceil _⟩
 
+lemma isCountablySpanning_insert_empty_Icc {ι : Type*} [Nonempty ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] :
+    IsCountablySpanning (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
+  obtain ⟨A, hA, h_eq⟩ := univ_memSigma_Icc (ι := ι)
+  exact ⟨A, fun n ↦ Set.mem_insert_of_mem _ (hA n), h_eq.symm⟩
+
 -- Icc version of He 1.32 (2)
-lemma _root_.MeasurableSet.isPavingAnalytic_memProd {s : Set (𝓧 × ℝ)} {m𝓧 : MeasurableSpace 𝓧}
+lemma _root_.MeasurableSet.isPavingAnalytic_memProd {ι : Type*} {mι : MeasurableSpace ι}
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [BorelSpace ι] [Nonempty ι]
+    {s : Set (𝓧 × ι)} {m𝓧 : MeasurableSpace 𝓧}
     (hs : MeasurableSet s) :
-    IsPavingAnalytic (memProd MeasurableSet {t | ∃ a b : ℝ, Set.Icc a b = t}) s := by
-  have h_compl (t : Set (𝓧 × ℝ)) (ht : t ∈ memProd MeasurableSet {t | ∃ a b : ℝ, Set.Icc a b = t}) :
-      IsPavingAnalytic (memProd MeasurableSet {t | ∃ a b : ℝ, Set.Icc a b = t}) tᶜ := by
+    IsPavingAnalytic (memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s := by
+  have h_compl (t : Set (𝓧 × ι))
+        (ht : t ∈ memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) :
+      IsPavingAnalytic (memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) tᶜ := by
     refine isPavingAnalytic_of_memSigma_of_imp ?_ fun s hs ↦ isPavingAnalytic_of_mem hs
     exact aux'_Icc _ ht
   refine isPavingAnalytic_of_measurableSet_generateFrom ?_ h_compl ?_
-  · have : (∅ : Set (𝓧 × ℝ)) = ∅ ×ˢ ∅ := by simp
+  · have : (∅ : Set (𝓧 × ι)) = ∅ ×ˢ ∅ := by simp
     rw [this]
-    exact memProd_prod MeasurableSet.empty ⟨1, 0, by simp⟩
+    exact memProd_prod MeasurableSet.empty (by simp)
   · convert hs
-    have h_prod_eq := generateFrom_eq_prod (α := 𝓧) (β := ℝ) (C := setOf MeasurableSet)
-      (D := {t | ∃ a b : ℝ, Set.Icc a b = t}) MeasurableSpace.generateFrom_measurableSet ?_
-      isCountablySpanning_measurableSet isCountablySpanning_Icc
+    have h_prod_eq := generateFrom_eq_prod (α := 𝓧) (β := ι) (C := setOf MeasurableSet)
+      (D := insert ∅ {t | ∃ a b, Set.Icc a b = t}) MeasurableSpace.generateFrom_measurableSet ?_
+      isCountablySpanning_measurableSet isCountablySpanning_insert_empty_Icc
     swap
-    · rw [Real.measurableSpace, borel_eq_generateFrom_Icc']
+    · have : mι = borel ι := BorelSpace.measurable_eq
+      rw [this, borel_eq_generateFrom_Icc'']
     rw [← h_prod_eq]
     congr with s
-    simp only [memProd, eq_comm, Set.mem_setOf_eq, exists_and_left, ↓existsAndEq, true_and,
-      Set.mem_image2]
+    simp only [memProd, eq_comm, Set.mem_setOf_eq, exists_and_left, Set.mem_image2]
     congr!
 
 -- Icc version of He 1.32 (2)
-lemma isPavingAnalytic_memProd_measurableSet_Icc_iff {s : Set (𝓧 × ℝ)} [MeasurableSpace 𝓧] :
-    IsPavingAnalytic (memProd MeasurableSet {t | ∃ a b : ℝ, Set.Icc a b = t}) s ↔
+lemma isPavingAnalytic_memProd_measurableSet_Icc_iff {ι : Type*} {mι : MeasurableSpace ι}
+    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [OrderTopology ι] [BorelSpace ι] [Nonempty ι]
+    {s : Set (𝓧 × ι)} [MeasurableSpace 𝓧] :
+    IsPavingAnalytic (memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s ↔
       IsPavingAnalytic MeasurableSet s := by
   refine ⟨fun hs ↦ hs.mono fun s hs ↦ ?_, fun hs ↦ ?_⟩
-  · obtain ⟨A, K, hA, ⟨a, b, rfl⟩, rfl⟩ := hs
-    exact hA.prod measurableSet_Icc
+  · obtain ⟨A, K, hA, hK, rfl⟩ := hs
+    cases hK with
+    | inl h =>
+      simp only [h, Set.prod_empty]
+      change MeasurableSet (∅ : Set (𝓧 × ι))
+      exact MeasurableSet.empty
+    | inr h =>
+      obtain ⟨l, u, rfl⟩ := h
+      exact hA.prod measurableSet_Icc
   · exact isPavingAnalytic_isPavingAnalytic
       (hs.mono fun _ ↦ MeasurableSet.isPavingAnalytic_memProd)
 
 -- Icc version of He 1.32 (3)
-lemma isPavingAnalytic_fst_of_memProd_measurableSet_Icc [MeasurableSpace 𝓧] {s : Set (𝓧 × ℝ)}
-    (hs : IsPavingAnalytic (memProd MeasurableSet {t | ∃ a b : ℝ, Set.Icc a b = t}) s) :
+-- note that here `ι` is in `Type`, not `Type*`
+lemma isPavingAnalytic_fst_of_memProd_measurableSet_Icc {ι : Type} [LinearOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι] [Nonempty ι] [MeasurableSpace 𝓧]
+    {s : Set (𝓧 × ι)}
+    (hs : IsPavingAnalytic (memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s) :
     IsPavingAnalytic MeasurableSet (Prod.fst '' s) :=
-  hs.fst (⟨1, 0, by simp⟩ : ∅ ∈ {t | ∃ a b : ℝ, Set.Icc a b = t}) isCompactSystem_Icc
+  hs.fst (by simp : ∅ ∈ insert ∅ {t | ∃ a b, Set.Icc a b = t}) (isCompactSystem_insert_empty_Icc ι)
 
 lemma _root_.MeasurableSet.isPavingAnalytic_fst {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ℝ)}
     (hs : MeasurableSet s) :
@@ -824,7 +954,8 @@ a measurable set of `𝓧 × ℝ`. -/
 def IsMeasurableAnalytic [MeasurableSpace 𝓧] (s : Set 𝓧) : Prop :=
   IsMeasurableAnalyticFor ℝ s
 
-/-- If a set is analytic in the measurable sense for any space `𝓚`, then it is analytic for `ℝ`. -/
+/-- If a set is measurably analytic for any standard Borel space `𝓚`,
+then it is measurably analytic for `ℝ`. -/
 lemma IsMeasurableAnalyticFor.isMeasurableAnalytic {m𝓧 : MeasurableSpace 𝓧}
     {m𝓚 : MeasurableSpace 𝓚} [StandardBorelSpace 𝓚]
     (hs : IsMeasurableAnalyticFor 𝓚 s) :
@@ -833,6 +964,10 @@ lemma IsMeasurableAnalyticFor.isMeasurableAnalytic {m𝓧 : MeasurableSpace 𝓧
   refine ⟨Prod.map id (embeddingReal 𝓚) '' t, ?_, by ext; simp⟩
   refine MeasurableEmbedding.measurableSet_image' ?_ ht
   exact MeasurableEmbedding.id.prodMap (measurableEmbedding_embeddingReal 𝓚)
+
+lemma _root_.MeasurableSet.isMeasurableAnalytic {m𝓧 : MeasurableSpace 𝓧} (hs : MeasurableSet s) :
+    IsMeasurableAnalytic s :=
+  ⟨s ×ˢ Set.univ, hs.prod .univ, by ext; simp⟩
 
 lemma IsMeasurableAnalytic.isPavingAnalytic {m𝓧 : MeasurableSpace 𝓧} (hs : IsMeasurableAnalytic s) :
     IsPavingAnalytic MeasurableSet s := by

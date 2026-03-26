@@ -274,6 +274,29 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [ConditionallyCompleteLine
   refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le t))
   exact hE.measurableSet_inter_Icc t t
 
+lemma _root_.MeasurableSet.nullMeasurableSet_debut_lt
+    [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [ClosedIciTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P]
+    {E : Set (ι × Ω)} (hE : MeasurableSet E) (n s : ι) :
+    NullMeasurableSet {ω | debut E n ω < s} P := by
+  have h_eq_fst : {ω | debut E n ω < s} = Prod.snd '' (E ∩ (Set.Ico n s ×ˢ .univ)) := by
+    simp_rw [debut_lt_iff]
+    ext
+    simp
+    grind
+  rw [h_eq_fst]
+  refine MeasurableSet.nullMeasurableSet_snd ?_ P
+  exact hE.inter (MeasurableSet.prod measurableSet_Ico .univ)
+
+lemma _root_.MeasurableSet.measurableSet_debut_lt
+    [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [ClosedIciTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P] [P.IsComplete]
+    {E : Set (ι × Ω)} (hE : MeasurableSet E) (n s : ι) :
+    MeasurableSet {ω | debut E n ω < s} :=
+  NullMeasurableSet.measurable_of_complete (μ := P) (hE.nullMeasurableSet_debut_lt n s)
+
 lemma ProgMeasurableSet.measurableSet_debut_lt
     [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
@@ -452,6 +475,20 @@ lemma isStoppingTime_leastGE [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) (r : β) :
     IsStoppingTime 𝓕 (leastGE X r) :=
   isStoppingTime_hittingAfter' h𝓕 hX measurableSet_Ici _
+
+/-- `leastGT f r` is the stopping time corresponding to the first time `f ≥ r`. -/
+noncomputable def leastGT {ι Ω β : Type*} [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
+    (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
+  hittingAfter f (Set.Ioi r) ⊥
+
+lemma isStoppingTime_leastGT [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+    {β : Type*} [LinearOrder β] [TopologicalSpace β] [ClosedIicTopology β]
+    [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
+    {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P)
+    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) (r : β) :
+    IsStoppingTime 𝓕 (leastGT X r) :=
+  isStoppingTime_hittingAfter' h𝓕 hX measurableSet_Ioi _
 
 end HittingTime
 

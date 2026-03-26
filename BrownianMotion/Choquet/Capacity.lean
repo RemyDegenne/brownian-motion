@@ -98,6 +98,11 @@ def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
         · exact fun i hi ↦ hu_prod i (Finset.mem_insert_of_mem hi)
         · exact fun i hi ↦ hS i (Finset.mem_insert_of_mem hi)
 
+lemma Capacity.comp_fst_apply {hp_empty : ∅ ∈ p} {hp_union : SupClosed p}
+    (m : Capacity p) {hq_empty : ∅ ∈ q} {hq : IsCompactSystem q}
+    (s : Set (𝓧 × 𝓚)) :
+    m.comp_fst hp_empty hp_union hq_empty hq s = m (Prod.fst '' s) := rfl
+
 /-- A set `s` is capacitable for a capacity `m` for a property `p` if `m s` can be approximated
 from above by countable intersections of sets `t n` such that `p (t n)` and `⋂ n, t n ⊆ s`. -/
 def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=

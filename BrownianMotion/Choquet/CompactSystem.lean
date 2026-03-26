@@ -20,8 +20,18 @@ open scoped ENNReal NNReal
 
 variable {𝓧 𝓨 𝓚 : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
-lemma isCompactSystem_Icc : IsCompactSystem {t | ∃ a b : ℝ, Set.Icc a b = t} :=
+lemma isCompactSystem_Icc (α : Type*) [TopologicalSpace α] [T2Space α] [Preorder α]
+    [CompactIccSpace α] :
+    IsCompactSystem {t | ∃ a b : α, Set.Icc a b = t} :=
   (isCompactSystem_isCompact _).mono fun _ ⟨_, _, heq⟩ ↦ heq ▸ isCompact_Icc
+
+lemma isCompactSystem_insert_empty_Icc (α : Type*) [TopologicalSpace α] [T2Space α] [Preorder α]
+    [CompactIccSpace α] :
+    IsCompactSystem (insert ∅ {t | ∃ a b : α, Set.Icc a b = t}) := by
+  refine (isCompactSystem_isCompact α).mono fun s hs ↦ ?_
+  cases hs with
+  | inl h => simp [h]
+  | inr h => obtain ⟨_, _, heq⟩ := h; exact heq ▸ isCompact_Icc
 
 namespace MeasureTheory
 
@@ -43,6 +53,12 @@ def memSigma (p : Set (Set 𝓧)) : Set (Set 𝓧) :=
   {s | ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ s = ⋃ n, A n}
 
 lemma memSigma_of_mem (hs : s ∈ p) : s ∈ memSigma p := ⟨fun _ ↦ s, by simp [hs, Set.iUnion_const]⟩
+
+lemma memSigma.mono {p' : Set (Set 𝓧)} (hp : ∀ s, s ∈ p → s ∈ p') {s : Set 𝓧}
+    (hs : s ∈ memSigma p) :
+    s ∈ memSigma p' := by
+  choose A hA hs using hs
+  refine ⟨A, fun n ↦ hp _ (hA n), hs⟩
 
 lemma memSigma.iUnion {s : ℕ → Set 𝓧} (hs : ∀ n, s n ∈ memSigma p) :
     ⋃ n, s n ∈ memSigma p := by
@@ -99,6 +115,9 @@ lemma memFiniteUnion.union (hs : s ∈ memFiniteUnion p) (ht : t ∈ memFiniteUn
   obtain ⟨S, A, hA, rfl⟩ := hs
   obtain ⟨T, B, hB, rfl⟩ := ht
   sorry
+
+lemma supClosed_memFiniteUnion : SupClosed (memFiniteUnion p) :=
+  fun _ hs _ ht ↦ memFiniteUnion.union hs ht
 
 lemma memFiniteUnion.biUnion_finset' {s : Finset ℕ} {A : ℕ → Set 𝓧} (hs : ∀ n ∈ s, A n ∈ p) :
     (⋃ n ∈ s, A n) ∈ memFiniteUnion p := ⟨s, A, hs, rfl⟩
