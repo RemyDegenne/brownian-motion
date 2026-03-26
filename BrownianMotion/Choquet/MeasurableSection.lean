@@ -21,6 +21,8 @@ instance : CompactIccSpace ℝ≥0 := by
   intro a b
   sorry
 
+instance : MeasurableInf₂ (WithTop ℝ≥0) := sorry
+
 lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
     InfClosed (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
   intro s hs t ht
@@ -78,6 +80,7 @@ lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : MeasurableSet s) (u :
     sorry
   intro r
   convert MeasurableSet.nullMeasurableSet_debut_lt (P := μ) hs u r
+  -- what is happening here?
   convert instClosedIciTopology
   convert OrderTopology.to_orderClosedTopology
   exact NNReal.instOrderTopology
@@ -102,6 +105,25 @@ lemma _root_.MeasurableSet.memProd {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧}
   obtain ⟨A, B, hA, hB, rfl⟩ := hs
   exact MeasurableSet.prod (hp A hA) (hq B hB)
 
+lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderTopology ι] [FirstCountableTopology ι]
+    {s : Set (ι × 𝓧)} {ω : 𝓧} {n : ι}
+    (hs : IsClosed {t | n ≤ t ∧ (t, ω) ∈ s}) (hω : debut s n ω ≠ ⊤) :
+    ((debut s n ω).untopA, ω) ∈ s := by
+  obtain ⟨t₀, ht₀⟩ : ∃ t ≥ n, (t, ω) ∈ s := debut_ne_top_iff.mp hω
+  obtain ⟨u, _, hu_tendso, hu_mem⟩ : ∃ u : ℕ → ι, Antitone u ∧
+      Tendsto u atTop (𝓝 ((debut s n ω).untopA)) ∧ (∀ i, n ≤ u i ∧ (u i, ω) ∈ s) := by
+    simp only [debut_eq_ite, ge_iff_le]
+    rw [if_pos (debut_ne_top_iff.mp hω)]
+    have : ((sInf {t : ι |  n ≤ t ∧ (t, ω) ∈ s} : ι) : WithTop ι).untopA =
+        sInf {t | n ≤ t ∧ (t, ω) ∈ s} := by
+      rw [WithTop.untopA_eq_untop WithTop.coe_ne_top, WithTop.untop_coe]
+    rw [this]
+    exact exists_seq_tendsto_sInf (S := {t | n ≤ t ∧ (t, ω) ∈ s}) (debut_ne_top_iff.mp hω)
+      ⟨n, mem_lowerBounds.mpr (by grind)⟩
+  suffices (debut s n ω).untopA ∈ {t | n ≤ t ∧ (t, ω) ∈ s} from this.2
+  exact IsClosed.mem_of_tendsto (f := u) hs hu_tendso (.of_forall hu_mem)
+
 lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
@@ -111,10 +133,7 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
     μ.capacity.comp_fst MeasurableSet.empty (fun _ hs _ ht ↦  MeasurableSet.union hs ht) (by simp)
       (isCompactSystem_insert_empty_Icc ℝ≥0)
   have I_apply (t : Set (Ω × ℝ≥0)) : I t = μ {ω | ∃ u, (ω, u) ∈ t} := by
-    rw [μ.capacity.comp_fst_apply, μ.capacity_apply]
-    congr
-    ext
-    simp
+    rw [μ.capacity.comp_fst_apply, μ.capacity_apply]; congr; ext; simp
   have I_apply_eq_debut (t : Set (Ω × ℝ≥0)) : I t = μ {ω | debut (Prod.swap '' t) 0 ω ≠ ⊤} := by
     rw [I_apply]
     congr with ω
@@ -126,11 +145,7 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
     convert h_eq_iff using 2 with u
     exact ⟨fun hu _ ↦ hu, fun hu ↦ hu (zero_le u)⟩
   have I_apply_swap (t : Set (ℝ≥0 × Ω)) : I (Prod.swap '' t) = μ {ω | debut t 0 ω ≠ ⊤} := by
-    rw [I_apply_eq_debut]
-    congr! with ω
-    ext
-    simp
-    grind
+    rw [I_apply_eq_debut]; congr! with ω; ext; simp; grind
   have hs_capa : IsCapacitable I (Prod.swap '' s) := by
     apply IsPavingAnalytic.isCapacitable
     · refine memFiniteUnion_of_mem ?_
@@ -169,13 +184,12 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
         obtain ⟨a, b, rfl⟩ := hE
         exact isCompact_Icc
     · simp [hωD]
-  have ha' := ha
-  rw [← I_apply_swap] at ha'
-  refine ⟨debut (Prod.swap '' (B a ha')) 0, ?_, ?_, ?_, ?_⟩
+  rw [← I_apply_swap] at ha
+  refine ⟨debut (Prod.swap '' B a ha) 0, ?_, ?_, ?_, ?_⟩
   · refine nullMeasurable_debut ?_ _
     rw [Set.image_swap_eq_preimage_swap]
     refine MeasurableSet.preimage ?_ (by fun_prop)
-    specialize hB_mem a ha'
+    specialize hB_mem a ha
     refine MeasurableSet.memDelta hB_mem fun s hs ↦ ?_
     refine MeasurableSet.memFiniteUnion hs fun s hs ↦ ?_
     refine MeasurableSet.memProd hs (fun _ ht ↦ ht) (fun t ht ↦ ?_)
@@ -185,18 +199,23 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
       obtain ⟨a, b, rfl⟩ := ht
       exact measurableSet_Icc
   · intro ω hω
-    suffices (ω, (debut (Prod.swap '' B a ha') 0 ω).untopA) ∈ B a ha' by grind
-    -- use hB_compact
-    -- see things like IsCompact.sInf_mem
-    sorry
+    suffices ((debut (Prod.swap '' B a ha) 0 ω).untopA, ω) ∈ Prod.swap '' B a ha by grind
+    convert debut_mem_of_isClosed ?_ hω.ne
+    · exact NNReal.instOrderTopology
+    · convert (hB_compact a ha ω).isClosed with t
+      simp only [Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq, ↓existsAndEq,
+        true_and, exists_eq_right, and_iff_right_iff_imp]
+      intro
+      convert zero_le _
+      exact NNReal.instCanonicallyOrderedAdd
   · rw [← I_apply_swap]
-    convert hB_le a ha'
+    convert hB_le a ha
     ext
     simp
     grind
   · rw [← I_apply_swap, ← I_apply_swap]
     refine I.mono ?_
-    convert hB_subset a ha'
+    convert hB_subset a ha
     ext
     simp
     grind
@@ -245,8 +264,6 @@ lemma todo'' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (
     intro h1 h2
     simpa [h_not_mem ω h1]
 
-instance : MeasurableInf₂ (WithTop ℝ≥0) := sorry
-
 variable (μ) in
 noncomputable
 def step {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
@@ -264,15 +281,14 @@ def step {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
     refine isPavingAnalytic_measurableSet_swap ?_
     rw [← isPavingAnalytic_memProd_measurableSet_Icc_iff]
     refine isPavingAnalytic_of_memSigma_of_imp
-      (p' := memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_ ?_
-    · obtain ⟨B, hB, h_eq⟩ := univ_memSigma_Icc (ι := ℝ≥0)
-      rw [h_eq, Set.prod_iUnion]
-      refine ⟨fun n ↦ {ω | τn ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
-      refine ⟨{ω | τn ω = ⊤}, B n, ?_, ?_, rfl⟩
-      · exact (measurableSet_singleton _).preimage hτn_meas
-      · exact Set.mem_insert_of_mem _ (hB n)
-    · intro x hx
-      exact isPavingAnalytic_of_mem hx
+      (p' := memProd MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
+      fun _ ↦ isPavingAnalytic_of_mem
+    obtain ⟨B, hB, h_eq⟩ := univ_memSigma_Icc (ι := ℝ≥0)
+    rw [h_eq, Set.prod_iUnion]
+    refine ⟨fun n ↦ {ω | τn ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
+    refine ⟨{ω | τn ω = ⊤}, B n, ?_, ?_, rfl⟩
+    · exact (measurableSet_singleton _).preimage hτn_meas
+    · exact Set.mem_insert_of_mem _ (hB n)
   have hA_le : μ {ω | debut A 0 ω ≠ ⊤} ≤ μ {ω | debut s 0 ω ≠ ⊤} := by
     refine measure_mono fun ω ↦ ?_
     simp only [ne_eq, Set.mem_setOf_eq]

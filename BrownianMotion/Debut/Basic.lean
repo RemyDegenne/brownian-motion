@@ -103,6 +103,8 @@ lemma notMem_of_lt_debut (ht : t < debut E n ω) (hnt : n ≤ t) : (t, ω) ∉ E
 
 lemma debut_eq_top_iff : debut E n ω = ⊤ ↔ ∀ t ≥ n, (t, ω) ∉ E := hittingAfter_eq_top_iff
 
+lemma debut_ne_top_iff : debut E n ω ≠ ⊤ ↔ ∃ t ≥ n, (t, ω) ∈ E := by simp [debut_eq_top_iff]
+
 lemma le_debut (ω : Ω) : n ≤ debut E n ω := le_hittingAfter ω
 
 lemma debut_mem_set [WellFoundedLT ι] (h : ∃ t ≥ n, (t, ω) ∈ E) :
