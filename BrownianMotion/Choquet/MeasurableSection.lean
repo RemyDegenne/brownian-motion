@@ -323,14 +323,37 @@ lemma antitone_someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic Measurab
   rw [← Subtype.coe_le_coe]
   exact inf_le_left
 
+lemma someSeq_add_one_eq_of_ne_top {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    {n : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) :
+    (someSeq μ hs (n + 1)).1 ω = (someSeq μ hs n).1 ω := by
+  sorry
+
+lemma someSeq_eq_of_ne_top_of_ge {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    {n m : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) (hm : n ≤ m) :
+    (someSeq μ hs m).1 ω = (someSeq μ hs n).1 ω := by
+  sorry
+
+lemma someSeq_mem {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    {n : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) :
+    (((someSeq μ hs n).1 ω).untopA, ω) ∈ s := by
+  sorry
+
 lemma todo {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       μ {ω | τ ω = ⊤} = μ {ω | debut s 0 ω = ⊤} := by
   refine ⟨fun ω ↦ ⨅ n, (someSeq μ hs n).1 ω, ?_, ?_, ?_⟩
   · exact Measurable.iInf fun n ↦ (someSeq μ hs n).2
   · intro ω hω
+    simp only [iInf_lt_top] at hω
+    simp only
+    obtain ⟨n, hn⟩ := hω
+    have : ⨅ n, (someSeq μ hs n).1 ω = (someSeq μ hs n).1 ω := by
+      have h_eq m (hm : n ≤ m) := someSeq_eq_of_ne_top_of_ge hs hn.ne hm
+      sorry
+    rw [this]
+    exact someSeq_mem hs hn.ne
+  · simp only [iInf_eq_top]
     sorry
-  · sorry
 
 lemma todo_right {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic MeasurableSet s) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
