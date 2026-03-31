@@ -2,7 +2,12 @@
 
 \section{Preliminaries}
 
-TODO: define cadlag.
+\begin{definition}\label{def:cadlag}
+  \uses{def:RightContinuous}
+  \leanok
+  \lean{IsCadlag}
+  A function is cadlag if it is right-continuous and has left limits everywhere.
+\end{definition}
 
 \section{Cadlag modifications of martingales}
 
@@ -80,7 +85,7 @@ TODO
 
 
 \begin{corollary}\label{cor:exists_caldag_modification}
-  \uses{def:elemStochIntegral, def:modification}
+  \uses{def:elemStochIntegral, def:modification, def:cadlag}
 Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
 Then $X$ has a cadlag modification.
 \end{corollary}
@@ -115,7 +120,7 @@ As $X_t$ and $X_0$ are integrable, the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X
 
 
 \begin{lemma}\label{lem:Submartingale.exists_cadlag_modification_of_rightContinuous}
-  \uses{def:modification, def:Submartingale}
+  \uses{def:modification, def:Submartingale, def:cadlag}
 Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale which is right-continuous in probability.
 Then $X$ has a cadlag modification.
 \end{lemma}
@@ -168,7 +173,7 @@ TODO: conclude that $P[X_{t+} \mid \mathcal{F}_t]$ is the limit of $P[X_{t_n} \m
 
 
 \begin{theorem}\label{thm:Submartingale.exists_cadlag_modification_iff_rightContinuous}
-  \uses{def:modification, def:Submartingale, def:rightContinuous}
+  \uses{def:modification, def:Submartingale, def:rightContinuous, def:cadlag}
 Let $X : T \to \Omega \to \mathbb{R}$ be a submartingale with respect to a right-continuous filtration.
 Then $X$ has a cadlag modification if and only if $t \mapsto \mathbb{E}[X_t]$ is right-continuous.
 \end{theorem}
@@ -201,7 +206,7 @@ Therefore $P[Y_{t+}] = P[Y_t]$, which concludes the proof.
 
 
 \begin{theorem}\label{thm:Martingale.exists_cadlag_modification}
-  \uses{def:modification, def:Martingale, def:rightContinuous}
+  \uses{def:modification, def:Martingale, def:rightContinuous, def:cadlag}
 Let $X : T \to \Omega \to \mathbb{R}$ be a martingale with respect to a right-continuous filtration.
 Then $X$ has a cadlag modification.
 \end{theorem}
@@ -262,7 +267,7 @@ TODO: this is partially or entirely redundant, consider removing this section.
 
 
 \begin{lemma}\label{lem:exists_cadlag_mod_of_nonneg_submg}
-  \uses{def:hasUsualConditions, def:Submartingale}
+  \uses{def:hasUsualConditions, def:Submartingale, def:cadlag}
   Let the filtered probability space satisfy the usual conditions.
   Then every nonnegative submartingale $X$ admits a modification that is still a nonnegative submartingale with cadlag trajectories.
 \end{lemma}
@@ -274,7 +279,7 @@ TODO: this is partially or entirely redundant, consider removing this section.
 
 
 \begin{lemma}\label{lem:exists_cadlag_mod_of_local_mg}
-  \uses{def:hasUsualConditions}
+  \uses{def:hasUsualConditions, def:cadlag}
   Let the filtered probability space satisfy the usual conditions.
   Then every local martingale $X$ admits a modification that is still a local martingale with cadlag trajectories.
 \end{lemma}
