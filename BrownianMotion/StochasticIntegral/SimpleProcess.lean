@@ -349,11 +349,13 @@ def integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (X : ι 
   fun i ω ↦ V.value.sum fun p v =>
     B (v ω) (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
+local notation:25 V " ●[" B "]" X => integral B V X
+
 /-- The **linear elementary stochastic integral** where the simple process takes values in
 `E →L[ℝ] F`, as a special case of `integral` with `B` the evaluation map. -/
 abbrev integralEval [SecondCountableTopology (E →L[ℝ] F)] (V : SimpleProcess (E →L[ℝ] F) 𝓕)
     (X : ι → Ω → E) : WithTop ι → Ω → F :=
-  integral (.id ℝ (E →L[ℝ] F)) V X
+  V ●[(.id ℝ (E →L[ℝ] F))] X
 
 -- TODO: possible notation V●X, possibly for more general integrals
 

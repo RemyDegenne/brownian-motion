@@ -30,6 +30,11 @@ lemma Function.RightContinuous.continuous_comp {F : Type*} [TopologicalSpace F] 
     {f : ι → E} (hg : Continuous g) (hf : RightContinuous f) : RightContinuous (g ∘ f) :=
   fun x ↦ (hg.tendsto (f x)).comp (hf x)
 
+@[simp]
+lemma Function.isRightContinuous_const [PartialOrder ι] (c : E) :
+    Function.RightContinuous (fun _ ↦ c : ι → E) :=
+  fun _ ↦ continuousWithinAt_const
+
 /-- A function is cadlag if it is right-continuous and has left limits. -/
 structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.RightContinuous f
