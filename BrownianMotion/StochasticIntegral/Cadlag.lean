@@ -35,6 +35,10 @@ lemma Function.isRightContinuous_const [PartialOrder ι] (c : E) :
     Function.RightContinuous (fun _ ↦ c : ι → E) :=
   fun _ ↦ continuousWithinAt_const
 
+lemma continuousWithinAt_of_tendsto_eq [PartialOrder ι] {f : ι → E} {x : ι}
+    (h : Tendsto f (𝓝[>] x) (𝓝 (f x))) : ContinuousWithinAt f (Set.Ioi x) x := by
+  sorry
+
 /-- A function is cadlag if it is right-continuous and has left limits. -/
 structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.RightContinuous f

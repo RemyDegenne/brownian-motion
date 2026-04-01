@@ -36,6 +36,9 @@ lemma exists_modification_left_right_limit [IsFiniteMeasure μ]
       ∃ s : Set ι, s.Countable ∧ ∀ x ∉ s, ∀ ω, ContinuousWithinAt (Y · ω) (Set.Ioi x) x := by
   sorry
 
+#check ContinuousWithinAt
+#check tendsto_nhds_iff_seq_tendsto
+
 lemma exists_modification_isCadlag [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ t, Integrable (X t) μ)
     (hXRC : ∀ t, ∀ᵐ ω ∂μ, ContinuousWithinAt (X · ω) (Set.Ioi t) t) -- RC in probability
@@ -48,7 +51,13 @@ lemma exists_modification_isCadlag [IsFiniteMeasure μ]
     simp only [ae_iff, not_not, Set.setOf_mem_eq, hSdef, measure_biUnion_null_iff hs]
     intro t ht
     rw [← ae_iff]
-    filter_upwards [hY t, hXRC t] with ω hω
+    filter_upwards [hY t, hXRC t] with ω hω hCX
+    refine continuousWithinAt_of_tendsto_eq <| hω ▸ ?_
+    obtain ⟨l, hl⟩ := hYRL t ω
+    -- I'm a bit confused here: the proof says "since X is right continuous in probability,
+    -- Y (t+) = Y t." But, we only have X (t+) = X t and X t = Y t a.e.
+    -- Chaning the tendsto to sequences doesn't work as the argument would be of the form
+    -- ∀ᵐ ω, ∀ seq,... while we want ∀ seq, ∀ᵐ ω,... and the latter is uncountable.
     sorry
 
   refine ⟨fun t ω ↦ if ω ∈ S then 0 else Y t ω,
