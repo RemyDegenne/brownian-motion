@@ -18,6 +18,7 @@ noncomputable section
 namespace ProbabilityTheory
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTopology ι]
+  [MeasurableSpace ι] [OpensMeasurableSpace ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
   {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 -- Is this the correct time index?
@@ -38,8 +39,8 @@ lemma exists_modification_left_right_limit [IsFiniteMeasure μ]
 and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for all t,
 then it admits a cadlag modification. -/
 lemma exists_modification_isCadlag [IsFiniteMeasure μ]
-    (hι₁ : ∀ t : ι, (𝓝[>] t).IsCountablyGenerated) (hι₂ : ∀ t : ι, (𝓝[>] t).NeBot)
-    -- Any better typeclasses?
+    [DenselyOrdered ι] [NoMaxOrder ι] -- (hι₂ : ∀ t : ι, (𝓝[>] t).NeBot) Alternative
+    (hι₁ : ∀ t : ι, (𝓝[>] t).IsCountablyGenerated) -- Any better typeclasses?
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ t, Integrable (X t) μ)
     (hXRC : ∀ t, TendstoInMeasure μ X (𝓝[>] t) (X t))
     (hXbdd : ∀ t : ι, ∃ C, ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C) :
@@ -55,7 +56,8 @@ lemma exists_modification_isCadlag [IsFiniteMeasure μ]
       have : ∀ᵐ ω ∂μ, Tendsto (fun x ↦ Y x ω) (𝓝[>] t) (𝓝 (X t ω)) := by
         filter_upwards [this] with ω hω using by simp [← hω, hl _]
       filter_upwards [this, hY t] with ω hω₁ hω₂ using by rwa [ContinuousWithinAt, hω₂]
-    obtain ⟨_, hseq⟩ := @exists_seq_tendsto _ (𝓝[>] t) (hι₁ t) (hι₂ t)
+    letI := nhdsWithin_Ioi_isMeasurablyGenerated (a := t) (b := t)
+    obtain ⟨_, hseq⟩ := exists_seq_tendsto (𝓝[>] t)
     exact tendstoInMeasure_ae_unique ((tendstoInMeasure_of_tendsto_ae
       (fun _ ↦ (hXint _).1.congr (hY _).symm)
       (ae_of_all _ <| fun ω ↦ (hl ω).comp hseq)).congr (fun _ ↦ hY _) (by rfl))
