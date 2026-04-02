@@ -45,40 +45,32 @@ lemma exists_modification_isCadlag [IsFiniteMeasure μ]
   set S := ⋃ t ∈ s, {ω | ¬ ContinuousWithinAt (Y · ω) (Set.Ioi t) t} with hSdef
   have hS : ∀ᵐ ω ∂μ, ω ∉ S := by
     simp only [ae_iff, not_not, Set.setOf_mem_eq, hSdef, measure_biUnion_null_iff hs]
-    intro t ht
-    rw [← ae_iff]
+    refine fun t ht ↦ ae_iff.1 ?_
     choose l hl using hYRL t
     suffices l =ᵐ[μ] X t by
       have : ∀ᵐ ω ∂μ, Tendsto (fun x ↦ Y x ω) (𝓝[>] t) (𝓝 (X t ω)) := by
-        filter_upwards [this] with ω hω
-        simp [← hω, hl _]
-      filter_upwards [this, hY t] with ω hω₁ hω₂
-      rwa [ContinuousWithinAt, hω₂]
+        filter_upwards [this] with ω hω using by simp [← hω, hl _]
+      filter_upwards [this, hY t] with ω hω₁ hω₂ using by rwa [ContinuousWithinAt, hω₂]
     obtain ⟨_, hseq⟩ := hι t
     exact tendstoInMeasure_ae_unique ((tendstoInMeasure_of_tendsto_ae
       (fun _ ↦ (hXint _).1.congr (hY _).symm)
       (ae_of_all _ <| fun ω ↦ (hl ω).comp hseq)).congr (fun _ ↦ hY _) (by rfl))
       ((hXRC t).comp hseq)
   set Z := fun t ω ↦ if ω ∈ S then 0 else Y t ω
-  have hZ : ∀ t, Z t =ᵐ[μ] X t := by
-    refine fun t ↦ EventuallyEq.trans ?_ (hY t)
-    filter_upwards [hS] with ω hω
-    simp [Z, if_neg hω]
-  refine ⟨Z, hZ, fun t ↦ (hXint t).congr <| (hZ _).symm, fun ω ↦ ⟨?_, ?_⟩⟩
-  · by_cases hω : ω ∈ S
-    · simp_rw [Z, if_pos hω]
-      exact Function.isRightContinuous_const _
-    · simp_rw [Z, if_neg hω]
-      intro t
-      simp only [hSdef, Set.mem_iUnion, Set.mem_setOf_eq, exists_prop, not_exists,
-        not_and, not_not] at hω
-      by_cases ht : t ∈ s
-      · exact hω _ ht
-      · exact hYCont t ht ω
-  · intros x
-    by_cases hω : ω ∈ S
-    · exact ⟨0, by simp [Z, if_pos hω, tendsto_const_nhds]⟩
-    · simp [Z, if_neg hω, hYLL x ω]
+  have hZ : ∀ t, Z t =ᵐ[μ] X t :=
+    fun t ↦ EventuallyEq.trans
+      (by filter_upwards [hS] with ω hω using by simp [Z, if_neg hω]) (hY t)
+  refine ⟨Z, hZ, fun t ↦ (hXint t).congr <| (hZ _).symm,
+    fun ω ↦ ⟨?_, fun x ↦ by_cases (p := ω ∈ S)
+      (fun hω ↦ ⟨0, by simp [Z, if_pos hω, tendsto_const_nhds]⟩)
+      (fun hω ↦ by simp [Z, if_neg hω, hYLL x ω])⟩⟩
+  by_cases hω : ω ∈ S
+  · simpa [Z, if_pos hω] using Function.isRightContinuous_const _
+  · simp_rw [Z, if_neg hω]
+    intro t
+    simp only [hSdef, Set.mem_iUnion, Set.mem_setOf_eq, exists_prop, not_exists,
+      not_and, not_not] at hω
+    exact by_cases (p := t ∈ s) (fun ht ↦ hω _ ht) <| fun ht ↦ hYCont t ht ω
 
 
 end ProbabilityTheory
