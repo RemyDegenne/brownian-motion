@@ -34,8 +34,12 @@ lemma exists_modification_left_right_limit [IsFiniteMeasure μ]
       ∃ s : Set ι, s.Countable ∧ ∀ x ∉ s, ∀ ω, ContinuousWithinAt (Y · ω) (Set.Ioi x) x := by
   sorry
 
+/-- If `X` is an adapted integrable stochastic process which is right continuous in probability,
+and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for all t,
+then it admits a cadlag modification. -/
 lemma exists_modification_isCadlag [IsFiniteMeasure μ]
-    (hι : ∀ t, ∃ seq : ℕ → ι, Tendsto seq atTop (𝓝[>] t))
+    (hι₁ : ∀ t : ι, (𝓝[>] t).IsCountablyGenerated) (hι₂ : ∀ t : ι, (𝓝[>] t).NeBot)
+    -- Any better typeclasses?
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ t, Integrable (X t) μ)
     (hXRC : ∀ t, TendstoInMeasure μ X (𝓝[>] t) (X t))
     (hXbdd : ∀ t : ι, ∃ C, ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C) :
@@ -51,7 +55,7 @@ lemma exists_modification_isCadlag [IsFiniteMeasure μ]
       have : ∀ᵐ ω ∂μ, Tendsto (fun x ↦ Y x ω) (𝓝[>] t) (𝓝 (X t ω)) := by
         filter_upwards [this] with ω hω using by simp [← hω, hl _]
       filter_upwards [this, hY t] with ω hω₁ hω₂ using by rwa [ContinuousWithinAt, hω₂]
-    obtain ⟨_, hseq⟩ := hι t
+    obtain ⟨_, hseq⟩ := @exists_seq_tendsto _ (𝓝[>] t) (hι₁ t) (hι₂ t)
     exact tendstoInMeasure_ae_unique ((tendstoInMeasure_of_tendsto_ae
       (fun _ ↦ (hXint _).1.congr (hY _).symm)
       (ae_of_all _ <| fun ω ↦ (hl ω).comp hseq)).congr (fun _ ↦ hY _) (by rfl))
@@ -71,6 +75,5 @@ lemma exists_modification_isCadlag [IsFiniteMeasure μ]
     simp only [hSdef, Set.mem_iUnion, Set.mem_setOf_eq, exists_prop, not_exists,
       not_and, not_not] at hω
     exact by_cases (p := t ∈ s) (fun ht ↦ hω _ ht) <| fun ht ↦ hYCont t ht ω
-
 
 end ProbabilityTheory
