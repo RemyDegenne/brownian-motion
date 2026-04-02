@@ -26,6 +26,9 @@ variable [Approximable 𝓕 μ]
 
 local notation:25 V " ● " X => SimpleProcess.integral (ContinuousLinearMap.mul ℝ ℝ) V X
 
+/-- If `X` is an adapted integrable stochastic process such that the sets
+`{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t, then it has a modification `Y`
+which has left and right limits everywhere and is right continuous on a cofinite set `s : Set ι`. -/
 lemma exists_modification_left_right_limit [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ t, Integrable (X t) μ)
     (hXbdd : ∀ t : ι, ∃ C, ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C) :
@@ -36,7 +39,7 @@ lemma exists_modification_left_right_limit [IsFiniteMeasure μ]
   sorry
 
 /-- If `X` is an adapted integrable stochastic process which is right continuous in probability,
-and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for all t,
+and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t,
 then it admits a cadlag modification. -/
 lemma exists_modification_isCadlag [IsFiniteMeasure μ]
     [DenselyOrdered ι] [NoMaxOrder ι] -- (hι₂ : ∀ t : ι, (𝓝[>] t).NeBot) Alternative
