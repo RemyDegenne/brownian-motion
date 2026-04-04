@@ -483,6 +483,10 @@ noncomputable def leastGT {ι Ω β : Type*} [Preorder ι] [OrderBot ι] [InfSet
     (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
   hittingAfter f (Set.Ioi r) ⊥
 
+lemma leastGT_lt_iff {ι β : Type*} [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [Preorder β]
+    (X : ι → Ω → β) (a : β) (t : ι) (ω : Ω) :
+    leastGT X a ω < t ↔ ∃ s < t, a < X s ω := by simp [leastGT, hittingAfter_lt_iff']
+
 lemma isStoppingTime_leastGT [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
     {β : Type*} [LinearOrder β] [TopologicalSpace β] [ClosedIicTopology β]

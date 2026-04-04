@@ -442,6 +442,7 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
 A stochastic process $(X_t)$ is of class DL if it is progressively measurable and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
+
 \begin{lemma}\label{lem:classDLOfClassD}
   \uses{def:classD, def:classDL}
   \leanok
@@ -454,6 +455,63 @@ A stochastic process of class D is of class DL.
   \leanok
 This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 \end{proof}
+
+
+\begin{lemma}\label{lem:ClassD.uniformIntegrable}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.ClassD.uniformIntegrable'}
+A stochastic process of class D is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableComp}
+Use the Class D property with the constant stopping times $\tau_n = n$ for all $n$ and apply Lemma~\ref{lem:uniformIntegrableComp}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:classDL_iff_norm}
+  \uses{def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.classDL_iff_norm}
+A progressively measurable process is of class DL iff its norm is of class DL.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classDL, lem:uniformIntegrableIffNorm}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:classD_of_uniformIntegrable_bounded_stoppingTime}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.classD_of_uniformIntegrable_bounded_stoppingTime}
+If a stochastic process is progressively measurable and the set
+\begin{align*}
+  \{X_\tau \mid \tau \text{ is a stopping time and } \exists t, \forall \omega, \tau(\omega) \le t\}
+\end{align*}
+is uniformly integrable, then the process is of class D.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableComp}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:classD_iff_norm}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.classD_iff_norm}
+A progressively measurable process is of class D iff its norm is of class D.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableIffNorm, lem:classD_of_uniformIntegrable_bounded_stoppingTime}
+
+\end{proof}
+
 
 \begin{lemma}\label{lem:Submartingale.classDL}
   \uses{def:Submartingale, def:classDL, def:RightContinuous}
@@ -478,10 +536,10 @@ A nonnegative right-continuous submartingale is of class D if and only if it is 
 
 \begin{proof}
   \leanok
-  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp}
+  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp, lem:ClassD.uniformIntegrable}
 Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
 
-Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
+Conversely, if $X$ is of class D, then it is uniformly integrable by Lemma~\ref{lem:ClassD.uniformIntegrable}.
 \end{proof}
 
 
@@ -499,15 +557,16 @@ Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_conve
 
 
 \begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
-  \uses{def:Martingale, def:classD, def:IsCadlag}
+  \uses{def:Martingale, def:classD, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.Martingale.classD_iff_uniformIntegrable}
-A càdlàg martingale is of class D if and only if it is uniformly integrable.
+A right-continuous martingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm}
-Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
+  \uses{lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm, lem:classD_iff_norm, cor:Martingale.submartingale_norm}
+Applying Lemma~\ref{lem:classD_iff_norm} and Lemma~\ref{lem:uniformIntegrableIffNorm}, it suffices to show the result for the norm of the martingale.
+That norm is a nonnegative right-continuous submartingale by Lemma~\ref{cor:Martingale.submartingale_norm} so this follows from Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
 \end{proof}
 
 
@@ -592,24 +651,16 @@ This proves that $X$ is of class DL.
 \end{proof}
 
 
-\begin{lemma}\label{lem:HasStronglyMeasurableSup_of_isCadlag}
-  \uses{def:HasStronglyMeasurableSup, def:isCadlag}
+\begin{lemma}\label{lem:ProgMeasurable.hasStronglyMeasurableSup}
+  \uses{def:ProgMeasurable}
   \leanok
-  \lean{ProbabilityTheory.HasStronglyMeasurableSupProcess.of_stronglyMeasurable_isCadlag}
-  A process that is cadlag and jointly strongly measurable has a supremum that is jointly strongly measurable.
+  \lean{MeasureTheory.ProgMeasurable.hasStronglyMeasurableSupProcess}
+  If the filtration satisfies the usual conditions, a progressively measurable process has a supremum that is jointly strongly measurable.
 \end{lemma}
 
-\begin{proof}
- Let $Y_t(\omega) = \|X_t(\omega)\|$. Since $X$ is jointly strongly measurable and the norm function is continuous, the process $Y$ is jointly strongly measurable.
+\begin{proof}\leanok
+  \uses{lem:isStoppingTime_leastGT}
 
-  Since the time domain $T$ is second-countable (e.g., $\mathbb{R}_{\ge 0}$), there exists a countable dense subset $D \subset T$ (e.g., $\mathbb{Q} \cap T$).
-  Because the paths of $X$ are càdlàg, they are right-continuous. For any right-continuous function, the supremum over a compact interval $[0, t]$ is equal to the supremum over the dense subset within that interval union the endpoint $t$.
-
-  Thus, we have the identity:
-  \[ \sup_{s \le t} Y_s(\omega) = \max \left( Y_t(\omega), \sup_{q \in D, q \le t} Y_q(\omega) \right). \]
-  We can rewrite the supremum over the dense set using indicator functions to separate the variables:
-  \[ \sup_{q \in D, q \le t} Y_q(\omega) = \sup_{q \in D} \left( Y_q(\omega) \cdot \mathbb{I}_{q \le t} \right). \]
-  The term $Y_q(\omega)$ is measurable (constant in time), and the indicator $\mathbb{I}_{q \le t}$ is jointly measurable. Since $D$ is countable, the supremum determines a measurable function. As the maximum of two measurable functions is measurable, the result follows.
 \end{proof}
 
 \begin{lemma}\label{lem:HasLocallyIntegrableSup.locally_classDL}
@@ -717,7 +768,7 @@ If $X$ is a càdlàg process of class DL, then it has locally integrable supremu
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:isLocalizingSequence_leastGE, lem:sup_stoppedProcess_le, lem:HasStronglyMeasurableSup_of_isCadlag}
+  \uses{lem:isLocalizingSequence_leastGE, lem:sup_stoppedProcess_le,lem:ProgMeasurable.hasStronglyMeasurableSup}
 Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_leastGE}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
 \end{proof}
 

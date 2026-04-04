@@ -5,11 +5,31 @@ Some of the proofs are taken from \cite{pascucci2024}.
 
 
 
-\section{Total variation and Lebesgue-Stieltjes integral}
+\section{Measure associated with a process}
 
-TODO: in Mathlib, we can integrate with respect to the measure given by a right-continuous monotone function (\texttt{StieltjesFunction.measure}). This will be useful to integrate against the quadratic variation of a local martingale.
-However, we will also want to integrate with respect to a signed measure given by a càdlàg function with finite variation.
-We need to investigate what's already in Mathlib. See \texttt{Mathlib.Topology.EMetricSpace.BoundedVariation}.
+\subsection{Monotone processes}
+
+\begin{definition}\label{def:StieltjesFunction.measure}
+  \mathlibok
+  \lean{StieltjesFunction.measure}
+Let $f : T \to \mathbb{R}$ be a right-continuous monotone function on a conditionally complete linear order $T$.
+We denote by $d_+ f$ the measure on $T$ defined by $d_+ f((a, b]) = f(b) - f(a)$ for all $a, b \in T$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:StieltjesFunction.measurable_measure}
+  \uses{def:StieltjesFunction.measure}
+Let $X : T \to \Omega \to \mathbb{R}$ be a right-continuous adapted process which is monotone in the time variable.
+Then the measure $d_+ X_\omega$ is measurable in $\omega$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+\subsection{Bounded variation processes}
 
 
 \begin{definition}\label{def:eVariationOn}
@@ -36,61 +56,19 @@ A function $f : T \to E$ is of locally bounded variation on a set $s$ if for eve
 \end{definition}
 
 
-% \begin{lemma}\label{lem:MonotoneOn.locallyBoundedVariationOn}
-%   \uses{def:LocallyBoundedVariationOn}
-%   \mathlibok
-%   \lean{MonotoneOn.locallyBoundedVariationOn}
-% If $f : T \to ℝ$ is monotone on a set $s$, then it is of locally bounded variation on $s$~.
-% \end{lemma}
-
-% \begin{proof}\leanok
-
-% \end{proof}
-
-
-\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
-  \uses{def:LocallyBoundedVariationOn}
+\begin{definition}\label{def:BoundedVariationOn.vectorMeasure}
+  \uses{def:BoundedVariationOn}
   \mathlibok
-  \lean{LocallyBoundedVariationOn.exists_monotoneOn_sub_monotoneOn}
-If a real-valued function has bounded variation on a set, then it is a difference of monotone functions there.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}
-  \uses{def:LocallyBoundedVariationOn}
-If a real-valued right-continuous function has bounded variation on a set, then it is a difference of right-continuous monotone functions there.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{definition}\label{def:StieltjesFunction.measure}
-  \mathlibok
-  \lean{StieltjesFunction.measure}
-Let $f : T \to ℝ$ be a cadlag monotone function on a conditionally complete linear order $T$.
-We denote by $df$ the measure on $T$ defined by $df((a, b]) = f(b) - f(a)$ for all $a, b \in T$~.
-
-TODO: in Mathlib this is only for $T = \mathbb{R}$ for now, but will be generalized.
+  %\lean{BoundedVariationOn.vectorMeasure}
+Let $f : T \to E$ be a function of bounded variation on a suitable order $T$, with $E$ a complete normed additive group.
+Then there exists a signed measure $df$ on $T$ defined by $df((a, b]) = f(b^+) - f(a^+)$~.
 \end{definition}
 
 
-\begin{definition}\label{def:LocallyBoundedVariationOn.signedMeasure}
-  \uses{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn, def:StieltjesFunction.measure}
-Let $f : T \to E$ be a cadlag function of locally bounded variation on a conditionally complete linear order $T$ (TODO: and probably more assumptions?).
-Then by Lemma~\ref{lem:LocallyBoundedVariationOn.exists_cadlag_monotoneOn_sub_monotoneOn}, $f$ can be written as a difference of two cadlag monotone functions, say $f = f_+ - f_-$~.
-We denote by $df$ the signed measure on $T$ associated to $f$ defined by $df = df_+ - df_-$, in which $df_+$ and $df_-$ are given by Definition~\ref{def:StieltjesFunction.measure}.
-\end{definition}
-
-
-\begin{lemma}\label{lem:totalVariation_signedMeasure}
-  \uses{def:LocallyBoundedVariationOn.signedMeasure}
-$\vert df \vert = df_+ + df_-$~.
+\begin{lemma}\label{lem:BoundedVariationOn.measurable_vectorMeasure}
+  \uses{def:BoundedVariationOn.vectorMeasure}
+Let $X : T \to \Omega \to E$ be an adapted process which is of bounded variation in the time variable.
+Then the measure $dX_\omega$ is measurable in $\omega$~.
 \end{lemma}
 
 \begin{proof}
@@ -99,14 +77,44 @@ $\vert df \vert = df_+ + df_-$~.
 
 
 \begin{lemma}\label{lem:eVariationOn_eq_totalVariation}
-  \uses{def:LocallyBoundedVariationOn.signedMeasure}
-$V_f([0, t]) = \vert df \vert([0, t])$~.
+  \uses{def:BoundedVariationOn.vectorMeasure, def:eVariationOn}
+Denoting by $\vert df \vert$ the total variation of the measure $df$~,
+$V_f([a, b]) = \vert df \vert([a, b])$~.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:totalVariation_signedMeasure}
 
 \end{proof}
+
+
+\begin{lemma}\label{lem:BoundedVariationOn.vectorMeasure_of_monotone}
+  \uses{def:BoundedVariationOn.vectorMeasure, def:StieltjesFunction.measure}
+If $f : T \to \mathbb{R}$ is a right-continuous monotone function, then the measure $df$ coincides with the measure $d_+ f$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+
+\subsection{Integrable processes}
+
+Integrable -> content on the ring of sets generated by predictable rectangles.
+Can be extended to a measure on the predictable $\sigma$-algebra if the process is of class DL and ... (see Metivier, Semimartingales, 13.3).
+
+Let $X : T \to \Omega \to E$ be a stochastic process such that $X_t$ is integrable for all $t$~.
+For $s < t$ and $A \in \mathcal{F}_s$, let
+\begin{align*}
+  \mu_X((s, t] \times A) = \mathbb{E}[\mathbf{1}_A (X_t - X_s)]
+  \: .
+\end{align*}
+Set $\mu_X(\{0\} \times A) = 0$~.
+Then $\mu_X$ is a content on the predictable rectangles, which can be extended to the ring of sets it generates.
+
+TODO: lemmas stating that those 3 coincide whenever they can.
+
 
 
 \section{Square integrable martingales}
@@ -124,11 +132,12 @@ We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is 
 
 \begin{lemma}\label{lem:IsSquareIntegrable.module}
   \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.add, ProbabilityTheory.IsSquareIntegrable.smul}
 If $M$ and $N$ are square integrable martingales and $a \in \mathbb{R}$, then $M + N$ and $a M$ are square integrable martingales.
 \end{lemma}
 
 \begin{proof}
-  \leanok
 \end{proof}
 
 
@@ -172,6 +181,8 @@ Thus, for $s \le t$~,
 
 \begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.ae_tendsto_limitProcess, ProbabilityTheory.IsSquareIntegrable.tendsto_eLpNorm_two_limitProcess}
 For $M$ a square integrable martingale, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
 \end{lemma}
 
@@ -556,7 +567,7 @@ If we also vary $t$, we get a stochastic process.
 The predictable $\sigma$-algebra on $T \times \Omega$ is a sub-$\sigma$-algebra of the product $\sigma$-algebra $\mathcal{B}(T) \otimes \mathcal{F}$~.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 

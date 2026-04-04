@@ -35,6 +35,21 @@ structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.RightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [PartialOrder ι]
+    {f g : ι → E} (hf : IsCadlag f)
+    (hg : IsCadlag g) : IsCadlag (f + g) := by
+  refine ⟨fun i ↦ ContinuousWithinAt.add (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
+  obtain ⟨r, hr⟩ := hf.2 i
+  obtain ⟨s, hs⟩ := hg.2 i
+  exact ⟨r + s, hr.add hs⟩
+
+lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [ContinuousSMul ℝ E]
+    [PartialOrder ι] {f : ι → E} (hf : IsCadlag f) (r : ℝ) :
+    IsCadlag (fun i ↦ r • f i) := by
+  refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.2 i
+  exact ⟨r • l, hl.const_smul r⟩
+
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
     {f : ι → E} (hf : IsCadlag f) (x : ι) : ∃ t ∈ 𝓝 x, IsBounded (f '' t) := by
