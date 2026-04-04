@@ -819,9 +819,28 @@ lemma _root_.MeasurableSet.isPavingAnalytic_Icc_real {ι : Type*} {mι : Measura
     [OrderTopology ι] [BorelSpace ι]
     {s : Set ι} (hs : MeasurableSet s) :
     IsPavingAnalytic (insert ∅ {t | ∃ a b, Set.Icc a b = t}) s := by
-  by_cases h_lt : ∃ l u : ι, l < u
+  by_cases! h_lt : ∃ l u : ι, l < u
   swap
-  · sorry
+  · rcases isEmpty_or_nonempty ι with h_empty | h_nonempty
+    · simp only [IsEmpty.exists_iff, Set.setOf_false, insert_empty_eq]
+      refine isPavingAnalytic_of_mem ?_
+      simp [Set.eq_empty_of_isEmpty s]
+    · obtain ⟨x⟩ := h_nonempty
+      have : Subsingleton ι := ⟨fun y z ↦ le_antisymm (h_lt z y) (h_lt y z)⟩
+      have : {t | ∃ a b, Set.Icc a b = t} = {{x}} := by
+        refine subset_antisymm ?_ ?_
+        · rintro _ ⟨l, u, rfl⟩
+          simp [Subsingleton.elim _ x]
+        · intro s
+          simp only [Set.mem_singleton_iff, Set.mem_setOf_eq]
+          rintro rfl
+          exact ⟨x, x, by simp⟩
+      simp only [this]
+      refine isPavingAnalytic_of_mem ?_
+      simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
+      by_cases hxs : x ∈ s
+      · right; ext; simp [hxs, Subsingleton.elim _ x]
+      · left; ext; simp [hxs, Subsingleton.elim _ x]
   obtain ⟨l₀, u₀, hlu₀⟩ := h_lt
   have : Nonempty ι := ⟨l₀⟩
   have hmι : mι = borel ι := BorelSpace.measurable_eq
