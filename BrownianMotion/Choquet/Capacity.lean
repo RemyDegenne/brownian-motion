@@ -15,6 +15,34 @@ open scoped ENNReal NNReal Topology
 variable {𝓧 𝓚 : Type*} {x y : 𝓧} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)}
   {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
+lemma MeasurableSet.of_mem_countableInfClosure {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
+    (hs : s ∈ countableInfClosure MeasurableSet) :
+    MeasurableSet s := by
+  obtain ⟨A, hA, rfl⟩ := hs
+  exact MeasurableSet.iInter hA
+
+lemma _root_.MeasurableSet.of_mem_countableInfClosure' {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set 𝓧} {p : Set (Set 𝓧)} (hs : s ∈ countableInfClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :
+    MeasurableSet s := by
+  obtain ⟨t, ht, rfl⟩ := hs
+  exact MeasurableSet.iInter fun n ↦ hp (t n) (ht n)
+
+lemma _root_.MeasurableSet.of_mem_supClosure {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
+    {p : Set (Set 𝓧)} (hs : s ∈ supClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :
+    MeasurableSet s := by
+  rw [mem_supClosure_set_iff'] at hs
+  obtain ⟨t, _, A, ht, h_eq⟩ := hs
+  rw [h_eq]
+  exact MeasurableSet.biUnion (Finset.countable_toSet t) fun n hn ↦ hp (A n) (ht n hn)
+
+lemma _root_.MeasurableSet.of_mem_image2_prod {Ω 𝓧 : Type*}
+    {mΩ : MeasurableSpace Ω} {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set (𝓧 × Ω)} {p : Set (Set 𝓧)} {q : Set (Set Ω)} (hs : s ∈ Set.image2 (· ×ˢ ·) p q)
+    (hp : ∀ t ∈ p, MeasurableSet t) (hq : ∀ t ∈ q, MeasurableSet t) :
+    MeasurableSet s := by
+  obtain ⟨A, hA, B, hB, rfl⟩ := hs
+  exact MeasurableSet.prod (hp A hA) (hq B hB)
+
 namespace MeasureTheory
 
 /-- A capacity is a set function that is monotone, continuous from above for decreasing sequences
@@ -220,12 +248,6 @@ theorem IsPavingAnalytic.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClo
   obtain ⟨𝓚, h𝓚, hs𝓚⟩ := hs
   exact hs𝓚.isCapacitable hp_empty hp_inter hp_union
 
-lemma mem_countableInfClosure_measurableSet {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
-    (hs : s ∈ countableInfClosure MeasurableSet) :
-    MeasurableSet s := by
-  obtain ⟨A, hA, rfl⟩ := hs
-  exact MeasurableSet.iInter hA
-
 lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ]
     (s : Set 𝓧) :
     IsCapacitable μ.capacity s ↔ NullMeasurableSet s μ := by
@@ -240,7 +262,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       have (n : ℕ) := hs ((μ.capacity s) * (1 - (n + 1 : ℝ≥0∞)⁻¹)) (this n)
       choose f hf using this
       have hsub : ⋃ i, f i ⊆ s := Set.iUnion_subset fun i => (hf i).2.1
-      have hm := MeasurableSet.iUnion fun i ↦ mem_countableInfClosure_measurableSet (hf i).1
+      have hm := MeasurableSet.iUnion fun i ↦ .of_mem_countableInfClosure (hf i).1
       refine ⟨⋃ i, f i, hm, ae_eq_set.2 ⟨?_, ?_⟩⟩
       · rw [measure_diff hsub hm.nullMeasurableSet (by finiteness)]
         suffices μ (⋃ i, f i) = μ s from by simp_all

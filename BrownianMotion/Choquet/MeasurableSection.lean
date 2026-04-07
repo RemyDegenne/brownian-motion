@@ -85,46 +85,6 @@ lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : MeasurableSet s) (u :
   convert OrderTopology.to_orderClosedTopology
   exact NNReal.instOrderTopology
 
-lemma _root_.MeasurableSet.memDelta {s : Set Ω} {p : Set (Set Ω)} (hs : s ∈ countableInfClosure p)
-    (hp : ∀ t ∈ p, MeasurableSet t) :
-    MeasurableSet s := by
-  obtain ⟨t, ht, rfl⟩ := hs
-  exact MeasurableSet.iInter fun n ↦ hp (t n) (ht n)
-
-lemma _root_.MeasurableSet.memFiniteUnion {s : Set Ω} {p : Set (Set Ω)} (hs : s ∈ supClosure p)
-    (hp : ∀ t ∈ p, MeasurableSet t) :
-    MeasurableSet s := by
-  rw [mem_supClosure_set_iff'] at hs
-  obtain ⟨t, _, A, ht, h_eq⟩ := hs
-  rw [h_eq]
-  exact MeasurableSet.biUnion (Finset.countable_toSet t) fun n hn ↦ hp (A n) (ht n hn)
-
-lemma _root_.MeasurableSet.memProd {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
-    {p : Set (Set 𝓧)} {q : Set (Set Ω)} (hs : s ∈ Set.image2 (· ×ˢ ·) p q)
-    (hp : ∀ t ∈ p, MeasurableSet t) (hq : ∀ t ∈ q, MeasurableSet t) :
-    MeasurableSet s := by
-  obtain ⟨A, hA, B, hB, rfl⟩ := hs
-  exact MeasurableSet.prod (hp A hA) (hq B hB)
-
-lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [OrderTopology ι] [FirstCountableTopology ι]
-    {s : Set (ι × 𝓧)} {ω : 𝓧} {n : ι}
-    (hs : IsClosed {t | n ≤ t ∧ (t, ω) ∈ s}) (hω : debut s n ω ≠ ⊤) :
-    ((debut s n ω).untopA, ω) ∈ s := by
-  obtain ⟨t₀, ht₀⟩ : ∃ t ≥ n, (t, ω) ∈ s := debut_ne_top_iff.mp hω
-  obtain ⟨u, _, hu_tendso, hu_mem⟩ : ∃ u : ℕ → ι, Antitone u ∧
-      Tendsto u atTop (𝓝 ((debut s n ω).untopA)) ∧ (∀ i, n ≤ u i ∧ (u i, ω) ∈ s) := by
-    simp only [debut_eq_ite, ge_iff_le]
-    rw [if_pos (debut_ne_top_iff.mp hω)]
-    have : ((sInf {t : ι |  n ≤ t ∧ (t, ω) ∈ s} : ι) : WithTop ι).untopA =
-        sInf {t | n ≤ t ∧ (t, ω) ∈ s} := by
-      rw [WithTop.untopA_eq_untop WithTop.coe_ne_top, WithTop.untop_coe]
-    rw [this]
-    exact exists_seq_tendsto_sInf (S := {t | n ≤ t ∧ (t, ω) ∈ s}) (debut_ne_top_iff.mp hω)
-      ⟨n, mem_lowerBounds.mpr (by grind)⟩
-  suffices (debut s n ω).untopA ∈ {t | n ≤ t ∧ (t, ω) ∈ s} from this.2
-  exact IsClosed.mem_of_tendsto (f := u) hs hu_tendso (.of_forall hu_mem)
-
 lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
@@ -191,14 +151,12 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
     rw [Set.image_swap_eq_preimage_swap]
     refine MeasurableSet.preimage ?_ (by fun_prop)
     specialize hB_mem a ha
-    refine MeasurableSet.memDelta hB_mem fun s hs ↦ ?_
-    refine MeasurableSet.memFiniteUnion hs fun s hs ↦ ?_
-    refine MeasurableSet.memProd hs (fun _ ht ↦ ht) (fun t ht ↦ ?_)
+    refine MeasurableSet.of_mem_countableInfClosure' hB_mem fun s hs ↦ ?_
+    refine MeasurableSet.of_mem_supClosure hs fun s hs ↦ ?_
+    refine MeasurableSet.of_mem_image2_prod hs (fun _ ht ↦ ht) (fun t ht ↦ ?_)
     cases ht with
     | inl ht => simp [ht]
-    | inr ht =>
-      obtain ⟨a, b, rfl⟩ := ht
-      exact measurableSet_Icc
+    | inr ht => obtain ⟨a, b, rfl⟩ := ht; exact measurableSet_Icc
   · intro ω hω
     suffices ((debut (Prod.swap '' B a ha) 0 ω).untopA, ω) ∈ Prod.swap '' B a ha by grind
     convert debut_mem_of_isClosed ?_ hω.ne
@@ -209,18 +167,11 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
       intro
       convert zero_le _
       exact NNReal.instCanonicallyOrderedAdd
-  · rw [← I_apply_swap]
-    convert hB_le a ha
-    ext
-    simp
-    grind
+  · grind
   · rw [← I_apply_swap, ← I_apply_swap]
-    refine I.mono ?_
-    convert hB_subset a ha
-    ext
-    simp
-    grind
+    exact I.mono fun _ ↦ by simp; grind
 
+-- same as the previous lemma but with a measurable section instead of a null-measurable one
 lemma todo'' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧

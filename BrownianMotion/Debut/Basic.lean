@@ -150,6 +150,25 @@ lemma debut_mono (E : Set (ι × Ω)) (ω : Ω) : Monotone (debut E · ω) := hi
 
 end Inequalities
 
+lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [ConditionallyCompleteLinearOrder ι]
+    [OrderTopology ι] [FirstCountableTopology ι]
+    {s : Set (ι × 𝓧)} {ω : 𝓧} {n : ι}
+    (hs : IsClosed {t | n ≤ t ∧ (t, ω) ∈ s}) (hω : debut s n ω ≠ ⊤) :
+    ((debut s n ω).untopA, ω) ∈ s := by
+  obtain ⟨t₀, ht₀⟩ : ∃ t ≥ n, (t, ω) ∈ s := debut_ne_top_iff.mp hω
+  obtain ⟨u, _, hu_tendso, hu_mem⟩ : ∃ u : ℕ → ι, Antitone u ∧
+      Tendsto u atTop (𝓝 ((debut s n ω).untopA)) ∧ (∀ i, n ≤ u i ∧ (u i, ω) ∈ s) := by
+    simp only [debut_eq_ite, ge_iff_le]
+    rw [if_pos (debut_ne_top_iff.mp hω)]
+    have : ((sInf {t : ι |  n ≤ t ∧ (t, ω) ∈ s} : ι) : WithTop ι).untopA =
+        sInf {t | n ≤ t ∧ (t, ω) ∈ s} := by
+      rw [WithTop.untopA_eq_untop WithTop.coe_ne_top, WithTop.untop_coe]
+    rw [this]
+    exact exists_seq_tendsto_sInf (S := {t | n ≤ t ∧ (t, ω) ∈ s}) (debut_ne_top_iff.mp hω)
+      ⟨n, mem_lowerBounds.mpr (by grind)⟩
+  suffices (debut s n ω).untopA ∈ {t | n ≤ t ∧ (t, ω) ∈ s} from this.2
+  exact IsClosed.mem_of_tendsto (f := u) hs hu_tendso (.of_forall hu_mem)
+
 /-- A set `E : Set ι × Ω` is progressively measurable with respect to a filtration `𝓕` if the
 indicator function of `E` is a progressively measurable process with respect to `𝓕`. -/
 def ProgMeasurableSet [Preorder ι] [MeasurableSpace ι] (E : Set (ι × Ω)) (𝓕 : Filtration ι mΩ) :=
