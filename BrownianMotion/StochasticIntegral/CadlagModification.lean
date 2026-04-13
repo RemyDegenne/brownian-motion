@@ -3,12 +3,16 @@ Copyright (c) 2026 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.Cadlag
-import BrownianMotion.StochasticIntegral.SimpleProcess
-import BrownianMotion.StochasticIntegral.OptionalSampling
-import Mathlib.Probability.Notation
+module
+
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import BrownianMotion.StochasticIntegral.SimpleProcess
+public import BrownianMotion.StochasticIntegral.OptionalSampling
+public import Mathlib.Probability.Notation
 
 /-! # Cadlag modification stochastic processes -/
+
+@[expose] public section
 
 open MeasureTheory Finset Filter
 open scoped ENNReal Topology MeasureTheory
