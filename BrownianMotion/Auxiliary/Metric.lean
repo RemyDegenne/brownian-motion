@@ -1,6 +1,10 @@
-import Mathlib.Analysis.Normed.Module.Ball.Pointwise
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Topology.MetricSpace.MetricSeparated
+module
+
+public import Mathlib.Analysis.Normed.Module.Ball.Pointwise
+public import Mathlib.Order.CompletePartialOrder
+public import Mathlib.Topology.MetricSpace.MetricSeparated
+
+@[expose] public section
 
 open ENNReal NNReal
 

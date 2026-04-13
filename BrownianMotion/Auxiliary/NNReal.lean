@@ -1,4 +1,8 @@
-import Mathlib.Data.NNReal.Basic
+module
+
+public import Mathlib.Data.NNReal.Basic
+
+@[expose] public section
 
 namespace NNReal
 

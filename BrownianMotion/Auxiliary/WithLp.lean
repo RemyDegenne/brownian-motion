@@ -1,4 +1,8 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
+
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+
+@[expose] public section
 
 open WithLp ENNReal
 

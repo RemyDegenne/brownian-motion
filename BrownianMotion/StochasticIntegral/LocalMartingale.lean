@@ -3,13 +3,18 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.StochasticIntegral.OptionalSampling
+module
+
+public import BrownianMotion.Auxiliary.IsStoppingTime
+public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.StochasticIntegral.Locally
+public import BrownianMotion.StochasticIntegral.OptionalSampling
 
 /-! # Local (sub)martingales
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter TopologicalSpace Function
 open scoped ENNReal
@@ -33,12 +38,12 @@ def IsLocalSubmartingale [LE E] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
 
 lemma Martingale.IsLocalMartingale (hX : Martingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) :
     IsLocalMartingale X 𝓕 P :=
-  locally_of_prop ⟨hX, hC⟩
+  .of_prop ⟨hX, hC⟩
 
 lemma Submartingale.IsLocalSubmartingale [LE E]
     (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) :
     IsLocalSubmartingale X 𝓕 P :=
-  locally_of_prop ⟨hX, hC⟩
+  .of_prop ⟨hX, hC⟩
 
 variable [SecondCountableTopology ι] [MeasurableSpace ι] [BorelSpace ι]
 

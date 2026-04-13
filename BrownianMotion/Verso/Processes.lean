@@ -1,4 +1,8 @@
-import BrownianMotion.Auxiliary.StoppedProcess
+module
+
+public import BrownianMotion.Auxiliary.StoppedProcess
+
+@[expose] public section
 
 /-!
 # Verso file for stochastic processes

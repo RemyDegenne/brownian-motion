@@ -2,119 +2,8 @@
 \label{chap:doob_meyer}
 
 
-This chapter starts with a short review of the properties of the Doob decomposition of an adapted process indexed on a discrete set, and then follows \cite{Beiglböck_Schachermayer_Veliyev_2012} which gives an elementary and short proof of the Doob-Meyer theorem.
-
-
-\section{Doob decomposition in discrete time}
-
-
-\begin{definition}\label{def:predictablePart}
-  \uses{def:filtration}
-  \mathlibok
-  \lean{MeasureTheory.predictablePart}
-Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
-Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
-The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined for $n \ge 0$ by
-$$A_n = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k].$$
-\end{definition}
-
-In what follows, we fix a process $X : \mathbb{N} \to \Omega \to E$ and a filtration $(\mathcal{F}_n)_{n \in \mathbb{N}}$, and denote by $A$ the predictable part of $X$.
-
-\begin{lemma}\label{lem:predictablePart_zero}
-  \uses{def:predictablePart}
-  \mathlibok
-  \lean{MeasureTheory.predictablePart_zero}
-We have $A_0 = 0$.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
-
-\begin{lemma}\label{lem:predictablePart_add_one}
-  \uses{def:predictablePart}
-  \leanok
-  \lean{MeasureTheory.predictablePart_add_one}
-For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
-\end{lemma}
-
-\begin{proof}\leanok
-  \uses{def:predictablePart}
-Let $n \in \mathbb{N}$. Then
-\begin{align*}
-  A_{n+1}
-  & = \sum_{k=0}^n \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] \\
-  & = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] + \mathbb{E}[X_{n+1}-X_n \mid \mathcal{F}_n] \\
-  & = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n],
-\end{align*}
-which concludes the proof.
-\end{proof}
-
-\begin{lemma}\label{lem:adapted_predictablePart}
-  \uses{def:predictablePart}
-  \mathlibok
-  \lean{MeasureTheory.stronglyAdapted_predictablePart}
-The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \in \mathbb{N}}$.
-\end{lemma}
-
-\begin{proof}\mathlibok
-
-\end{proof}
-
-\begin{definition}\label{def:martingalePart}
-  \uses{def:predictablePart}
-  \mathlibok
-  \lean{MeasureTheory.martingalePart}
-Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
-Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$ and let $A$ be the predictable part of $X$ for that filtration.
-The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defined by $M_n = X_n - A_n$.
-\end{definition}
-
-
-\begin{lemma}\label{lem:predictable_predictablePart}
-  \uses{def:predictablePart, def:predictable}
-  \leanok
-  \lean{MeasureTheory.isPredictable_predictablePart}
-The predictable part of a process is predictable.
-\end{lemma}
-
-\begin{proof}\leanok
-  \uses{lem:predictable_nat_iff, lem:predictablePart_zero, lem:adapted_predictablePart}
-By Lemma~\ref{lem:predictable_nat_iff}, the process $A$ is predictable if $A_0$ is $\mathcal{F}_0$-measurable and for all integer $n$, $A_{n+1}$ is $\mathcal{F}_n$-measurable. As $A_0 = 0$ from Lemma~\ref{lem:predictablePart_zero}, it is $\mathcal{F}_0$-measurable. Lemma~\ref{lem:adapted_predictablePart} allows to conclude the proof.
-\end{proof}
-
-
-\begin{lemma}\label{lem:martingale_martingalePart}
-  \uses{def:martingalePart, def:Martingale}
-  \mathlibok
-  \lean{MeasureTheory.martingale_martingalePart}
-Suppose that the filtration is sigma-finite.
-Then the martingale part of an adapted process $X$ such that $X_n$ is integrable for all $n$ is a martingale.
-\end{lemma}
-
-\begin{proof}\leanok
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:nondecreasing_predictablePart_of_submartingale}
-  \uses{def:predictablePart, def:Submartingale}
-  \leanok
-  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
-The predictable part of a real-valued submartingale is an almost surely nondecreasing process.
-\end{lemma}
-
-\begin{proof}\leanok
-  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
-Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
-\begin{align*}
-  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
-  \ge A_n
-  \: .
-\end{align*}
-The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
-Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
-\end{proof}
+This chapter starts with the derivation of a Komlòs lemma, which is a useful tool to extract converging subsequences from bounded sequences of functions.
+Then, we give a short review of the properties of the Doob decomposition of an adapted process indexed on a discrete set, and then follows \cite{Beiglböck_Schachermayer_Veliyev_2012} which gives an elementary and short proof of the Doob-Meyer theorem.
 
 
 
@@ -357,6 +246,433 @@ Finally, the subsequence of $g_n$ converges almost surely to $g = -\log(h)$.
 \end{proof}
 
 
+
+
+
+\section{Doob decomposition in discrete time}
+
+
+\begin{definition}[Predictable part]\label{def:predictablePart}
+  \uses{def:filtration}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$.
+The predictable part of $X$ is the process $A : \mathbb{N} \to \Omega \to E$ defined for $n \ge 0$ by
+$$A_n = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k].$$
+\end{definition}
+
+
+\begin{definition}[Martingale part]\label{def:martingalePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.martingalePart}
+Let $X : \mathbb{N} \to \Omega \to E$ be a process indexed by $\mathbb{N}$, for $E$ a Banach space.
+Let $(\mathcal{F}_n)_{n\in\mathbb{N}}$ be a filtration on $\Omega$ and let $A$ be the predictable part of $X$ for that filtration.
+The martingale part of $X$ is the process $M : \mathbb{N} \to \Omega \to E$ defined by $M_n = X_n - A_n$.
+\end{definition}
+
+
+In what follows, we fix a process $X : \mathbb{N} \to \Omega \to E$ and a filtration $(\mathcal{F}_n)_{n \in \mathbb{N}}$, and denote by $A$ the predictable part of $X$ and by $M$ its martingale part.
+
+\begin{lemma}\label{lem:predictablePart_zero}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.predictablePart_zero}
+We have $A_0 = 0$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:predictablePart}
+By definition.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_zero}
+  \uses{def:martingalePart}
+$M_0 = X_0$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:predictablePart_zero}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_zero}, $A_0 = 0$, thus $M_0 = X_0 - A_0 = X_0$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictablePart_add_one}
+  \uses{def:predictablePart}
+  \leanok
+  \lean{MeasureTheory.predictablePart_add_one}
+For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:predictablePart}
+Let $n \in \mathbb{N}$. Then
+\begin{align*}
+  A_{n+1}
+  & = \sum_{k=0}^n \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] \\
+  & = \sum_{k=0}^{n-1} \mathbb{E}[X_{k+1}-X_k \mid \mathcal{F}_k] + \mathbb{E}[X_{n+1}-X_n \mid \mathcal{F}_n] \\
+  & = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n],
+\end{align*}
+which concludes the proof.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_add_one}
+  \uses{def:martingalePart}
+$M_{n+1} = M_n + X_{n+1} - X_n - \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:predictablePart_add_one}
+Using Lemma~\ref{lem:predictablePart_add_one}, we have for $n \in \mathbb{N}$,
+\begin{align*}
+  M_{n+1}
+  & = X_{n+1} - A_{n+1} \\
+  & = X_{n+1} - A_n - \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n] \\
+  & = M_n + X_{n+1} - X_n - \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.predictablePart_eq_zero}
+  \uses{def:predictablePart, def:Martingale}
+If $X$ is a martingale, then $A = 0$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:predictablePart, def:Martingale}
+By the martingale property, each conditional expectation in the definition of $A$ is zero.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isPredictable.predictablePart_eq}
+  \uses{def:predictablePart, def:predictable}
+If $X$ is predictable, then $A = X - X_0$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:predictablePart, def:predictable}
+Since $X$ is predictable, for all $n \in \mathbb{N}$, $X_{n+1}$ is $\mathcal{F}_n$-measurable and thus $\mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n] = X_{n+1} - X_n$ a.s..
+We get a telescoping sum in the definition of $A$ and thus $A_n = X_n - X_0$ a.s. for all $n \in \mathbb{N}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_eq_zero}
+  \uses{def:martingalePart, def:predictable}
+If $X$ is predictable, then $M = X_0$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:isPredictable.predictablePart_eq}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:isPredictable.predictablePart_eq}, $A = X - X_0$ almost surely, thus $M = X_0$ almost surely.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.martingalePart_eq}
+  \uses{def:martingalePart, def:Martingale}
+If $X$ is a martingale, then $M = X$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.predictablePart_eq_zero}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:Martingale.predictablePart_eq_zero}, $A = 0$ almost surely, thus $M = X$ almost surely.
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictablePart_smul}
+  \uses{def:predictablePart}
+For any scalar $c$, the predictable part of $c X$ is $c A$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:predictablePart}
+Linearity of the conditional expectation.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_smul}
+  \uses{def:martingalePart}
+For any scalar $c$, the martingale part of $c X$ is $c M$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:predictablePart_smul}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_smul}, the predictable part of $c X$ is $c A$. Therefore, the martingale part of $c X$ is $c X - c A = c M$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictablePart_add}
+  \uses{def:predictablePart}
+The predictable part of $X + Y$ is the sum of the predictable part of $X$ and the predictable part of $Y$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:predictablePart}
+Linearity of the conditional expectation.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_add}
+  \uses{def:martingalePart}
+The martingale part of $X + Y$ is the sum of the martingale part of $X$ and the martingale part of $Y$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:predictablePart_add}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_add}, the predictable part of $X + Y$ is $A + B$. Therefore, the martingale part of $X + Y$ is $(X + Y) - (A + B) = M + N$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:adapted_predictablePart}
+  \uses{def:predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.stronglyAdapted_predictablePart}
+The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \in \mathbb{N}}$.
+\end{lemma}
+
+\begin{proof}\mathlibok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictable_predictablePart}
+  \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.isPredictable_predictablePart}
+The predictable part of a process is predictable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:predictable_nat_iff, lem:predictablePart_zero, lem:adapted_predictablePart}
+By Lemma~\ref{lem:predictable_nat_iff}, the process $A$ is predictable if $A_0$ is $\mathcal{F}_0$-measurable and for all integer $n$, $A_{n+1}$ is $\mathcal{F}_n$-measurable. As $A_0 = 0$ from Lemma~\ref{lem:predictablePart_zero}, it is $\mathcal{F}_0$-measurable. Lemma~\ref{lem:adapted_predictablePart} allows to conclude the proof.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingale_martingalePart}
+  \uses{def:martingalePart, def:Martingale}
+  \mathlibok
+  \lean{MeasureTheory.martingale_martingalePart}
+Suppose that the filtration is $\sigma$-finite and that $X$ is adapted, with $X_n$ integrable for all $n$.
+Then the martingale part of $X$ is a martingale.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.monotone_predictablePart}
+  \uses{def:predictablePart, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Submartingale.monotone_predictablePart}
+The predictable part of a real-valued submartingale is an almost surely nondecreasing process.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:Submartingale, lem:condExp_sub_nonneg, lem:predictablePart_add_one}
+Let $X$ be a submartingale and let $A$ be its predictable part. Then for all $n \geq 0$, from Lemma~\ref{lem:condExp_sub_nonneg} we have that almost surely
+\begin{align*}
+  A_{n+1} &= A_n + \mathbb{E}\left[ X_{n+1} - X_n | \mathcal{F}_n \right]
+  \ge A_n
+  \: .
+\end{align*}
+The first equality comes from Lemma~\ref{lem:predictablePart_add_one}. As $\mathbb{N}$ is countable, we deduce that almost surely, for all $n \in \mathbb{N}$, $A_{n+1} \ge A_n$.
+Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
+\end{proof}
+
+
+\begin{lemma}\label{lem:Submartingale.predictablePart_nonneg}
+  \uses{def:predictablePart, def:Submartingale}
+The predictable part of a real-valued submartingale is almost surely nonnegative.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.monotone_predictablePart, lem:predictablePart_zero}
+By Lemma~\ref{lem:Submartingale.monotone_predictablePart}, the predictable part $A$ is almost surely nondecreasing. By Lemma~\ref{lem:predictablePart_zero}, $A_0 = 0$. Therefore, $A_n \ge 0$ almost surely for all $n \in \mathbb{N}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsStoppingTime_leastGT_predictablePart}
+  \uses{def:IsStoppingTime,def:predictablePart, def:leastGT}
+Let $X$ be a real adapted process and let $A$ be its predictable part. Let $c \in \mathbb{R}$.
+The hitting time $\tau_{A_{n + 1} > c}$ of Definition~\ref{def:leastGT} is a stopping time.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictable_predictablePart}
+Since $A_{n}$ is predictable, $A_{n + 1}$ is adapted.
+The hitting time of an adapted process is a stopping time (we use the discrete time version of that result here, not the full Début theorem).
+\end{proof}
+
+
+\begin{lemma}\label{lem:leastGT_predictablePart_le}
+  \uses{def:predictablePart, def:leastGT}
+Let $X$ be a real adapted process and let $A$ be its predictable part. Let $c \in \mathbb{R}$.
+Then $A_{\tau_{A_{n + 1} > c}} \le c$ and if $\tau_{A_{n + 1} > c} < \infty$ then $A_{\tau_{A_{n + 1} > c} + 1} > c$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:leastGT_predictablePart_sub_ge}
+  \uses{def:predictablePart, def:leastGT}
+Let $X$ be a real adapted process and let $A$ be its predictable part.
+Let $a, b \in \mathbb{R}$ with $a \le b$.
+If $\tau_{A_{n + 1} > b} < \infty$ then $A_{\tau_{A_{n + 1} > b}+1} - A_{\tau_{A_{n + 1} > a}} \ge b - a$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:leastGT_predictablePart_le}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_predictablePart_aux1}
+  \uses{def:predictablePart, def:martingalePart}
+Let $T \in \mathbb{N}$ and let $X$ be an adapted process with $X_n$ integrable for all $n$ and such that $X_T = 0$.
+Then for a stopping time $\tau \le T$, almost surely, $M_\tau = -\mathbb{E}[A_T \mid \mathcal{F}_\tau]$ and $X_\tau = A_\tau - \mathbb{E}[A_T \mid \mathcal{F}_\tau]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:martingalePart, lem:martingale_martingalePart}
+By definition and since $X_T = 0$, $M_T = X_T - A_T = - A_T$.
+Since $M$ is a martingale it follows by optional sampling that for any stopping time $\tau \le T$
+\begin{align*}
+  M_\tau = \mathbb{E}[M_T \mid \mathcal{F}_\tau] = -\mathbb{E}[A_T \mid \mathcal{F}_\tau]
+  \: .
+\end{align*}
+And then $X_\tau = M_\tau + A_\tau = A_\tau - \mathbb{E}[A_T \mid \mathcal{F}_\tau]$.
+\end{proof}
+
+
+TODO: define $\tau^T_{A_{n+1}>c}$ as the hitting time of $A_{n+1} > c$ but with the convention that it is equal to $T$ if the hitting time is greater than $T$ (\texttt{hittingBtwn}).
+
+In the next lemmas, we write $\tau^T(c) = \tau^T_{A_{n+1}>c}$ for brevity.
+
+\begin{lemma}\label{lem:predictablePart_gt_iff_leastGT_lt}
+  \uses{def:predictablePart}
+Suppose that $X$ is a submartingale and let $T \ge 1$, $c \in \mathbb{R}$.
+Then $A_T > c \iff \tau^T(c) < T$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:leastGT_lt_iff, lem:Submartingale.monotone_predictablePart}
+By Lemma~\ref{lem:leastGT_lt_iff}, $\tau^T(c) < T \iff \exists s < T, A_{s+1} > c$, which is equivalent to $\exists s \in \{1, \ldots, T\}, A_s > c$.
+By monotonicity of $A$ (Lemma~\ref{lem:Submartingale.monotone_predictablePart}), this is equivalent to $A_T > c$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_predictablePart_aux2}
+  \uses{def:predictablePart, def:leastGT}
+Suppose that $X$ is a submartingale with $X_T = 0$.
+Then
+\begin{align*}
+  \mathbb{E}\left[A_T \mathbb{I}\{A_T > c\} \right]
+  \le c \mathbb{P}(\tau^T(c) < T) - \int_{\tau^T(c) < T} X_{\tau^T(c)} dP
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictablePart_gt_iff_leastGT_lt, lem:leastGT_predictablePart_le, lem:uniformIntegrable_predictablePart_aux1}
+By Lemma~\ref{lem:predictablePart_gt_iff_leastGT_lt},
+\begin{align*}
+  \mathbb{E}\left[A_T \mathbb{I}\{A_T > c\} \right]
+  = \mathbb{E}\left[A_T \mathbb{I}\{\tau^T(c) < T\} \right]
+\end{align*}
+Since that last event is $\mathcal{F}_{\tau^T(c)}$-measurable, we can apply the tower property of conditional expectation to get
+\begin{align*}
+  \mathbb{E}\left[A_T \mathbb{I}\{\tau^T(c) < T\} \right]
+  = \int_{\tau^T(c) < T} \mathbb{E}[A_T \mid \mathcal{F}_{\tau^T(c)}] dP
+\end{align*}
+Now by Lemma~\ref{lem:uniformIntegrable_predictablePart_aux1} and Lemma~\ref{lem:leastGT_predictablePart_le},
+\begin{align*}
+  \mathbb{E}\left[A_T \mathbb{I}\{\tau^T(c) < T\} \right]
+  &= \int_{\tau^T(c) < T} A_{\tau^T(c)} - X_{\tau^T(c)} dP
+  \\
+  &\le c \mathbb{P}(\tau^T(c) < T) - \int_{\tau^T(c) < T} X_{\tau^T(c)} dP
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_predictablePart_aux3}
+  \uses{def:predictablePart, def:leastGT}
+Suppose that $X$ is a submartingale with $X_T = 0$.
+Then
+\begin{align*}
+  \mathbb{P}(\tau^T(c) < T)
+  &\le - \frac{2}{c} \int_{\tau^T(c/2) < T} X_{\tau^T(c/2)} dP
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:leastGT_predictablePart_sub_ge, lem:uniformIntegrable_predictablePart_aux1}
+Notice that $\{\tau^T(c)<T\}\subseteq \{\tau^T(c/2)<T\}$, thus
+\begin{align*}
+  \int_{\tau^T(c/2)<T} -X_{\tau^T(c/2)}dP
+  &=\int_{\tau^T(c/2)<T}\mathbb{E}[A_T \mid \mathcal{F}_{\tau^T(c/2)}] - A_{\tau^T(c/2)} dP
+  \\
+  &= \int_{\tau^T(c/2)<T}A_T - A_{\tau^T(c/2)}dP
+  \\
+  &\geq \int_{\tau^T(c)<T}A_T - A_{\tau^T(c/2)}dP
+  \\
+  \intertext{(over the event $\{\tau^T(c)<T\}$ $A_T\geq c$ and $A_{\tau^T(c/2)}\leq c/2$, thus $A_T - A_{\tau^T(c/2)}\geq c/2$)}
+  &\ge \frac{c}{2}P(\tau^T(c)<T)
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_predictablePart_aux4}
+  \uses{def:predictablePart, def:leastGT}
+Suppose that $X$ is a submartingale with $X_T = 0$.
+Then
+\begin{align*}
+  \mathbb{E}\left[A_T \mathbb{I}\{A_T > c\} \right]
+  \le - 2 \int_{\tau^T(c/2) < T} X_{\tau^T(c/2)} dP - \int_{\tau^T(c) < T} X_{\tau^T(c)} dP
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:uniformIntegrable_predictablePart_aux2, lem:uniformIntegrable_predictablePart_aux3}
+Put together the bounds of Lemma~\ref{lem:uniformIntegrable_predictablePart_aux2} and Lemma~\ref{lem:uniformIntegrable_predictablePart_aux3}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:uniformIntegrable_predictablePart_aux5}
+  \uses{def:predictablePart, def:leastGT}
+Suppose that $X$ is a submartingale with $X_T = 0$.
+Then
+\begin{align*}
+  P(\tau^T(c) < T) \le -\frac{\mathbb{E}[X_0]}{c} \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictablePart_gt_iff_leastGT_lt, lem:martingale_martingalePart}
+Starting with Lemma~\ref{lem:predictablePart_gt_iff_leastGT_lt},
+\begin{align*}
+  P(\tau^T(c)<T)
+  =P(A_T>c)
+  \stackrel{Markov}{\leq}\frac{\mathbb{E}[A_T]}{c}
+  =-\frac{\mathbb{E}[M_T]}{c}
+  \stackrel{mg}{=}-\frac{\mathbb{E}[X_0]}{c}
+  \: .
+\end{align*}
+\end{proof}
+
+
+
+
+
 \section{Doob-Meyer decomposition}
 
 
@@ -370,171 +686,139 @@ We now start the construction for the existence part.
 For $T>0$, let $\mathcal{D}_n^T = \left\lbrace \frac{k}{2^n}T \mid k=0,\cdots 2^n\right\rbrace$ be the set of dyadics at scale $n$ and let $\mathcal{D}^T=\bigcup_{n\in\mathbb{N}}\mathcal{D}_n^T$ be the set of all dyadics of $[0,T]$.
 \end{definition}
 
-TODO: everywhere below, $S$ is a cadlag submartingale of class D on $[0,T]$?
+Let $S : [0,T] \to \Omega \to \mathbb{R}$ be a cadlag submartingale of class D on $[0,T]$.
 
 
-\begin{definition}[A]\label{def:A}
+
+\begin{definition}[S, A, M]\label{def:SAM}
   \uses{def:dyadics, def:predictablePart}
-Define $A_0=0$ and for $t\in\mathcal{D}_n^T$ positive,
-\begin{align*}
-A^n_t
-&=A^n_{t-T2^{-n}} + \mathbb{E}\left[ S_t-S_{t-T2^{-n}}|\mathcal{F}_{t-T2^{-n}}\right]
-\: .
-\end{align*}
+For $n \in \mathbb{N}$, the restriction of $S$ to $\mathcal{D}_n^T$ is a discrete time submartingale $S^n : \mathbb{N} \to \Omega \to \mathbb{R}$ with respect to the filtration $\mathcal{F}^n_k = \mathcal{F}_{k2^{-n}T}$, with $S^n_k = S_{k2^{-n}T}$ (and constant equal to $S_T$ for $k > 2^n$; similarly for the filtration), and we can apply the construction of the previous section to it.
+Let $A^n$ and $M^n$ be the predictable and martingale parts of $S^n$.
 \end{definition}
-
-
-\begin{definition}[M]\label{def:M}
-  \uses{def:A, def:martingalePart}
-For $t\in\mathcal{D}_n^T$, define $M^n_t = S_t-A^n_t$~.
-\end{definition}
-
-
-\begin{lemma}\label{lem:Doob_Meyer_Finite_Predictable}
-  \uses{def:A, def:predictable}
-  $(A^n_t)_{t\in\mathcal{D}_n^T}$ is a predictable process.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:predictable_nat_iff, lem:predictable_predictablePart}
-  Trivial
-\end{proof}
-
-
-\begin{lemma}\label{lem:Doob_Meyer_Finite_Martingale}
-  \uses{def:M, def:Martingale}
-  $(M^n_t)_{t\in\mathcal{D}_n^T}$ is a martingale.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:martingale_martingalePart}
-  Trivial
-\end{proof}
-
-
-\begin{lemma}\label{lem:Predict_Part_Increasing}
-  \uses{def:A}
-  $(A^n_t)_{t\in\mathcal{D}_n^T}$ is an increasing process.
-\end{lemma}
-
-\begin{proof}
-  \uses{def:Submartingale, lem:nondecreasing_predictablePart_of_submartingale}
-$S$ is a submartingale:
-\begin{align*}
-  A^n_{t+T2^{-n}} - A^n_t
-  &= \mathbb{E}\left[ S_{t+T2^{-n}}-S_t|\mathcal{F}_t\right] \ge 0
-  \: .
-\end{align*}
-\end{proof}
-
-
-\begin{definition}[Hitting time for $A$]\label{def:hittingAGT}
-  \uses{def:A}
-Let $c>0$. Define the hitting time on $\mathcal{D}^T_n$
-\begin{align*}
-  \tau_n(c)
-  &= \inf\{t \in \mathcal{D}^T_n \mid A^n_{t + 2^{-n}T} > c\} \wedge T
-  \: .
-\end{align*}
-\end{definition}
-
-
-\begin{lemma}\label{lem:IsStoppingTime_hittingAGT}
-  \uses{def:IsStoppingTime,def:hittingAGT}
-  $\tau_n(c)$ is a stopping time.
-\end{lemma}
-
-\begin{proof}
-Since $A^n_{t}$ is predictable, $A^n_{t + 2^{-n}T}$ is adapted.
-The hitting time of an adapted process is a stopping time (we use the discrete time version of that result here, not the full Début theorem).
-\end{proof}
-
-
-\begin{lemma}\label{lem:A_hittingAGT_le}
-  \uses{def:hittingAGT}
-$A^n_{\tau_n(c)} \le c$ and if $\tau_n(c) < T$ then $A^n_{\tau_n(c)+T2^{-n}} > c$.
-\end{lemma}
-
-\begin{proof}
-
-\end{proof}
-
-
-\begin{lemma}\label{lem:A_hittingAGT_sub_ge}
-  \uses{def:hittingAGT}
-Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} - A^n_{\tau_n(a)} \ge b - a$.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:A_hittingAGT_le}
-
-\end{proof}
 
 
 \begin{lemma}\label{lem:A_uniform_integrable}
-  \uses{def:A}
-  The sequence $(A^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
+  \uses{def:SAM}
+  The sequence $(A^n_{2^n})_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
 
-\begin{proof}
-  \uses{lem:Doob_Meyer_Finite_Predictable,lem:Predict_Part_Increasing,lem:Doob_Meyer_Finite_Martingale,lem:IsStoppingTime_hittingAGT,lem:A_hittingAGT_sub_ge}
-  WLOG $S_T=0$ and $S_t\leq 0$ (else consider $S_t-\mathbb{E}\left[S_T\vert\mathcal{F}_{t}\right]$).
+Remark: $A^n_{2^n}$ is the predictable part of $S$ at time $T$ for the discrete time filtration given by the dyadics at scale $n$.
 
-  We have that $0=S_T=M^n_T+A^n_T$. Thus
-  \begin{equation}\label{equation_DM_e1}
-  M^n_T=-A^n_T.
-  \end{equation}
-  Since $M^n$ is a martingale it follows by optional sampling that for any $(\mathcal{F}_t)_{t\in\mathcal{D}_n}$ stopping time $\tau$
-  \begin{equation}\label{equation_DM_e2}
-  S_\tau=M^n_\tau+A^n_\tau = \mathbb{E}[M^n_T\vert\mathcal{F}_\tau]+A^n_\tau\stackrel{\eqref{equation_DM_e1}}{=} -\mathbb{E}[A^n_T\vert\mathcal{F}_\tau]+A^n_\tau.
-  \end{equation}
-  Let $c>0$. By Lemma~\ref{lem:IsStoppingTime_hittingAGT}, $\tau_n(c)$ (Definition~\ref{def:hittingAGT}) is a stopping time.
-  % Define the last time when $A^n$ has always been inside $[0,c]$, by the Début Theorem \ref{thm:hitting_is_stopping_time} and the fact that $A^n$ is predictable the following is a stopping time
-  % $$
-  % \tau_n(c)=\inf\left(\frac{j-1}{2^n}T\vert\, A^n_{jT2^{-n}}>c\right)\wedge T.
-  % $$
-  By construction $A^n_{\tau_n(c)}\leq c$. It follows that
-  \begin{equation}\label{equation_DM_e3}
-  S_{\tau_n(c)}\stackrel{\eqref{equation_DM_e2}}{=}-\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+A^n_{\tau_n(c)}\leq -\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]+c.
-  \end{equation}
-  Since $(A^n_T>c)=(\tau_n(c)<T)$ we have
-  \begin{align}\nonumber
-  \int_{(A^n_T>c)}A^n_TdP&=\int_{(\tau_n(c)<T)}A^n_TdP\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c)<T)}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c)}]dP\\
-  &\stackrel{\eqref{equation_DM_e3}}{\leq} cP(\tau_n(c)<T)-\int_{\tau_n(c)<T}S_{\tau_n(c)}dP.\label{equation_DM_e4}
-  \end{align}
-  Now we notice that $(\tau_n(c)<T)\subseteq (\tau_n(c/2)<T)$, thus
-  \begin{align}\nonumber
-  \int_{\tau_n(c/2)<T}-S_{\tau_n(c/2)}dP
-  &\stackrel{\eqref{equation_DM_e2}}{=}\int_{(\tau_n(c/2))<T}\mathbb{E}[A^n_T\vert\mathcal{F}_{\tau_n(c/2)}]-A^n_{\tau_n(c/2)}dP \nonumber
-  \\
-  &\stackrel{\mathrm{Tower}}{=}\int_{(\tau_n(c/2)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
-  \\
-  &\geq \int_{(\tau_n(c)<T)}A^n_t-A^n_{\tau_n(c/2)}dP\nonumber
-  \\
-  \intertext{(over the event $(\tau_n(c)<T)$ $A^n_T\geq c$ and $A^n_{\tau_n(c/2)}\leq c/2$, thus $A^n_T-A^n_{\tau_n(c/2)}\geq c/2$)}
-  &\geq \frac{c}{2}P(\tau_n(c)<T).\label{equation_DM_e5}
-  \end{align}
-  It follows
-  $$
-  \int_{(A^n_T>c)}A^n_TdP\stackrel{\eqref{equation_DM_e4}}{\leq}cP(\tau_n(c)<T)-\int_{\tau_n(c)<T}S_{\tau_n(c)}dP\stackrel{\eqref{equation_DM_e5}}{\leq}-2\int_{\tau_n(c/2)<T}S_{\tau_n(c/2)}dP-\int_{\tau_n(c)<T}S_{\tau_n(c)}dP.
-  $$
-  We may notice that
-  $$
-  P(\tau_n(c)<T)=P(A^n_T>c)\stackrel{Markov}{\leq}\frac{\mathbb{E}[A^n_T]}{c}=-\frac{\mathbb{E}[M^n_T]}{c}\stackrel{mg}{=}-\frac{\mathbb{E}[S_0]}{c}
-  $$
-  which goes to $0$ uniformly in $n$ as $c$ goes to infinity.
-  This implies that $\int_{(A^n_T>c)}A^n_TdP$ is uniformly bounded in $n$ due to the fact that $S$ is of class $D$. And so also the $L^1$ norm is uniformly bounded.
+\begin{proof}
+  \uses{lem:uniformIntegrable_predictablePart_aux4, lem:uniformIntegrable_predictablePart_aux5, def:classD, lem:predictablePart_add, lem:martingalePart_add, lem:Martingale.predictablePart_eq_zero}
+WLOG $S^n_{2^n} = S_T=0$ and $S_t\leq 0$ (else consider $S_t-\mathbb{E}\left[S_T\vert\mathcal{F}_{t}\right]$).
+
+We write $\tau_n(c)$ for the hitting time $\tau^T_{A^n_{k+1}>c}$.
+
+By Lemma~\ref{lem:uniformIntegrable_predictablePart_aux4},
+$$
+\int_{(A^n_{2^n}>c)} A^n_{2^n} dP
+\le -2 \int_{\tau_n(c/2)< 2^n} S^n_{\tau_n(c/2)} dP - \int_{\tau_n(c) < 2^n} S^n_{\tau_n(c)} dP.
+$$
+On the other hand, by Lemma~\ref{lem:uniformIntegrable_predictablePart_aux5},
+$$
+P(\tau_n(c)<2^n) \le -\frac{\mathbb{E}[S_0]}{c}
+$$
+which goes to $0$ uniformly in $n$ as $c$ goes to infinity.
+
+The integrals in the upper bound on $\int_{(A^n_{2^n}>c)} A^n_{2^n} dP$ are integrals of uniformly integrable random variables (by the class D assumption) over sets whose probability goes to zero uniformly.
+Therefore, these integrals go to zero uniformly in $n$ as $c$ goes to infinity.
+
+This implies that $\int_{(A^n_{2^n}>c)} A^n_{2^n} dP$ goes to 0 uniformly in $n$ as $c \to +\infty$.
+Hence, the $L^1$ norm is uniformly bounded.
 \end{proof}
 
 
 \begin{lemma}\label{lem:M_uniform_integrable}
-  The sequence $(M^n_T)_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
+  \uses{def:SAM}
+  The sequence $(M^n_{2^n})_{n\in\mathbb{N}}$ is uniformly integrable (bounded in $L^1$ norm).
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:A_uniform_integrable, def:classD}
-  $M^n_T=S_T-A^n_T$, also $S$ is of class $D$ and $A^n_T$ is uniformly integrable.
+  \uses{lem:A_uniform_integrable, lem:ClassD.uniformIntegrable}
+$M^n_{2^n} = S_{2^n} - A^n_{2^n}$, also $S$ is of class $D$ hence uniformly integrable and $A^n_{2^n}$ is uniformly integrable by Lemma~\ref{lem:A_uniform_integrable}.
 \end{proof}
+
+
+\begin{lemma}\label{lem:M_n_cadlag_mg}
+  \uses{def:SAM}
+The martingale on $[0, T]$ defined by $t \mapsto \mathbb{E}[M^n_{2^n}\vert\mathcal{F}_t]$ admits a modification which is a cadlag martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:Martingale.exists_cadlag_modification}
+By theorem \ref{thm:Martingale.exists_cadlag_modification}
+\end{proof}
+
+
+\begin{definition}\label{def:barM}
+  \uses{lem:M_n_cadlag_mg}
+For $t\in[0,T]$ let $\overline{M}^n_t$ be the cadlag modification of $t \mapsto \mathbb{E}[M^n_{2^n} \mid \mathcal{F}_t]$ from lemma \ref{lem:M_n_cadlag_mg}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:M_cal_converges_L1}
+  \uses{def:barM}
+  There exists an $M : \Omega \to \mathbb{R}$ and convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
+  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_n \overline{M}^n+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}.$
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:M_uniform_integrable,lem:komlos}
+  By lemma \ref{lem:M_uniform_integrable} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
+  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_n \overline{M}^n+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}.$
+\end{proof}
+
+
+\begin{definition}\label{def:calM}
+  \uses{lem:M_cal_converges_L1, def:barM}
+For $t\in[0,T]$ let $\mathcal{M}^n_t=\lambda^n_n \overline{M}^n_t+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}_t$ be the convex combination of the $\overline{M}^n_t$'s from Lemma~\ref{lem:M_cal_converges_L1} and let $M$ be its limit.
+\end{definition}
+
+
+\begin{lemma}\label{lem:M_cal_cadlag}
+  \uses{def:calM}
+  $\mathcal{M}^n$ is cadlag.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:M_n_cadlag_mg,lem:M_cal_converges_L1}
+  By construction and \ref{lem:M_n_cadlag_mg}
+\end{proof}
+
+
+\begin{definition}\label{def:M}
+  \uses{def:calM}
+Let $M_t$ be a cadlag modification of $\mathbb{E}[M \mid \mathcal{F}_t]$, obtained by applying Theorem~\ref{thm:Martingale.exists_cadlag_modification} to the martingale $t \mapsto \mathbb{E}[M \mid \mathcal{F}_t]$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:M1_komlos}
+  \uses{def:calM, def:M}
+  For every $t\in[0,T]$ we have $\mathcal{M}^n_t\stackrel{L^1}{\rightarrow}M_t$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:M_cal_converges_L1}
+By Jensen's inequality, the tower lemma and lemma \ref{lem:M_cal_converges_L1}
+\begin{gather}\nonumber
+  \mathbb{E}[|\mathcal{M}^n_t-M_t|]
+  = \mathbb{E}[|\mathbb{E}[\mathcal{M}^n_T-M\vert\mathcal{F}_t]|]
+  \le \mathbb{E}[|\mathcal{M}^n_T-M|]\rightarrow0 \: ,
+  \\
+  \Rightarrow \mathcal{M}^n_t\stackrel{L^1}{\rightarrow} M_t,\quad \forall t\in[0,T].\label{equation_DM_e7}
+\end{gather}
+\end{proof}
+
+
+Define
+\begin{itemize}
+  \item a left continuous process $\overline{A}^n_s:=\sum_{t\in\mathcal{D}^T_n}A^n_t\mathbb{1}_{(t-2^{-n}T,t]}(s)$
+  \item $\mathcal{A}^n=\lambda^n_n \overline{A}^n+\cdots +\lambda^n_{N_n}\overline{A}^{N_n}$
+  \item $A_t=S_t-M_t$
+\end{itemize}
+TODO: add proper def, add details.
+
 
 
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_limsup_ineq}
@@ -572,67 +856,6 @@ Let $a, b > 0$ with $a \le b$. If $\tau_n(b) < T$ then $A^n_{\tau_n(b)+T2^{-n}} 
 $$
 \end{proof}
 
-Define $M^n_t$ on $[0,T]$ using $M^n_t=\mathbb{E}[M^n_T\vert\mathcal{F}_t]$.
-
-\begin{lemma}\label{lem:M_n_cadlag_mg}
-  $M^n_t$ admits a modification which is a cadlag martingale.
-\end{lemma}
-
-\begin{proof}
-  \uses{thm:Martingale.exists_cadlag_modification}
-  By theorem \ref{thm:Martingale.exists_cadlag_modification}
-\end{proof}
-
-From this point onwards $M^n_t$ will be redefined as the modification from lemma \ref{lem:M_n_cadlag_mg}.
-
-\begin{lemma}\label{lem:M_cal_converges_L1}
-  There are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
-  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
-\end{lemma}
-\begin{proof}
-  \uses{lem:M_uniform_integrable,lem:komlos}
-  By lemma \ref{lem:M_uniform_integrable} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
-  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_nM^n+\cdots +\lambda^n_{N_n}M^{N_n}.$
-\end{proof}
-
-\begin{lemma}\label{lem:M_cal_cadlag}
-  $\mathcal{M}^n$ is cadlag.
-\end{lemma}
-\begin{proof}
-  \uses{lem:M_n_cadlag_mg,lem:M_cal_converges_L1}
-  By construction and \ref{lem:M_n_cadlag_mg}
-\end{proof}
-
-Let \begin{equation}\label{equation_DM_e6} M_t = \mathbb{E}[M\vert\mathcal{F}_t].\end{equation}
-
-\begin{lemma}\label{lem:M_cadlag_mg}
-  $M_t$ admits a martingale cadlag modification.
-\end{lemma}
-\begin{proof}
-  \uses{lem:M_cal_converges_L1, thm:Martingale.exists_cadlag_modification}
-  By construction $M_t$ is a martingale and thus by theorem \ref{thm:Martingale.exists_cadlag_modification} admits a cadlag martingale modification
-  ($M_t$ is a version of $\mathbb{E}[M\vert\mathcal{F}_t]$ and thus passing to modification does not pose any problem).
-\end{proof}
-
-From this point onwards $M^n_t$ will be redefined as the modification from lemma \ref{lem:M_cadlag_mg}.
-Define
-\begin{itemize}
-  \item Extend now $A^n$ as a left continuous process $A^n_s:=\sum_{t\in\mathcal{D}^T_n}A^n_t\mathbb{1}_{]t-2^{-n},t]}(s)$
-  \item $\mathcal{A}^n=\lambda^n_nA^n+\cdots +\lambda^n_{N_n}A^{N_n}$
-  \item $A_t=S_t-M_t$
-\end{itemize}
-
-\begin{lemma}\label{lem:M1_komlos}
-  For every $t\in[0,T]$ we have $\mathcal{M}^n_t\stackrel{L^1}{\rightarrow}M_t$.
-\end{lemma}
-\begin{proof}
-  \uses{lem:M_cal_converges_L1}
-  We may notice that by Jensen's inequality, the tower lemma and lemma \ref{lem:M_cal_converges_L1}
-  \begin{gather}\nonumber
-    \mathbb{E}[|\mathcal{M}^n_t-M_t|]=\mathbb{E}[|\mathbb{E}[\mathcal{M}^n_T-M\vert\mathcal{F}_t]|]\leq \mathbb{E}[|\mathcal{M}^n_T-M|]\rightarrow0,\\
-    \Rightarrow\mathcal{M}^n_t\stackrel{L^1}{\rightarrow} M_t,\quad \forall t\in[0,T].\label{equation_DM_e7}
-  \end{gather}
-\end{proof}
 
 \begin{lemma}\label{lem:A_cal_conv_A_on_D_T}
   There exists a set $E\subseteq\Omega$, $P(E)=0$ and a subsequence $k_n$ such that $\lim_n\mathcal{A}^{k_n}_t(\omega)=A_t(\omega)$ for every $t\in\mathcal{D}^T,\omega\in\Omega\setminus E$.
@@ -651,20 +874,24 @@ Define
   With a diagonal argument we obtain the final result with $E=\bigcup_n E_n$.
 \end{proof}
 
+
 \begin{lemma}\label{lem:A_increasing}
   $(A_t)_{t\in[0,T]}$ is an increasing process.
 \end{lemma}
+
 \begin{proof}
-  \uses{lem:A_cal_conv_A_on_D_T, lem:Predict_Part_Increasing, lem:M_cadlag_mg}
+  \uses{lem:A_cal_conv_A_on_D_T, lem:Submartingale.monotone_predictablePart}
   Since $\mathcal{A}^n_t$ is increasing on $\mathcal{D}^T$ by lemma \ref{lem:A_cal_conv_A_on_D_T} also $A$ is almost surely increasing on $\mathcal{D}^T$.
   Since $S,M$ are cadlag also $A$ is cadlag (thus right-continuous). It follows that $A$ must be increasing on $[0,T]$.
 \end{proof}
 
+
 \begin{lemma}\label{lem:lim_Exp_A_n_tau_is_Exp_A_tau}
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\lim_n\mathbb{E}[A^n_\tau]=\mathbb{E}[A_\tau]$.
 \end{lemma}
+
 \begin{proof}
-  \uses{lem:M_cadlag_mg, lem:M_n_cadlag_mg, def:classD}
+  \uses{lem:M_n_cadlag_mg, def:classD}
   Let $\sigma_n:=\inf\left(t\in\mathcal{D}^T_n\vert t>\tau\right)$. By construction of $A^n$ we have $A^n_\tau=A^n_{\sigma_n}$.
   Also $\sigma_n\searrow\tau$. Since $S$ is of class $D$ and cadlag we have
   \begin{align*}
@@ -673,11 +900,13 @@ Define
   \end{align*}
 \end{proof}
 
+
 \begin{lemma}\label{lem:limsup_A_n_tau_is_A_tau_ae}
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\limsup_n \mathcal{A}_\tau^n = A_\tau$.
 \end{lemma}
+
 \begin{proof}
-  \uses{lem:lim_Exp_A_n_tau_is_Exp_A_tau, lem:incr_fun_lim_right_cont_limsup_ineq, lem:Predict_Part_Increasing, lem:A_cal_conv_A_on_D_T}
+  \uses{lem:lim_Exp_A_n_tau_is_Exp_A_tau, lem:incr_fun_lim_right_cont_limsup_ineq, lem:Submartingale.monotone_predictablePart, lem:A_cal_conv_A_on_D_T}
   Firstly we notice that $\liminf_n \mathbb{E}[A_\tau^n]  \leq \limsup_n  \mathbb{E}  [\mathcal{A}_\tau^n  ]  \leq \mathbb{E}[\limsup_n  \mathcal{A}_\tau^n  ]  \leq \mathbb{E}[ A_\tau ]$,
   where the first inequality is justified by the definition of limsup and liminf and the fact that
   $$
@@ -698,14 +927,16 @@ Define
   we know that $A_\tau- \limsup_n \mathcal{A}_\tau^n $ is an a.s. nonnegative function with null expected value, and thus it must be almost everywhere null.
 \end{proof}
 
-\begin{theorem}\label{thm:Doob_Meyer}
+
+\begin{theorem}[Doob-Meyer decomposition]\label{thm:Doob_Meyer}
   Let $S = (S_t )_{0\leq t\leq T}$ be a cadlag submartingale of class $D$.
   Then, $S$ can be written in a unique way in the form  $S = M + A$ where $M$ is a cadlag martingale and $A$ is a predictable increasing process starting at $0$.
 \end{theorem}
+
 \begin{proof}
-  \uses{lem:A_increasing, lem:M_cadlag_mg, lem:limsup_A_n_tau_is_A_tau_ae, lem:incr_fun_lim_right_cont_lim_eq}
+  \uses{lem:A_increasing, lem:limsup_A_n_tau_is_A_tau_ae, lem:incr_fun_lim_right_cont_lim_eq, lem:Adapted.isPredictable_of_leftContinuous}
   By construction $M$ is a cadlag martingale and $A_0=0$ and by lemma \ref{lem:A_increasing} $A$ is increasing. It suffices to show that $A$ is predictable.
-  $A^n,\mathcal{A}^n$ are left continuous and adapted, and thus they are predictable (measurable wrt the predictable sigma algebra (the one generated by left-cont adapted processes)).
+  $A^n,\mathcal{A}^n$ are left continuous and adapted, and thus they are predictable (Lemma~\ref{lem:Adapted.isPredictable_of_leftContinuous}).
   It is enough to show that $\omega-a.e.$, $\forall t\in[0,T]$, $\limsup_n\mathcal{A}^n_t(\omega)=A_t(\omega)$.
 
   By lemma \ref{lem:incr_fun_lim_right_cont_lim_eq} that is true for any continuity point of $A$. Since $A$ is increasing it can only have a finite amount of jumps larger than $1/k$ for any $k\in\mathbb{N}$.

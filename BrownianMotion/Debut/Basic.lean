@@ -1,13 +1,14 @@
 /-
 Copyright (c) 2025 Lorenzo Luccioli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lorenzo Luccioli
+Authors: Lorenzo Luccioli, Rémy Degenne
 -/
+module
 
-import BrownianMotion.Choquet.Capacity
-import BrownianMotion.StochasticIntegral.Predictable
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Probability.Martingale.BorelCantelli
+public import BrownianMotion.Choquet.Capacity
+public import BrownianMotion.StochasticIntegral.Predictable
+public import Mathlib.Order.CompletePartialOrder
+public import Mathlib.Probability.Martingale.BorelCantelli
 
 /-!
 This file contains the basic definitions and properties of the debut of a set.
@@ -18,6 +19,8 @@ This file contains the basic definitions and properties of the debut of a set.
 We follow the implementation of hitting times in `Mathlib.Probability.Process.HittingTime`.
 The debut has values in `WithTop ι`, ensuring that it is always well-defined.
 -/
+
+@[expose] public section
 
 open Filter
 open scoped Topology
@@ -122,7 +125,7 @@ lemma hittingAfter_lt_iff' {Ω β ι : Type*} [ConditionallyCompleteLinearOrder 
   · have h_top : hittingAfter u s n ω ≠ ⊤ := fun h ↦ by simp [h] at h'
     have h_top' : ∃ j, n ≤ j ∧ u j ω ∈ s := by
       rw [ne_eq, hittingAfter_eq_top_iff] at h_top
-      push_neg at h_top
+      push Not at h_top
       exact h_top
     have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
     rw [hittingAfter, if_pos h_top'] at h'

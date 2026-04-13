@@ -1,7 +1,12 @@
-import Mathlib.Data.Finset.Max
-import Mathlib.Data.Set.Finite.Lattice
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Order.ConditionallyCompleteLattice.Indexed
+module
+
+public import Mathlib.Data.Finset.Max
+public import Mathlib.Data.Set.Finite.Lattice
+public import Mathlib.Order.CompletePartialOrder
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Mathlib.Order.ConditionallyCompletePartialOrder.Indexed
+
+@[expose] public section
 
 variable {α ι : Type*} [CompleteLinearOrder α]
 

@@ -93,7 +93,7 @@ Then, there exists a strictly increasing sequence $(k_n)_{n \in \mathbb{N}}$ suc
 
 \begin{definition}[Local property]\label{def:locally}
   \uses{def:localizingSequence, def:stoppedProcess}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.Locally, ProbabilityTheory.Locally.localSeq}
 Let $P$ be a class of stochastic processes (or equivalently a predicate on stochastic processes).
 We say that a stochastic process $X : T \to \Omega \to E$ is locally in $P$ (or satisfies $P$ locally) if there exists a localizing sequence $(\tau_n)_{n \in \mathbb{N}}$ such that for all $n \in \mathbb{N}$, the process $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$ (in which $X^{\tau_n}$ denotes the stopped process).
@@ -103,8 +103,8 @@ We denote the class of processes that are locally in $P$ by $P_{\mathrm{loc}}$.
 
 \begin{lemma}\label{lem:implies_locally}
   \uses{def:locally}
-  \leanok
-  \lean{ProbabilityTheory.locally_of_prop}
+  \mathlibok
+  \lean{ProbabilityTheory.Locally.of_prop}
 For any class of processes $P$, we have $P \subseteq P_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -116,7 +116,7 @@ Take $\tau_n = \infty$ for all $n$.
 
 \begin{lemma}\label{lem:locally_mono}
   \uses{def:locally}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.Locally.mono}
 If $P \subseteq Q$ then $P_{\mathrm{loc}} \subseteq Q_{\mathrm{loc}}$.
 \end{lemma}
@@ -131,7 +131,7 @@ Thus $X \in Q_{\mathrm{loc}}$.
 
 \begin{definition}\label{def:stable}
   \uses{def:locally}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.IsStable}
 A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then for any stopping time $\tau$, the process $X^{\tau}\mathbb{I}_{\tau > 0}$ is also in $P$.
 \end{definition}
@@ -139,8 +139,8 @@ A class of stochastic processes $P$ is stable if whenever $X$ is in $P$, then fo
 
 \begin{lemma}\label{lem:isStable_locally}
   \uses{def:locally, def:stable}
-  \leanok
-  \lean{ProbabilityTheory.IsStable.isStable_locally}
+  \mathlibok
+  \lean{ProbabilityTheory.IsStable.locally}
 If $P$ is a stable class of processes, then $P_{\mathrm{loc}}$ is also stable.
 \end{lemma}
 
@@ -151,8 +151,8 @@ If $P$ is a stable class of processes, then $P_{\mathrm{loc}}$ is also stable.
 
 \begin{lemma}\label{lem:locally_inter}
   \uses{def:locally, def:stable}
-  \leanok
-  \lean{ProbabilityTheory.locally_and}
+  \mathlibok
+  \lean{ProbabilityTheory.IsStable.and}
 If $P, Q$ are stable classes of processes then $(P\cap Q)_{\mathrm{loc}} = P_{\mathrm{loc}}\cap Q_{\mathrm{loc}}$.
 \end{lemma}
 
@@ -168,8 +168,8 @@ Similarly, by the stability of $Q$, $X^{\sigma_n \wedge \tau_n} \mathbb{I}_{\sig
 
 \begin{lemma}\label{lem:locally_of_isPreLocalizingSequence}
   \uses{def:locally, def:localizingSequence, def:stable, lem:rightContinuous_basic, def:preLocalizingSequence}
-  \leanok
-  \lean{ProbabilityTheory.locally_of_isPreLocalizingSequence}
+  \mathlibok
+  \lean{ProbabilityTheory.IsStable.locally_of_isPreLocalizingSequence}
 Let $P$ be a stable class of processes and let $(\tau_n)_{n \in \mathbb{N}}$ be a pre-localizing sequence such that for all $n \in \mathbb{N}$, $X^{\tau_n}\mathbb{I}_{\tau_n > 0}$ is in $P$.
 If the filtration is right-continuous, then $X$ is locally in $P$.
 \end{lemma}
@@ -182,8 +182,8 @@ If the filtration is right-continuous, then $X$ is locally in $P$.
 
 \begin{lemma}\label{lem:locally_locally}
   \uses{def:locally, def:stable}
-  \leanok
-  \lean{ProbabilityTheory.locally_locally}
+  \mathlibok
+  \lean{ProbabilityTheory.IsStable.locally_locally_iff}
 Suppose that the filtration is right-continuous.
 For any stable class of processes $P$, we have $(P_{\mathrm{loc}})_{\mathrm{loc}} = P_{\mathrm{loc}}$.
 \end{lemma}
@@ -205,8 +205,8 @@ Indeed, this follows as $X^{\tau'_n}\mathbb{I}_{\tau'_n > 0} = ((X^{\tau_n}\math
 
 \begin{lemma}[Local implication from global implication]\label{lem:local_induction}
   \uses{def:locally, def:stable}
-  \leanok
-  \lean{ProbabilityTheory.locally_induction}
+  \mathlibok
+  \lean{ProbabilityTheory.IsStable.locally_induction}
 Suppose that the filtration is right-continuous.
 Let $P, Q$ be two classes of stochastic processes such that $P \subseteq Q_{\mathrm{loc}}$ and $Q$ is stable.
 Let $X$ be a stochastic process that satisfies $P$ locally.
@@ -442,6 +442,7 @@ A stochastic process $(X_t)$ is of class D (or in the Doob-Meyer class) if it is
 A stochastic process $(X_t)$ is of class DL if it is progressively measurable and for all $t \ge 0$, the set $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable.
 \end{definition}
 
+
 \begin{lemma}\label{lem:classDLOfClassD}
   \uses{def:classD, def:classDL}
   \leanok
@@ -454,6 +455,63 @@ A stochastic process of class D is of class DL.
   \leanok
 This follows from the definitions and Lemma~\ref{lem:uniformIntegrableComp}.
 \end{proof}
+
+
+\begin{lemma}\label{lem:ClassD.uniformIntegrable}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.ClassD.uniformIntegrable'}
+A stochastic process of class D is uniformly integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableComp}
+Use the Class D property with the constant stopping times $\tau_n = n$ for all $n$ and apply Lemma~\ref{lem:uniformIntegrableComp}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:classDL_iff_norm}
+  \uses{def:classDL}
+  \leanok
+  \lean{ProbabilityTheory.classDL_iff_norm}
+A progressively measurable process is of class DL iff its norm is of class DL.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classDL, lem:uniformIntegrableIffNorm}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:classD_of_uniformIntegrable_bounded_stoppingTime}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.classD_of_uniformIntegrable_bounded_stoppingTime}
+If a stochastic process is progressively measurable and the set
+\begin{align*}
+  \{X_\tau \mid \tau \text{ is a stopping time and } \exists t, \forall \omega, \tau(\omega) \le t\}
+\end{align*}
+is uniformly integrable, then the process is of class D.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableComp}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:classD_iff_norm}
+  \uses{def:classD}
+  \leanok
+  \lean{ProbabilityTheory.classD_iff_norm}
+A progressively measurable process is of class D iff its norm is of class D.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{def:classD, lem:uniformIntegrableIffNorm, lem:classD_of_uniformIntegrable_bounded_stoppingTime}
+
+\end{proof}
+
 
 \begin{lemma}\label{lem:Submartingale.classDL}
   \uses{def:Submartingale, def:classDL, def:RightContinuous}
@@ -478,10 +536,10 @@ A nonnegative right-continuous submartingale is of class D if and only if it is 
 
 \begin{proof}
   \leanok
-  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp}
+  \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp, lem:ClassD.uniformIntegrable}
 Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
 
-Conversely, if $X$ is of class D, then applying Lemma~\ref{lem:uniformIntegrableComp} using constant stopping times will yield uniform integrability.
+Conversely, if $X$ is of class D, then it is uniformly integrable by Lemma~\ref{lem:ClassD.uniformIntegrable}.
 \end{proof}
 
 
@@ -499,15 +557,16 @@ Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_conve
 
 
 \begin{lemma}\label{lem:Martingale.classD_iff_uniformIntegrable}
-  \uses{def:Martingale, def:classD, def:IsCadlag}
+  \uses{def:Martingale, def:classD, def:RightContinuous}
   \leanok
   \lean{MeasureTheory.Martingale.classD_iff_uniformIntegrable}
-A càdlàg martingale is of class D if and only if it is uniformly integrable.
+A right-continuous martingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:Submartingale.classDL, lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm}
-Applying Lemma~\ref{lem:uniformIntegrableIffNorm}, this follows from Lemma~\ref{lem:Submartingale.classDL} along with Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
+  \uses{lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm, lem:classD_iff_norm, cor:Martingale.submartingale_norm}
+Applying Lemma~\ref{lem:classD_iff_norm} and Lemma~\ref{lem:uniformIntegrableIffNorm}, it suffices to show the result for the norm of the martingale.
+That norm is a nonnegative right-continuous submartingale by Lemma~\ref{cor:Martingale.submartingale_norm} so this follows from Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.
 \end{proof}
 
 

@@ -3,13 +3,15 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.StochasticIntegral.Cadlag
-import BrownianMotion.StochasticIntegral.ClassD
-import BrownianMotion.StochasticIntegral.LocalMartingale
+module
+
+public import BrownianMotion.StochasticIntegral.ClassD
 
 /-! # Doob-Meyer decomposition theorem
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped ENNReal
@@ -21,7 +23,6 @@ variable {ι Ω : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [O
   [MeasurableSpace ι]
 namespace IsLocalSubmartingale
 
--- the sorry is locally integrable
 theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
     ∃ (M A : ι → Ω → ℝ), X = M + A ∧ IsLocalMartingale M 𝓕 P ∧ (∀ ω, IsCadlag (M · ω)) ∧
       IsPredictable 𝓕 A ∧ (∀ ω, IsCadlag (A · ω)) ∧ (HasLocallyIntegrableSup A 𝓕 P)

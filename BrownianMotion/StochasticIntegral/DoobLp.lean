@@ -3,13 +3,17 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Thomas Zhu
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.Cadlag
-import Mathlib.Probability.Martingale.OptionalStopping
+module
+
+public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import Mathlib.Probability.Martingale.OptionalStopping
 
 /-! # Doob's Lᵖ inequality
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Finset Function TopologicalSpace
 open scoped ENNReal NNReal Topology
@@ -240,7 +244,7 @@ lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingal
   have hmeasY (i : ι) : Measurable (Y i) :=
     (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
   change P {ω | ¬supY ω ≠ ∞} = 0
-  push_neg
+  push Not
   convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
   · ext ω
     simp only [Set.mem_setOf_eq, Set.mem_iInter]
@@ -419,7 +423,7 @@ lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Su
       · exact fun x => by simp
     · exact Measurable.ennreal_ofReal (hmeasY t)
   change P {ω | ¬supY ω ≠ ∞} = 0
-  push_neg
+  push Not
   convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
   · ext ω
     simp only [Set.mem_setOf_eq, Set.mem_iInter]

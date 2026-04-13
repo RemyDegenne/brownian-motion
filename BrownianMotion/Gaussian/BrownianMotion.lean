@@ -3,18 +3,27 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Continuity.KolmogorovChentsov
-import BrownianMotion.Gaussian.GaussianProcess
-import BrownianMotion.Gaussian.Moment
-import BrownianMotion.Gaussian.ProjectiveLimit
-import Mathlib.Probability.Independence.BoundedContinuousFunction
-import Mathlib.Topology.ContinuousMap.SecondCountableSpace
-import Mathlib.Probability.ConditionalExpectation
+module
+
+public import BrownianMotion.Auxiliary.HasLaw
+public import BrownianMotion.Continuity.KolmogorovChentsov
+public import BrownianMotion.Gaussian.CovMatrix
+public import BrownianMotion.Gaussian.GaussianProcess
+public import BrownianMotion.Gaussian.Moment
+public import BrownianMotion.Gaussian.ProjectiveLimit
+public import Mathlib.Probability.ConditionalExpectation
+public import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence
+public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
+public import Mathlib.Probability.Independence.BoundedContinuousFunction
+public import Mathlib.Probability.Independence.Process.HasIndepIncrements.Basic
+public import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!
 # Brownian motion
 
 -/
+
+@[expose] public section
 
 open MeasureTheory NNReal WithLp Finset MeasurableSpace Filtration Filter
 open scoped ENNReal NNReal Topology BoundedContinuousFunction
@@ -106,44 +115,6 @@ section Increments
 
 /-! ### Independent increments -/
 
-/-- A process `X : T → Ω → E` has independent increments if for any `n ≥ 1` and `t₁ ≤ ... ≤ tₙ`,
-the random variables `X t₂ - X t₁, ..., X tₙ - X tₙ₋₁` are independent. -/
-def HasIndepIncrements [Preorder T] [Sub E] [MeasurableSpace E] (X : T → Ω → E)
-    (P : Measure Ω := by volume_tac) :
-    Prop :=
-  ∀ n, ∀ t : Fin (n + 1) → T, Monotone t →
-    iIndepFun (fun (i : Fin n) ω ↦ X (t i.succ) ω - X (t i.castSucc) ω) P
-
-lemma HasIndepIncrements.increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
-    {P : Measure Ω} {X : T → Ω → E} (h : HasIndepIncrements X P) :
-    ∀ t : ℕ → T, Monotone t → iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P := by
-  intro t ht
-  rw [ProbabilityTheory.iIndepFun_iff_finset]
-  intro s
-  by_cases! hs : s.Nonempty
-  · rcases s.max_of_nonempty hs with ⟨n, hn⟩
-    let g : (s → Fin n.succ) :=
-      fun x ↦ ⟨x, by simpa [hn] using s.le_max x.mem⟩
-    apply iIndepFun.precomp (g := g) _ <| h n.succ (fun m ↦ t m) _
-    · simp [g, Function.Injective]
-    · exact ht.comp Fin.val_strictMono.monotone
-  · have := (h 0 (fun _ ↦ t 0) (fun _ ↦ by aesop)).isProbabilityMeasure
-    rw [hs]; aesop
-
-lemma HasIndepIncrements.of_increments_nat {T E : Type*} [Preorder T] [Sub E] [MeasurableSpace E]
-    {P : Measure Ω} {X : T → Ω → E}
-    (h : ∀ t : ℕ → T, Monotone t ∧ EventuallyConst t atTop →
-    iIndepFun (fun i ω ↦ X (t (i + 1)) ω - X (t i) ω) P) :
-    HasIndepIncrements X P := by
-  intro n t ht
-  let t' := fun x ↦ t ⟨min n x, by aesop⟩
-  convert iIndepFun.precomp Fin.val_injective <| h t' _
-  · simp
-  · aesop
-  · refine ⟨fun _ _ _ ↦ by apply ht; aesop,?_⟩
-    rw [eventuallyConst_atTop]
-    use n; aesop
-
 /-- `incrementsToRestrict I` is a continuous linear map `f` such that
 `f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
 noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] [AddCommMonoid E]
@@ -166,23 +137,6 @@ lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R :
     AddHom.coe_mk, Function.comp_apply]
   rw [Fin.sum_Iic_sub (I.toFin t) (fun j ↦ X (I.ofFin' j) ω)]
   simp [hω]
-
-lemma HasIndepIncrements.indepFun_sub_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
-    {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t) :
-    IndepFun (X s - X r) (X t - X s) P := by
-  let τ' : ℕ → T
-    | 0 => r
-    | 1 => s
-    | _ => t
-  exact h.increments_nat τ' (fun _ ↦ by grind)|>.indepFun (by norm_num : 0 ≠ 1)
-
-lemma HasIndepIncrements.indepFun_eval_sub [Preorder T] [MeasurableSpace E] [AddGroup E]
-    {X : T → Ω → E} (h : HasIndepIncrements X P) {r s t : T} (hrs : r ≤ s) (hst : s ≤ t)
-    (hX : ∀ᵐ ω ∂P, X r ω = 0) :
-    IndepFun (X s) (X t - X s) P := by
-  have := h.indepFun_sub_sub hrs hst
-  refine this.congr ?_ .rfl
-  filter_upwards [hX] with ω hω using by simp [hω]
 
 /-- A stochastic process `X` with independent increments and such that `X t` is gaussian for
 all `t` is a Gaussian process. -/

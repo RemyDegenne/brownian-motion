@@ -1,6 +1,10 @@
-import BrownianMotion.Gaussian.Gaussian
-import Mathlib.MeasureTheory.Constructions.Cylinders
-import Mathlib.Probability.Independence.CharacteristicFunction
+module
+
+public import BrownianMotion.Gaussian.CovMatrix
+public import BrownianMotion.Gaussian.Gaussian
+public import Mathlib.Probability.Independence.CharacteristicFunction
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Finset WithLp Complex
 open scoped NNReal
@@ -95,7 +99,6 @@ lemma IndepFun.hasLaw_gaussianReal_of_add
     h.variance_add, hX.variance_eq, variance_id_gaussianReal, Real.toNNReal_add,
     Real.toNNReal_coe]
   any_goals simp
-  · exact variance_nonneg _ _
   · exact hX.hasGaussianLaw.memLp_two
   · convert hY.hasGaussianLaw.memLp_two.sub hX.hasGaussianLaw.memLp_two
     simp

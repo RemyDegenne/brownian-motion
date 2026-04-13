@@ -3,10 +3,12 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Thomas Zhu
 -/
-import BrownianMotion.Auxiliary.StoppedProcess
-import Mathlib.MeasureTheory.Constructions.BorelSpace.ContinuousLinearMap
-import Mathlib.Order.CompletePartialOrder
-import Mathlib.Probability.Process.Predictable
+module
+
+public import BrownianMotion.Auxiliary.StoppedProcess
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.ContinuousLinearMap
+public import Mathlib.Order.CompletePartialOrder
+public import Mathlib.Probability.Process.Predictable
 
 /-! # Simple processes and elementary stochastic integral
 
@@ -41,6 +43,8 @@ function of an elementary predictable set as a simple process by mapping respect
 
 - Generalize instance variables.
 -/
+
+@[expose] public section
 
 open MeasureTheory Finset Filter ContinuousLinearMap
 open scoped ENNReal Topology

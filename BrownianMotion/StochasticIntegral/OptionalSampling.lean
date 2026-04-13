@@ -3,8 +3,12 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.ApproxSeq
-import BrownianMotion.Auxiliary.Adapted
+module
+
+public import BrownianMotion.Auxiliary.Adapted
+public import BrownianMotion.StochasticIntegral.ApproxSeq
+
+@[expose] public section
 
 open Filter TopologicalSpace Function
 open scoped NNReal ENNReal Topology

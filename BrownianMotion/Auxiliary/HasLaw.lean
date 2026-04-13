@@ -1,8 +1,8 @@
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
-import Mathlib.Probability.Distributions.Gaussian.Basic
-import Mathlib.Probability.HasLaw
-import Mathlib.Probability.Independence.CharacteristicFunction
-import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence
+module
+
+public import Mathlib.Probability.Distributions.Gaussian.Real
+
+@[expose] public section
 
 open MeasureTheory ENNReal WithLp
 

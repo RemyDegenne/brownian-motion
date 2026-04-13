@@ -3,16 +3,16 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.ApproxSeq
-import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.Auxiliary.Adapted
-import BrownianMotion.StochasticIntegral.OptionalSampling
-import Mathlib.Probability.Process.HittingTime
+module
+
+public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.StochasticIntegral.Cadlag
 
 /-! # Square integrable martingales
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Function TopologicalSpace
 open scoped ENNReal Topology
@@ -65,7 +65,7 @@ lemma IsSquareIntegrable.smul (hX : IsSquareIntegrable X 𝓕 P) (r : ℝ) :
     IsSquareIntegrable (fun i ω ↦ r • X i ω) 𝓕 P := by
   sorry
 
-variable [SigmaFinite P]
+variable [SigmaFiniteFiltration P 𝓕]
 
 lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P) :
     Submartingale (fun i ω ↦ ‖X i ω‖ ^ 2) 𝓕 P := by
@@ -74,8 +74,6 @@ lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P
   · refine MemLp.integrable_norm_pow ⟨?_, ?_⟩ (by linarith)
     · exact hX.1.1.stronglyMeasurable.aestronglyMeasurable
     · exact lt_of_le_of_lt (le_iSup (fun i ↦ eLpNorm (X i) 2 P) i) hX.3
-
-variable [SigmaFiniteFiltration P 𝓕]
 
 lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
     eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by

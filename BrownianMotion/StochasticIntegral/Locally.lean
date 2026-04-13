@@ -3,11 +3,16 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.LocalizingSequence
+module
+
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import BrownianMotion.StochasticIntegral.LocalizingSequence
 
 /-! # Local properties of processes
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Filtration
 open scoped ENNReal Topology
@@ -18,111 +23,14 @@ variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 section LinearOrder
 
-variable [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ}
-  {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
-
-/-- A stochastic process `X` is said to satisfy a property `p` locally with respect to a
-filtration `𝓕` if there exists a localizing sequence `(τ_n)` such that for all `n`, the stopped
-process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
-def Locally [TopologicalSpace ι] [OrderTopology ι] [Zero E]
-    (p : (ι → Ω → E) → Prop) (𝓕 : Filtration ι mΩ)
-    (X : ι → Ω → E) (P : Measure Ω := by volume_tac) : Prop :=
-  ∃ τ : ℕ → Ω → WithTop ι, IsLocalizingSequence 𝓕 τ P ∧
-    ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
-
-section Locally
-
-variable [TopologicalSpace ι] [OrderTopology ι]
-
-/-- A localizing sequence, witness of the local property of the stochastic process. -/
-noncomputable
-def Locally.localSeq [Zero E] (hX : Locally p 𝓕 X P) :
-    ℕ → Ω → WithTop ι :=
-  hX.choose
-
-lemma Locally.IsLocalizingSequence [Zero E] (hX : Locally p 𝓕 X P) :
-    IsLocalizingSequence 𝓕 (hX.localSeq) P :=
-  hX.choose_spec.1
-
-lemma Locally.stoppedProcess [Zero E] (hX : Locally p 𝓕 X P) (n : ℕ) :
-    p (stoppedProcess (fun i ↦ {ω | ⊥ < hX.localSeq n ω}.indicator (X i)) (hX.localSeq n)) :=
-  hX.choose_spec.2 n
-
-lemma locally_of_prop [Zero E] (hp : p X) : Locally p 𝓕 X P :=
-  ⟨fun n _ ↦ (⊤ : WithTop ι), isLocalizingSequence_const_top _ _, by simpa⟩
-
-lemma Locally.mono [Zero E] (hpq : ∀ X, p X → q X) (hpX : Locally p 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  ⟨hpX.localSeq, hpX.IsLocalizingSequence, fun n ↦ hpq _ <| hpX.stoppedProcess n⟩
-
-lemma Locally.of_and [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally p 𝓕 X P ∧ Locally q 𝓕 X P :=
-  ⟨hX.mono <| fun _ ↦ And.left, hX.mono <| fun _ ↦ And.right⟩
-
-lemma Locally.of_and_left [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally p 𝓕 X P :=
-  hX.of_and.left
-
-lemma Locally.of_and_right [Zero E] (hX : Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  hX.of_and.right
-
-end Locally
-
-variable [Zero E]
-
-/-- A property of stochastic processes is said to be stable if it is preserved under taking
-the stopped process by a stopping time. -/
-def IsStable
-    (𝓕 : Filtration ι mΩ) (p : (ι → Ω → E) → Prop) : Prop :=
-    ∀ X : ι → Ω → E, p X → ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ →
-      p (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ)
-
-lemma IsStable.and (p q : (ι → Ω → E) → Prop)
-    (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
-    IsStable 𝓕 (fun X ↦ p X ∧ q X) :=
-  fun _ hX τ hτ ↦ ⟨hp _ hX.left τ hτ, hq _ hX.right τ hτ⟩
-
-variable [TopologicalSpace ι] [OrderTopology ι]
-
-lemma IsStable.isStable_locally (hp : IsStable 𝓕 p) :
-    IsStable 𝓕 (fun Y ↦ Locally p 𝓕 Y P) := by
-  intro X hX τ hτ
-  refine ⟨hX.localSeq, hX.IsLocalizingSequence, fun n ↦ ?_⟩
-  simp_rw [← stoppedProcess_indicator_comm', Set.indicator_indicator, Set.inter_comm,
-    ← Set.indicator_indicator, stoppedProcess_stoppedProcess, inf_comm]
-  rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess]
-  exact hp _ (hX.stoppedProcess n) τ hτ
-
-lemma locally_and (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q) :
-    Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P ↔ Locally p 𝓕 X P ∧ Locally q 𝓕 X P := by
-  refine ⟨Locally.of_and, fun ⟨hpX, hqX⟩ ↦
-    ⟨_, hpX.IsLocalizingSequence.min hqX.IsLocalizingSequence, fun n ↦ ⟨?_, ?_⟩⟩⟩
-  · convert hp _ (hpX.stoppedProcess n) _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
-    ext i ω
-    rw [stoppedProcess_indicator_comm]
-    simp_rw [Pi.inf_apply, lt_inf_iff, inf_comm (hpX.localSeq n)]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
-      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
-        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω}), Set.inter_comm]
-    · simp_rw [← Set.indicator_indicator]
-      rfl
-    · rfl
-  · convert hq _ (hqX.stoppedProcess n) _ <| hpX.IsLocalizingSequence.isStoppingTime n using 1
-    ext i ω
-    rw [stoppedProcess_indicator_comm]
-    simp_rw [Pi.inf_apply, lt_inf_iff]
-    rw [← stoppedProcess_stoppedProcess, ← stoppedProcess_indicator_comm,
-      (_ : {ω | ⊥ < hpX.localSeq n ω ∧ ⊥ < hqX.localSeq n ω}
-        = {ω | ⊥ < hpX.localSeq n ω} ∩ {ω | ⊥ < hqX.localSeq n ω})]
-    · simp_rw [← Set.indicator_indicator]
-      rfl
-    · rfl
+variable [Zero E] [TopologicalSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTopology ι]
+  {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
 
 lemma locally_and_of_isStable (hp : IsStable 𝓕 p) (hpX : p X) (hqX : Locally q 𝓕 X P) :
     Locally (fun Y ↦ p Y ∧ q Y) 𝓕 X P := by
-  refine ⟨hqX.localSeq, hqX.IsLocalizingSequence, fun n ↦ ⟨?_, hqX.stoppedProcess n⟩⟩
-  convert hp _ hpX _ <| hqX.IsLocalizingSequence.isStoppingTime n using 1
+  refine ⟨hqX.localSeq, hqX.isLocalizingSequence_localSeq,
+    fun n ↦ ⟨?_, hqX.stoppedProcess_localSeq n⟩⟩
+  convert hp _ hpX _ <| hqX.isLocalizingSequence_localSeq.isStoppingTime n using 1
 
 end LinearOrder
 
@@ -131,69 +39,6 @@ section ConditionallyCompleteLinearOrderBot
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
   {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
-
-/-- A stable property holds locally `p` for `X` if there exists a pre-localizing sequence `τ` for
-which the stopped process of `fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)` satisfies `p`. -/
-lemma locally_of_isPreLocalizingSequence [Zero E] {τ : ℕ → Ω → WithTop ι}
-    (hp : IsStable 𝓕 p) (h𝓕 : IsRightContinuous 𝓕) (hτ : IsPreLocalizingSequence 𝓕 τ P)
-    (hpτ : ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))) :
-    Locally p 𝓕 X P := by
-  refine ⟨_, isLocalizingSequence_of_isPreLocalizingSequence h𝓕 hτ, fun n ↦ ?_⟩
-  have := hp _ (hpτ n) (fun ω ↦ ⨅ j ≥ n, τ j ω) <|
-    (isLocalizingSequence_of_isPreLocalizingSequence h𝓕 hτ).isStoppingTime n
-  rw [stoppedProcess_indicator_comm', ← stoppedProcess_stoppedProcess_of_le_right
-    (τ := fun ω ↦ τ n ω) (fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl),
-    ← stoppedProcess_indicator_comm']
-  convert this using 2
-  ext i ω
-  rw [stoppedProcess_indicator_comm', Set.indicator_indicator]
-  congr 1
-  ext ω'
-  simp only [ge_iff_le, Set.mem_setOf_eq, Set.mem_inter_iff]
-  exact ⟨fun h ↦ ⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans (iInf_le _ le_rfl)⟩, fun h ↦ h.1⟩
-
-section
-
-omit [DenselyOrdered ι] [FirstCountableTopology ι]
-
-variable [SecondCountableTopology ι] [DenselyOrdered ι] [Zero E] [IsFiniteMeasure P]
-
-/-- A stable property holding locally is idempotent. -/
-lemma locally_locally (h𝓕 : IsRightContinuous 𝓕) (hp : IsStable 𝓕 p) :
-    Locally (fun Y ↦ Locally p 𝓕 Y P) 𝓕 X P ↔ Locally p 𝓕 X P := by
-  refine ⟨fun hL ↦ ?_, fun hL ↦ ?_⟩
-  · have hLL := hL.stoppedProcess
-    choose τ hτ₁ hτ₂ using hLL
-    obtain ⟨nk, hnk, hpre⟩ := isPreLocalizingSequence_of_isLocalizingSequence
-      hL.IsLocalizingSequence hτ₁
-    refine locally_of_isPreLocalizingSequence hp h𝓕 hpre <| fun n ↦ ?_
-    specialize hτ₂ n (nk n)
-    convert hτ₂ using 1
-    ext i ω
-    rw [stoppedProcess_indicator_comm', stoppedProcess_indicator_comm',
-      stoppedProcess_stoppedProcess, stoppedProcess_indicator_comm']
-    simp only [lt_inf_iff, Set.indicator_indicator]
-    congr 1
-    · ext ω'; simp only [And.comm, Set.mem_setOf_eq, Set.mem_inter_iff]
-    · simp_rw [inf_comm]
-      rfl
-  · exact ⟨hL.localSeq, hL.IsLocalizingSequence, fun n ↦ locally_of_prop <| hL.stoppedProcess n⟩
-
-/-- If `p` implies `q` locally, then `p` locally implies `q` locally. -/
-lemma locally_induction (h𝓕 : IsRightContinuous 𝓕)
-    (hpq : ∀ Y, p Y → Locally q 𝓕 Y P) (hq : IsStable 𝓕 q) (hpX : Locally p 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  (locally_locally h𝓕 hq).1 <| hpX.mono hpq
-
-lemma locally_induction₂ {r : (ι → Ω → E) → Prop} (h𝓕 : IsRightContinuous 𝓕)
-    (hrpq : ∀ Y, r Y → p Y → Locally q 𝓕 Y P)
-    (hr : IsStable 𝓕 r) (hp : IsStable 𝓕 p) (hq : IsStable 𝓕 q)
-    (hrX : Locally r 𝓕 X P) (hpX : Locally p 𝓕 X P) :
-    Locally q 𝓕 X P :=
-  locally_induction (p := fun Y ↦ r Y ∧ p Y) h𝓕 (and_imp.2 <| hrpq ·) hq
-    <| (locally_and hr hp).2 ⟨hrX, hpX⟩
-
-end
 
 end ConditionallyCompleteLinearOrderBot
 
@@ -400,8 +245,7 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
 lemma locally_isCadlag_iff_locally_ae :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
     ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
-  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P),
-    locally_locally (HasUsualConditions.toIsRightContinuous P) isStable_isCadlag]
+  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P), isStable_isCadlag.locally_locally_iff]
 
 end ConditionallyCompleteLinearOrderBot
 

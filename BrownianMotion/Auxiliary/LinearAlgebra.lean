@@ -1,6 +1,9 @@
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.PosDef
+module
+
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+
+@[expose] public section
 
 lemma sum_single_apply {ι : Type*} (φ : ι → Type*) [∀ i, AddCommMonoid (φ i)] [Fintype ι]
     [DecidableEq ι] (v : (i : ι) → φ i) :

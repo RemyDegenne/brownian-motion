@@ -3,16 +3,22 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.NNReal
-import BrownianMotion.Gaussian.GaussianProcess
-import BrownianMotion.Gaussian.MultivariateGaussian
-import KolmogorovExtension4.KolmogorovExtension
-import Mathlib.Analysis.InnerProductSpace.GramMatrix
+module
+
+public import BrownianMotion.Auxiliary.MeasureTheory
+public import BrownianMotion.Auxiliary.NNReal
+public import BrownianMotion.Gaussian.Gaussian
+public import KolmogorovExtension4.KolmogorovExtension
+public import Mathlib.Analysis.InnerProductSpace.GramMatrix
+public import Mathlib.Probability.Distributions.Gaussian.Fernique
+public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 
 /-!
 # Pre-Brownian motion as a projective limit
 
 -/
+
+@[expose] public section
 
 open MeasureTheory NormedSpace Set
 open scoped ENNReal NNReal

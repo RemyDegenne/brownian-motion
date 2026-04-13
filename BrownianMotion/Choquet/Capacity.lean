@@ -3,11 +3,15 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Choquet.AnalyticSet
+module
+
+public import BrownianMotion.Choquet.AnalyticSet
 
 /-!
 # Choquet capacity
 -/
+
+@[expose] public section
 
 open Filter
 open scoped ENNReal NNReal Topology
@@ -67,7 +71,7 @@ lemma Measure.capacity_apply {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) 
 /-- The capacity obtained by composition of a capacity with a projection. -/
 def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
     (m : Capacity p) (hq_empty : ∅ ∈ q) (hq : IsCompactSystem q) :
-    Capacity (memFiniteUnion (memProd p q)) where
+    Capacity (supClosure (Set.image2 (· ×ˢ ·) p q)) where
   capacityOf s := m (Prod.fst '' s)
   mono' s t hst := m.mono (Set.image_mono hst)
   capacityOf_iUnion f hf := by
@@ -77,17 +81,18 @@ def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
   capacityOf_iInter f hf hp := by
     let g n := Prod.fst '' f n
     have hg : Antitone g := fun n m hnm ↦ Set.image_mono (hf hnm)
-    rw [fst_iInter_of_memFiniteUnion_memProd_of_antitone hq_empty hq hf hp]
+    rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hf hp]
     refine capacity_iInter hg fun n ↦ ?_
-    obtain ⟨S, u, hu_prod, hf_eq⟩ := hp n
+    simp_rw [mem_supClosure_set_iff'] at hp
+    obtain ⟨S, _, u, hu_prod, hf_eq⟩ := hp n
     simp_rw [hf_eq, Set.image_iUnion]
     have hS : ∀ i ∈ S, p (Prod.fst '' u i) := by
       intro i hi
-      obtain ⟨A, B, hA, hB, h_eq⟩ := hu_prod i hi
+      obtain ⟨A, hA, B, hB, h_eq⟩ := hu_prod i hi
       rcases Set.eq_empty_or_nonempty B with hB | hB
       · simp only [hB, Set.prod_empty] at h_eq
-        simpa [h_eq]
-      · rwa [h_eq, Set.fst_image_prod _ hB]
+        simpa [← h_eq]
+      · rwa [← h_eq, Set.fst_image_prod _ hB]
     clear hf_eq
     induction S using Finset.induction with
     | empty => simpa
@@ -95,25 +100,27 @@ def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
       rw [Finset.set_biUnion_insert]
       refine hp_union ?_ ?_
       · exact hS a (Finset.mem_insert_self a s)
-      · refine h ?_ ?_
+      · rcases Finset.eq_empty_or_nonempty s with rfl | hs
+        · simpa
+        refine h hs ?_ ?_
         · exact fun i hi ↦ hu_prod i (Finset.mem_insert_of_mem hi)
         · exact fun i hi ↦ hS i (Finset.mem_insert_of_mem hi)
 
 /-- A set `s` is capacitable for a capacity `m` for a property `p` if `m s` can be approximated
 from above by countable intersections of sets `t n` such that `p (t n)` and `⋂ n, t n ⊆ s`. -/
 def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=
-  ∀ a, a < m s → ∃ t, t ∈ memDelta p ∧ t ⊆ s ∧ a ≤ m t
+  ∀ a, a < m s → ∃ t, t ∈ countableInfClosure p ∧ t ⊆ s ∧ a ≤ m t
 
 lemma isCapacitable_of_mem (hs : s ∈ p) : IsCapacitable m s :=
-  fun a ha ↦ ⟨s, memDelta_of_mem hs, by simp, ha.le⟩
+  fun a ha ↦ ⟨s, subset_countableInfClosure hs, by simp, ha.le⟩
 
 -- He 1.34
-lemma isCapacitable_memDelta_memSigma (m : Capacity p)
+lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (hs : s ∈ memDelta (memSigma p)) :
+    (hs : s ∈ countableInfClosure (countableSupClosure p)) :
     IsCapacitable m s := by
   obtain ⟨A, hA, hs_eq⟩ := hs
-  simp_rw [memSigma_iff_of_supClosed hp_union] at hA
+  simp_rw [hp_union.mem_countableSupClosure_iff] at hA
   choose A hpA hA_mono h_eq using hA
   simp_rw [h_eq] at hs_eq
   intro a ha
@@ -129,7 +136,7 @@ lemma isCapacitable_memDelta_memSigma (m : Capacity p)
       rw [Set.dissipate_succ]
       exact hp_inter hn (hpA _ _)
   refine ⟨⋂ n, B n, ⟨B, hB_mem, rfl⟩, ?_, ?_⟩
-  · rw [hs_eq]
+  · rw [← hs_eq, Set.iInf_eq_iInter]
     gcongr with n
     calc B n
     _ ⊆ A n (k n) := Set.dissipate_subset le_rfl
@@ -138,17 +145,19 @@ lemma isCapacitable_memDelta_memSigma (m : Capacity p)
     simp only [le_iInf_iff]
     exact fun n ↦ (hB_gt n).le
 
-lemma memDelta_fst {s : Set (𝓧 × 𝓚)}
+lemma mem_countableInfClosure_fst {s : Set (𝓧 × 𝓚)}
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
     (hq_empty : ∅ ∈ q) (hq_inter : InfClosed q) (hq : IsCompactSystem q)
-    (hs : s ∈ memDelta (memFiniteUnion (memProd p q))) :
-    (Prod.fst '' s) ∈ memDelta p := by
-  rw [memDelta_iff_of_infClosed (InfClosed.memFiniteUnion (hp_inter.memProd hq_inter))] at hs
+    (hs : s ∈ countableInfClosure (supClosure (Set.image2 (· ×ˢ ·) p q))) :
+    (Prod.fst '' s) ∈ countableInfClosure p := by
+  rw [InfClosed.mem_countableInfClosure_iff (InfClosed.supClosure (hp_inter.image2_prod hq_inter))]
+    at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
-  rw [fst_iInter_of_memFiniteUnion_memProd_of_antitone hq_empty hq hA_anti hA]
+  rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hA_anti hA]
   refine ⟨fun n ↦ Prod.fst '' A n, fun n ↦ ?_, rfl⟩
   simp only
-  obtain ⟨S, B, hB, h_eq⟩ := hA n
+  simp_rw [mem_supClosure_set_iff'] at hA
+  obtain ⟨S, _, B, hB, h_eq⟩ := hA n
   rw [h_eq]
   simp_rw [Set.image_iUnion]
   clear h_eq
@@ -156,12 +165,19 @@ lemma memDelta_fst {s : Set (𝓧 × 𝓚)}
   | empty => simpa
   | insert a s has h =>
     rw [Finset.set_biUnion_insert]
-    refine hp_union ?_ (h ?_)
-    · obtain ⟨u, v, hu, hv, h_eq⟩ := hB a (Finset.mem_insert_self a s)
+    rcases Finset.eq_empty_or_nonempty s with rfl | hs
+    · simp only [Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty, Set.union_empty]
+      obtain ⟨u, hu, v, hv, h_eq⟩ := hB a (Finset.mem_insert_self a _)
+      simp only [← h_eq]
+      rcases Set.eq_empty_or_nonempty v with rfl | hv
+      · simpa
+      · rwa [Set.fst_image_prod _ hv]
+    refine hp_union ?_ (h hs ?_)
+    · obtain ⟨u, hu, v, hv, h_eq⟩ := hB a (Finset.mem_insert_self a s)
       rcases Set.eq_empty_or_nonempty v with hv | hv
       · simp only [hv, Set.prod_empty] at h_eq
-        simpa [h_eq]
-      · simpa [h_eq, Set.fst_image_prod _ hv]
+        simpa [← h_eq]
+      · simpa [← h_eq, Set.fst_image_prod _ hv]
     · exact fun i hi ↦ hB i (Finset.mem_insert_of_mem hi)
 
 lemma IsCapacitable.fst (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
@@ -170,7 +186,8 @@ lemma IsCapacitable.fst (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_unio
     IsCapacitable m (Prod.fst '' s) := by
   intro a ha
   choose t ht_mono ht_subset ht_le using hs a ha
-  exact ⟨Prod.fst '' t, memDelta_fst hp_empty hp_inter hp_union hq_empty hq_inter hq ht_mono,
+  exact ⟨Prod.fst '' t,
+    mem_countableInfClosure_fst hp_empty hp_inter hp_union hq_empty hq_inter hq ht_mono,
     Set.image_mono ht_subset, ht_le⟩
 
 /-- **Choquet's capacitability theorem**. -/
@@ -178,22 +195,21 @@ theorem IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : Inf
     (hp_union : SupClosed p) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsCapacitable m s := by
   obtain ⟨q, hq_empty, hq, A, hA, rfl⟩ := hs
-  have hq'_empty : ∅ ∈ memFiniteInter q := memFiniteInter_of_mem hq_empty
-  have hq'_inter : InfClosed (memFiniteInter q) := fun s hs t ht ↦ memFiniteInter.inter hs ht
-  have hq' : IsCompactSystem (memFiniteInter q) := hq.memFiniteInter
-  refine IsCapacitable.fst hp_empty hp_inter hp_union m hq'_empty hq'_inter hq' ?_
-  refine isCapacitable_memDelta_memSigma _ ?_ ?_ ?_ ?_
-  · exact memFiniteUnion_of_mem ⟨∅, ∅, hp_empty, hq'_empty, by simp⟩
-  · exact InfClosed.memFiniteUnion (hp_inter.memProd hq'_inter)
-  · exact fun s hs t ht ↦ memFiniteUnion.union hs ht
+  have hq'_empty : ∅ ∈ infClosure q := subset_infClosure hq_empty
+  have hq' : IsCompactSystem (infClosure q) := hq.infClosure
+  refine IsCapacitable.fst hp_empty hp_inter hp_union m hq'_empty infClosed_infClosure hq' ?_
+  refine isCapacitable_mem_countableInfClosure_countableSupClosure _ ?_ ?_ ?_ ?_
+  · exact subset_supClosure ⟨∅, hp_empty, ∅, hq'_empty, by simp⟩
+  · exact InfClosed.supClosure (hp_inter.image2_prod infClosed_infClosure)
+  · exact fun s hs t ht ↦ supClosed_supClosure hs ht
   · obtain ⟨B, hB, rfl⟩ := hA
     refine ⟨B, fun n ↦ ?_, rfl⟩
     obtain ⟨C, hC, hB_eq⟩ := hB n
-    simp_rw [hB_eq]
+    simp_rw [← hB_eq]
     refine ⟨C, fun m ↦ ?_, rfl⟩
-    refine memFiniteUnion_of_mem ?_
+    refine subset_supClosure ?_
     obtain ⟨u, v, hu, hv, h_eq⟩ := hC m
-    exact ⟨u, v, hu, memFiniteInter_of_mem hv, h_eq⟩
+    exact ⟨u, v, hu, subset_infClosure hv, h_eq⟩
 
 /-- **Choquet's capacitability theorem**. Every analytic set for a paving stable by intersection
 and union is capacitable. -/
@@ -203,8 +219,8 @@ theorem IsPavingAnalytic.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClo
   obtain ⟨𝓚, h𝓚, hs𝓚⟩ := hs
   exact hs𝓚.isCapacitable hp_empty hp_inter hp_union
 
-lemma memDelta_measurableSet {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
-    (hs : s ∈ memDelta MeasurableSet) :
+lemma mem_countableInfClosure_measurableSet {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
+    (hs : s ∈ countableInfClosure MeasurableSet) :
     MeasurableSet s := by
   obtain ⟨A, hA, rfl⟩ := hs
   exact MeasurableSet.iInter hA
@@ -223,7 +239,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       have (n : ℕ) := hs ((μ.capacity s) * (1 - (n + 1 : ℝ≥0∞)⁻¹)) (this n)
       choose f hf using this
       have hsub : ⋃ i, f i ⊆ s := Set.iUnion_subset fun i => (hf i).2.1
-      have hm := MeasurableSet.iUnion fun i => memDelta_measurableSet (hf i).1
+      have hm := MeasurableSet.iUnion fun i ↦ mem_countableInfClosure_measurableSet (hf i).1
       refine ⟨⋃ i, f i, hm, ae_eq_set.2 ⟨?_, ?_⟩⟩
       · rw [measure_diff hsub hm.nullMeasurableSet (by finiteness)]
         suffices μ (⋃ i, f i) = μ s from by simp_all
@@ -238,7 +254,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
         refine le_of_tendsto_of_tendsto' this tendsto_const_nhds fun n => (hf n).2.2.trans ?_
         simpa using measure_mono (Set.subset_iUnion _ _)
       · simp_all [← Set.diff_eq_empty]
-  · refine fun a ha ↦ ⟨(toMeasurable μ sᶜ)ᶜ, memDelta_of_mem ?_, ?_, ?_⟩
+  · refine fun a ha ↦ ⟨(toMeasurable μ sᶜ)ᶜ, subset_countableInfClosure ?_, ?_, ?_⟩
     · exact (measurableSet_toMeasurable _ _).compl
     · rw [Set.compl_subset_comm]
       exact subset_toMeasurable μ sᶜ

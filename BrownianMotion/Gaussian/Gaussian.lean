@@ -1,8 +1,9 @@
-import BrownianMotion.Gaussian.CovMatrix
-import BrownianMotion.Auxiliary.HasLaw
-import Mathlib.Probability.Distributions.Gaussian.Fernique
-import Mathlib.Probability.Distributions.Gaussian.CharFun
-import Mathlib.Probability.Moments.CovarianceBilinDual
+module
+
+public import Mathlib.Probability.Distributions.Gaussian.CharFun
+public import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Basic
+
+@[expose] public section
 
 /-!
 # Facts about Gaussian characteristic function

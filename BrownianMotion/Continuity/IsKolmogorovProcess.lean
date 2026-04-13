@@ -3,19 +3,23 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.FiniteInf
-import BrownianMotion.Auxiliary.MeanInequalities
-import BrownianMotion.Continuity.Chaining
-import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
-import Mathlib.Analysis.SpecialFunctions.Log.Base
-import Mathlib.Order.CompleteLattice.Group
-import Mathlib.Probability.Process.Kolmogorov
-import Mathlib.Topology.EMetricSpace.PairReduction
+module
+
+public import BrownianMotion.Auxiliary.FiniteInf
+public import BrownianMotion.Auxiliary.MeanInequalities
+public import BrownianMotion.Continuity.Chaining
+public import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
+public import Mathlib.Order.CompleteLattice.Group
+public import Mathlib.Probability.Process.Kolmogorov
+public import Mathlib.Topology.EMetricSpace.PairReduction
 
 /-!
 # Stochastic processes satisfying the Kolmogorov condition
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Metric
 open scoped ENNReal NNReal Finset

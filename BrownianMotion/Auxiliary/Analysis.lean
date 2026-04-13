@@ -1,6 +1,10 @@
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.Normed.Module.Convex
+module
+
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Analysis.Normed.Module.Convex
+
+@[expose] public section
 
 attribute [simp] convex_empty
 attribute [simp] convex_univ

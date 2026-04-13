@@ -1,4 +1,8 @@
-import Mathlib.Topology.MetricSpace.HolderNorm
+module
+
+public import Mathlib.Topology.MetricSpace.HolderNorm
+
+@[expose] public section
 
 open Bornology Filter
 

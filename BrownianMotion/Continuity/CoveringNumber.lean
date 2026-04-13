@@ -3,11 +3,14 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.ENNReal
-import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Auxiliary.Nat
-import Mathlib.Algebra.Order.Ring.Star
-import Mathlib.Topology.MetricSpace.CoveringNumbers
+module
+
+public import BrownianMotion.Auxiliary.ENNReal
+public import BrownianMotion.Auxiliary.MeasureTheory
+public import BrownianMotion.Auxiliary.Nat
+public import Mathlib.Algebra.Order.Floor.Extended
+public import Mathlib.Algebra.Order.Ring.Star
+public import Mathlib.Topology.MetricSpace.CoveringNumbers
 
 /-!
 # Covering and packing numbers
@@ -15,6 +18,8 @@ import Mathlib.Topology.MetricSpace.CoveringNumbers
 ### References
 - Vershynin, High-Dimensional Probability (section 4.2)
 -/
+
+@[expose] public section
 
 open EMetric Set Metric
 open scoped ENNReal NNReal
