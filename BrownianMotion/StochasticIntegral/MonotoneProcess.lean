@@ -10,6 +10,7 @@ public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Stieltjes
 public import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
+public import Mathlib.MeasureTheory.VectorMeasure.Variation.Defs
 public import Mathlib.Probability.Kernel.Defs
 
 /-! # The Keneral Associated with a Process
@@ -18,7 +19,7 @@ public import Mathlib.Probability.Kernel.Defs
 
 @[expose] public section
 
-open MeasureTheory Filter Function Set Topology
+open MeasureTheory Filter Function Set Topology ProbabilityTheory
 open scoped ENNReal
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [LinearOrder ι]
@@ -194,7 +195,7 @@ noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
 kernel that maps each `ω` to `(X · ω).measure`. -/
 noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono {ℱ : Filtration ι mΩ}
     (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
-    ProbabilityTheory.Kernel Ω ι where
+    Kernel Ω ι where
   toFun ω := (rightCont_mono hcont hmono ω).measure
   measurable' := by
     apply measurable_measure
@@ -202,9 +203,16 @@ noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono {ℱ : Filt
 
 variable {E : Type*} [NormedAddCommGroup E] [CompleteSpace E] {Y : ι → Ω → E}
 
-/-- If `Y : ι → Ω → E` has paths of bounded variation, then for each `ω : Ω`, we get a
-`StieltjesFunction` on `ι` by taking the variation of the right-limit path from a fixed base point
-`i₀`. -/
-noncomputable def StieltjesFunction.rightCont_boundedVariation
-    (i₀ : ι) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) : Ω → StieltjesFunction ι :=
-  fun ω => (hvar ω).stieltjesFunctionRightLim i₀
+/-- If `Y : ι → Ω → E` has paths of bounded variation, then `Y` defines a kernel that maps each
+`ω` to the variation of `Y · ω`. -/
+noncomputable def StieltjesFunction.kernel_of_boundedVariation
+    (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) : Kernel Ω ι where
+  toFun ω := (hvar ω).vectorMeasure.variation
+  measurable' := by sorry
+
+theorem StieltjesFunction.kernel_of_boundedVariation_eq_kernel_of_rightCont_adapted_mono
+    {ℱ : Filtration ι mΩ} (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω))
+    (hmono : ∀ ω, Monotone (X · ω)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+    StieltjesFunction.kernel_of_boundedVariation hvar =
+      StieltjesFunction.kernel_of_rightCont_adapted_mono ha hcont hmono := by
+  sorry
