@@ -9,6 +9,7 @@ public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Stieltjes
+public import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 public import Mathlib.Probability.Kernel.Defs
 
 /-! # The Keneral Associated with a Process
@@ -199,11 +200,11 @@ noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono {ℱ : Filt
     apply measurable_measure
     simp_all [rightCont_mono, fun i => ha.measurable (i := i)]
 
-variable {E : Type*} {Y : ι → Ω → E}
+variable {E : Type*} [NormedAddCommGroup E] [CompleteSpace E] {Y : ι → Ω → E}
 
-/-- If `Y : ι → Ω → E` is a right continuous and of bounded variation, then for each `ω : Ω`,
-`Y · ω` is a `StieltjesFunction` defined on `ι`. -/
-def StieltjesFunction.rightCont_boundedVariation (hcont : ∀ ω, RightContinuous (X · ω))
-    (hmono : ∀ ω, Monotone (X · ω)) : Ω → StieltjesFunction ι :=
-  fun ω => StieltjesFunction.mk (X · ω) (hmono ω)
-    (fun i => continuousWithinAt_Ioi_iff_Ici.1 (hcont ω i))
+/-- If `Y : ι → Ω → E` has paths of bounded variation, then for each `ω : Ω`, we get a
+`StieltjesFunction` on `ι` by taking the variation of the right-limit path from a fixed base point
+`i₀`. -/
+noncomputable def StieltjesFunction.rightCont_boundedVariation
+    (i₀ : ι) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) : Ω → StieltjesFunction ι :=
+  fun ω => (hvar ω).stieltjesFunctionRightLim i₀
