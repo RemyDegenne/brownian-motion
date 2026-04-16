@@ -5,8 +5,11 @@ Authors: Yongxi Lin
 -/
 module
 
+public import BrownianMotion.Auxiliary.Filtration
+public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Stieltjes
+public import Mathlib.Probability.Kernel.Defs
 
 /-! # The Keneral Associated with a Process
 
@@ -14,7 +17,7 @@ public import Mathlib.MeasureTheory.Measure.Stieltjes
 
 @[expose] public section
 
-open MeasureTheory Filter Set Topology
+open MeasureTheory Filter Function Set Topology
 open scoped ENNReal
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [LinearOrder ι]
@@ -59,7 +62,7 @@ variable [MeasurableSpace ι] [BorelSpace ι] [CompactIccSpace ι]
 
 private lemma StieltjesFunction.measurable_finite_measure {f : Ω → StieltjesFunction ι}
     [∀ ω, IsFiniteMeasure (f ω).measure] (hmbot : Measurable (fun ω => ⨅ i, f ω i))
-    (hmtop : Measurable (fun ω => ⨆ i, f ω i)) (hf : ∀ i, Measurable fun ω ↦ f ω i) :
+    (hmtop : Measurable (fun ω => ⨆ i, f ω i)) (hf : ∀ i, Measurable (f · i)) :
     Measurable fun ω => (f ω).measure := by
   by_cases! Nonempty ι
   · apply Measurable.measure_of_isPiSystem ?_ (isPiSystem_Ioc id id)
@@ -126,7 +129,7 @@ lemma StieltjesFunction.restrict_eq_measure (f : StieltjesFunction ι) (a b : ι
   · exact (Subtype.borelSpace (Ioc a b)).measurable_eq ▸ borel_eq_generateFrom_Ioc ↑(Ioc a b)
 
 theorem StieltjesFunction.measurable_measure {f : Ω → StieltjesFunction ι}
-    (hf : ∀ i, Measurable fun ω ↦ f ω i) :
+    (hf : ∀ i, Measurable (f · i)) :
     Measurable fun ω => (f ω).measure := by
   by_cases! Nonempty ι
   · refine Measure.measurable_measure.2 fun s hs => ?_
@@ -169,3 +172,38 @@ theorem StieltjesFunction.measurable_measure {f : Ω → StieltjesFunction ι}
     · simp [fun ω => ((f ω).restrict_Ioc_iSup hvu).symm, hf (u n)]
     · simp_all
   · simp [Measure.eq_zero_of_isEmpty]
+
+variable {X : ι → Ω → ℝ}
+
+/-- If `X : ι → Ω → ℝ` is a right continuous and monotone process, then for each `ω : Ω`, `X · ω` is
+a `StieltjesFunction` defined on `ι`. -/
+def StieltjesFunction.rightCont_mono (hcont : ∀ ω, RightContinuous (X · ω))
+    (hmono : ∀ ω, Monotone (X · ω)) : Ω → StieltjesFunction ι :=
+  fun ω => StieltjesFunction.mk (X · ω) (hmono ω)
+    (fun i => continuousWithinAt_Ioi_iff_Ici.1 (hcont ω i))
+
+/-- If `f : Ω → StieltjesFunction ι` satisfies for each `i`, `f · i` is measurable, then `f` defines
+a kernel. -/
+noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
+    (hf : ∀ i, Measurable (f · i)) : ProbabilityTheory.Kernel Ω ι where
+  toFun ω := (f ω).measure
+  measurable' := measurable_measure hf
+
+/-- If `X : ι → Ω → ℝ` is a right continuous, adapted, and monotone process, then `X` defines a
+kernel that maps each `ω` to `(X · ω).measure`. -/
+noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono {ℱ : Filtration ι mΩ}
+    (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
+    ProbabilityTheory.Kernel Ω ι where
+  toFun ω := (rightCont_mono hcont hmono ω).measure
+  measurable' := by
+    apply measurable_measure
+    simp_all [rightCont_mono, fun i => ha.measurable (i := i)]
+
+variable {E : Type*} {Y : ι → Ω → E}
+
+/-- If `Y : ι → Ω → E` is a right continuous and of bounded variation, then for each `ω : Ω`,
+`Y · ω` is a `StieltjesFunction` defined on `ι`. -/
+def StieltjesFunction.rightCont_boundedVariation (hcont : ∀ ω, RightContinuous (X · ω))
+    (hmono : ∀ ω, Monotone (X · ω)) : Ω → StieltjesFunction ι :=
+  fun ω => StieltjesFunction.mk (X · ω) (hmono ω)
+    (fun i => continuousWithinAt_Ioi_iff_Ici.1 (hcont ω i))
