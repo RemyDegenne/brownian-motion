@@ -316,7 +316,7 @@ lemma measurable_vectorMeasure_of_stronglyMeasurable
 
 lemma measurable_vectorMeasure_of_measurable [SecondCountableTopology E]
     (hY : ∀ i, Measurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
-    Measurable fun ω => (hvar ω).vectorMeasure :
+    Measurable fun ω => (hvar ω).vectorMeasure :=
   measurable_vectorMeasure_of_stronglyMeasurable (fun i ↦ (hY i).stronglyMeasurable) hvar
 
 lemma measurable_vectorMeasure_of_adapted [SecondCountableTopology E]
