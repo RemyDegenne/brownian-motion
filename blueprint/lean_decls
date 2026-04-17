@@ -432,3 +432,5 @@ ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm
 ProbabilityTheory.quadraticVariation
 MeasureTheory.Filtration.predictable_le_prod
 ProbabilityTheory.L2Predictable
+ProbabilityTheory.exists_modification_left_right_limit
+ProbabilityTheory.exists_modification_isCadlag
