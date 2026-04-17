@@ -9,6 +9,7 @@ public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Stieltjes
+public import Mathlib.MeasureTheory.Constructions.Polish.StronglyMeasurable
 public import Mathlib.MeasureTheory.VectorMeasure.BoundedVariation
 public import Mathlib.MeasureTheory.VectorMeasure.Variation.Defs
 public import Mathlib.Probability.Kernel.Defs
@@ -232,79 +233,95 @@ end MeasureTheory.VectorMeasure
 
 variable [NormedAddCommGroup E] [CompleteSpace E] [BorelSpace E]
 
-lemma BoundedVariationOn.measurable_vectorMeasure [SecondCountableTopology E]
-    (hY : ∀ i, Measurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+lemma BoundedVariationOn.measurable_vectorMeasure_of_stronglyMeasurable
+    (hY : ∀ i, StronglyMeasurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
     Measurable fun ω => (hvar ω).vectorMeasure := by
   refine VectorMeasure.measurable_of_measurable_coe fun s hs => ?_
-  induction s, hs using MeasurableSpace.induction_on_inter
-      (‹BorelSpace ι›.measurable_eq.trans (borel_eq_generateFrom_Ioc ι))
-      (isPiSystem_Ioc id id) with
-  | empty => simp
-  | basic s hs =>
-      obtain ⟨a, b, hlt, rfl⟩ := hs
-      have hright (x : ι) : Measurable fun ω => (Y · ω).rightLim x := by
-        by_cases hx : IsTop x
-        · simpa [rightLim_eq_of_isTop hx] using hY x
-        · obtain ⟨y, hxy⟩ : ∃ y, x < y := by simpa [IsTop, not_forall, not_le] using hx
-          obtain ⟨u, hu_anti, hu_mem, hu_lim⟩ :
-              ∃ u : ℕ → ι, StrictAnti u ∧ (∀ n, u n ∈ Ioo x y) ∧ Tendsto u atTop (𝓝 x) :=
-            exists_seq_strictAnti_tendsto' hxy
-          refine measurable_of_tendsto_metrizable (fun n => hY (u n)) ?_
-          rw [tendsto_pi_nhds]
-          intro ω
-          have hω : Tendsto (Y · ω) (𝓝[>] x) (𝓝 ((Y · ω).rightLim x)) :=
-            (hvar ω).tendsto_rightLim x
-          have hu' : Tendsto u atTop (𝓝[>] x) :=
-            tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ hu_lim
-              (Eventually.of_forall fun n => (hu_mem n).1)
-          simpa [Function.comp] using hω.comp hu'
-      simpa [fun ω => (hvar ω).vectorMeasure_Ioc hlt.le] using (hright b).sub (hright a)
-  | compl s hs ihs =>
-      have huniv : Measurable fun ω => (hvar ω).vectorMeasure univ := by
-        by_cases hΩ : IsEmpty Ω
-        · letI : IsEmpty Ω := hΩ
-          have hzero : (fun ω => (hvar ω).vectorMeasure univ) = fun _ : Ω => (0 : E) := by
-            funext ω
-            exact False.elim (isEmptyElim ω)
-          rw [hzero]
-          exact measurable_const
-        · letI : Nonempty Ω := not_isEmpty_iff.mp hΩ
-          by_cases hι : Nonempty ι
-          · letI := hι
-            letI : Nonempty E := ⟨Y (Classical.choice hι) (Classical.choice ‹Nonempty Ω›)⟩
+  have hsm : StronglyMeasurable fun ω => (hvar ω).vectorMeasure s := by
+    induction s, hs using MeasurableSpace.induction_on_inter
+        (‹BorelSpace ι›.measurable_eq.trans (borel_eq_generateFrom_Ioc ι))
+        (isPiSystem_Ioc id id) with
+    | empty =>
+        simpa using (stronglyMeasurable_const : StronglyMeasurable fun _ : Ω => (0 : E))
+    | basic s hs =>
+        obtain ⟨a, b, hlt, rfl⟩ := hs
+        have hright (x : ι) : StronglyMeasurable fun ω => (Y · ω).rightLim x := by
+          by_cases hx : IsTop x
+          · simpa [rightLim_eq_of_isTop hx] using hY x
+          · obtain ⟨y, hxy⟩ : ∃ y, x < y := by simp_all [IsTop]
+            obtain ⟨u, _, hu_mem, hu_lim⟩ :
+                ∃ u : ℕ → ι, StrictAnti u ∧ (∀ n, u n ∈ Ioo x y) ∧ Tendsto u atTop (𝓝 x) :=
+              exists_seq_strictAnti_tendsto' hxy
+            have hlim : StronglyMeasurable fun ω => limUnder atTop (fun n => Y (u n) ω) := by
+              simpa using
+                (StronglyMeasurable.limUnder (l := atTop) fun n => hY (u n))
+            have heq :
+                (fun ω => limUnder atTop (fun n => Y (u n) ω)) = fun ω => (Y · ω).rightLim x := by
+              funext ω
+              have hω : Tendsto (Y · ω) (𝓝[>] x) (𝓝 ((Y · ω).rightLim x)) :=
+                (hvar ω).tendsto_rightLim x
+              have hu' : Tendsto u atTop (𝓝[>] x) :=
+                tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ hu_lim
+                  (Eventually.of_forall fun n => (hu_mem n).1)
+              simpa [Function.comp] using (hω.comp hu').limUnder_eq
+            simpa [heq] using hlim
+        simpa [fun ω => (hvar ω).vectorMeasure_Ioc hlt.le] using
+          (continuous_sub.comp_stronglyMeasurable ((hright b).prodMk (hright a)))
+    | compl s hs ihs =>
+        have huniv : StronglyMeasurable fun ω => (hvar ω).vectorMeasure univ := by
+          by_cases hι : IsEmpty ι
+          · letI : IsEmpty ι := hι
+            simpa [eq_empty_of_isEmpty] using
+              (stronglyMeasurable_const : StronglyMeasurable fun _ : Ω => (0 : E))
+          · letI : Nonempty ι := not_isEmpty_iff.mp hι
             obtain ⟨u, hu⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
             obtain ⟨v, hv⟩ := exists_seq_antitone_tendsto_atTop_atBot ι
-            have htop : Measurable fun ω => limUnder atTop (Y · ω) := by
-              refine measurable_of_tendsto_metrizable (fun n => hY (u n)) ?_
-              rw [tendsto_pi_nhds]
-              intro ω
-              simpa [Function.comp] using (hvar ω).tendsto_atTop_limUnder.comp hu.2
-            have hbot : Measurable fun ω => limUnder atBot (Y · ω) := by
-              refine measurable_of_tendsto_metrizable (fun n => hY (v n)) ?_
-              rw [tendsto_pi_nhds]
-              intro ω
-              simpa [Function.comp] using (hvar ω).tendsto_atBot_limUnder.comp hv.2
-            simpa [(hvar _).vectorMeasure_univ] using htop.sub hbot
-          · letI : IsEmpty ι := not_nonempty_iff.mp hι
-            simp [eq_empty_of_isEmpty]
-      simpa [fun ω => (hvar ω).vectorMeasure.of_compl hs] using huniv.sub ihs
-  | iUnion f hfd hfm ihf =>
-      exact measurable_of_tendsto_metrizable (fun n => Finset.measurable_sum _ fun i hi => ihf i)
-        (tendsto_pi_nhds.2 fun ω => ((hvar ω).vectorMeasure.m_iUnion' hfm hfd).tendsto_sum_nat)
+            have htop : StronglyMeasurable fun ω => limUnder atTop (Y · ω) := by
+              have hlim : StronglyMeasurable fun ω => limUnder atTop (fun n => Y (u n) ω) := by
+                simpa using (StronglyMeasurable.limUnder (l := atTop) fun n => hY (u n))
+              have heq :
+                  (fun ω => limUnder atTop (fun n => Y (u n) ω)) =
+                    fun ω => limUnder atTop (Y · ω) := by
+                funext ω
+                simpa [Function.comp] using ((hvar ω).tendsto_atTop_limUnder.comp hu.2).limUnder_eq
+              simpa [heq] using hlim
+            have hbot : StronglyMeasurable fun ω => limUnder atBot (Y · ω) := by
+              have hlim : StronglyMeasurable fun ω => limUnder atTop (fun n => Y (v n) ω) := by
+                simpa using (StronglyMeasurable.limUnder (l := atTop) fun n => hY (v n))
+              have heq :
+                  (fun ω => limUnder atTop (fun n => Y (v n) ω)) =
+                    fun ω => limUnder atBot (Y · ω) := by
+                funext ω
+                simpa [Function.comp] using ((hvar ω).tendsto_atBot_limUnder.comp hv.2).limUnder_eq
+              simpa [heq] using hlim
+            simpa [(hvar _).vectorMeasure_univ] using
+              (continuous_sub.comp_stronglyMeasurable (htop.prodMk hbot))
+        simpa [fun ω => (hvar ω).vectorMeasure.of_compl hs] using
+          (continuous_sub.comp_stronglyMeasurable (huniv.prodMk ihs))
+    | iUnion f hfd hfm ihf =>
+        refine stronglyMeasurable_of_tendsto atTop
+          (fun n => (Finset.range n).stronglyMeasurable_sum fun i hi => ihf i) ?_
+        rw [tendsto_pi_nhds]
+        intro ω
+        simpa using ((hvar ω).vectorMeasure.m_iUnion' hfm hfd).tendsto_sum_nat
+  exact (stronglyMeasurable_iff_measurable_separable.1 hsm).1
+
+lemma BoundedVariationOn.measurable_vectorMeasure_of_measurable [SecondCountableTopology E]
+    (hY : ∀ i, Measurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+    Measurable fun ω => (hvar ω).vectorMeasure := by
+  exact BoundedVariationOn.measurable_vectorMeasure_of_stronglyMeasurable
+    (fun i ↦ (hY i).stronglyMeasurable) hvar
 
 variable {ℱ : Filtration ι mΩ}
 
 lemma BoundedVariationOn.measurable_vectorMeasure_of_adapted [SecondCountableTopology E]
     (ha : Adapted ℱ Y) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
-    Measurable fun ω => (hvar ω).vectorMeasure := by
-  exact BoundedVariationOn.measurable_vectorMeasure (fun i ↦ ha.measurable (i := i)) hvar
+    Measurable fun ω => (hvar ω).vectorMeasure :=
+  BoundedVariationOn.measurable_vectorMeasure_of_measurable
+    (fun i ↦ ha.measurable (i := i)) hvar
 
-lemma BoundedVariationOn.measurable_vectorMeasure_of_stronglyAdapted [SecondCountableTopology E]
+lemma BoundedVariationOn.measurable_vectorMeasure_of_stronglyAdapted
     (ha : StronglyAdapted ℱ Y) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
     Measurable fun ω => (hvar ω).vectorMeasure := by
-  apply BoundedVariationOn.measurable_vectorMeasure
-  intro i
-  have hYi : StronglyMeasurable (Y i) := ha.stronglyMeasurable (i := i)
-  have hsep : TopologicalSpace.IsSeparable (range (Y i)) := hYi.isSeparable_range
-  exact (stronglyMeasurable_iff_measurable_separable.2
-    ⟨(stronglyMeasurable_iff_measurable_separable.1 hYi).1, hsep⟩).measurable
+  exact BoundedVariationOn.measurable_vectorMeasure_of_stronglyMeasurable
+    (fun i ↦ ha.stronglyMeasurable (i := i)) hvar
