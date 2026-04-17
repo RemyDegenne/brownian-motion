@@ -201,18 +201,110 @@ noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono {ℱ : Filt
     apply measurable_measure
     simp_all [rightCont_mono, fun i => ha.measurable (i := i)]
 
-variable {E : Type*} [NormedAddCommGroup E] [CompleteSpace E] {Y : ι → Ω → E}
+variable {E : Type*} {Y : ι → Ω → E} [MeasurableSpace E]
 
-/-- If `Y : ι → Ω → E` has paths of bounded variation, then `Y` defines a kernel that maps each
-`ω` to the variation of `Y · ω`. -/
-noncomputable def StieltjesFunction.kernel_of_boundedVariation
-    (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) : Kernel Ω ι where
-  toFun ω := (hvar ω).vectorMeasure.variation
-  measurable' := by sorry
+namespace MeasureTheory.VectorMeasure
 
-theorem StieltjesFunction.kernel_of_boundedVariation_eq_kernel_of_rightCont_adapted_mono
-    {ℱ : Filtration ι mΩ} (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω))
-    (hmono : ∀ ω, Monotone (X · ω)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
-    StieltjesFunction.kernel_of_boundedVariation hvar =
-      StieltjesFunction.kernel_of_rightCont_adapted_mono ha hcont hmono := by
-  sorry
+variable [AddCommMonoid E] [TopologicalSpace E] [BorelSpace E]
+
+/-- Measurability structure on `VectorMeasure`. -/
+instance instMeasurableSpace :
+    MeasurableSpace (VectorMeasure ι E) :=
+  ⨆ (s : Set ι) (_ : MeasurableSet s), (borel E).comap fun μ => μ s
+
+variable {ι : Type*} [MeasurableSpace ι]
+
+theorem measurable_coe {s : Set ι} (hs : MeasurableSet s) :
+    Measurable fun μ : VectorMeasure ι E => μ s := by
+  borelize E
+  apply Measurable.of_comap_le <| _
+  apply le_biSup _ hs
+
+theorem measurable_of_measurable_coe {f : Ω → VectorMeasure ι E}
+    (h : ∀ (s : Set ι), MeasurableSet s → Measurable fun ω => f ω s) :
+    Measurable f := by
+  refine Measurable.of_le_map <| iSup₂_le fun s hs => MeasurableSpace.comap_le_iff_le_map.2 ?_
+  rw [MeasurableSpace.map_comp]
+  borelize E
+  exact h s hs
+
+end MeasureTheory.VectorMeasure
+
+variable [NormedAddCommGroup E] [CompleteSpace E] [BorelSpace E]
+
+lemma BoundedVariationOn.measurable_vectorMeasure [SecondCountableTopology E]
+    (hY : ∀ i, Measurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+    Measurable fun ω => (hvar ω).vectorMeasure := by
+  refine VectorMeasure.measurable_of_measurable_coe fun s hs => ?_
+  induction s, hs using MeasurableSpace.induction_on_inter
+      (‹BorelSpace ι›.measurable_eq.trans (borel_eq_generateFrom_Ioc ι))
+      (isPiSystem_Ioc id id) with
+  | empty => simp
+  | basic s hs =>
+      obtain ⟨a, b, hlt, rfl⟩ := hs
+      have hright (x : ι) : Measurable fun ω => (Y · ω).rightLim x := by
+        by_cases hx : IsTop x
+        · simpa [rightLim_eq_of_isTop hx] using hY x
+        · obtain ⟨y, hxy⟩ : ∃ y, x < y := by simpa [IsTop, not_forall, not_le] using hx
+          obtain ⟨u, hu_anti, hu_mem, hu_lim⟩ :
+              ∃ u : ℕ → ι, StrictAnti u ∧ (∀ n, u n ∈ Ioo x y) ∧ Tendsto u atTop (𝓝 x) :=
+            exists_seq_strictAnti_tendsto' hxy
+          refine measurable_of_tendsto_metrizable (fun n => hY (u n)) ?_
+          rw [tendsto_pi_nhds]
+          intro ω
+          have hω : Tendsto (Y · ω) (𝓝[>] x) (𝓝 ((Y · ω).rightLim x)) :=
+            (hvar ω).tendsto_rightLim x
+          have hu' : Tendsto u atTop (𝓝[>] x) :=
+            tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _ hu_lim
+              (Eventually.of_forall fun n => (hu_mem n).1)
+          simpa [Function.comp] using hω.comp hu'
+      simpa [fun ω => (hvar ω).vectorMeasure_Ioc hlt.le] using (hright b).sub (hright a)
+  | compl s hs ihs =>
+      have huniv : Measurable fun ω => (hvar ω).vectorMeasure univ := by
+        by_cases hΩ : IsEmpty Ω
+        · letI : IsEmpty Ω := hΩ
+          have hzero : (fun ω => (hvar ω).vectorMeasure univ) = fun _ : Ω => (0 : E) := by
+            funext ω
+            exact False.elim (isEmptyElim ω)
+          rw [hzero]
+          exact measurable_const
+        · letI : Nonempty Ω := not_isEmpty_iff.mp hΩ
+          by_cases hι : Nonempty ι
+          · letI := hι
+            letI : Nonempty E := ⟨Y (Classical.choice hι) (Classical.choice ‹Nonempty Ω›)⟩
+            obtain ⟨u, hu⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+            obtain ⟨v, hv⟩ := exists_seq_antitone_tendsto_atTop_atBot ι
+            have htop : Measurable fun ω => limUnder atTop (Y · ω) := by
+              refine measurable_of_tendsto_metrizable (fun n => hY (u n)) ?_
+              rw [tendsto_pi_nhds]
+              intro ω
+              simpa [Function.comp] using (hvar ω).tendsto_atTop_limUnder.comp hu.2
+            have hbot : Measurable fun ω => limUnder atBot (Y · ω) := by
+              refine measurable_of_tendsto_metrizable (fun n => hY (v n)) ?_
+              rw [tendsto_pi_nhds]
+              intro ω
+              simpa [Function.comp] using (hvar ω).tendsto_atBot_limUnder.comp hv.2
+            simpa [(hvar _).vectorMeasure_univ] using htop.sub hbot
+          · letI : IsEmpty ι := not_nonempty_iff.mp hι
+            simp [eq_empty_of_isEmpty]
+      simpa [fun ω => (hvar ω).vectorMeasure.of_compl hs] using huniv.sub ihs
+  | iUnion f hfd hfm ihf =>
+      exact measurable_of_tendsto_metrizable (fun n => Finset.measurable_sum _ fun i hi => ihf i)
+        (tendsto_pi_nhds.2 fun ω => ((hvar ω).vectorMeasure.m_iUnion' hfm hfd).tendsto_sum_nat)
+
+variable {ℱ : Filtration ι mΩ}
+
+lemma BoundedVariationOn.measurable_vectorMeasure_of_adapted [SecondCountableTopology E]
+    (ha : Adapted ℱ Y) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+    Measurable fun ω => (hvar ω).vectorMeasure := by
+  exact BoundedVariationOn.measurable_vectorMeasure (fun i ↦ ha.measurable (i := i)) hvar
+
+lemma BoundedVariationOn.measurable_vectorMeasure_of_stronglyAdapted [SecondCountableTopology E]
+    (ha : StronglyAdapted ℱ Y) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
+    Measurable fun ω => (hvar ω).vectorMeasure := by
+  apply BoundedVariationOn.measurable_vectorMeasure
+  intro i
+  have hYi : StronglyMeasurable (Y i) := ha.stronglyMeasurable (i := i)
+  have hsep : TopologicalSpace.IsSeparable (range (Y i)) := hYi.isSeparable_range
+  exact (stronglyMeasurable_iff_measurable_separable.2
+    ⟨(stronglyMeasurable_iff_measurable_separable.1 hYi).1, hsep⟩).measurable
