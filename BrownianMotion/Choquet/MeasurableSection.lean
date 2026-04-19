@@ -269,6 +269,44 @@ lemma step_mem {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
     ((todo'' (hs.inter (isPavingAnalytic_some_set τn.2)) (μ {ω | debut A 0 ω ≠ ⊤} / 2)
       h_lt).choose_spec.2.1 ω hω)
 
+lemma measure_step_ne_top_ge {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
+    {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} :
+    μ {ω | debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2 ≤ μ {ω | (step μ hs τn).1 ω ≠ ⊤} := by
+  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
+  by_cases h0 : μ {ω | debut A 0 ω ≠ ⊤} = 0
+  · simp [A, h0]
+  have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
+    ENNReal.half_lt_self h0 (by simp)
+  rw [step, dif_neg h0]
+  exact (todo'' (hs.inter (isPavingAnalytic_some_set τn.2)) (μ {ω | debut A 0 ω ≠ ⊤} / 2)
+      h_lt).choose_spec.2.2.1
+
+lemma debut_le_step {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
+    {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} :
+    debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≤ (step μ hs τn).1 ω := by
+  by_cases hω : (step μ hs τn).1 ω = ⊤
+  · simp [hω]
+  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
+  have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
+    by_contra! h0
+    simp only [step, ne_eq, Set.mem_inter_iff, Set.mem_setOf_eq] at hω
+    rw [dif_pos h0] at hω
+    simp at hω
+  have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
+    ENNReal.half_lt_self h_ne (by simp)
+  rw [step, dif_neg h_ne]
+  exact ((todo'' (hs.inter (isPavingAnalytic_some_set τn.2)) (μ {ω | debut A 0 ω ≠ ⊤} / 2)
+      h_lt).choose_spec.2.2.2 ω)
+
+lemma step_eq_top_of_ne_top {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
+    {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} (hω : τn.1 ω ≠ ⊤) :
+    (step μ hs τn).1 ω = ⊤ := by
+  refine le_antisymm le_top ?_
+  refine le_trans ?_ debut_le_step
+  simp only [top_le_iff]
+  rw [debut_eq_top_iff]
+  simp [hω]
+
 variable (μ) in
 noncomputable
 def someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
@@ -290,8 +328,7 @@ lemma someSeq_add_one_eq_of_ne_top {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnaly
     {n : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) :
     (someSeq μ hs (n + 1)).1 ω = (someSeq μ hs n).1 ω := by
   rw [someSeq_add_one]
-  simp only [Pi.inf_apply, inf_eq_left]
-  sorry
+  simp [step_eq_top_of_ne_top hω]
 
 lemma someSeq_eq_of_ne_top_of_ge {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
     {n m : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) (hm : n ≤ m) :
