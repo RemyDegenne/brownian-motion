@@ -3,11 +3,15 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Debut.Basic
+module
+
+public import BrownianMotion.Debut.Basic
 
 /-!
 # Measurable section theorems
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped ENNReal NNReal Topology
@@ -21,7 +25,7 @@ instance : CompactIccSpace ℝ≥0 := by
   intro a b
   sorry
 
-instance : MeasurableInf₂ (WithTop ℝ≥0) := sorry
+instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
 
 lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
     InfClosed (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
@@ -79,11 +83,7 @@ lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : MeasurableSet s) (u :
     -- todo: NullMeasurable version of measurable_of_Iio ? also deal with r not ⊤
     sorry
   intro r
-  convert MeasurableSet.nullMeasurableSet_debut_lt (P := μ) hs u r
-  -- what is happening here?
-  convert instClosedIciTopology
-  convert OrderTopology.to_orderClosedTopology
-  exact NNReal.instOrderTopology
+  exact MeasurableSet.nullMeasurableSet_debut_lt (P := μ) hs u r
 
 lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
@@ -159,15 +159,15 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
     | inr ht => obtain ⟨a, b, rfl⟩ := ht; exact measurableSet_Icc
   · intro ω hω
     suffices ((debut (Prod.swap '' B a ha) 0 ω).untopA, ω) ∈ Prod.swap '' B a ha by grind
-    convert debut_mem_of_isClosed ?_ hω.ne
-    · exact NNReal.instOrderTopology
-    · convert (hB_compact a ha ω).isClosed with t
-      simp only [Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq, ↓existsAndEq,
-        true_and, exists_eq_right, and_iff_right_iff_imp]
-      intro
-      convert zero_le _
-      exact NNReal.instCanonicallyOrderedAdd
-  · grind
+    refine debut_mem_of_isClosed ?_ hω.ne
+    convert (hB_compact a ha ω).isClosed with t
+    simp only [Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq, ↓existsAndEq,
+      true_and, exists_eq_right, and_iff_right_iff_imp]
+    intro
+    convert zero_le _
+    exact NNReal.instCanonicallyOrderedAdd
+  · specialize hB_le a ha
+    rwa [I_apply_eq_debut] at hB_le
   · rw [← I_apply_swap, ← I_apply_swap]
     exact I.mono fun _ ↦ by simp; grind
 
