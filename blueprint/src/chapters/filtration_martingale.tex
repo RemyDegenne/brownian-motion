@@ -150,8 +150,8 @@ Let then $A \in \mathcal{F}_i$.
 
 
 \begin{lemma}[Jensen's inequality for the conditional expectation]\label{lem:conditional_jensen}
-  \leanok
-  \lean{MeasureTheory.conditional_jensen}
+  \mathlibok
+  \lean{ConvexOn.map_condExp_le_univ}
 Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$ and let $\phi : E \to \mathbb{R}$ be a convex function such that $\phi \circ X$ is integrable.
 Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \begin{align*}
@@ -160,7 +160,7 @@ Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \end{align*}
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 Done in a Mathlib PR for finite measures: \href{https://github.com/leanprover-community/mathlib4/pull/27953}{\#27953}.
 \end{proof}
 

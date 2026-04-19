@@ -1,14 +1,17 @@
-import BrownianMotion.Auxiliary.Algebra
-import BrownianMotion.Auxiliary.Metric
-import BrownianMotion.Auxiliary.WithLp
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Probability.Independence.ZeroOne
-import Mathlib.Probability.Moments.Covariance
-import Mathlib.Probability.Process.Filtration
+module
+
+public import BrownianMotion.Auxiliary.Algebra
+public import BrownianMotion.Auxiliary.Metric
+public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.Probability.Independence.ZeroOne
+
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
+
+@[expose] public section
 
 open MeasureTheory WithLp
 

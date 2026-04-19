@@ -1,5 +1,8 @@
-import Mathlib.Order.Filter.AtTopBot.Basic
-import Mathlib.Topology.Order.WithTop
+module
+
+public import Mathlib.Topology.Order.WithTop
+
+@[expose] public section
 
 open Set
 open scoped Topology

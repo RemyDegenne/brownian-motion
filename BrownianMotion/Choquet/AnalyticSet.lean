@@ -3,9 +3,11 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Choquet.CompactSystem
-import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
-import Mathlib.MeasureTheory.MeasurableSpace.Prod
+module
+
+public import BrownianMotion.Choquet.CompactSystem
+public import Mathlib.MeasureTheory.Constructions.Polish.EmbeddingReal
+public import Mathlib.MeasureTheory.MeasurableSpace.Prod
 
 /-!
 # Analytic sets in the sense of a paved space
@@ -16,6 +18,8 @@ not compact pavings (which would be the same, but for arbitrary intersections in
 ones), because it's sufficient for our applications, and because it's easier to work with.
 
 -/
+
+@[expose] public section
 
 open scoped ENNReal NNReal
 

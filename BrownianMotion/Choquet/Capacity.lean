@@ -3,11 +3,15 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Choquet.AnalyticSet
+module
+
+public import BrownianMotion.Choquet.AnalyticSet
 
 /-!
 # Choquet capacity
 -/
+
+@[expose] public section
 
 open Filter
 open scoped ENNReal NNReal Topology

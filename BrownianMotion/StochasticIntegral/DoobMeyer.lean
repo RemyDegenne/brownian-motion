@@ -3,13 +3,15 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.StochasticIntegral.Cadlag
-import BrownianMotion.StochasticIntegral.ClassD
-import BrownianMotion.StochasticIntegral.LocalMartingale
+module
+
+public import BrownianMotion.StochasticIntegral.ClassD
 
 /-! # Doob-Meyer decomposition theorem
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped ENNReal

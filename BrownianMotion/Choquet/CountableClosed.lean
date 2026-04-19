@@ -3,10 +3,11 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+module
 
-import Mathlib.Data.Countable.Defs
-import Mathlib.Data.Nat.Pairing
-import Mathlib.Order.SupClosed
+public import Mathlib.Data.Countable.Defs
+public import Mathlib.Data.Nat.Pairing
+public import Mathlib.Order.SupClosed
 
 /-!
 # Sets closed under countable join/meet
@@ -28,6 +29,8 @@ The list of properties in this file is copied and adapted from the file about `S
 We should keep these files in sync.
 
 -/
+
+@[expose] public section
 
 variable {ι : Sort*} {α β : Type*} {S : Set (Set α)} {s t : Set α} {a b : α}
 

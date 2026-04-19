@@ -1,64 +1,66 @@
-import BrownianMotion.Auxiliary.Adapted
-import BrownianMotion.Auxiliary.Algebra
-import BrownianMotion.Auxiliary.Analysis
-import BrownianMotion.Auxiliary.ContinuousBilinForm
-import BrownianMotion.Auxiliary.ENNReal
-import BrownianMotion.Auxiliary.Filtration
-import BrownianMotion.Auxiliary.FiniteInf
-import BrownianMotion.Auxiliary.HasGaussianLaw
-import BrownianMotion.Auxiliary.HasLaw
-import BrownianMotion.Auxiliary.IsStoppingTime
-import BrownianMotion.Auxiliary.Jensen
-import BrownianMotion.Auxiliary.LinearAlgebra
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.Auxiliary.MeanInequalities
-import BrownianMotion.Auxiliary.MeasureTheory
-import BrownianMotion.Auxiliary.Metric
-import BrownianMotion.Auxiliary.NNReal
-import BrownianMotion.Auxiliary.Nat
-import BrownianMotion.Auxiliary.Real
-import BrownianMotion.Auxiliary.SetAlgebra
-import BrownianMotion.Auxiliary.StoppedProcess
-import BrownianMotion.Auxiliary.Topology
-import BrownianMotion.Auxiliary.WithLp
-import BrownianMotion.Auxiliary.WithTop
-import BrownianMotion.Choquet.AnalyticSet
-import BrownianMotion.Choquet.Capacity
-import BrownianMotion.Choquet.CompactSystem
-import BrownianMotion.Choquet.CountableClosed
-import BrownianMotion.Continuity.Chaining
-import BrownianMotion.Continuity.CoveringNumber
-import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
-import BrownianMotion.Continuity.IsKolmogorovProcess
-import BrownianMotion.Continuity.KolmogorovChentsov
-import BrownianMotion.Continuity.KolmogorovChentsovInequality
-import BrownianMotion.Debut.Basic
-import BrownianMotion.Gaussian.BrownianMotion
-import BrownianMotion.Gaussian.CovMatrix
-import BrownianMotion.Gaussian.Gaussian
-import BrownianMotion.Gaussian.GaussianProcess
-import BrownianMotion.Gaussian.Moment
-import BrownianMotion.Gaussian.MultivariateGaussian
-import BrownianMotion.Gaussian.ProjectiveLimit
-import BrownianMotion.Gaussian.StochasticProcesses
-import BrownianMotion.StochasticIntegral.ApproxSeq
-import BrownianMotion.StochasticIntegral.Cadlag
-import BrownianMotion.StochasticIntegral.Centering
-import BrownianMotion.StochasticIntegral.ClassD
-import BrownianMotion.StochasticIntegral.DoobLp
-import BrownianMotion.StochasticIntegral.DoobMeyer
-import BrownianMotion.StochasticIntegral.Komlos
-import BrownianMotion.StochasticIntegral.L2M
-import BrownianMotion.StochasticIntegral.LocalMartingale
-import BrownianMotion.StochasticIntegral.LocalMonad
-import BrownianMotion.StochasticIntegral.LocalizingSequence
-import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.StochasticIntegral.MathlibImports
-import BrownianMotion.StochasticIntegral.OptionalSampling
-import BrownianMotion.StochasticIntegral.Predictable
-import BrownianMotion.StochasticIntegral.QuadraticVariation
-import BrownianMotion.StochasticIntegral.SimpleProcess
-import BrownianMotion.StochasticIntegral.SquareIntegrable
-import BrownianMotion.StochasticIntegral.UniformIntegrable
-import BrownianMotion.Verso.Brownian
-import BrownianMotion.Verso.Processes
+module
+
+public import BrownianMotion.Auxiliary.Adapted
+public import BrownianMotion.Auxiliary.Algebra
+public import BrownianMotion.Auxiliary.Analysis
+public import BrownianMotion.Auxiliary.ContinuousBilinForm
+public import BrownianMotion.Auxiliary.ENNReal
+public import BrownianMotion.Auxiliary.Filtration
+public import BrownianMotion.Auxiliary.FiniteInf
+public import BrownianMotion.Auxiliary.HasGaussianLaw
+public import BrownianMotion.Auxiliary.HasLaw
+public import BrownianMotion.Auxiliary.IsStoppingTime
+public import BrownianMotion.Auxiliary.Jensen
+public import BrownianMotion.Auxiliary.LinearAlgebra
+public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.Auxiliary.MeanInequalities
+public import BrownianMotion.Auxiliary.MeasureTheory
+public import BrownianMotion.Auxiliary.Metric
+public import BrownianMotion.Auxiliary.NNReal
+public import BrownianMotion.Auxiliary.Nat
+public import BrownianMotion.Auxiliary.Real
+public import BrownianMotion.Auxiliary.SetAlgebra
+public import BrownianMotion.Auxiliary.StoppedProcess
+public import BrownianMotion.Auxiliary.Topology
+public import BrownianMotion.Auxiliary.WithLp
+public import BrownianMotion.Auxiliary.WithTop
+public import BrownianMotion.Choquet.AnalyticSet
+public import BrownianMotion.Choquet.Capacity
+public import BrownianMotion.Choquet.CompactSystem
+public import BrownianMotion.Choquet.CountableClosed
+public import BrownianMotion.Continuity.Chaining
+public import BrownianMotion.Continuity.CoveringNumber
+public import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
+public import BrownianMotion.Continuity.IsKolmogorovProcess
+public import BrownianMotion.Continuity.KolmogorovChentsov
+public import BrownianMotion.Continuity.KolmogorovChentsovInequality
+public import BrownianMotion.Debut.Basic
+public import BrownianMotion.Gaussian.BrownianMotion
+public import BrownianMotion.Gaussian.CovMatrix
+public import BrownianMotion.Gaussian.Gaussian
+public import BrownianMotion.Gaussian.GaussianProcess
+public import BrownianMotion.Gaussian.Moment
+public import BrownianMotion.Gaussian.MultivariateGaussian
+public import BrownianMotion.Gaussian.ProjectiveLimit
+public import BrownianMotion.Gaussian.StochasticProcesses
+public import BrownianMotion.StochasticIntegral.ApproxSeq
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import BrownianMotion.StochasticIntegral.Centering
+public import BrownianMotion.StochasticIntegral.ClassD
+public import BrownianMotion.StochasticIntegral.DoobLp
+public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.Komlos
+public import BrownianMotion.StochasticIntegral.L2M
+public import BrownianMotion.StochasticIntegral.LocalMartingale
+public import BrownianMotion.StochasticIntegral.LocalMonad
+public import BrownianMotion.StochasticIntegral.LocalizingSequence
+public import BrownianMotion.StochasticIntegral.Locally
+public import BrownianMotion.StochasticIntegral.MathlibImports
+public import BrownianMotion.StochasticIntegral.OptionalSampling
+public import BrownianMotion.StochasticIntegral.Predictable
+public import BrownianMotion.StochasticIntegral.QuadraticVariation
+public import BrownianMotion.StochasticIntegral.SimpleProcess
+public import BrownianMotion.StochasticIntegral.SquareIntegrable
+public import BrownianMotion.StochasticIntegral.UniformIntegrable
+public import BrownianMotion.Verso.Brownian
+public import BrownianMotion.Verso.Processes

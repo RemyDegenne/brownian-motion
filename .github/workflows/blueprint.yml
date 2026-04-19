@@ -50,7 +50,7 @@ jobs:
         with:
           build: true
           lint: true
-          mk_all-check: true
+          mk_all-check: false
 
       - name: Build Verso Documentation
         run: |

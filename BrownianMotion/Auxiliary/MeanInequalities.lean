@@ -1,5 +1,8 @@
-import Mathlib.MeasureTheory.Integral.MeanInequalities
-import Mathlib.Tactic
+module
+
+public import Mathlib.MeasureTheory.Integral.MeanInequalities
+
+@[expose] public section
 
 open MeasureTheory
 

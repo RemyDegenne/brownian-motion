@@ -3,19 +3,19 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.ContinuousBilinForm
-import BrownianMotion.Auxiliary.MeasureTheory
-import Mathlib.Analysis.InnerProductSpace.Adjoint
-import Mathlib.MeasureTheory.SpecificCodomains.WithLp
-import Mathlib.Probability.Distributions.Gaussian.Fernique
-import Mathlib.Probability.Moments.CovarianceBilinDual
-import Mathlib.Probability.Moments.CovarianceBilin
-import Mathlib.LinearAlgebra.BilinearForm.Properties
+module
+
+public import BrownianMotion.Auxiliary.ContinuousBilinForm
+public import BrownianMotion.Auxiliary.MeasureTheory
+public import Mathlib.Probability.Distributions.Gaussian.Fernique
+public import Mathlib.Probability.Moments.CovarianceBilin
 
 /-!
 # Covariance matrix
 
 -/
+
+@[expose] public section
 
 open MeasureTheory InnerProductSpace NormedSpace WithLp
 open scoped ENNReal NNReal Matrix

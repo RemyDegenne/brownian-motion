@@ -3,8 +3,9 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import Mathlib.Probability.Process.Filtration
-import Mathlib.Probability.Process.Adapted
+module
+
+public import Mathlib.Probability.Process.Filtration
 
 /-!
 # Progressively Measurable σ-algebra
@@ -42,6 +43,8 @@ Then you can endow `ι` with the order topology by writing
 
 * Given a filtration `𝓕`, its right continuation is denoted `𝓕₊` (type `₊` with `;_+`).
 -/
+
+@[expose] public section
 
 open Filter Order TopologicalSpace
 

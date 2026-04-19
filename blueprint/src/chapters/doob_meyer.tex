@@ -290,10 +290,12 @@ By definition.
 
 \begin{lemma}\label{lem:martingalePart_zero}
   \uses{def:martingalePart}
+  \leanok
+  \lean{MeasureTheory.martingalePart_zero}
 $M_0 = X_0$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:martingalePart, lem:predictablePart_zero}
 By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_zero}, $A_0 = 0$, thus $M_0 = X_0 - A_0 = X_0$.
 \end{proof}
@@ -339,10 +341,12 @@ Using Lemma~\ref{lem:predictablePart_add_one}, we have for $n \in \mathbb{N}$,
 
 \begin{lemma}\label{lem:Martingale.predictablePart_eq_zero}
   \uses{def:predictablePart, def:Martingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.predictablePart_eq_zero}
 If $X$ is a martingale, then $A = 0$ almost surely.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:predictablePart, def:Martingale}
 By the martingale property, each conditional expectation in the definition of $A$ is zero.
 \end{proof}
@@ -350,10 +354,12 @@ By the martingale property, each conditional expectation in the definition of $A
 
 \begin{lemma}\label{lem:isPredictable.predictablePart_eq}
   \uses{def:predictablePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.IsPredictable.predictablePart_eq}
 If $X$ is predictable, then $A = X - X_0$ almost surely.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:predictablePart, def:predictable}
 Since $X$ is predictable, for all $n \in \mathbb{N}$, $X_{n+1}$ is $\mathcal{F}_n$-measurable and thus $\mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n] = X_{n+1} - X_n$ a.s..
 We get a telescoping sum in the definition of $A$ and thus $A_n = X_n - X_0$ a.s. for all $n \in \mathbb{N}$.
@@ -362,10 +368,12 @@ We get a telescoping sum in the definition of $A$ and thus $A_n = X_n - X_0$ a.s
 
 \begin{lemma}\label{lem:martingalePart_eq_zero}
   \uses{def:martingalePart, def:predictable}
+  \leanok
+  \lean{MeasureTheory.IsPredictable.martingalePart_eq}
 If $X$ is predictable, then $M = X_0$ almost surely.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:isPredictable.predictablePart_eq}
 By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:isPredictable.predictablePart_eq}, $A = X - X_0$ almost surely, thus $M = X_0$ almost surely.
 \end{proof}
@@ -373,10 +381,12 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:isPredictab
 
 \begin{lemma}\label{lem:Martingale.martingalePart_eq}
   \uses{def:martingalePart, def:Martingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.martingalePart_eq}
 If $X$ is a martingale, then $M = X$ almost surely.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:Martingale.predictablePart_eq_zero}
 By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:Martingale.predictablePart_eq_zero}, $A = 0$ almost surely, thus $M = X$ almost surely.
 \end{proof}
@@ -384,10 +394,12 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:Martingale.
 
 \begin{lemma}\label{lem:predictablePart_smul}
   \uses{def:predictablePart}
+  \leanok
+  \lean{MeasureTheory.predictablePart_smul}
 For any scalar $c$, the predictable part of $c X$ is $c A$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:predictablePart}
 Linearity of the conditional expectation.
 \end{proof}
@@ -395,10 +407,12 @@ Linearity of the conditional expectation.
 
 \begin{lemma}\label{lem:martingalePart_smul}
   \uses{def:martingalePart}
+  \leanok
+  \lean{MeasureTheory.martingalePart_smul}
 For any scalar $c$, the martingale part of $c X$ is $c M$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:martingalePart, lem:predictablePart_smul}
 By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_smul}, the predictable part of $c X$ is $c A$. Therefore, the martingale part of $c X$ is $c X - c A = c M$.
 \end{proof}
@@ -406,10 +420,12 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictable
 
 \begin{lemma}\label{lem:predictablePart_add}
   \uses{def:predictablePart}
+  \leanok
+  \lean{MeasureTheory.predictablePart_add}
 The predictable part of $X + Y$ is the sum of the predictable part of $X$ and the predictable part of $Y$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:predictablePart}
 Linearity of the conditional expectation.
 \end{proof}
@@ -417,10 +433,12 @@ Linearity of the conditional expectation.
 
 \begin{lemma}\label{lem:martingalePart_add}
   \uses{def:martingalePart}
+  \leanok
+  \lean{MeasureTheory.martingalePart_add}
 The martingale part of $X + Y$ is the sum of the martingale part of $X$ and the martingale part of $Y$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{def:martingalePart, lem:predictablePart_add}
 By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictablePart_add}, the predictable part of $X + Y$ is $A + B$. Therefore, the martingale part of $X + Y$ is $(X + Y) - (A + B) = M + N$.
 \end{proof}
@@ -486,12 +504,26 @@ Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 
 \begin{lemma}\label{lem:Submartingale.predictablePart_nonneg}
   \uses{def:predictablePart, def:Submartingale}
+  \leanok
+  \lean{MeasureTheory.Submartingale.nonneg_predictablePart}
 The predictable part of a real-valued submartingale is almost surely nonnegative.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:Submartingale.monotone_predictablePart, lem:predictablePart_zero}
 By Lemma~\ref{lem:Submartingale.monotone_predictablePart}, the predictable part $A$ is almost surely nondecreasing. By Lemma~\ref{lem:predictablePart_zero}, $A_0 = 0$. Therefore, $A_n \ge 0$ almost surely for all $n \in \mathbb{N}$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:centering_basic}
+  \uses{def:predictablePart, def:martingalePart}
+  \leanok
+Fake lemma: import this lemma when using the basic properties of the Doob decomposition.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:predictablePart_zero, lem:martingalePart_zero, lem:predictablePart_add, lem:martingalePart_add, lem:predictablePart_smul, lem:martingalePart_smul, lem:Martingale.predictablePart_eq_zero, lem:isPredictable.predictablePart_eq, lem:martingalePart_eq_zero, lem:Martingale.martingalePart_eq, lem:Submartingale.monotone_predictablePart, lem:Submartingale.predictablePart_nonneg}
+
 \end{proof}
 
 
@@ -502,7 +534,7 @@ The hitting time $\tau_{A_{n + 1} > c}$ of Definition~\ref{def:leastGT} is a sto
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:predictable_predictablePart}
+  \uses{lem:predictable_predictablePart, lem:centering_basic}
 Since $A_{n}$ is predictable, $A_{n + 1}$ is adapted.
 The hitting time of an adapted process is a stopping time (we use the discrete time version of that result here, not the full Début theorem).
 \end{proof}
@@ -515,6 +547,7 @@ Then $A_{\tau_{A_{n + 1} > c}} \le c$ and if $\tau_{A_{n + 1} > c} < \infty$ the
 \end{lemma}
 
 \begin{proof}
+  \uses{lem:centering_basic}
 
 \end{proof}
 
@@ -539,7 +572,7 @@ Then for a stopping time $\tau \le T$, almost surely, $M_\tau = -\mathbb{E}[A_T 
 \end{lemma}
 
 \begin{proof}
-  \uses{def:martingalePart, lem:martingale_martingalePart}
+  \uses{def:martingalePart, lem:martingale_martingalePart, lem:centering_basic}
 By definition and since $X_T = 0$, $M_T = X_T - A_T = - A_T$.
 Since $M$ is a martingale it follows by optional sampling that for any stopping time $\tau \le T$
 \begin{align*}
@@ -561,7 +594,7 @@ Then $A_T > c \iff \tau^T(c) < T$.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:leastGT_lt_iff, lem:Submartingale.monotone_predictablePart}
+  \uses{lem:leastGT_lt_iff, lem:Submartingale.monotone_predictablePart, lem:centering_basic}
 By Lemma~\ref{lem:leastGT_lt_iff}, $\tau^T(c) < T \iff \exists s < T, A_{s+1} > c$, which is equivalent to $\exists s \in \{1, \ldots, T\}, A_s > c$.
 By monotonicity of $A$ (Lemma~\ref{lem:Submartingale.monotone_predictablePart}), this is equivalent to $A_T > c$.
 \end{proof}
@@ -760,19 +793,19 @@ For $t\in[0,T]$ let $\overline{M}^n_t$ be the cadlag modification of $t \mapsto 
 \begin{lemma}\label{lem:M_cal_converges_L1}
   \uses{def:barM}
   There exists an $M : \Omega \to \mathbb{R}$ and convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
-  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_n \overline{M}^n+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}.$
+  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n_T := \lambda^n_n \overline{M}^n_T+ \cdots + \lambda^n_{N_n} \overline{M}^{N_n}_T$~.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:M_uniform_integrable,lem:komlos}
   By lemma \ref{lem:M_uniform_integrable} $(M^n_T)_{n\in\mathbb{N}}$ is uniformly bounded in $L^1$, thus by lemma \ref{lem:komlos} there are convex weights $\lambda^n_n,\cdots,\lambda^n_{N_n}$ such that
-  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n:=\lambda^n_n \overline{M}^n+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}.$
+  $\mathcal{M}^n_T\stackrel{L^1}{\rightarrow}M$, where $\mathcal{M}^n_T := \lambda^n_n \overline{M}^n_T+ \cdots + \lambda^n_{N_n} \overline{M}^{N_n}_T$~.
 \end{proof}
 
 
 \begin{definition}\label{def:calM}
   \uses{lem:M_cal_converges_L1, def:barM}
-For $t\in[0,T]$ let $\mathcal{M}^n_t=\lambda^n_n \overline{M}^n_t+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}_t$ be the convex combination of the $\overline{M}^n_t$'s from Lemma~\ref{lem:M_cal_converges_L1} and let $M$ be its limit.
+For $t\in[0,T]$ let $\mathcal{M}^n_t=\lambda^n_n \overline{M}^n_t+\cdots +\lambda^n_{N_n} \overline{M}^{N_n}_t$ be the convex combination of the $\overline{M}^n_t$'s with the weights from Lemma~\ref{lem:M_cal_converges_L1} and let $M$ be the limit of $\mathcal{M}^n_T$ from the same lemma.
 \end{definition}
 
 
@@ -811,14 +844,195 @@ By Jensen's inequality, the tower lemma and lemma \ref{lem:M_cal_converges_L1}
 \end{proof}
 
 
-Define
-\begin{itemize}
-  \item a left continuous process $\overline{A}^n_s:=\sum_{t\in\mathcal{D}^T_n}A^n_t\mathbb{1}_{(t-2^{-n}T,t]}(s)$
-  \item $\mathcal{A}^n=\lambda^n_n \overline{A}^n+\cdots +\lambda^n_{N_n}\overline{A}^{N_n}$
-  \item $A_t=S_t-M_t$
-\end{itemize}
-TODO: add proper def, add details.
+\begin{definition}\label{def:barA}
+  \uses{def:SAM}
+For $t\in[0,T]$ let $\overline{A}^n_t$ be process defined by
+\begin{align*}
+  \overline{A}^n_s
+  := \sum_{m < 2^n} A^n_{m+1} \mathbb{1}_{(m2^{-n}T, (m+1)2^{-n}T]}(s)
+  \: .
+\end{align*}
 
+\end{definition}
+
+
+\begin{lemma}\label{lem:barA_eq}
+  \uses{def:barA, def:SAM}
+For $s \in \mathcal{D}^T_n$, $\overline{A}^n_s = A^n_m$ where $m$ is such that $s = m2^{-n}T$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:leftContinuous_barA}
+  \uses{def:barA}
+$\overline{A}^n$ is left continuous.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:barA}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictable_barA}
+  \uses{def:barA, def:predictable}
+$\overline{A}^n$ is predictable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:leftContinuous_barA, def:barA, lem:Adapted.isPredictable_of_leftContinuous}
+Since $\overline{A}^n$ is left continuous and adapted, it is predictable (Lemma~\ref{lem:Adapted.isPredictable_of_leftContinuous}).
+\end{proof}
+
+
+\begin{definition}\label{def:calA}
+  \uses{def:barA, def:calM}
+Let $\mathcal{A}^n := \lambda^n_n \overline{A}^n+\cdots +\lambda^n_{N_n}\overline{A}^{N_n}$, in which the $\lambda^n_n,\cdots,\lambda^n_{N_n}$ are the convex weights from Lemma~\ref{lem:M_cal_converges_L1}.
+\end{definition}
+
+
+\begin{lemma}\label{lem:leftContinuous_calA}
+  \uses{def:calA}
+$\mathcal{A}^n$ is left continuous.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:calA, lem:leftContinuous_barA}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:predictable_calA}
+  \uses{def:calA, def:predictable}
+$\mathcal{A}^n$ is predictable.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:leftContinuous_calA, def:calA, lem:predictable_barA}
+Either use that it is left continuous and adapted, or that it is a convex combination of predictable processes.
+\end{proof}
+
+
+\begin{lemma}\label{lem:calA_mono}
+  \uses{def:calA}
+$\mathcal{A}^n$ is non-decreasing on $[0,T]$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Submartingale.monotone_predictablePart, def:calA}
+
+\end{proof}
+
+
+\begin{definition}\label{def:A}
+  \uses{def:M}
+Let $A_t = S_t - M_t$ for $t \in [0, T]$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:cadlag_A}
+  \uses{def:A}
+$A$ is cadlag.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:A, def:M}
+Since $S$ and $M$ are cadlag, their difference $A = S - M$ is also cadlag.
+\end{proof}
+
+
+\begin{lemma}\label{lem:tendsto_calA_A_L1}
+  \uses{def:calA, def:A}
+For every $t\in \mathcal{D}^T$, $\mathcal{A}^n_t$ converges to $A_t$ in $L^1$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:M1_komlos}
+By Lemma \ref{lem:M1_komlos}, for all $t\in\mathcal{D}^T$,
+\begin{align*}
+  \mathcal{A}^n_t
+  = S_t - \mathcal{M}^n_t
+  \stackrel{L^1}{\rightarrow} S_t-M_t
+  = A_t
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:tendsto_calA_A_ae}
+  \uses{def:calA, def:A}
+For every $t\in \mathcal{D}^T$, there exists a subsequence $(k_n)$ such that $\mathcal{A}^{k_n}_t$ converges to $A_t$ almost surely.
+\end{lemma}
+
+\begin{proof}
+    \uses{lem:tendsto_calA_A_L1}
+By Lemma \ref{lem:tendsto_calA_A_L1}, we have convergence in $L^1$ for every $t\in \mathcal{D}^T$, which implies that there exists a subsequence $(k_n)$ such that $\mathcal{A}^{k_n}_t$ converges to $A_t$ almost surely.
+\end{proof}
+
+\begin{lemma}\label{lem:A_mono_dyadics}
+  \uses{def:A}
+$A$ is almost surely non-decreasing on $\mathcal{D}^T$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:tendsto_calA_A_ae, lem:calA_mono}
+Since $\mathcal{D}^T$ is countable, to prove that $A$ is almost surely non-decreasing on $\mathcal{D}^T$ it is enough to show that for all $s \le t$ in $\mathcal{D}^T$, $A_s \le A_t$ almost surely.
+
+Let $s \le t$ be two elements of $\mathcal{D}^T$.
+By Lemma \ref{lem:tendsto_calA_A_ae}, there exists a subsequence $(k_n)$ such that $\mathcal{A}^{k_n}_t$ converges to $A_t$ almost surely.
+The subsequence $\mathcal{A}_s^{k_n}$ converges to $A_s$ in $L^1$ and thus it has a further subsequence $(k'_n)$ that converges almost surely for $s$ and $t$.
+By Lemma \ref{lem:calA_mono}, $\mathcal{A}^{k'_n}_s \le \mathcal{A}^{k'_n}_t$ for all $n$, thus by taking the limit we get $A_s \le A_t$ almost surely.
+\end{proof}
+
+
+% \begin{lemma}\label{lem:A_cal_conv_A_on_D_T}
+%   \uses{def:calA, def:A}
+% There exists a sequence $k_n$ such that almost surely, $\lim_n \mathcal{A}^{k_n}_t(\omega) = A_t(\omega)$ for every $t\in\mathcal{D}^T$.
+% \end{lemma}
+
+% \begin{proof}
+%   \uses{lem:tendsto_calA_A_L1}
+% By Lemma \ref{lem:tendsto_calA_A_L1}, for all $t\in\mathcal{D}^T$,
+% \begin{align*}
+%   \mathcal{A}^n_t
+%   \stackrel{L^1}{\rightarrow} A_t
+%   \: .
+% \end{align*}
+% Since $\mathcal{D}^T$ is countable we can arrange the elements as $(t_n)_{n\in\mathbb{N}}$.
+% Given $t_0\in\mathcal{D}^T$ there exists a subsequence $k^{0}_n$ for which $\mathcal{A}^{k^{0}_n}_{t_0}$ converges to $A_{t_0}$ over the set $\Omega\setminus E_{0}$ where $P(E_{0})=0$.
+% Suppose we have a sequence $k^m_n$ for which $\mathcal{A}^{k^j_n}_{t_j}$ converges to $A_{t_j}$ over the set $\Omega\setminus E_{m}$ where $P(E_{m})=0$ for each $j=0,\cdots,m$.
+% From this subsequence we may extract a new subsequence $k^{m+1}_n$ for which $\mathcal{A}^{k^{m+1}_n}_{t_{m+1}}$ converges to $A_{t_{m+1}}$ over the set $\Omega\setminus E_{m+1}$ where $P(E_{m+1})=0$.
+% By construction over this subsequence the convergence for $t_0,\cdots,t_m$ still applies.
+% With a diagonal argument we obtain the final result with $E=\bigcup_n E_n$.
+% \end{proof}
+
+
+\begin{lemma}\label{lem:A_increasing}
+  \uses{def:A}
+  $(A_t)_{t\in[0,T]}$ is almost surely non-decreasing.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:A_mono_dyadics, lem:cadlag_A}
+$A$ is almost surely non-decreasing on $\mathcal{D}^T$ by Lemma~\ref{lem:A_mono_dyadics}.
+Since $A$ is cadlag (thus right-continuous) by Lemma~\ref{lem:cadlag_A}, it follows that $A$ must be non-decreasing on $[0,T]$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:jump_A}
+  \uses{def:A}
+For $q,k \in \mathbb{N}$, let $\tau_{q, k}$ be the $q$-th time that the process $A_t$ has a jump higher than $1/(k+1)$ (this is a hitting time).
+Then if $A(\omega)$ is discontinuous at $t$, then there exists $q,k$ such that $\tau_{q, k}(\omega) = t$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:A_increasing}
+Since $A$ is non-decreasing it has finitely many jumps of size higher than $1/(k+1)$ for each $k$.
+Thus, if $A$ is discontinuous at $t$, there exists $k$ such that the jump of $A$ at $t$ is higher than $1/(k+1)$, and thus there exists $q$ such that $\tau_{q, k} = t$.
+\end{proof}
 
 
 \begin{lemma}\label{lem:incr_fun_lim_right_cont_limsup_ineq}
@@ -857,35 +1071,6 @@ $$
 \end{proof}
 
 
-\begin{lemma}\label{lem:A_cal_conv_A_on_D_T}
-  There exists a set $E\subseteq\Omega$, $P(E)=0$ and a subsequence $k_n$ such that $\lim_n\mathcal{A}^{k_n}_t(\omega)=A_t(\omega)$ for every $t\in\mathcal{D}^T,\omega\in\Omega\setminus E$.
-\end{lemma}
-\begin{proof}
-  \uses{lem:M1_komlos}
-  By Lemma \ref{lem:M1_komlos}
-  $$
-  \mathcal{A}^n_t=S_t-\mathcal{M}^n_t\stackrel{L^1}{\rightarrow}S_t-M_t=A_t,\quad\forall t\in\mathcal{D}^T.
-  $$
-  $\mathcal{D}^T$ is countable we can arrange the elements as $(t_n)_{n\in\mathbb{N}}$.
-  Given $t_0\in\mathcal{D}^T$ there exists a subsequence $k^{0}_n$ for which $\mathcal{A}^{k^{0}_n}_{t_0}$ converges to $A_{t_0}$ over the set $\Omega\setminus E_{0}$ where $P(E_{0})=0$.
-  Suppose we have a sequence $k^m_n$ for which $\mathcal{A}^{k^j_n}_{t_j}$ converges to $A_{t_j}$ over the set $\Omega\setminus E_{m}$ where $P(E_{m})=0$ for each $j=0,\cdots,m$.
-  From this subsequence we may extract a new subsequence $k^{m+1}_n$ for which $\mathcal{A}^{k^{m+1}_n}_{t_{m+1}}$ converges to $A_{t_{m+1}}$ over the set $\Omega\setminus E_{m+1}$ where $P(E_{m+1})=0$.
-  By construction over this subsequence the convergence for $t_0,\cdots,t_m$ still applies.
-  With a diagonal argument we obtain the final result with $E=\bigcup_n E_n$.
-\end{proof}
-
-
-\begin{lemma}\label{lem:A_increasing}
-  $(A_t)_{t\in[0,T]}$ is an increasing process.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:A_cal_conv_A_on_D_T, lem:Submartingale.monotone_predictablePart}
-  Since $\mathcal{A}^n_t$ is increasing on $\mathcal{D}^T$ by lemma \ref{lem:A_cal_conv_A_on_D_T} also $A$ is almost surely increasing on $\mathcal{D}^T$.
-  Since $S,M$ are cadlag also $A$ is cadlag (thus right-continuous). It follows that $A$ must be increasing on $[0,T]$.
-\end{proof}
-
-
 \begin{lemma}\label{lem:lim_Exp_A_n_tau_is_Exp_A_tau}
   Let $\tau$ be an $(\mathcal{F}_t)_{t\in[0,T]}$ stopping time. We have $\lim_n\mathbb{E}[A^n_\tau]=\mathbb{E}[A_\tau]$.
 \end{lemma}
@@ -906,25 +1091,25 @@ $$
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:lim_Exp_A_n_tau_is_Exp_A_tau, lem:incr_fun_lim_right_cont_limsup_ineq, lem:Submartingale.monotone_predictablePart, lem:A_cal_conv_A_on_D_T}
-  Firstly we notice that $\liminf_n \mathbb{E}[A_\tau^n]  \leq \limsup_n  \mathbb{E}  [\mathcal{A}_\tau^n  ]  \leq \mathbb{E}[\limsup_n  \mathcal{A}_\tau^n  ]  \leq \mathbb{E}[ A_\tau ]$,
-  where the first inequality is justified by the definition of limsup and liminf and the fact that
-  $$
-  \sup_{k\geq n}\mathbb{E}[\mathcal{A}^k_\tau]\geq \sum_{m=k}^{N_k}\lambda^k_m\mathbb{E}[A^m_\tau]\geq \sum_{m=k}^{N_k}\lambda^k_m\inf_{j\geq n}\mathbb{E}[A^j_\tau]=\inf_{k\geq n}\mathbb{E}[A^k_\tau]
-  $$
-  the third inequality by \ref{lem:incr_fun_lim_right_cont_limsup_ineq}.
-  Let's prove the second inequality: observe that
-  $$
-  \mathcal{A}^n_\tau= A_1+\mathcal{A}^n_\tau-A_1\leq A_1+(\mathcal{A}^n_\tau-A_1)_+,
-  $$
-  thus it follows that $\mathcal{A}^n_\tau - (\mathcal{A}^n_\tau-A_1)_+\leq A_1$; since $A_1$ is an integrable guardian the inverse Fatou Lemma may be applied to show together with limsup properties that
-  \begin{align*}
-    \limsup_n\mathbb{E}[\mathcal{A}^n_\tau]+0 &= \limsup_n\mathbb{E}[\mathcal{A}^n_\tau]+\liminf_n-\mathbb{E}[(\mathcal{A}^n_\tau-A_1)_+] \leq \limsup_n\mathbb{E}[\mathcal{A}^n_\tau-(\mathcal{A}^n_\tau-A_1)_+]\leq\\
-    &\leq \mathbb{E}[\limsup_n\mathcal{A}^n_\tau-(\mathcal{A}^n_\tau-A_1)_+]\leq \mathbb{E}[\limsup_n\mathcal{A}^n_\tau]-\mathbb{E}[\liminf_n(\mathcal{A}^n_\tau-A_1)_+]\leq\mathbb{E}[\limsup_n\mathcal{A}^n_\tau],
-    \end{align*}
-  where the first equality is justified by the fact that $\mathcal{A}^n_\tau\leq\mathcal{A}^n_1\rightarrow A_1$ almost surely.
-  Due to lemma \ref{lem:lim_Exp_A_n_tau_is_Exp_A_tau} and \ref{lem:incr_fun_lim_right_cont_limsup_ineq} the first sequence of inequalities is a sequence of equalities, thus
-  we know that $A_\tau- \limsup_n \mathcal{A}_\tau^n $ is an a.s. nonnegative function with null expected value, and thus it must be almost everywhere null.
+  \uses{lem:lim_Exp_A_n_tau_is_Exp_A_tau, lem:incr_fun_lim_right_cont_limsup_ineq, lem:Submartingale.monotone_predictablePart}
+Firstly we notice that $\liminf_n \mathbb{E}[A_\tau^n]  \leq \limsup_n  \mathbb{E}  [\mathcal{A}_\tau^n  ]  \leq \mathbb{E}[\limsup_n  \mathcal{A}_\tau^n  ]  \leq \mathbb{E}[ A_\tau ]$,
+where the first inequality is justified by the definition of limsup and liminf and the fact that
+$$
+\sup_{k\geq n}\mathbb{E}[\mathcal{A}^k_\tau]\geq \sum_{m=k}^{N_k}\lambda^k_m\mathbb{E}[A^m_\tau]\geq \sum_{m=k}^{N_k}\lambda^k_m\inf_{j\geq n}\mathbb{E}[A^j_\tau]=\inf_{k\geq n}\mathbb{E}[A^k_\tau]
+$$
+the third inequality by \ref{lem:incr_fun_lim_right_cont_limsup_ineq}.
+Let's prove the second inequality: observe that
+$$
+\mathcal{A}^n_\tau= A_1+\mathcal{A}^n_\tau-A_1\leq A_1+(\mathcal{A}^n_\tau-A_1)_+,
+$$
+thus it follows that $\mathcal{A}^n_\tau - (\mathcal{A}^n_\tau-A_1)_+\leq A_1$; since $A_1$ is an integrable guardian the inverse Fatou Lemma may be applied to show together with limsup properties that
+\begin{align*}
+  \limsup_n\mathbb{E}[\mathcal{A}^n_\tau]+0 &= \limsup_n\mathbb{E}[\mathcal{A}^n_\tau]+\liminf_n-\mathbb{E}[(\mathcal{A}^n_\tau-A_1)_+] \leq \limsup_n\mathbb{E}[\mathcal{A}^n_\tau-(\mathcal{A}^n_\tau-A_1)_+]\leq\\
+  &\leq \mathbb{E}[\limsup_n\mathcal{A}^n_\tau-(\mathcal{A}^n_\tau-A_1)_+]\leq \mathbb{E}[\limsup_n\mathcal{A}^n_\tau]-\mathbb{E}[\liminf_n(\mathcal{A}^n_\tau-A_1)_+]\leq\mathbb{E}[\limsup_n\mathcal{A}^n_\tau],
+  \end{align*}
+where the first equality is justified by the fact that $\mathcal{A}^n_\tau\leq\mathcal{A}^n_1\rightarrow A_1$ almost surely.
+Due to lemma \ref{lem:lim_Exp_A_n_tau_is_Exp_A_tau} and \ref{lem:incr_fun_lim_right_cont_limsup_ineq} the first sequence of inequalities is a sequence of equalities, thus
+we know that $A_\tau- \limsup_n \mathcal{A}_\tau^n $ is an a.s. nonnegative function with null expected value, and thus it must be almost everywhere null.
 \end{proof}
 
 

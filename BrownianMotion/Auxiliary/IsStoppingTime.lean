@@ -1,4 +1,8 @@
-import Mathlib.Probability.Process.Stopping
+module
+
+public import Mathlib.Probability.Process.Stopping
+
+@[expose] public section
 
 namespace MeasureTheory
 

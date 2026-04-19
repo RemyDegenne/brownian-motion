@@ -3,14 +3,18 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Analysis
-import BrownianMotion.Auxiliary.ENNReal
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
-import Mathlib.MeasureTheory.Function.UniformIntegrable
+module
+
+public import BrownianMotion.Auxiliary.Analysis
+public import BrownianMotion.Auxiliary.ENNReal
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.CondJensen
+public import Mathlib.MeasureTheory.Function.UniformIntegrable
 
 /-!
 # Jensen's inequality for conditional expectations
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter ENNReal
 open scoped NNReal
@@ -20,13 +24,6 @@ namespace MeasureTheory
 variable {Ω E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {m mΩ : MeasurableSpace Ω} {μ : Measure Ω}
   {s : Set E} {f : Ω → E} {φ : E → ℝ}
-
--- Proved in Mathlib PR #27953 for finite measures. Here written for σ-finite measures.
-theorem conditional_jensen [SigmaFinite μ] (hm : m ≤ mΩ)
-    (hφ_cvx : ConvexOn ℝ Set.univ φ) (hφ_cont : LowerSemicontinuous φ)
-    (hf_int : Integrable f μ) (hφ_int : Integrable (φ ∘ f) μ) :
-    φ ∘ μ[f | m] ≤ᵐ[μ] μ[φ ∘ f | m] :=
-  sorry
 
 variable [IsFiniteMeasure μ]
 
@@ -38,7 +35,7 @@ theorem norm_condExp_le (f : Ω → E) :
     condExp_nonneg (ae_of_all _ fun _ ↦ by positivity)
   by_cases hf : Integrable f μ
   swap; · filter_upwards [this]; simp [condExp_of_not_integrable, hf]
-  exact conditional_jensen hm convexOn_univ_norm continuous_norm.lowerSemicontinuous hf hf.norm
+  exact convexOn_univ_norm.map_condExp_le_univ hm continuous_norm.lowerSemicontinuous hf hf.norm
 
 theorem enorm_condExp_le (f : Ω → E) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ₑ ≤ .ofReal (μ[fun ω ↦ ‖f ω‖|m] ω) := by
@@ -54,7 +51,8 @@ theorem norm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p
   have hf' : Integrable (fun x ↦ ‖f x‖ ^ p.toReal) μ := by
     rwa [integrable_norm_rpow_iff hf.aestronglyMeasurable (by positivity) p_ne_top]
   have hc : Continuous (fun x : E ↦ ‖x‖ ^ p.toReal) := by fun_prop (disch := positivity)
-  filter_upwards [conditional_jensen hm (convexOn_rpow_norm (one_le_toReal one_le_p p_ne_top))
+  filter_upwards [ConvexOn.map_condExp_le_univ hm
+    (convexOn_rpow_norm (one_le_toReal one_le_p p_ne_top))
     hc.lowerSemicontinuous (hf.integrable one_le_p) hf'] with _ h using h
 
 theorem enorm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p ≠ ∞) (hf : MemLp f p μ) :
@@ -172,10 +170,13 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     refine this.trans ?_
     rw [ENNReal.div_le_iff_le_mul (Or.inl (ENNReal.coe_ne_zero.2 hCpos.ne'))
         (Or.inl ENNReal.coe_lt_top.ne),
-      hC, Nonneg.inv_mk, ENNReal.coe_mul, ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne, ← mul_assoc, ←
-      ENNReal.ofReal_eq_coe_nnreal, ← ENNReal.ofReal_mul hδ.le, mul_inv_cancel₀ hδ.ne',
-      ENNReal.ofReal_one, one_mul, ENNReal.rpow_one]
-    exact eLpNorm_condExp_le_eLpNorm le_rfl _
+      hC, Nonneg.inv_mk, ENNReal.coe_mul, ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne, ← mul_assoc,
+      ENNReal.coe_nnreal_eq, ← ENNReal.ofReal_mul hδ.le, rpow_one]
+    convert eLpNorm_condExp_le_eLpNorm le_rfl _
+    · convert one_mul _
+      simp only [ofReal_eq_one]
+      exact mul_inv_cancel₀ hδ.ne'
+    · infer_instance
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=
     @StronglyMeasurable.measurableSet_le _ _ (ℱ n) _ _ _ _ _ _ stronglyMeasurable_const

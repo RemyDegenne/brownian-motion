@@ -3,14 +3,17 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Debut.Basic
-import BrownianMotion.StochasticIntegral.LocalMartingale
-import Mathlib.Probability.Process.HittingTime
-import Mathlib.Probability.Martingale.BorelCantelli
+module
+
+public import BrownianMotion.Auxiliary.StoppedProcess
+public import BrownianMotion.Debut.Basic
+public import BrownianMotion.StochasticIntegral.LocalMartingale
 
 /-! # Locally integrable, class D, class DL
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Function TopologicalSpace
 open scoped ENNReal Topology
@@ -140,11 +143,6 @@ lemma _root_.Function.RightContinuous.norm {ι E : Type*} [TopologicalSpace ι] 
   intro t
   have hXt := hX t
   fun_prop
-
-lemma _root_.MeasureTheory.ProgMeasurable.norm {ι Ω E : Type*} {mΩ : MeasurableSpace Ω}
-    [Preorder ι] [MeasurableSpace ι] [SeminormedAddCommGroup E]
-    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ProgMeasurable 𝓕 X) :
-    ProgMeasurable 𝓕 (fun t ω ↦ ‖X t ω‖) := fun i ↦  (hX i).norm
 
 variable [OrderBot ι] [MeasurableSpace ι]
 
@@ -463,7 +461,7 @@ lemma isStable_hasIntegrableSup [SecondCountableTopology ι] :
 /-- The class of processes with locally integrable supremum is stable. -/
 lemma isStable_hasLocallyIntegrableSup [SecondCountableTopology ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
-  IsStable.isStable_locally isStable_hasIntegrableSup
+  isStable_hasIntegrableSup.locally
 
 /-- The Class D is stable. -/
 lemma isStable_classD [PseudoMetrizableSpace ι] [SecondCountableTopology ι] :
@@ -523,7 +521,7 @@ lemma HasLocallyIntegrableSup.locally_classDL [SecondCountableTopology ι] [Pseu
     (hX1 : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   have h_and : Locally (fun X ↦ ProgMeasurable 𝓕 X ∧ HasIntegrableSup X P) 𝓕 X P := by
-    rw [locally_and]
+    rw [IsStable.locally_and_iff]
     · exact ⟨hX1, hX2⟩
     · exact isStable_progMeasurable
     · exact isStable_hasIntegrableSup
@@ -534,7 +532,7 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
     (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rcases topOrderOrNoTopOrder ι with ha | hb
-  · exact locally_of_prop hX.classD
+  · exact .of_prop hX.classD
   obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
   refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
   · simp [isStoppingTime_const]
@@ -584,7 +582,7 @@ lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinea
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
     Locally (ClassD · 𝓕 P) 𝓕 X P :=
-  locally_induction h𝓕 (fun _ ↦ ClassDL.locally_classD) isStable_classD hX
+  isStable_classD.locally_induction (fun _ ↦ ClassDL.locally_classD) hX
 
 end ClassDClassDL
 
@@ -824,8 +822,7 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
 lemma hasLocallyIntegrableSup_of_locally_classDL (h𝓕 : 𝓕.HasUsualConditions P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  locally_induction₂ (h𝓕.toIsRightContinuous (μ := P))
-    (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+  IsStable.locally_induction₂ (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
 lemma locally_classDL_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.HasUsualConditions P)
@@ -853,7 +850,7 @@ lemma _root_.MeasureTheory.Submartingale.locally_classD
     (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rw [locally_classD_iff_locally_classDL h𝓕]
-  exact locally_of_prop (hX.classDL hC hX_nonneg)
+  exact .of_prop (hX.classDL hC hX_nonneg)
 
 /-- A nonnegative local submartingale is locally of class D. -/
 lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] [Lattice E]
@@ -862,18 +859,16 @@ lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] 
     [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  refine locally_induction h𝓕 ?_ isStable_classD ?_
+  refine isStable_classD.locally_induction ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
     exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
   · simp_rw [← and_assoc]
-    rw [locally_and isStable_submartingale]
-    · exact ⟨hX, locally_of_prop hX_nonneg⟩
-    · intro X hX τ hτ
+    rw [isStable_submartingale.locally_and_iff]
+    · exact ⟨hX, .of_prop hX_nonneg⟩
+    · intro X hX τ hτ i ω
       -- todo: stoppedProcess_nonneg
-      unfold stoppedProcess
-      intro i ω
-      simp only [Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
+      simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
       split_ifs with h
       · exact hX _ _
       · rfl

@@ -3,17 +3,15 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Auxiliary.Martingale
-import BrownianMotion.StochasticIntegral.ApproxSeq
-import BrownianMotion.StochasticIntegral.Locally
-import BrownianMotion.Auxiliary.Adapted
-import BrownianMotion.StochasticIntegral.OptionalSampling
-import Mathlib.Probability.Process.HittingTime
-import Mathlib.Probability.Process.Predictable
+module
+
+public import Mathlib.Probability.Process.Predictable
 
 /-! # L2M space
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Function TopologicalSpace
 open scoped ENNReal

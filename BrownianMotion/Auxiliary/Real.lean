@@ -1,4 +1,8 @@
-import Mathlib.Analysis.SpecialFunctions.Log.Base
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
+
+@[expose] public section
 
 namespace Real
 

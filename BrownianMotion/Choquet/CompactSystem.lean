@@ -3,9 +3,13 @@ Copyright (c) 2026 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Choquet.CountableClosed
-import Mathlib.Data.Set.Dissipate
-import KolmogorovExtension4.CompactSystem
+module
+
+public import BrownianMotion.Choquet.CountableClosed
+public import Mathlib.Order.OmegaCompletePartialOrder
+public import Mathlib.Topology.Compactness.CompactSystem
+public import Mathlib.Topology.Metrizable.Uniformity
+public import Mathlib.Topology.Order.Compact
 
 /-!
 # Analytic sets in the sense of a paved space
@@ -16,6 +20,8 @@ not compact pavings (which would be the same, but for arbitrary intersections in
 ones), because it's sufficient for our applications, and because it's easier to work with.
 
 -/
+
+@[expose] public section
 
 open scoped ENNReal NNReal
 

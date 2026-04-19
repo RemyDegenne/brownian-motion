@@ -3,12 +3,16 @@ Copyright (c) 2025 Etienne Marion. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Etienne Marion
 -/
-import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Independence
+module
+
+public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Independence
 
 /-!
 # Gaussian processes
 
 -/
+
+@[expose] public section
 
 open MeasureTheory InnerProductSpace Finset
 open scoped ENNReal NNReal RealInnerProductSpace

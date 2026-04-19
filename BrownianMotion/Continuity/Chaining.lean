@@ -3,8 +3,12 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Continuity.CoveringNumber
-import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+module
+
+public import BrownianMotion.Auxiliary.ENNReal
+public import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+public import Mathlib.Order.CompletePartialOrder
+public import Mathlib.Topology.MetricSpace.Cover
 
 /-!
 # Chaining
@@ -15,6 +19,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 - Vershynin, High-Dimensional Probability (section 4.2 and chapter 8)
 
 -/
+
+@[expose] public section
 
 open Metric
 open scoped ENNReal NNReal

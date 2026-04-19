@@ -3,21 +3,17 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.Gaussian.Gaussian
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.Normed.Field.Instances
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
-import Mathlib.Topology.EMetricSpace.Paracompact
-import Mathlib.Topology.Separation.CompletelyRegular
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.Probability.Distributions.Gaussian.Multivariate
+module
+
+public import BrownianMotion.Auxiliary.WithLp
+public import BrownianMotion.Gaussian.CovMatrix
+public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 
 /-!
 # Multivariate Gaussian distributions
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter Matrix NormedSpace WithLp
 open scoped ENNReal NNReal Topology RealInnerProductSpace MatrixOrder

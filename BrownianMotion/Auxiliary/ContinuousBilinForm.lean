@@ -1,12 +1,14 @@
-import BrownianMotion.Auxiliary.LinearAlgebra
-import Mathlib.LinearAlgebra.Matrix.BilinearForm
-import Mathlib.LinearAlgebra.Matrix.SchurComplement
-import Mathlib.Analysis.InnerProductSpace.Positive
-import Mathlib.LinearAlgebra.SesquilinearForm.Star
+module
+
+public import BrownianMotion.Auxiliary.LinearAlgebra
+public import Mathlib.LinearAlgebra.Matrix.BilinearForm
+public import Mathlib.LinearAlgebra.SesquilinearForm.Star
 
 /-!
 # Continuous bilinear forms
 -/
+
+@[expose] public section
 
 open Module
 open scoped Matrix

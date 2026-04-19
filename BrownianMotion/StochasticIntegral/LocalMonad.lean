@@ -3,13 +3,17 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.Locally
-import Mathlib.MeasureTheory.Category.MeasCat
-import Mathlib.CategoryTheory.Category.Preorder
+module
+
+public import BrownianMotion.StochasticIntegral.Locally
+public import Mathlib.MeasureTheory.Category.MeasCat
+public import Mathlib.CategoryTheory.Category.Preorder
 
 /-! # The Local Monad on Stable Properties
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter CategoryTheory Filtration
 open scoped ENNReal Topology
@@ -26,7 +30,7 @@ abbrev StableCat (E : Type*) [Zero E] (𝓕 : Filtration ι mΩ) :=
 
 /-- Local is a functor from Stable to Stable. -/
 def Local (P : Measure Ω) (p : StableCat E 𝓕) : StableCat E 𝓕 :=
-  ⟨(Locally p.1 𝓕 · P), p.2.isStable_locally⟩
+  ⟨(Locally p.1 𝓕 · P), p.2.locally⟩
 
 -- TODO: restore the lemmas below. They broke after a bump to 4.27.0
 
