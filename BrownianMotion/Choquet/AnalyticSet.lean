@@ -103,28 +103,35 @@ namespace MeasureTheory
 
 section UnusedButInteresting
 
-instance BorelSpace.sum {α β : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
-    [TopologicalSpace α] [TopologicalSpace β] [BorelSpace α] [BorelSpace β] :
-    BorelSpace (α ⊕ β) := by
-  sorry
+variable {α β ι : Type*} {γ : ι → Type*} [Countable ι] [MeasurableSpace α] [MeasurableSpace β]
+  [∀ n, MeasurableSpace (γ n)]
 
-instance BorelSpace.sigma {ι : Type*} [Countable ι] {α : ι → Type*} [∀ n, MeasurableSpace (α n)]
-    [∀ n, TopologicalSpace (α n)] [∀ n, BorelSpace (α n)] :
-    BorelSpace ((n : ι) × α n) := by
+instance BorelSpace.sum [TopologicalSpace α] [TopologicalSpace β] [BorelSpace α] [BorelSpace β] :
+    BorelSpace (α ⊕ β) := by
+  constructor
+  rw [Sum.instMeasurableSpace]
+  refine le_antisymm ?_ ?_
+  · sorry
+  · refine MeasurableSpace.generateFrom_le fun t ht ↦ ?_
+    simp only [isOpen_sum_iff, Set.mem_setOf_eq] at ht
+    rw [measurableSet_sum_iff]
+    exact ⟨ht.1.measurableSet, ht.2.measurableSet⟩
+
+instance BorelSpace.sigma [∀ n, TopologicalSpace (γ n)] [∀ n, BorelSpace (γ n)] :
+    BorelSpace ((n : ι) × γ n) := by
   sorry
 
 /-- A sum of two standard Borel spaces is standard Borel. -/
-instance StandardBorelSpace.sum {α β : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
-    [StandardBorelSpace α] [StandardBorelSpace β] : StandardBorelSpace (α ⊕ β) :=
+instance StandardBorelSpace.sum [StandardBorelSpace α] [StandardBorelSpace β] :
+    StandardBorelSpace (α ⊕ β) :=
   letI := upgradeStandardBorel α
   letI := upgradeStandardBorel β
   inferInstance
 
 /-- A sum of countably many standard Borel spaces is standard Borel. -/
-instance StandardBorelSpace.sigma_countable {ι : Type*} [Countable ι] {α : ι → Type*}
-    [∀ n, MeasurableSpace (α n)] [∀ n, StandardBorelSpace (α n)] :
-    StandardBorelSpace ((n : ι) × α n) :=
-  letI := fun n => upgradeStandardBorel (α n)
+instance StandardBorelSpace.sigma_countable [∀ n, StandardBorelSpace (γ n)] :
+    StandardBorelSpace ((n : ι) × γ n) :=
+  letI := fun n => upgradeStandardBorel (γ n)
   inferInstance
 
 end UnusedButInteresting
