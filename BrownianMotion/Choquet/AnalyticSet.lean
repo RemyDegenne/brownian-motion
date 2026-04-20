@@ -54,7 +54,80 @@ lemma IsCompactSystem.sigma {𝓚 : ℕ → Type*} {q : (n : ℕ) → Set (Set (
       ∃ s : Finset ℕ, t ∈ (s : Set ℕ).sigma '' (Set.univ.pi (fun n ↦ insert Set.univ (q n)))} := by
   sorry
 
+lemma MeasurableSet.of_mem_countableInfClosure {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
+    (hs : s ∈ countableInfClosure MeasurableSet) :
+    MeasurableSet s := by
+  obtain ⟨A, hA, rfl⟩ := hs
+  exact MeasurableSet.iInter hA
+
+lemma MeasurableSet.of_mem_countableInfClosure' {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set 𝓧} {p : Set (Set 𝓧)} (hs : s ∈ countableInfClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :
+    MeasurableSet s := by
+  obtain ⟨t, ht, rfl⟩ := hs
+  exact MeasurableSet.iInter fun n ↦ hp (t n) (ht n)
+
+lemma MeasurableSet.of_mem_countableSupClosure' {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set 𝓧} {p : Set (Set 𝓧)} (hs : s ∈ countableSupClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :
+    MeasurableSet s := by
+  obtain ⟨t, ht, rfl⟩ := hs
+  exact MeasurableSet.iUnion fun n ↦ hp (t n) (ht n)
+
+lemma MeasurableSet.of_mem_supClosure {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
+    {p : Set (Set 𝓧)} (hs : s ∈ supClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :
+    MeasurableSet s := by
+  rw [mem_supClosure_set_iff'] at hs
+  obtain ⟨t, _, A, ht, h_eq⟩ := hs
+  rw [h_eq]
+  exact MeasurableSet.biUnion (Finset.countable_toSet t) fun n hn ↦ hp (A n) (ht n hn)
+
+lemma MeasurableSet.of_mem_image2_prod {Ω 𝓧 : Type*}
+    {mΩ : MeasurableSpace Ω} {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set (𝓧 × Ω)} {p : Set (Set 𝓧)} {q : Set (Set Ω)} (hs : s ∈ Set.image2 (· ×ˢ ·) p q)
+    (hp : ∀ t ∈ p, MeasurableSet t) (hq : ∀ t ∈ q, MeasurableSet t) :
+    MeasurableSet s := by
+  obtain ⟨A, hA, B, hB, rfl⟩ := hs
+  exact MeasurableSet.prod (hp A hA) (hq B hB)
+
+lemma MeasurableSet.of_mem_prodSigmaDelta {Ω 𝓧 : Type*}
+    {mΩ : MeasurableSpace Ω} {m𝓧 : MeasurableSpace 𝓧}
+    {s : Set (𝓧 × Ω)} {p : Set (Set 𝓧)} {q : Set (Set Ω)}
+    (hs : s ∈ MeasureTheory.prodSigmaDelta p q)
+    (hp : ∀ t ∈ p, MeasurableSet t) (hq : ∀ t ∈ q, MeasurableSet t) :
+    MeasurableSet s := by
+  unfold MeasureTheory.prodSigmaDelta at hs
+  refine .of_mem_countableInfClosure' hs fun s hs ↦ ?_
+  refine .of_mem_countableSupClosure' hs fun s hs ↦ ?_
+  exact .of_mem_image2_prod hs hp hq
+
 namespace MeasureTheory
+
+section UnusedButInteresting
+
+instance BorelSpace.sum {α β : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
+    [TopologicalSpace α] [TopologicalSpace β] [BorelSpace α] [BorelSpace β] :
+    BorelSpace (α ⊕ β) := by
+  sorry
+
+instance BorelSpace.sigma {ι : Type*} [Countable ι] {α : ι → Type*} [∀ n, MeasurableSpace (α n)]
+    [∀ n, TopologicalSpace (α n)] [∀ n, BorelSpace (α n)] :
+    BorelSpace ((n : ι) × α n) := by
+  sorry
+
+/-- A sum of two standard Borel spaces is standard Borel. -/
+instance StandardBorelSpace.sum {α β : Type*} {mα : MeasurableSpace α} {mβ : MeasurableSpace β}
+    [StandardBorelSpace α] [StandardBorelSpace β] : StandardBorelSpace (α ⊕ β) :=
+  letI := upgradeStandardBorel α
+  letI := upgradeStandardBorel β
+  inferInstance
+
+/-- A sum of countably many standard Borel spaces is standard Borel. -/
+instance StandardBorelSpace.sigma_countable {ι : Type*} [Countable ι] {α : ι → Type*}
+    [∀ n, MeasurableSpace (α n)] [∀ n, StandardBorelSpace (α n)] :
+    StandardBorelSpace ((n : ι) × α n) :=
+  letI := fun n => upgradeStandardBorel (α n)
+  inferInstance
+
+end UnusedButInteresting
 
 /-- A set `s` is analytic for a paving (predicate) `p` and a type `𝓚` if there exists a compact
 system `q` of `𝓚` such that `s` is the projections of a set `t` that satisfies
@@ -970,9 +1043,19 @@ def IsMeasurableAnalyticFor (𝓚 : Type*) [MeasurableSpace 𝓚] [MeasurableSpa
     Prop :=
   ∃ t : Set (𝓧 × 𝓚), MeasurableSet t ∧ s = Prod.fst '' t
 
+lemma isMeasurableAnalyticFor_of_snd {_ : MeasurableSpace 𝓚} [MeasurableSpace 𝓧]
+    {s : Set 𝓧} (t : Set (𝓚 × 𝓧)) (ht : MeasurableSet t) (hst : s = Prod.snd '' t) :
+    IsMeasurableAnalyticFor 𝓚 s :=
+  ⟨Prod.swap ⁻¹' t, ht.preimage (by fun_prop), by ext; simp [hst]⟩
+
 /-- A set `s` of a measurable space `𝓧` is measurably analytic if it is the projection of
 a measurable set of `𝓧 × ℝ`. -/
 def IsMeasurableAnalytic [MeasurableSpace 𝓧] (s : Set 𝓧) : Prop := IsMeasurableAnalyticFor ℝ s
+
+lemma isMeasurableAnalytic_of_snd [MeasurableSpace 𝓧] {s : Set 𝓧} (t : Set (ℝ × 𝓧))
+    (ht : MeasurableSet t) (hst : s = Prod.snd '' t) :
+    IsMeasurableAnalytic s :=
+  isMeasurableAnalyticFor_of_snd t ht hst
 
 /-- If a set is measurably analytic for any standard Borel space `𝓚`,
 then it is measurably analytic for `ℝ`. -/

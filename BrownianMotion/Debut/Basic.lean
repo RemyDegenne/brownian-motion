@@ -298,6 +298,23 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [ConditionallyCompleteLine
   refine MeasurableSet.nullMeasurableSet_snd ?_ (P.trim (𝓕.le t))
   exact hE.measurableSet_inter_Icc t t
 
+lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type}
+    [ConditionallyCompleteLinearOrder ι] [DenselyOrdered ι]
+    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
+    {P : Measure Ω} [IsFiniteMeasure P] {E : Set (ι × Ω)}
+    (hE : IsPavingAnalytic MeasurableSet E) (n s : ι) :
+    NullMeasurableSet {ω | debut E n ω < s} P := by
+  have h_eq_fst : {ω | debut E n ω < s} = Prod.snd '' (E ∩ (Set.Ico n s ×ˢ .univ)) := by
+    simp_rw [debut_lt_iff]
+    ext
+    simp
+    grind
+  rw [h_eq_fst]
+  refine IsPavingAnalytic.nullMeasurableSet_snd ?_ P
+  refine hE.inter <| isPavingAnalytic_of_mem ?_
+  change MeasurableSet (Set.Ico n s ×ˢ (.univ : Set Ω))
+  measurability
+
 lemma _root_.MeasurableSet.nullMeasurableSet_debut_lt
     [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [ClosedIciTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]

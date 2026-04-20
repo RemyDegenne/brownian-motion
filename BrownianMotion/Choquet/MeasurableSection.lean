@@ -42,51 +42,17 @@ lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
       simp only [Set.inf_eq_inter, Set.mem_setOf_eq]
       exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
 
--- todo: swap could be any measurable embedding?
-lemma isPavingAnalytic_swap {𝓧 : Type*} {s : Set (𝓧 × Ω)}
-    {p : Set (Set (𝓧 × Ω))} (hs : IsPavingAnalytic p s) :
-    IsPavingAnalytic ((fun s ↦ Prod.swap '' s) '' p) (Prod.swap '' s) := by
-  obtain ⟨𝓚, h𝓚, q, hq_empty, hq_compact, t, ht_mem, h_eq⟩ := hs
-  refine ⟨𝓚, h𝓚, q, hq_empty, hq_compact, Prod.map Prod.swap id '' t, ?_, ?_⟩
-  · rw [mem_prodSigmaDelta_iff] at ht_mem ⊢
-    obtain ⟨A, hA, K, hK, rfl⟩ := ht_mem
-    refine ⟨fun n m ↦ Prod.swap '' (A n m), fun n m ↦ ?_, K, hK, ?_⟩
-    · simp only [Set.mem_image]
-      exact ⟨A n m, hA n m, rfl⟩
-    · rw [Set.image_iInter]
-      swap; · exact Prod.swap_bijective.prodMap Function.bijective_id
-      simp_rw [Set.image_iUnion]
-      congr with n x
-      simp
-      grind
-  · ext; simp; grind
-
-lemma isPavingAnalytic_measurableSet_swap {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
-    (hs : IsPavingAnalytic MeasurableSet s) :
-    IsPavingAnalytic MeasurableSet (Prod.swap '' s) := by
-  convert isPavingAnalytic_swap hs
-  ext s
-  simp only [Set.mem_image]
-  refine ⟨fun hs ↦ ⟨Prod.swap ⁻¹' s, MeasurableSet.preimage ?_ measurable_swap, ?_⟩,
-    fun ⟨t, ht, ht_eq⟩ ↦ ?_⟩
-  · exact hs
-  · ext; simp; grind
-  · rw [← ht_eq, Set.image_swap_eq_preimage_swap]
-    refine MeasurableSet.preimage ?_ measurable_swap
-    exact ht
-
-/-- The début of a measurable set in `ℝ≥0 × Ω` is universally measurable: it is null-measurable
+/-- The début of an analytic set in `ℝ≥0 × Ω` is universally measurable: it is null-measurable
 for any finite measure. -/
-lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : MeasurableSet s) (u : ℝ≥0) :
+lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (u : ℝ≥0) :
     NullMeasurable (debut s u) μ := by
   suffices ∀ (r : ℝ≥0), NullMeasurableSet {ω | debut s u ω < r} μ by
-    -- todo: NullMeasurable version of measurable_of_Iio ? also deal with r not ⊤
     sorry
-  exact MeasurableSet.nullMeasurableSet_debut_lt (P := μ) hs u
+  exact IsPavingAnalytic.nullMeasurableSet_debut_lt (P := μ) hs u
 
 lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
-    ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+    ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   let I : Capacity (supClosure
       (Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t}))) :=
@@ -148,6 +114,8 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
   refine ⟨debut (Prod.swap '' B a ha) 0, ?_, ?_, ?_, ?_⟩
   · refine nullMeasurable_debut ?_ _
     rw [Set.image_swap_eq_preimage_swap]
+    refine isPavingAnalytic_of_mem ?_
+    change MeasurableSet (Prod.swap ⁻¹' B a ha)
     refine MeasurableSet.preimage ?_ (by fun_prop)
     specialize hB_mem a ha
     refine MeasurableSet.of_mem_countableInfClosure' hB_mem fun s hs ↦ ?_
@@ -158,7 +126,7 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
     | inr ht => obtain ⟨a, b, rfl⟩ := ht; exact measurableSet_Icc
   · intro ω hω
     suffices ((debut (Prod.swap '' B a ha) 0 ω).untopA, ω) ∈ Prod.swap '' B a ha by grind
-    refine debut_mem_of_isClosed ?_ hω.ne
+    refine debut_mem_of_isClosed ?_ hω
     convert (hB_compact a ha ω).isClosed with t
     simp only [Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq, ↓existsAndEq,
       true_and, exists_eq_right, and_iff_right_iff_imp]
@@ -173,7 +141,7 @@ lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a
 -- same as the previous lemma but with a measurable section instead of a null-measurable one
 lemma todo'' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   obtain ⟨τ, hτ_null, hτ_mem, hτ_le, hτ_ge⟩ := todo' hs a ha
   let τ' := hτ_null.aemeasurable.mk
@@ -252,9 +220,20 @@ def step {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
       (ENNReal.half_lt_self h0 (by simp))
     ⟨h.choose, h.choose_spec.1⟩
 
+@[fun_prop]
+lemma measurable_step {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
+    Measurable (step μ hs τn).1 := by
+  by_cases h0 : μ {ω | debut (s ∩ {(t, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} = 0
+  · simp [h0, step]
+  · simp only [step, ne_eq, h0, ↓reduceDIte, Set.mem_inter_iff, Set.mem_setOf_eq]
+    exact (todo'' (hs.inter (isPavingAnalytic_some_set τn.2))
+      (μ {ω | debut (s ∩ {(t, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2)
+      (ENNReal.half_lt_self h0 (by simp))).choose_spec.1
+
 lemma step_mem {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω}
-    (hω : (step μ hs τn).1 ω < ⊤) :
+    (hω : (step μ hs τn).1 ω ≠ ⊤) :
     (((step μ hs τn).1 ω).untopA, ω) ∈ s := by
   let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
   have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
@@ -318,6 +297,15 @@ def someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
 lemma someSeq_add_one {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
     (someSeq μ hs (n + 1)).1 = (someSeq μ hs n).1 ⊓ (step μ hs (someSeq μ hs n)).1 := rfl
 
+@[fun_prop]
+lemma measurable_someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+    Measurable (someSeq μ hs n).1 := by
+  induction n with
+  | zero => simp [someSeq]
+  | succ n ih =>
+    simp only [someSeq_add_one]
+    exact ih.inf (measurable_step hs (someSeq μ hs n))
+
 lemma antitone_someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
     Antitone (someSeq μ hs) := by
   refine antitone_nat_of_succ_le fun n ↦ ?_
@@ -333,7 +321,116 @@ lemma someSeq_add_one_eq_of_ne_top {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnaly
 lemma someSeq_eq_of_ne_top_of_ge {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
     {n m : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) (hm : n ≤ m) :
     (someSeq μ hs m).1 ω = (someSeq μ hs n).1 ω := by
-  sorry
+  induction m, hm using Nat.le_induction with
+  | base => rfl
+  | succ m hmn h_eq => rw [someSeq_add_one_eq_of_ne_top, h_eq]; rwa [h_eq]
+
+lemma measure_someSeq_add_one_ne_top {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    (n : ℕ) :
+    μ {ω | (someSeq μ hs (n + 1)).1 ω ≠ ⊤} =
+      μ {ω | (someSeq μ hs n).1 ω ≠ ⊤} + μ {ω | (step μ hs (someSeq μ hs n)).1 ω ≠ ⊤} := by
+  rw [← measure_union]
+  · congr 1
+    ext ω
+    rw [someSeq_add_one]
+    simp only [Pi.inf_apply, ne_eq, inf_eq_top_iff, not_and]
+    grind
+  · rw [Set.disjoint_iff_inter_eq_empty]
+    ext ω
+    simp only [ne_eq, Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false,
+      not_and, Decidable.not_not]
+    exact step_eq_top_of_ne_top
+  · exact ((measurableSet_singleton _).preimage (by fun_prop)).compl
+
+lemma measure_someSeq_add_one_ne_top_ge {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
+    (n : ℕ) :
+    μ {ω | (someSeq μ hs n).1 ω ≠ ⊤} +
+        μ {ω | debut s 0 ω ≠ ⊤ ∧ (someSeq μ hs n).1 ω = ⊤} / 2 ≤
+      μ {ω | (someSeq μ hs (n + 1)).1 ω ≠ ⊤} := by
+  rw [measure_someSeq_add_one_ne_top]
+  gcongr
+  convert measure_step_ne_top_ge with ω
+  simp [debut_ne_top_iff]
+
+lemma measure_inter_eq_zero {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
+    μ {ω | debut s 0 ω ≠ ⊤ ∧ ⨅ n, (someSeq μ hs n).1 ω = ⊤} = 0 := by
+  suffices μ {ω | ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤} +
+        μ {ω | debut s 0 ω ≠ ⊤ ∧ ⨅ n, (someSeq μ hs n).1 ω = ⊤} / 2 ≤
+      μ {ω | ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤} by
+    conv_rhs at this => rw [← add_zero (μ {ω | ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤})]
+    rw [ENNReal.add_le_add_iff_left (by simp)] at this
+    simpa using this
+  have h_mono : Monotone fun n ↦ {ω | (someSeq μ hs n).1 ω ≠ ⊤} := by
+    intro n m hnm
+    simp only [Set.le_eq_subset, Set.setOf_subset_setOf]
+    intro ω hω
+    refine ne_of_lt (lt_of_le_of_lt ?_ (Ne.lt_top hω))
+    exact antitone_someSeq hs hnm ω
+  refine le_of_tendsto_of_tendsto ?_ ?_ (.of_forall (measure_someSeq_add_one_ne_top_ge hs (μ := μ)))
+    (b := atTop)
+  · refine Tendsto.add ?_ ?_
+    · convert tendsto_measure_iUnion_atTop h_mono
+      ext; simp
+    · refine ENNReal.Tendsto.div_const ?_ (by simp)
+      convert tendsto_measure_iInter_atTop ?_ ?_ ?_
+      · ext ω
+        simp only [ne_eq, iInf_eq_top, Set.mem_setOf_eq, Set.mem_iInter]
+        exact ⟨fun ⟨hd, h_seq⟩ i ↦ ⟨hd, h_seq i⟩, fun h ↦ ⟨(h 0).1, fun i ↦ (h i).2⟩⟩
+      · infer_instance
+      · intro n
+        change NullMeasurableSet ({ω | debut s 0 ω ≠ ⊤} ∩ {ω | (someSeq μ hs n).1 ω = ⊤}) μ
+        refine NullMeasurableSet.inter ?_ ?_
+        · exact (nullMeasurable_debut (μ := μ) hs 0 (measurableSet_singleton _)).compl
+        · refine MeasurableSet.nullMeasurableSet ?_
+          exact (measurableSet_singleton _).preimage (by fun_prop)
+      · intro n m hnm
+        simp only [ne_eq, Set.le_eq_subset, Set.setOf_subset_setOf, and_imp]
+        intro ω hω h_top
+        refine ⟨hω, ?_⟩
+        refine le_antisymm le_top ?_
+        rw [← h_top]
+        exact antitone_someSeq hs hnm ω
+      · exact ⟨0, by simp⟩
+  · simp only [ne_eq, iInf_eq_top, not_forall]
+    convert tendsto_measure_iUnion_atTop ?_
+    · ext ω
+      simp only [Set.mem_setOf_eq, Set.mem_iUnion]
+      refine ⟨fun ⟨n, hω⟩ ↦ ⟨n, ?_⟩, fun ⟨n, hω⟩ ↦ ⟨n + 1, hω⟩⟩
+      refine ne_of_lt (lt_of_le_of_lt ?_ (Ne.lt_top hω))
+      exact antitone_someSeq hs (by grind) ω
+    · infer_instance
+    · exact fun _ _ h ↦ h_mono (by grind)
+
+lemma iInf_someSeq_ne_top_of_debut_ne_top_ae {s : Set (ℝ≥0 × Ω)}
+    (hs : IsPavingAnalytic MeasurableSet s) :
+    ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ → ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤ := by
+  rw [ae_iff]
+  rw [← measure_inter_eq_zero hs (μ := μ)]
+  congr with ω
+  simp
+
+lemma debut_le_someSeq {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) {ω : Ω} (n : ℕ) :
+    debut s 0 ω ≤ (someSeq μ hs n).1 ω := by
+  induction n with
+  | zero => simp [someSeq]
+  | succ n ih =>
+    rw [someSeq_add_one]
+    simp only [Pi.inf_apply, le_inf_iff, ih, true_and]
+    refine le_trans ?_ debut_le_step
+    exact debut_anti 0 Set.inter_subset_left ω
+
+lemma debut_ne_top_of_iInf_someSeq_ne_top {s : Set (ℝ≥0 × Ω)}
+    (hs : IsPavingAnalytic MeasurableSet s) {ω : Ω}
+    (hω : ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤) :
+    debut s 0 ω ≠ ⊤ := by
+  refine ne_of_lt (lt_of_le_of_lt ?_ hω.lt_top)
+  simp only [le_iInf_iff]
+  exact debut_le_someSeq hs
+
+lemma debut_ne_top_iff_ae {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
+    ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ ⨅ n, (someSeq μ hs n).1 ω ≠ ⊤ := by
+  filter_upwards [iInf_someSeq_ne_top_of_debut_ne_top_ae hs (μ := μ)] with ω hω using
+    ⟨fun h_debut ↦ hω h_debut, fun h_iInf ↦ debut_ne_top_of_iInf_someSeq_ne_top hs h_iInf⟩
 
 lemma someSeq_mem {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
     {n : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) :
@@ -341,46 +438,45 @@ lemma someSeq_mem {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet
   sorry
 
 lemma todo {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut s 0 ω = ⊤} := by
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
   refine ⟨fun ω ↦ ⨅ n, (someSeq μ hs n).1 ω, ?_, ?_, ?_⟩
   · exact Measurable.iInf fun n ↦ (someSeq μ hs n).2
   · intro ω hω
-    simp only [iInf_lt_top] at hω
-    simp only
+    rw [← lt_top_iff_ne_top] at hω
+    simp only [iInf_lt_top] at hω ⊢
     obtain ⟨n, hn⟩ := hω
     have : ⨅ n, (someSeq μ hs n).1 ω = (someSeq μ hs n).1 ω := by
       have h_eq m (hm : n ≤ m) := someSeq_eq_of_ne_top_of_ge hs hn.ne hm
       sorry
     rw [this]
     exact someSeq_mem hs hn.ne
-  · simp only [iInf_eq_top]
-    sorry
+  · exact debut_ne_top_iff_ae hs
 
 lemma todo_right {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic MeasurableSet s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut (Prod.swap '' s) 0 ω = ⊤} := by
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
   obtain ⟨τ, hτ_meas, hτ_mem, hτ_eq⟩ := todo (μ := μ) (isPavingAnalytic_measurableSet_swap hs)
   exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, by grind⟩
 
 lemma todo_meas' {s : Set (ℝ≥0 × Ω)} (hs : IsMeasurableAnalytic s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut s 0 ω = ⊤} :=
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
   todo hs.isPavingAnalytic
 
 lemma todo_meas'_right {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut (Prod.swap '' s) 0 ω = ⊤} :=
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
   todo_right hs.isPavingAnalytic
 
 lemma todo_meas {s : Set (ℝ≥0 × Ω)} (hs : MeasurableSet s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut s 0 ω = ⊤} :=
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
   todo_meas' hs.isMeasurableAnalytic
 
 lemma todo_meas_right {s : Set (Ω × ℝ≥0)} (hs : MeasurableSet s) :
-    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω < ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      μ {ω | τ ω = ⊤} = μ {ω | debut (Prod.swap '' s) 0 ω = ⊤} :=
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
+      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
   todo_meas'_right hs.isMeasurableAnalytic
 
 end MeasureTheory
