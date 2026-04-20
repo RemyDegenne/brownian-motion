@@ -20,11 +20,6 @@ variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeas
 
 namespace MeasureTheory
 
-instance : CompactIccSpace ℝ≥0 := by
-  constructor
-  intro a b
-  sorry
-
 instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
 
 lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
@@ -448,7 +443,11 @@ lemma todo {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
     obtain ⟨n, hn⟩ := hω
     have : ⨅ n, (someSeq μ hs n).1 ω = (someSeq μ hs n).1 ω := by
       have h_eq m (hm : n ≤ m) := someSeq_eq_of_ne_top_of_ge hs hn.ne hm
-      sorry
+      refine tendsto_nhds_unique (f := fun n ↦ (someSeq μ hs n).1 ω) (l := atTop) ?_ ?_
+      · exact tendsto_atTop_iInf fun n m hnm ↦ antitone_someSeq hs hnm ω
+      · refine tendsto_nhds_of_eventually_eq ?_
+        simp only [eventually_atTop, ge_iff_le]
+        exact ⟨n, h_eq⟩
     rw [this]
     exact someSeq_mem hs hn.ne
   · exact debut_ne_top_iff_ae hs
