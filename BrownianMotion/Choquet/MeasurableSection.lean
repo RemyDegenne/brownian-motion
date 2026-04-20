@@ -41,9 +41,9 @@ lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
 for any finite measure. -/
 lemma nullMeasurable_debut {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (u : ℝ≥0) :
     NullMeasurable (debut s u) μ := by
-  suffices ∀ (r : ℝ≥0), NullMeasurableSet {ω | debut s u ω < r} μ by
-    sorry
-  exact IsPavingAnalytic.nullMeasurableSet_debut_lt (P := μ) hs u
+  have h_lt (r : ℝ≥0) : NullMeasurableSet {ω | debut s u ω < r} μ :=
+    IsPavingAnalytic.nullMeasurableSet_debut_lt (P := μ) hs u r
+  sorry
 
 lemma todo' {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
@@ -430,7 +430,14 @@ lemma debut_ne_top_iff_ae {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic Measu
 lemma someSeq_mem {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s)
     {n : ℕ} {ω : Ω} (hω : (someSeq μ hs n).1 ω ≠ ⊤) :
     (((someSeq μ hs n).1 ω).untopA, ω) ∈ s := by
-  sorry
+  induction n with
+  | zero => simp [someSeq] at hω
+  | succ n ih =>
+    by_cases hωn : (someSeq μ hs n).1 ω = ⊤
+    · simp only [someSeq_add_one, Pi.inf_apply, hωn, le_top, inf_of_le_right] at hω ⊢
+      exact step_mem hω
+    · rw [someSeq_add_one_eq_of_ne_top hs hωn]
+      exact ih hωn
 
 lemma todo {s : Set (ℝ≥0 × Ω)} (hs : IsPavingAnalytic MeasurableSet s) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
