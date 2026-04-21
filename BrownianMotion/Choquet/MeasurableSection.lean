@@ -21,23 +21,6 @@ variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeas
 
 namespace MeasureTheory
 
-lemma nullMeasurable_generateFrom {α β : Type*} {_ : MeasurableSpace α} {μ : Measure α}
-    {s : Set (Set β)} {f : α → β}
-    (h : ∀ t ∈ s, NullMeasurableSet (f ⁻¹' t) μ) :
-    @NullMeasurable _ _ _ (MeasurableSpace.generateFrom s) f μ := by
-  refine fun t ht ↦ MeasurableSpace.generateFrom_induction (C := s)
-    (fun s _ ↦ NullMeasurableSet (f ⁻¹' s) μ) (fun t hts _ ↦ h t hts) (by simp) (by simp) ?_ _ ht
-  simp only [Set.preimage_iUnion]
-  exact fun t _ hft ↦ NullMeasurableSet.iUnion hft
-
-theorem nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
-    [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
-    {mδ : MeasurableSpace δ} {μ : Measure δ}
-    {f : δ → α} (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) : NullMeasurable f μ := by
-  convert nullMeasurable_generateFrom (α := δ) _
-  · exact BorelSpace.measurable_eq.trans (borel_eq_generateFrom_Iio _)
-  · rintro _ ⟨x, rfl⟩; exact hf x
-
 instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
 
 lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
@@ -54,27 +37,6 @@ lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
       refine Set.mem_insert_of_mem _ ?_
       simp only [Set.inf_eq_inter, Set.mem_setOf_eq]
       exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
-
-/-- The début of an analytic set in `ℝ≥0 × Ω` is universally measurable: it is null-measurable
-for any finite measure. -/
-lemma nullMeasurable_debut (hs : IsPavingAnalytic MeasurableSet s) (u : ℝ≥0) :
-    NullMeasurable (debut s u) μ := by
-  have h_lt (r : ℝ≥0) : NullMeasurableSet {ω | debut s u ω < r} μ :=
-    hs.nullMeasurableSet_debut_lt u r
-  refine nullMeasurable_of_Iio fun x ↦ ?_
-  cases x with
-  | top =>
-    have : debut s u ⁻¹' Set.Iio (⊤ : WithTop ℝ≥0) = ⋃ (n : ℕ), {ω | debut s u ω < (n : ℝ≥0)} := by
-      ext ω
-      simp only [Set.mem_preimage, Set.mem_Iio, WithTop.coe_natCast, Set.mem_iUnion,
-        Set.mem_setOf_eq]
-      refine ⟨fun h_debut ↦ ?_, fun ⟨i, h_lt⟩ ↦ lt_top_of_lt h_lt⟩
-      lift debut s u ω to ℝ≥0 using h_debut.ne with x
-      norm_cast
-      exact exists_nat_gt x
-    rw [this]
-    refine NullMeasurableSet.iUnion fun n ↦ mod_cast h_lt n
-  | coe r => exact h_lt r
 
 lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
@@ -401,7 +363,7 @@ lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
       · intro n
         change NullMeasurableSet ({ω | debut s 0 ω ≠ ⊤} ∩ {ω | (sectionSeq μ hs n).1 ω = ⊤}) μ
         refine NullMeasurableSet.inter ?_ ?_
-        · exact (nullMeasurable_debut (μ := μ) hs 0 (measurableSet_singleton _)).compl
+        · exact (nullMeasurable_debut (P := μ) hs 0 (measurableSet_singleton _)).compl
         · refine MeasurableSet.nullMeasurableSet ?_
           exact (measurableSet_singleton _).preimage (by fun_prop)
       · intro n m hnm
