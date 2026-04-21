@@ -77,41 +77,6 @@ lemma MeasurableSet.of_mem_prodSigmaDelta {Ω 𝓧 : Type*}
 
 namespace MeasureTheory
 
-section UnusedButInteresting
-
-variable {α β ι : Type*} {γ : ι → Type*} [Countable ι] [MeasurableSpace α] [MeasurableSpace β]
-  [∀ n, MeasurableSpace (γ n)]
-
-instance BorelSpace.sum [TopologicalSpace α] [TopologicalSpace β] [BorelSpace α] [BorelSpace β] :
-    BorelSpace (α ⊕ β) := by
-  constructor
-  rw [Sum.instMeasurableSpace]
-  refine le_antisymm ?_ ?_
-  · sorry
-  · refine MeasurableSpace.generateFrom_le fun t ht ↦ ?_
-    simp only [isOpen_sum_iff, Set.mem_setOf_eq] at ht
-    rw [measurableSet_sum_iff]
-    exact ⟨ht.1.measurableSet, ht.2.measurableSet⟩
-
-instance BorelSpace.sigma [∀ n, TopologicalSpace (γ n)] [∀ n, BorelSpace (γ n)] :
-    BorelSpace ((n : ι) × γ n) := by
-  sorry
-
-/-- A sum of two standard Borel spaces is standard Borel. -/
-instance StandardBorelSpace.sum [StandardBorelSpace α] [StandardBorelSpace β] :
-    StandardBorelSpace (α ⊕ β) :=
-  letI := upgradeStandardBorel α
-  letI := upgradeStandardBorel β
-  inferInstance
-
-/-- A sum of countably many standard Borel spaces is standard Borel. -/
-instance StandardBorelSpace.sigma_countable [∀ n, StandardBorelSpace (γ n)] :
-    StandardBorelSpace ((n : ι) × γ n) :=
-  letI := fun n => upgradeStandardBorel (γ n)
-  inferInstance
-
-end UnusedButInteresting
-
 /-- A set `s` is analytic for a paving (predicate) `p` and a type `𝓚` if there exists a compact
 system `q` of `𝓚` such that `s` is the projections of a set `t` that satisfies
 `prodSigmaDelta p q`. -/
