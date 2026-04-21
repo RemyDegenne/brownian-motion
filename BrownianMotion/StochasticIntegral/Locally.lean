@@ -52,7 +52,7 @@ variable [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
 open Classical in
 /-- If the filtration satisfies the usual conditions, then a property of the paths of a process
 that holds almost surely holds locally. -/
-lemma locally_of_ae [HasUsualConditions 𝓕 P] {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω))
+lemma locally_of_ae [𝓕.IsComplete P] {p : (ι → E) → Prop} (hpX : ∀ᵐ ω ∂P, p (X · ω))
     (hp₀ : p (0 : ι → E)) :
     Locally (fun X ↦ ∀ ω, p (X · ω)) 𝓕 X P := by
   refine ⟨_, isLocalizingSequence_localizingSequenceOfProp hpX, fun _ ω ↦ ?_⟩
@@ -213,7 +213,7 @@ lemma isStable_isCadlag :
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
 
-variable [HasUsualConditions 𝓕 P]
+variable [𝓕.IsComplete P]
 
 lemma locally_rightContinuous_iff :
     Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
@@ -240,7 +240,8 @@ section ConditionallyCompleteLinearOrderBot
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [NormedAddCommGroup E]
   [IsFiniteMeasure P]
-  {𝓕 : Filtration ι mΩ} [HasUsualConditions 𝓕 P] {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
+  {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
+  {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
 
 lemma locally_isCadlag_iff_locally_ae :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P

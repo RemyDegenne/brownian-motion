@@ -573,9 +573,11 @@ Fake lemma for the dependency graph. Import this to depend on Definition~\ref{de
 \begin{definition}[Usual conditions]\label{def:hasUsualConditions}
   \uses{def:rightContinuous, lem:rightContinuous_basic}
   \leanok
-  \lean{MeasureTheory.Filtration.HasUsualConditions}
-We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies the usual conditions if the filtration is right-continuous and if $\mathcal{F}_0$ contains all the $P$-null sets.
+  \lean{MeasureTheory.Filtration.IsComplete}
+We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies the usual conditions if the filtration is right-continuous and if $\mathcal{F}_t$ contains all the $P$-null sets for all $t \in T$.
 \end{definition}
+
+TODO: adapt this text. In Lean, we don't have a single def for the usual conditions, but rather we have separate defs for right-continuity and completeness.
 
 
 
@@ -823,7 +825,7 @@ Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is unifor
 \end{lemma}
 
 \begin{proof}
-  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:Submartingale.monotone_predictablePart}
+  \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:Submartingale.monotone_predictablePart, lem:centering_basic}
 Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
 We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:Submartingale.monotone_predictablePart}.
 \end{proof}
@@ -925,7 +927,7 @@ Let $X$ be a discrete time submartingale with respect to the filtration $\mathca
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:Submartingale.monotone_predictablePart}
+  \uses{lem:martingale_martingalePart, lem:predictable_predictablePart, lem:optionalSampling_discrete, lem:Submartingale.monotone_predictablePart, lem:centering_basic}
 Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}). By Lemma~\ref{lem:optionalSampling_discrete}, we have that almost surely, $M_{\tau \wedge \sigma} = P[M_{\tau} \mid \mathcal{F}_{\sigma}]$. Because $A$ is predictable and $\tau \wedge \sigma \le \sigma$, we deduce that almost surely, $A_{\tau \wedge \sigma} = P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma]$. Moreover, by Lemma~\ref{lem:Submartingale.monotone_predictablePart}, we know that almost surely, $A$ is nondecreasing. Therefore, using the fact $\tau \wedge \sigma \le \tau$, we get that $P[A_{\tau \wedge \sigma} \mid \mathcal{F}_\sigma] \le P[A_\tau \mid \mathcal{F}_\sigma]$. We deduce that almost surely,
 $$X_{\tau \wedge \sigma} = M_{\tau \wedge \sigma} + A_{\tau \wedge \sigma} \le P[M_\tau \mid \mathcal{F}_\sigma] + P[A_\tau \mid \mathcal{F}_\sigma] = P[X_\tau \mid \mathcal{F}_\sigma],$$
 concluding the proof.

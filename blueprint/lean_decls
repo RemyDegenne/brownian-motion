@@ -200,7 +200,7 @@ MeasureTheory.Filtration.IsRightContinuous
 MeasureTheory.Filtration.IsRightContinuous.eq
 MeasureTheory.Filtration.instIsRightContinuousRightCont
 MeasureTheory.Filtration.IsRightContinuous.measurableSet
-MeasureTheory.Filtration.HasUsualConditions
+MeasureTheory.Filtration.IsComplete
 MeasureTheory.Filtration.predictable
 MeasureTheory.IsPredictable
 MeasureTheory.IsPredictable.progMeasurable
