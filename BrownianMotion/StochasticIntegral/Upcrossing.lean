@@ -10,6 +10,8 @@ public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.Algebra.Order.Floor.Extended
 public import Mathlib.Probability.Martingale.Upcrossing
 
+@[expose] public section
+
 /-! # Doob's upcrossing inequality on NNRat
 
 -/
