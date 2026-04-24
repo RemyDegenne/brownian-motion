@@ -584,7 +584,7 @@ lemma ltUpcrossingData_mono_index_set_before (f : ι → κ) (N : ι)
   by_cases hN : N ≤ ⊥
   · simp only [hN, ↓reduceIte, false_implies]
   · simp only [hN, ↓reduceIte]
-    push_neg at hN
+    push Not at hN
     have hbot : ¬ f N ≤ ⊥ :=
       not_le.mpr (lt_of_le_of_lt (OrderBot.bot_le _) (hsmon bot_le le_rfl hN))
     simp only [hbot, ↓reduceIte]
@@ -764,7 +764,6 @@ lemma Submartingale.natOfFin (hf : Submartingale u 𝓕 μ) :
       have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
         exact Submartingale.stronglyMeasurable hf (Fin.clamp i n)
       have hsm' : StronglyMeasurable[Filtration.natOfFin 𝓕 i] (Process.natOfFin u i) := by
-        simp only [Process.natOfFin, Filtration.natOfFin]
         exact hsm
       exact hsm',
     fun i j hij => by
@@ -925,16 +924,15 @@ theorem StronglyAdapted.measurable_upcrossingSequenceENat_Nat {f : ℕ → Ω �
 
 variable {n : ℕ} [NeZero n] -- to avoid issues with `Fin 0`
 
-theorem StronglyAdapted.measurable_upcrossingSequenceENat_Fin {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
+theorem StronglyAdapted.measurable_upcrossingSequenceENat_Fin
+    {u : (Fin n) → Ω → ℝ} {N : Fin n} {a b : ℝ}
     {𝓕 : Filtration (Fin n) m0} (hf : StronglyAdapted 𝓕 u) (hab : a < b) :
     Measurable (fun ω => (upcrossingSequenceENat a b u N ω : ℝ≥0∞)) := by
   set 𝓕' := Filtration.natOfFin 𝓕 with hFiltr
   set v := Process.natOfFin u with hv
   have hadapted' : StronglyAdapted 𝓕' v := fun i => by
-    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := by
-      exact hf (Fin.clamp i n)
-    simp only [v, 𝓕']
-    assumption
+    have hsm : StronglyMeasurable[𝓕 (Fin.clamp i n)] (u (Fin.clamp i n)) := hf (Fin.clamp i n)
+    exact hsm
   have hNatOfFin : v = Process.natOfFin u := rfl
   have hmeas_nat : Measurable (fun ω => (upcrossingSequenceENat a b v N.val ω : ℝ≥0∞)) :=
     StronglyAdapted.measurable_upcrossingSequenceENat_Nat hadapted' hab
@@ -952,10 +950,7 @@ theorem StronglyAdapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι
   set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
   set v := Process.finOfFinset hk u with hv
   have hadapted' : StronglyAdapted 𝓕' v := fun i => by
-    have hsm : StronglyMeasurable[𝓕 (Finset.FromFin hk i)] (u (Finset.FromFin hk i)) := by
-      exact hf (Finset.FromFin hk i)
-    simp only [v, 𝓕']
-    assumption
+    exact hf (Finset.FromFin hk i)
   have hFinOfFinset : v = Process.finOfFinset hk u := rfl
   simp_rw [Process.finOfFinset.upcrossingSequenceENat_eq hk hbot u v hFinOfFinset N a b hab]
   exact StronglyAdapted.measurable_upcrossingSequenceENat_Fin hadapted' hab
@@ -1175,7 +1170,9 @@ def Filtration.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι) :
 lemma Submartingale.restrictFinset (𝓕 : Filtration ι m0) (s : Finset ι)
     (hf : Submartingale f 𝓕 μ) :
     Submartingale (fun i : s => f i) (Filtration.restrictFinset 𝓕 s) μ :=
-  ⟨fun i => hf.stronglyAdapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
+  ⟨fun i => hf.stronglyAdapted i.val,
+    fun i j hij => hf.2.1 i.val j.val hij,
+    fun i => hf.integrable i.val⟩
 
 variable [OrderBot ι] {N : ι} {a b : ℝ}
 
@@ -1399,7 +1396,9 @@ omit [IsFiniteMeasure μ] in
 /-- Restrict a submartingale on ℝ≥0 to DSet N. -/
 lemma submartingale_restrictDSet (hf : Submartingale f 𝓕 μ) (N : ℝ≥0) :
     Submartingale (fun d : DSet N => f d) (Filtration.restrictDSet 𝓕 N) μ :=
-  ⟨fun i => hf.stronglyAdapted i.val, fun i j hij => hf.2.1 i.val j.val hij, fun i => hf.integrable i.val⟩
+  ⟨fun i => hf.stronglyAdapted i.val,
+    fun i j hij => hf.2.1 i.val j.val hij,
+    fun i => hf.integrable i.val⟩
 
 omit [IsFiniteMeasure μ] in
 /-- For $0<ε<(b-a)/2$, $E[U_a^b(f,N)] \le E[U_{a+ε}^{b-ε}(f|_D,N)]$.
