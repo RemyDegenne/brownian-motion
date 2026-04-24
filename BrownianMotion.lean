@@ -62,5 +62,6 @@ public import BrownianMotion.StochasticIntegral.QuadraticVariation
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
 public import BrownianMotion.StochasticIntegral.UniformIntegrable
+public import BrownianMotion.StochasticIntegral.Upcrossing
 public import BrownianMotion.Verso.Brownian
 public import BrownianMotion.Verso.Processes
