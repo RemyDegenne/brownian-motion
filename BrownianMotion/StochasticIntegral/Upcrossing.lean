@@ -3,10 +3,12 @@ Copyright (c) 2025 Wojciech Czernous. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Czernous
 -/
-import BrownianMotion.Auxiliary.ENNReal
-import BrownianMotion.StochasticIntegral.Cadlag
-import Mathlib.Algebra.Order.Floor.Extended
-import Mathlib.Probability.Martingale.Upcrossing
+module
+
+public import BrownianMotion.Auxiliary.ENNReal
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import Mathlib.Algebra.Order.Floor.Extended
+public import Mathlib.Probability.Martingale.Upcrossing
 
 /-! # Doob's upcrossing inequality on NNRat
 
