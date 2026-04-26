@@ -35,25 +35,25 @@ def StieltjesFunction.restrict (f : StieltjesFunction ι) (s : Set ι) : Stieltj
   right_continuous' x :=
     (f.right_continuous x).comp continuousAt_subtype_val.continuousWithinAt fun i => by simp
 
-lemma StieltjesFunction.restrict_Ioc_BddAbove (f : StieltjesFunction ι) :
+lemma StieltjesFunction.bddAbove_restrict_Ioc (f : StieltjesFunction ι) :
     BddAbove (range (f.restrict (Ioc a b))) :=
   ⟨f b, fun y ⟨c, hc⟩ => hc ▸ by simp [restrict, f.mono c.2.2]⟩
 
-lemma StieltjesFunction.restrict_Ioc_BddBelow (f : StieltjesFunction ι) :
+lemma StieltjesFunction.bddBelow_restrict_Ioc (f : StieltjesFunction ι) :
     BddBelow (range (f.restrict (Ioc a b))) :=
   ⟨f a, fun y ⟨c, hc⟩ => hc ▸ by simp [restrict, f.mono c.2.1.le]⟩
 
-lemma StieltjesFunction.restrict_Ioc_iSup (f : StieltjesFunction ι) (hab : a < b) :
-    f b = ⨆ i, (f.restrict (Ioc a b)) i := by
+lemma StieltjesFunction.iSup_restrict_Ioc (f : StieltjesFunction ι) (hab : a < b) :
+    ⨆ i, (f.restrict (Ioc a b)) i = f b := by
   have := nonempty_Ioc_subtype hab
-  refine le_antisymm ?_ (ciSup_le fun i => by simp [restrict, f.mono i.2.2])
+  refine le_antisymm (ciSup_le fun i => by simp [restrict, f.mono i.2.2]) ?_
   have : f b = (f.restrict (Ioc a b)) (⟨b, ⟨hab, refl b⟩⟩ : Ioc a b) := by simp [restrict]
-  grw [this, le_ciSup f.restrict_Ioc_BddAbove]
+  grw [this, le_ciSup f.bddAbove_restrict_Ioc]
 
 variable [OrderTopology ι] [DenselyOrdered ι]
 
-lemma StieltjesFunction.restrict_Ioc_iInf (f : StieltjesFunction ι) (hab : a < b) :
-    f a = ⨅ i, (f.restrict (Ioc a b)) i := by
+lemma StieltjesFunction.iInf_restrict_Ioc (f : StieltjesFunction ι) (hab : a < b) :
+    ⨅ i, (f.restrict (Ioc a b)) i = f a := by
   have := nonempty_Ioc_subtype hab
   have : Tendsto (f.restrict (Ioc a b)) atBot (𝓝 (f a)) := by
     have : Tendsto (Subtype.val : (Ioc a b) → ι) atBot (𝓝[≥] a) := by
@@ -61,12 +61,12 @@ lemma StieltjesFunction.restrict_Ioc_iInf (f : StieltjesFunction ι) (hab : a < 
       apply tendsto_atBot_isGLB (Subtype.mono_coe _)
       simp [Subtype.range_coe_subtype, -mem_Ioc, isGLB_Ioc hab]
     simpa [restrict] using (f.right_continuous a).tendsto.comp this
-  exact tendsto_nhds_unique this (tendsto_atBot_ciInf (f.restrict (Ioc a b)).mono
-    f.restrict_Ioc_BddBelow)
+  exact (tendsto_nhds_unique this (tendsto_atBot_ciInf (f.restrict (Ioc a b)).mono
+    f.bddBelow_restrict_Ioc)).symm
 
 variable [MeasurableSpace ι] [BorelSpace ι] [CompactIccSpace ι] [SecondCountableTopology ι]
 
-private lemma StieltjesFunction.measurable_finite_measure {f : Ω → StieltjesFunction ι}
+private lemma StieltjesFunction.measurable_measure_of_isFiniteMeasure {f : Ω → StieltjesFunction ι}
     [∀ ω, IsFiniteMeasure (f ω).measure] (hmbot : Measurable (fun ω => ⨅ i, f ω i))
     (hmtop : Measurable (fun ω => ⨆ i, f ω i)) (hf : ∀ i, Measurable (f · i)) :
     Measurable fun ω => (f ω).measure := by
@@ -99,7 +99,7 @@ instance {X : Type*} [TopologicalSpace X] [Preorder X] [CompactIccSpace X] {a b 
     intro c d
     exact IsEmbedding.subtypeVal.isCompact_iff.2 (by simp [isCompact_Icc])
 
-lemma StieltjesFunction.restrict_measure_Ioc (f : StieltjesFunction ι) (hab : a < b) :
+lemma StieltjesFunction.measure_restrict_Ioc (f : StieltjesFunction ι) (hab : a < b) :
     (f.restrict (Ioc a b)).measure univ = ENNReal.ofReal (f b - f a) := by
   have := nonempty_Ioc_subtype hab
   have hbot : Tendsto (f.restrict (Ioc a b)) atBot (𝓝 (f a)) := by
@@ -109,25 +109,25 @@ lemma StieltjesFunction.restrict_measure_Ioc (f : StieltjesFunction ι) (hab : a
       simp [Subtype.range_coe_subtype, -mem_Ioc, isGLB_Ioc hab]
     simpa [restrict] using (f.right_continuous a).tendsto.comp this
   have htop : Tendsto (f.restrict (Ioc a b)) atTop (𝓝 (f b)) := by
-    rw [f.restrict_Ioc_iSup hab]
-    convert tendsto_atTop_ciSup (f.restrict (Ioc a b)).mono f.restrict_Ioc_BddAbove
+    rw [← f.iSup_restrict_Ioc hab]
+    convert tendsto_atTop_ciSup (f.restrict (Ioc a b)).mono f.bddAbove_restrict_Ioc
   simp [-mem_Ioc, ← measure_univ (f.restrict (Ioc a b)) hbot htop]
 
 instance StieltjesFunction.isFiniteMeasure_restrict_Ioc {f : StieltjesFunction ι} :
     IsFiniteMeasure (f.restrict (Ioc a b)).measure where
   measure_univ_lt_top := by
     by_cases! hab : a < b
-    · simp [f.restrict_measure_Ioc hab]
+    · simp [f.measure_restrict_Ioc hab]
     · have : (univ : Set (Ioc a b)) = ∅ := by grind
       simp [this, measure_empty]
 
-lemma StieltjesFunction.restrict_eq_measure (f : StieltjesFunction ι) (a b : ι) :
+lemma StieltjesFunction.measure_restrict_eq_comap (f : StieltjesFunction ι) (a b : ι) :
     (f.restrict (Ioc a b)).measure = f.measure.comap Subtype.val := by
   apply ext_of_generate_finite _ _ (isPiSystem_Ioc id id)
   · rintro t ⟨i, j, hl, rfl⟩
     simp [measure_Ioc, (MeasurableEmbedding.subtype_coe measurableSet_Ioc).comap_apply, restrict]
   · by_cases! hab : a < b
-    · simp [-mem_Ioc, f.restrict_measure_Ioc hab,
+    · simp [-mem_Ioc, f.measure_restrict_Ioc hab,
         (MeasurableEmbedding.subtype_coe measurableSet_Ioc).comap_apply]
     · have : (univ : Set (Ioc a b)) = ∅ := by grind
       simp [this, measure_empty]
@@ -159,7 +159,7 @@ theorem StieltjesFunction.measurable_measure {f : Ω → StieltjesFunction ι}
       exact ⟨(hv.1 hij).trans_lt hx.2.1, hx.2.2.trans (hu.1 hij)⟩
     have heq (n : ℕ) (ω : Ω) : (f ω).measure (s ∩ Ioc (v n) (u n)) =
       ((f ω).restrict (Ioc (v n) (u n))).measure (Subtype.val ⁻¹' s) := by
-      simp [restrict_eq_measure, inter_comm,
+      simp [measure_restrict_eq_comap, inter_comm,
         (MeasurableEmbedding.subtype_coe measurableSet_Ioc).comap_apply]
     rw [← inter_univ s, hc, inter_union_distrib_left, inter_iUnion]
     have hd : Disjoint (s ∩ botSet) (⋃ n, s ∩ Ioc (v n) (u n)) := by
@@ -170,17 +170,17 @@ theorem StieltjesFunction.measurable_measure {f : Ω → StieltjesFunction ι}
     simp only [measure_union' hd (hs.inter measurableSet_botSet), hz, hm.measure_iUnion, heq,
       zero_add]
     refine Measurable.iSup fun n => (Measure.measurable_measure.1 ?_) _ (by measurability)
-    refine measurable_finite_measure ?_ ?_ fun i => (by measurability)
+    refine measurable_measure_of_isFiniteMeasure ?_ ?_ fun i => (by measurability)
     <;> by_cases! hvu : v n < u n
-    · simp [fun ω => ((f ω).restrict_Ioc_iInf hvu).symm, hf (v n)]
+    · simp [fun ω => (f ω).iInf_restrict_Ioc hvu, hf (v n)]
     · simp_all
-    · simp [fun ω => ((f ω).restrict_Ioc_iSup hvu).symm, hf (u n)]
+    · simp [fun ω => (f ω).iSup_restrict_Ioc hvu, hf (u n)]
     · simp_all
   · simp [Measure.eq_zero_of_isEmpty]
 
 /-- If `X : ι → Ω → ℝ` is a right continuous and monotone process, then for each `ω : Ω`, `X · ω` is
 a `StieltjesFunction` defined on `ι`. -/
-def StieltjesFunction.rightCont_mono (hcont : ∀ ω, RightContinuous (X · ω))
+def StieltjesFunction.rightContMono (hcont : ∀ ω, RightContinuous (X · ω))
     (hmono : ∀ ω, Monotone (X · ω)) : Ω → StieltjesFunction ι :=
   fun ω => StieltjesFunction.mk (X · ω) (hmono ω)
     (fun i => continuousWithinAt_Ioi_iff_Ici.1 (hcont ω i))
@@ -194,13 +194,13 @@ noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
 
 /-- If `X : ι → Ω → ℝ` is a right continuous, adapted, and monotone process, then `X` defines a
 kernel that maps each `ω` to `(X · ω).measure`. -/
-noncomputable def StieltjesFunction.kernel_of_rightCont_adapted_mono
+noncomputable def StieltjesFunction.kernelOfRightContAdaptedMono
     (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
     Kernel Ω ι where
-  toFun ω := (rightCont_mono hcont hmono ω).measure
+  toFun ω := (rightContMono hcont hmono ω).measure
   measurable' := by
     apply measurable_measure
-    simp_all [rightCont_mono, fun i => ha.measurable (i := i)]
+    simp_all [rightContMono, fun i => ha.measurable (i := i)]
 
 end StieltjesKernel
 
@@ -210,8 +210,7 @@ variable {ι : Type*} [MeasurableSpace ι]
 variable [AddCommMonoid E] [TopologicalSpace E] [MeasurableSpace E] [BorelSpace E]
 
 /-- Measurability structure on `VectorMeasure`. -/
-instance instMeasurableSpace :
-    MeasurableSpace (VectorMeasure ι E) :=
+instance : MeasurableSpace (VectorMeasure ι E) :=
   ⨆ (s : Set ι) (_ : MeasurableSet s), (borel E).comap fun μ => μ s
 
 theorem measurable_coe {s : Set ι} (hs : MeasurableSet s) :
