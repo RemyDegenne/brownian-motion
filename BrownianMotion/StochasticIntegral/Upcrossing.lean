@@ -77,31 +77,17 @@ theorem mul_lintegral_upcrossingsBefore_le_lintegral_pos_part [IsFiniteMeasure �
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   have hint : Integrable (fun ω => (upcrossingsBefore a b f N ω : ℝ)) μ :=
     hf.stronglyAdapted.integrable_upcrossingsBefore hab
-  have hnn : 0 ≤ᵐ[μ] (fun ω => (upcrossingsBefore a b f N ω : ℝ)) :=
-    ae_of_all μ (fun ω => Nat.cast_nonneg _)
-  -- The coercion ℕ → ℝ≥0∞ equals ENNReal.ofReal ∘ (↑ : ℕ → ℝ)
-  have hlint_eq : ∫⁻ ω, (upcrossingsBefore a b f N ω : ℝ≥0∞) ∂μ =
-      ENNReal.ofReal (∫ ω, (upcrossingsBefore a b f N ω : ℝ) ∂μ) := by
-    have h1 : ∫⁻ ω, (upcrossingsBefore a b f N ω : ℝ≥0∞) ∂μ =
-        ∫⁻ ω, ENNReal.ofReal (upcrossingsBefore a b f N ω : ℝ) ∂μ := by
-      congr 1 with ω
-      simp only [ENNReal.ofReal_natCast]
-    rw [h1, ← ofReal_integral_eq_lintegral_ofReal hint hnn]
-  rw [hlint_eq]
-  -- Also convert RHS
-  have hpos_nn : 0 ≤ᵐ[μ] (fun ω => (f N ω - a)⁺) :=
-    ae_of_all μ (fun ω => posPart_nonneg _)
   have hpos_int : Integrable (fun ω => (f N ω - a)⁺) μ :=
     ((hf.integrable N).sub (integrable_const a)).pos_part
-  have hrhs_eq : ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ =
-      ENNReal.ofReal (∫ ω, (f N ω - a)⁺ ∂μ) := by
-    rw [← ofReal_integral_eq_lintegral_ofReal hpos_int hpos_nn]
-  rw [hrhs_eq]
-  have hDoob := mul_integral_upcrossingsBefore_le_integral_pos_part_aux (N := N) hf hab
-  have hba_pos : 0 ≤ b - a := le_of_lt (sub_pos.mpr hab)
-  rw [← ENNReal.ofReal_mul hba_pos]
-  apply ENNReal.ofReal_le_ofReal
-  exact hDoob
+  have hcast : ∫⁻ ω, (upcrossingsBefore a b f N ω : ℝ≥0∞) ∂μ
+      = ENNReal.ofReal (∫ ω, (upcrossingsBefore a b f N ω : ℝ) ∂μ) := by
+    rw [lintegral_congr fun ω => (ENNReal.ofReal_natCast _).symm,
+      ← ofReal_integral_eq_lintegral_ofReal hint (ae_of_all _ fun _ => Nat.cast_nonneg _)]
+  rw [hcast,
+    ← ofReal_integral_eq_lintegral_ofReal hpos_int (ae_of_all _ fun _ => posPart_nonneg _),
+    ← ENNReal.ofReal_mul (sub_pos.mpr hab).le]
+  exact ENNReal.ofReal_le_ofReal
+    (mul_integral_upcrossingsBefore_le_integral_pos_part_aux (N := N) hf hab)
 
 /-- Doob's upcrossing inequality on ℕ, with `upcrossingsBeforeENat` and Lebesgue integral. -/
 theorem mul_lintegral_upcrossingsBeforeENat_le_lintegral_pos_part [IsFiniteMeasure μ]
@@ -650,6 +636,12 @@ lemma upcrossingSequenceENat_mono_index_set (f : ι → κ)
 
 end MonotonicityAndBoundedness
 
+/-- Helper: a `Finset` containing `⊥` inherits an `OrderBot` instance via the inclusion. -/
+abbrev Finset.orderBotOfBotMem {ι : Type*} [LE ι] [OrderBot ι] {s : Finset ι} (hbot : ⊥ ∈ s) :
+    OrderBot s where
+  bot := ⟨⊥, hbot⟩
+  bot_le _ := bot_le
+
 /-! To compare upcrossingSequenceENat between NNRat and its finsets (with ⊥) and between them. -/
 section UpcrossingsOnFinset
 
@@ -661,7 +653,7 @@ theorem upcrossingSequenceENat_ge_finset_of_subset (N : s) (u : s → Ω → ℝ
     (hv : ∀ i : s, v i = u i) -- u is a restriction of v to s
     (a b : ℝ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v N ω := by
   set f : s → κ := fun i => (i : κ) with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := by
@@ -681,11 +673,11 @@ theorem upcrossingSequenceENat_ge_finset {t : Finset κ}
     (hv : ∀ i : s, v ⟨i, hst i.prop⟩ = u i) -- u is a restriction of v to s
     (a b : ℝ) (ω : Ω) (hab : a < b) :
     -- u has less upcrossings than v, and v has finite index set
-    letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-    letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    letI : OrderBot s := Finset.orderBotOfBotMem hbots
+    letI : OrderBot t := Finset.orderBotOfBotMem hbott
     upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v ⟨N, hst N.prop⟩ ω := by
-  letI : OrderBot s := { bot := ⟨⊥, hbots⟩, bot_le := fun ⟨_, _⟩ => bot_le }
-  letI : OrderBot t := { bot := ⟨⊥, hbott⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot s := Finset.orderBotOfBotMem hbots
+  letI : OrderBot t := Finset.orderBotOfBotMem hbott
   -- The inclusion map from s into t
   set f : s → t := fun i => ⟨i, hst i.prop⟩ with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := by
@@ -882,7 +874,7 @@ variable [OrderBot ι] (hbot : ⊥ ∈ s) [NeZero k] -- to avoid issues with `Fi
 
 lemma Process.finOfFinset.upcrossingSequenceENat_le (u : Fin k → Ω → ℝ) (v : s → Ω → ℝ)
     (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) (a b : ℝ) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.FromFin hk N) := by
   set f : Fin k → s := fun i => Finset.FromFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.FromFin.StrictMonoOn hk N
@@ -892,7 +884,7 @@ lemma Process.finOfFinset.upcrossingSequenceENat_le (u : Fin k → Ω → ℝ) (
 
 lemma Process.finOfFinset.upcrossingSequenceENat_ge (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
   set f : s → Fin k := fun i => Finset.ToFin hk i with hf
   have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.ToFin.StrictMonoOn hk N
@@ -902,7 +894,7 @@ lemma Process.finOfFinset.upcrossingSequenceENat_ge (u : s → Ω → ℝ) (v : 
 
 theorem Process.finOfFinset.upcrossingSequenceENat_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N = upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
   apply le_antisymm
   · exact Process.finOfFinset.upcrossingSequenceENat_ge hk hbot u v hFinOfFinset N a b hab
@@ -949,7 +941,7 @@ theorem StronglyAdapted.measurable_upcrossingSequenceENat_Finset [LinearOrder ι
     {s : Finset ι} {k : ℕ} (hk : #s = k) (hbot : ⊥ ∈ s) [NeZero k]
     {u : s → Ω → ℝ} {N : s} {a b : ℝ} {𝓕 : Filtration s m0}
     (hf : StronglyAdapted 𝓕 u) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     Measurable (fun ω => (upcrossingSequenceENat a b u N ω : ℝ≥0∞)) := by
   set 𝓕' := Filtration.finOfFinset hk 𝓕 with hFiltr
   set v := Process.finOfFinset hk u with hv
@@ -992,7 +984,7 @@ variable [LinearOrder ι] [OrderBot ι]
 
 theorem mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part [IsFiniteMeasure μ]
     (hk : #s = k) (hf : Submartingale f 𝓕 μ) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
       ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := by
   -- We reduce to the `Fin k`-indexed case
@@ -1008,9 +1000,9 @@ theorem mul_lintegral_upcrossingSequenceENat_Finset_le_lintegral_pos_part [IsFin
 
 theorem StronglyAdapted.measurable_upcrossingSequenceENat_Finset' (hk : #s = k)
     (hf : StronglyAdapted 𝓕 f) (hab : a < b) :
-    haveI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     Measurable (fun ω => (upcrossingSequenceENat a b f N ω : ℝ≥0∞)) := by
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot s := Finset.orderBotOfBotMem hbot
   exact StronglyAdapted.measurable_upcrossingSequenceENat_Finset hk hbot hf hab
 
 end DoobInequalityFinset
@@ -1078,7 +1070,7 @@ end Countable
 noncomputable def upcrossingSequenceENat_finset [LinearOrder ι] [OrderBot ι] {N : ι}
     {s : ℕ → Finset ι} (hbot : ∀ n, ⊥ ∈ s n) (hN : ∀ n, N ∈ s n)
     (a b : ℝ) (f : ι → Ω → ℝ) (n : ℕ) (ω : Ω) : ℕ∞ :=
-  letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot (s n) := Finset.orderBotOfBotMem (hbot n)
   upcrossingSequenceENat a b (fun i : s n => f i) ⟨N, hN n⟩ ω
 
 section Approximation
@@ -1094,9 +1086,9 @@ lemma upcrossingSequenceENat_finset_ge_of_witness
     (hseq : UpcrossingData a b f K ω)
     (ht_lt_N : hseq.t (2 * K - 1) < N)
     (ht_in_s : ∀ i < 2 * K, hseq.t i ∈ s) :
-    letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+    letI : OrderBot s := Finset.orderBotOfBotMem hbot
     K ≤ upcrossingSequenceENat a b (fun i : s => f i) ⟨N, hN⟩ ω := by
-  letI : OrderBot s := { bot := ⟨⊥, hbot⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot s := Finset.orderBotOfBotMem hbot
   have hNbot : ¬ N ≤ ⊥ := fun h => not_lt_bot (lt_of_lt_of_le ht_lt_N h)
   -- Build UpcrossingData on s from hseq
   have ht_lt_N_s : ⟨hseq.t (2 * K - 1), ht_in_s (2 * K - 1) (by omega)⟩ < (⟨N, hN⟩ : s) := ht_lt_N
@@ -1189,7 +1181,7 @@ theorem StronglyAdapted.measurable_upcrossingSequenceENat_finset
   have hne : (s n).Nonempty := ⟨⊥, hbot n⟩
   have hnz : #(s n) ≠ 0 := Finset.card_ne_zero.mpr hne
   haveI : NeZero #(s n) := ⟨hnz⟩
-  letI : OrderBot (s n) := { bot := ⟨⊥, hbot n⟩, bot_le := fun ⟨_, _⟩ => bot_le }
+  letI : OrderBot (s n) := Finset.orderBotOfBotMem (hbot n)
   let 𝓕' := Filtration.restrictFinset 𝓕 (s n)
   have hadapted : StronglyAdapted 𝓕' (fun i : s n => f i) := fun i => hf i.val
   exact StronglyAdapted.measurable_upcrossingSequenceENat_Finset' (hbot := hbot n) rfl hadapted hab
