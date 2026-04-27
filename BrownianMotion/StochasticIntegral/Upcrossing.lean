@@ -265,8 +265,7 @@ lemma upperCrossingTimeLT_iff_upperCrossingTime_lt
 lemma upperCrossingTimeLT_bot_iff_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
   (a b : ℝ) (f : ι → Ω → ℝ) (N : ι) (n : ℕ) (ω : Ω) (hN : N ≤ ⊥) :
     upperCrossingTimeLT a b f N n ω ↔ ltUpcrossingData a b f N n ω := by
-  simp only [ltUpcrossingData, hN, if_true]
-  simp only [upperCrossingTimeLT, hN, if_true]
+  simp only [ltUpcrossingData, upperCrossingTimeLT, hN, if_true]
 
 /-! The left implication `∀ n, L n → P n` in the case `N ≠ ⊥`. -/
 lemma upperCrossingTimeLT_of_ltUpcrossingData [ConditionallyCompleteLinearOrderBot ι]
@@ -279,11 +278,8 @@ lemma upperCrossingTimeLT_of_ltUpcrossingData [ConditionallyCompleteLinearOrderB
   · simp only [if_neg hn]
     rintro ⟨hseq, ht_lt_N⟩
     refine lt_of_le_of_lt ?_ ht_lt_N
-    cases n with
-    | zero => contradiction
-    | succ m =>
-        have ht_le_N : hseq.t (2 * m + 1) ≤ N := le_of_lt ht_lt_N
-        simpa using upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ht_le_N
+    obtain ⟨m, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn
+    simpa using upperCrossingTime_le_of_UpcrossingData a b f N ω m hseq ht_lt_N.le
 
 /-!
   It remains to prove the right implication `∀ n, P n → L n` in the case `N ≠ ⊥`.
