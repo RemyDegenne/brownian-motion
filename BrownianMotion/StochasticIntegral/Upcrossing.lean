@@ -735,11 +735,6 @@ lemma Fin.clamp.StrictMonoOn {N n : ℕ} (hnN : N < n) [NeZero n] :
   simp only [Fin.lt_def, Fin.clamp]
   grind
 
-lemma Fin.val.StrictMonoOn {n : ℕ} (N : Fin n) :
-    StrictMonoOn (fun k : Fin n => k.val) {k | k ≤ N} := by
-  intro i hi j hj hij
-  assumption
-
 /-- Embedding of a filtration defined on `Fin n` into a filtration defined on `ℕ`. -/
 def Filtration.natOfFin (𝓕 : Filtration (Fin n) m0) : Filtration ℕ m0 :=
   ⟨ fun i => 𝓕 (Fin.clamp i n),
@@ -782,7 +777,7 @@ lemma Process.natOfFin_eq' (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
 lemma Process.natOfFin.upcrossingSequenceENat_le (u : ℕ → Ω → ℝ) (v : Fin n → Ω → ℝ)
     (hNatOfFin : u = Process.natOfFin v) (N : ℕ) (a b : ℝ) (hab : a < b) (hNn : N < n) :
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Fin.clamp N n) := by
-  set f : ℕ → Fin n := fun i => Fin.clamp i n with hf
+  set f : ℕ → Fin n := fun i => Fin.clamp i n
   have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.clamp.StrictMonoOn hNn
   have hv : ∀ i ≤ N, v (f i) = u i :=  fun i _ => Process.natOfFin_eq u v hNatOfFin i
   intro ω
@@ -791,8 +786,8 @@ lemma Process.natOfFin.upcrossingSequenceENat_le (u : ℕ → Ω → ℝ) (v : F
 lemma Process.natOfFin.upcrossingSequenceENat_ge (u : Fin n → Ω → ℝ) (v : ℕ → Ω → ℝ)
     (hNatOfFin : v = Process.natOfFin u) (N : Fin n) (a b : ℝ) (hab : a < b) :
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v N := by
-  set f : Fin n → ℕ := fun i => i.val with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := Fin.val.StrictMonoOn N
+  set f : Fin n → ℕ := fun i => i.val
+  have hsmon : StrictMonoOn f {i | i ≤ N} := fun _ _ _ _ hij => hij
   have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.natOfFin_eq' u v hNatOfFin i
   intro ω
   exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab
@@ -822,18 +817,6 @@ def Finset.FromFin : Fin k → s := fun n => Finset.orderIso hk n
 /-- Order embedding from a finite set to `Fin k`, the inverse of `Finset.FromFin`. -/
 def Finset.ToFin : s → Fin k := fun i => (Finset.orderIso hk).symm i
 
-lemma Finset.FromFin.StrictMono : StrictMono (Finset.FromFin hk) :=
-  OrderIso.strictMono (Finset.orderIso hk)
-
-lemma Finset.ToFin.StrictMono : StrictMono (Finset.ToFin hk) :=
-  OrderIso.strictMono (Finset.orderIso hk).symm
-
-lemma Finset.FromFin.StrictMonoOn (N : Fin k) : StrictMonoOn (Finset.FromFin hk) {i | i ≤ N} :=
-  (Finset.FromFin.StrictMono hk).strictMonoOn {i | i ≤ N}
-
-lemma Finset.ToFin.StrictMonoOn (N : s) : StrictMonoOn (Finset.ToFin hk) {i | i ≤ N} :=
-  (Finset.ToFin.StrictMono hk).strictMonoOn {i | i ≤ N}
-
 lemma Finset.FromFin.ToFin_eq (i : s) :
     Finset.FromFin hk (Finset.ToFin hk i) = i := by
   rw [Finset.ToFin, Finset.FromFin]
@@ -842,7 +825,7 @@ lemma Finset.FromFin.ToFin_eq (i : s) :
 /-- Filtration defined on a finite set converted to a filtration on `Fin k`. -/
 def Filtration.finOfFinset (𝓕 : Filtration s m0) : Filtration (Fin k) m0 :=
   ⟨ fun i => 𝓕 (Finset.FromFin hk i),
-    fun i j hij => by refine 𝓕.mono ?_; exact (Finset.FromFin.StrictMono hk).monotone hij,
+    fun i j hij => by refine 𝓕.mono ?_; exact (Finset.orderIso hk).strictMono.monotone hij,
     fun i => Filtration.le 𝓕 (Finset.FromFin hk i) ⟩
 
 variable {𝓕 : Filtration s m0}
@@ -858,7 +841,7 @@ lemma Submartingale.finOfFinset (hf : Submartingale u 𝓕 μ) :
     fun i j hij => by
       simp only [Process.finOfFinset, Filtration.finOfFinset]
       refine Submartingale.ae_le_condExp hf ?_
-      exact (Finset.FromFin.StrictMono hk).monotone hij,
+      exact (Finset.orderIso hk).strictMono.monotone hij,
     fun i => hf.integrable (Finset.FromFin hk i) ⟩
 
 lemma Process.finOfFinset_eq (u : s → Ω → ℝ) (v : Fin k → Ω → ℝ)
@@ -876,8 +859,9 @@ lemma Process.finOfFinset.upcrossingSequenceENat_le (u : Fin k → Ω → ℝ) (
     (hFinOfFinset : u = Process.finOfFinset hk v) (N : Fin k) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.FromFin hk N) := by
-  set f : Fin k → s := fun i => Finset.FromFin hk i with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.FromFin.StrictMonoOn hk N
+  set f : Fin k → s := fun i => Finset.FromFin hk i
+  have hsmon : StrictMonoOn f {i | i ≤ N} :=
+    (Finset.orderIso hk).strictMono.strictMonoOn _
   have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.finOfFinset_eq' hk u v hFinOfFinset i
   intro ω
   convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
@@ -886,8 +870,9 @@ lemma Process.finOfFinset.upcrossingSequenceENat_ge (u : s → Ω → ℝ) (v : 
     (hFinOfFinset : v = Process.finOfFinset hk u) (N : s) (a b : ℝ) (hab : a < b) :
     haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ≤ upcrossingSequenceENat a b v (Finset.ToFin hk N) := by
-  set f : s → Fin k := fun i => Finset.ToFin hk i with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := Finset.ToFin.StrictMonoOn hk N
+  set f : s → Fin k := fun i => Finset.ToFin hk i
+  have hsmon : StrictMonoOn f {i | i ≤ N} :=
+    (Finset.orderIso hk).symm.strictMono.strictMonoOn _
   have hv : ∀ i ≤ N, v (f i) = u i := fun i _ => Process.finOfFinset_eq hk u v hFinOfFinset i
   intro ω
   convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv a b ω hab using 1
