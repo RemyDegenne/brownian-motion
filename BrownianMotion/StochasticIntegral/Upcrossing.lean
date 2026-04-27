@@ -1203,30 +1203,6 @@ section DoobInequalityNNReal
 variable {f : ℝ≥0 → Ω → ℝ} {𝓕 : Filtration ℝ≥0 m0} [IsFiniteMeasure μ]
   {N : ℝ≥0} {a b : ℝ}
 
-/-!
-Let $U_a^b(f,N)$ denote the number of $[a,b]$-crossings of $f$ up to time $N$;
-its measurability is ensured by the debut theorem.
-
-For a fixed $N\in R_+$, let $D=Q_+\cup\{N\}$.
-
-For $0<ε<(b-a)/2$,
-\[
-  EU_a^b(f,N) \le EU_{a+ε}^{b-ε}(f|_D,N) \le \frac{E(f_t-a-ε)^+}{b-a-2ε},
-\]
-where the latter inequality is the Doob upcrossing inequality applied to $f|_D$, $D$ countable.
-Indeed, let us fix a right-continuous trajectory $f · (\omega)$ and denote it by $f$, again;
-by continuity,
-\begin{align*}
-  f_s\le a  &\implies (f|_D)_{s_n}\le a+ε \tekst{for some} s_n\downarrow s, \\
-  f_s\ge b  &\implies (f|_D)_{s_n}\ge b-ε \tekst{for some} s_n\downarrow s,
-\end{align*}
-which yields
-$
-  U_a^b(f,N) \le U_{a+ε}^{b-ε}(f|_D,N)
-$.
-The sequence $(s_n)\subset D$; if $s=N$, we take $s_n=N\in D$.
-Now, letting $ε\to0$ gives our claim, by monotone convergence in numerator.
--/
 lemma disturbed_crossing_le_close_of_crossing (hRC : ∀ ω, RightContinuous (f · ω)) {ε : ℝ}
     (hεpos : 0 < ε) {s t : ℝ≥0} (hst : s < t) {ω : Ω} (ha : f s ω ≤ a) :
     ∃ s' : ℚ≥0, (s' : ℝ≥0) < t ∧ (s' : ℝ≥0) > s ∧ f s' ω ≤ a + ε := by
@@ -1429,8 +1405,24 @@ lemma mul_lintegral_upcrossingSequenceENat_NNReal_eps (hf : Submartingale f 𝓕
       _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - (a + ε))⁺) ∂μ := h2
       _ ≤ ∫⁻ ω, ENNReal.ofReal ((f N ω - a)⁺) ∂μ := h3
 
-/-- Doob's upcrossing inequality for right-continuous submartingales indexed by ℝ≥0:
-    $(b-a) \cdot E[U_a^b(f,N)] \le E[(f_N - a)^+]$ -/
+/-- Doob's upcrossing inequality for right-continuous submartingales indexed by `ℝ≥0`:
+`(b - a) · 𝔼[Uₐᵇ(f, N)] ≤ 𝔼[(f N - a)⁺]`,
+where `Uₐᵇ(f, N)` denotes the number of `[a, b]`-crossings of `f` up to time `N`
+(its measurability is ensured by the debut theorem).
+
+## Proof outline
+
+Fix `N ∈ ℝ≥0` and let `D = ℚ≥0 ∪ {N}`. For `0 < ε < (b - a) / 2`,
+`𝔼[Uₐᵇ(f, N)] ≤ 𝔼[U_{a+ε}^{b-ε}(f|_D, N)] ≤ 𝔼[(f N - a - ε)⁺] / (b - a - 2ε)`,
+where the latter inequality is the Doob upcrossing inequality applied to `f|_D`,
+`D` countable. Indeed, fix a right-continuous trajectory `f · ω` and denote it by `f`
+again; by continuity,
+* `f s ≤ a ⇒ (f|_D) sₙ ≤ a + ε` for some `sₙ ↓ s`,
+* `f s ≥ b ⇒ (f|_D) sₙ ≥ b - ε` for some `sₙ ↓ s`,
+
+which yields `Uₐᵇ(f, N) ≤ U_{a+ε}^{b-ε}(f|_D, N)`. The sequence `(sₙ) ⊆ D`; if `s = N`,
+we take `sₙ = N ∈ D`. Now, letting `ε → 0` gives the claim, by monotone convergence in
+the numerator. -/
 theorem mul_lintegral_upcrossingSequenceENat_NNReal_le_lintegral_pos_part (hf : Submartingale f 𝓕 μ)
     (hRC : ∀ ω, RightContinuous (f · ω)) (hab : a < b) :
     ENNReal.ofReal (b - a) * ∫⁻ ω, (upcrossingSequenceENat a b f N ω : ℝ≥0∞) ∂μ ≤
