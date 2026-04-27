@@ -655,14 +655,9 @@ theorem upcrossingSequenceENat_ge_finset_of_subset (N : s) (u : s → Ω → ℝ
     -- u has less upcrossings than v
     haveI : OrderBot s := Finset.orderBotOfBotMem hbot
     upcrossingSequenceENat a b u N ω ≤ upcrossingSequenceENat a b v N ω := by
-  set f : s → κ := fun i => (i : κ) with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := by
-    intro i hi j hj hij
-    exact hij
-  have hv' : ∀ i ≤ N, v (f i) = u i := by
-    intro i hi
-    rw [hf]
-    exact hv i
+  set f : s → κ := fun i => (i : κ)
+  have hsmon : StrictMonoOn f {i | i ≤ N} := fun _ _ _ _ hij => hij
+  have hv' : ∀ i ≤ N, v (f i) = u i := fun i _ => hv i
   have hfN : f N = N := rfl
   rw [← hfN]
   convert upcrossingSequenceENat_mono_index_set f N hsmon u v hv' a b ω hab using 1
@@ -680,13 +675,10 @@ theorem upcrossingSequenceENat_ge_finset {t : Finset κ}
   letI : OrderBot t := Finset.orderBotOfBotMem hbott
   -- The inclusion map from s into t
   set f : s → t := fun i => ⟨i, hst i.prop⟩ with hf
-  have hsmon : StrictMonoOn f {i | i ≤ N} := by
-    intro i _ j _ hij
-    exact hij
-  have hv' : ∀ i ≤ N, v (f i) = u i := fun i _ => hv i
+  have hsmon : StrictMonoOn f {i | i ≤ N} := fun _ _ _ _ hij => hij
   have hfN : f N = ⟨N, hst N.prop⟩ := rfl
   rw [← hfN]
-  exact upcrossingSequenceENat_mono_index_set f N hsmon u v hv' a b ω hab
+  exact upcrossingSequenceENat_mono_index_set f N hsmon u v (fun i _ => hv i) a b ω hab
 
 end UpcrossingsOnFinset
 
