@@ -29,6 +29,7 @@ variable {X : ι → Ω → ℝ} {Y : ι → Ω → E}
 
 section StieltjesKernel
 
+/-- Restrict domain of a Stieltjes function `f` to a set `s`. -/
 def StieltjesFunction.restrict (f : StieltjesFunction ι) (s : Set ι) : StieltjesFunction s where
   toFun x := f x
   mono' x y hxy := f.mono hxy
