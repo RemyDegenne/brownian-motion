@@ -133,7 +133,7 @@ lemma StieltjesFunction.measure_restrict_eq_comap (f : StieltjesFunction ι) (a 
       simp [this, measure_empty]
   · exact (Subtype.borelSpace (Ioc a b)).measurable_eq ▸ borel_eq_generateFrom_Ioc ↑(Ioc a b)
 
-theorem StieltjesFunction.measurable_measure {f : Ω → StieltjesFunction ι}
+theorem StieltjesFunction.measurable_measure' {f : Ω → StieltjesFunction ι}
     (hf : ∀ i, Measurable (f · i)) :
     Measurable fun ω => (f ω).measure := by
   by_cases! Nonempty ι
@@ -190,7 +190,7 @@ a kernel. -/
 noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
     (hf : ∀ i, Measurable (f · i)) : ProbabilityTheory.Kernel Ω ι where
   toFun ω := (f ω).measure
-  measurable' := measurable_measure hf
+  measurable' := measurable_measure' hf
 
 /-- If `X : ι → Ω → ℝ` is a right continuous, adapted, and monotone process, then `X` defines a
 kernel that maps each `ω` to `(X · ω).measure`. -/
@@ -199,7 +199,7 @@ noncomputable def StieltjesFunction.kernelOfRightContAdaptedMono
     Kernel Ω ι where
   toFun ω := (rightContMono hcont hmono ω).measure
   measurable' := by
-    apply measurable_measure
+    apply measurable_measure'
     simp_all [rightContMono, fun i => ha.measurable (i := i)]
 
 end StieltjesKernel
