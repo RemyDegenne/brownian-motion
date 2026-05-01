@@ -396,6 +396,12 @@ ProbabilityTheory.SimpleProcess.integral_top
 tendsto_of_no_upcrossings
 komlos_convex
 komlos_norm
+TendstoUniformly_convexTail
+convexWeightsMul
+komlos_convex_weights
+komlos_uniform_convergence
+komlos_convex_weights_diagonal
+komlos_convergence_L2
 komlos_L1
 komlos_ennreal
 MeasureTheory.predictablePart

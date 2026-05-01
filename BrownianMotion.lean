@@ -47,6 +47,7 @@ public import BrownianMotion.StochasticIntegral.ApproxSeq
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import BrownianMotion.StochasticIntegral.Centering
 public import BrownianMotion.StochasticIntegral.ClassD
+public import BrownianMotion.StochasticIntegral.ConvexWeights
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
 public import BrownianMotion.StochasticIntegral.Komlos
