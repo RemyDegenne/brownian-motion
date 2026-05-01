@@ -1,4 +1,4 @@
-module
+module  -- shake: keep-all
 
 public import BrownianMotion.Auxiliary.Adapted
 public import BrownianMotion.Auxiliary.Algebra
@@ -56,6 +56,7 @@ public import BrownianMotion.StochasticIntegral.LocalMonad
 public import BrownianMotion.StochasticIntegral.LocalizingSequence
 public import BrownianMotion.StochasticIntegral.Locally
 public import BrownianMotion.StochasticIntegral.MathlibImports
+public import BrownianMotion.StochasticIntegral.MonotoneProcess
 public import BrownianMotion.StochasticIntegral.OptionalSampling
 public import BrownianMotion.StochasticIntegral.Predictable
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
