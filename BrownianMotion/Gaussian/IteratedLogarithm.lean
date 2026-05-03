@@ -1,7 +1,11 @@
-import BrownianMotion.Gaussian.BrownianMotion
-import Mathlib.Analysis.Calculus.LHopital
-import Mathlib.Analysis.PSeries
-import Mathlib.Probability.BorelCantelli
+module
+
+public import BrownianMotion.Gaussian.BrownianMotion
+public import Mathlib.Analysis.Calculus.LHopital
+public import Mathlib.Analysis.PSeries
+public import Mathlib.Probability.BorelCantelli
+
+@[expose] public section
 
 open Filter MeasureTheory ProbabilityTheory
 open scoped ENNReal NNReal
