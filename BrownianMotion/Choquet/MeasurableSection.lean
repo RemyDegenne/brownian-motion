@@ -427,7 +427,7 @@ private lemma sectionSeq_mem (hs : IsPavingAnalytic MeasurableSet s)
     · rw [sectionSeq_add_one_eq_of_ne_top hs hωn]
       exact ih hωn
 
-lemma IsPavingAnalytic.exists_measurable_section (hs : IsPavingAnalytic MeasurableSet s)
+lemma IsPavingAnalytic.exists_measurable_section_left_nnreal (hs : IsPavingAnalytic MeasurableSet s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
@@ -448,37 +448,39 @@ lemma IsPavingAnalytic.exists_measurable_section (hs : IsPavingAnalytic Measurab
     exact sectionSeq_mem hs hn.ne
   · exact debut_ne_top_iff_ae hs
 
-lemma IsPavingAnalytic.exists_measurable_section_right
+lemma IsPavingAnalytic.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic MeasurableSet s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
   obtain ⟨τ, hτ_meas, hτ_mem, hτ_eq⟩ :=
-    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section (μ := μ)
+    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section_left_nnreal (μ := μ)
   exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, by grind⟩
 
-lemma IsMeasurableAnalytic.exists_measurable_section (hs : IsMeasurableAnalytic s)
+lemma IsMeasurableAnalytic.exists_measurable_section_left_nnreal (hs : IsMeasurableAnalytic s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
-  hs.isPavingAnalytic.exists_measurable_section μ
+  hs.isPavingAnalytic.exists_measurable_section_left_nnreal μ
 
-lemma IsMeasurableAnalytic.exists_measurable_section_right
+lemma IsMeasurableAnalytic.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
-  hs.isPavingAnalytic.exists_measurable_section_right μ
+  hs.isPavingAnalytic.exists_measurable_section_right_nnreal μ
 
-lemma _root_.MeasurableSet.exists_measurable_section (hs : MeasurableSet s)
+lemma _root_.MeasurableSet.exists_measurable_section_left_nnreal (hs : MeasurableSet s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
-  hs.isMeasurableAnalytic.exists_measurable_section μ
+  hs.isMeasurableAnalytic.exists_measurable_section_left_nnreal μ
 
-lemma _root_.MeasurableSet.exists_measurable_section_right
+lemma _root_.MeasurableSet.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : MeasurableSet s) (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
-  hs.isMeasurableAnalytic.exists_measurable_section_right μ
+  hs.isMeasurableAnalytic.exists_measurable_section_right_nnreal μ
+
+-- TODO: extend to standard Borel spaces. Need an Option type with measurable space.
 
 end MeasureTheory
