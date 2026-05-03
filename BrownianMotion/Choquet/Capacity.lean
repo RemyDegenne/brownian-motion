@@ -106,6 +106,11 @@ def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
         · exact fun i hi ↦ hu_prod i (Finset.mem_insert_of_mem hi)
         · exact fun i hi ↦ hS i (Finset.mem_insert_of_mem hi)
 
+lemma Capacity.comp_fst_apply {hp_empty : ∅ ∈ p} {hp_union : SupClosed p}
+    (m : Capacity p) {hq_empty : ∅ ∈ q} {hq : IsCompactSystem q}
+    (s : Set (𝓧 × 𝓚)) :
+    m.comp_fst hp_empty hp_union hq_empty hq s = m (Prod.fst '' s) := rfl
+
 /-- A set `s` is capacitable for a capacity `m` for a property `p` if `m s` can be approximated
 from above by countable intersections of sets `t n` such that `p (t n)` and `⋂ n, t n ⊆ s`. -/
 def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=
@@ -219,12 +224,6 @@ theorem IsPavingAnalytic.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClo
   obtain ⟨𝓚, h𝓚, hs𝓚⟩ := hs
   exact hs𝓚.isCapacitable hp_empty hp_inter hp_union
 
-lemma mem_countableInfClosure_measurableSet {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
-    (hs : s ∈ countableInfClosure MeasurableSet) :
-    MeasurableSet s := by
-  obtain ⟨A, hA, rfl⟩ := hs
-  exact MeasurableSet.iInter hA
-
 lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ]
     (s : Set 𝓧) :
     IsCapacitable μ.capacity s ↔ NullMeasurableSet s μ := by
@@ -239,7 +238,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       have (n : ℕ) := hs ((μ.capacity s) * (1 - (n + 1 : ℝ≥0∞)⁻¹)) (this n)
       choose f hf using this
       have hsub : ⋃ i, f i ⊆ s := Set.iUnion_subset fun i => (hf i).2.1
-      have hm := MeasurableSet.iUnion fun i ↦ mem_countableInfClosure_measurableSet (hf i).1
+      have hm := MeasurableSet.iUnion fun i ↦ .of_mem_countableInfClosure (hf i).1
       refine ⟨⋃ i, f i, hm, ae_eq_set.2 ⟨?_, ?_⟩⟩
       · rw [measure_diff hsub hm.nullMeasurableSet (by finiteness)]
         suffices μ (⋃ i, f i) = μ s from by simp_all
@@ -280,22 +279,96 @@ lemma IsMeasurableAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧} (hs 
     NullMeasurableSet s μ := by
   exact hs.isPavingAnalytic.nullMeasurableSet μ
 
+theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
+    [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
+    {_m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
+    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    NullMeasurableSet (Prod.fst '' s) μ := by
+  refine IsPavingAnalytic.nullMeasurableSet ?_ μ
+  refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
+  rwa [isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
+
+-- todo: swap could be any measurable embedding?
+lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
+    {p : Set (Set (𝓧 × Ω))} (hs : IsPavingAnalytic p s) :
+    IsPavingAnalytic ((fun s ↦ Prod.swap '' s) '' p) (Prod.swap '' s) := by
+  obtain ⟨𝓚, h𝓚, q, hq_empty, hq_compact, t, ht_mem, h_eq⟩ := hs
+  refine ⟨𝓚, h𝓚, q, hq_empty, hq_compact, Prod.map Prod.swap id '' t, ?_, ?_⟩
+  · rw [mem_prodSigmaDelta_iff] at ht_mem ⊢
+    obtain ⟨A, hA, K, hK, rfl⟩ := ht_mem
+    refine ⟨fun n m ↦ Prod.swap '' (A n m), fun n m ↦ ?_, K, hK, ?_⟩
+    · simp only [Set.mem_image]
+      exact ⟨A n m, hA n m, rfl⟩
+    · rw [Set.image_iInter]
+      swap; · exact Prod.swap_bijective.prodMap Function.bijective_id
+      simp_rw [Set.image_iUnion]
+      congr with n x
+      simp
+      grind
+  · ext; simp; grind
+
+lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
+    (hs : IsPavingAnalytic MeasurableSet s) :
+    IsPavingAnalytic MeasurableSet (Prod.swap '' s) := by
+  convert isPavingAnalytic_swap hs
+  ext s
+  simp only [Set.mem_image]
+  refine ⟨fun hs ↦ ⟨Prod.swap ⁻¹' s, MeasurableSet.preimage ?_ measurable_swap, ?_⟩,
+    fun ⟨t, ht, ht_eq⟩ ↦ ?_⟩
+  · exact hs
+  · ext; simp; grind
+  · rw [← ht_eq, Set.image_swap_eq_preimage_swap]
+    refine MeasurableSet.preimage ?_ measurable_swap
+    exact ht
+
+lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
+    [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
+    {_m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
+    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    NullMeasurableSet (Prod.snd '' s) μ := by
+  convert IsPavingAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧) ?_ μ
+  · ext; simp
+  · convert isPavingAnalytic_measurableSet_swap hs
+    ext; simp; grind
+
+theorem IsMeasurableAnalytic.nullMeasurableSet_fst {𝓨 : Type*}
+    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
+    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    NullMeasurableSet (Prod.fst '' s) μ := by
+  have hs_for : IsMeasurableAnalyticFor (𝓨 × ℝ) (Prod.fst '' s) := by
+    obtain ⟨t, ht, h_eq⟩ := hs
+    rw [h_eq]
+    refine ⟨MeasurableEquiv.prodAssoc '' t, ?_, by ext; simp [MeasurableEquiv.prodAssoc]⟩
+    exact MeasurableEquiv.prodAssoc.measurableSet_image.mpr ht
+  exact hs_for.isMeasurableAnalytic.nullMeasurableSet μ
+
+theorem IsMeasurableAnalytic.nullMeasurableSet_snd {𝓨 : Type*}
+    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
+    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    NullMeasurableSet (Prod.snd '' s) μ := by
+  convert IsMeasurableAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧)
+    (_m𝓨 := _m𝓨) ?_ μ
+  · ext; simp
+  · obtain ⟨t, ht, h_eq⟩ := hs
+    rw [h_eq]
+    refine ⟨{u | ((u.1.2, u.1.1), u.2) ∈ t}, ?_, by ext; simp [Prod.swap]⟩
+    exact ht.preimage (by fun_prop)
+
 /-- **Measurable projection** theorem: the projection of a measurable set is universally measurable
 (null-measurable for any finite measure). -/
 theorem _root_.MeasurableSet.nullMeasurableSet_fst {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
     (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
-    NullMeasurableSet (Prod.fst '' s) μ := by
-  have hs_for : IsMeasurableAnalyticFor 𝓨 (Prod.fst '' s) := ⟨s, hs, rfl⟩
-  exact hs_for.isMeasurableAnalytic.nullMeasurableSet μ
+    NullMeasurableSet (Prod.fst '' s) μ :=
+  hs.isMeasurableAnalytic.nullMeasurableSet_fst μ
 
 theorem _root_.MeasurableSet.nullMeasurableSet_snd {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
     (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
-    NullMeasurableSet (Prod.snd '' s) μ := by
-  convert MeasurableSet.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧)
-    (_m𝓨 := _m𝓨) (hs.preimage (by fun_prop)) μ
-  ext
-  simp
+    NullMeasurableSet (Prod.snd '' s) μ :=
+  hs.isMeasurableAnalytic.nullMeasurableSet_snd μ
 
 end MeasureTheory

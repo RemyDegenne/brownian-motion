@@ -20,6 +20,7 @@ public import BrownianMotion.Auxiliary.NNReal
 public import BrownianMotion.Auxiliary.Nat
 public import BrownianMotion.Auxiliary.Real
 public import BrownianMotion.Auxiliary.SetAlgebra
+public import BrownianMotion.Auxiliary.StandardBorel
 public import BrownianMotion.Auxiliary.StoppedProcess
 public import BrownianMotion.Auxiliary.Topology
 public import BrownianMotion.Auxiliary.WithLp
@@ -28,6 +29,7 @@ public import BrownianMotion.Choquet.AnalyticSet
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.Choquet.CompactSystem
 public import BrownianMotion.Choquet.CountableClosed
+public import BrownianMotion.Choquet.MeasurableSection
 public import BrownianMotion.Continuity.Chaining
 public import BrownianMotion.Continuity.CoveringNumber
 public import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
