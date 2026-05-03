@@ -328,7 +328,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     positivity
 
 /-- **Law of the iterated logarithm** for Brownian motion. -/
-lemma IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
+theorem IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop = 1 := by
   haveI := (hX.hasLaw ∅).isProbabilityMeasure
   have h_up := IsBrownian.ae_limsup_div_sqrt_log_log_le_one hX.isBrownian_mk
