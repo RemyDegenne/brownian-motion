@@ -164,7 +164,7 @@ ProbabilityTheory.wienerMeasure
 MeasureTheory.Filtration
 MeasureTheory.Adapted
 MeasureTheory.ProgMeasurable
-Function.RightContinuous
+Function.IsRightContinuous
 IsCadlag
 MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous
 MeasureTheory.Martingale
@@ -253,6 +253,7 @@ isCompactSystem_isCompact_isClosed
 isCompactSystem_isCompact
 IsCompactSystem.mono
 isCompactSystem_Icc
+IsCompactSystem.sigma
 IsCompactSystem.image2_prod
 IsCompactSystem.supClosure
 IsCompactSystem.infClosure
