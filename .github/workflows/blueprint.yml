@@ -7,17 +7,17 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:        # Allow manual triggering of the workflow from the GitHub Actions interface
+  workflow_dispatch: # Allow manual triggering of the workflow from the GitHub Actions interface
 
 # Cancel previous runs if a new commit is pushed to the same PR or branch
 concurrency:
-  group: ${{ github.ref }}  # Group runs by the ref (branch or PR)
-  cancel-in-progress: true  # Cancel any ongoing runs in the same group
+  group: ${{ github.ref }} # Group runs by the ref (branch or PR)
+  cancel-in-progress: true # Cancel any ongoing runs in the same group
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read  # Read access to repository contents
-  pages: write    # Write access to GitHub Pages
+  contents: read # Read access to repository contents
+  pages: write # Write access to GitHub Pages
   id-token: write # Write access to ID tokens
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@65f454bc22ec83143241456eee965c2ab702ba6e # 2026-01-15
+        uses: leanprover/lean-action@6fe4ae6a449c9758f51250ee249ebbc7ec37ee48 # 2026-01-15
         with:
           build: true
           lint: true
@@ -58,7 +58,7 @@ jobs:
           ./build_manual.sh
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@dac784713171529c96f6d0470f7af30249a02a5d # 2026-02-09
+        uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
         with:
           blueprint: true
           homepage: home_page
