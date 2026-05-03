@@ -5,6 +5,14 @@ public import Mathlib.Analysis.Calculus.LHopital
 public import Mathlib.Analysis.PSeries
 public import Mathlib.Probability.BorelCantelli
 
+/-!
+This file proves the **law of the iterated logarithm** for Brownian motion, which provides sharp
+asymptotics for the limsup of B_t as t tends to infinity.
+
+The main theorem is `IsBrownian.ae_limsup_div_sqrt_log_log_eq_one`, which proves that if $B_t$ is a
+Brownian motion, it holds almost surely that $\limsup_{t → ∞} \frac{B_t}{\sqrt{2 \log \log t}} = 1$.
+-/
+
 @[expose] public section
 
 open Filter MeasureTheory ProbabilityTheory Real
@@ -319,6 +327,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     rw [tendsto_mul_const_atTop_iff_pos (tendsto_natCast_atTop_atTop)]
     positivity
 
+/-- **Law of the iterated logarithm** for Brownian motion. -/
 lemma IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop = 1 := by
   haveI := (hX.hasLaw ∅).isProbabilityMeasure
