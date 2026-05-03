@@ -399,7 +399,7 @@ ProbabilityTheory.exists_modification_isCadlag
 komlos_convex
 komlos_norm
 TendstoUniformly_convexTail
-convexWeightsMul
+StdSimplex.bind
 komlos_convex_weights
 komlos_uniform_convergence
 komlos_convex_weights_diagonal
