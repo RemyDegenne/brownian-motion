@@ -96,7 +96,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
   · intro n
     simp_rw [Measure.real_def]
     rw [ENNReal.toReal_eq_toReal_iff' (by finiteness) (by finiteness)]
-    have h : IdentDistrib (fun ω ↦ ((c : ℝ) ^ (n + 1)).sqrt * X 1 ω) (X (c ^ (n + 1))) P P := by
+    have h : IdentDistrib (fun ω ↦ √(c ^ (n + 1)) * X 1 ω) (X (c ^ (n + 1))) P P := by
       apply IdentDistrib.symm
       apply (hX.hasLaw_eval _).identDistrib
       convert gaussianReal_const_mul (hX.hasLaw_eval _) _
@@ -105,7 +105,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
     convert h.measure_mem_eq (s := {x | _ ≤ (x : ℝ)}) _
     · simp_rw [Set.preimage_setOf_eq]
       congr! 2
-      rw [← mul_le_mul_iff_of_pos_left (by positivity : 0 < ((c : ℝ) ^ (n + 1)).sqrt)]
+      rw [← mul_le_mul_iff_of_pos_left (by positivity : 0 < √(c ^ (n + 1)))]
       congr! 1
       rw [← sqrt_sq (by positivity : 0 ≤ (c : ℝ))]
       repeat rw [← sqrt_mul (by positivity)]
@@ -140,14 +140,14 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
 
 private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     (h_meas : ∀ t, Measurable (X t)) :
-    ∀ᵐ ω ∂P, 1 ≤ limsup (fun t ↦ (X t ω) / (2 * t * (t : ℝ).log.log).sqrt : ℝ≥0 → EReal) atTop := by
+    ∀ᵐ ω ∂P, 1 ≤ limsup (fun t ↦ X t ω / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop := by
   haveI := (hX.hasLaw ∅).isProbabilityMeasure
-  let f := fun (t : ℝ≥0) ↦ (2 * t * (t : ℝ).log.log).sqrt
+  let f := fun (t : ℝ≥0) ↦ √(2 * t * log (log t))
   -- Rewrite the inequality into a nice form with the quantifier outside
-  suffices h : ∀ (c : ℝ), 1 < c → 1 < log c → ∀ᵐ ω ∂P, (1 - 1 / c).sqrt - (1 / c.sqrt : ℝ) ≤
+  suffices h : ∀ (c : ℝ), 1 < c → 1 < log c → ∀ᵐ ω ∂P, √(1 - 1 / c) - (1 / √c : ℝ) ≤
       limsup (fun t ↦ (X t ω) / (f t) : ℝ≥0 → EReal) atTop by
     simp_rw [ae_const_le_iff_forall_lt_measure_zero, ← not_lt, ← ae_iff]
-    have h' : Tendsto (fun (r : ℝ) ↦ (1 - 1 / r).sqrt - (1 / r.sqrt)) atTop (nhds 1) := by
+    have h' : Tendsto (fun (r : ℝ) ↦ √(1 - 1 / r) - (1 / √r)) atTop (nhds 1) := by
       rw [(by simp : nhds (1 : ℝ) = nhds (sqrt (1 - 0) - 0))]
       apply Tendsto.sub
       · apply Tendsto.sqrt
@@ -171,13 +171,13 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
   lift c to ℝ≥0 using by positivity
   have hc0 : (0 < c) := by positivity [by exact_mod_cast hc1]
   -- Rewrite in terms of limsup of difference
-  suffices h1 : ∀ᵐ ω ∂P, (1 - 1 / (c : ℝ)).sqrt ≤
+  suffices h1 : ∀ᵐ ω ∂P, √(1 - 1 / c) ≤
       limsup (fun t ↦ ((X t ω - X (t / c) ω) / f t).toEReal) atTop by
     have h2 : ∀ᵐ ω ∂P,
         limsup (fun t ↦ (-X (t / c) ω / f (t)).toEReal) atTop
-          ≤ (1 / (c : ℝ).sqrt).toEReal := by
+          ≤ (1 / √c).toEReal := by
       convert IsBrownian.ae_limsup_div_sqrt_log_log_le_one
-        (X := fun t ω ↦ (c : ℝ).sqrt * (-X (t / c) ω)) _ using 1
+        (X := fun t ω ↦ √c * (-X (t / c) ω)) _ using 1
       · funext ω
         simp_rw [← mul_div, EReal.coe_mul]
         rw [EReal.limsup_const_mul_of_nonneg_of_ne_top (by positivity) (by aesop)]
@@ -193,7 +193,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
       EReal.coe_sub, Pi.add_def]
     norm_cast; aesop
   -- auxiliary definitions
-  let g := fun (n : ℕ) ↦ (2 * ((c : ℝ) ^ n).log.log).sqrt
+  let g := fun (n : ℕ) ↦ √(2 * log (log (c ^ n)))
   let A := fun n ↦ {ω | sqrt (c ^ (n + 1) - c ^ n) * g (n + 1) ≤
     (X (c ^ (n + 1)) ω - X (c ^ n) ω)}
   -- prepare for application of Borel-Cantelli
@@ -295,7 +295,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
   push_cast; field_simp
   -- apply limit comparison test again
   rw [Asymptotics.IsEquivalent.summable_iff_nat
-    (g := fun k : ℕ ↦ 1 / (2 * log 2).sqrt * (1 / sqrt k))]
+    (g := fun k : ℕ ↦ 1 / √(2 * log 2) * (1 / √k))]
   · -- non-summability of p-series
     rw [summable_mul_left_iff (by positivity)]
     simp_rw [sqrt_eq_rpow]
@@ -320,7 +320,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     positivity
 
 lemma IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
-    ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / (2 * t * (t : ℝ).log.log).sqrt : ℝ≥0 → EReal) atTop = 1 := by
+    ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop = 1 := by
   haveI := (hX.hasLaw ∅).isProbabilityMeasure
   have h_up := IsBrownian.ae_limsup_div_sqrt_log_log_le_one hX.isBrownian_mk
   have h_low := IsBrownian.ae_one_le_limsup_div_sqrt_log_log hX.isBrownian_mk hX.measurable_mk
