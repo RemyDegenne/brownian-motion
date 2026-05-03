@@ -16,6 +16,17 @@ public import BrownianMotion.Choquet.AnalyticSet
 open Filter
 open scoped ENNReal NNReal Topology
 
+lemma Set.dissipate_congr {β : Type*} {s t : ℕ → Set β} {n : ℕ}
+    (h_eq : ∀ m ≤ n, s m = t m) :
+    Set.dissipate s n = Set.dissipate t n := by
+  simp only [Set.dissipate_def]
+  congr with m x
+  simp only [Set.mem_iInter]
+  refine ⟨fun h h_le ↦ ?_, fun h h_le ↦ ?_⟩
+    <;> specialize h h_le
+  · rwa [h_eq m h_le] at h
+  · rwa [h_eq m h_le]
+
 variable {𝓧 𝓚 : Type*} {x y : 𝓧} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)}
   {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
@@ -119,6 +130,141 @@ def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=
 lemma isCapacitable_of_mem (hs : s ∈ p) : IsCapacitable m s :=
   fun a ha ↦ ⟨s, subset_countableInfClosure hs, by simp, ha.le⟩
 
+section Aux
+
+/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
+private noncomputable
+def qaux (m : Capacity p) (s : Set 𝓧) (A : ℕ → ℕ → Set 𝓧) (a : ℝ≥0∞) (k : ℕ → ℕ) (n : ℕ) : Prop :=
+  ∀ j ≤ n, a < m (s ∩ Set.dissipate (fun i ↦ A i (k i)) j)
+
+/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
+private noncomputable
+def nat0 {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
+    {n : ℕ | a < m (s ∩ A 0 n)} :=
+  have : m s = ⨆ n, m (s ∩ A 0 n) := by
+    rw [← capacity_iUnion]
+    · rw [← Set.inter_iUnion]
+      congr
+      refine subset_antisymm ?_ Set.inter_subset_left
+      rw [← hs_eq]
+      simp only [Set.subset_inter_iff, subset_refl, true_and]
+      exact Set.iInter_subset _ 0
+    · intro i j hij
+      simp only [Set.le_eq_subset, Set.subset_inter_iff, Set.inter_subset_left, true_and]
+      refine Set.inter_subset_right.trans ?_
+      exact hA_mono 0 hij
+  have : ∃ n, a < m (s ∩ A 0 n) := by
+    rw [this] at ha
+    exact lt_iSup_iff.mp ha
+  ⟨this.choose, this.choose_spec⟩
+
+/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
+private noncomputable
+def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) {a : ℝ≥0∞} {n : ℕ}
+    (k : {seq : ℕ → ℕ | qaux m s A a seq n}) :
+    {j : ℕ → ℕ | qaux m s A a j (n + 1)} :=
+  have : m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n)
+      = ⨆ j, m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n ∩ A (n + 1) j) := by
+    rw [← capacity_iUnion]
+    · rw [← Set.inter_iUnion]
+      congr 1
+      refine subset_antisymm ?_ Set.inter_subset_left
+      rw [Set.inter_assoc, Set.inter_comm _ (⋃ i, _), ← Set.inter_assoc]
+      refine Set.inter_subset_inter_left _ ?_
+      rw [← hs_eq]
+      simp only [Set.subset_inter_iff, subset_refl, true_and]
+      exact Set.iInter_subset _ (n + 1)
+    · intro i j hij
+      simp only [Set.mem_setOf_eq, Set.le_eq_subset, Set.subset_inter_iff]
+      refine ⟨⟨?_, ?_⟩, ?_⟩
+      · exact Set.inter_subset_left.trans Set.inter_subset_left
+      · exact Set.inter_subset_left.trans Set.inter_subset_right
+      · refine Set.inter_subset_right.trans ?_
+        exact hA_mono (n + 1) hij
+  have : ∃ j, a < m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n ∩ A (n + 1) j) := by
+    have hk := k.2 n le_rfl
+    rw [this] at hk
+    exact lt_iSup_iff.mp hk
+  ⟨fun i ↦ if i ≤ n then k.1 i else this.choose, by
+    simp only [qaux, Set.mem_setOf_eq]
+    intro j hj
+    rw [Nat.le_succ_iff] at hj
+    cases hj with
+    | inl h_le =>
+      convert k.2 j h_le using 3
+      exact Set.dissipate_congr fun i hi ↦ by simp [hi.trans h_le]
+    | inr h_eq =>
+      simp only [h_eq, Nat.succ_eq_add_one, Set.dissipate_succ, add_le_iff_nonpos_right,
+        nonpos_iff_eq_zero, one_ne_zero, ↓reduceIte]
+      convert this.choose_spec using 2
+      rw [Set.inter_assoc]
+      congr 2
+      exact Set.dissipate_congr fun i hi ↦ by simp [hi]⟩
+
+/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
+private noncomputable
+def seqAux (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
+    (n : ℕ) → {seq : ℕ → ℕ | qaux m s A a seq n}
+  | 0 => ⟨fun _ ↦ nat0 hA_mono hs_eq a ha, by
+    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_setOf_eq]
+    exact (nat0 hA_mono hs_eq a ha).2⟩
+  | n + 1 => succ hA_mono hs_eq
+    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n)
+
+private lemma seqAux_add_one (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) :
+    seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1) =
+      succ hA_mono hs_eq
+        (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n) := rfl
+
+private lemma seqAux_add_one_apply_of_le (hp_empty : ∅ ∈ p)
+    (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) {n i : ℕ} (hin : i ≤ n) :
+    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1)).1 i =
+      (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 i := by
+  rw [seqAux_add_one]
+  simp only [Set.mem_setOf_eq, succ, ite_eq_left_iff, not_le]
+  intro hni
+  grind
+
+private lemma seqAux_of_le (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) {i j : ℕ} (hij : i ≤ j) :
+    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha i).1 i =
+      (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha j).1 i := by
+  induction j, hij using Nat.le_induction with
+  | base => rfl
+  | succ n hin ih => rw [ih, seqAux_add_one_apply_of_le]; exact hin
+
+/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
+private noncomputable
+def seq (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) : ℕ :=
+  (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 n
+
+private lemma seq_prop (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
+    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
+    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) :
+    qaux m s A a (seq hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha) n := by
+  simp only [qaux]
+  have h1 := (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).2
+  simp only [qaux] at h1
+  intro j hj
+  convert h1 j hj using 3
+  refine Set.dissipate_congr fun i hi ↦ ?_
+  congr
+  simp only [seq, Set.mem_setOf_eq]
+  exact seqAux_of_le hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (hi.trans hj)
+
+end Aux
+
 -- He 1.34
 lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
@@ -130,7 +276,8 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
   simp_rw [h_eq] at hs_eq
   intro a ha
   obtain ⟨k, hk⟩ : ∃ k : ℕ → ℕ, ∀ n, a < m (s ∩ Set.dissipate (fun i ↦ A i (k i)) n) := by
-    sorry
+    refine ⟨seq hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha, fun n ↦ ?_⟩
+    exact seq_prop hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n n le_rfl
   let B n := Set.dissipate (fun i ↦ A i (k i)) n
   have hB_gt n : a < m (B n) := (hk n).trans_le (m.mono Set.inter_subset_right)
   have hB_mem n : B n ∈ p := by
