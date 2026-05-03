@@ -15,7 +15,7 @@ public import Mathlib.Probability.ConditionalExpectation
 public import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence
 public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
 public import Mathlib.Probability.Independence.BoundedContinuousFunction
-public import Mathlib.Probability.Independence.Process.HasIndepIncrements
+public import Mathlib.Probability.Independence.Process.HasIndepIncrements.Basic
 public import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 
 /-!

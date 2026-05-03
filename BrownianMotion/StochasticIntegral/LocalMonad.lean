@@ -30,7 +30,7 @@ abbrev StableCat (E : Type*) [Zero E] (𝓕 : Filtration ι mΩ) :=
 
 /-- Local is a functor from Stable to Stable. -/
 def Local (P : Measure Ω) (p : StableCat E 𝓕) : StableCat E 𝓕 :=
-  ⟨(Locally p.1 𝓕 · P), p.2.isStable_locally⟩
+  ⟨(Locally p.1 𝓕 · P), p.2.locally⟩
 
 -- TODO: restore the lemmas below. They broke after a bump to 4.27.0
 

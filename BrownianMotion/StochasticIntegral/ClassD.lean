@@ -144,11 +144,6 @@ lemma _root_.Function.RightContinuous.norm {ι E : Type*} [TopologicalSpace ι] 
   have hXt := hX t
   fun_prop
 
-lemma _root_.MeasureTheory.ProgMeasurable.norm {ι Ω E : Type*} {mΩ : MeasurableSpace Ω}
-    [Preorder ι] [MeasurableSpace ι] [SeminormedAddCommGroup E]
-    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ProgMeasurable 𝓕 X) :
-    ProgMeasurable 𝓕 (fun t ω ↦ ‖X t ω‖) := fun i ↦  (hX i).norm
-
 variable [OrderBot ι] [MeasurableSpace ι]
 
 lemma ClassD.uniformIntegrable' (hX : ClassD X 𝓕 P) : UniformIntegrable X 1 P := by
@@ -384,15 +379,15 @@ has a strongly measurable sup process. -/
 lemma _root_.MeasureTheory.ProgMeasurable.hasStronglyMeasurableSupProcess {ι : Type*}
     [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
-    {X : ι → Ω → E} {P : Measure Ω} [IsFiniteMeasure P]
-    {𝓕 : Filtration ι mΩ} (h𝓕 : 𝓕.HasUsualConditions P) (hX_prog : ProgMeasurable 𝓕 X) :
+    {X : ι → Ω → E} (P : Measure Ω) [IsFiniteMeasure P]
+    {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] (hX_prog : ProgMeasurable 𝓕 X) :
     HasStronglyMeasurableSupProcess (mΩ := mΩ) X := by
   refine Measurable.stronglyMeasurable ?_ -- todo: change the def to use measurable
   refine measurable_of_Ioi fun a ↦ ?_
   by_cases ha_top : a = ⊤
   · simp [ha_top]
   let τ a := leastGT (fun t ω ↦ ‖X t ω‖) a
-  have hτ a : IsStoppingTime 𝓕 (τ a) := isStoppingTime_leastGT h𝓕 hX_prog.norm _
+  have hτ a : IsStoppingTime 𝓕 (τ a) := isStoppingTime_leastGT P hX_prog.norm _
   have : ((fun tω : ι × Ω ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ) ⁻¹' Set.Ioi a)
       = {tω | τ a.toReal tω.2 < tω.1} ∪ {tω | a < ‖X tω.1 tω.2‖ₑ} := by
     calc ((fun tω : ι × Ω ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ) ⁻¹' Set.Ioi a)
@@ -466,7 +461,7 @@ lemma isStable_hasIntegrableSup [SecondCountableTopology ι] :
 /-- The class of processes with locally integrable supremum is stable. -/
 lemma isStable_hasLocallyIntegrableSup [SecondCountableTopology ι] :
     IsStable 𝓕 (HasLocallyIntegrableSup (E := E) · 𝓕 P) :=
-  IsStable.isStable_locally isStable_hasIntegrableSup
+  isStable_hasIntegrableSup.locally
 
 /-- The Class D is stable. -/
 lemma isStable_classD [PseudoMetrizableSpace ι] [SecondCountableTopology ι] :
@@ -526,7 +521,7 @@ lemma HasLocallyIntegrableSup.locally_classDL [SecondCountableTopology ι] [Pseu
     (hX1 : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P) (hX2 : HasLocallyIntegrableSup X 𝓕 P) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P := by
   have h_and : Locally (fun X ↦ ProgMeasurable 𝓕 X ∧ HasIntegrableSup X P) 𝓕 X P := by
-    rw [locally_and]
+    rw [IsStable.locally_and_iff]
     · exact ⟨hX1, hX2⟩
     · exact isStable_progMeasurable
     · exact isStable_hasIntegrableSup
@@ -537,7 +532,7 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
     (hX : ClassDL X 𝓕 P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rcases topOrderOrNoTopOrder ι with ha | hb
-  · exact locally_of_prop hX.classD
+  · exact .of_prop hX.classD
   obtain ⟨v, hv1, hv2⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
   refine ⟨fun n ω => v n, ⟨⟨fun n => ?_, ?_⟩, ?_⟩, fun n => ⟨?_, ?_⟩⟩
   · simp [isStoppingTime_const]
@@ -585,9 +580,9 @@ lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinea
     [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
     [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
-    (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) (h𝓕 : 𝓕.IsRightContinuous) :
+    (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) [𝓕.IsRightContinuous] :
     Locally (ClassD · 𝓕 P) 𝓕 X P :=
-  locally_induction h𝓕 (fun _ ↦ ClassDL.locally_classD) isStable_classD hX
+  isStable_classD.locally_induction (fun _ ↦ ClassDL.locally_classD) hX
 
 end ClassDClassDL
 
@@ -598,11 +593,11 @@ instance {ι : Type*} [LE ι] [OrderTop ι] [OrderBot ι] : BoundedOrder ι wher
 lemma isLocalizingSequence_leastGE {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι]
     (𝓕 : Filtration ι mΩ) {X : ι → Ω → ℝ} (hX1 : StronglyAdapted 𝓕 X)
-    (hX2 : ∀ ω, IsCadlag (X · ω)) (h𝓕 : 𝓕.HasUsualConditions P) [IsFiniteMeasure P] :
+    (hX2 : ∀ ω, IsCadlag (X · ω)) [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P] :
     IsLocalizingSequence 𝓕 (fun n => leastGE X n) P where
   isStoppingTime n := by
     borelize ι
-    refine isStoppingTime_leastGE h𝓕 ?_ _
+    refine isStoppingTime_leastGE P ?_ _
     · exact hX1.progMeasurable_of_rightContinuous (fun ω ↦ (hX2 ω).right_continuous)
   mono := by filter_upwards with ω n m hnm using
     hittingAfter_anti X ⊥ (Set.Ici_subset_Ici.2 (Nat.cast_le.2 hnm)) ω
@@ -705,7 +700,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) (h𝓕 : 𝓕.HasUsualConditions P)
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     [IsFiniteMeasure P] :
     HasLocallyIntegrableSup X 𝓕 P := by
   rcases hX2 with ⟨hX2, hX3⟩
@@ -717,17 +712,17 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     · obtain ⟨l, hl⟩ := (hX1 ω).2 i
       exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
-  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_leastGE 𝓕 hY1 hY2 h𝓕
+  have hτ : IsLocalizingSequence 𝓕 τ P := isLocalizingSequence_leastGE 𝓕 hY1 hY2
   refine ⟨τ, hτ, fun n ↦ ?_⟩
   have hX4 := fun (t : ι) (ω : Ω) ↦ sup_stoppedProcess_leastGE_le (X := X) t n (by simp) ω
-  have hX6 :=  hX2.hasStronglyMeasurableSupProcess h𝓕
+  have hX6 :=  hX2.hasStronglyMeasurableSupProcess P
   let Xs : ι → Ω → E := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
   have hX1s : ∀ ω,  IsCadlag fun t ↦ Xs t ω := isStable_isCadlag X (hX1) (τ n) (hτ.isStoppingTime n)
   let rhs := fun (t : ι) (ω : Ω) ↦
     ↑n + {ω | hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥ ω ≤ ↑t}.indicator
     (fun ω ↦ ‖stoppedValue X (hittingAfter (fun t ω ↦ ‖X t ω‖) (Set.Ici ↑n) ⊥) ω‖) ω
   constructor
-  · refine ProgMeasurable.hasStronglyMeasurableSupProcess h𝓕 ?_
+  · refine ProgMeasurable.hasStronglyMeasurableSupProcess (𝓕 := 𝓕) P ?_
     exact isStable_progMeasurable (ι := ι) (E := E) X hX2 (τ n) (hτ.isStoppingTime n)
   · intro t
     let dom := fun ω ↦ ↑n + ‖stoppedValue X (τ n ⊓ fun _ ↦ t) ω‖
@@ -824,29 +819,28 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
   [MeasurableSpace ι] [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
   [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
-lemma hasLocallyIntegrableSup_of_locally_classDL (h𝓕 : 𝓕.HasUsualConditions P)
+lemma hasLocallyIntegrableSup_of_locally_classDL [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  locally_induction₂ (h𝓕.toIsRightContinuous (μ := P))
-    (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL h𝓕)
+  IsStable.locally_induction₂ (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL)
     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
-lemma locally_classDL_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.HasUsualConditions P)
+lemma locally_classDL_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     Locally (ClassDL · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P :=
-  ⟨hasLocallyIntegrableSup_of_locally_classDL h𝓕 hX1, fun h_sup ↦ h_sup.locally_classDL hX_prog⟩
+  ⟨hasLocallyIntegrableSup_of_locally_classDL hX1, fun h_sup ↦ h_sup.locally_classDL hX_prog⟩
 
-lemma locally_classD_iff_locally_classDL (h𝓕 : 𝓕.IsRightContinuous) :
+lemma locally_classD_iff_locally_classDL [𝓕.IsRightContinuous] :
     Locally (ClassD · 𝓕 P) 𝓕 X P ↔ Locally (ClassDL · 𝓕 P) 𝓕 X P :=
-  ⟨fun hD ↦ hD.mono fun _ hXD ↦ hXD.classDL, fun hDL ↦ locally_classD_of_locally_classDL hDL h𝓕⟩
+  ⟨fun hD ↦ hD.mono fun _ hXD ↦ hXD.classDL, fun hDL ↦ locally_classD_of_locally_classDL hDL⟩
 
-lemma locally_classD_iff_hasLocallyIntegrableSup (h𝓕 : 𝓕.HasUsualConditions P)
+lemma locally_classD_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     (hX_prog : Locally (ProgMeasurable 𝓕 ·) 𝓕 X P)
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     Locally (ClassD · 𝓕 P) 𝓕 X P ↔ HasLocallyIntegrableSup X 𝓕 P := by
-  rw [locally_classD_iff_locally_classDL (h𝓕.toIsRightContinuous (μ := P)),
-      locally_classDL_iff_hasLocallyIntegrableSup h𝓕 hX_prog hX1]
+  rw [locally_classD_iff_locally_classDL,
+      locally_classDL_iff_hasLocallyIntegrableSup hX_prog hX1]
 
 /-- A right-continuous, nonnegative submartingale is locally of class D. -/
 lemma _root_.MeasureTheory.Submartingale.locally_classD
@@ -855,8 +849,8 @@ lemma _root_.MeasureTheory.Submartingale.locally_classD
     (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
     (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  rw [locally_classD_iff_locally_classDL h𝓕]
-  exact locally_of_prop (hX.classDL hC hX_nonneg)
+  rw [locally_classD_iff_locally_classDL]
+  exact .of_prop (hX.classDL hC hX_nonneg)
 
 /-- A nonnegative local submartingale is locally of class D. -/
 lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] [Lattice E]
@@ -865,18 +859,16 @@ lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] 
     [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  refine locally_induction h𝓕 ?_ isStable_classD ?_
+  refine isStable_classD.locally_induction ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
     exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
   · simp_rw [← and_assoc]
-    rw [locally_and isStable_submartingale]
-    · exact ⟨hX, locally_of_prop hX_nonneg⟩
-    · intro X hX τ hτ
+    rw [isStable_submartingale.locally_and_iff]
+    · exact ⟨hX, .of_prop hX_nonneg⟩
+    · intro X hX τ hτ i ω
       -- todo: stoppedProcess_nonneg
-      unfold stoppedProcess
-      intro i ω
-      simp only [Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
+      simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
       split_ifs with h
       · exact hX _ _
       · rfl

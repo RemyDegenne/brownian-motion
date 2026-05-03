@@ -30,12 +30,6 @@ theorem _root_.Set.range_indexedPartition_subset (f : ι → Ω → β) :
 
 variable {mΩ : MeasurableSpace Ω} {mβ : MeasurableSpace β}
 
-/-- The norm of an adapted process is adapted. (TODO: Into mathlib) -/
-lemma StronglyAdapted.norm {E : Type*} [NormedAddCommGroup E] [PartialOrder ι]
-    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-    (hX : StronglyAdapted 𝓕 X) :
-    StronglyAdapted 𝓕 (fun t ω ↦ ‖X t ω‖) := fun t ↦ StronglyMeasurable.norm (hX t)
-
 theorem Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (s i))
     {f : ι → Ω → β} (hmf : ∀ i, Measurable (f i)) : Measurable (hs.piecewise f) := by
   refine fun t ht => ?_

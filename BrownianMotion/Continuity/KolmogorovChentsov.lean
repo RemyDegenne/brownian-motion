@@ -1399,7 +1399,8 @@ lemma exists_modification_holder_iSup' {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     obtain ⟨U, hU_mem, hU⟩ := hZ_holder n ω t
     have hβ_pos_half : 0 < β n / 2 := by specialize hβ_pos n; positivity
     specialize hU (β n / 2) hβ_pos_half ?_
-    · simp [β, h_ratio_pos]
+    · simp only [NNReal.coe_div, NNReal.coe_ofNat, β]
+      convert half_lt_self (h_ratio_pos _)
     · obtain ⟨_, h⟩ := hU
       exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, edist (Z n t ω) (Z 0 t ω) = 0 := by

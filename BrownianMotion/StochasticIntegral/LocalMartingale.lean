@@ -38,12 +38,12 @@ def IsLocalSubmartingale [LE E] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
 
 lemma Martingale.IsLocalMartingale (hX : Martingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) :
     IsLocalMartingale X 𝓕 P :=
-  locally_of_prop ⟨hX, hC⟩
+  .of_prop ⟨hX, hC⟩
 
 lemma Submartingale.IsLocalSubmartingale [LE E]
     (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) :
     IsLocalSubmartingale X 𝓕 P :=
-  locally_of_prop ⟨hX, hC⟩
+  .of_prop ⟨hX, hC⟩
 
 variable [SecondCountableTopology ι] [MeasurableSpace ι] [BorelSpace ι]
 

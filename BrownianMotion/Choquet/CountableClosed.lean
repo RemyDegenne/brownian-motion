@@ -12,12 +12,13 @@ public import Mathlib.Order.SupClosed
 /-!
 # Sets closed under countable join/meet
 
-This file defines predicates for sets closed under countable `⊔` and dually for countable `⊓`.
+This file defines predicates for sets closed under countable supremum and dually for countable
+infimum.
 
 ## Main declarations
 
-* `CountableSupClosed`: Predicate for a set to be closed under countable join.
-* `CountableInfClosed`: Predicate for a set to be closed under countable meet.
+* `CountableSupClosed`: Predicate for a set to be closed under countable supremum.
+* `CountableInfClosed`: Predicate for a set to be closed under countable infimum.
 * `countableSupClosure`: countable Sup-closure. Smallest countable sup-closed set containing
   a given set.
 * `countableInfClosure`: countable Inf-closure. Smallest countable inf-closed set containing
@@ -41,11 +42,11 @@ variable [CompleteLattice α] [CompleteLattice β]
 section Set
 open Set
 
-/-- A set `s` is *countably sup-closed* if `⨆ n, A n ∈ s` for all `A : ι → α` with `ι` countable
-and `A n ∈ s` for all `n`.
+/-- A set `s` is closed under countable supremum if `⨆ n, A n ∈ s` for all `A : ι → α`
+with `ι` nonempty countable and `A n ∈ s` for all `n`.
 
-The definition uses `ι = ℕ` and the empty case (`⊥ ∈ s`).
-See `CountableSupClosed.iSup_mem` for a supremum over any countable type. -/
+The definition uses `ι = ℕ`.
+See `CountableSupClosed.iSup_mem` for a supremum over any nonempty countable type. -/
 structure CountableSupClosed [CompleteLattice α] (s : Set α) : Prop where
   iSup_nat_mem : ∀ ⦃A : ℕ → α⦄ (_hA : ∀ n, A n ∈ s), ⨆ n, A n ∈ s
 
@@ -67,7 +68,7 @@ lemma CountableSupClosed.supClosed (hs : CountableSupClosed s) : SupClosed s := 
   intro a ha b hb
   have : a ⊔ b = sSup {a, b} := by simp
   rw [this]
-  exact hs.sSup_mem (A := {a, b}) (fun u ↦ by grind)
+  exact hs.sSup_mem (A := {a, b}) (by grind)
 
 @[simp] lemma countableSupClosed_singleton_bot : CountableSupClosed ({⊥} : Set α) where
   iSup_nat_mem A hA := by
@@ -115,11 +116,11 @@ end Finset
 section Set
 open Set
 
-/-- A set `s` is *countably inf-closed* if `⨅ n, A n ∈ s` for all `A : ι → α` with `ι` countable
-and `A n ∈ s` for all `n`.
+/-- A set `s` is closed under countable infimum if `⨅ n, A n ∈ s` for all `A : ι → α`
+with `ι` nonempty countable and `A n ∈ s` for all `n`.
 
-The definition uses `ι = ℕ` and the empty case (`⊤ ∈ s`).
-See `CountableInfClosed.iInf_mem` for an infimum over any countable type. -/
+The definition uses `ι = ℕ`.
+See `CountableInfClosed.iInf_mem` for an infimum over any nonempty countable type. -/
 structure CountableInfClosed (s : Set α) : Prop where
   iInf_nat_mem : ∀ ⦃A : ℕ → α⦄, (∀ n, A n ∈ s) → ⨅ n, A n ∈ s
 
@@ -141,7 +142,7 @@ lemma CountableInfClosed.infClosed (hs : CountableInfClosed s) : InfClosed s := 
   intro a ha b hb
   have : a ⊓ b = sInf {a, b} := by simp
   rw [this]
-  exact hs.sInf_mem _ (fun u ↦ by grind)
+  exact hs.sInf_mem _ (by grind)
 
 @[simp] lemma countableInfClosed_singleton_top : CountableInfClosed ({⊤} : Set α) where
   iInf_nat_mem _ hA := by
@@ -206,29 +207,23 @@ alias ⟨_, CountableSupClosed.dual⟩ := countableInfClosed_preimage_ofDual
 
 /-! ## Closure -/
 
-/-- Every set in a join-semilattice generates a set closed under countable join. -/
+/-- Every set generates a set closed under countable supremum. -/
 @[simps! isClosed]
 def countableSupClosure : ClosureOperator (Set α) := .ofPred
   (fun s ↦ {a | ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨆ n, t n = a})
   CountableSupClosed
   (fun s a ha ↦ ⟨fun _ ↦ a, by simpa, by rw [ciSup_const]⟩)
   (by
-    intro x
-    constructor
-    intro A hA
-    simp only [Set.mem_setOf_eq] at hA
+    refine fun x ↦ ⟨fun A hA ↦ ?_⟩
     choose B hB hB_eq using hA
-    simp only [Set.mem_setOf_eq]
-    let t n := B (Nat.unpair n).1 (Nat.unpair n).2
-    refine ⟨t, fun _ ↦ hB _ _, ?_⟩
-    simp [t, iSup_unpair, ← hB_eq])
+    refine ⟨fun n ↦ B (Nat.unpair n).1 (Nat.unpair n).2, fun _ ↦ hB _ _, ?_⟩
+    simp [iSup_unpair, ← hB_eq])
   (by
     rintro s₁ s₂ hs h₂ _ ⟨t, ht, rfl⟩
     exact h₂.iSup_mem fun n ↦ hs (ht n))
 
 lemma mem_countableSupClosure_iff :
-    a ∈ countableSupClosure s ↔ ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨆ n, t n = a :=
-  Iff.rfl
+    a ∈ countableSupClosure s ↔ ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨆ n, t n = a := Iff.rfl
 
 @[simp] lemma subset_countableSupClosure {s : Set α} : s ⊆ countableSupClosure s :=
   countableSupClosure.le_closure _
@@ -286,29 +281,23 @@ lemma countableSupClosure_min : s ⊆ t → CountableSupClosed t → countableSu
       rintro ⟨_, _⟩ ⟨⟨u, hu, rfl⟩, v, hv, rfl⟩
       exact ⟨fun n ↦ (u n, v n), fun n ↦ ⟨hu n, hv n⟩, by rw [Prod.iSup_mk]⟩
 
-/-- Every set in a join-semilattice generates a set closed under join. -/
+/-- Every set generates a set closed under countable infimum. -/
 @[simps! isClosed]
 def countableInfClosure : ClosureOperator (Set α) := ClosureOperator.ofPred
   (fun s ↦ {a | ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨅ n, t n = a})
   CountableInfClosed
   (fun s a ha ↦ ⟨fun _ ↦ a, by simpa, by rw [ciInf_const]⟩)
   (by
-    intro x
-    constructor
-    intro A hA
-    simp only [Set.mem_setOf_eq] at hA
+    refine fun x ↦ ⟨fun A hA ↦ ?_⟩
     choose B hB hB_eq using hA
-    simp only [Set.mem_setOf_eq]
-    let t n := B (Nat.unpair n).1 (Nat.unpair n).2
-    refine ⟨t, fun _ ↦ hB _ _, ?_⟩
-    simp [t, iInf_unpair, ← hB_eq])
+    refine ⟨fun n ↦ B (Nat.unpair n).1 (Nat.unpair n).2, fun _ ↦ hB _ _, ?_⟩
+    simp [iInf_unpair, ← hB_eq])
   (by
     rintro s₁ s₂ hs h₂ _ ⟨t, ht, rfl⟩
     exact h₂.iInf_mem fun n ↦ hs (ht n))
 
 lemma mem_countableInfClosure_iff :
-    a ∈ countableInfClosure s ↔ ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨅ n, t n = a :=
-  Iff.rfl
+    a ∈ countableInfClosure s ↔ ∃ (t : ℕ → α), (∀ n, t n ∈ s) ∧ ⨅ n, t n = a := Iff.rfl
 
 @[simp] lemma subset_countableInfClosure {s : Set α} : s ⊆ countableInfClosure s :=
   countableInfClosure.le_closure _
@@ -370,6 +359,8 @@ end CompleteLattice
 
 section Frame
 
+/-- If a set is closed under binary suprema, then its countable infimum closure is also closed under
+binary suprema. -/
 protected lemma SupClosed.countableInfClosure [Order.Coframe α] (hs : SupClosed s) :
     SupClosed (countableInfClosure s) := by
   rintro _ ⟨t, ht, hts, rfl⟩ _ ⟨u, hu, hus, rfl⟩
@@ -379,6 +370,8 @@ protected lemma SupClosed.countableInfClosure [Order.Coframe α] (hs : SupClosed
     exact hs (ht (Nat.unpair n).1) (hu (Nat.unpair n).2)
   · rw [iInf_unpair (f := (fun n m ↦ t n ⊔ u m)), iInf_prod']
 
+/-- If a set is closed under binary infima, then its countable supremum closure is also closed under
+binary infima. -/
 protected lemma InfClosed.countableSupClosure [Order.Frame α] (hs : InfClosed s) :
     InfClosed (countableSupClosure s) := by
   rintro _ ⟨t, ht, hts, rfl⟩ _ ⟨u, hu, hus, rfl⟩
