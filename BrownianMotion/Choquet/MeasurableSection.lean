@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.Debut.Basic
+public import BrownianMotion.Choquet.Debut
 
 /-!
 # Measurable section theorems
