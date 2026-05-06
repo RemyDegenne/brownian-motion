@@ -319,7 +319,7 @@ lemma komlos_convex_weights {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : �
 
 omit [CompleteSpace E] in
 lemma TendstoUniformly_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim)) :
-  TendstoUniformly (fun (n : ℕ) (y : convexTail x) ↦ (y.val) n) (fun _ ↦ xlim) atTop := by
+    TendstoUniformly (fun (n : ℕ) (y : convexTail x) ↦ (y.val) n) (fun _ ↦ xlim) atTop := by
   intro u hu
   rcases Metric.mem_uniformity_dist.mp hu with ⟨ε, εpos, hεu⟩
   have hxε : ∀ᶠ n in atTop, dist (x n) xlim < ε := by
@@ -345,16 +345,58 @@ lemma komlos_uniform_convergence
     {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
     (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
     (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) :
-    ∀ i, TendstoUniformly (fun k ↦ komlosFormula x cw k i) lim atTop
-    -- maybe too strong, the blueprint statement limits to k ≥ i
+    ∀ i, TendstoUniformly (fun k : { k : ℕ // i ≤ k } ↦ komlosFormula x cw k i) lim atTop
      := by
   intro i
+  unfold komlosFormula
   sorry
 
-lemma komlos_convex_weights_diagonal
-    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
+lemma komlos_uniform_convergence_epsilon
+    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
+    (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
+    (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) (i : ℕ) :
+    ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ k ≥ i, ‖komlosFormula x cw k i n - lim i‖ < ε
+     := by
+  intro ε hε
+  unfold komlosFormula
+  have (k : ℕ) (hk : i ≤ k) :
+    (komlosFormula x cw k i) ∈ convexTail (fun n ↦ komlosFormula x cw i i n)
+    := by -- WIP proof. Need the right lemmas on convexTail + komlosFormula
+    unfold komlosFormula
+    unfold convexTail
+    simp
+    intro n
+    unfold convexHull
+    simp
+    intro s hsub hconv
+    sorry
+  sorry
+
+lemma komlos_convex_weights_diagonal {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
     ∃ (η : ℕ → StdSimplex ℝ ℕ), (∀ n, ∀ m < n, (η n).weights m = 0) ∧ ∀ i : ℕ,
-    ∃ glim : E, Tendsto (fun n ↦ (η n).sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by sorry
+    ∃ glim : E, Tendsto (fun n ↦ (η n).sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by
+  let ⟨cw, cwlim, cwnonneg⟩ := komlos_convex_weights hx
+  let g (i : ℕ) := Classical.choose (cwlim i)
+  have glim (i : ℕ) := Classical.choose_spec (cwlim i)
+  let η (n : ℕ) : StdSimplex ℝ ℕ := StdSimplex.iteratedBind cw n n
+  have lim (i : ℕ) : Tendsto
+    (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 (g i)) := by
+    apply Filter.tendsto_of_sub_tendsto_zero
+      (g := fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) (f := fun n ↦ g i)
+    · simp
+    rw [NormedAddGroup.tendsto_nhds_zero]
+    intro ε hε
+    simp only [Pi.sub_apply, eventually_atTop, ge_iff_le]
+    have ⟨N, hN⟩ := komlos_uniform_convergence_epsilon hx cw g glim i ε hε
+    use max N i
+    intro k _
+    replace hN := hN k (by grind) k (by grind)
+    exact hN
+  use η
+  refine ⟨?_, ?_⟩
+  · intro n m
+    sorry -- should be easy
+  · exact fun i ↦ Exists.intro (g i) (lim i)
 
 lemma komlos_convergence_L2
     (f : ℕ → Ω → E) {P : Measure Ω} :
