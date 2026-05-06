@@ -356,12 +356,102 @@ lemma komlos_convex_weights_diagonal
     ∃ (η : ℕ → StdSimplex ℝ ℕ), (∀ n, ∀ m < n, (η n).weights m = 0) ∧ ∀ i : ℕ,
     ∃ glim : E, Tendsto (fun n ↦ (η n).sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by sorry
 
+
+lemma MeasureTheory.Lp.coeFn_finset_sum {α : Type*} {E : Type*} {m : MeasurableSpace α}
+    {p : ENNReal} {μ : Measure α} [NormedAddCommGroup E] {ι : Type*}
+    (f : ι → (Lp E p μ)) (s : Finset ι) :
+    ↑↑(∑ i ∈ s, f i) =ᶠ[ae μ] ∑ i ∈ s, (f i) := by
+    classical
+    induction s using Finset.induction with
+    | empty =>
+      simp [AEEqFun.coeFn_zero]
+    | insert a s ha ih =>
+      rw [Finset.sum_insert ha]
+      grw [Lp.coeFn_add]
+      rw [Finset.sum_insert ha]
+      grw [ih]
+
+omit [InnerProductSpace ℝ E] [CompleteSpace E] in
+lemma memlp_indicator (f : Ω → E) {P : Measure Ω} [IsFiniteMeasure P]
+    (hf : AEStronglyMeasurable f (μ := P)) {i : ℝ} (hi : 0 ≤ i) :
+    MemLp ({ω | ‖f ω‖ ≤ i}.indicator f) 2 P := by
+  apply MeasureTheory.MemLp.of_bound (C := i)
+  · apply AEStronglyMeasurable.indicator₀
+    · apply hf
+    · apply nullMeasurableSet_le
+      · apply AEStronglyMeasurable.aemeasurable
+        apply AEStronglyMeasurable.norm ?_
+        apply hf
+      · exact aemeasurable_const
+  · apply Eventually.of_forall
+    intro x
+    rw [Set.indicator_apply]
+    split_ifs
+    · grind
+    · simp [hi]
+
 lemma komlos_convergence_L2
-    (f : ℕ → Ω → E) {P : Measure Ω} :
+    (f : ℕ → Ω → E) {P : Measure Ω} [IsProbabilityMeasure P] (hf : UniformIntegrable f 1 P) :
     let f' : ℕ → ℕ → Ω → E := fun i n ↦ Set.indicator {ω : Ω | ‖f n ω‖ ≤ i} (f n);
     ∃ cw : ℕ → StdSimplex ℝ ℕ, ∀ i : ℕ, ∃ lim : Ω → E,
-    Tendsto (fun n ↦ eLpNorm (fun ω ↦ ((cw n).sum (fun i wi ↦ wi • f' i n)) ω - lim ω) 2 P)
-      atTop (𝓝 0) := by sorry
+    Tendsto (fun n ↦ eLpNorm (fun ω ↦ ((cw n).sum (fun m ηm ↦ ηm • f' i m)) ω - lim ω) 2 P)
+      atTop (𝓝 0) := by
+    let f' : ℕ → ℕ → (Ω →₂[P] E) := fun i n ↦
+      MemLp.toLp (Set.indicator {ω : Ω | ‖f n ω‖ ≤ i} (f n)) (by
+        apply memlp_indicator
+        · apply hf.aestronglyMeasurable
+        · simp
+      );
+    have diag := komlos_convex_weights_diagonal (x := f') ?_
+    · obtain ⟨g, _, hg⟩ := diag
+      use g
+      intro i
+      obtain ⟨lim, hlim⟩ := hg i
+      use lim
+      rw [MeasureTheory.Lp.tendsto_Lp_iff_tendsto_eLpNorm'] at hlim
+      unfold f' at hlim
+      simp_rw [← MeasureTheory.MemLp.toLp_const_smul] at hlim
+      simp_rw [← Pi.sub_apply]
+      eta_reduce
+      have tendsto_finsupp_sum (f : Finsupp ℕ ℝ) (g : ℕ → ℝ → Ω → E)
+          (hg : ∀ n, ∀ r, MemLp (g n r) 2 P) :
+          f.sum (fun a b => MemLp.toLp (g a b) (hg a b)) =
+            MemLp.toLp (p := 2) (μ := P) (f.sum g) (by
+            rw [Finsupp.sum, Finset.sum_fn]
+            apply memLp_finset_sum
+            simp [hg]
+          ) := by
+            ext
+            grw [MeasureTheory.MemLp.coeFn_toLp]
+            rw [Finsupp.sum]
+            grw [MeasureTheory.Lp.coeFn_finset_sum]
+            rw [Finsupp.sum]
+            apply eventuallyEq_sum
+            intro x hx
+            grw [MemLp.coeFn_toLp]
+      simp_rw [tendsto_finsupp_sum] at hlim
+      conv at hlim =>
+        arg 1
+        intro n
+        rw [MeasureTheory.eLpNorm_congr_ae
+          (g := (((g n).sum fun a b ↦
+            b • {ω | ‖f a ω‖ ≤ ↑i}.indicator (f a)) - ↑↑lim))
+          (by grw [MeasureTheory.MemLp.coeFn_toLp])]
+      exact hlim
+    unfold f'
+    intro n
+    use n
+    intro x
+    simp only [Lp.norm_toLp]
+    grw [MeasureTheory.eLpNorm_le_of_ae_bound (C := n)]
+    · simp
+    · simp
+    · apply Eventually.of_forall
+      intro y
+      rw [Set.indicator_apply]
+      split_ifs
+      · grind
+      · simp
 
 theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P : Measure Ω}
     (hf : UniformIntegrable f 1 P) :
