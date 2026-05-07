@@ -393,7 +393,7 @@ The class of cadlag submartingales is stable. That is, if $M$ is a cadlag submar
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSampling}
+  \uses{lem:optionalSamplingSubmartingale}
 
 \end{proof}
 
@@ -563,7 +563,7 @@ Let $X$ be càdlàg martingale. By Lemma~\ref{lem:Martingale.submartingale_conve
 A right-continuous martingale is of class D if and only if it is uniformly integrable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:Submartingale.classD_iff_uniformIntegrable, lem:uniformIntegrableIffNorm, lem:classD_iff_norm, cor:Martingale.submartingale_norm}
 Applying Lemma~\ref{lem:classD_iff_norm} and Lemma~\ref{lem:uniformIntegrableIffNorm}, it suffices to show the result for the norm of the martingale.
 That norm is a nonnegative right-continuous submartingale by Lemma~\ref{cor:Martingale.submartingale_norm} so this follows from Lemma~\ref{lem:Submartingale.classD_iff_uniformIntegrable}.

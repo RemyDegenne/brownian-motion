@@ -1025,7 +1025,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Clearly $\tau_n \downarrow \tau$ as $n \to \infty$ and so it remains to show that each $\tau_n$ is a stopping time.
   Indeed,
   \[\{\tau_n \le t\} = \{\tau \le 2^{-n} \lfloor 2^n t\rfloor\}
@@ -1039,7 +1039,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   \lean{Nat.approximable}
   $T = \mathbb{N}$ is an approximable time index.
 \end{lemma}
-\begin{proof}
+
+\begin{proof}\leanok
   Immediate as we can take \(\tau_n = \tau\) for all \(n\).
 \end{proof}
 
