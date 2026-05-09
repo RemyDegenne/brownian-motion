@@ -27,50 +27,136 @@ namespace DoobMeyer
 
 section DenseMesh
 
-variable [OrderTop ι] [SecondCountableTopology ι]
+variable (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι] [TopologicalSpace ι]
+  [SecondCountableTopology ι]
 
 /-- The fixed countable dense set used instead of dyadics, with both endpoints adjoined. -/
 noncomputable def denseSet : Set ι :=
   (TopologicalSpace.exists_countable_dense ι).choose ∪ ({⊥, ⊤} : Set ι)
 
-lemma denseSet_countable : (denseSet (ι := ι)).Countable := by
-  sorry
+lemma denseSet_countable : (denseSet ι).Countable := by
+  have h_dense_countable := (TopologicalSpace.exists_countable_dense ι).choose_spec.1
+  simpa [denseSet] using h_dense_countable.union (by simp : ({⊥, ⊤} : Set ι).Countable)
 
-lemma denseSet_dense : Dense (denseSet (ι := ι)) := by
-  sorry
+lemma denseSet_dense : Dense (denseSet ι) := by
+  exact Dense.mono (Set.subset_union_left) (TopologicalSpace.exists_countable_dense ι).choose_spec.2
 
 /-- A choice of enumeration of the countable dense set used to construct finite meshes. -/
-noncomputable def denseEnum : ℕ → ι := by
-  classical
-  haveI : Nonempty (denseSet (ι := ι)) := ⟨⟨⊥, by simp [denseSet]⟩⟩
-  exact Subtype.val ∘ (countable_iff_exists_surjective.mp (denseSet_countable (ι := ι))).choose
+noncomputable def denseEnum : ℕ → ι :=
+  haveI : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
+  Subtype.val ∘ (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose
 
 /-- The `n`-th finite mesh: the first `n` points of the dense enumeration, plus endpoints. -/
-noncomputable def mesh (n : ℕ) : Finset ι := by
-  classical
-  exact insert ⊥ <| insert ⊤ <| (Finset.range n).image (denseEnum (ι := ι))
+noncomputable def mesh (n : ℕ) : Finset ι :=
+  insert ⊥ <| insert ⊤ <| (Finset.range n).image (denseEnum ι)
 
 /-- The finite ordered index type carried by the `n`-th mesh. -/
 abbrev MeshIdx (n : ℕ) : Type _ :=
-  {t : ι // t ∈ mesh (ι := ι) n}
+  {t : ι // t ∈ mesh ι n}
 
-lemma mesh_mono {n m : ℕ} (hnm : n ≤ m) : mesh (ι := ι) n ⊆ mesh (ι := ι) m := by
-  sorry
+lemma mesh_mono {n m : ℕ} (hnm : n ≤ m) : mesh ι n ⊆ mesh ι m := by
+  intro t ht
+  simp only [mesh, Finset.mem_insert, Finset.mem_image, Finset.mem_range] at ht ⊢
+  rcases ht with ht | ht | ⟨k, hk, rfl⟩
+  · exact Or.inl ht
+  · exact Or.inr <| Or.inl ht
+  · exact Or.inr <| Or.inr ⟨k, hk.trans_le hnm, rfl⟩
 
-lemma bot_mem_mesh (n : ℕ) : (⊥ : ι) ∈ mesh (ι := ι) n := by
-  sorry
+lemma bot_mem_mesh (n : ℕ) : (⊥ : ι) ∈ mesh ι n := by
+  simp [mesh]
 
-lemma top_mem_mesh (n : ℕ) : (⊤ : ι) ∈ mesh (ι := ι) n := by
-  sorry
+lemma top_mem_mesh (n : ℕ) : (⊤ : ι) ∈ mesh ι n := by
+  simp [mesh]
 
-lemma dense_iUnion_mesh : Dense (⋃ n, (mesh (ι := ι) n : Set ι)) := by
-  sorry
+lemma dense_iUnion_mesh : Dense (⋃ n, (mesh ι n : Set ι)) := by
+  classical
+  haveI : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
+  refine Dense.mono ?_ (denseSet_dense ι)
+  intro t ht
+  obtain ⟨k, hk⟩ :=
+    (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose_spec ⟨t, ht⟩
+  refine Set.mem_iUnion.2 ⟨k + 1, ?_⟩
+  change t ∈ mesh ι (k + 1)
+  simp only [mesh, Finset.mem_insert, Finset.mem_image, Finset.mem_range]
+  exact Or.inr <| Or.inr ⟨k, Nat.lt_succ_self k, congrArg Subtype.val hk⟩
 
-lemma eventually_mem_mesh_of_mem_denseSet {t : ι} (ht : t ∈ denseSet (ι := ι)) :
-    ∀ᶠ n in atTop, t ∈ mesh (ι := ι) n := by
-  sorry
+lemma eventually_mem_mesh_of_mem_denseSet {t : ι} (ht : t ∈ denseSet ι) :
+    ∀ᶠ n in atTop, t ∈ mesh ι n := by
+  classical
+  haveI : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
+  obtain ⟨k, hk⟩ :=
+    (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose_spec ⟨t, ht⟩
+  have hk' : denseEnum ι k = t := congrArg Subtype.val hk
+  filter_upwards [Ioi_mem_atTop k] with n hn
+  simp only [mesh, Finset.mem_insert, Finset.mem_image, Finset.mem_range]
+  exact Or.inr <| Or.inr ⟨k, hn, hk'⟩
+
+instance (n : ℕ) : OrderBot (MeshIdx ι n) where
+  bot := ⟨⊥, bot_mem_mesh ι n⟩
+  bot_le _ := bot_le
+
+instance (n : ℕ) : OrderTop (MeshIdx ι n) where
+  top := ⟨⊤, top_mem_mesh ι n⟩
+  le_top _ := le_top
+
+@[simp]
+lemma coe_meshIdx_bot (n : ℕ) : ((⊥ : MeshIdx ι n) : ι) = ⊥ :=
+  rfl
+
+@[simp]
+lemma coe_meshIdx_top (n : ℕ) : ((⊤ : MeshIdx ι n) : ι) = ⊤ :=
+  rfl
+
+noncomputable instance (n : ℕ) : LocallyFiniteOrder (MeshIdx ι n) :=
+  Fintype.toLocallyFiniteOrder
+
+noncomputable instance (n : ℕ) : SuccOrder (MeshIdx ι n) :=
+  LinearLocallyFiniteOrder.succOrder (MeshIdx ι n)
 
 end DenseMesh
+
+section DiscreteDecomposition
+
+open Order
+
+variable {η : Type*} [LinearOrder η] [LocallyFiniteOrder η] [OrderBot η] [SuccOrder η]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {f : η → Ω → E} {𝒢 : Filtration η mΩ}
+
+/-- Any locally finite discretely indexed stochastic process can be written as the sum of a
+martingale and a predictable process. This is the predictable process. See `martingalePart` for
+the martingale.
+
+This is copied from leanprover-community/mathlib4#31008, localized here while this project still
+depends on a mathlib version where `MeasureTheory.predictablePart` is only `ℕ`-indexed. -/
+noncomputable def predictablePart {m0 : MeasurableSpace Ω} (f : η → Ω → E)
+    (ℱ : Filtration η m0) (μ : Measure Ω) : η → Ω → E :=
+  fun n ↦ ∑ i ∈ Finset.Iio n, μ[f (succ i) - f i | ℱ i]
+
+/-- Any locally finite discretely indexed stochastic process can be written as the sum of a
+martingale and a predictable process. This is the martingale. See `predictablePart` for the
+predictable process.
+
+This is copied from leanprover-community/mathlib4#31008, localized here while this project still
+depends on a mathlib version where `MeasureTheory.martingalePart` is only `ℕ`-indexed. -/
+noncomputable def martingalePart {m0 : MeasurableSpace Ω} (f : η → Ω → E)
+    (ℱ : Filtration η m0) (μ : Measure Ω) : η → Ω → E :=
+  fun n ↦ f n - predictablePart f ℱ μ n
+
+theorem martingalePart_add_predictablePart
+    (ℱ : Filtration η mΩ) (μ : Measure Ω) (f : η → Ω → E) :
+    martingalePart f ℱ μ + predictablePart f ℱ μ = f :=
+  sub_add_cancel _ _
+
+@[simp]
+theorem predictablePart_bot : predictablePart f 𝒢 P ⊥ = 0 := by
+  simp [predictablePart]
+
+@[simp]
+theorem martingalePart_apply (t : η) (ω : Ω) :
+    martingalePart f 𝒢 P t ω = f t ω - predictablePart f 𝒢 P t ω := rfl
+
+end DiscreteDecomposition
 
 section MeshDecomposition
 
@@ -78,35 +164,35 @@ variable [OrderTop ι] [SecondCountableTopology ι] {S : ι → Ω → ℝ}
 
 /-- The filtration obtained by restricting `𝓕` to a finite dense mesh. -/
 noncomputable def meshFiltration (𝓕 : Filtration ι mΩ) (n : ℕ) :
-    Filtration (MeshIdx (ι := ι) n) mΩ :=
-  𝓕.indexComap (f := fun t : MeshIdx (ι := ι) n ↦ (t : ι))
-    (Subtype.mono_coe (p := fun t : ι ↦ t ∈ mesh (ι := ι) n))
+    Filtration (MeshIdx ι n) mΩ :=
+  𝓕.indexComap (f := fun t : MeshIdx ι n ↦ (t : ι))
+    (Subtype.mono_coe (p := fun t : ι ↦ t ∈ mesh ι n))
 
 /-- The process obtained by restricting `S` to a finite dense mesh. -/
 def meshProcess (S : ι → Ω → ℝ) (n : ℕ) :
-    MeshIdx (ι := ι) n → Ω → ℝ :=
+    MeshIdx ι n → Ω → ℝ :=
   fun t ω ↦ S t ω
 
+omit [OrderTopology ι] [MeasurableSpace ι] in
 lemma submartingale_meshProcess (hS : Submartingale S 𝓕 P) (n : ℕ) :
-    Submartingale (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P := by
-  sorry
+    Submartingale (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P :=
+  hS.indexComap (Subtype.mono_coe (p := fun t : ι ↦ t ∈ mesh ι n))
 
-/-- Statement-level placeholder for the generalized finite-mesh Doob decomposition.
-
-Once mathlib PR #31008 is available, `A` and `M` should be `MeasureTheory.predictablePart` and
-`MeasureTheory.martingalePart` for `meshProcess S n`. -/
+/-- Statement-level finite-mesh Doob decomposition using the locally finite definitions above. -/
 lemma exists_mesh_decomposition
     (hS : Submartingale S 𝓕 P) (n : ℕ) :
-    ∃ A M : MeshIdx (ι := ι) n → Ω → ℝ,
+    ∃ A M : MeshIdx ι n → Ω → ℝ,
       meshProcess (ι := ι) S n = M + A ∧
       Martingale M (meshFiltration 𝓕 n) P ∧
-      A ⟨⊥, bot_mem_mesh (ι := ι) n⟩ = 0 ∧
+      A ⊥ = 0 ∧
       (∀ᵐ ω ∂P, Monotone (fun t ↦ A t ω)) := by
+  refine ⟨predictablePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P,
+    martingalePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P, ?_⟩
   sorry
 
 /-- The terminal value of a mesh-indexed process. -/
-def terminalValue {n : ℕ} (Y : MeshIdx (ι := ι) n → Ω → ℝ) : Ω → ℝ :=
-  Y ⟨⊤, top_mem_mesh (ι := ι) n⟩
+def terminalValue {n : ℕ} (Y : MeshIdx ι n → Ω → ℝ) : Ω → ℝ :=
+  Y ⊤
 
 end MeshDecomposition
 
@@ -116,24 +202,84 @@ variable [OrderTop ι] [SecondCountableTopology ι] [BorelSpace ι] {S : ι → 
 
 /-- The mesh stopping time used in Rao's terminal uniform-integrability estimate. -/
 noncomputable def meshHittingTime (n : ℕ)
-    (A : MeshIdx (ι := ι) n → Ω → ℝ) (c : ℝ) : Ω → WithTop ι := by
+    (A : MeshIdx ι n → Ω → ℝ) (c : ℝ) : Ω → WithTop ι := by
   sorry
 
 lemma isStoppingTime_meshHittingTime
-    (n : ℕ) (A : MeshIdx (ι := ι) n → Ω → ℝ) (c : ℝ) :
+    (n : ℕ) (A : MeshIdx ι n → Ω → ℝ) (c : ℝ) :
     IsStoppingTime 𝓕 (meshHittingTime (ι := ι) n A c) := by
   sorry
+
+/-- Rao's terminal estimate for the discrete predictable parts of the finite-mesh Doob
+decompositions.
+
+The proof follows the argument in Beiglböck--Schachermayer--Veliyev, Section 2.2: after centering
+so that the terminal value is zero, one uses the hitting times
+`meshHittingTime n A c` to bound the tails of `A^n_⊤` by class-D stopped values of `S`. -/
+lemma uniformIntegrable_terminal_predictablePart
+    (hS_sub : Submartingale S 𝓕 P)
+    (hS_cadlag : ∀ ω, IsCadlag (S · ω))
+    (hS_D : ClassD S 𝓕 P) :
+    UniformIntegrable
+      (fun n ↦ terminalValue (ι := ι)
+        (predictablePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P)) 1 P := by
+  sorry
+
+omit [OrderTopology ι] [BorelSpace ι] in
+/-- If the terminal predictable parts are uniformly integrable, then the corresponding terminal
+martingale parts are uniformly integrable.  This is the formal final step in Rao's estimate:
+`M^n_⊤ = S_⊤ - A^n_⊤`, and `S_⊤` is uniformly integrable by the class-D hypothesis. -/
+lemma uniformIntegrable_terminal_martingalePart_of_predictablePart
+    (hS_D : ClassD S 𝓕 P)
+    (hA :
+      UniformIntegrable
+        (fun n ↦ terminalValue (ι := ι)
+          (predictablePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P)) 1 P) :
+    UniformIntegrable
+      (fun n ↦ terminalValue (ι := ι)
+        (martingalePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P)) 1 P := by
+  have hS_top : UniformIntegrable (fun _ : ℕ ↦ S ⊤) 1 P :=
+    hS_D.uniformIntegrable'.comp (fun _ : ℕ ↦ (⊤ : ι))
+  have hA_neg :
+      UniformIntegrable
+        (fun n ω ↦ - terminalValue (ι := ι)
+          (predictablePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P) ω) 1 P := by
+    refine uniformIntegrable_of_dominated hA (fun n ↦ (hA.1 n).neg) ?_
+    intro n
+    exact ⟨n, by simp⟩
+  have hdiff :
+      UniformIntegrable
+        ((fun _ : ℕ ↦ S ⊤) +
+          fun n ω ↦ - terminalValue (ι := ι)
+            (predictablePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P) ω) 1 P :=
+    hS_top.add le_rfl hA_neg
+  refine hdiff.ae_eq ?_
+  intro n
+  filter_upwards with ω
+  simp [terminalValue, martingalePart, meshProcess, sub_eq_add_neg]
+
+/-- The terminal values of the finite-mesh martingale parts are uniformly integrable when the
+submartingale is of class D. -/
+lemma uniformIntegrable_terminal_martingalePart
+    (hS_sub : Submartingale S 𝓕 P)
+    (hS_cadlag : ∀ ω, IsCadlag (S · ω))
+    (hS_D : ClassD S 𝓕 P) :
+    UniformIntegrable
+      (fun n ↦ terminalValue (ι := ι)
+        (martingalePart (meshProcess (ι := ι) S n) (meshFiltration 𝓕 n) P)) 1 P :=
+  uniformIntegrable_terminal_martingalePart_of_predictablePart (ι := ι) (𝓕 := 𝓕) hS_D
+    (uniformIntegrable_terminal_predictablePart (ι := ι) (𝓕 := 𝓕) hS_sub hS_cadlag hS_D)
 
 /-- Terminal uniform integrability for the finite-mesh predictable and martingale parts. -/
 lemma uniformIntegrable_terminal_parts
     (hS_sub : Submartingale S 𝓕 P)
     (hS_cadlag : ∀ ω, IsCadlag (S · ω))
     (hS_D : ClassD S 𝓕 P)
-    {A M : (n : ℕ) → MeshIdx (ι := ι) n → Ω → ℝ}
+    {A M : (n : ℕ) → MeshIdx ι n → Ω → ℝ}
     (hAM : ∀ n,
       meshProcess (ι := ι) S n = M n + A n ∧
       Martingale (M n) (meshFiltration 𝓕 n) P ∧
-      A n ⟨⊥, bot_mem_mesh (ι := ι) n⟩ = 0 ∧
+      A n ⟨⊥, bot_mem_mesh ι n⟩ = 0 ∧
       (∀ᵐ ω ∂P, Monotone (fun t ↦ A n t ω))) :
     UniformIntegrable (fun n ↦ terminalValue (ι := ι) (A n)) 1 P ∧
       UniformIntegrable (fun n ↦ terminalValue (ι := ι) (M n)) 1 P := by
@@ -169,13 +315,13 @@ variable [OrderTop ι] [SecondCountableTopology ι] [DenselyOrdered ι]
   {S : ι → Ω → ℝ}
 
 /-- Least mesh point above `t`. -/
-noncomputable def ceilMesh (n : ℕ) (t : ι) : MeshIdx (ι := ι) n := by
+noncomputable def ceilMesh (n : ℕ) (t : ι) : MeshIdx ι n := by
   sorry
 
 lemma le_ceilMesh (n : ℕ) (t : ι) : t ≤ (ceilMesh (ι := ι) n t : ι) := by
   sorry
 
-lemma ceilMesh_eq_of_mem {n : ℕ} {t : ι} (ht : t ∈ mesh (ι := ι) n) :
+lemma ceilMesh_eq_of_mem {n : ℕ} {t : ι} (ht : t ∈ mesh ι n) :
     ceilMesh (ι := ι) n t = ⟨t, ht⟩ := by
   sorry
 
@@ -183,15 +329,15 @@ lemma monotone_ceilMesh (n : ℕ) : Monotone (fun t ↦ (ceilMesh (ι := ι) n t
   sorry
 
 /-- Left-continuous mesh extension of a predictable part. -/
-noncomputable def barA {n : ℕ} (A : MeshIdx (ι := ι) n → Ω → ℝ) :
+noncomputable def barA {n : ℕ} (A : MeshIdx ι n → Ω → ℝ) :
     ι → Ω → ℝ :=
   fun t ω ↦ A (ceilMesh (ι := ι) n t) ω
 
-lemma barA_leftContinuous {n : ℕ} (A : MeshIdx (ι := ι) n → Ω → ℝ) :
+lemma barA_leftContinuous {n : ℕ} (A : MeshIdx ι n → Ω → ℝ) :
     ∀ ω t, ContinuousWithinAt (barA (ι := ι) A · ω) (Set.Iio t) t := by
   sorry
 
-lemma barA_predictable {n : ℕ} (A : MeshIdx (ι := ι) n → Ω → ℝ)
+lemma barA_predictable {n : ℕ} (A : MeshIdx ι n → Ω → ℝ)
     (hA_adapted : StronglyAdapted (meshFiltration 𝓕 n) A) :
     IsPredictable 𝓕 (barA (ι := ι) A) := by
   sorry
@@ -202,11 +348,12 @@ lemma predictable_finset_sum_smul
     IsPredictable 𝓕 (fun t ω ↦ Finset.sum s (fun n ↦ w n * Y n t ω)) := by
   sorry
 
+omit [OrderTopology ι] [MeasurableSpace ι] [DenselyOrdered ι] in
 lemma calA_tendsto_on_denseSet
     {calA : ℕ → ι → Ω → ℝ} {M : ι → Ω → ℝ}
-    (hcalA_eq : ∀ t ∈ denseSet (ι := ι),
+    (hcalA_eq : ∀ t ∈ denseSet ι,
       Tendsto (fun n ↦ eLpNorm (calA n t - (S t - M t)) 1 P) atTop (𝓝 0)) :
-    ∀ t ∈ denseSet (ι := ι),
+    ∀ t ∈ denseSet ι,
       Tendsto (fun n ↦ eLpNorm (calA n t - (S t - M t)) 1 P) atTop (𝓝 0) :=
   hcalA_eq
 
