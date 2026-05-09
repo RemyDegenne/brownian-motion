@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.Auxiliary.StoppedProcess
-public import BrownianMotion.Debut.Basic
+public import BrownianMotion.Choquet.Debut
 public import BrownianMotion.StochasticIntegral.LocalMartingale
 
 /-! # Locally integrable, class D, class DL
@@ -137,9 +137,9 @@ variable [LinearOrder ι] {𝓕 : Filtration ι mΩ}
 
 section RightContinuous
 
-lemma _root_.Function.RightContinuous.norm {ι E : Type*} [TopologicalSpace ι] [PartialOrder ι]
-    [SeminormedAddCommGroup E] {X : ι → E} (hX : RightContinuous X) :
-    RightContinuous (fun t ↦ ‖X t‖) := by
+lemma _root_.Function.IsRightContinuous.norm {ι E : Type*} [TopologicalSpace ι] [PartialOrder ι]
+    [SeminormedAddCommGroup E] {X : ι → E} (hX : IsRightContinuous X) :
+    IsRightContinuous (fun t ↦ ‖X t‖) := by
   intro t
   have hXt := hX t
   fun_prop
@@ -230,7 +230,7 @@ variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
 
 /-- A nonnegative right-continuous submartingale is of class DL. -/
 lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
+    (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassDL X 𝓕 P := by
   refine ⟨StronglyAdapted.progMeasurable_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
@@ -253,7 +253,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
     exact norm_le_norm_of_abs_le_abs hω
 
 lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
-    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X)
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X)
     (hX4 : UniformIntegrable X 1 P) :
     UniformIntegrable (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
       ↦ stoppedValue X T) 1 P := by
@@ -280,7 +280,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
 
 /-- A nonnegative right-continuous submartingale is of class D iff it is uniformly integrable. -/
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
-    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) (hX3 : 0 ≤ X) :
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
   refine ⟨fun hp ↦ hp.uniformIntegrable', fun hq ↦ ?_⟩
   refine classD_of_uniformIntegrable_bounded_stoppingTime ?_ ?_
@@ -292,20 +292,20 @@ end Order
 /-- A martingale with right-continuous paths is of class DL. -/
 lemma _root_.MeasureTheory.Martingale.classDL [PseudoMetrizableSpace ι] [BorelSpace ι]
     [IsFiniteMeasure P]
-    (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) :
+    (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) :
     ClassDL X 𝓕 P := by
   rw [classDL_iff_norm (hX1.stronglyAdapted.progMeasurable_of_rightContinuous hX2)]
   let Y := fun t ω ↦ ‖X t ω‖
   have hY_sub : Submartingale Y 𝓕 P := hX1.submartingale_convex_comp
     (convexOn_norm convex_univ) continuous_norm
     (fun t ↦ (hX1.integrable t).norm)
-  have hY_cont : ∀ ω, RightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
+  have hY_cont : ∀ ω, IsRightContinuous (Y · ω) := fun ω t ↦ (hX2 ω t).norm
   have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
   exact hY_sub.classDL hY_cont hY_nonneg
 
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable
     [PseudoMetrizableSpace ι] [BorelSpace ι] [IsFiniteMeasure P] (hX1 : Martingale X 𝓕 P)
-    (hX2 : ∀ ω, RightContinuous (X · ω)) :
+    (hX2 : ∀ ω, IsRightContinuous (X · ω)) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
   rw [classD_iff_norm, uniformIntegrable_iff_norm, Submartingale.classD_iff_uniformIntegrable]
   · exact hX1.submartingale_norm
@@ -708,7 +708,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
   have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
   have hY2 : ∀ (ω : Ω), IsCadlag (Y · ω) := by
     refine fun ω ↦ ⟨?_, fun i ↦ ?_⟩
-    · exact Function.RightContinuous.continuous_comp continuous_norm (hX1 ω).1
+    · exact Function.IsRightContinuous.continuous_comp continuous_norm (hX1 ω).1
     · obtain ⟨l, hl⟩ := (hX1 ω).2 i
       exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
@@ -846,7 +846,7 @@ lemma locally_classD_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRig
 lemma _root_.MeasureTheory.Submartingale.locally_classD
     [NormedSpace ℝ E] [CompleteSpace E] [Lattice E] [HasSolidNorm E]
     [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
-    (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+    (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
     (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rw [locally_classD_iff_locally_classDL]

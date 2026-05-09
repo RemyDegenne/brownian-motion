@@ -25,7 +25,7 @@ variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology
   {X : ι → Ω → E} {τ σ : Ω → WithTop ι} {n : ι}
 
 theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω)) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω)) {i : ι} (hτ_le : ∀ x, τ x ≤ i)
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ)
     (hτ_countable_range : (Set.range τ).Countable) :
     μ[stoppedValue X τ|hσ.measurableSpace] =ᵐ[μ.restrict {x : Ω | τ x ≤ σ x}] stoppedValue X τ := by
@@ -55,7 +55,7 @@ theorem condExp_stoppedValue_stopping_time_ae_eq_restrict_le_of_countable_range
   exact condExp_of_aestronglyMeasurable' hσ.measurableSpace_le h_meas h_int
 
 theorem stoppedValue_min_ae_eq_condExp_of_countable_range
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (hτ_countable_range : (Set.range τ).Countable) (hσ_countable_range : (Set.range σ).Countable) :
     (stoppedValue X fun x ↦ min (σ x) (τ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
@@ -89,7 +89,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_countable_range
 /-- **Optional sampling theorem** for general time indices
 (assuming existence of `DiscreteApproxSequence`). -/
 theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n)
     (τn : DiscreteApproxSequence 𝓕 τ μ) (σn : DiscreteApproxSequence 𝓕 σ μ) :
     (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] := by
@@ -144,14 +144,14 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
 -- TODO: change name of `stoppedValue_min_ae_eq_condExp` in mathlib and remove the prime here
 /-- **Optional sampling theorem** for approximable time indices. -/
 theorem stoppedValue_min_ae_eq_condExp'
-    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hσ : IsStoppingTime 𝓕 σ) {n : ι} (hτ_le : ∀ x, τ x ≤ n) :
     (stoppedValue X fun x ↦ min (τ x) (σ x)) =ᵐ[μ] μ[stoppedValue X τ|hσ.measurableSpace] :=
   stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC hτ hσ hτ_le
     (hτ.discreteApproxSequence μ) (hσ.discreteApproxSequence μ)
 
 theorem stoppedValue_ae_eq_condExp_of_le_const'
-    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    [Approximable 𝓕 μ] (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) :
     stoppedValue X τ =ᵐ[μ] μ[X n|hτ.measurableSpace] := by
   convert stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC
@@ -162,7 +162,7 @@ theorem stoppedValue_ae_eq_condExp_of_le_const'
   exact hτ_le ω
 
 theorem condExp_stoppedValue_ae_eq_stoppedProcess [Approximable 𝓕 μ] {n : ι}
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ : IsStoppingTime 𝓕 τ) (hτ_le : ∀ x, τ x ≤ n) (i : ι) :
     μ[stoppedValue X τ|𝓕 i] =ᵐ[μ] stoppedProcess X τ i := by
   simp_rw [stoppedProcess_eq_stoppedValue, min_comm]
@@ -208,7 +208,7 @@ variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
 
 theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
     [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, RightContinuous (X · ω)) {k : ι}
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) {k : ι}
     (hτk : ∀ᵐ ω ∂P, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
   sorry

@@ -1,9 +1,5 @@
 \chapter{Modifications with cadlag paths}
 
-\section{Preliminaries}
-
-TODO: define cadlag.
-
 \section{Cadlag modifications of martingales}
 
 \subsection{Upcrossings}
@@ -56,7 +52,8 @@ Then for all $a < b$ in $\mathbb{R}$ and $t \in T$, there exists an elementary p
 
 \begin{theorem}\label{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
   \uses{def:elemStochIntegral, def:modification}
-  \notready
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_left_right_limit}
 Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
 % \begin{enumerate}
 %   \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
@@ -67,25 +64,80 @@ Then $X$ has a modification $Y$ which has left and right limits everywhere and s
 
 \begin{proof}
   \uses{lem:upcrossing_simpleProcess_le, lem:tendsto_of_no_upcrossings}
-TODO
+  Let $D$ be a countable dense subset of $T$ (e.g.\ the rationals in $T$) and let $t \in T$ and let
+  $S$ be a finite subset of $D \cap [0, t]$. By Lemma~\ref{lem:upcrossing_simpleProcess_le}, for all
+  $a < b$ in $\mathbb{R}$, the number of upcrossings $U_S[a, b]$ of the interval $[a, b]$ along $S$
+  satisfies
+  \begin{align*}
+    (b - a) U_S[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
+  \end{align*}
+  for some elementary predictable set $A$.
+  Taking expectations and using the boundedness hypothesis, we obtain
+  \begin{align*}
+    (b - a) \mathbb{E}[U_S[a, b]] \le L + \mathbb{E}[\max\{a - X_t, 0\}] \le L + |a| + \mathbb{E}[|X_t|]
+  \end{align*}
+  where $L$ is a bound for $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$.
 
-% Let $t \in T$ and let $S$ be a finite subset of $[0, t]$.
-% By Lemma~\ref{lem:upcrossing_simpleProcess_le}, for all $a < b$ in $\mathbb{R}$, the number of upcrossings $U_t[a, b]$ of the interval $[a, b]$ before time $t$ in $S$ satisfies
-% \begin{align*}
-%   (b - a) U_t[a, b] \le (\mathbb{1}_A \bullet X)_t + \max\{a - X_t, 0\}
-%   \:,
-% \end{align*}
-% for some elementary predictable set $A$.
+  Now, let $S_1 \subseteq S_2 \subseteq \cdots$ be an increasing sequence of finite subsets of
+  $D \cap [0, t]$ with $\bigcup_n S_n = D \cap [0, t]$.
+  The number of upcrossings $U_{S_n}[a, b]$ is increasing in $n$.
+  By monotone convergence,
+  \begin{align*}
+    (b - a) \mathbb{E}[U_{D \cap [0, t]}[a, b]] = \lim_{n \to \infty} (b - a) \mathbb{E}[U_{S_n}[a, b]]
+      \le L + |a| + \mathbb{E}[|X_t|] < \infty.
+  \end{align*}
+  In particular, $U_{D \cap [0, t]}[a, b] < \infty$ a.s. for each pair $a < b$.
+  Since $\mathbb{Q}^2$ is countable, we conclude that almost surely, for all rational $a < b$, the
+  number of upcrossings of $[a, b]$ by $X$ along $D \cap [0, t]$ is finite.
+
+  By Lemma~\ref{lem:tendsto_of_no_upcrossings}, finite upcrossings of all rational intervals implies
+  that the left and right limits of $s \mapsto X_s(\omega)$ along $D$ exist at every $t \in T$, for
+  almost every $\omega$. Define
+  $$\tilde{Y}_t(\omega) = \lim_{\substack{s \downarrow t \\ s \in D}} X_s(\omega)$$
+  whenever this limit exists, and $\tilde{Y}_t(\omega) = 0$ otherwise.
+  Then $\tilde{Y}$ has left and right limits everywhere (along $T$) almost surely, and is
+  right-continuous at every point of $D$.
+
+  We claim that the set
+  \begin{align*}
+    S = \{t \in T \mid \tilde{Y}_t \ne X_t \text{ with positive probability}\}
+  \end{align*}
+  is countable.
+  For each $n \in \mathbb{N}$, consider the set
+  \begin{align*}
+    S_n = \{t \in T \cap [0, n] \mid \mathbb{P}(|\tilde{Y}_t - X_t| > 1/n) > 1/n\}
+    \:.
+  \end{align*}
+  We have $S = \bigcup_n S_n$, so it suffices to show each $S_n$ is finite.
+  If $S_n$ were infinite, it would contain a monotone sequence $t_k$ converging to some limit
+  $t^* \in [0, n]$. Adding $\{t_k\}$ to $D$ and repeating the upcrossing argument, we would obtain
+  that $X_{t_k}$ converges along $D \cup \{t_k\}$ almost surely. But $\tilde{Y}_{t_k}$ also converges
+  (since $\tilde{Y}$ has left/right limits), giving $\tilde{Y}_{t_k} - X_{t_k} \to 0$ in probability,
+  contradicting the definition of $S_n$. Therefore each $S_n$ is finite and $S$ is countable.
+
+  Define
+  \begin{align*}
+    Y_t = \begin{cases} X_t & \text{if } t \in S \:, \\ \tilde{Y}_t & \text{if } t \notin S \:. \end{cases}
+  \end{align*}
+  Then $Y_t = X_t$ almost surely for all $t$: for $t \in S$ this is by definition, and for
+  $t \notin S$ this follows from $\tilde{Y}_t = X_t$ a.s. Thus $Y$ is a modification of $X$.
+
+  Since $\tilde{Y}$ has left and right limits everywhere almost surely, and $Y$ differs from
+  $\tilde{Y}$ only on the countable set $S$, $Y$ also has left and right limits everywhere almost surely.
+  Furthermore, $Y$ agrees with $\tilde{Y}$ on $T \setminus S$, so $Y$ is right-continuous on $T \setminus S$.
 \end{proof}
 
+In the following, we say that a stochastic process $X$ is \emph{right-continuous in probability} if for all $t \in T$, $\lim_{s \downarrow t} X_s = X_t$ in which the limit is taken in probability.
 
 \begin{corollary}\label{cor:exists_caldag_modification}
   \uses{def:elemStochIntegral, def:modification}
+  \leanok
+  \lean{ProbabilityTheory.exists_modification_isCadlag}
 Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
 Then $X$ has a cadlag modification.
 \end{corollary}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}
 Let $Y$ be the modification of $X$ given by Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral}.
 $Y$ has left and right limits everywhere and there is a countable set $S$ such that $Y$ is right-continuous on $T \setminus S$. It remains to show that $Y$ is right-continuous at the points of $S$.

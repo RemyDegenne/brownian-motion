@@ -61,7 +61,7 @@ variable [PseudoMetrizableSpace ι]
 
 omit [NormedSpace ℝ E] [CompleteSpace E] in
 lemma _root_.MeasureTheory.StronglyAdapted.stoppedProcess_indicator
-    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
+    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, IsRightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     StronglyAdapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
   (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).stronglyAdapted
@@ -70,7 +70,7 @@ variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFinit
   [Approximable 𝓕 P]
 
 lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
-    (hX : Martingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+    (hX : Martingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     Martingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P := by
   refine ⟨hX.stronglyAdapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
