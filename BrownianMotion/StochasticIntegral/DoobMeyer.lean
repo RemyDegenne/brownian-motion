@@ -138,6 +138,12 @@ lemma martingale_martingalePart (hs : Submartingale S 𝓕 P)
     Martingale (martingalePartLim hs hc hd) 𝓕 P := by
   sorry
 
+/-- This is the weight associated with the martingale part. -/
+noncomputable def weight (hs : Submartingale S 𝓕 P)
+    (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) :=
+  (exists_martingalPart_lim hs hc hd).choose_spec.choose
+
+
 end UniformIntegrability
 
 end DoobMeyer
