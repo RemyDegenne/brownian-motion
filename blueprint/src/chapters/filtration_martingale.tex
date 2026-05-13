@@ -300,6 +300,28 @@ in which the infimum is infinite if the set is empty.
 \end{definition}
 
 
+\begin{definition}\label{def:hittingBtwn}
+  \mathlibok
+  \lean{MeasureTheory.hittingBtwn}
+For $X : T \to \Omega \to E$ a stochastic process, $B$ a subset of $E$ and $t_0, t_1 \in T$, the hitting time of $X$ in $B$ between $t_0$ and $t_1$ is the random variable $\Omega \to T\cup\{\infty\}$ defined by
+\begin{align*}
+  \tau_{B, t_0, t_1}(\omega) = \inf\{t \in T \mid t_0 \le t \le t_1, \: X_t(\omega) \in B\} \: ,
+\end{align*}
+in which the infimum is infinite if the set is empty.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isStoppingTime_hittingBtwn}
+  \uses{def:hittingBtwn, def:IsStoppingTime}
+  \mathlibok
+  \lean{MeasureTheory.Adapted.isStoppingTime_hittingBtwn}
+The hitting time $\tau_{B, t_0, t_1}$ of a measurable set by an adapted process on a discrete time index is a stopping time.
+\end{lemma}
+
+\begin{proof}\leanok
+
+\end{proof}
+
 
 \section{Right-continuous filtrations}
 
@@ -1025,7 +1047,7 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   we have that $(\tau_n)$ is a discrete approximation sequence of $\tau$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   Clearly $\tau_n \downarrow \tau$ as $n \to \infty$ and so it remains to show that each $\tau_n$ is a stopping time.
   Indeed,
   \[\{\tau_n \le t\} = \{\tau \le 2^{-n} \lfloor 2^n t\rfloor\}
@@ -1039,7 +1061,8 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   \lean{Nat.approximable}
   $T = \mathbb{N}$ is an approximable time index.
 \end{lemma}
-\begin{proof}
+
+\begin{proof}\leanok
   Immediate as we can take \(\tau_n = \tau\) for all \(n\).
 \end{proof}
 
