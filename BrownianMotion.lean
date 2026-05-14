@@ -41,6 +41,7 @@ public import BrownianMotion.Gaussian.BrownianMotion
 public import BrownianMotion.Gaussian.CovMatrix
 public import BrownianMotion.Gaussian.Gaussian
 public import BrownianMotion.Gaussian.GaussianProcess
+public import BrownianMotion.Gaussian.Martingale
 public import BrownianMotion.Gaussian.Moment
 public import BrownianMotion.Gaussian.MultivariateGaussian
 public import BrownianMotion.Gaussian.ProjectiveLimit
