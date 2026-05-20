@@ -23,21 +23,21 @@ open scoped Topology ENNReal
 variable {ι E : Type*} [TopologicalSpace ι]
 
 /-- The predicate that a function is right continuous. -/
-abbrev Function.IsRightContinuous [TopologicalSpace E] [PartialOrder ι] (f : ι → E) :=
+abbrev Function.IsRightContinuous [TopologicalSpace E] [Preorder ι] (f : ι → E) :=
   ∀ a, ContinuousWithinAt f (Set.Ioi a) a
 
 lemma Function.IsRightContinuous.continuous_comp {F : Type*} [TopologicalSpace E]
-    [TopologicalSpace F] [PartialOrder ι] {g : E → F}
+    [TopologicalSpace F] [Preorder ι] {g : E → F}
     {f : ι → E} (hg : Continuous g) (hf : IsRightContinuous f) : IsRightContinuous (g ∘ f) :=
   fun x ↦ (hg.tendsto (f x)).comp (hf x)
 
 @[simp]
-lemma Function.isRightContinuous_const [TopologicalSpace E] [PartialOrder ι] (c : E) :
+lemma Function.isRightContinuous_const [TopologicalSpace E] [Preorder ι] (c : E) :
     IsRightContinuous (fun _ ↦ c : ι → E) :=
   fun _ ↦ continuousWithinAt_const
 
 /-- A function is cadlag if it is right-continuous and has left limits. -/
-structure IsCadlag [TopologicalSpace E] [PartialOrder ι] (f : ι → E) : Prop where
+structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop where
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
@@ -170,7 +170,7 @@ theorem IsCadlag.countable_jumpSet_of_monotone {β : Type*} [LinearOrder ι] [Or
     (Function.jumpSet f).Countable :=
   hmono.countable_jumpSet
 
-lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [PartialOrder ι]
+lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [Preorder ι]
     {f g : ι → E} (hf : IsCadlag f)
     (hg : IsCadlag g) : IsCadlag (f + g) := by
   refine ⟨fun i ↦ ContinuousWithinAt.add (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
@@ -179,7 +179,7 @@ lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [P
   exact ⟨r + s, hr.add hs⟩
 
 lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [ContinuousSMul ℝ E]
-    [PartialOrder ι] {f : ι → E} (hf : IsCadlag f) (r : ℝ) :
+    [Preorder ι] {f : ι → E} (hf : IsCadlag f) (r : ℝ) :
     IsCadlag (fun i ↦ r • f i) := by
   refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
   obtain ⟨l, hl⟩ := hf.2 i

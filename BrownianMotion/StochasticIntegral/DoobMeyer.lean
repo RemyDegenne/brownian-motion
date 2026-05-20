@@ -15,12 +15,8 @@ public import Mathlib.Topology.Order.LiminfLimsup
 
 @[expose] public section
 
-open MeasureTheory Filter Order
+open MeasureTheory Filter Order ProbabilityTheory
 open scoped NNReal ENNReal Topology
-
-namespace ProbabilityTheory
-
-namespace DoobMeyer
 
 section DenseMesh
 
@@ -303,141 +299,185 @@ lemma stronglyAdapted_predictableConvexStep [LE E] (hs : Submartingale S 𝓕 P)
 
 end Adapted
 
-lemma monotone_of_tendsto_atTop_of_monotone
-    {α β : Type*} [Preorder α] [TopologicalSpace β] [Preorder β] [OrderClosedTopology β]
-    {F : ℕ → α → β} {f : α → β}
-    (hF : ∀ n, Monotone (F n))
-    (hlim : ∀ x, Tendsto (fun n : ℕ ↦ F n x) atTop (𝓝 (f x))) :
+section MonotoneLim
+
+/-- The limit of a collection of functions that is frequently monotone is monotone. -/
+lemma monotone_of_frequently_monotone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∃ᶠ i in l, Monotone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Monotone f :=
+  fun a b hab => le_of_tendsto_of_tendsto_of_frequently (hlim a) (hlim b)
+    (hF.mono (fun _ hi => hi hab))
+
+/-- The limit of a collection of functions that is frequently antitone is antitone. -/
+lemma antitone_of_frequently_antitone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∃ᶠ i in l, Antitone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Antitone f :=
+  monotone_of_frequently_monotone_of_tendsto (β := βᵒᵈ) hF hlim
+
+/-- The limit of a collection of functions that is eventually monotone is monotone. -/
+lemma monotone_of_eventually_monotone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∀ᶠ i in l, Monotone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Monotone f :=
+  monotone_of_frequently_monotone_of_tendsto hF.frequently hlim
+
+/-- The limit of a collection of functions that is eventually antitone is antitone. -/
+lemma antitone_of_eventually_antitone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∀ᶠ i in l, Antitone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Antitone f :=
+  monotone_of_eventually_monotone_of_tendsto (β := βᵒᵈ) hF hlim
+
+/-- The limit of a collection of monotone functions is monotone. -/
+lemma monotone_of_monotone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∀ i, Monotone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Monotone f :=
+  monotone_of_eventually_monotone_of_tendsto (Eventually.of_forall hF) hlim
+
+/-- The limit of a collection of antitone functions is antitone. -/
+lemma antitone_of_antitone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    (hF : ∀ i, Antitone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
+    Antitone f :=
+  monotone_of_monotone_of_tendsto (β := βᵒᵈ) hF hlim
+
+/-- This is an auxillary lemma used to prove `Dense.monotone_of_isRightContinuous`. It is saying
+that if `D` is a dense set and `a, b` are two points such that `a < b`, then the comap of
+`𝓝[Set.Ioi a] a` under the inclusion `D → α` is nontrivial. Note that `a < b` is necessary as
+this is clearly not true if `a` is a top element. -/
+lemma Dense.comap_val_nhdsWithin_Ioi_neBot {α : Type*} [TopologicalSpace α] [LinearOrder α]
+    [OrderTopology α] [DenselyOrdered α] {D : Set α} (hD : Dense D) {a b : α} (hab : a < b) :
+    ((𝓝[Set.Ioi a] a).comap ((↑) : D → α)).NeBot := by
+  refine comap_neBot_iff.2 fun t ht => ?_
+  obtain ⟨c, hc⟩ := (mem_nhdsGT_iff_exists_mem_Ioc_Ioo_subset hab).1 ht
+  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (Set.Ioo a c) isOpen_Ioo (Set.nonempty_Ioo.2 hc.1.1)
+  exact ⟨⟨d, hd.2⟩, hc.2 hd.1⟩
+
+/-- This is the dual of `Dense.comap_val_nhdsWithin_Ioi_neBot`. -/
+lemma Dense.comap_val_nhdsWithin_Iio_neBot {α : Type*} [TopologicalSpace α] [LinearOrder α]
+    [OrderTopology α] [DenselyOrdered α] {D : Set α} (hD : Dense D) {a b : α} (hab : b < a) :
+    ((𝓝[Set.Iio a] a).comap ((↑) : D → α)).NeBot := by
+  refine comap_neBot_iff.2 fun t ht => ?_
+  obtain ⟨c, hc⟩ := (mem_nhdsLT_iff_exists_mem_Ico_Ioo_subset hab).1 ht
+  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (Set.Ioo c a) isOpen_Ioo (Set.nonempty_Ioo.2 hc.1.2)
+  exact ⟨⟨d, hd.2⟩, hc.2 hd.1⟩
+
+/-- If `f` is monotone on a dense set `D` and is right continuous, then `f` is monotone. We prove
+under the assumption that `α` has a top element `⊤` and `⊤ ∈ D`, which is a necessary assumption
+because otherwise it is possible that `⊤` is an isolated point. This theorem should be also true
+when `α` satisfies `NoTopOrder α`. -/
+lemma Dense.monotone_of_isRightContinuous {α β : Type*} [LinearOrder α] [OrderTop α]
+    [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] [TopologicalSpace β]
+    [Preorder β] [t : OrderClosedTopology β] {f : α → β} {D : Set α} (hD : Dense D) (htop : ⊤ ∈ D)
+    (hm : Monotone (f ∘ (↑) : D → β)) (hf : f.IsRightContinuous) :
     Monotone f := by
-  intro x y hxy
-  exact le_of_tendsto_of_tendsto (hlim x) (hlim y)
-    (Eventually.of_forall fun n : ℕ ↦ hF n hxy)
+  refine monotone_iff_forall_lt.2 fun a b hab => ?_
+  by_cases! hbtop : b = ⊤
+  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot hab
+    rw [hbtop]
+    refine (isClosed_Iic (a := f ⊤)).mem_of_tendsto (Tendsto.comp (hf a)
+      (tendsto_comap (f := ((↑) : D → α)))) ?_
+    rw [eventually_comap, eventually_nhdsWithin_iff]
+    filter_upwards with z hz d rfl using hm (Subtype.mk_le_mk.2 le_top : d ≤ ⟨⊤, htop⟩)
+  · -- This part should work when `α` satisfies `NoTopOrder α`.
+    let I : D × D → α × α := Prod.map Subtype.val Subtype.val
+    have : ((𝓝[Set.Ioi a ×ˢ Set.Ioi b] ⟨a, b⟩).comap I).NeBot := by
+      simp only [nhdsWithin_prod_eq, comap_prodMap_prod, I]
+      exact (hD.comap_val_nhdsWithin_Ioi_neBot hab).prod
+        (hD.comap_val_nhdsWithin_Ioi_neBot hbtop.lt_top)
+    have : ∀ᶠ (p : D × D) in (𝓝[Set.Ioi a ×ˢ Set.Ioi b] ⟨a, b⟩).comap I, p.1 ≤ p.2 := by
+      rw [eventually_comap, eventually_nhdsWithin_iff]
+      have := isOpen_lt_prod.mem_nhds_iff.2 (by simp [hab] : ⟨a, b⟩ ∈ {p : α × α | p.1 < p.2})
+      filter_upwards [this] with p hlt _ a rfl using hlt.le
+    exact t.isClosed_le'.mem_of_tendsto (Tendsto.comp ((hf a).prodMap (hf b)) tendsto_comap)
+      (this.mono fun d hd => by simpa using hm hd)
 
-section Limsup
+/-- A helper lemma. -/
+lemma Filter.IsCoboundedUnder.trans {ι α : Type*} {r : α → α → Prop} {l : Filter ι} [l.NeBot]
+    [IsTrans α r] {u v : ι → α} (hle : ∀ᶠ i in l, r (u i) (v i)) (h : IsCoboundedUnder r l u) :
+    IsCoboundedUnder r l v := by
+  simp only [IsCoboundedUnder, IsCobounded, eventually_map] at *
+  obtain ⟨b, hb⟩ := h
+  refine ⟨b, fun a ha => hb a ?_⟩
+  filter_upwards [ha, hle] with i hi huv using Trans.trans huv hi
 
-private lemma mem_closure_dense_inter_Ioi
-    {α : Type*} [LinearOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
-    {D : Set α} (hD_dense : Dense D) {t : α} (ht : (Set.Ioi t).Nonempty) :
-    t ∈ closure (D ∩ Set.Ioi t) := by
-  have ht_closure : t ∈ closure (Set.Ioi t) := by
-    rw [closure_Ioi' ht]
-    simp
-  have hsubset : Set.Ioi t ⊆ closure (Set.Ioi t ∩ D) :=
-    hD_dense.open_subset_closure_inter isOpen_Ioi
-  have hclosure_subset : closure (Set.Ioi t) ⊆ closure (closure (Set.Ioi t ∩ D)) :=
-    closure_mono hsubset
-  have : t ∈ closure (Set.Ioi t ∩ D) := by
-    simpa only [closure_closure] using hclosure_subset ht_closure
-  simpa [Set.inter_comm] using this
+/-- Convergence on a dense set of a collection of monotone function controls the `limsup` at a point
+if `f` is right continuous at `a`. We prove this under the assumption that `α` has both a bottom
+element and a top element. The bottom element is needed because otherwise `limsup` evaluated at the
+bottome element may give a junk value to break the inequality. -/
+lemma limsup_le_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
+    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
+    [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
+    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Ioi a) a)
+    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    limsup (F · a) l ≤ f a := by
+  by_cases! ha : a = ⊤
+  · rw [ha, (hlim ⊤ htop).limsup_eq]
+  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot ha.lt_top
+    refine (isClosed_Ici (a := limsup (F · a) l)).mem_of_tendsto (Tendsto.comp hfa
+      (tendsto_comap (f := ((↑) : D → α)))) ?_
+    rw [eventually_comap, eventually_nhdsWithin_iff]
+    filter_upwards with z hz d rfl
+    simp only [Function.comp_apply, Set.mem_Ici, ← (hlim d d.2).limsup_eq]
+    refine limsup_le_limsup ?_ ?_ (hlim d d.2).isBoundedUnder_le
+    · filter_upwards [hF] with i hi using hi hz.le
+    · refine (hlim ⊥ hbot).isCoboundedUnder_le.trans ?_
+      filter_upwards [hF] with i hi using hi bot_le
 
-private lemma mem_closure_dense_inter_Iio
-    {α : Type*} [LinearOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
-    {D : Set α} (hD_dense : Dense D) {t : α} (ht : (Set.Iio t).Nonempty) :
-    t ∈ closure (D ∩ Set.Iio t) := by
-  have ht_closure : t ∈ closure (Set.Iio t) := by
-    rw [closure_Iio' ht]
-    simp
-  have hsubset : Set.Iio t ⊆ closure (Set.Iio t ∩ D) :=
-    hD_dense.open_subset_closure_inter isOpen_Iio
-  have hclosure_subset : closure (Set.Iio t) ⊆ closure (closure (Set.Iio t ∩ D)) :=
-    closure_mono hsubset
-  have : t ∈ closure (Set.Iio t ∩ D) := by
-    simpa only [closure_closure] using hclosure_subset ht_closure
-  simpa [Set.inter_comm] using this
+/-- This is the dual of `limsup_le_of_eventually_monotone_of_tendsto_on_dense`. -/
+lemma le_liminf_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
+    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
+    [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
+    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Iio a) a)
+    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    f a ≤ liminf (F · a) l := by
+  by_cases! ha : a = ⊥
+  · rw [ha, (hlim ⊥ hbot).liminf_eq]
+  · have : (comap ((↑) : D → α) (𝓝[<] a)).NeBot := hD.comap_val_nhdsWithin_Iio_neBot ha.bot_lt
+    refine (isClosed_Iic (a := liminf (F · a) l)).mem_of_tendsto (Tendsto.comp hfa
+      (tendsto_comap (f := ((↑) : D → α)))) ?_
+    rw [eventually_comap, eventually_nhdsWithin_iff]
+    filter_upwards with z hz d rfl
+    simp only [Function.comp_apply, Set.mem_Iic, ← (hlim d d.2).liminf_eq]
+    refine liminf_le_liminf ?_ (hlim d d.2).isBoundedUnder_ge ?_
+    · filter_upwards [hF] with i hi using hi hz.le
+    · refine (hlim ⊤ htop).isCoboundedUnder_ge.trans ?_
+      filter_upwards [hF] with i hi using hi le_top
 
-/-- Monotone convergence on a dense set controls the pointwise `limsup` everywhere.
+/-- We combine `limsup_le_of_eventually_monotone_of_tendsto_on_dense` and
+`le_liminf_of_eventually_monotone_of_tendsto_on_dense` to prove that `F · a` converges to `f a`
+if `f` is continuous at `a`. -/
+lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
+    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
+    [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
+    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) (a : α) (hfa : ContinuousAt f a)
+    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    Tendsto (F · a) l (𝓝 (f a)) := by
+  refine tendsto_of_le_liminf_of_limsup_le ?_ ?_ ?_ ?_
+  · exact le_liminf_of_eventually_monotone_of_tendsto_on_dense hF hD htop hbot
+      hfa.continuousWithinAt hlim
+  · exact limsup_le_of_eventually_monotone_of_tendsto_on_dense hF hD htop hbot
+      hfa.continuousWithinAt hlim
+  · -- create an analogue of `Filter.IsCoboundedUnder.trans` for `IsBoundedUnder` to replace
+    -- `isBoundedUnder_le.mono_le`
+    refine (hlim ⊤ htop).isBoundedUnder_le.mono_le ?_
+    filter_upwards [hF] with i hi using hi le_top
+  · refine (hlim ⊥ hbot).isBoundedUnder_ge.mono_ge ?_
+    filter_upwards [hF] with i hi using hi bot_le
 
-This is the order-topological version of the first displayed assertion in the paper, with `[0, 1]`
-replaced by a general linearly ordered index type with endpoints and `ℝ` replaced by a
-conditionally complete linear order. -/
-lemma limsup_le_of_monotone_of_tendsto_on_dense
-    {α β : Type*} [LinearOrder α] [OrderBot α] [OrderTop α] [TopologicalSpace α]
-    [OrderTopology α] [DenselyOrdered α] [ConditionallyCompleteLinearOrder β] [TopologicalSpace β]
-    [OrderTopology β] {D : Set α} {F : ℕ → α → β} {f : α → β}
-    (hF_mono : ∀ n, Monotone (F n)) (hf_mono : Monotone f)
-    (hf_right : Function.IsRightContinuous f) (hD_dense : Dense D) (hD_bot : (⊥ : α) ∈ D)
-    (hD_top : (⊤ : α) ∈ D)
-    (hD_lim : ∀ t ∈ D, Tendsto (fun n : ℕ ↦ F n t) atTop (𝓝 (f t))) (t : α) :
-    limsup (fun n : ℕ ↦ F n t) atTop ≤ f t := by
-  have _hf_mono : Monotone f := hf_mono
-  by_cases ht_top : t = ⊤
-  · subst t
-    exact le_of_eq (hD_lim ⊤ hD_top).limsup_eq
-  have ht_lt_top : t < ⊤ := lt_top_iff_ne_top.mpr ht_top
-  have hFt_bddBelow : atTop.IsBoundedUnder (· ≥ ·) (fun n : ℕ ↦ F n t) :=
-    ((hD_lim ⊥ hD_bot).isBoundedUnder_ge).mono_ge <|
-      Eventually.of_forall fun n : ℕ ↦ hF_mono n bot_le
-  have hFt_cobdd : atTop.IsCoboundedUnder (· ≤ ·) (fun n : ℕ ↦ F n t) :=
-    hFt_bddBelow.isCoboundedUnder_le
-  haveI : NeBot (𝓝[D ∩ Set.Ioi t] t) := by
-    rw [← mem_closure_iff_nhdsWithin_neBot]
-    exact mem_closure_dense_inter_Ioi hD_dense ⟨⊤, ht_lt_top⟩
-  have hf_tendsto : Tendsto f (𝓝[D ∩ Set.Ioi t] t) (𝓝 (f t)) :=
-    (hf_right t).mono_left (nhdsWithin_mono t Set.inter_subset_right)
-  have hlimsup_le : ∀ᶠ s in 𝓝[D ∩ Set.Ioi t] t,
-      limsup (fun n : ℕ ↦ F n t) atTop ≤ f s := by
-    filter_upwards [self_mem_nhdsWithin] with s hs
-    have hle : (fun n : ℕ ↦ F n t) ≤ᶠ[atTop] fun n : ℕ ↦ F n s :=
-      Eventually.of_forall fun n : ℕ ↦ hF_mono n (le_of_lt hs.2)
-    calc
-      limsup (fun n : ℕ ↦ F n t) atTop
-          ≤ limsup (fun n : ℕ ↦ F n s) atTop :=
-            limsup_le_limsup hle hFt_cobdd (hD_lim s hs.1).isBoundedUnder_le
-      _ = f s := (hD_lim s hs.1).limsup_eq
-  exact ge_of_tendsto hf_tendsto hlimsup_le
-
-/-- At continuity points of the limiting monotone function, convergence on the dense set upgrades to
-pointwise convergence. -/
-lemma tendsto_of_monotone_of_tendsto_on_dense_of_continuousAt
-    {α β : Type*} [LinearOrder α] [OrderBot α] [OrderTop α] [TopologicalSpace α]
-    [OrderTopology α] [DenselyOrdered α] [ConditionallyCompleteLinearOrder β] [TopologicalSpace β]
-    [OrderTopology β] {D : Set α} {F : ℕ → α → β} {f : α → β}
-    (hF_mono : ∀ n, Monotone (F n)) (hf_mono : Monotone f)
-    (hf_right : Function.IsRightContinuous f) (hD_dense : Dense D) (hD_bot : (⊥ : α) ∈ D)
-    (hD_top : (⊤ : α) ∈ D)
-    (hD_lim : ∀ t ∈ D, Tendsto (fun n : ℕ ↦ F n t) atTop (𝓝 (f t))) {t : α}
-    (hf_cont : ContinuousAt f t) :
-    Tendsto (fun n : ℕ ↦ F n t) atTop (𝓝 (f t)) := by
-  by_cases ht_bot : t = ⊥
-  · subst t
-    exact hD_lim ⊥ hD_bot
-  have hbot_lt : (⊥ : α) < t := bot_lt_iff_ne_bot.mpr ht_bot
-  have hFt_bddBelow : atTop.IsBoundedUnder (· ≥ ·) (fun n : ℕ ↦ F n t) :=
-    ((hD_lim ⊥ hD_bot).isBoundedUnder_ge).mono_ge <|
-      Eventually.of_forall fun n : ℕ ↦ hF_mono n bot_le
-  have hFt_bddAbove : atTop.IsBoundedUnder (· ≤ ·) (fun n : ℕ ↦ F n t) :=
-    ((hD_lim ⊤ hD_top).isBoundedUnder_le).mono_le <|
-      Eventually.of_forall fun n : ℕ ↦ hF_mono n le_top
-  have hFt_cobdd_ge : atTop.IsCoboundedUnder (· ≥ ·) (fun n : ℕ ↦ F n t) :=
-    hFt_bddAbove.isCoboundedUnder_ge
-  haveI : NeBot (𝓝[D ∩ Set.Iio t] t) := by
-    rw [← mem_closure_iff_nhdsWithin_neBot]
-    exact mem_closure_dense_inter_Iio hD_dense ⟨⊥, hbot_lt⟩
-  have hf_tendsto : Tendsto f (𝓝[D ∩ Set.Iio t] t) (𝓝 (f t)) :=
-    hf_cont.tendsto.mono_left nhdsWithin_le_nhds
-  have hliminf_ge : f t ≤ liminf (fun n : ℕ ↦ F n t) atTop := by
-    have heventually : ∀ᶠ s in 𝓝[D ∩ Set.Iio t] t,
-        f s ≤ liminf (fun n : ℕ ↦ F n t) atTop := by
-      filter_upwards [self_mem_nhdsWithin] with s hs
-      have hle : (fun n : ℕ ↦ F n s) ≤ᶠ[atTop] fun n : ℕ ↦ F n t :=
-        Eventually.of_forall fun n : ℕ ↦ hF_mono n (le_of_lt hs.2)
-      calc
-        f s = liminf (fun n : ℕ ↦ F n s) atTop := (hD_lim s hs.1).liminf_eq.symm
-        _ ≤ liminf (fun n : ℕ ↦ F n t) atTop :=
-          liminf_le_liminf hle (hD_lim s hs.1).isBoundedUnder_ge hFt_cobdd_ge
-    exact le_of_tendsto hf_tendsto heventually
-  have hlimsup_le : limsup (fun n : ℕ ↦ F n t) atTop ≤ f t :=
-    limsup_le_of_monotone_of_tendsto_on_dense hF_mono hf_mono hf_right hD_dense hD_bot
-      hD_top hD_lim t
-  exact tendsto_of_le_liminf_of_limsup_le hliminf_ge hlimsup_le hFt_bddAbove hFt_bddBelow
-
-end Limsup
-
-end DoobMeyer
+end MonotoneLim
 
 variable {ι Ω : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
   [MeasurableSpace ι]
+
+namespace ProbabilityTheory
 
 namespace IsLocalSubmartingale
 
