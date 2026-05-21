@@ -25,7 +25,6 @@ variable [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSp
 
 variable [SecondCountableTopology E]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
     (h : IsGaussianProcess (Sum.elim X Y) P) (hX : ∀ s, Measurable (X s))
     (hY : ∀ t, Measurable (Y t)) (h' : ∀ s t, cov[X s, Y t; P] = 0) :
@@ -34,7 +33,6 @@ lemma IsGaussianProcess.indepFun'' {X : S → Ω → ℝ} {Y : T → Ω → ℝ}
     fun _ _ _ _ ↦ by
     simp [mul_comm, covariance_const_mul_left, covariance_const_mul_right, h']
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.iIndepFun'' {S : T → Type*}
     {X : (t : T) → (s : S t) → Ω → ℝ}
     (h : IsGaussianProcess (fun (p : (t : T) × S t) ω ↦ X p.1 p.2 ω) P)

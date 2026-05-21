@@ -189,10 +189,11 @@ lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [Conditional
   suffices (debut s n ω).untopA ∈ {t | n ≤ t ∧ (t, ω) ∈ s} from this.2
   exact IsClosed.mem_of_tendsto (f := u) hs hu_tendso (.of_forall hu_mem)
 
+-- TODO: change the name to reflect the `IsStronglyProgressive` new name
 /-- A set `E : Set ι × Ω` is progressively measurable with respect to a filtration `𝓕` if the
 indicator function of `E` is a progressively measurable process with respect to `𝓕`. -/
 def ProgMeasurableSet [Preorder ι] [MeasurableSpace ι] (E : Set (ι × Ω)) (𝓕 : Filtration ι mΩ) :=
-  ProgMeasurable 𝓕 (E.indicator fun _ ↦ 1).curry
+  IsStronglyProgressive 𝓕 (E.indicator fun _ ↦ 1).curry
 
 lemma ProgMeasurableSet.measurableSet_prod [Preorder ι] [MeasurableSpace ι]
     {E : Set (ι × Ω)} {𝓕 : Filtration ι mΩ} (hE : ProgMeasurableSet E 𝓕) (t : ι) :
@@ -533,7 +534,7 @@ lemma _root_.MeasurableSet.progMeasurableSet_preimage [MeasurableSpace ι] [Preo
     {β : Type*} [TopologicalSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
     [MeasurableSpace β] [BorelSpace β]
     {𝓕 : Filtration ι mΩ}
-    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) :
+    {X : ι → Ω → β} (hX : IsStronglyProgressive 𝓕 X) {s : Set β} (hs : MeasurableSet s) :
     ProgMeasurableSet (X.uncurry ⁻¹' s) 𝓕 :=
   fun t ↦ StronglyMeasurable.indicator (by fun_prop) (hs.preimage (hX t).measurable)
 
@@ -544,7 +545,7 @@ theorem isStoppingTime_hittingAfter' [MeasurableSpace ι] [ConditionallyComplete
     {β : Type*} [TopologicalSpace β] [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
     [BorelSpace β]
     (P : Measure Ω) [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
-    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) {s : Set β} (hs : MeasurableSet s) (n : ι) :
+    {X : ι → Ω → β} (hX : IsStronglyProgressive 𝓕 X) {s : Set β} (hs : MeasurableSet s) (n : ι) :
     IsStoppingTime 𝓕 (hittingAfter X s n) := by
   rw [hittingAfter_eq_debut]
   refine isStoppingTime_debut P ?_ n
@@ -555,7 +556,7 @@ lemma isStoppingTime_leastGE [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     {β : Type*} [Preorder β] [TopologicalSpace β] [ClosedIciTopology β]
     [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
     (P : Measure Ω) [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
-    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) (r : β) :
+    {X : ι → Ω → β} (hX : IsStronglyProgressive 𝓕 X) (r : β) :
     IsStoppingTime 𝓕 (leastGE X r) :=
   isStoppingTime_hittingAfter' P hX measurableSet_Ici _
 
@@ -573,7 +574,7 @@ lemma isStoppingTime_leastGT [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     {β : Type*} [LinearOrder β] [TopologicalSpace β] [ClosedIicTopology β]
     [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
     (P : Measure Ω) [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
-    {X : ι → Ω → β} (hX : ProgMeasurable 𝓕 X) (r : β) :
+    {X : ι → Ω → β} (hX : IsStronglyProgressive 𝓕 X) (r : β) :
     IsStoppingTime 𝓕 (leastGT X r) :=
   isStoppingTime_hittingAfter' P hX measurableSet_Ioi _
 

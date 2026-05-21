@@ -20,7 +20,7 @@ public import BrownianMotion.StochasticIntegral.ConvexWeights
 
 variable {E Ω : Type*} {mΩ : MeasurableSpace Ω}
 
-open Filter MeasureTheory
+open Filter MeasureTheory Convexity
 open scoped Topology NNReal ENNReal
 
 lemma komlos_convex (R : Type*) [Semifield R] [LinearOrder R] [IsStrictOrderedRing R]
@@ -127,10 +127,10 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
 lemma exists_stdSimplex_of_mem_convexHull {M ι : Type*} [AddCommGroup E] [Field M] [LinearOrder M]
     [IsStrictOrderedRing M] [Module M E] {s : ι → E} {x : E}
     (hx : x ∈ convexHull M (Set.range s)) :
-    ∃ (w : StdSimplex M ι), x = w.sum (fun i wi ↦ wi • s i) := by
+    ∃ (w : StdSimplex M ι), x = w.weights.sum (fun i wi ↦ wi • s i) := by
   classical
   rw [mem_convexHull_iff] at hx
-  specialize hx {y | ∃ w : StdSimplex M ι, y = w.sum (fun i wi => wi • s i)} ?_ ?_
+  specialize hx {y | ∃ w : StdSimplex M ι, y = w.weights.sum (fun i wi => wi • s i)} ?_ ?_
   · rintro _ ⟨i, rfl⟩
     use StdSimplex.single i
     simp
@@ -138,7 +138,7 @@ lemma exists_stdSimplex_of_mem_convexHull {M ι : Type*} [AddCommGroup E] [Field
     use (StdSimplex.duple w₁ w₂ ha hb hab).join
     simp only [StdSimplex.join, StdSimplex.duple]
     repeat rw [Finsupp.sum_add_index (by simp) (fun _ _ _ _ ↦ Module.add_smul _ _ _)]
-    have aux (c : M) (w : StdSimplex M ι) : c • (w.sum fun i wi ↦ wi • s i)
+    have aux (c : M) (w : StdSimplex M ι) : c • (w.weights.sum fun i wi ↦ wi • s i)
       = ((Finsupp.single w c).sum fun d r ↦ r • d.weights).sum fun i wi ↦ wi • s i := by
       simp only [zero_smul, Finsupp.sum_single_index]
       rw [Finsupp.sum_smul_index (by simp only [zero_smul, implies_true])]
@@ -151,15 +151,15 @@ variable [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 lemma convex_combination_bounded {x : ℕ → E}
     {w : ℕ → StdSimplex ℝ ℕ} {M : ℝ} (hx : ∀ n, ‖x n‖ ≤ M) (n : ℕ) :
-    ‖(w n).sum (fun i wi ↦ wi • x i)‖ ≤ M := by
-  have h_sum : ‖(w n).sum (fun i wi => wi • x i)‖ ≤ ∑ i ∈ (w n).support, ((w n).weights i) * ‖x i‖
-    := by
+    ‖(w n).weights.sum (fun i wi ↦ wi • x i)‖ ≤ M := by
+  have h_sum : ‖(w n).weights.sum (fun i wi => wi • x i)‖ ≤
+    ∑ i ∈ (w n).weights.support, ((w n).weights i) * ‖x i‖ := by
     convert norm_sum_le _ _
     simp [norm_smul, abs_of_nonneg ((w _).nonneg _)]
   refine le_trans h_sum (le_trans (Finset.sum_le_sum fun i hi =>
     mul_le_mul_of_nonneg_left (hx i) ((w n).nonneg i)) ?_)
   rw [← Finset.sum_mul _ _ _]
-  have bound : (∑ i ∈ (w n).support, (w n).weights i) ≤ 1 := by
+  have bound : (∑ i ∈ (w n).weights.support, (w n).weights i) ≤ 1 := by
     rw [← (w n).total, Finsupp.sum]
   refine mul_le_of_le_one_left ?_ bound
   exact le_trans (norm_nonneg (x 0)) (hx 0)
@@ -168,7 +168,7 @@ lemma convex_combination_bounded {x : ℕ → E}
 weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
 established at each stage of the Komlós construction. -/
 noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) : E :=
-  (StdSimplex.iteratedBind cw k n).sum (fun m cwm ↦ cwm • x i m)
+  (StdSimplex.iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
 
 lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
   {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
@@ -184,7 +184,7 @@ def convexTail (x : ℕ → E) : Set (ℕ → E) :=
   { y | ∀ n, y n ∈ convexHull ℝ (Set.range (fun m ↦ x (n + m))) }
 
 lemma exists_stdSimplex_of_mem_convexTail_reindexed {x g : ℕ → E} (hg : g ∈ convexTail x) (n : ℕ) :
-  ∃ w : StdSimplex ℝ ℕ, g n = w.sum (fun i wi ↦ wi • x i) ∧ ∀ m < n, w.weights m = 0 := by
+  ∃ w : StdSimplex ℝ ℕ, g n = w.weights.sum (fun i wi ↦ wi • x i) ∧ ∀ m < n, w.weights m = 0 := by
   obtain ⟨w₀, hw₀⟩ := exists_stdSimplex_of_mem_convexHull (hg n)
   let weights := Finsupp.embDomain ⟨fun i ↦ n + i, add_right_injective n⟩ w₀.weights
   have nonneg (i : ℕ) : 0 ≤ weights i := by
@@ -233,19 +233,20 @@ lemma komlos_step {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n,
   ∃ (cw_new : ℕ → ℕ → StdSimplex ℝ ℕ),
     (∃ glim : E, Tendsto (komlosFormula x cw_new (k+1) (k+1)) atTop (𝓝 glim))
     ∧ (∀ i ≤ k, cw_new i = cw i) ∧ (∀ n, ∀ m < n, (cw_new (k+1) n).weights m = 0) := by
-  let gtilde := fun n ↦ (iteratedBind cw k n).sum (fun m cwm ↦ cwm • (x (k+1) m))
+  let gtilde := fun n ↦ (iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • (x (k+1) m))
   obtain ⟨M, hM⟩ := hx (k+1)
   have gtilde_bound : ∃ M, ∀ n, ‖gtilde n‖ ≤ M := ⟨M, convex_combination_bounded hM⟩
   obtain ⟨g_step, gstep_conv, glim, hglim⟩ := komlos_norm (gtilde_bound)
   obtain ⟨cw_step, ⟨hzero, g_step_eq_gtilde⟩⟩ : ∃ w : ℕ → StdSimplex ℝ ℕ,
-    (∀ n, ∀ m < n, (w n).weights m = 0) ∧ ∀ n, g_step n = (w n).sum (fun i wi ↦ wi • gtilde i) := by
+    (∀ n, ∀ m < n, (w n).weights m = 0) ∧
+      ∀ n, g_step n = (w n).weights.sum (fun i wi ↦ wi • gtilde i) := by
     let existence (n : ℕ) := exists_stdSimplex_of_mem_convexTail_reindexed gstep_conv n
     exact ⟨fun n ↦ Classical.choose (existence n), And.intro
       (fun n ↦ (Classical.choose_spec (existence n)).2)
       (fun n ↦ (Classical.choose_spec (existence n)).1)⟩
   let cw_new := Function.update cw (k+1) cw_step
   have g_step_eq (n : ℕ) : g_step n =
-    (iteratedBind cw_new (k + 1) n).sum (fun m cwm ↦ cwm • x (k+1) m) := by
+    (iteratedBind cw_new (k + 1) n).weights.sum (fun m cwm ↦ cwm • x (k+1) m) := by
     have aux : (iteratedBind cw_new (k + 1) n)
       = (bind (cw_step n) (iteratedBind cw k)) := by
       unfold cw_new
@@ -354,13 +355,14 @@ lemma komlos_uniform_convergence
 lemma komlos_convex_weights_diagonal
     {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
     ∃ (η : ℕ → StdSimplex ℝ ℕ), (∀ n, ∀ m < n, (η n).weights m = 0) ∧ ∀ i : ℕ,
-    ∃ glim : E, Tendsto (fun n ↦ (η n).sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by sorry
+    ∃ glim : E, Tendsto (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by
+  sorry
 
 lemma komlos_convergence_L2
     (f : ℕ → Ω → E) {P : Measure Ω} :
     let f' : ℕ → ℕ → Ω → E := fun i n ↦ Set.indicator {ω : Ω | ‖f n ω‖ ≤ i} (f n);
     ∃ cw : ℕ → StdSimplex ℝ ℕ, ∀ i : ℕ, ∃ lim : Ω → E,
-    Tendsto (fun n ↦ eLpNorm (fun ω ↦ ((cw n).sum (fun i wi ↦ wi • f' i n)) ω - lim ω) 2 P)
+    Tendsto (fun n ↦ eLpNorm (fun ω ↦ ((cw n).weights.sum (fun i wi ↦ wi • f' i n)) ω - lim ω) 2 P)
       atTop (𝓝 0) := by sorry
 
 theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P : Measure Ω}
