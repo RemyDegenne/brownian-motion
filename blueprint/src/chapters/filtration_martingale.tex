@@ -21,10 +21,10 @@ A process $X : T \to \Omega \to E$ is said to be adapted with respect to a filtr
 \end{definition}
 
 
-\begin{definition}[Progressively measurable]\label{def:ProgMeasurable}
+\begin{definition}[Progressively measurable]\label{def:IsStronglyProgressive}
   \uses{def:filtration}
   \mathlibok
-  \lean{MeasureTheory.ProgMeasurable}
+  \lean{MeasureTheory.IsStronglyProgressive}
 A stochastic process $X$ is said to be progressively measurable with respect to a filtration $\mathcal{F}$ if at each point in time $i$, $X$ restricted to $(-\infty, i] \times \Omega$ is measurable with respect to the product $\sigma$-algebra where the $\sigma$-algebra used for $\Omega$ is $\mathcal{F}_i$.
 \end{definition}
 
@@ -43,10 +43,10 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 \end{definition}
 
 
-\begin{lemma}\label{lem:Adapted.progMeasurable_of_rightContinuous}
-  \uses{def:adapted, def:ProgMeasurable, def:RightContinuous}
+\begin{lemma}\label{lem:Adapted.isStronglyProgressive_of_rightContinuous}
+  \uses{def:adapted, def:IsStronglyProgressive, def:RightContinuous}
   \leanok
-  \lean{MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous}
+  \lean{MeasureTheory.StronglyAdapted.isStronglyProgressive_of_rightContinuous}
 Suppose $T$ is a linearly ordered set equipped with the order topology. If $T$ is second countable and a stochastic process $(X_t)_{t \in T}$ is right continuous and adapted, then it is progressively measurable.
 \end{lemma}
 
@@ -620,15 +620,15 @@ The predictable sigma-algebra on $T \times \Omega$ is the sigma-algebra generate
 \begin{definition}[Predictable process]\label{def:predictable}
   \uses{def:predictableMeasurableSpace}
   \mathlibok
-  \lean{MeasureTheory.IsPredictable}
+  \lean{MeasureTheory.IsStronglyPredictable}
 A process $X : T \to \Omega \to E$ is said to be predictable with respect to a filtration $\mathcal{F}$ if it is measurable with respect to the predictable sigma-algebra on $T \times \Omega$.
 \end{definition}
 
 
 \begin{lemma}\label{lem:Predictable.progressive}
-  \uses{def:predictable, def:ProgMeasurable}
+  \uses{def:predictable, def:IsStronglyProgressive}
   \mathlibok
-  \lean{MeasureTheory.IsPredictable.progMeasurable}
+  \lean{MeasureTheory.IsStronglyPredictable.isStronglyProgressive}
 A predictable process is progressively measurable.
 \end{lemma}
 
@@ -668,7 +668,7 @@ $(s, t] \times A = (s, \infty) \times A \setminus (t, \infty) \times A$.
 \begin{lemma}\label{lem:predictable_nat_iff}
   \uses{def:predictable}
   \mathlibok
-  \lean{MeasureTheory.isPredictable_iff_measurable_add_one}
+  \lean{MeasureTheory.IsStronglyPredictable.iff_measurable_add_one}
 Let $X : \mathbb{N} \to \Omega \to E$ be a stochastic process and let $\mathcal{F}$ be a filtration indexed by $\mathbb{N}$.
 Then $X$ is predictable if and only if $X_0$ is $\mathcal{F}_0$-measurable and for all $n \in \mathbb{N}$, $X_{n+1}$ is $\mathcal{F}_n$-measurable.
 \end{lemma}
