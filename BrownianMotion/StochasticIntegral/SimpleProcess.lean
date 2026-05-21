@@ -453,8 +453,7 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
   bounded_value := by
     refine ⟨#V.value.support • #W.value.support • (‖B‖ * V.valueBound * W.valueBound),
       fun p _ ω ↦ ?_⟩
-    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finsetSum, Finset.sum_apply,
-      Finsupp.indicator_apply, mem_singleton, dite_eq_ite]
+    simp only [Finsupp.sum, Finsupp.coe_finsetSum, Finset.sum_apply, Finsupp.single_apply]
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
     intro p hp
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
