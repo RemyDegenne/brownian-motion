@@ -44,11 +44,20 @@ structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop wher
 section Jump
 
 /-- The set of left jump times of a function. -/
-noncomputable def leftJumpSet [TopologicalSpace E] [LinearOrder ι] (f : ι → E) : Set ι :=
+def leftJumpSet [TopologicalSpace E] [LinearOrder ι] (f : ι → E) : Set ι :=
   {t | f.leftLim t ≠ f t}
 
+/-- For a càdlàg function, the left jump times are exactly its discontinuity points. -/
+theorem IsCadlag.leftJumpSet_eq_discontinuitySet [LinearOrder ι] [OrderTopology ι]
+    [TopologicalSpace E] [T2Space E] {f : ι → E} (hf : IsCadlag f) :
+    leftJumpSet f = {t | ¬ ContinuousAt f t} := by
+  ext t
+  refine ⟨fun h hc => h (hc.continuousWithinAt.leftLim_eq), fun hc h => hc ?_⟩
+  refine continuousAt_iff_continuous_left'_right'.2 ⟨?_, hf.right_continuous t⟩
+  simpa [ContinuousWithinAt, h] using tendsto_leftLim_of_tendsto (hf.left_limit t)
+
 /-- The set of large left jump times. -/
-noncomputable def largeLeftJumpSet [TopologicalSpace E] [LinearOrder ι] (f : ι → E)
+def largeLeftJumpSet [TopologicalSpace E] [LinearOrder ι] (f : ι → E)
     (v : Set (E × E)) : Set ι :=
   {t | ⟨f t, f.leftLim t⟩ ∉ v}
 
@@ -96,7 +105,7 @@ lemma IsCadlag.not_accPt_largeLeftJumpSet [LinearOrder ι] [OrderTopology ι] [U
       by_contra
       exact (not_neBot.2 <| nhdsGT_eq_bot_iff.2 (Or.inl this)) hnb
     obtain ⟨a, ha⟩ : ∃ a, t < a := by simpa [IsTop] using htt
-    -- Here one can also use the existence of right limit instead of right continuity, so this
+    -- Here one can also use the existence of a right limit instead of right continuity, so this
     -- theorem should also be true for functions with both left and right limits at each point.
     obtain ⟨b, hb⟩ := (mem_nhdsGT_iff_exists_Ioo_subset' ha).1 <|
       (Uniform.continuousWithinAt_iff'_left.1 <| hf.right_continuous t).eventually_mem hu
