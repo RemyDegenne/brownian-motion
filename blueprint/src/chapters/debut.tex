@@ -142,10 +142,12 @@ The product of a countable family of compact systems is a compact system.
 
 \begin{lemma}\label{lem:IsCompactSystem.sigma}
   \uses{def:IsCompactSystem}
+  \leanok
+  \lean{IsCompactSystem.sigma}
 The sum of a countable family of compact systems is a compact system.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
 
 \end{proof}
 
@@ -546,7 +548,7 @@ Suppose that $F$ contains the empty set and is closed under pairwise intersectio
 Then every set of $F_{\sigma \delta}$ is $I$-capacitable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:SupClosed.mem_countableSupClosure_iff}
 
 \end{proof}
@@ -701,7 +703,7 @@ Let \(G\) be an algebra of subsets of a set \(X\). Then the monotone class gener
 
 \begin{definition}[Progressively measurable set]\label{def:progr_meas_set}
   \leanok
-  \uses{def:ProgMeasurable}
+  \uses{def:IsStronglyProgressive}
   \lean{MeasureTheory.ProgMeasurableSet}
 A subset of $[0, \infty) \times \Omega$ is progressively measurable if its indicator is a progressively measurable process.
 \end{definition}
@@ -732,7 +734,7 @@ If $E$ is a progressively measurable set and the filtration satisfies the usual 
 \section{Hitting times}
 
 \begin{theorem}\label{thm:hitting_is_stopping_time}
-  \uses{def:IsStoppingTime, def:hittingAfter, def:ProgMeasurable, def:hasUsualConditions}
+  \uses{def:IsStoppingTime, def:hittingAfter, def:IsStronglyProgressive, def:hasUsualConditions}
   \leanok
   \lean{MeasureTheory.isStoppingTime_hittingAfter'}
 If $X : T \to \Omega \to E$ is a progressively measurable process with respect to a filtration satisfying the usual conditions and $B$ is a Borel-measurable subset of $E$, then the hitting time of $X$ in $B$ is a stopping time.
@@ -778,8 +780,8 @@ If $X : ι \to Ω \to ℝ$ is a right-continuous and adapted process with respec
 \end{corollary}
 
 \begin{proof}
-  \uses{lem:isStoppingTime_leastGE, lem:Adapted.progMeasurable_of_rightContinuous}
-This follows from Lemma~\ref{lem:isStoppingTime_leastGE} since $X$ is progressively measurable by Lemma~\ref{lem:Adapted.progMeasurable_of_rightContinuous}.
+  \uses{lem:isStoppingTime_leastGE, lem:Adapted.isStronglyProgressive_of_rightContinuous}
+This follows from Lemma~\ref{lem:isStoppingTime_leastGE} since $X$ is progressively measurable by Lemma~\ref{lem:Adapted.isStronglyProgressive_of_rightContinuous}.
 \end{proof}
 
 

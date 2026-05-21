@@ -321,7 +321,6 @@ lemma IsPreBrownian.continuous_mk [h : IsPreBrownian X P] (ω : Ω) :
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
   have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
   refine fun n t ht ↦ h.isGaussianProcess.hasGaussianLaw_increments.iIndepFun_of_covariance_eq_zero
@@ -339,7 +338,6 @@ lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncreme
   any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
   exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
     (h2 : ∀ t, P[X t] = 0) (h3 : ∀ s t, s ≤ t → cov[X s, X t; P] = s) :
     IsPreBrownian X P where
@@ -395,7 +393,7 @@ lemma HasIndepIncrements.isPreBrownian_of_hasLaw
   · intro t
     rw [(law t).integral_eq, integral_id_gaussianReal]
   · intro s t hst
-    have h1 := incr.indepFun_eval_sub (zero_le s) hst (law 0).ae_eq_const_of_gaussianReal
+    have h1 := incr.indepFun_eval_sub zero_le hst (law 0).ae_eq_const_of_gaussianReal
     have := (law 0).isProbabilityMeasure_iff.2 inferInstance
     have h2 : X t = X t - X s + X s := by simp
     rw [h2, covariance_add_right, h1.covariance_eq_zero, covariance_self, (law s).variance_eq,
@@ -415,7 +413,6 @@ lemma IsPreBrownian.neg [hX : IsPreBrownian X P] : IsPreBrownian (-X) P := by
   convert (hX.hasIndepIncrements n s hs).comp (fun _ x ↦ -x) (by measurability)
   simp; linarith
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     IsPreBrownian (fun t ω ↦ (X (c * t) ω) / √c) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
@@ -429,7 +426,6 @@ lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
     · simp [field]
     · exact mul_le_mul_right hst c
 
-set_option backward.isDefEq.respectTransparency false in
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
 This is the proof that it is pre-Brownian, see `IsPreBrownian.indepFun_shift` for independence. -/
@@ -446,7 +442,6 @@ lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
     any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
     exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
 
-set_option backward.isDefEq.respectTransparency false in
 /-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
 `X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
 This is the proof that of independence, see `IsPreBrownian.shift` for the proof
@@ -475,7 +470,6 @@ lemma IsPreBrownian.indepFun_shift [h : IsPreBrownian X P] (hX : ∀ t, Measurab
     · simp [ht, le_add_right]
     all_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
 
-set_option backward.isDefEq.respectTransparency false in
 lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
     IsPreBrownian (fun t ω ↦ t * (X (1 / t) ω)) P := by
   refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)

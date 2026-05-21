@@ -25,7 +25,7 @@ ones), because it's sufficient for our applications, and because it's easier to 
 
 open scoped ENNReal NNReal
 
-variable {𝓧 𝓨 𝓚 : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
+variable {𝓧 𝓨 𝓚 𝓚' ι : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
 section Aux
 
@@ -89,8 +89,174 @@ lemma mem_infClosure_insert_univ_iff (s : Set α) :
 
 end Aux
 
-lemma isCompactSystem_Icc : IsCompactSystem {t | ∃ a b : ℝ, Set.Icc a b = t} :=
+lemma isCompactSystem_singleton_empty {α : Type*} : IsCompactSystem {(∅ : Set α)} :=
+  fun C hC _ ↦ ⟨0, by simpa using hC 0⟩
+
+lemma isCompactSystem_Icc (α : Type*) [TopologicalSpace α] [T2Space α] [Preorder α]
+    [CompactIccSpace α] :
+    IsCompactSystem {t | ∃ a b : α, Set.Icc a b = t} :=
   (isCompactSystem_isCompact _).mono fun _ ⟨_, _, heq⟩ ↦ heq ▸ isCompact_Icc
+
+lemma isCompactSystem_insert_empty_Icc (α : Type*) [TopologicalSpace α] [T2Space α] [Preorder α]
+    [CompactIccSpace α] :
+    IsCompactSystem (insert ∅ {t | ∃ a b : α, Set.Icc a b = t}) := by
+  refine (isCompactSystem_isCompact α).mono fun s hs ↦ ?_
+  cases hs with
+  | inl h => simp [h]
+  | inr h => obtain ⟨_, _, heq⟩ := h; exact heq ▸ isCompact_Icc
+
+/-- The set of Finset coercions forms a compact system. -/
+lemma IsCompactSystem.finsetCoe :
+    IsCompactSystem {t : Set 𝓚 | ∃ s : Finset 𝓚, (s : Set 𝓚) = t} := by
+  let : TopologicalSpace 𝓚 := ⊥
+  have : DiscreteTopology 𝓚 := ⟨rfl⟩
+  apply of_nonempty_iInter
+  intro C hC hC_nonempty
+  choose s hs using hC
+  have hsub : ∀ n, Set.dissipate C n ⊆ (s 0 : Set 𝓚) :=
+    fun n => (Set.antitone_dissipate (Nat.zero_le n)).trans
+      (Set.dissipate_subset le_rfl |>.trans (by rw [← hs 0]))
+  have h_compact : IsCompact (Set.dissipate C 0) :=
+    (s 0).finite_toSet.subset (hsub 0) |>.isCompact
+  obtain ⟨x, hx⟩ := IsCompact.nonempty_iInter_of_sequence_nonempty_isCompact_isClosed
+    (Set.dissipate C ·)
+    (fun i => Set.antitone_dissipate (Nat.le_succ i))
+    hC_nonempty h_compact
+    (fun _ => isClosed_discrete _)
+  simp only [Set.iInter_dissipate, Set.mem_iInter] at hx
+  simp only [Set.nonempty_iInter]
+  use x
+
+/-- Transport a compact system along an equivalence of types. -/
+lemma IsCompactSystem.equiv (e : 𝓚 ≃ 𝓚') {S : Set (Set 𝓚)} (hS : IsCompactSystem S) :
+    IsCompactSystem {t : Set 𝓚' | e ⁻¹' t ∈ S} := by
+  intro D hD hD_empty
+  have h (s : Set 𝓚') : s = ∅ ↔ e ⁻¹' s = ∅ := by
+    repeat rw [Set.eq_empty_iff_forall_notMem]
+    refine ⟨fun h x => h (e x), fun h x hx => h (e.invFun x) (by simp [hx])⟩
+  rw [h, Set.preimage_iInter] at hD_empty
+  obtain ⟨N, hN⟩ := hS (fun i => e ⁻¹' D i) hD hD_empty
+  rw [Set.dissipate, ← Set.preimage_iInter₂] at hN
+  refine ⟨N, by rw [Set.dissipate, h, hN]⟩
+
+theorem iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
+    (f : β → (i : ι) → Set (𝓚 i)) :
+     ⋂ b, (s b).sigma (f b) = ∅ ↔ ∀ i ∈ ⋂ b, s b, ⋂ b, f b i = ∅ := by
+  simp only [Set.eq_empty_iff_forall_notMem, Set.mem_iInter, Set.mem_sigma_iff]
+  exact ⟨fun h i hi x hx => h ⟨i, x⟩ fun b => ⟨hi b, hx b⟩,
+    fun h ⟨i, x⟩ hx => h i (fun b => (hx b).1) x (fun b => (hx b).2)⟩
+
+/-- Variant with an additional condition `p b` (e.g. `b ≤ n` for `dissipate`). -/
+theorem iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : β → Prop}
+    (s : β → Set ι) (f : β → (i : ι) → Set (𝓚 i)) :
+    ⋂ (b) (_ : p b), (s b).sigma (f b) = ∅ ↔
+      ∀ i ∈ ⋂ (b) (_ : p b), s b, ⋂ (b) (_ : p b), f b i = ∅ := by
+  simp only [Set.eq_empty_iff_forall_notMem, Set.mem_iInter, Set.mem_sigma_iff]
+  exact ⟨fun h i hi x hx => h ⟨i, x⟩ fun b hb => ⟨hi b hb, hx b hb⟩,
+    fun h ⟨i, x⟩ hx => h i (fun b hb => (hx b hb).1) x (fun b hb => (hx b hb).2)⟩
+
+lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (𝓚 i))}
+    (hq : ∀ i, IsCompactSystem (q i)) :
+    IsCompactSystem {t : Set (Σ i, 𝓚 i) |
+      ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
+  classical
+  intro C hC hC_empty
+  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
+    forall_const] at hC
+  choose s f hf hCfs using hC
+  simp_rw [Set.dissipate, ← hCfs]
+  simp_rw [← hCfs, iInter_sigma_eq_empty_iff] at hC_empty
+  by_cases h : ⋂ b, (s b : Set ι) = ∅
+  · obtain ⟨n₀, hn₀⟩ := IsCompactSystem.finsetCoe (fun b => (s b : Set ι))
+      (fun b => ⟨s b, rfl⟩) h
+    refine ⟨n₀, ?_⟩
+    rw [Set.dissipate] at hn₀
+    simp_rw [iInter₂_sigma_eq_empty_iff, hn₀]
+    simp
+  · have hs : (s 0).Nonempty := by
+      rw [← Finset.coe_nonempty, Set.nonempty_iff_ne_empty]
+      exact fun h0 => h <| Set.subset_eq_empty (Set.iInter_subset _ 0) h0
+    obtain ⟨j₀, hj₀⟩ := hs
+    classical
+    have key₀ : ∀ j ∈ ⋂ b, s b, ∃ N,
+        ⋂ (b ≤ N), f b j = ∅ := by
+      intro j hj
+      exact hq j (f · j) (fun i ↦ hf i j) (hC_empty j hj)
+    have key₁ : ∀ j ∉ ⋂ b, s b, ∃ N, j ∉ s N := by
+      intro j hj
+      simpa [Set.mem_iInter, not_forall] using hj
+    -- For each j ∈ s 0, find N(j) such that the fibre over j in the bounded sigma is empty.
+    have key : ∀ j ∈ s 0, ∃ N,
+        ∀ x, (⟨j, x⟩ : Σ k, 𝓚 k) ∉ ⋂ y, ⋂ (_ : y ≤ N), (s y : Set ι).sigma (f y) := by
+      intro j _
+      by_cases hjs : j ∈ ⋂ b, s b
+      · obtain ⟨N, hN⟩ := key₀ j hjs
+        refine ⟨N, fun x hx => ?_⟩
+        have hxslice : x ∈ ⋂ b, ⋂ _ : b ≤ N, f b j := by
+          simp only [Set.mem_iInter, Set.mem_sigma_iff] at hx ⊢
+          exact fun b hb => (hx b hb).2
+        rw [hN] at hxslice; exact hxslice
+      · obtain ⟨b, hb⟩ := key₁ j hjs
+        refine ⟨b, fun x hx => ?_⟩
+        have : (⟨j, x⟩ : Σ k, 𝓚 k) ∈ (s b : Set ι).sigma (f b) :=
+          (Set.mem_iInter.mp (Set.mem_iInter.mp hx b) le_rfl)
+        exact hb (Finset.mem_coe.mp (Set.mem_sigma_iff.mp this).1)
+    choose N hN using key
+    use (s 0).attach.sup fun jh => N jh.val jh.prop
+    rw [Set.eq_empty_iff_forall_notMem]
+    rintro ⟨j, x⟩ hjx
+    have hj0 : j ∈ s 0 := by
+      have : (⟨j, x⟩ : Σ k, 𝓚 k) ∈ (s 0 : Set ι).sigma (f 0) :=
+        Set.mem_iInter.mp (Set.mem_iInter.mp hjx 0) (Nat.zero_le _)
+      exact Finset.mem_coe.mp (Set.mem_sigma_iff.mp this).1
+    have hle : N j hj0 ≤ ((s 0).attach.sup fun jh => N jh.val jh.prop) :=
+      Finset.le_sup (f := fun jh : { x // x ∈ s 0 } => N jh.val jh.prop)
+        (Finset.mem_attach _ ⟨j, hj0⟩)
+    exact hN j hj0 x
+      (Set.iInter₂_mono' (fun b' j' => ⟨b', j'.trans hle, Set.Subset.rfl⟩) hjx)
+
+/-- Sigma variant with fixed `s = Finset.univ`: subsystem of `IsCompactSystem.sigma`. -/
+lemma IsCompactSystem.sigma_ofFintype [Finite ι] {𝓚 : ι → Type*}
+    {q : (i : ι) → Set (Set (𝓚 i))} (hq : ∀ i, IsCompactSystem (q i)) :
+    IsCompactSystem (Set.univ.sigma '' (Set.univ.pi q)) := by
+  have : Fintype ι := Fintype.ofFinite ι
+  intro C hC hC_empty
+  refine IsCompactSystem.sigma hq C (fun i => ?_) hC_empty
+  obtain ⟨f, hf, hfC⟩ := hC i
+  refine ⟨(Finset.univ : Finset ι), f, fun j _ => hf j (Set.mem_univ _), ?_⟩
+  rw [Finset.coe_univ]; exact hfC
+
+lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : Set (Set 𝓚')}
+    (hq : IsCompactSystem q) (hq' : IsCompactSystem q') :
+    IsCompactSystem {t | Sum.inl ⁻¹' t ∈ q ∧ Sum.inr ⁻¹' t ∈ q'} := by
+  let Q : ∀ b : Bool, Set (Set (bif b then 𝓚' else 𝓚)) :=
+    fun b => match b with | true => q' | false => q
+  have hQ : ∀ b, IsCompactSystem (Q b) := fun b => by cases b <;> assumption
+  have h_equiv := IsCompactSystem.equiv (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm
+    (IsCompactSystem.sigma_ofFintype hQ)
+  convert h_equiv using 1
+  ext t
+  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
+  constructor
+  · rintro ⟨hl, hr⟩
+    exact ⟨fun | true => Sum.inr ⁻¹' t | false => Sum.inl ⁻¹' t,
+      fun | true => hr | false => hl,
+      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]; rfl⟩
+  · rintro ⟨f, hf, hfC⟩
+    have slice : ∀ b x, x ∈ f b ↔ (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm ⟨b, x⟩ ∈ t :=
+      fun b x => by simpa using Set.ext_iff.mp hfC ⟨b, x⟩
+    exact ⟨by convert hf false using 1; ext x; exact (slice false x).symm,
+            by convert hf true using 1; ext x; exact (slice true x).symm⟩
+
+-- check if we need to insert univ or not
+-- PP: we don't need to insert univ in order for the lemma to be true. We proved that we can insert
+-- univ in any compact system, and it stays a compact system.
+-- this is proved in xxx
+-- proved in some mathlib PR
+lemma IsCompactSystem.pi {𝓚 : ℕ → Type*} {q : (n : ℕ) → Set (Set (𝓚 n))}
+    (hq : ∀ n, IsCompactSystem (q n)) :
+    IsCompactSystem (Set.univ.pi '' (Set.univ.pi (fun n ↦ insert Set.univ (q n)))) := by
+  sorry
 
 namespace MeasureTheory
 

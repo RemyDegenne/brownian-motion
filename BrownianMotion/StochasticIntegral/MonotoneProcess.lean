@@ -181,7 +181,7 @@ theorem StieltjesFunction.measurable_measure' {f : Ω → StieltjesFunction ι}
 
 /-- If `X : ι → Ω → ℝ` is a right continuous and monotone process, then for each `ω : Ω`, `X · ω` is
 a `StieltjesFunction` defined on `ι`. -/
-def StieltjesFunction.rightContMono (hcont : ∀ ω, RightContinuous (X · ω))
+def StieltjesFunction.rightContMono (hcont : ∀ ω, IsRightContinuous (X · ω))
     (hmono : ∀ ω, Monotone (X · ω)) : Ω → StieltjesFunction ι :=
   fun ω => StieltjesFunction.mk (X · ω) (hmono ω)
     (fun i => continuousWithinAt_Ioi_iff_Ici.1 (hcont ω i))
@@ -196,7 +196,7 @@ noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
 /-- If `X : ι → Ω → ℝ` is a right continuous, adapted, and monotone process, then `X` defines a
 kernel that maps each `ω` to `(X · ω).measure`. -/
 noncomputable def StieltjesFunction.kernelOfRightContAdaptedMono
-    (ha : Adapted ℱ X) (hcont : ∀ ω, RightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
+    (ha : Adapted ℱ X) (hcont : ∀ ω, IsRightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
     Kernel Ω ι where
   toFun ω := (rightContMono hcont hmono ω).measure
   measurable' := by

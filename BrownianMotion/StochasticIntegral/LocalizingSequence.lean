@@ -5,7 +5,6 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 module
 
-public import BrownianMotion.Auxiliary.WithTop
 public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Probability.Process.Stopping
 public import Mathlib.Probability.Process.LocalProperty

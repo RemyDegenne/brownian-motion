@@ -97,9 +97,9 @@ variable {β : Type*} {mβ : MeasurableSpace β} [TopologicalSpace β] [PseudoMe
 variable {X : ι → Ω → β}
 
 /- a 'rounded down' function is predictable -/
-private lemma StronglyAdapted.isPredictable_roundDown {times : Finset ι}
+private lemma StronglyAdapted.isStronglyPredictable_roundDown {times : Finset ι}
     (h_adap : StronglyAdapted 𝓕 X) :
-    IsPredictable 𝓕 (fun i ω ↦ X (roundDown times i) ω) := by
+    IsStronglyPredictable 𝓕 (fun i ω ↦ X (roundDown times i) ω) := by
   letI : MeasurableSpace (ι × Ω) := 𝓕.predictable
   -- `X_ap i` approximates X at times `i`
   let X_ap n i := (h_adap i).approx n
@@ -145,14 +145,14 @@ private lemma StronglyAdapted.isPredictable_roundDown {times : Finset ι}
 
 variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [DenselyOrdered ι]
 
-lemma StronglyAdapted.isPredictable_of_leftContinuous (h_adap : StronglyAdapted 𝓕 X)
+lemma StronglyAdapted.isStronglyPredictable_of_leftContinuous (h_adap : StronglyAdapted 𝓕 X)
     (h_cont : ∀ ω a, ContinuousWithinAt (X · ω) (Iio a) a) :
-    IsPredictable 𝓕 X := by
+    IsStronglyPredictable 𝓕 X := by
   obtain ⟨d, hd_count, hd_dense⟩ := exists_countable_dense ι
   let times n := Finset.image (enumerateCountable hd_count ⊥) (Finset.range n)
-  rw [IsPredictable]
+  rw [IsStronglyPredictable]
   apply stronglyMeasurable_of_tendsto atTop (f := fun n x ↦ X (roundDown (times n) x.1) x.2)
-  · exact fun _ ↦ isPredictable_roundDown (by aesop)
+  · exact fun _ ↦ isStronglyPredictable_roundDown (by aesop)
   rw [tendsto_pi_nhds]
   intro ⟨i, ω⟩
   apply (h_cont ω i).insert.tendsto.comp

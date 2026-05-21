@@ -93,7 +93,8 @@ By triangular inequality it follows that for $n \ge \bar{n}$,
 By convex weights on $\mathbb{N}$, we mean a sequence of non-negative real numbers $(a_n)_{n \in \mathbb{N}}$ with finitely many nonzero entries such that $\sum_{n \in \mathbb{N}} a_n = 1$.
 
 \begin{definition}\label{def:convex_weights_product}
-  \lean{StdSimplex.bind} \leanok
+  \leanok
+  \lean{Convexity.StdSimplex.bind}
 If $(a_m)_{m \in \mathbb{N}}$ are convex weights and $(b^n_m)_{n,m \in \mathbb{N}}$ is such that for all $n$, the $(b^n_m)$ are convex weights, then we denote by $(a_\cdot) * (b^\cdot_\cdot)$ the convex weights defined by $((a_\cdot) * (b^\cdot_\cdot))_m = \sum_{k} a_k b^k_m$.
 \end{definition}
 
@@ -307,7 +308,7 @@ By definition.
 
 \begin{lemma}\label{lem:martingalePart_zero}
   \uses{def:martingalePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.martingalePart_zero}
 $M_0 = X_0$.
 \end{lemma}
@@ -320,7 +321,7 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictable
 
 \begin{lemma}\label{lem:predictablePart_add_one}
   \uses{def:predictablePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.predictablePart_add_one}
 For any integer $n \ge 0$, $A_{n+1} = A_n + \mathbb{E}[X_{n+1} - X_n \mid \mathcal{F}_n]$.
 \end{lemma}
@@ -358,7 +359,7 @@ Using Lemma~\ref{lem:predictablePart_add_one}, we have for $n \in \mathbb{N}$,
 
 \begin{lemma}\label{lem:Martingale.predictablePart_eq_zero}
   \uses{def:predictablePart, def:Martingale}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Martingale.predictablePart_eq_zero}
 If $X$ is a martingale, then $A = 0$ almost surely.
 \end{lemma}
@@ -369,10 +370,10 @@ By the martingale property, each conditional expectation in the definition of $A
 \end{proof}
 
 
-\begin{lemma}\label{lem:isPredictable.predictablePart_eq}
+\begin{lemma}\label{lem:isStronglyPredictable.predictablePart_eq}
   \uses{def:predictablePart, def:predictable}
-  \leanok
-  \lean{MeasureTheory.IsPredictable.predictablePart_eq}
+  \mathlibok
+  \lean{MeasureTheory.IsStronglyPredictable.predictablePart_eq}
 If $X$ is predictable, then $A = X - X_0$ almost surely.
 \end{lemma}
 
@@ -385,20 +386,20 @@ We get a telescoping sum in the definition of $A$ and thus $A_n = X_n - X_0$ a.s
 
 \begin{lemma}\label{lem:martingalePart_eq_zero}
   \uses{def:martingalePart, def:predictable}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.IsPredictable.martingalePart_eq}
 If $X$ is predictable, then $M = X_0$ almost surely.
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:isPredictable.predictablePart_eq}
-By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:isPredictable.predictablePart_eq}, $A = X - X_0$ almost surely, thus $M = X_0$ almost surely.
+  \uses{lem:isStronglyPredictable.predictablePart_eq}
+By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:isStronglyPredictable.predictablePart_eq}, $A = X - X_0$ almost surely, thus $M = X_0$ almost surely.
 \end{proof}
 
 
 \begin{lemma}\label{lem:Martingale.martingalePart_eq}
   \uses{def:martingalePart, def:Martingale}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Martingale.martingalePart_eq}
 If $X$ is a martingale, then $M = X$ almost surely.
 \end{lemma}
@@ -411,7 +412,7 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:Martingale.
 
 \begin{lemma}\label{lem:predictablePart_smul}
   \uses{def:predictablePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.predictablePart_smul}
 For any scalar $c$, the predictable part of $c X$ is $c A$.
 \end{lemma}
@@ -424,7 +425,7 @@ Linearity of the conditional expectation.
 
 \begin{lemma}\label{lem:martingalePart_smul}
   \uses{def:martingalePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.martingalePart_smul}
 For any scalar $c$, the martingale part of $c X$ is $c M$.
 \end{lemma}
@@ -437,7 +438,7 @@ By definition of the martingale part, $M = X - A$. By Lemma~\ref{lem:predictable
 
 \begin{lemma}\label{lem:predictablePart_add}
   \uses{def:predictablePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.predictablePart_add}
 The predictable part of $X + Y$ is the sum of the predictable part of $X$ and the predictable part of $Y$.
 \end{lemma}
@@ -450,7 +451,7 @@ Linearity of the conditional expectation.
 
 \begin{lemma}\label{lem:martingalePart_add}
   \uses{def:martingalePart}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.martingalePart_add}
 The martingale part of $X + Y$ is the sum of the martingale part of $X$ and the martingale part of $Y$.
 \end{lemma}
@@ -475,7 +476,7 @@ The predictable part $A$ is adapted to the filtration $(\mathcal{F}_{n+1})_{n \i
 
 \begin{lemma}\label{lem:predictable_predictablePart}
   \uses{def:predictablePart, def:predictable}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.isPredictable_predictablePart}
 The predictable part of a process is predictable.
 \end{lemma}
@@ -501,7 +502,7 @@ Then the martingale part of $X$ is a martingale.
 
 \begin{lemma}\label{lem:Submartingale.monotone_predictablePart}
   \uses{def:predictablePart, def:Submartingale}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Submartingale.monotone_predictablePart}
 The predictable part of a real-valued submartingale is an almost surely nondecreasing process.
 \end{lemma}
@@ -521,8 +522,8 @@ Thus, $(A_n)_{n \in \mathbb{N}}$ is almost surely nondecreasing.
 
 \begin{lemma}\label{lem:Submartingale.predictablePart_nonneg}
   \uses{def:predictablePart, def:Submartingale}
-  \leanok
-  \lean{MeasureTheory.Submartingale.nonneg_predictablePart}
+  \mathlibok
+  \lean{MeasureTheory.Submartingale.predictablePart_nonneg}
 The predictable part of a real-valued submartingale is almost surely nonnegative.
 \end{lemma}
 
@@ -534,7 +535,7 @@ By Lemma~\ref{lem:Submartingale.monotone_predictablePart}, the predictable part 
 
 \begin{lemma}\label{lem:centering_basic}
   \uses{def:predictablePart, def:martingalePart}
-  \leanok
+  \mathlibok
 Fake lemma: import this lemma when using the basic properties of the Doob decomposition.
 \end{lemma}
 

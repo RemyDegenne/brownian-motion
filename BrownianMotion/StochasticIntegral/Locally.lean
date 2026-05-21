@@ -72,8 +72,8 @@ section TopologicalSpace
 variable [TopologicalSpace E]
 
 lemma Locally.rightContinuous
-    (hX : Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P) :
-    ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) := by
+    (hX : Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) := by
   obtain ⟨τ, hτ⟩ := hX
   filter_upwards [hτ.1.tendsto_top] with ω hω i
   simp only [tendsto_atTop_nhds] at hω
@@ -117,7 +117,7 @@ lemma Locally.isCadlag
 
 /-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
-    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.RightContinuous (X · ω)) := by
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.IsRightContinuous (X · ω)) := by
   intro X hX τ hτ ω a
   dsimp [stoppedProcess]
   by_cases h_stop : (a : WithTop ι) < τ ω
@@ -216,8 +216,8 @@ lemma isStable_isCadlag :
 variable [𝓕.IsComplete P]
 
 lemma locally_rightContinuous_iff :
-    Locally (fun X ↦ ∀ ω, Function.RightContinuous (X · ω)) 𝓕 X P
-    ↔ ∀ᵐ ω ∂P, Function.RightContinuous (X · ω) :=
+    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P
+    ↔ ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
   ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
 
 lemma locally_left_limit_iff :
@@ -259,20 +259,20 @@ open Function
 variable [LinearOrder ι] [NormedAddCommGroup E] {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 lemma rightContinuous_indicator [TopologicalSpace ι]
-    (hC : ∀ ω, RightContinuous (X · ω)) (s : Set Ω) (ω : Ω) :
-    RightContinuous fun t ↦ s.indicator (X t) ω := by
+    (hC : ∀ ω, IsRightContinuous (X · ω)) (s : Set Ω) (ω : Ω) :
+    IsRightContinuous fun t ↦ s.indicator (X t) ω := by
   by_cases hω : ω ∈ s
   · simpa [Set.indicator_of_mem hω] using hC ω
-  · simp [Set.indicator_of_notMem hω, RightContinuous, continuousWithinAt_const]
+  · simp [Set.indicator_of_notMem hω, Function.IsRightContinuous, isRightContinuous_const]
 
 lemma stronglyAdapted_indicator [OrderBot ι]
     (hX : StronglyAdapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     StronglyAdapted 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) :=
   fun i ↦ (hX i).indicator <| 𝓕.mono bot_le _ <| hτ.measurableSet_gt _
 
-lemma progMeasurable_indicator [OrderBot ι] [MeasurableSpace ι]
-    (hX : ProgMeasurable 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
-    ProgMeasurable 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) := by
+lemma isStronglyProgressive_indicator [OrderBot ι] [MeasurableSpace ι]
+    (hX : IsStronglyProgressive 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    IsStronglyProgressive 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) := by
   refine fun i ↦ StronglyMeasurable.indicator (hX i) ?_
   exact MeasurableSet.preimage (𝓕.mono bot_le _ <| hτ.measurableSet_gt _) measurable_snd
 
@@ -280,9 +280,9 @@ variable [TopologicalSpace ι] [SecondCountableTopology ι] [TopologicalSpace.Ps
   [OrderBot ι] [OrderTopology ι]
   [MeasurableSpace ι] [BorelSpace ι]
 
-/-- The class of progressively measurable processes is stable. -/
-lemma isStable_progMeasurable : IsStable 𝓕 (ProgMeasurable 𝓕 (β := E) ·) :=
-  fun _ hX _ hτ ↦ (progMeasurable_indicator hX hτ).stoppedProcess hτ
+/-- The class of strongly progressive processes is stable. -/
+lemma isStable_isStronglyProgressive : IsStable 𝓕 (IsStronglyProgressive 𝓕 (β := E) ·) :=
+  fun _ hX _ hτ ↦ (isStronglyProgressive_indicator hX hτ).stoppedProcess hτ
 
 end ProgMeasurable
 

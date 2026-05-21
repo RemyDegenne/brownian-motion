@@ -289,7 +289,7 @@ instance instModule : Module ℝ (SimpleProcess E 𝓕) where
 
 -- TODO: Mathlib's Finset.measurable_prod is wrong because it is currently an exact duplicate of
 -- Finset.measurable_fun_sum; we want the following version instead.
-@[to_additive (attr := measurability, fun_prop)]
+@[to_additive (attr := fun_prop)]
 theorem Finset.measurable_prod' {M ι α : Type*} [CommMonoid M] [MeasurableSpace M]
     [MeasurableMul₂ M] {m : MeasurableSpace α} {f : ι → α → M} (s : Finset ι)
     (hf : ∀ i ∈ s, Measurable (f i)) :
@@ -353,11 +353,13 @@ def integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (X : ι 
   fun i ω ↦ V.value.sum fun p v =>
     B (v ω) (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
+local notation:25 V " ●[" B "]" X => integral B V X
+
 /-- The **linear elementary stochastic integral** where the simple process takes values in
 `E →L[ℝ] F`, as a special case of `integral` with `B` the evaluation map. -/
 abbrev integralEval [SecondCountableTopology (E →L[ℝ] F)] (V : SimpleProcess (E →L[ℝ] F) 𝓕)
     (X : ι → Ω → E) : WithTop ι → Ω → F :=
-  integral (.id ℝ (E →L[ℝ] F)) V X
+  V ●[(.id ℝ (E →L[ℝ] F))] X
 
 -- TODO: possible notation V●X, possibly for more general integrals
 
@@ -451,8 +453,7 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
   bounded_value := by
     refine ⟨#V.value.support • #W.value.support • (‖B‖ * V.valueBound * W.valueBound),
       fun p _ ω ↦ ?_⟩
-    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finset_sum, Finset.sum_apply,
-      Finsupp.indicator_apply, mem_singleton, dite_eq_ite]
+    simp only [Finsupp.sum, Finsupp.coe_finsetSum, Finset.sum_apply, Finsupp.single_apply]
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
     intro p hp
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
@@ -701,7 +702,7 @@ end ElementaryPredictableSet
 
 namespace SimpleProcess
 
-theorem isPredictable (V : SimpleProcess E 𝓕) : IsPredictable 𝓕 V := by
+theorem isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable 𝓕 V := by
   apply Measurable.stronglyMeasurable
   apply Measurable.add
   · apply Measurable.indicator
@@ -738,7 +739,7 @@ theorem iSup_comap_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerat
   apply le_antisymm
   · rw [iSup_le_iff]
     intro V
-    simp [(isPredictable V).measurable.comap_le]
+    simp [(isStronglyPredictable V).measurable.comap_le]
   · rw [← ElementaryPredictableSet.generateFrom_eq_predictable]
     apply MeasurableSpace.generateFrom_le
     rintro _ ⟨S, rfl⟩

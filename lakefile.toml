@@ -9,6 +9,7 @@ relaxedAutoImplicit = false
 weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible tactic (e.g. `simp`)
 # Enable all mathlib linters: automatically matches what mathlib uses.
 weak.linter.mathlibStandardSet = true
+linter.style.header = false
 
 [[require]]
 name = "kolmogorov_extension4"

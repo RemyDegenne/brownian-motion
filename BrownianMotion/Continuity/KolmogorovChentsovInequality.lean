@@ -129,9 +129,9 @@ lemma lintegral_div_edist_le_sum_integral_edist_le (hT : Metric.ediam U < ∞)
         rw [hη_succ k, ← mul_assoc, ENNReal.mul_inv_cancel (by norm_num) (by norm_num), one_mul]
         refine le_of_not_ge (Nat.find_min hη_dist ?_)
         simp [hk]
-  refine le_trans ?_ (Summable.le_tsum (ENNReal.summable) k (fun _ _ ↦ zero_le _))
+  refine le_trans ?_ (Summable.le_tsum (ENNReal.summable) k (fun _ _ ↦ zero_le))
   rw [ENNReal.div_eq_inv_mul]
-  refine mul_le_mul ?_ ?_ (zero_le _) (zero_le _)
+  refine mul_le_mul ?_ ?_ zero_le zero_le
   · rw [ENNReal.inv_le_iff_inv_le, ← ENNReal.inv_rpow, mul_assoc, ENNReal.rpow_mul,
       ENNReal.rpow_le_rpow_iff (by positivity)]
     exact le_trans (hη_ge k) lb
@@ -238,7 +238,7 @@ theorem finite_kolmogorov_chentsov
   have hq_pos : 0 < q := lt_trans hd_pos hdq_lt
   simp only [constL, ← ENNReal.tsum_mul_left, ge_iff_le] at *
   by_cases h_ae : ∀ᵐ (ω : Ω) ∂P, ∀ (s t : T'), edist (X s ω) (X t ω) = 0
-  · convert zero_le _
+  · convert zero_le
     rotate_left
     · infer_instance
     · infer_instance
@@ -259,7 +259,7 @@ theorem finite_kolmogorov_chentsov
     rw [Filter.eventually_all]; intro s
     rw [Filter.eventually_all]; intro t
     apply hX.edist_eq_zero
-    refine le_antisymm ?_ (zero_le _)
+    refine le_antisymm ?_ zero_le
     exact le_trans (Metric.edist_le_ediam_of_mem (hT'U s.2) (hT'U t.2)) h_ae
   have h_diam_real : 0 < (Metric.ediam U).toReal :=
     ENNReal.toReal_pos_iff.mpr ⟨h_diam_zero, h_diam⟩
@@ -313,7 +313,7 @@ theorem finite_kolmogorov_chentsov
       ENNReal.toNNReal_pow, ENNReal.toNNReal_inv, inv_pow, NNReal.coe_mul, NNReal.coe_inv,
       NNReal.coe_pow, mul_inv_rev, inv_inv, Real.logb_zero, ENNReal.ofReal_zero, zero_add]
     gcongr
-    exact zero_le _
+    exact zero_le
   gcongr with k
   simp only [ENNReal.toReal_mul, ENNReal.toNNReal_mul, h_two, ENNReal.toNNReal_pow,
     ENNReal.toNNReal_inv, inv_pow, NNReal.coe_mul, NNReal.coe_ofNat, NNReal.coe_inv, NNReal.coe_pow,
