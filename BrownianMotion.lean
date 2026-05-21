@@ -24,7 +24,6 @@ public import BrownianMotion.Auxiliary.StandardBorel
 public import BrownianMotion.Auxiliary.StoppedProcess
 public import BrownianMotion.Auxiliary.Topology
 public import BrownianMotion.Auxiliary.WithLp
-public import BrownianMotion.Auxiliary.WithTop
 public import BrownianMotion.Choquet.AnalyticSet
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.Choquet.CompactSystem
