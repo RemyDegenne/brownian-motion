@@ -318,10 +318,10 @@ We in this section assume $\mathcal{F}$ satisfies the usual conditions (i.e. com
 \end{proof}
 
 
-\begin{lemma}\label{lem:isStable_progMeasurable}
+\begin{lemma}\label{lem:isStable_isStronglyProgressive}
   \uses{def:stable}
   \leanok
-  \lean{ProbabilityTheory.isStable_progMeasurable}
+  \lean{ProbabilityTheory.isStable_isStronglyProgressive}
 The class of progressively measurable processes is stable.
 \end{lemma}
 
@@ -617,7 +617,7 @@ The class D is stable.
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_progMeasurable}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_isStronglyProgressive}
 Let $X$ be a process of class D and $\tau$ be a stopping time. For any finite stopping time $\sigma$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is finite and $X$ is of class D, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a finite stopping time}\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
 
@@ -630,7 +630,7 @@ The class DL is stable.
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_progMeasurable}
+  \uses{lem:uniformIntegrableComp, lem:uniformIntegrableDominated, lem:isStable_isStronglyProgressive}
 Let $X$ be a process of class DL, $\tau$ be a stopping time. Let $t \in T$. For any stopping time $\sigma \le t$, we have that $X_\sigma^\tau = X_{\sigma \land \tau}$. Because $\sigma \land \tau$ is bounded by $t$ and $X$ is of class DL, we deduce from Lemma~\ref{lem:uniformIntegrableComp} that $\{X_{\sigma \land \tau} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, and thus that $\{X^\tau_\sigma \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable. Using Lemma~\ref{lem:uniformIntegrableDominated}, we obtain that $\{X^\tau_\sigma \mathbb{I}_{\tau > 0} \mid \sigma \text{ is a stopping time with } \sigma \le t\}$ is uniformly integrable, which concludes the proof.
 \end{proof}
 
@@ -651,10 +651,10 @@ This proves that $X$ is of class DL.
 \end{proof}
 
 
-\begin{lemma}\label{lem:ProgMeasurable.hasStronglyMeasurableSup}
-  \uses{def:ProgMeasurable}
+\begin{lemma}\label{lem:IsStronglyProgressive.hasStronglyMeasurableSup}
+  \uses{def:IsStronglyProgressive}
   \leanok
-  \lean{MeasureTheory.ProgMeasurable.hasStronglyMeasurableSupProcess}
+  \lean{MeasureTheory.IsStronglyProgressive.hasStronglyMeasurableSupProcess}
   If the filtration satisfies the usual conditions, a progressively measurable process has a supremum that is jointly strongly measurable.
 \end{lemma}
 
@@ -671,8 +671,8 @@ Let $X$ be a progressively measurable stochastic process with locally integrable
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:Integrable.classDL, lem:locally_mono, lem:isStable_progMeasurable}
-Combine Lemma~\ref{lem:Integrable.classDL} and Lemma~\ref{lem:locally_mono}. Use Lemma~\ref{lem:isStable_progMeasurable} to get progressive measurability of the stopped processes.
+  \uses{lem:Integrable.classDL, lem:locally_mono, lem:isStable_isStronglyProgressive}
+Combine Lemma~\ref{lem:Integrable.classDL} and Lemma~\ref{lem:locally_mono}. Use Lemma~\ref{lem:isStable_isStronglyProgressive} to get progressive measurability of the stopped processes.
 \end{proof}
 
 
@@ -768,7 +768,7 @@ If $X$ is a càdlàg process of class DL, then it has locally integrable supremu
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:isLocalizingSequence_leastGE, lem:sup_stoppedProcess_le,lem:ProgMeasurable.hasStronglyMeasurableSup}
+  \uses{lem:isLocalizingSequence_leastGE, lem:sup_stoppedProcess_le,lem:IsStronglyProgressive.hasStronglyMeasurableSup}
 Set $\tau_n := \inf \{t | X_t \ge n\}$. This is a localizing sequence by Lemma~\ref{lem:isLocalizingSequence_leastGE}. For every $t \in T$, we have by Lemma~\ref{lem:sup_stoppedProcess_le} that $(X^{\tau_n})^*_t \le n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n}\| = n + \mathbb{I}_{\tau_n \le t} \|X_{\tau_n \land t}\|$. Because X is of class DL, $X_{\tau_n \land t}$ is integrable, so $(X^{\tau_n})^*_t$ is integrable too, so $(X^{\tau_n} \mathbb{I}_{\tau_n > 0})^*_t$ is integrable. Thus $X$ has locally integrable supremum.
 \end{proof}
 

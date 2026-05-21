@@ -461,7 +461,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     TendstoInMeasure P (fun n ↦ X (u n)) atTop (X t) := by
   refine tendstoInMeasure_of_ne_top fun ε hε hε_top ↦ ?_
   have h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P) atTop (𝓝 0) := by
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _)
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le)
       (fun n ↦ hX.kolmogorovCondition (u n) t)
     have : Tendsto (fun n ↦ edist (u n).1 t) atTop (𝓝 0) := by
       rwa [← tendsto_iff_edist_tendsto_0]
@@ -476,7 +476,7 @@ lemma IsKolmogorovProcess.tendstoInMeasure (hX : IsKolmogorovProcess X P p q M)
     ext ω
     simp only [Set.mem_setOf_eq]
     rw [ENNReal.rpow_le_rpow_iff hX.p_pos]
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _) ?_
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le) ?_
     (h := fun n ↦ (ε ^ p)⁻¹ * ∫⁻ ω, edist (X (u n) ω) (X t ω) ^ p ∂P)
   · rw [← mul_zero (ε ^ p)⁻¹]
     exact ENNReal.Tendsto.const_mul h_tendsto (by simp [hε_top, hε.ne'])
@@ -820,7 +820,7 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
       simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
       refine this.of_edist_eq_zero fun ω ↦ ?_
       rw [Prod.edist_eq]
-      simp only [ENNReal.max_eq_zero_iff]
+      simp only [max_eq_zero]
       rw [edist_comm hE.some, edist_limUnder_const]
       simp only [and_true]
       exact edist_self _
@@ -841,7 +841,7 @@ lemma IsLimitOfIndicator.measurable_pair {Y X Z X' : T → Ω → E} {U₁ U₂ 
       simp only [indicatorProcess_apply, Set.mem_empty_iff_false, ↓reduceIte] at this
       refine this.of_edist_eq_zero fun ω ↦ ?_
       rw [Prod.edist_eq]
-      simp only [ENNReal.max_eq_zero_iff]
+      simp only [max_eq_zero]
       rw [edist_comm hE.some, edist_limUnder_const]
       simp only [true_and]
       exact edist_self _
@@ -1057,7 +1057,7 @@ lemma edist_modification_holderModification (hT : HasBoundedCoveringNumber U c d
     _ = P {ω | ε ≤ edist (Y (u n) ω) (Y t ω) + edist (X (u n) ω) (X t ω)} := by rw [hPA]
     _ ≤ P {ω | ε / 2 ≤ edist (Y (u n) ω) (Y t ω)}
         + P {ω | ε / 2 ≤ edist (X (u n) ω) (X t ω)} := measure_add_ge_le_add_measure_ge_half
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le _) hP_le
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ?_ (fun _ ↦ zero_le) hP_le
   rw [← add_zero (0 : ℝ≥0∞)]
   exact Tendsto.add (h_tendsto_Y (ε / 2) (ENNReal.half_pos hε.ne'))
     (h_tendsto_X (ε / 2) (ENNReal.half_pos hε.ne'))
@@ -1105,11 +1105,11 @@ lemma exists_modification_holder_aux' (hT : HasBoundedCoveringNumber U c d)
   · obtain ⟨A, hA_meas, hA_ae, hY_tendsto, hYU, hYUc⟩ := hY_limit
     refine ⟨A, hA_meas, hA_ae, hY_tendsto, fun t htU ω ↦ ?_, fun t htU ω ↦ ?_⟩
     · specialize hYU t htU ω
-      refine le_antisymm ?_ (zero_le _)
+      refine le_antisymm ?_ zero_le
       refine (edist_triangle _ (Y t ω) _).trans ?_
       simpa [hZ_edist]
     · specialize hYUc t htU ω
-      refine le_antisymm ?_ (zero_le _)
+      refine le_antisymm ?_ zero_le
       refine (edist_triangle _ (Y t ω) _).trans ?_
       simpa [hZ_edist]
 

@@ -163,10 +163,10 @@ ProbabilityTheory.MeasurableEquiv.continuousMap
 ProbabilityTheory.wienerMeasure
 MeasureTheory.Filtration
 MeasureTheory.Adapted
-MeasureTheory.ProgMeasurable
+MeasureTheory.IsStronglyProgressive
 Function.IsRightContinuous
 IsCadlag
-MeasureTheory.StronglyAdapted.progMeasurable_of_rightContinuous
+MeasureTheory.StronglyAdapted.isStronglyProgressive_of_rightContinuous
 MeasureTheory.Martingale
 MeasureTheory.Submartingale
 MeasureTheory.Submartingale.condExp_sub_nonneg
@@ -204,10 +204,10 @@ MeasureTheory.Filtration.instIsRightContinuousRightCont
 MeasureTheory.Filtration.IsRightContinuous.measurableSet
 MeasureTheory.Filtration.IsComplete
 MeasureTheory.Filtration.predictable
-MeasureTheory.IsPredictable
-MeasureTheory.IsPredictable.progMeasurable
+MeasureTheory.IsStronglyPredictable
+MeasureTheory.IsStronglyPredictable.isStronglyProgressive
 MeasureTheory.measurableSet_predictable_Ioc_prod
-MeasureTheory.isPredictable_iff_measurable_add_one
+MeasureTheory.IsStronglyPredictable.iff_measurable_add_one
 MeasureTheory.UniformIntegrable.condExp'
 MeasureTheory.Martingale.uniformIntegrable_stoppedValue
 MeasureTheory.Martingale.uniformIntegrable_stoppedValue_of_countable_range
@@ -332,7 +332,7 @@ ProbabilityTheory.Locally.isCadlag
 ProbabilityTheory.isStable_rightContinuous
 ProbabilityTheory.isStable_left_limit
 ProbabilityTheory.isStable_isCadlag
-ProbabilityTheory.isStable_progMeasurable
+ProbabilityTheory.isStable_isStronglyProgressive
 ProbabilityTheory.IsLocalMartingale
 ProbabilityTheory.IsLocalSubmartingale
 ProbabilityTheory.Martingale.IsLocalMartingale
@@ -357,7 +357,7 @@ ProbabilityTheory.isStable_hasLocallyIntegrableSup
 ProbabilityTheory.isStable_classD
 ProbabilityTheory.isStable_classDL
 MeasureTheory.Integrable.classDL
-MeasureTheory.ProgMeasurable.hasStronglyMeasurableSupProcess
+MeasureTheory.IsStronglyProgressive.hasStronglyMeasurableSupProcess
 ProbabilityTheory.HasLocallyIntegrableSup.locally_classDL
 ProbabilityTheory.ClassDL.locally_classD
 ProbabilityTheory.locally_classD_of_locally_classDL
@@ -374,7 +374,7 @@ ProbabilityTheory.IsLocalSubmartingale.locally_classD
 ProbabilityTheory.SimpleProcess
 ProbabilityTheory.ElementaryPredictableSet
 ProbabilityTheory.ElementaryPredictableSet.measurableSet_predictable
-ProbabilityTheory.SimpleProcess.isPredictable
+ProbabilityTheory.SimpleProcess.isStronglyPredictable
 ProbabilityTheory.SimpleProcess.iSup_comap_eq_predictable
 ProbabilityTheory.ElementaryPredictableSet.indicator
 ProbabilityTheory.SimpleProcess.instAddCommGroup
@@ -407,7 +407,7 @@ ProbabilityTheory.exists_modification_isCadlag
 komlos_convex
 komlos_norm
 TendstoUniformly_convexTail
-StdSimplex.bind
+Convexity.StdSimplex.bind
 komlos_convex_weights
 komlos_uniform_convergence
 komlos_convex_weights_diagonal
@@ -420,7 +420,7 @@ MeasureTheory.predictablePart_zero
 MeasureTheory.martingalePart_zero
 MeasureTheory.predictablePart_add_one
 MeasureTheory.Martingale.predictablePart_eq_zero
-MeasureTheory.IsPredictable.predictablePart_eq
+MeasureTheory.IsStronglyPredictable.predictablePart_eq
 MeasureTheory.IsPredictable.martingalePart_eq
 MeasureTheory.Martingale.martingalePart_eq
 MeasureTheory.predictablePart_smul
@@ -431,7 +431,7 @@ MeasureTheory.stronglyAdapted_predictablePart
 MeasureTheory.isPredictable_predictablePart
 MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
-MeasureTheory.Submartingale.nonneg_predictablePart
+MeasureTheory.Submartingale.predictablePart_nonneg
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
 StieltjesFunction.measure
 eVariationOn

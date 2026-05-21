@@ -88,7 +88,6 @@ lemma _root_.tendsto_inv_add_atTop_nhds_zero_nat {𝕜 : Type*} [DivisionSemirin
     Tendsto (fun n : ℕ ↦ ((n : 𝕜) + 1)⁻¹) atTop (𝓝 0) :=
   by simpa using tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := 𝕜)
 
-set_option backward.isDefEq.respectTransparency false in
 lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0)
     (n : ι) :
     ε • P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
@@ -152,8 +151,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         · exact fun h ↦ h.le
       _ ≤ ⨆ k, ∫ ω in {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
         gcongr with k
-        · exact hbdd
-        · exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
+        exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
       _ ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ supY ω}, Y n ω ∂P := by
         refine (ciSup_le_iff hbdd).mpr fun k ↦ ?_
         gcongr with ω
@@ -236,7 +234,6 @@ theorem _root_.ENNReal.ofReal_smul {a : ℝ≥0} {b : ℝ} :
   simp
   rfl
 
-set_option backward.isDefEq.respectTransparency false in
 /-- Alternative form of `Submartingale.ae_bddAbove`. -/
 lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
     (hnonneg : 0 ≤ Y) (n : ι) : ∀ᵐ ω ∂P, ⨆ i ≤ n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
@@ -407,7 +404,6 @@ theorem maximal_ineq_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
   _ ≤ ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ s : S, ENNReal.ofReal (Y s ω)}, Y n ω ∂P := by simp [h2]
   _ = _ := by simp [h1]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
     (hnonneg : 0 ≤ Y) (n : ι) (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞ := by

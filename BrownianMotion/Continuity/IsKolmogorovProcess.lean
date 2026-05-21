@@ -103,7 +103,7 @@ lemma lintegral_sup_rpow_edist_le_card_mul_rpow (hX : IsAEKolmogorovProcess X P 
         simp only [iSup_subtype, Finset.sup_eq_iSup]
   _ ≤ ∫⁻ ω, ∑ u ∈ C, edist (X u.1 ω) (X u.2 ω) ^ p ∂P := by gcongr; apply Finset.sup_le_sum; simp
   _ = ∑ u ∈ C, ∫⁻ ω, edist (X u.1 ω) (X u.2 ω) ^ p ∂P :=
-        lintegral_finset_sum' _ (fun _ _ => AEMeasurable.pow_const hX.aemeasurable_edist _)
+        lintegral_finsetSum' _ (fun _ _ => AEMeasurable.pow_const hX.aemeasurable_edist _)
   _ ≤ ∑ u ∈ C, M * edist u.1 u.2 ^ q := by gcongr; apply hX.kolmogorovCondition
   _ ≤ ∑ u ∈ C, M * ε ^ q := by
     gcongr
@@ -422,7 +422,7 @@ lemma lintegral_sup_rpow_edist_le_sum_rpow_of_le_one (hp : p ≤ 1)
       ≤ ∑ i ∈ Finset.range (k - m), ∫⁻ ω, ⨆ (t : C k),
         edist (X (chainingSequence C t k (m + i)) ω)
           (X (chainingSequence C t k (m + i + 1)) ω) ^ p ∂P := by
-  rw [← lintegral_finset_sum' _ (fun _ _ => .iSup (fun _ => hX.aemeasurable_edist.pow_const _))]
+  rw [← lintegral_finsetSum' _ (fun _ _ => .iSup (fun _ => hX.aemeasurable_edist.pow_const _))]
   gcongr with ω
   refine le_trans ?_ (Finset.iSup_sum_le _)
   gcongr with t
@@ -534,7 +534,6 @@ noncomputable
 def Cp (d p q : ℝ) : ℝ≥0∞ :=
   max (1 / ((2 ^ ((q - d) / p)) - 1) ^ p) (1 / (2 ^ (q - d) - 1))
 
-set_option backward.isDefEq.respectTransparency false in
 lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ}
     (hX : IsAEKolmogorovProcess X P p q M) {ε₀ : ℝ≥0} (hε : ε₀ ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
@@ -668,7 +667,6 @@ lemma scale_change_lintegral_iSup
   gcongr with ω
   exact scale_change_rpow m (fun s ↦ X s ω) _ _ hX.p_pos.le
 
-set_option backward.isDefEq.respectTransparency false in
 lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hδ_le : Metric.ediam J ≤ δ / 4) :
@@ -684,7 +682,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
       by simp [this]
     refine hX.lintegral_sup_rpow_edist_eq_zero' hJ_finite.countable ?_
-    refine fun s t ↦ le_antisymm ?_ (zero_le _)
+    refine fun s t ↦ le_antisymm ?_ zero_le
     calc edist s t
     _ ≤ Metric.ediam J := Metric.edist_le_ediam_of_mem s.2 t.1.2
     _ = 0 := hε₀_eq_zero
@@ -748,7 +746,6 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     norm_cast
   simp only [ε₀, ENNReal.coe_toNNReal hε'.ne]
   grw [hδ_le']
-  swap; · bound
   refine le_of_eq ?_
   calc 2 ^ d * M * c * (2 * δ) ^ (q - d) * Cp d p q
   _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
@@ -758,7 +755,6 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
     ring_nf
 
-set_option backward.isDefEq.respectTransparency false in
 lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q)
@@ -778,7 +774,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
     suffices ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P = 0
       by simp [this]
     refine hX.lintegral_sup_rpow_edist_eq_zero' hJ_finite.countable ?_
-    refine fun s t ↦ le_antisymm ?_ (zero_le _)
+    refine fun s t ↦ le_antisymm ?_ zero_le
     calc edist s t
     _ ≤ Metric.ediam J := Metric.edist_le_ediam_of_mem s.2 t.1.2
     _ = 0 := hε₀_eq_zero
@@ -922,7 +918,6 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
       have hmδ'' : ((ε₀ * 2⁻¹ ^ m : ℝ≥0) : ℝ≥0∞) ≤ δ := mod_cast hmδ
       simpa [ENNReal.inv_pow] using hmδ''
     grw [hmδ']
-    swap; · bound
     gcongr ?_ * _
     rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
     calc 2 ^ d * M * c * (2 ^ (q - d) * δ ^ (q - d))

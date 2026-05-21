@@ -57,7 +57,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
       ↓existsAndEq, true_and, exists_eq_right] at h_eq_iff
     symm
     convert h_eq_iff using 2 with u
-    exact ⟨fun hu _ ↦ hu, fun hu ↦ hu (zero_le u)⟩
+    exact ⟨fun hu _ ↦ hu, fun hu ↦ hu zero_le⟩
   have I_apply_swap (t : Set (ℝ≥0 × Ω)) : I (Prod.swap '' t) = μ {ω | debut t 0 ω ≠ ⊤} := by
     rw [I_apply_eq_debut]; congr! with ω; ext; simp; grind
   have hs_capa : IsCapacitable I (Prod.swap '' s) := by
@@ -118,7 +118,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
     convert (hB_compact a ha ω).isClosed with t
     simp only [Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq, ↓existsAndEq,
       true_and, exists_eq_right, and_iff_right_iff_imp]
-    exact fun _ ↦ zero_le _
+    exact fun _ ↦ zero_le
   · specialize hB_le a ha
     rwa [I_apply_eq_debut] at hB_le
   · refine debut_anti 0 ?_

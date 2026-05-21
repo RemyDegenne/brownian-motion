@@ -289,7 +289,7 @@ instance instModule : Module ℝ (SimpleProcess E 𝓕) where
 
 -- TODO: Mathlib's Finset.measurable_prod is wrong because it is currently an exact duplicate of
 -- Finset.measurable_fun_sum; we want the following version instead.
-@[to_additive (attr := measurability, fun_prop)]
+@[to_additive (attr := fun_prop)]
 theorem Finset.measurable_prod' {M ι α : Type*} [CommMonoid M] [MeasurableSpace M]
     [MeasurableMul₂ M] {m : MeasurableSpace α} {f : ι → α → M} (s : Finset ι)
     (hf : ∀ i ∈ s, Measurable (f i)) :
@@ -453,7 +453,7 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
   bounded_value := by
     refine ⟨#V.value.support • #W.value.support • (‖B‖ * V.valueBound * W.valueBound),
       fun p _ ω ↦ ?_⟩
-    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finset_sum, Finset.sum_apply,
+    simp only [Finsupp.sum, Finsupp.single_eq_indicator, Finsupp.coe_finsetSum, Finset.sum_apply,
       Finsupp.indicator_apply, mem_singleton, dite_eq_ite]
     grw [norm_sum_le, Finset.sum_le_card_nsmul]
     intro p hp
@@ -703,7 +703,7 @@ end ElementaryPredictableSet
 
 namespace SimpleProcess
 
-theorem isPredictable (V : SimpleProcess E 𝓕) : IsPredictable 𝓕 V := by
+theorem isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable 𝓕 V := by
   apply Measurable.stronglyMeasurable
   apply Measurable.add
   · apply Measurable.indicator
@@ -740,7 +740,7 @@ theorem iSup_comap_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerat
   apply le_antisymm
   · rw [iSup_le_iff]
     intro V
-    simp [(isPredictable V).measurable.comap_le]
+    simp [(isStronglyPredictable V).measurable.comap_le]
   · rw [← ElementaryPredictableSet.generateFrom_eq_predictable]
     apply MeasurableSpace.generateFrom_le
     rintro _ ⟨S, rfl⟩
