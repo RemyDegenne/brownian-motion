@@ -303,7 +303,7 @@ section MonotoneLim
 
 /-- The limit of a collection of functions that is frequently monotone is monotone. -/
 lemma monotone_of_frequently_monotone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
-    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} {F : ι → α → β} {f : α → β}
     (hF : ∃ᶠ i in l, Monotone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
     Monotone f :=
   fun a b hab => le_of_tendsto_of_tendsto_of_frequently (hlim a) (hlim b)
@@ -311,7 +311,7 @@ lemma monotone_of_frequently_monotone_of_tendsto {ι α β : Type*} [Preorder α
 
 /-- The limit of a collection of functions that is frequently antitone is antitone. -/
 lemma antitone_of_frequently_antitone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
-    [Preorder β] [OrderClosedTopology β] {l : Filter ι} [l.NeBot] {F : ι → α → β} {f : α → β}
+    [Preorder β] [OrderClosedTopology β] {l : Filter ι} {F : ι → α → β} {f : α → β}
     (hF : ∃ᶠ i in l, Antitone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
     Antitone f :=
   monotone_of_frequently_monotone_of_tendsto (β := βᵒᵈ) hF hlim
@@ -413,7 +413,7 @@ lemma limsup_le_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [L
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
     (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Ioi a) a)
-    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     limsup (F · a) l ≤ f a := by
   by_cases! ha : a = ⊤
   · rw [ha, (hlim ⊤ htop).limsup_eq]
@@ -434,7 +434,7 @@ lemma le_liminf_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [L
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
     (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Iio a) a)
-    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     f a ≤ liminf (F · a) l := by
   by_cases! ha : a = ⊥
   · rw [ha, (hlim ⊥ hbot).liminf_eq]
@@ -457,7 +457,7 @@ lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [Lin
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
     (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) (a : α) (hfa : ContinuousAt f a)
-    (hlim : ∀ t ∈ D, Tendsto (fun i ↦ F i t) l (𝓝 (f t))) :
+    (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     Tendsto (F · a) l (𝓝 (f a)) := by
   refine tendsto_of_le_liminf_of_limsup_le ?_ ?_ ?_ ?_
   · exact le_liminf_of_eventually_monotone_of_tendsto_on_dense hF hD htop hbot
@@ -470,6 +470,8 @@ lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [Lin
     filter_upwards [hF] with i hi using hi le_top
   · refine (hlim ⊥ hbot).isBoundedUnder_ge.mono_ge ?_
     filter_upwards [hF] with i hi using hi bot_le
+
+
 
 end MonotoneLim
 
