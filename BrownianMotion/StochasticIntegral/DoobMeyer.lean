@@ -20,105 +20,327 @@ open scoped NNReal ENNReal Topology
 
 section DenseMesh
 
-variable (ι) [LinearOrder ι] [OrderBot ι] [OrderTop ι] [TopologicalSpace ι]
-  [SecondCountableTopology ι]
-
 /-- The fixed countable dense set used instead of dyadics, with both endpoints adjoined. -/
-noncomputable def denseSet : Set ι :=
+noncomputable def denseSet (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] : Set ι :=
   (TopologicalSpace.exists_countable_dense ι).choose ∪ ({⊥, ⊤} : Set ι)
 
-lemma denseSet_countable : (denseSet ι).Countable := by
+lemma denseSet_countable (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] : (denseSet ι).Countable := by
   have h_dense_countable := (TopologicalSpace.exists_countable_dense ι).choose_spec.1
   simpa [denseSet] using h_dense_countable.union (by simp : ({⊥, ⊤} : Set ι).Countable)
 
-lemma denseSet_dense : Dense (denseSet ι) :=
+lemma denseSet_dense (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] : Dense (denseSet ι) :=
   (TopologicalSpace.exists_countable_dense ι).choose_spec.2.mono (Set.subset_union_left)
 
 /-- A choice of enumeration of the countable dense set used to construct finite meshes. -/
-noncomputable def denseEnum : ℕ → ι :=
+noncomputable def denseEnum (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] : ℕ → ι :=
   have : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
   Subtype.val ∘ (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose
 
 /-- The `n`-th finite mesh: the first `n` points of the dense enumeration, plus endpoints. -/
-noncomputable def mesh (n : ℕ) : Finset ι :=
+noncomputable def mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : Finset ι :=
   insert ⊥ <| insert ⊤ <| (Finset.range n).image (denseEnum ι)
 
-lemma bot_mem_mesh (n : ℕ) : (⊥ : ι) ∈ mesh ι n := by simp [mesh]
+lemma bot_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊥ : ι) ∈ mesh ι n := by simp [mesh]
 
-lemma top_mem_mesh (n : ℕ) : (⊤ : ι) ∈ mesh ι n := by simp [mesh]
+lemma top_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊤ : ι) ∈ mesh ι n := by simp [mesh]
 
-instance (n : ℕ) : OrderBot (mesh ι n) where
+instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : OrderBot (mesh ι n) where
   bot := ⟨⊥, bot_mem_mesh ι n⟩
   bot_le _ := bot_le
 
-instance (n : ℕ) : OrderTop (mesh ι n) where
+instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : OrderTop (mesh ι n) where
   top := ⟨⊤, top_mem_mesh ι n⟩
   le_top _ := le_top
 
-noncomputable instance (n : ℕ) : LocallyFiniteOrder (mesh ι n) :=
+@[simp]
+lemma top_eq_top (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊤ : mesh ι n) = (⊤ : ι) := by rfl
+
+noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : LocallyFiniteOrder (mesh ι n) :=
   Fintype.toLocallyFiniteOrder
 
-noncomputable instance (n : ℕ) : SuccOrder (mesh ι n) :=
+noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : SuccOrder (mesh ι n) :=
   LinearLocallyFiniteOrder.succOrder (mesh ι n)
 
-noncomputable instance (n : ℕ) : PredOrder (mesh ι n) :=
+noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : PredOrder (mesh ι n) :=
   LinearLocallyFiniteOrder.predOrder (mesh ι n)
+
+noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : CompleteLinearOrder (mesh ι n) :=
+  Fintype.toCompleteLinearOrder (mesh ι n)
 
 end DenseMesh
 
 section UniformIntegrability
 
-variable {ι : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
-  [LinearOrder ι] [OrderBot ι] [OrderTop ι] [SuccOrder ι]
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+/-- A family of random variables is uniformly integrable iff its `L¹` tails above `c` tend to
+zero uniformly in the index. The tail cutoff is applied to `‖X i‖`, so this applies to
+random variables taking values in any normed additive group. -/
+lemma uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm {κ Ω E : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] [NormedAddCommGroup E]
+    {X : κ → Ω → E} (hX : ∀ (i : κ), AEStronglyMeasurable (X i) P) :
+    UniformIntegrable X 1 P ↔
+      Tendsto
+        (fun c : ℝ≥0 ↦ ⨆ i : κ,
+          eLpNorm ({ω | c ≤ ‖X i ω‖₊}.indicator (X i)) 1 P)
+        atTop (𝓝 0) := by
+  let tail : ℝ≥0 → ℝ≥0∞ := fun c ↦ ⨆ i : κ,
+    eLpNorm ({ω | c ≤ ‖X i ω‖₊}.indicator (X i)) 1 P
+  have htail_mono : Antitone tail := by
+    intro c d hcd
+    simp only [tail]
+    refine iSup_le fun i ↦ ?_
+    refine (eLpNorm_mono_enorm fun ω ↦ ?_).trans
+      (le_iSup (fun j : κ ↦ eLpNorm ({ω | c ≤ ‖X j ω‖₊}.indicator (X j)) 1 P) i)
+    by_cases hω : d ≤ ‖X i ω‖₊
+    · have hωd : ω ∈ {ω' | d ≤ ‖X i ω'‖₊} := hω
+      have hωc : ω ∈ {ω' | c ≤ ‖X i ω'‖₊} := hcd.trans hω
+      rw [Set.indicator_of_mem hωd, Set.indicator_of_mem hωc]
+    · have hωd : ω ∉ {ω' | d ≤ ‖X i ω'‖₊} := hω
+      rw [Set.indicator_of_notMem hωd]
+      simp
+  rw [uniformIntegrable_iff (μ := P) (f := X) (p := (1 : ℝ≥0∞)) (by simp) (by simp)]
+  constructor
+  · rintro ⟨-, htail⟩
+    rw [ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_mono]
+    intro ε hε
+    by_cases hε_top : ε = ∞
+    · exact ⟨0, by simp [tail, hε_top]⟩
+    have hε_real_pos : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hε_top
+    obtain ⟨C, hC⟩ := htail ε.toReal hε_real_pos
+    refine ⟨C, ?_⟩
+    simp only [tail]
+    rw [iSup_le_iff]
+    intro i
+    exact (hC i).trans_eq (ENNReal.ofReal_toReal hε_top)
+  · intro htail
+    rw [ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_mono] at htail
+    refine ⟨hX, fun ε hε ↦ ?_⟩
+    obtain ⟨C, hC⟩ := htail (ENNReal.ofReal ε) (ENNReal.ofReal_pos.2 hε)
+    refine ⟨C, fun i ↦ ?_⟩
+    exact (le_iSup (fun i : κ ↦ eLpNorm ({ω | C ≤ ‖X i ω‖₊}.indicator (X i)) 1 P) i).trans hC
 
 /-- The filtration obtained by restricting `𝓕` to a finite dense mesh. -/
-def meshFiltration (𝓕 : Filtration ι mΩ) (n : ℕ) :
+def meshFiltration {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
+    [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (𝓕 : Filtration ι mΩ) (n : ℕ) :
     Filtration (mesh ι n) mΩ :=
   𝓕.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+instance sigmaFiniteFiltration_meshFiltration {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
+    (n : ℕ) : SigmaFiniteFiltration P (meshFiltration 𝓕 n) := by
+  unfold meshFiltration
+  infer_instance
 
 /-- Predictable part of a discrete process. -/
-noncomputable def predictablePart [LocallyFiniteOrder ι] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ)
-    (P : Measure Ω) :
+noncomputable def predictablePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
+    [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     ι → Ω → E :=
   fun n ↦ ∑ i ∈ Finset.Iio n, P[S (succ i) - S i | 𝓕 i]
 
 /-- Martingale part of a discrete process. -/
-noncomputable def martingalePart [LocallyFiniteOrder ι] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ)
-    (P : Measure Ω) :
+noncomputable def martingalePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
+    [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     ι → Ω → E :=
   S - predictablePart S 𝓕 P
 
+lemma martingale_martingalPart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
+    [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    Martingale (martingalePart S 𝓕 P) 𝓕 P := by
+  sorry
+
+@[simp]
+lemma martingalePart_add_predictablePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
+    [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    martingalePart S 𝓕 P + predictablePart S 𝓕 P = S := by
+  simp [_root_.martingalePart]
+
 /-- Sequence of terminal values of the predictable part. -/
-noncomputable def predictableSeq (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) :=
+noncomputable def predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
+    (n : ℕ) : Ω → E :=
   predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
 /-- Sequence of terminal values of the martingale part. -/
-noncomputable def martingaleSeq (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) :=
+noncomputable def martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
+    (n : ℕ) : Ω → E :=
   martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
+lemma martingaleSeqTop_eq_neg_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hstop : S ⊤ =ᶠ[ae P] 0)
+    (n : ℕ) :
+    martingaleSeqTop S 𝓕 P n =ᶠ[ae P] -predictableSeqTop S 𝓕 P n := by
+  simp only [martingaleSeqTop, _root_.martingalePart, Pi.sub_apply, Function.comp_apply, top_eq_top,
+    predictableSeqTop]
+  grw [neg_eq_zero_sub, hstop]
+
+@[simp]
+lemma stoppedValue_add {ι Ω E : Type*} [Nonempty ι] [Add E] {u v : ι → Ω → E}
+    {τ : Ω → WithTop ι} :
+    stoppedValue (u + v) τ = stoppedValue u τ + stoppedValue v τ := rfl
+
+/-- Apply the optional stopping theorem to get equation 4. -/
+lemma equation4 {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
+    {𝓕 : Filtration ι mΩ} {n : ℕ} [OrderTopology (mesh ι n)]
+    [SigmaFiniteFiltration P 𝓕] (hstop : S ⊤ =ᶠ[ae P] 0)
+    {τ : Ω → WithTop (mesh ι n)} (hτ : ∀ ω, τ ω ≤ WithTop.some (⊤ : mesh ι n))
+    (hτs : IsStoppingTime (meshFiltration 𝓕 n) τ) :
+    stoppedValue (S ∘ Subtype.val) τ =ᵐ[P] - P[(predictableSeqTop S 𝓕 P n) | hτs.measurableSpace] +
+      stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P) τ := by
+  grw [← condExp_neg, ← martingaleSeqTop_eq_neg_predictableSeqTop hstop]
+  simp only [martingaleSeqTop]
+  grw [← (martingale_martingalPart (S ∘ Subtype.val)
+    (meshFiltration 𝓕 n) P).stoppedValue_ae_eq_condExp_of_le_const hτs hτ,
+    ← stoppedValue_add, _root_.martingalePart_add_predictablePart]
+
+/-- The mesh stopping time `τₙ(c)` associated with the predictable part on the `n`-th mesh. -/
+noncomputable def tauMesh {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    Ω → WithTop (mesh ι n) :=
+  fun ω ↦ (((hittingBtwn (fun (t : mesh ι n) ω ↦
+    (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P) (succ t) ω) (Set.Ioi c)
+    ⊥ ⊤ ω) : mesh ι n) : WithTop (mesh ι n))
+
+lemma tauMesh_le_top {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
+    tauMesh S 𝓕 P n c ω ≤ (⊤ : mesh ι n) :=
+  WithTop.coe_le_coe.2 (hittingBtwn_le ω)
+
+@[simp]
+lemma predictablePart_bot {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrder ι] [OrderBot ι]
+    [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    _root_.predictablePart S 𝓕 P ⊥ = 0 := by
+  simp [_root_.predictablePart]
+
+lemma stoppedValue_predictablePart_tauMesh_le {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ)
+    (P : Measure Ω) (n : ℕ) (c : ℝ) (hc : 0 ≤ c) :
+    stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
+      (tauMesh S 𝓕 P n c) ≤ fun _ ↦ c := by
+  intro ω
+  let A : mesh ι n → Ω → ℝ :=
+    predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P
+  let τ : mesh ι n :=
+    hittingBtwn (fun t ω ↦ A (succ t) ω) (Set.Ioi c) ⊥ ⊤ ω
+  change A τ ω ≤ c
+  by_contra! hgt
+  by_cases hτ_bot : τ = ⊥
+  · have hA_bot : A ⊥ ω ≤ c := by
+      simpa [A] using hc
+    exact not_lt_of_ge (by simpa [hτ_bot] using hA_bot) hgt
+  · have hpred_lt : pred τ < τ := (pred_lt_iff_ne_bot).2 hτ_bot
+    have hnot_min : ¬ IsMin τ := by
+      simpa [isMin_iff_eq_bot] using hτ_bot
+    have hnot_mem := notMem_of_lt_hittingBtwn
+      (u := fun t ω ↦ A (succ t) ω) (s := Set.Ioi c) (n := ⊥) (m := ⊤)
+      (ω := ω) (k := pred τ) hpred_lt bot_le
+    exact hnot_mem (by simpa [τ, succ_pred_of_not_isMin hnot_min] using hgt)
+
+lemma stronglyAdapted_predictablePart_succ {ι Ω E : Type*} [LinearOrder ι]
+    [LocallyFiniteOrderBot ι] [SuccOrder ι] {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
+    {𝓕 : Filtration ι mΩ} {P : Measure Ω} :
+    StronglyAdapted 𝓕 (fun t ω ↦ predictablePart S 𝓕 P (succ t) ω) := by
+  intro t
+  simp only [_root_.predictablePart]
+  refine Finset.stronglyMeasurable_sum _ fun i hi ↦ ?_
+  have hi_lt : i < succ t := Finset.mem_Iio.mp hi
+  have hi_le_t : i ≤ t := le_of_lt_succ hi_lt
+  exact stronglyMeasurable_condExp.mono (𝓕.mono hi_le_t)
+
+lemma isStoppingTime_tauMesh {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {P : Measure Ω} {n : ℕ} {c : ℝ} :
+    IsStoppingTime (meshFiltration 𝓕 n) (tauMesh S 𝓕 P n c) := by
+  have hAdapted : Adapted (meshFiltration 𝓕 n)
+      (fun t ω ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P (succ t) ω) :=
+    (stronglyAdapted_predictablePart_succ
+      (S := S ∘ Subtype.val) (𝓕 := meshFiltration 𝓕 n) (P := P)).adapted
+  simpa [tauMesh] using
+    (Adapted.isStoppingTime_hittingBtwn
+      (f := meshFiltration 𝓕 n)
+      (u := fun t ω ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P (succ t) ω)
+      (s := Set.Ioi c) (n := ⊥) (n' := ⊤) hAdapted measurableSet_Ioi)
+
+lemma stoppedValue_le_neg_condExp_predictableSeqTop_add_const {ι Ω : Type*}
+    [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
+    [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {n : ℕ}
+    [OrderTopology (mesh ι n)] [SigmaFiniteFiltration P 𝓕]
+    (hstop : S ⊤ =ᶠ[ae P] 0) {c : ℝ} (hc : 0 ≤ c) :
+    stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c) ≤ᵐ[P]
+      (fun ω ↦ - P[(predictableSeqTop S 𝓕 P n) | (isStoppingTime_tauMesh
+          (S := S) (𝓕 := 𝓕) (P := P) (n := n) (c := c)).measurableSpace] ω + c) := by
+  let hτs := isStoppingTime_tauMesh (S := S) (𝓕 := 𝓕) (P := P) (n := n) (c := c)
+  have hEq := equation4 (S := S) (𝓕 := 𝓕) (P := P) (n := n) hstop
+    (tauMesh_le_top (S := S) (𝓕 := 𝓕) (P := P) (n := n) (c := c)) hτs
+  have hA := stoppedValue_predictablePart_tauMesh_le
+    (S := S) (𝓕 := 𝓕) (P := P) (n := n) (c := c) hc
+  filter_upwards [hEq] with ω hEqω
+  calc
+    stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c) ω
+        = (- P[(predictableSeqTop S 𝓕 P n) | hτs.measurableSpace] +
+            stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
+              (tauMesh S 𝓕 P n c)) ω := hEqω
+    _ ≤ (fun ω ↦ - P[(predictableSeqTop S 𝓕 P n) | hτs.measurableSpace] ω + c) ω := by
+      change - P[(predictableSeqTop S 𝓕 P n) | hτs.measurableSpace] ω +
+          stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
+            (tauMesh S 𝓕 P n c) ω ≤
+        - P[(predictableSeqTop S 𝓕 P n) | hτs.measurableSpace] ω + c
+      exact add_le_add_right (hA ω) _
+
+variable {ι : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+  [LinearOrder ι] [OrderBot ι] [OrderTop ι] [SuccOrder ι]
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
 variable {S : ι → Ω → E} [LE E] {𝓕 : Filtration ι mΩ}
 
 /-- The terminal values of the predictable parts are uniformly integrable. -/
-lemma uniformIntegrable_terminal_predictablePart (hs : Submartingale S 𝓕 P)
-    (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) :
-    UniformIntegrable (predictableSeq S 𝓕 P) 1 P := by
+lemma uniformIntegrable_predictableSeqTop (hs : Submartingale S 𝓕 P)
+    (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) (hstop : S ⊤ =ᵐ[P] 0) (ht : ∀ t, S t ≤ᵐ[P] 0) :
+    UniformIntegrable (predictableSeqTop S 𝓕 P) 1 P := by
   sorry
 
 /-- As the terminal values of predictable parts are uniformly integrable, the terminal values of the
 martingale parts are uniformly integrable. -/
 lemma uniformIntegrable_terminal_martingalePart_of_predictablePart (hs : Submartingale S 𝓕 P)
     (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) :
-    UniformIntegrable (martingaleSeq S 𝓕 P) 1 P := by
+    UniformIntegrable (martingaleSeqTop S 𝓕 P) 1 P := by
   sorry
 
 /-- Show that the terminals values of some convex combinations of the martingale parts converge. -/
 lemma exists_martingalPart_lim (hs : Submartingale S 𝓕 P)
     (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) :
     ∃ M : Ω → E, ∃ a : ℕ → StdSimplex ℝ ℕ,
-      Tendsto (fun n ↦ eLpNorm ((a n).sum (fun m r ↦ r • martingaleSeq S 𝓕 P m) - M) 1 P)
+      Tendsto (fun n ↦ eLpNorm ((a n).sum (fun m r ↦ r • martingaleSeqTop S 𝓕 P m) - M) 1 P)
       atTop (𝓝 0) := by
   sorry
 
@@ -138,7 +360,7 @@ noncomputable def martingalePartLim (hs : Submartingale S 𝓕 P)
     (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) (i : ι) :=
   P[(exists_martingalPart_lim hs hc hd).choose | 𝓕 i]
 
-lemma martingale_martingalePart (hs : Submartingale S 𝓕 P)
+lemma martingale_martingalePartLim (hs : Submartingale S 𝓕 P)
         (hc : ∀ ω, IsCadlag (S · ω)) (hd : ClassD S 𝓕 P) [SigmaFiniteFiltration P 𝓕] :
     Martingale (martingalePartLim hs hc hd) 𝓕 P :=
   martingale_condExp (exists_martingalPart_lim hs hc hd).choose 𝓕 P
@@ -151,7 +373,7 @@ noncomputable def weight (hs : Submartingale S 𝓕 P)
 /-- The extension of the discrete martingale part `M^n`. -/
 noncomputable def martingaleSeqStep (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
     (n : ℕ) (i : ι) :=
-  P[martingaleSeq S 𝓕 P n | 𝓕 i]
+  P[martingaleSeqTop S 𝓕 P n | 𝓕 i]
 
 /-- The convexly averaged mesh step-extension `ℳ^n` of the martingale parts. -/
 noncomputable def martingaleConvexStep (hs : Submartingale S 𝓕 P)
@@ -266,7 +488,7 @@ private lemma stronglyMeasurable_predictablePart_mesh_le (n : ℕ) {u : mesh ι 
     (hut : ((pred u : mesh ι n) : ι) ≤ t) :
     StronglyMeasurable[𝓕 t]
       (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u) := by
-  simp only [predictablePart]
+  simp only [_root_.predictablePart]
   refine Finset.stronglyMeasurable_sum _ fun i hi ↦ ?_
   have hiu : i < u := Finset.mem_Iio.mp hi
   have hi_pred : i ≤ (pred u : mesh ι n) := le_pred_of_lt hiu
@@ -471,9 +693,94 @@ lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [Lin
   · refine (hlim ⊥ hbot).isBoundedUnder_ge.mono_ge ?_
     filter_upwards [hF] with i hi using hi bot_le
 
-
-
 end MonotoneLim
+
+section Fatou
+
+/-- Reverse Fatou's lemma with an asymptotic upper bound. If the positive excess
+`f n - g` has lintegral tending to zero, then the limsup of the lintegrals of `f n` is
+bounded by the lintegral of the pointwise limsup. -/
+theorem limsup_lintegral_le_lintegral_limsup_of_tendsto_lintegral_tsub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {f : ℕ → Ω → ℝ≥0∞} {g : Ω → ℝ≥0∞}
+    (hf : ∀ n, Measurable (f n)) (hg : Measurable g) (hg_fin : ∫⁻ ω, g ω ∂μ ≠ ∞)
+    (h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, f n ω - g ω ∂μ) atTop (𝓝 0)) :
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂μ) atTop ≤
+      ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂μ := by
+  have h_lintegral_eq (n : ℕ) :
+      (∫⁻ ω, f n ω ∂μ) =
+        (∫⁻ ω, f n ω ⊓ g ω ∂μ) + ∫⁻ ω, f n ω - g ω ∂μ := by
+    calc
+      (∫⁻ ω, f n ω ∂μ)
+          = ∫⁻ ω, (f n ω ⊓ g ω) + (f n ω - g ω) ∂μ := by
+            apply lintegral_congr
+            intro ω
+            rw [add_comm]
+            exact (tsub_add_min (a := f n ω) (b := g ω)).symm
+      _ = (∫⁻ ω, f n ω ⊓ g ω ∂μ) + ∫⁻ ω, f n ω - g ω ∂μ :=
+        lintegral_add_left ((hf n).inf hg) _
+  calc
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂μ) atTop
+        = limsup
+            (fun n ↦ (∫⁻ ω, f n ω ⊓ g ω ∂μ) + ∫⁻ ω, f n ω - g ω ∂μ) atTop := by
+          congr with n
+          exact h_lintegral_eq n
+    _ = limsup (fun n ↦ ∫⁻ ω, f n ω ⊓ g ω ∂μ) atTop := by
+      simpa using ENNReal.limsup_add_of_right_tendsto_zero (u := atTop) h_tendsto
+        (fun n : ℕ ↦ ∫⁻ ω, f n ω ⊓ g ω ∂μ)
+    _ ≤ ∫⁻ ω, limsup (fun n ↦ f n ω ⊓ g ω) atTop ∂μ :=
+      limsup_lintegral_le g (fun n ↦ (hf n).inf hg)
+        (fun _ ↦ ae_of_all _ fun _ ↦ inf_le_right) hg_fin
+    _ ≤ ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂μ :=
+      lintegral_mono fun ω ↦
+        limsup_le_limsup (Eventually.of_forall fun n ↦ inf_le_left :
+          ∀ᶠ n in atTop, f n ω ⊓ g ω ≤ f n ω)
+
+/-- Reverse Fatou's lemma with an asymptotic upper bound given by an integrable real-valued
+function. This is the `ENNReal` version of the hypothesis
+`E[(X_n - Y)_+] → 0`. -/
+theorem limsup_lintegral_le_lintegral_limsup_of_tendsto_lintegral_tsub_ofReal {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {f : ℕ → Ω → ℝ≥0∞} {g : Ω → ℝ}
+    (hf : ∀ n, Measurable (f n)) (hg_meas : Measurable g) (hg_int : Integrable g μ)
+    (h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, f n ω - ENNReal.ofReal (g ω) ∂μ) atTop (𝓝 0)) :
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂μ) atTop ≤
+      ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂μ :=
+  limsup_lintegral_le_lintegral_limsup_of_tendsto_lintegral_tsub hf
+    hg_meas.ennreal_ofReal (Integrable.lintegral_lt_top hg_int).ne h_tendsto
+
+/-- Reverse Fatou's lemma with an asymptotic upper bound by a varying sequence. It suffices to
+have `f n ≤ gseq n` a.e. and `∫⁻ (gseq n - g) → 0`. -/
+theorem limsup_lintegral_le_lintegral_limsup_of_ae_le_of_tendsto_lintegral_tsub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {f gseq : ℕ → Ω → ℝ≥0∞}
+    {g : Ω → ℝ≥0∞} (hf : ∀ n, Measurable (f n)) (hg : Measurable g)
+    (hg_fin : ∫⁻ ω, g ω ∂μ ≠ ∞) (hle : ∀ n, f n ≤ᵐ[μ] gseq n)
+    (h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, gseq n ω - g ω ∂μ) atTop (𝓝 0)) :
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂μ) atTop ≤
+      ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂μ := by
+  have h_tendsto_f :
+      Tendsto (fun n ↦ ∫⁻ ω, f n ω - g ω ∂μ) atTop (𝓝 0) := by
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds h_tendsto ?_ ?_
+    · intro n
+      exact zero_le _
+    · intro n
+      exact lintegral_mono_ae <| (hle n).mono fun ω hω ↦ tsub_le_tsub_right hω (g ω)
+  exact limsup_lintegral_le_lintegral_limsup_of_tendsto_lintegral_tsub hf hg hg_fin h_tendsto_f
+
+/-- Reverse Fatou's lemma with an asymptotic upper bound by a varying sequence and an integrable
+real-valued limiting bound. -/
+theorem limsup_lintegral_le_lintegral_limsup_of_ae_le_of_tendsto_lintegral_tsub_ofReal
+    {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} {f gseq : ℕ → Ω → ℝ≥0∞}
+    {g : Ω → ℝ} (hf : ∀ n, Measurable (f n)) (hg_meas : Measurable g)
+    (hg_int : Integrable g μ) (hle : ∀ n, f n ≤ᵐ[μ] gseq n)
+    (h_tendsto : Tendsto (fun n ↦ ∫⁻ ω, gseq n ω - ENNReal.ofReal (g ω) ∂μ) atTop
+      (𝓝 0)) :
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂μ) atTop ≤
+      ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂μ :=
+  limsup_lintegral_le_lintegral_limsup_of_ae_le_of_tendsto_lintegral_tsub hf
+    hg_meas.ennreal_ofReal (Integrable.lintegral_lt_top hg_int).ne hle h_tendsto
+
+-- ae_eq_of_ae_le_of_lintegral_le
+
+end Fatou
 
 variable {ι Ω : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
