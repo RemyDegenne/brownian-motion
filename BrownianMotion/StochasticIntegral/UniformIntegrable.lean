@@ -282,7 +282,7 @@ lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕
     [SigmaFiniteFiltration μ 𝓕]
     (hX : Submartingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
-    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
+    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
   sorry
 
 omit [Countable ι]
