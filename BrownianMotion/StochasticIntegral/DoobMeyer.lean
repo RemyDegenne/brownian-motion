@@ -7,7 +7,6 @@ module
 
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.Komlos
-public import Mathlib.Order.SuccPred.Archimedean
 public import Mathlib.Topology.Order.LiminfLimsup
 
 /-! # Doob-Meyer decomposition theorem
