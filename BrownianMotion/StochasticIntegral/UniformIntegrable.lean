@@ -279,7 +279,7 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → E} {𝓕 : Fi
       (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
 
 lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-    [SigmaFiniteFiltration μ 𝓕] [LocallyFiniteOrderBot ι]
+    [SigmaFiniteFiltration μ 𝓕]
     (hX : Submartingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
