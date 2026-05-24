@@ -15,12 +15,90 @@ public import Mathlib.Probability.Martingale.OptionalSampling
 
 @[expose] public section
 
-open scoped NNReal ENNReal
+open scoped NNReal ENNReal Topology
 open Filter
 
 namespace MeasureTheory
 
 variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
+
+/-- A family of random variables is uniformly integrable iff its `L¹` tails above `c` tend to
+zero uniformly in the index. -/
+lemma uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm [IsFiniteMeasure μ]
+    [NormedAddCommGroup E] {X : κ → Ω → E} (hX : ∀ k, AEStronglyMeasurable (X k) μ) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ≥0 =>
+        ⨆ k, eLpNorm ({ω | c ≤ ‖X k ω‖₊}.indicator (X k)) 1 μ) atTop (𝓝 0) := by
+  let tail : ℝ≥0 → ℝ≥0∞ := fun c ↦ ⨆ i : κ, eLpNorm ({ω | c ≤ ‖X i ω‖₊}.indicator (X i)) 1 μ
+  -- We first show that this tail function is antitone so that convergence at `atTop` can be checked
+  -- by `ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_mono`.
+  have htail_anti : Antitone tail := by
+    refine fun c d hcd => iSup_mono fun k => eLpNorm_mono_enorm fun ω => ?_
+    by_cases hω : d ≤ ‖X k ω‖₊
+    · simp [hω, hcd.trans hω]
+    · simp [hω]
+  rw [uniformIntegrable_iff (refl 1) ENNReal.one_ne_top]
+  refine ⟨fun ⟨_, htail⟩ => ?_, fun htail => ⟨hX, fun ε hε => ?_⟩⟩
+  · rw [ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_anti]
+    intro ε hε
+    by_cases hε_top : ε = ∞
+    · exact ⟨0, by simp [hε_top]⟩
+    · have hε_real_pos : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hε_top
+      obtain ⟨C, hC⟩ := htail ε.toReal hε_real_pos
+      exact ⟨C, iSup_le_iff.2 fun i => (hC i).trans_eq (ENNReal.ofReal_toReal hε_top)⟩
+  · rw [ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_anti] at htail
+    obtain ⟨C, hC⟩ := htail (ENNReal.ofReal ε) (ENNReal.ofReal_pos.2 hε)
+    exact ⟨C, fun i => (le_iSup _ i).trans hC⟩
+
+lemma uniformIntegrable_iff_tendsto_iSup_setIntegral_norm [IsFiniteMeasure μ]
+    [NormedAddCommGroup E] {X : κ → Ω → E} (hX : ∀ k, AEStronglyMeasurable (X k) μ) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ => ⨆ k, ∫ ω in {ω | c ≤ ‖X k ω‖₊}, ‖X k ω‖ ∂μ) atTop (𝓝 0) := by
+  sorry
+
+lemma uniformIntegrable_iff_tendsto_iSup_setIntegral_of_nonneg [IsFiniteMeasure μ]
+    {X : κ → Ω → ℝ} (hX : ∀ k, AEStronglyMeasurable (X k) μ) (hnoneg : ∀ k, 0 ≤ᵐ[μ] X k) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ => ⨆ k, ∫ ω in {ω | c ≤ X k ω}, X k ω ∂μ) atTop (𝓝 0) := by
+  sorry
+
+/-- Uniform integrability makes the `Lp` mass on sets of vanishing measure vanish uniformly in
+the index. -/
+lemma UnifIntegrable.tendsto_iSup_eLpNorm_indicator_of_tendsto_measure_zero
+    [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hX : UnifIntegrable X p μ)
+    {l : Filter κ} {s : κ → Set Ω} (hs : ∀ᶠ k in l, MeasurableSet (s k))
+    (hμs : Tendsto (fun k ↦ μ (s k)) l (𝓝 0)) :
+    Tendsto (fun k ↦ ⨆ i, eLpNorm ((s k).indicator (X i)) p μ) l (𝓝 0) := by
+  refine ENNReal.tendsto_nhds_zero.2 fun ε hε => ?_
+  by_cases hε_top : ε = ∞
+  · simp [hε_top]
+  · obtain ⟨δ, hδ_pos, hδ⟩ := hX (ENNReal.toReal_pos hε.ne' hε_top)
+    filter_upwards [hs, (ENNReal.tendsto_nhds_zero.1 hμs)
+      (ENNReal.ofReal δ) (ENNReal.ofReal_pos.2 hδ_pos)] with k hsk hμk
+      using iSup_le_iff.2 fun i => (hδ i (s k) hsk hμk).trans_eq (ENNReal.ofReal_toReal hε_top)
+
+lemma UniformIntegrable.tendsto_iSup_eLpNorm_indicator_of_tendsto_measure_zero
+    [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞} (hX : UniformIntegrable X p μ)
+    {l : Filter κ} {s : κ → Set Ω} (hs : ∀ᶠ k in l, MeasurableSet (s k))
+    (hμs : Tendsto (fun k ↦ μ (s k)) l (𝓝 0)) :
+    Tendsto (fun k ↦ ⨆ i, eLpNorm ((s k).indicator (X i)) p μ) l (𝓝 0) :=
+  hX.unifIntegrable.tendsto_iSup_eLpNorm_indicator_of_tendsto_measure_zero hs hμs
+
+/-- The supremum of the integrals of `‖X i‖` over sets of vanishing measure tends to zero. -/
+lemma UniformIntegrable.tendsto_iSup_setIntegral_norm_of_tendsto_measure_zero
+    [NormedAddCommGroup E] {X : ι → Ω → E} (hX : UniformIntegrable X 1 μ)
+    {l : Filter κ} {s : κ → Set Ω} (hs : ∀ᶠ k in l, MeasurableSet (s k))
+    (hμs : Tendsto (fun k ↦ μ (s k)) l (𝓝 0)) :
+    Tendsto (fun k ↦ ⨆ i, ENNReal.ofReal (∫ ω in s k, ‖X i ω‖ ∂μ)) l (𝓝 0) := by
+  refine (hX.tendsto_iSup_eLpNorm_indicator_of_tendsto_measure_zero hs hμs).congr' ?_
+  filter_upwards [hs] with k hsk
+  congr with i
+  -- We probably should create a lemma that converts `eLpNorm` into
+  -- `ENNReal.ofReal (∫ (x : α), ‖f x‖ ∂μ)`
+  simp [eLpNorm_one_eq_lintegral_enorm,
+    ← ofReal_integral_norm_eq_lintegral_enorm
+    ((memLp_one_iff_integrable.1 (hX.memLp i)).indicator hsk),
+    norm_indicator_eq_indicator_norm, integral_indicator hsk]
 
 lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
     (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
@@ -33,6 +111,13 @@ lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : 
     obtain ⟨C_Y, hC_Y⟩ := hY.2.2
     exact ⟨C_X + C_Y,
       fun i ↦ le_trans (eLpNorm_add_le (hX.1 i) (hY.1 i) hp) (add_le_add (hC_X i) (hC_Y i))⟩
+
+lemma UniformIntegrable.neg [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
+    (hX : UniformIntegrable X p μ) :
+    UniformIntegrable (-X) p μ := by
+  refine ⟨fun i => (hX.1 i).neg, hX.unifIntegrable.neg, ?_⟩
+  obtain ⟨C, hC⟩ := hX.2.2
+  exact ⟨C, by simp [hC]⟩
 
 lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
     {X : ι → Ω → E} {Y : κ → Ω → F} {p : ℝ≥0∞}
@@ -194,10 +279,10 @@ lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → E} {𝓕 : Fi
       (hX.ae_eq_condExp_of_isStoppingTime (hτ m.2) (hτ_le m.2)).symm).comp (fun i ↦ ((), i))
 
 lemma Submartingale.uniformIntegrable_stoppedValue {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-    [SigmaFiniteFiltration μ 𝓕]
+    [SigmaFiniteFiltration μ 𝓕] [LocallyFiniteOrderBot ι]
     (hX : Submartingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
-    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
+    UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ := by
   sorry
 
 omit [Countable ι]
