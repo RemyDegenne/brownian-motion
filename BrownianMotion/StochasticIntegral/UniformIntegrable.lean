@@ -50,18 +50,6 @@ lemma uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm [IsFiniteMeasure
     obtain ⟨C, hC⟩ := htail (ENNReal.ofReal ε) (ENNReal.ofReal_pos.2 hε)
     exact ⟨C, fun i => (le_iSup _ i).trans hC⟩
 
-lemma uniformIntegrable_iff_tendsto_iSup_setIntegral_norm [IsFiniteMeasure μ]
-    [NormedAddCommGroup E] {X : κ → Ω → E} (hX : ∀ k, AEStronglyMeasurable (X k) μ) :
-    UniformIntegrable X 1 μ ↔
-      Tendsto (fun c : ℝ => ⨆ k, ∫ ω in {ω | c ≤ ‖X k ω‖₊}, ‖X k ω‖ ∂μ) atTop (𝓝 0) := by
-  sorry
-
-lemma uniformIntegrable_iff_tendsto_iSup_setIntegral_of_nonneg [IsFiniteMeasure μ]
-    {X : κ → Ω → ℝ} (hX : ∀ k, AEStronglyMeasurable (X k) μ) (hnoneg : ∀ k, 0 ≤ᵐ[μ] X k) :
-    UniformIntegrable X 1 μ ↔
-      Tendsto (fun c : ℝ => ⨆ k, ∫ ω in {ω | c ≤ X k ω}, X k ω ∂μ) atTop (𝓝 0) := by
-  sorry
-
 /-- Uniform integrability makes the `Lp` mass on sets of vanishing measure vanish uniformly in
 the index. -/
 lemma UnifIntegrable.tendsto_iSup_eLpNorm_indicator_of_tendsto_measure_zero
