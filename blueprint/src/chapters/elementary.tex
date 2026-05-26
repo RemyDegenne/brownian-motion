@@ -1,5 +1,68 @@
 \chapter{Simple processes and elementary integrals}
 
+\section{Rings and semi-rings of sets}
+
+\begin{definition}[Semi-ring of sets]\label{def:semiRingOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetSemiring}
+  A \emph{semi-ring of sets} $C$ is a family of sets containing $\emptyset$,
+  stable by intersection and such that for all $s, t \in C$,
+  $s \setminus t$ is equal to a disjoint union of finitely many sets in $C$.
+\end{definition}
+
+\begin{lemma}\label{lem:semiRingOfSets_of_intervals}
+  \uses{def:semiRingOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetSemiring.Ioc}
+  The family of intervals of the form $(s, t]$
+  with $s < t$ in a linear order $T$ is a semi-ring of sets.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{lemma}\label{lem:semiRingOfSets_disjoint_of_union}
+  \uses{def:semiRingOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetSemiring.disjointOfUnion_props}
+  Suppose that $C$ is a semi-ring of sets, and let $A_k \in C$, $k \in \{1, ..., n\}$~.
+  Then there exists a family of pairwise disjoint sets $B_j \in C$, $j \in \{1, ..., m\}$~,
+  such that $\bigcup_{k=1}^n A_k = \bigcup_{j=1}^m B_j$~.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
+
+\begin{lemma}\label{lem:semiRingOfSets_disjoint_of_union_finer}
+  \uses{def:semiRingOfSets, lem:semiRingOfSets_disjoint_of_union}
+  The above family of pairwise disjoint sets $B_j$ can be chosen
+  so that they form a refinement of the family $A_k$, that is,
+  for every $k$ and $j$,
+  $B_j \cap A_k \in \{\emptyset, B_j\}$.
+\end{lemma}
+
+\begin{proof}
+\end{proof}
+
+\begin{definition}[Ring of sets]\label{def:ringOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetRing}
+  A \emph{ring of sets} $C$ is a family of sets containing $\emptyset$,
+  stable by union and set difference (and thus also by intersection).
+\end{definition}
+
+\begin{lemma}
+  \uses{def:semiRingOfSets, def:ringOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetSemiring.isSetRing_supClosure}
+  For a semi-ring of sets $C$, the family of finite unions of elements of $C$ is a ring of sets.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+\end{proof}
+
+\section{Simple processes and elementary predictable sets}
 
 \begin{definition}[Simple process]\label{def:simpleProcess}
   \uses{def:filtration}
@@ -15,6 +78,89 @@ Then the simple process for that sequence is the process $V : T \to \Omega \to E
 Let $\mathcal{E}_{T, E}$ be the set of simple processes indexed by $T$ with value in $E$.
 \end{definition}
 
+\begin{lemma}\label{lem:simpleProcess_admitsDisjointIntervals}
+  \uses{def:simpleProcess}
+  The definition of simple process does not change if we require the intervals $(s_k, t_k]$ to be disjoint.
+\end{lemma}
+
+\begin{proof}
+  Fix a simple process $V$.
+  The union of its time intervals is $A=\bigcup_{k=1}^n A_k$ with $A_k = (s_k, t_k]$.
+  Intervals of this type form a semi-ring of sets
+  (Lemma~\ref{lem:semiRingOfSets_of_intervals}),
+  so we may use the Lemma~\ref{lem:semiRingOfSets_disjoint_of_union_finer}
+  to write $A$ as a disjoint union of intervals $B_j=(u_j, v_j]$,
+  where for each $j$ and $k$,
+  \[
+  B_j \cap A_k \in \{\emptyset, B_j\}.
+    \]
+  For each $j$, we then construct the random variable $\xi_j$
+  by summing the $\eta_k$'s for which $B_j \subseteq A_k$;
+  as $s_k\le u_j$ in that case, $\xi_j$ is $\mathcal{F}_{u_j}$-measurable.
+  Each $B_j$ is either disjoint from an $A_k$ or contained in it, which justifies
+  \begin{align*}
+    V_t
+    &= \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{A_k}(t)
+    = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{j=1}^{m} \xi_j \mathbb{1}_{B_j}(t)
+    \: .
+  \end{align*}
+\end{proof}
+
+\begin{definition}[Predictable rectangles]\label{def:predictableRectangles}
+The class of \emph{predictable rectangles} on $T \times \Omega$ is
+\begin{align*}
+  \mathcal{R}_T :=
+  \big\{(s, t] \times F : s, t \in T,\ s < t,\ F \in \mathcal{F}_s\big\}
+  \cup \big\{\{0\} \times F : F \in \mathcal{F}_0\big\}
+  \: .
+\end{align*}
+\end{definition}
+
+\begin{lemma}\label{lem:predictableRectangles_isSetSemiring}
+  \uses{def:predictableRectangles}
+The class $\mathcal{R}_T$ of predictable rectangles
+ is a semi-ring of sets.
+\end{lemma}
+
+\begin{proof}
+  Take two elements $A, B \in \mathcal{R}_T$~.
+  If only one of $A, B$ is of the form $\{0\} \times F$,
+  they are disjoint, so both the intersection and the difference
+  are trivially in $\mathcal{R}_T$~.
+  If both are of this form, then $A\cap B$, $A\setminus B\in\mathcal{R}_T$
+  follows from the fact that $\mathcal{F}_0$ is a $\sigma$-algebra.
+
+  Let then $A=(s, t] \times F$ and $B=(s', t'] \times F'$.
+  We shall understand $(s,t]$ as the empty set if $s \ge t$~.
+  Both $F \cap F'$ and $F \setminus F'$ are in $\mathcal{F}_s \cup \mathcal{F}_{s'}$,
+  that is, in $\mathcal{F}_{s \vee s'}$~.
+  It is now clear that $A\cap B$ is the predictable rectangle, since
+  \[
+  A \cap B
+  =
+  (s \vee s', t \wedge t'] \times (F \cap F').
+  \]
+  Finally, the difference $A \setminus B$
+  is a disjoint union of at most three predictable rectangles:
+  \[
+  (s, s \vee s'] \times F,
+  \qquad
+  (s \vee s', t \wedge t'] \times (F \setminus F'),
+  \qquad
+  (t \wedge t', t] \times F.
+  \]
+\end{proof}
+
+\begin{lemma}\label{lem:setRing_of_finiteUnions}
+  \uses{def:semiRingOfSets}
+  \mathlibok
+  \lean{MeasureTheory.IsSetSemiring.isSetRing_supClosure}
+  If $C$ is a semi-ring of sets,
+  then finite unions of elements of $C$ form a ring of sets.
+\end{lemma}
+
+\begin{proof}\leanok
+\end{proof}
 
 \begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
   \uses{def:filtration}
@@ -23,6 +169,46 @@ Let $\mathcal{E}_{T, E}$ be the set of simple processes indexed by $T$ with valu
 A set $A \subseteq T \times \Omega$ is an \emph{elementary predictable set} if it is a finite union of sets of the form ${0} \times B$ for $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $0 \le s < t$ in $T$ and $B \in \mathcal{F}_s$.
 \end{definition}
 
+
+\begin{lemma}\label{lem:predictableRectangles_generate_elementaryPredictableSets}
+  \uses{def:predictableRectangles, def:elementaryPredictableSet}
+  Every elementary predictable set (Definition~\ref{def:elementaryPredictableSet})
+  is a finite union of predictable rectangles.
+\end{lemma}
+
+\begin{proof}
+  \uses{def:predictableRectangles, def:elementaryPredictableSet}
+  This follows immediately from the definitions.
+\end{proof}
+
+\begin{lemma}\label{lem:elementaryPredictableSets_isSetRing_of}
+  \uses{def:elementaryPredictableSet, def:predictableRectangles,
+  def:ringOfSets, def:semiRingOfSets}
+  The family of elementary predictable sets (Definition~\ref{def:elementaryPredictableSet})
+  is a ring of sets, the one generated by the semi-ring of predictable rectangles.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictableRectangles_generate_elementaryPredictableSets, lem:setRing_of_finiteUnions}
+  Since elementary predictable sets are finite unions of predictable rectangles
+  (Lemma~\ref{lem:predictableRectangles_generate_elementaryPredictableSets}),
+  the claim follows by Lemma~\ref{lem:setRing_of_finiteUnions}.
+\end{proof}
+
+\begin{lemma}\label{lem:elementaryPredictableSets_asDisjointUnions}
+  \uses{def:elementaryPredictableSet, def:predictableRectangles}
+  Any elementary predictable set (Definition~\ref{def:elementaryPredictableSet})
+  is a disjoint union of predictable rectangles.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:predictableRectangles_generate_elementaryPredictableSets,
+    lem:predictableRectangles_isSetSemiring, lem:semiRingOfSets_disjoint_of_union}
+  Since elementary predictable sets are finite unions of predictable rectangles
+  (Lemma~\ref{lem:predictableRectangles_generate_elementaryPredictableSets}),
+  which form a semi-ring of sets (Lemma~\ref{lem:predictableRectangles_isSetSemiring}),
+  the claim follows by Lemma~\ref{lem:semiRingOfSets_disjoint_of_union}.
+\end{proof}
 
 \begin{lemma}\label{lem:predictableSet_elementaryPredictableSet}
   \uses{def:elementaryPredictableSet, def:predictableMeasurableSpace}
@@ -71,7 +257,9 @@ A set $A \subseteq T \times \Omega$ is an elementary predictable set if and only
 \end{lemma}
 
 \begin{proof}
-  Currently only proved the forward direction, because the backward direction is not easy to state.
+  % Currently only proved the forward direction, because the backward direction is not easy to state.
+  Suppose that $A$ is an elementary predictable set.
+  As a
 \end{proof}
 
 
@@ -98,6 +286,7 @@ The simple processes $\mathcal{E}_{T, F}$ form a module over the scalars $\mathb
   \leanok
 \end{proof}
 
+\section{Elementary stochastic integral}
 
 \begin{definition}[Elementary stochastic integral]\label{def:elemStochIntegralBilin}
   \uses{def:simpleProcess}
