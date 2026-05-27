@@ -10,7 +10,7 @@ def extraHead : Array Verso.Output.Html := #[
   {{<script src="static/scripts.js"></script>}},
 ]
 
-def config : Config := {
+def config : RenderConfig := {
   extraHead := extraHead,
   sourceLink := some "https://github.com/RemyDegenne/brownian-motion",
   issueLink := some "https://github.com/RemyDegenne/brownian-motion/issues",

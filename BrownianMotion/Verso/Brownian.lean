@@ -1,10 +1,14 @@
-import BrownianMotion.Gaussian.BrownianMotion
+module
+
+public import BrownianMotion.Gaussian.BrownianMotion
 
 /-!
 # Verso file for the Brownian motion process
 
 This file is used to generate the Verso manual page about Brownian motion.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped NNReal Topology

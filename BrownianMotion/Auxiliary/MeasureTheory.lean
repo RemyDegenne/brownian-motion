@@ -1,14 +1,17 @@
-import BrownianMotion.Auxiliary.Algebra
-import BrownianMotion.Auxiliary.Metric
-import BrownianMotion.Auxiliary.WithLp
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Probability.Independence.ZeroOne
-import Mathlib.Probability.Moments.Covariance
-import Mathlib.Probability.Process.Filtration
+module
+
+public import BrownianMotion.Auxiliary.Algebra
+public import BrownianMotion.Auxiliary.Metric
+public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.Probability.Independence.ZeroOne
+
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
+
+@[expose] public section
 
 open MeasureTheory WithLp
 
@@ -22,14 +25,6 @@ theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β
   h.comp₂ (· / ·) h'
 
 namespace ProbabilityTheory
-
-@[simp]
-lemma charFun_toDual_symm_eq_charFunDual {E : Type*} [NormedAddCommGroup E] [CompleteSpace E]
-    [InnerProductSpace ℝ E] {mE : MeasurableSpace E} {μ : Measure E} (L : StrongDual ℝ E) :
-    charFun μ ((InnerProductSpace.toDual ℝ E).symm L) = charFunDual μ L := by
-  rw [charFun_eq_charFunDual_toDualMap]
-  congr with x
-  simp
 
 lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥0}
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
@@ -140,44 +135,44 @@ lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_ball_const'
     {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
-  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_ball, ← Measure.map_apply,
+    μ (Metric.eball a r) = μ (Metric.eball b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_eball, ← Measure.map_apply,
     map_mul_left_eq_self]
   · fun_prop
-  · exact EMetric.isOpen_ball.measurableSet
+  · exact Metric.isOpen_eball.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulRightInvariant.measure_ball_const'
     {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.ball a r) = μ (EMetric.ball b r) := by
-  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_ball, ← Measure.map_apply,
+    μ (Metric.eball a r) = μ (Metric.eball b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_eball, ← Measure.map_apply,
     map_mul_right_eq_self]
   · fun_prop
-  · exact EMetric.isOpen_ball.measurableSet
+  · exact Metric.isOpen_eball.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulLeftInvariant.measure_closedBall_const'
     {G : Type*} [Group G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulLeftInvariant] [IsIsometricSMul G G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
-  rw [show a = (b / a)⁻¹ * b by simp, ← EMetric.preimage_mul_left_closedBall, ← Measure.map_apply,
+    μ (Metric.closedEBall a r) = μ (Metric.closedEBall b r) := by
+  rw [show a = (b / a)⁻¹ * b by simp, ← Metric.preimage_mul_left_closedEBall, ← Measure.map_apply,
     map_mul_left_eq_self]
   · fun_prop
-  · exact EMetric.isClosed_closedBall.measurableSet
+  · exact Metric.isClosed_closedEBall.measurableSet
 
 @[to_additive]
 lemma MeasureTheory.Measure.IsMulRightInvariant.measure_closeBall_const'
     {G : Type*} [CommGroup G] [PseudoEMetricSpace G] [MeasurableSpace G]
     [OpensMeasurableSpace G] (μ : Measure G) [μ.IsMulRightInvariant] [IsIsometricSMul Gᵐᵒᵖ G]
     [MeasurableMul G] (a b : G) (r : ℝ≥0∞) :
-    μ (EMetric.closedBall a r) = μ (EMetric.closedBall b r) := by
-  rw [show a = b / (b / a) by simp, ← EMetric.preimage_mul_right_closedBall, ← Measure.map_apply,
+    μ (Metric.closedEBall a r) = μ (Metric.closedEBall b r) := by
+  rw [show a = b / (b / a) by simp, ← Metric.preimage_mul_right_closedEBall, ← Measure.map_apply,
     map_mul_right_eq_self]
   · fun_prop
-  · exact EMetric.isClosed_closedBall.measurableSet
+  · exact Metric.isClosed_closedEBall.measurableSet
 
 open Metric
 
@@ -196,21 +191,21 @@ lemma InnerProductSpace.volume_closedBall_div {E : Type*} [NormedAddCommGroup E]
 lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
     (x y : E) (r s : ℝ≥0∞) :
-    volume (EMetric.closedBall x r) / volume (EMetric.closedBall y s) =
+    volume (Metric.closedEBall x r) / volume (Metric.closedEBall y s) =
       (r / s) ^ (Module.finrank ℝ E) := by
   nontriviality E
   obtain rfl | hr := eq_top_or_lt_top r <;> obtain rfl | hs := eq_top_or_lt_top s
   · simp
   · lift s to ℝ≥0 using hs.ne
-    simp [ENNReal.top_div, emetric_closedBall_nnreal, (isCompact_closedBall _ _).measure_ne_top]
+    simp [ENNReal.top_div, closedEBall_coe, (isCompact_closedBall _ _).measure_ne_top]
   · simp
   · obtain rfl | hr' := eq_zero_or_pos r <;> obtain rfl | hs' := eq_zero_or_pos s
     · simp
     · simp
-    · simp [ENNReal.div_zero, hr'.ne', EMetric.measure_closedBall_pos volume x hr'.ne' |>.ne']
+    · simp [ENNReal.div_zero, hr'.ne', Metric.measure_closedEBall_pos volume x hr'.ne' |>.ne']
     lift r to ℝ≥0 using hr.ne
     lift s to ℝ≥0 using hs.ne
-    simp_rw [emetric_closedBall_nnreal]
+    simp_rw [closedEBall_coe]
     rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
     · simp
     all_goals simp_all
@@ -230,24 +225,6 @@ lemma covariance_fun_add_right [IsFiniteMeasure μ]
     (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
     cov[X, fun ω ↦ Y ω + Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] + cov[X, fun ω ↦ Z ω; μ] :=
   covariance_add_right hX hY hZ
-
-lemma covariance_fun_sub_left [IsFiniteMeasure μ]
-    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
-    cov[fun ω ↦ X ω - Y ω, Z; μ] = cov[X, Z; μ] - cov[Y, Z; μ] :=
-  covariance_sub_left hX hY hZ
-
-lemma covariance_fun_sub_right [IsFiniteMeasure μ]
-    (hX : MemLp X 2 μ) (hY : MemLp Y 2 μ) (hZ : MemLp Z 2 μ) :
-    cov[X, fun ω ↦ Y ω - Z ω; μ] = cov[X, fun ω ↦ Y ω; μ] - cov[X, fun ω ↦ Z ω; μ] :=
-  covariance_sub_right hX hY hZ
-
-lemma covariance_fun_div_left :
-    cov[fun ω ↦ X ω / c, Y; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_left]
-
-lemma covariance_fun_div_right :
-    cov[X, fun ω ↦ Y ω / c; μ] = cov[X, Y; μ] / c := by
-  simp_rw [← inv_mul_eq_div, covariance_mul_right]
 
 lemma variance_fun_div (hX : AEMeasurable X μ) :
     Var[fun ω ↦ X ω / c; μ] = Var[X; μ] / c ^ 2 := by

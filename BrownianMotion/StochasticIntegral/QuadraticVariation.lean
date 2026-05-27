@@ -3,11 +3,15 @@ Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import BrownianMotion.StochasticIntegral.DoobMeyer
+module
+
+public import BrownianMotion.StochasticIntegral.DoobMeyer
 
 /-! # Quadratic variation of local martingales
 
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped ENNReal

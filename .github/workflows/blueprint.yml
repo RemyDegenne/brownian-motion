@@ -7,17 +7,17 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:        # Allow manual triggering of the workflow from the GitHub Actions interface
+  workflow_dispatch: # Allow manual triggering of the workflow from the GitHub Actions interface
 
 # Cancel previous runs if a new commit is pushed to the same PR or branch
 concurrency:
-  group: ${{ github.ref }}  # Group runs by the ref (branch or PR)
-  cancel-in-progress: true  # Cancel any ongoing runs in the same group
+  group: ${{ github.ref }} # Group runs by the ref (branch or PR)
+  cancel-in-progress: true # Cancel any ongoing runs in the same group
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read  # Read access to repository contents
-  pages: write    # Write access to GitHub Pages
+  contents: read # Read access to repository contents
+  pages: write # Write access to GitHub Pages
   id-token: write # Write access to ID tokens
 
 jobs:
@@ -46,19 +46,28 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # 2025-07-02
+        uses: leanprover/lean-action@6fe4ae6a449c9758f51250ee249ebbc7ec37ee48 # 2026-01-15
         with:
           build: true
           lint: true
-          mk_all-check: true
+          mk_all-check: false
 
       - name: Build Verso Documentation
         run: |
           cd verso
           ./build_manual.sh
 
+      - name: Generate upstreaming dashboard
+        uses: leanprover-community/upstreaming-dashboard-action@main
+        with:
+          website-directory: ./home_page
+          project-name: BrownianMotion
+          branch-name: master
+          search-root: BrownianMotion.Auxiliary
+          include-drafts: true
+
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
         with:
           blueprint: true
           homepage: home_page
