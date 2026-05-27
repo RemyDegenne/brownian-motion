@@ -30,17 +30,11 @@ coordinate with `σ` and `τ`. Note these are subsets of `ι × Ω`, *not* of
 
 ## Main results
 
-* `stochasticIoc.measurableSet_predictable` — for stopping times `σ, τ` on `ℕ`, the
-  interval `]]σ,τ]]` is a predictable set. Via `eq_iUnion` it is a countable union of
-  the predictable rectangles `(i, i+1] × {σ ≤ i < τ}`.
 * `stochasticIoc.exists_elementaryPredictableSet` — for stopping times `σ, τ` with
   `τ` bounded by `n` on `ℕ`, the interval `]]σ,τ]]` is an `ElementaryPredictableSet`.
   It decomposes as the finite disjoint union `⋃_{i < n} (i, i+1] × {σ ≤ i < τ}`
   of predictable rectangles, which is exactly the data of an
   `ElementaryPredictableSet`. Only `τ` need be bounded (not `σ`).
-
-`lem:predictable_stochasticInterval` is stated in the blueprint for an arbitrary time
-domain; it is proved here for `ι = ℕ`. The general (continuous-time) case is separate.
 -/
 
 @[expose] public section
@@ -156,16 +150,6 @@ lemma eq_iUnion (σ τ : Ω → WithTop ℕ) :
     subst ht
     exact ⟨lt_of_le_of_lt hσi (Nat.cast_lt.mpr (by omega)),
       (coe_lt_iff_coe_succ_le).mp hiτ⟩
-
-/-- **`]]σ,τ]]` is a predictable set** for `ℕ`-indexed stopping times (blueprint
-`lem:predictable_stochasticInterval`, here for `ι = ℕ`). The decomposition `eq_iUnion`
-exhibits it as a countable union of the predictable rectangles `(i, i+1] × {σ ≤ i < τ}`;
-the general-time statement is a separate argument. -/
-theorem measurableSet_predictable (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
-    MeasurableSet[𝓕.predictable] (stochasticIoc σ τ) := by
-  rw [eq_iUnion]
-  exact MeasurableSet.iUnion fun i ↦
-    measurableSet_predictable_Ioc_prod i (i + 1) (measurableSet_slice hσ hτ i)
 
 /-- For `τ` bounded by `n`, the slice `{σ ≤ i < τ}` is empty once `i ≥ n`
 (`i < τ ω ≤ n`), so the decomposition `eq_iUnion` truncates to `i ∈ range n`. -/
