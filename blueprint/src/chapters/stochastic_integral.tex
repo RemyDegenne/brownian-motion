@@ -150,7 +150,7 @@ TODO: lemmas stating that those 3 coincide whenever they can.
 Let $X : T \to \Omega \to E$, where $E$ is a Banach space,
  be an adapted process with $X_t \in L^1$ for every $t \in T$~.
 The \emph{content} $\lambda_X$ associated with $X$
-is the unique $E$-valued additive content on
+is an $E$-valued additive content on
 elementary predictable sets,
 given on predictable rectangles by
 \begin{align*}
@@ -161,12 +161,21 @@ given on predictable rectangles by
   & F \in \mathcal{F}_0
   \: .
 \end{align*}
+\end{definition}
+
+\begin{lemma}\label{lem:contentAssociatedWithProcess_wellDefined}
+  \uses{def:contentAssociatedWithProcess}
+  The content $\lambda_X$ associated with $X$ is uniquely defined.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:addContent_extension, lem:predictableRectangles_isSetSemiring, lem:elementaryPredictableSets_isSetRing_of}
 The uniqueness of $\lambda_X$ is guaranteed by Lemma~\ref{lem:addContent_extension},
 since the predictable rectangles form a semi-ring of sets
 (Lemma~\ref{lem:predictableRectangles_isSetSemiring}),
 one that generates the ring of elementary predictable sets
 (Lemma~\ref{lem:elementaryPredictableSets_isSetRing_of}).
-\end{definition}
+\end{proof}
 
 \begin{definition}[Partition of a set]\label{def:partitionOfSet}
   \mathlibok
@@ -212,22 +221,17 @@ associated with $X$ has bounded variation on every set $(0, t] \times \Omega$ wi
 \end{lemma}
 
 \begin{proof}
-  \uses{def:simpleProcess, def:elemStochIntegralBilin}
-  Let $A$ be an elementary predictable set,
-  that is,
-\[
-A = \{0\} \times F_0 \cup
-\bigcup_{i=1}^n (s_i, t_i] \times F_i
-\]
-for some $n \in \mathbb{N}$, $s_i < t_i$ in $T$ and $F_i \in \mathcal{F}_{s_i}$
-and $F_0 \in \mathcal{F}_0$.
-  The process $1_A$ is a simple process,
+  \uses{def:simpleProcess, def:elemStochIntegralBilin, lem:elementaryPredictableSet_iff_indicator}
+  By Lemma~\ref{lem:elementaryPredictableSet_iff_indicator},
+  the process $\mathbb{1}_A$ is a simple one,
 \begin{align*}
   (\mathbb{1}_A)_t
   =
-  \mathbf{1}_{F_0} + \sum_{i=1}^n \mathbf{1}_{F_i} \mathbf{1}_{(s_i, t_i]}(t)
-  \: .
+  \mathbf{1}_{F_0}\mathbf{1}_{\{0\}}(t) + \sum_{i=1}^n \mathbf{1}_{F_i} \mathbf{1}_{(s_i, t_i]}(t)
+  \:,
 \end{align*}
+  where $(s_i, t_i]$ may be taken to be pairwise disjoint,
+  thanks to the Lemma \ref{lem:simpleProcess_admitsDisjointIntervals}.
 Then %FIXME: add F_0
 \begin{align*}
   \mathbb{E}[(\mathbb{1}_A \bullet_{\mathbb{R}} X)_t]
@@ -236,9 +240,11 @@ Then %FIXME: add F_0
   &= \sum_{i=1}^n \mathbb{E}\left[\mathbf{1}_{F_i} (X_{t \wedge t_i} - X_{t \wedge s_i})\right]
   \\
   &= \sum_{i=1}^n \lambda_X((s_i, t_i] \times F_i)
-  = \lambda_X(A)
-  \: .
+  = \lambda_X(A),
 \end{align*}
+taking into account that for all $i$ we have
+$t\wedge t_i = t_i$, $t\wedge s_i = s_i$,
+as $A\subseteq (0, t] \times \Omega$~.
 \end{proof}
 
 \begin{lemma}\label{lem:realContentBoundedVariation_equivalent_definition}
@@ -254,18 +260,28 @@ Then %FIXME: add F_0
 \end{lemma}
 
 \begin{proof}
+  It suffices to take the supremum over $A$
+  contained in $(0, t] \times \Omega$,
+  since by
+  Lemma~\ref{lem:elemStochIntegral_stoppedIntegrator},
+\[
+  (\mathbb{1}_A \bullet_{\mathbb{R}} X)_t
+  =
+  (\mathbb{1}_A \bullet_{\mathbb{R}} X)^t_t
+  =
+  ((\mathbf{1}_{[0, t]}\mathbb{1}_A) \bullet_{\mathbb{R}} X)_t
+  =
+  ((\mathbf{1}_{(0, t]}\mathbb{1}_A) \bullet_{\mathbb{R}} X)_t
+  \: .
+\]
   For the real-valued case, the norm in the definition of bounded variation is just the absolute value.
-  Fix $t \in T$ and write $B = (0, t] \times \Omega$.
-  Let $\lambda_X$ have bounded variation on $B$.
-  Take an elementary predictable set $A\subseteq T\times \Omega$~.
-  Then $\{A\cap B,B\setminus A\}$ is a finite $\mathcal{A}$-partition of $B$, and
-  \begin{align*}
-    \vert \lambda_X \vert(B)
-    &\ge \| \lambda_X(A\cap B) \| + \| \lambda_X(B\setminus A) \|
-    \\
-    &\ge |\lambda_X(A\cap B)| = |\mathbb{E}[(\mathbb{1}_{A} \bullet X)_t]|
-    \: .
-  \end{align*}
+  Fix $t \in T$.
+  Let $\lambda_X$ have bounded variation on $(0, t] \times \Omega$.
+
+
+  \vdots
+
+  [TODO]
 \end{proof}
 
 

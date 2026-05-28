@@ -66,47 +66,7 @@
 
 \section{Simple processes and elementary predictable sets}
 
-\begin{definition}[Simple process]\label{def:simpleProcess}
-  \uses{def:filtration}
-  \leanok
-  \lean{ProbabilityTheory.SimpleProcess}
-Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ be points in a linear order $T$ with a bottom element 0.
-Let $(\eta_k)_{0 \le k \le n}$ be bounded random variables with values in a normed real vector space $E$ such that $\eta_0$ is $\mathcal{F}_0$-measurable and $\eta_k$ is $\mathcal{F}_{s_k}$-measurable for $k \ge 1$.
-Then the simple process for that sequence is the process $V : T \to \Omega \to E$ defined by
-\begin{align*}
-  V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)
-  \: .
-\end{align*}
-Let $\mathcal{E}_{T, E}$ be the set of simple processes indexed by $T$ with value in $E$.
-\end{definition}
-
-\begin{lemma}\label{lem:simpleProcess_admitsDisjointIntervals}
-  \uses{def:simpleProcess}
-  The definition of simple process does not change if we require the intervals $(s_k, t_k]$ to be disjoint.
-\end{lemma}
-
-\begin{proof}
-  Fix a simple process $V$.
-  The union of its time intervals is $A=\bigcup_{k=1}^n A_k$ with $A_k = (s_k, t_k]$.
-  Intervals of this type form a semi-ring of sets
-  (Lemma~\ref{lem:semiRingOfSets_of_intervals}),
-  so we may use the Lemma~\ref{lem:semiRingOfSets_disjoint_of_union_finer}
-  to write $A$ as a disjoint union of intervals $B_j=(u_j, v_j]$,
-  where for each $j$ and $k$,
-  \[
-  B_j \cap A_k \in \{\emptyset, B_j\}.
-    \]
-  For each $j$, we then construct the random variable $\xi_j$
-  by summing the $\eta_k$'s for which $B_j \subseteq A_k$;
-  as $s_k\le u_j$ in that case, $\xi_j$ is $\mathcal{F}_{u_j}$-measurable.
-  Each $B_j$ is either disjoint from an $A_k$ or contained in it, which justifies
-  \begin{align*}
-    V_t
-    &= \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{A_k}(t)
-    = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{j=1}^{m} \xi_j \mathbb{1}_{B_j}(t)
-    \: .
-  \end{align*}
-\end{proof}
+\subsection{Predictable rectangles and elementary predictable sets}
 
 \begin{definition}[Predictable rectangles]\label{def:predictableRectangles}
 The class of \emph{predictable rectangles} on $T \times \Omega$ is
@@ -213,6 +173,49 @@ An elementary predictable set is measurable with respect to the predictable $\si
 It is a union of sets of the form ${0} \times B$ with $B \in \mathcal{F}_0$ or of the form $(s, t] \times B$ with $B \in \mathcal{F}_s$, which are measurable by Lemma~\ref{lem:predictable_Ioc_prod}.
 \end{proof}
 
+\subsection{Simple processes}
+
+\begin{definition}[Simple process]\label{def:simpleProcess}
+  \uses{def:filtration}
+  \leanok
+  \lean{ProbabilityTheory.SimpleProcess}
+Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ be points in a linear order $T$ with a bottom element 0.
+Let $(\eta_k)_{0 \le k \le n}$ be bounded random variables with values in a normed real vector space $E$ such that $\eta_0$ is $\mathcal{F}_0$-measurable and $\eta_k$ is $\mathcal{F}_{s_k}$-measurable for $k \ge 1$.
+Then the simple process for that sequence is the process $V : T \to \Omega \to E$ defined by
+\begin{align*}
+  V_t = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{(s_k, t_k]}(t)
+  \: .
+\end{align*}
+Let $\mathcal{E}_{T, E}$ be the set of simple processes indexed by $T$ with value in $E$.
+\end{definition}
+
+\begin{lemma}\label{lem:simpleProcess_admitsDisjointIntervals}
+  \uses{def:simpleProcess}
+  The definition of simple process does not change if we require the intervals $(s_k, t_k]$ to be disjoint.
+\end{lemma}
+
+\begin{proof}
+  Fix a simple process $V$.
+  The union of its time intervals is $A=\bigcup_{k=1}^n A_k$ with $A_k = (s_k, t_k]$.
+  Intervals of this type form a semi-ring of sets
+  (Lemma~\ref{lem:semiRingOfSets_of_intervals}),
+  so we may use the Lemma~\ref{lem:semiRingOfSets_disjoint_of_union_finer}
+  to write $A$ as a disjoint union of intervals $B_j=(u_j, v_j]$,
+  where for each $j$ and $k$,
+  \[
+  B_j \cap A_k \in \{\emptyset, B_j\}.
+    \]
+  For each $j$, we then construct the random variable $\xi_j$
+  by summing the $\eta_k$'s for which $B_j \subseteq A_k$;
+  as $s_k\le u_j$ in that case, $\xi_j$ is $\mathcal{F}_{u_j}$-measurable.
+  Each $B_j$ is either disjoint from an $A_k$ or contained in it, which justifies
+  \begin{align*}
+    V_t
+    &= \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{k=1}^{n} \eta_k \mathbb{1}_{A_k}(t)
+    = \eta_0 \mathbb{1}_{\{0\}}(t) + \sum_{j=1}^{m} \xi_j \mathbb{1}_{B_j}(t)
+    \: .
+  \end{align*}
+\end{proof}
 
 \begin{lemma}\label{lem:predictable_simpleProcess}
   \uses{def:predictable, def:simpleProcess}
@@ -502,6 +505,60 @@ Then
 \end{align*}
 \end{proof}
 
+\begin{lemma}\label{lem:stoppedProcess_eq_elemStochIntegral}
+  \uses{def:elemStochIntegral, def:stoppedProcess}
+  \notready
+Let $X$ be a stochastic process and $τ$ be a stopping time taking finitely many values.
+Then $\mathbb{1}_{[0, τ]}$ is a simple process and
+\begin{align*}
+  X^τ = X_0 + \mathbb{1}_{[0, τ]} \bullet X
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:elemStochIntegral_stoppedIntegrator}
+  \uses{def:elemStochIntegral, def:stoppedProcess}
+Let $X$ be a stochastic process,
+$V$ a real-valued %TODO: seems to hold for Banach-space-valued V
+simple process,
+and $τ$ a stopping time taking finitely many values.
+Then
+\begin{align*}
+  (V \bullet_{\mathbb{R}} X)^τ = (\mathbf{1}_{[0,τ]}V) \bullet_{\mathbb{R}} X
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:elemStochIntegral_stoppedProcess,
+  lem:stoppedProcess_eq_elemStochIntegral,
+  lem:elemStochIntegral_linear,
+  lem:elemStochIntegralBilin_const,
+  cor:elemStochIntegral_assoc_real_bilin}
+Replace,
+in the formula (Lemma~\ref{lem:elemStochIntegral_stoppedProcess}):
+\[
+  (V \bullet_{\mathbb{R}} X)^τ = V \bullet_{\mathbb{R}} (X^τ),
+\]
+  the $X^\tau$ by $X_0 + \mathbf{1}_{[0, τ]} \bullet X$
+  using Lemma~\ref{lem:stoppedProcess_eq_elemStochIntegral}.
+Now, $X_0$ may be dropped in the resulting integral,
+by linearity (Lemma~\ref{lem:elemStochIntegral_linear})
+and Lemma~\ref{lem:elemStochIntegralBilin_const},
+that is,
+\[
+  (V \bullet_{\mathbb{R}} X)^τ = V \bullet_{\mathbb{R}} (\mathbf{1}_{[0, τ]} \bullet X).
+\]
+Application of Corollary~\ref{cor:elemStochIntegral_assoc_real_bilin}
+gives the desired result.
+\end{proof}
+
+
 
 \begin{lemma}\label{lem:tendsto_elemStochIntegral_limitProcess}
   \uses{def:elemStochIntegralBilin, def:limitProcess}
@@ -640,20 +697,4 @@ Then the elementary stochastic integral $V \bullet_B X$ is a martingale.
 We use Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} and have to show that for every bounded simple process $W$, $\mathbb{E}[(W \bullet_{\mathbb{R}} (V \bullet_B X))_\infty] = 0$.
 By Lemma~\ref{cor:elemStochIntegral_assoc_real_bilin}, this is $\mathbb{E}[((W \bullet_{\mathbb{R}} V) \bullet_B X)_\infty]$.
 Since $W \bullet_{\mathbb{R}} V$ is a bounded simple process, this is zero by Lemma~\ref{lem:martingale_iff_integral_elemStochIntegral_eq_zero} applied to $X$.
-\end{proof}
-
-
-\begin{lemma}\label{lem:stoppedProcess_eq_elemStochIntegral}
-  \uses{def:elemStochIntegral, def:stoppedProcess}
-  \notready
-Let $X$ be a stochastic process and $τ$ be a stopping time taking finitely many values.
-Then $\mathbb{1}_{[0, τ]}$ is a simple process and
-\begin{align*}
-  X^τ = X_0 + \mathbb{1}_{[0, τ]} \bullet X
-  \: .
-\end{align*}
-\end{lemma}
-
-\begin{proof}
-
 \end{proof}
