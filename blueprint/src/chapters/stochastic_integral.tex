@@ -107,7 +107,7 @@ Can be extended to a measure on the predictable $\sigma$-algebra if the process 
 Let $X : T \to \Omega \to E$ be a stochastic process such that $X_t$ is integrable for all $t$~.
 For $s < t$ and $A \in \mathcal{F}_s$, let
 \begin{align*}
-  \mu_X((s, t] \times A) = \mathbb{E}[\mathbf{1}_A (X_t - X_s)]
+  \mu_X((s, t] \times A) = \mathbb{E}[\mathbb{1}_A (X_t - X_s)]
   \: .
 \end{align*}
 Set $\mu_X(\{0\} \times A) = 0$~.
@@ -154,7 +154,7 @@ is an $E$-valued additive content on
 elementary predictable sets,
 given on predictable rectangles by
 \begin{align*}
-  \lambda_X((s, t] \times F) &= \mathbb{E}[\mathbf{1}_F (X_t - X_s)],
+  \lambda_X((s, t] \times F) &= \mathbb{E}[\mathbb{1}_F (X_t - X_s)],
   & s < t \text{ in } T,\ F \in \mathcal{F}_s,
   \\
   \lambda_X(\{0\} \times F) &= 0,
@@ -191,8 +191,12 @@ An additive content $\lambda$ on a ring $\mathcal{A}$ of sets, with values in a 
 has \emph{bounded variation} on a set $A \in \mathcal{A}$ if
 \begin{align*}
   \vert \lambda \vert(A)
-  := \sup\Big\{ \sum_{i=1}^n \| \lambda(A_i) \| :
-    (A_i)_{i=1}^n \text{ finite } \mathcal{A}\text{-partition of } A \Big\}
+  := \sup
+  \Big\{ 
+    \sum_{i=1}^n \| \lambda(A_i) \| 
+    \:\Big|\:
+    (A_i)_{i=1}^n \text{ finite } \mathcal{A}\text{-partition of } A 
+  \Big\}
   < \infty
   \: .
 \end{align*}
@@ -215,7 +219,7 @@ associated with $X$ has bounded variation on every set $(0, t] \times \Omega$ wi
   The content $\lambda_X$ associated with a process $X$ satisfies,
   for every elementary predictable set $A\subseteq (0, t] \times \Omega$,
 \begin{align*}
-  \lambda_X(A) = \mathbb{E}[(\mathbb{1}_A \bullet_{\mathbb{R}} X)_t]
+  \lambda_X(A) = \mathbb{E}[(\mathbb{1}_A \bullet X)_t]
   \: .
 \end{align*}
 \end{lemma}
@@ -227,17 +231,17 @@ associated with $X$ has bounded variation on every set $(0, t] \times \Omega$ wi
 \begin{align*}
   (\mathbb{1}_A)_t
   =
-  \mathbf{1}_{F_0}\mathbf{1}_{\{0\}}(t) + \sum_{i=1}^n \mathbf{1}_{F_i} \mathbf{1}_{(s_i, t_i]}(t)
+  \mathbb{1}_{F_0}\mathbb{1}_{\{0\}}(t) + \sum_{i=1}^n \mathbb{1}_{F_i} \mathbb{1}_{(s_i, t_i]}(t)
   \:,
 \end{align*}
   where $(s_i, t_i]$ may be taken to be pairwise disjoint,
   thanks to the Lemma \ref{lem:simpleProcess_admitsDisjointIntervals}.
 Then %FIXME: add F_0
 \begin{align*}
-  \mathbb{E}[(\mathbb{1}_A \bullet_{\mathbb{R}} X)_t]
-  &= \mathbb{E}\left[\sum_{i=1}^n \mathbf{1}_{F_i} (X_{t \wedge t_i} - X_{t \wedge s_i})\right]
+  \mathbb{E}[(\mathbb{1}_A \bullet X)_t]
+  &= \mathbb{E}\left[\sum_{i=1}^n \mathbb{1}_{F_i} (X_{t \wedge t_i} - X_{t \wedge s_i})\right]
   \\
-  &= \sum_{i=1}^n \mathbb{E}\left[\mathbf{1}_{F_i} (X_{t \wedge t_i} - X_{t \wedge s_i})\right]
+  &= \sum_{i=1}^n \mathbb{E}\left[\mathbb{1}_{F_i} (X_{t \wedge t_i} - X_{t \wedge s_i})\right]
   \\
   &= \sum_{i=1}^n \lambda_X((s_i, t_i] \times F_i)
   = \lambda_X(A),
@@ -251,7 +255,7 @@ as $A\subseteq (0, t] \times \Omega$~.
   \uses{def:Quasimartingale}
   The content $\lambda_X$ associated with a real-valued process $X$
   has bounded variation on $(0, t] \times \Omega$ if and only if the set
-  $\{\mathbb{E}[(\mathbb{1}_A \bullet_{\mathbb{R}} X)_t] \mid A \text{ elementary predictable}\}$
+  $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$
   is bounded.
   In particular, an adapted integrable process $X : T \to \Omega \to \mathbb{R}$
   satisfies the conditions
@@ -265,18 +269,54 @@ as $A\subseteq (0, t] \times \Omega$~.
   since by
   Lemma~\ref{lem:elemStochIntegral_stoppedIntegrator},
 \[
-  (\mathbb{1}_A \bullet_{\mathbb{R}} X)_t
+  (\mathbb{1}_A \bullet X)_t
   =
-  (\mathbb{1}_A \bullet_{\mathbb{R}} X)^t_t
+  (\mathbb{1}_A \bullet X)^t_t
   =
-  ((\mathbf{1}_{[0, t]}\mathbb{1}_A) \bullet_{\mathbb{R}} X)_t
+  ((\mathbb{1}_{[0, t]}\mathbb{1}_A) \bullet X)_t
   =
-  ((\mathbf{1}_{(0, t]}\mathbb{1}_A) \bullet_{\mathbb{R}} X)_t
+  ((\mathbb{1}_{(0, t]}\mathbb{1}_A) \bullet X)_t
   \: .
 \]
-  For the real-valued case, the norm in the definition of bounded variation is just the absolute value.
+  Let $\mathcal{A}$ be the class of elementary predictable sets.
   Fix $t \in T$.
-  Let $\lambda_X$ have bounded variation on $(0, t] \times \Omega$.
+  We'll show
+\[
+  \vert \lambda_X \vert((0,t]\times\Omega)
+  = \sup\Big\{ \sum_{i=1}^n | \lambda_X(A_i)|
+  \:\Big|\:
+    (A_i)_{i=1}^n \text{ finite } \mathcal{A}\text{-partition of } (0,t]\times\Omega \Big\}
+    <\infty
+\]
+  if and only if
+\[
+\sup
+  \Big\{
+    |\lambda_X(A)|
+    \:\Big|\: 
+    A \text{ elementary predictable},\: 
+    A\subset(0,t]\times\Omega
+  \Big\}
+  <\infty.
+\]
+Take an elementary predictable $A\subset B:=(0,t]\times\Omega$;
+write $A_1=A\in\mathcal{A}$ and take $A_2$, \ldots, $A_n$ to be pairwise disjoint 
+predictable rectangles (hence in $\mathcal{A}$) such that (Corollary~\ref{cor:semiRingOfSets_subtract_ringElem})
+\[
+    B\setminus A = \bigcup_{j=2}^m A_j;
+\]
+clearly, $(A_i)_{i=1}^n$ is a finite $\mathcal{A}$-partition of $(0,t]\times\Omega$, so
+\[
+|\lambda_X(A)|
+=
+|\lambda_X(A_1)|
+\le 
+\sum_{i=1}^n |\lambda_X(A_i)|.
+\]
+This shows the "only if" part.
+
+For the "if" direction,
+  % Let $\lambda_X$ have bounded variation on $(0, t] \times \Omega$.
 
 
   \vdots
@@ -805,14 +845,14 @@ Then
   \uses{lem:L2Predictable.inner_eq}
 TODO: this proof (and the result of the lemma) assumes that the intervals defining the simple process are disjoint.
 
-Let $V \in \mathcal{E}_{T, E}$~, with $V_t(\omega) = \sum_{k=1}^n \eta_k(\omega) \mathbf{1}_{(s_k, t_k]}(t)$~.
+Let $V \in \mathcal{E}_{T, E}$~, with $V_t(\omega) = \sum_{k=1}^n \eta_k(\omega) \mathbb{1}_{(s_k, t_k]}(t)$~.
 \begin{align*}
   \Vert V \Vert^2_{L^2(\mu, P)}
   &= P\left[ \int_0^{\infty} \Vert V_t \Vert^2 \: d\mu \right]
   \\
-  &= P\left[ \int_0^{\infty} \left\Vert \sum_{k=1}^n \eta_k \mathbf{1}_{(s_k, t_k]}(t) \right\Vert^2 \: d\mu \right]
+  &= P\left[ \int_0^{\infty} \left\Vert \sum_{k=1}^n \eta_k \mathbb{1}_{(s_k, t_k]}(t) \right\Vert^2 \: d\mu \right]
   \\
-  &= P\left[ \int_0^{\infty} \sum_{k=1}^n \Vert \eta_k \Vert^2 \mathbf{1}_{(s_k, t_k]}(t) \: d\mu \right]
+  &= P\left[ \int_0^{\infty} \sum_{k=1}^n \Vert \eta_k \Vert^2 \mathbb{1}_{(s_k, t_k]}(t) \: d\mu \right]
   \\
   &= P\left[ \sum_{k=1}^n \Vert \eta_k \Vert^2 \: \mu((s_k, t_k]) \right]
   \\
