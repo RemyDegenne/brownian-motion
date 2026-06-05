@@ -53,6 +53,14 @@ lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [Continu
   obtain ⟨l, hl⟩ := hf.2 i
   exact ⟨r • l, hl.const_smul r⟩
 
+/-- A continuous map sends càdlàg paths to càdlàg paths. -/
+lemma IsCadlag.continuous_comp {F : Type*} [TopologicalSpace F] [PartialOrder ι]
+    {g : E → F} {f : ι → E} (hf : IsCadlag f) (hg : Continuous g) :
+    IsCadlag (g ∘ f) := by
+  refine ⟨Function.IsRightContinuous.continuous_comp hg hf.right_continuous, fun x ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.left_limit x
+  exact ⟨g l, (hg.tendsto l).comp hl⟩
+
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
     {f : ι → E} (hf : IsCadlag f) (x : ι) : ∃ t ∈ 𝓝 x, IsBounded (f '' t) := by
