@@ -87,15 +87,28 @@ lemma IsLocalMartingale.isLocalSubmartingale_sq_norm
     isStable_isCadlag X2 hX2_cadlag (hX2_sub_local.localSeq n)
       (hX2_sub_local.isLocalizingSequence_localSeq.isStoppingTime n)⟩
 
+section QuadraticVariation
+
+variable {κ Ω' E' : Type*} [ConditionallyCompleteLinearOrderBot κ] [TopologicalSpace κ]
+  [OrderTopology κ] [MeasurableSpace κ] [BorelSpace κ] [PolishSpace κ]
+  [NormedAddCommGroup E'] [NormedSpace ℝ E'] [CompleteSpace E']
+  {mΩ' : MeasurableSpace Ω'} {P' : Measure Ω'} {X' : κ → Ω' → E'}
+  {𝓕' : Filtration κ mΩ'} [IsFiniteMeasure P'] [Approximable 𝓕' P']
+  [𝓕'.IsComplete P'] [𝓕'.IsRightContinuous]
+
 /-- The quadratic variation of a local martingale, defined as the predictable part of the Doob-Meyer
 decomposition of its squared norm. -/
 noncomputable
-def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ι → Ω → ℝ :=
-  have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X t ω‖ ^ 2) := by
+def quadraticVariation (hX : IsLocalMartingale X' 𝓕' P')
+    (hX_cadlag : ∀ ω, IsCadlag (X' · ω)) :
+    κ → Ω' → ℝ :=
+  have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X' t ω‖ ^ 2) := by
     intro ω
     simpa [Function.comp_def] using
       ((hX_cadlag ω).continuous_comp (continuous_norm.pow 2))
-  (hX.isLocalSubmartingale_sq_norm hX_cadlag).predictablePart (fun t ω ↦ ‖X t ω‖ ^ 2) hX2_cadlag
+  (hX.isLocalSubmartingale_sq_norm hX_cadlag).predictablePart
+    (fun t ω ↦ ‖X' t ω‖ ^ 2) hX2_cadlag
+
+end QuadraticVariation
 
 end ProbabilityTheory
