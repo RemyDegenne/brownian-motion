@@ -38,6 +38,11 @@ structure IsCadlag [PartialOrder ι] (f : ι → E) : Prop where
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+/-- A continuous function is càdlàg. -/
+lemma Continuous.isCadlag [PartialOrder ι] {f : ι → E} (hf : Continuous f) : IsCadlag f where
+  right_continuous x := (hf.continuousAt (x := x)).continuousWithinAt
+  left_limit x := ⟨f x, tendsto_nhdsWithin_of_tendsto_nhds (hf.continuousAt (x := x))⟩
+
 lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [PartialOrder ι]
     {f g : ι → E} (hf : IsCadlag f)
     (hg : IsCadlag g) : IsCadlag (f + g) := by

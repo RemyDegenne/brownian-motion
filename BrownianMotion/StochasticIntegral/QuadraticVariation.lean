@@ -6,6 +6,7 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.SquareIntegrable
 
 /-! # Quadratic variation of local martingales
 
@@ -41,6 +42,25 @@ lemma stoppedProcess_indicator_sq_norm {τ : Ω → WithTop ι} :
   ext t ω
   by_cases hτ : ⊥ < τ ω <;> simp [stoppedProcess, hτ]
 
+omit [MeasurableSpace ι] in
+/-- The squared norm of a square-integrable martingale is a local submartingale. -/
+lemma IsSquareIntegrable.isLocalSubmartingale_sq_norm [SigmaFiniteFiltration P 𝓕]
+    (hX : IsSquareIntegrable X 𝓕 P) :
+    IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := by
+  refine .of_prop ⟨hX.submartingale_sq_norm, fun ω ↦ ?_⟩
+  simpa [Function.comp_def] using
+    ((hX.cadlag ω).continuous_comp (continuous_norm.pow 2))
+
+omit [MeasurableSpace ι] in
+/-- A locally square-integrable process has locally submartingale squared norm. -/
+lemma Locally.isSquareIntegrable_submartingale_sq_norm [SigmaFiniteFiltration P 𝓕]
+    (hX : Locally (fun Y : ι → Ω → E ↦ IsSquareIntegrable Y 𝓕 P) 𝓕 X P) :
+    Locally (fun Y : ι → Ω → ℝ ↦ Submartingale Y 𝓕 P) 𝓕
+      (fun t ω ↦ ‖X t ω‖ ^ 2) P := by
+  refine ⟨hX.localSeq, hX.isLocalizingSequence_localSeq, fun n ↦ ?_⟩
+  simpa [stoppedProcess_indicator_sq_norm] using
+    (hX.stoppedProcess_localSeq n).submartingale_sq_norm
+
 lemma IsLocalMartingale.isLocalSubmartingale_sq_norm
     (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
     IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := by
@@ -57,6 +77,10 @@ lemma IsLocalMartingale.isLocalSubmartingale_sq_norm
     -- localization making the stopped local martingales square-integrable. After that,
     -- `stoppedProcess_indicator_sq_norm` converts the localized square to the square of
     -- the localized martingale.
+    -- The transport from a locally square-integrable process to the localized squared norm is
+    -- isolated in `Locally.isSquareIntegrable_submartingale_sq_norm`; the remaining gap is the
+    -- local square-integrability refinement (and the sigma-finite filtration needed for
+    -- conditional Jensen) under the current theorem's hypotheses.
     sorry
   refine ⟨hX2_sub_local.localSeq, hX2_sub_local.isLocalizingSequence_localSeq, fun n ↦ ?_⟩
   exact ⟨hX2_sub_local.stoppedProcess_localSeq n,
