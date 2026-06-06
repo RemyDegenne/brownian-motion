@@ -18,10 +18,10 @@ namespace MeasureTheory
 
 section
 
-variable {ι Ω E : Type*} [Preorder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+variable {ι Ω E : Type*} [Preorder ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
-lemma Martingale.indicator [OrderBot ι] {s : Set Ω}
+lemma Martingale.indicator [CompleteSpace E] [OrderBot ι] {s : Set Ω}
     (hX : Martingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
     Martingale (fun t ↦ s.indicator (X t)) 𝓕 P :=
   ⟨fun i ↦ (hX.stronglyAdapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦
