@@ -20,7 +20,7 @@ open scoped ENNReal Topology
 namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι]
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
@@ -42,7 +42,7 @@ lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : �
       _ < ∞ := hX.bounded
     simpa [HasFiniteIntegral, eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top] using hX_bound
 
-lemma IsSquareIntegrable.add (hX : IsSquareIntegrable X 𝓕 P)
+lemma IsSquareIntegrable.add [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P)
     (hY : IsSquareIntegrable Y 𝓕 P) :
     IsSquareIntegrable (fun i ω ↦ X i ω + Y i ω) 𝓕 P := by
   refine ⟨hX.martingale.add hY.martingale, fun ω ↦ (hX.2 ω).add (hY.2 ω), ?_⟩
@@ -67,7 +67,7 @@ lemma IsSquareIntegrable.smul (hX : IsSquareIntegrable X 𝓕 P) (r : ℝ) :
 
 variable [SigmaFiniteFiltration P 𝓕]
 
-lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P) :
+lemma IsSquareIntegrable.submartingale_sq_norm [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P) :
     Submartingale (fun i ω ↦ ‖X i ω‖ ^ 2) 𝓕 P := by
   refine hX.1.submartingale_convex_comp (φ := fun x ↦ ‖x‖ ^ 2) ?_ (by fun_prop) fun i ↦ ?_
   · exact ConvexOn.pow convexOn_univ_norm (fun _ _ ↦ by positivity) 2
@@ -75,7 +75,8 @@ lemma IsSquareIntegrable.submartingale_sq_norm (hX : IsSquareIntegrable X 𝓕 P
     · exact hX.1.1.stronglyMeasurable.aestronglyMeasurable
     · exact lt_of_le_of_lt (le_iSup (fun i ↦ eLpNorm (X i) 2 P) i) hX.3
 
-lemma IsSquareIntegrable.eLpNorm_mono (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
+lemma IsSquareIntegrable.eLpNorm_mono [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P)
+    {i j : ι} (hij : i ≤ j) :
     eLpNorm (X i) 2 P ≤ eLpNorm (X j) 2 P := by
   have : ∫ ω, ‖X i ω‖ ^ 2 ∂P ≤ ∫ ω, ‖X j ω‖ ^ 2 ∂P := by
     simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
