@@ -320,6 +320,7 @@ lemma stoppedValue_predictablePart_tauMesh_le {ι Ω : Type*} [TopologicalSpace 
     have hnot_min : ¬ IsMin τ := by simpa [isMin_iff_eq_bot] using hτ_bot
     simpa [succ_pred_of_not_isMin hnot_min] using notMem_of_lt_hittingBtwn hpred_lt bot_le
 
+/-- The predictable part is predictable. -/
 lemma isPredictable_predictablePart {ι Ω E : Type*} [LinearOrder ι] [LocallyFiniteOrder ι]
     [OrderBot ι] [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
