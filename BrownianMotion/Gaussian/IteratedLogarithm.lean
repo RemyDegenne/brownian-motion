@@ -76,7 +76,8 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
       fun t ↦ exists_nat_pow_near (x := max 1 t) (y := c) (by bound) (by bound)
     have h_tt1 : Tendsto (fun t ↦ n t) atTop atTop := by
       apply Tendsto.atTop_of_add_const 1
-      rw [tendsto_atTop]; intro m
+      rw [tendsto_atTop]
+      intro m
       filter_upwards [eventually_ge_atTop 1, eventually_ge_atTop (c ^ m)] with t ht1 ht2
       specialize htn2 t
       rw [max_eq_right ht1] at htn2
@@ -150,8 +151,9 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
     · rw [log_pow]
       positivity [log_pos hc]
     rw [mul_rpow (by positivity) _]; swap
-    · exact log_nonneg <| le_of_lt hc
-    field_simp; rfl
+    · positivity [log_pos hc]
+    field_simp
+    rfl
 
 private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     (h_meas : ∀ t, Measurable (X t)) :
@@ -199,14 +201,16 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
         rw [mul_comm, ← EReal.le_div_iff_mul_le (by positivity) (by aesop)]
         rfl
       · convert hX.neg.smul (c := (1 / c)) (by positivity) using 3 with t
-        simp; field_simp
+        simp
+        field_simp
     filter_upwards [h1, h2] with ω hω hω'
     simp_rw [neg_div, EReal.coe_neg, ← Pi.neg_def, EReal.limsup_neg, EReal.neg_le] at hω'
     grw [sub_eq_add_neg, (add_le_add hω hω'), EReal.le_limsup_add]
     apply le_of_eq
     simp_rw [← EReal.coe_div, ← div_sub_div_same,
       EReal.coe_sub, Pi.add_def]
-    norm_cast; aesop
+    norm_cast
+    aesop
   -- auxiliary definitions
   let g := fun (n : ℕ) ↦ √(2 * log (log (c ^ n)))
   let A := fun n ↦ {ω | sqrt (c ^ (n + 1) - c ^ n) * g (n + 1) ≤
@@ -223,9 +227,11 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
       exact tendsto_pow_atTop_atTop_of_one_lt hc1
     intro n hn
     replace hn := hn.out
-    unfold f A g at *; push_cast at *
+    unfold f A g at *
+    push_cast at *
     -- simple rewrite
-    simp_rw [log_pow, pow_add] at *; push_cast at *
+    simp_rw [log_pow, pow_add] at *
+    push_cast at *
     rw [EReal.coe_le_coe_iff, le_div_iff₀ <| sqrt_pos_of_pos <| by bound]
     convert hn using 1
     · rw [← sqrt_mul (by bound), ← sqrt_mul' _ (by bound)]
@@ -240,8 +246,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     specialize h' (fun n ↦ c ^ n) _
     · apply pow_right_monotone <| le_of_lt <| by exact_mod_cast hc1
     rw [iIndepFun_iff_iIndep] at h'
-    apply iIndep_of_iIndep_of_le h' _
-    intro n
+    apply iIndep_of_iIndep_of_le h' fun n ↦ ?_
     apply MeasurableSpace.generateFrom_singleton_le <| measurableSet_le (by measurability) _
     apply Measurable.of_comap_le (by rfl)
   -- convert to sum of reals
@@ -262,12 +267,15 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
       rw [max_eq_left]; swap
       · convert zero_le (α := ℝ≥0)
         rw [NNReal.sub_def, toNNReal_eq_zero, sub_nonpos]
-        push_cast; bound
+        push_cast
+        bound
       convert gaussianReal_const_mul (hX.hasLaw_eval 1) _ using 2
       · norm_num
-      rw [NNReal.eq_iff]; rify
+      rw [NNReal.eq_iff]
+      rify
       rw [sq_sqrt (by bound), NNReal.coe_sub (by bound)]
-      push_cast; field_simp
+      push_cast
+      field_simp
     -- use identical distribution to show probabilites are equal
     convert h_idd.measure_mem_eq (s := {x | _ ≤ (x : ℝ)}) _
     · simp_rw [Set.preimage_setOf_eq]
@@ -281,10 +289,13 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
       (g := fun n ↦ (1 / (g n)) * ((1 / n) * (1 / log c)))]; swap
   · -- show asymptotic equivalence
     apply ((IsStandardGaussian.tail <| hX.hasLaw_eval 1).comp_tendsto _).trans_eventuallyEq
-    · unfold g; simp_rw [Function.comp_def]
+    · unfold g
+      simp_rw [Function.comp_def]
       filter_upwards [eventually_ge_atTop 1] with n hn; congr 1
-      rw [log_pow, sq_sqrt (by bound)]; field_simp
-      rw [exp_neg, exp_log (by positivity)]; field_simp
+      rw [log_pow, sq_sqrt (by bound)]
+      field_simp
+      rw [exp_neg, exp_log (by positivity)]
+      field_simp
     · apply tendsto_sqrt_atTop.comp
       apply Tendsto.const_mul_atTop (by norm_num)
       repeat apply tendsto_log_atTop.comp
@@ -294,20 +305,20 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
   simp_rw [← mul_assoc]
   rw [summable_mul_right_iff (by positivity)]
   -- apply Cauchy condensation test
-  rw [← summable_condensed_iff_of_eventually_nonneg]; rotate_left
+  rw [← summable_condensed_iff_of_eventually_nonneg]
+  rotate_left
   · exact Eventually.of_forall (fun _ ↦ by positivity)
   · -- antitone side condition
     filter_upwards [eventually_gt_atTop 1] with n hn1
     apply mul_le_mul _ (by bound) (by positivity) (by positivity)
-    unfold g; simp_rw [log_pow]
+    unfold g
+    simp_rw [log_pow]
     repeat rw [log_mul (by positivity) (by positivity)]
-    apply one_div_le_one_div_of_le (by positivity)
-    apply sqrt_le_sqrt
-    apply mul_le_mul_of_nonneg_left _ (by norm_num)
-    apply add_le_add_left
-    apply log_le_log (by positivity) (by bound)
+    gcongr
+    lia
   unfold g
-  push_cast; field_simp
+  push_cast
+  field_simp
   -- apply limit comparison test again
   rw [Asymptotics.IsEquivalent.summable_iff_nat
     (g := fun k : ℕ ↦ 1 / √(2 * log 2) * (1 / √k))]
@@ -323,7 +334,9 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
   rw [Pi.div_def]
   conv in _ / _ => rw [← sqrt_mul (by positivity), ← sqrt_div (by bound),
     log_mul (by positivity) (by positivity)]
-  push_cast; simp_rw [log_pow]; ring_nf
+  push_cast
+  simp_rw [log_pow]
+  ring_nf
   simp_rw [(by simp : nhds 1 = nhds (sqrt (1 + 0)))]
   apply Tendsto.sqrt
   apply Tendsto.add
@@ -343,6 +356,7 @@ theorem IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
   have h_ae := hX.mk_ae_forall_eq
   filter_upwards [h_up, h_low, h_ae] with ω hω_up hω_low hω_ae
   convert eq_of_le_of_ge hω_up hω_low
-  simp_rw [hω_ae]; rfl
+  simp_rw [hω_ae]
+  rfl
 
 end ProbabilityTheory
