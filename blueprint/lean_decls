@@ -396,6 +396,12 @@ ProbabilityTheory.SimpleProcess.integral_assoc
 ProbabilityTheory.SimpleProcess.integralEval_assoc
 ProbabilityTheory.SimpleProcess.stoppedProcess_integral
 ProbabilityTheory.SimpleProcess.integral_top
+ProbabilityTheory.stochIcc
+ProbabilityTheory.stochIco
+ProbabilityTheory.stochIoc
+ProbabilityTheory.stochIoo
+ProbabilityTheory.stochGraph
+ProbabilityTheory.stochIoc.exists_elementaryPredictableSet
 MeasureTheory.lowerCrossingTimeAux
 MeasureTheory.upperCrossingTime
 MeasureTheory.lowerCrossingTime
