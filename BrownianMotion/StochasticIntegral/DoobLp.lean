@@ -88,7 +88,6 @@ lemma _root_.tendsto_inv_add_atTop_nhds_zero_nat {𝕜 : Type*} [DivisionSemirin
     Tendsto (fun n : ℕ ↦ ((n : 𝕜) + 1)⁻¹) atTop (𝓝 0) :=
   by simpa using tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := 𝕜)
 
-set_option backward.isDefEq.respectTransparency false in
 lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0)
     (n : ι) :
     ε • P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} ≤
@@ -152,8 +151,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         · exact fun h ↦ h.le
       _ ≤ ⨆ k, ∫ ω in {ω | (ε' : ℝ) ≤ (J k).sup' ⟨n, hnJ k⟩ fun i ↦ Y i ω}, Y n ω ∂P := by
         gcongr with k
-        · exact hbdd
-        · exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
+        exact maximal_ineq_finset hsub hnonneg ε' (hJn k) (hnJ k)
       _ ≤ ∫ ω in {ω | (ε' : ℝ≥0∞) ≤ supY ω}, Y n ω ∂P := by
         refine (ciSup_le_iff hbdd).mpr fun k ↦ ?_
         gcongr with ω
@@ -236,7 +234,6 @@ theorem _root_.ENNReal.ofReal_smul {a : ℝ≥0} {b : ℝ} :
   simp
   rfl
 
-set_option backward.isDefEq.respectTransparency false in
 /-- Alternative form of `Submartingale.ae_bddAbove`. -/
 lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
     (hnonneg : 0 ≤ Y) (n : ι) : ∀ᵐ ω ∂P, ⨆ i ≤ n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
@@ -328,7 +325,7 @@ variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
 
 theorem measurable_iSup_of_rightContinuous {β : Type*} {f : ι → Ω → β}
     [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β] [CompleteLinearOrder β]
-    [OrderTopology β] [SecondCountableTopology β] (hX_cont : ∀ ω, RightContinuous (f · ω))
+    [OrderTopology β] [SecondCountableTopology β] (hX_cont : ∀ ω, IsRightContinuous (f · ω))
     (hm : ∀ t, Measurable (f t)) :
     Measurable (⨆ i, f i) := by
   refine measurable_of_Ioi fun b => ?_
@@ -359,7 +356,7 @@ theorem measurable_iSup_of_rightContinuous {β : Type*} {f : ι → Ω → β}
     exact Set.mem_biUnion hk.1 (hu.2 hk.2)
 
 theorem maximal_ineq_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι)
-    (hY_cont : ∀ ω, RightContinuous (Y · ω)) :
+    (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ε * P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} ≤
       ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
   obtain ⟨T, hT_countable, hT_dense⟩ := TopologicalSpace.exists_countable_dense (Set.Iic n)
@@ -381,7 +378,7 @@ theorem maximal_ineq_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
         exact ⟨⟨i, this⟩, hi⟩
       · simp only [nhdsGT_eq_bot_iff, IsTop, not_or, not_forall, not_le, not_exists] at hni
         obtain ⟨j, hj⟩ := hni.1
-        have hc : RightContinuous fun x : Set.Iic n ↦ ENNReal.ofReal (Y x ω) := by
+        have hc : IsRightContinuous fun x : Set.Iic n ↦ ENNReal.ofReal (Y x ω) := by
           refine fun a => ((hY_cont ω).continuous_comp ENNReal.continuous_ofReal a).comp ?_ ?_
           · exact continuous_subtype_val.continuousWithinAt
           · exact fun x => by simp
@@ -407,9 +404,8 @@ theorem maximal_ineq_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
   _ ≤ ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ s : S, ENNReal.ofReal (Y s ω)}, Y n ω ∂P := by simp [h2]
   _ = _ := by simp [h1]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
-    (hnonneg : 0 ≤ Y) (n : ι) (hY_cont : ∀ ω, RightContinuous (Y · ω)) :
+    (hnonneg : 0 ≤ Y) (n : ι) (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
   let supY (ω : Ω) := ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)
   have hmeasY (i : ι) : Measurable (Y i) :=
@@ -462,7 +458,7 @@ lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Su
   · use 0; finiteness
 
 theorem maximal_ineq_nonneg (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι)
-    (hY_cont : ∀ ω, RightContinuous (Y · ω)) :
+    (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ε * P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
       ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
   have (ω : Ω) : ⨆ i : Set.Iic n, Y i ω = (⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)).toReal := by
@@ -481,7 +477,7 @@ theorem maximal_ineq_nonneg (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) 
 
 -- Remove the nonnegative constraint on `ε`.
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ) (n : ι)
-    (hY_cont : ∀ ω, RightContinuous (Y · ω)) :
+    (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ε * P.real {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} ≤
       ∫ ω in {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
   by_cases! hε : 0 ≤ ε
@@ -490,7 +486,7 @@ theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : �
       (integral_nonneg (hnonneg n))
 
 theorem maximal_ineq_norm (hmar : Martingale X 𝓕 P) (ε : ℝ) (n : ι)
-    (hX_cont : ∀ ω, RightContinuous (X · ω)) :
+    (hX_cont : ∀ ω, IsRightContinuous (X · ω)) :
     ε • P.real {ω | ε ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
       ∫ ω in {ω | ε ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P := by
   refine maximal_ineq hmar.submartingale_norm (fun _ _ ↦ norm_nonneg _) ε n fun ω => ?_

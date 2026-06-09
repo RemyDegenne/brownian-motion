@@ -22,7 +22,7 @@ open scoped ENNReal
 namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [NormedAddCommGroup E] [NormedSpace ℝ E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 /-- A stochastic process is a local martingale if it satisfies the martingale property locally. -/
@@ -47,30 +47,31 @@ lemma Submartingale.IsLocalSubmartingale [LE E]
 
 variable [SecondCountableTopology ι] [MeasurableSpace ι] [BorelSpace ι]
 
-lemma IsLocalMartingale.locally_progMeasurable (hX : IsLocalMartingale X 𝓕 P) :
-    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
-  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+lemma IsLocalMartingale.locally_isStronglyProgressive (hX : IsLocalMartingale X 𝓕 P) :
+    Locally (IsStronglyProgressive 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous
     (fun ω ↦ (hC ω).right_continuous)) hX
 
-lemma IsLocalSubmartingale.locally_progMeasurable [LE E] (hX : IsLocalSubmartingale X 𝓕 P) :
-    Locally (ProgMeasurable 𝓕) 𝓕 X P :=
-  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.progMeasurable_of_rightContinuous
+lemma IsLocalSubmartingale.locally_isStronglyProgressive [LE E] (hX : IsLocalSubmartingale X 𝓕 P) :
+    Locally (IsStronglyProgressive 𝓕) 𝓕 X P :=
+  Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous
     (fun ω ↦ (hC ω).right_continuous)) hX
 
 variable [PseudoMetrizableSpace ι]
 
-omit [NormedSpace ℝ E] [CompleteSpace E] in
+omit [NormedSpace ℝ E] in
 lemma _root_.MeasureTheory.StronglyAdapted.stoppedProcess_indicator
-    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, RightContinuous (X · ω))
+    (hX : StronglyAdapted 𝓕 X) (hC : ∀ ω, IsRightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     StronglyAdapted 𝓕 (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) :=
-  (isStable_progMeasurable X (hX.progMeasurable_of_rightContinuous hC) τ hτ).stronglyAdapted
+  (isStable_isStronglyProgressive X (hX.isStronglyProgressive_of_rightContinuous hC)
+    τ hτ).stronglyAdapted
 
 variable [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
 
-lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
-    (hX : Martingale X 𝓕 P) (hC : ∀ ω, RightContinuous (X · ω))
+lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator [CompleteSpace E]
+    (hX : Martingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     Martingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P := by
   refine ⟨hX.stronglyAdapted.stoppedProcess_indicator hC hτ, fun i j hij ↦ ?_⟩
@@ -84,7 +85,7 @@ lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator
   · exact rightContinuous_indicator (fun ω ↦ hC ω) {ω | ⊥ < τ ω} ω
 
 /-- Càdlàg martingales are a stable class. -/
-lemma isStable_martingale :
+lemma isStable_martingale [CompleteSpace E] :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) :=
   fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
     isStable_isCadlag X hC τ hτ⟩

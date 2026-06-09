@@ -37,7 +37,6 @@ lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
   {μ : EuclideanSpace ℝ ι} {S : Matrix ι ι ℝ} {hS : S.PosSemidef}
 
-set_option backward.isDefEq.respectTransparency false in
 lemma inner_toEuclideanCLM (x y : EuclideanSpace ℝ ι) :
     ⟪x, toEuclideanCLM (𝕜 := ℝ) S y⟫
       = (EuclideanSpace.basisFun ι ℝ).toBasis.repr x ⬝ᵥ S

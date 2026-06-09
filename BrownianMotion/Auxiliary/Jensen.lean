@@ -149,7 +149,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
   · rw [eLpNorm_eq_zero_iff hg.1 one_ne_zero] at hne
     refine ⟨0, fun n => (le_of_eq <|
       (eLpNorm_eq_zero_iff ((stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable.indicator
-        (hmeas n 0)) one_ne_zero).2 ?_).trans (zero_le _)⟩
+        (hmeas n 0)) one_ne_zero).2 ?_).trans zero_le⟩
     filter_upwards [condExp_congr_ae (m := ℱ n) hne] with x hx
     simp only [zero_le', Set.setOf_true, Set.indicator_univ, Pi.zero_apply, hx, condExp_zero]
   obtain ⟨δ, hδ, h⟩ := hg.eLpNorm_indicator_le le_rfl ENNReal.one_ne_top hε
@@ -176,6 +176,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     · convert one_mul _
       simp only [ofReal_eq_one]
       exact mul_inv_cancel₀ hδ.ne'
+    · infer_instance
     · infer_instance
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=

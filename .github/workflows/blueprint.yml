@@ -57,6 +57,15 @@ jobs:
           cd verso
           ./build_manual.sh
 
+      - name: Generate upstreaming dashboard
+        uses: leanprover-community/upstreaming-dashboard-action@main
+        with:
+          website-directory: ./home_page
+          project-name: BrownianMotion
+          branch-name: master
+          search-root: BrownianMotion.Auxiliary
+          include-drafts: true
+
       - name: Compile blueprint and documentation
         uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
         with:
