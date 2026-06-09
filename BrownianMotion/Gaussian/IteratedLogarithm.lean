@@ -1,9 +1,16 @@
+/-
+Copyright (c) 2026 Joris van Winden. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Joris van Winden
+-/
+
 module
 
 public import BrownianMotion.Gaussian.BrownianMotion
-public import Mathlib.Analysis.Calculus.LHopital
-public import Mathlib.Analysis.PSeries
-public import Mathlib.Probability.BorelCantelli
+
+import Mathlib.Analysis.Calculus.LHopital
+import Mathlib.Analysis.PSeries
+import Mathlib.Probability.BorelCantelli
 
 /-!
 This file proves the **law of the iterated logarithm** for Brownian motion, which provides sharp
@@ -253,7 +260,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
         (fun ω ↦ sqrt (c ^ (n + 1) - c ^ n) * X 1 ω) P P := by
       apply (hX.hasLaw_sub _ _).identDistrib
       rw [max_eq_left]; swap
-      · convert zero_le (α := ℝ≥0) _
+      · convert zero_le (α := ℝ≥0)
         rw [NNReal.sub_def, toNNReal_eq_zero, sub_nonpos]
         push_cast; bound
       convert gaussianReal_const_mul (hX.hasLaw_eval 1) _ using 2
