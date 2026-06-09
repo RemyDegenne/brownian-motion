@@ -42,7 +42,7 @@ lemma IsStandardGaussian.tail (hX : HasLaw X (gaussianReal 0 1) P) :
 private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ ((X t ω) / √(2 * t * log (log t))).toEReal) atTop ≤ 1 := by
   -- Introduce notation
-  haveI := (hX.hasLaw ∅).isProbabilityMeasure
+  have := (hX.hasLaw ∅).isProbabilityMeasure
   let M := fun t ω ↦ (⨆ s ≤ t, (X s ω : EReal))
   let f := fun (t : ℝ≥0) ↦ √(2 * t * log (log t))
   have fmono : MonotoneOn f (Set.Ici (⟨(exp 1),by positivity⟩)) := by
@@ -158,7 +158,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
 private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     (h_meas : ∀ t, Measurable (X t)) :
     ∀ᵐ ω ∂P, 1 ≤ limsup (fun t ↦ X t ω / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop := by
-  haveI := (hX.hasLaw ∅).isProbabilityMeasure
+  have := (hX.hasLaw ∅).isProbabilityMeasure
   let f := fun (t : ℝ≥0) ↦ √(2 * t * log (log t))
   -- Rewrite the inequality into a nice form with the quantifier outside
   suffices h : ∀ (c : ℝ), 1 < c → 1 < log c → ∀ᵐ ω ∂P, √(1 - 1 / c) - (1 / √c : ℝ) ≤
@@ -350,7 +350,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
 /-- **Law of the iterated logarithm** for Brownian motion. -/
 theorem IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop = 1 := by
-  haveI := (hX.hasLaw ∅).isProbabilityMeasure
+  have := (hX.hasLaw ∅).isProbabilityMeasure
   have h_up := IsBrownian.ae_limsup_div_sqrt_log_log_le_one hX.isBrownian_mk
   have h_low := IsBrownian.ae_one_le_limsup_div_sqrt_log_log hX.isBrownian_mk hX.measurable_mk
   have h_ae := hX.mk_ae_forall_eq
