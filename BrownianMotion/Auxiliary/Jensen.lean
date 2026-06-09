@@ -177,6 +177,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
       simp only [ofReal_eq_one]
       exact mul_inv_cancel₀ hδ.ne'
     · infer_instance
+    · infer_instance
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=
     @StronglyMeasurable.measurableSet_le _ _ (ℱ n) _ _ _ _ _ _ stronglyMeasurable_const
