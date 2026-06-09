@@ -128,7 +128,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
   refine tendsto_nhds_unique (f := (fun m ↦ ∫ (ω : Ω) in s, stoppedValue X (τn' m) ω ∂μ))
     (l := atTop) ?_ (this ▸ ?_)
   · refine tendsto_setIntegral_of_L1' _ (integrable_stoppedValue_of_discreteApproxSequence' h hRC
-        (fun _ ↦ min_le_of_left_le <| hτ_le _) τn') ?_
+        (fun _ ↦ min_le_of_left_le <| hτ_le _) τn').aestronglyMeasurable ?_
       (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le h hRC τn'
         (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le)) _
     rw [eventually_atTop]
@@ -136,7 +136,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
       (DiscreteApproxSequence.isStoppingTime _ _)
       (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le m)
       (DiscreteApproxSequence.countable _ m))⟩
-  · refine tendsto_setIntegral_of_L1' _ hintgbl ?_
+  · refine tendsto_setIntegral_of_L1' _ hintgbl.aestronglyMeasurable ?_
       (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn) _
     rw [eventually_atTop]
     exact ⟨0, fun m _ ↦ (h.integrable_stoppedValue_of_countable_range _
