@@ -7,6 +7,7 @@ module
 
 public import BrownianMotion.Auxiliary.Adapted
 public import BrownianMotion.StochasticIntegral.ApproxSeq
+public import Mathlib.Probability.Martingale.Centering
 
 @[expose] public section
 
@@ -176,21 +177,66 @@ end Martingale
 section subsupermartingale
 
 variable {Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E]
 
 section Nat
 
 variable {σ τ : Ω → WithTop ℕ} {X : ℕ → Ω → E} (𝓕 : Filtration ℕ mΩ)
 
-theorem Submartingale.stoppedValue_min_ae_le_condExp_nat [PartialOrder E] [OrderClosedTopology E]
-    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX : Submartingale X 𝓕 P) {k : ℕ} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
+theorem Submartingale.stoppedValue_min_ae_le_condExp_nat
+    [PartialOrder E] [OrderClosedTopology E] [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
+    [SigmaFiniteFiltration P 𝓕] (hX : Submartingale X 𝓕 P) {k : ℕ} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
     (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
-  sorry
+  set τ' := τ ⊓ k
+  have hτ'_le (ω) : τ' ω ≤ k := inf_le_right
+  have hτ'_eq : τ' =ᵐ[P] τ := by filter_upwards [hτk] with ω hω using inf_eq_left.mpr hω
+  suffices h : stoppedValue X (τ' ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ'|hσ.measurableSpace] from
+    have ⟨hsv_τ, hsv_τσ⟩  : stoppedValue X τ' =ᵐ[P] stoppedValue X τ
+      ∧ stoppedValue X (τ' ⊓ σ) =ᵐ[P] stoppedValue X (τ ⊓ σ) := by
+        constructor <;> filter_upwards [hτ'_eq] with ω hω using by simp [stoppedValue, hω]
+    hsv_τσ.symm.le.trans (h.trans (condExp_congr_ae hsv_τ).le)
+  set M := martingalePart X 𝓕 P ; set A := predictablePart X 𝓕 P
+  have hMart : Martingale M 𝓕 P := martingale_martingalePart hX.stronglyAdapted hX.integrable
+  have hDecomp : M + A = X := martingalePart_add_predictablePart 𝓕 P X
+  have hSV_eq (ρ ω) : stoppedValue X ρ ω = stoppedValue M ρ ω + stoppedValue A ρ ω := by
+    simp only [stoppedValue, ← hDecomp, Pi.add_apply]
+  have hA_integrable (n) : Integrable (A n) P := by
+    have hAn : A n = X n - M n := funext fun ω ↦ by
+      simpa only [Pi.add_apply, Pi.sub_apply, eq_comm, sub_eq_iff_eq_add, add_comm] using
+        congr_fun (congr_fun (martingalePart_add_predictablePart 𝓕 P X) n) ω
+    simpa only [hAn] using (hX.integrable n).sub (integrable_martingalePart hX.integrable n)
+  have hM_OS : (stoppedValue M <| min σ τ') =ᵐ[P] P[stoppedValue M τ'|hσ.measurableSpace] :=
+    Martingale.stoppedValue_min_ae_eq_condExp hMart (hτ.min <| isStoppingTime_const 𝓕 k) hσ hτ'_le
+  have hne_top (ω): τ' ω ≠ ⊤ := ne_top_of_le_ne_top WithTop.coe_ne_top inf_le_right
+  have hA_le : ∀ᵐ ω ∂P, stoppedValue A (τ' ⊓ σ) ω ≤ stoppedValue A τ' ω := by
+    filter_upwards [hX.monotone_predictablePart] with ω hm using
+      hm (WithTop.untopA_mono (hne_top ω) inf_le_left)
+  have hA_int_min : Integrable (stoppedValue A (τ' ⊓ σ)) P :=
+    integrable_stoppedValue ℕ ((hτ.min <| isStoppingTime_const 𝓕 k).min hσ) hA_integrable
+      (fun ω ↦ (inf_le_left (a := τ' ω)).trans (hτ'_le ω))
+  have hA_int : Integrable (stoppedValue A τ') P :=
+    integrable_stoppedValue _ (hτ.min <| isStoppingTime_const 𝓕 k) hA_integrable hτ'_le
+  have hA_condExp : stoppedValue A (τ' ⊓ σ) ≤ᵐ[P] P[stoppedValue A τ'|hσ.measurableSpace] :=
+    have hA_meas : AEStronglyMeasurable[hσ.measurableSpace] (stoppedValue A (τ' ⊓ σ)) P :=
+      ((measurable_stoppedValue stronglyAdapted_predictablePart'.isStronglyProgressive_of_discrete
+        ((hτ.min <| isStoppingTime_const 𝓕 k).min hσ)).mono
+        (((hτ.min <| isStoppingTime_const 𝓕 k).min hσ).measurableSpace_mono hσ
+          inf_le_right) le_rfl).stronglyMeasurable.aestronglyMeasurable
+    (condExp_of_aestronglyMeasurable' hσ.measurableSpace_le hA_meas hA_int_min).symm.le.trans
+      (condExp_mono hA_int_min hA_int hA_le)
+  have hM_int : Integrable (stoppedValue M τ') P := integrable_stoppedValue ℕ
+      (hτ.min <| isStoppingTime_const 𝓕 k) (integrable_martingalePart hX.integrable) hτ'_le
+  filter_upwards [hM_OS.le, hA_condExp, condExp_add hM_int hA_int hσ.measurableSpace,
+    condExp_congr_ae (ae_of_all P fun ω ↦ (hSV_eq τ' ω).symm)] with ω h1 h2 h3 h4 using
+      hSV_eq (τ' ⊓ σ) ω ▸ calc stoppedValue M (τ' ⊓ σ) ω + stoppedValue A (τ' ⊓ σ) ω
+                              ≤ P[stoppedValue M τ' + stoppedValue A τ'|hσ.measurableSpace] ω :=
+                                  by grind only [add_le_add h1 h2, Pi.add_apply]
+                              _ = _ := h4
 
 theorem Supermartingale.condExp_ae_le_stoppedValue_min_nat [PartialOrder E] [OrderClosedTopology E]
-    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
+    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E] [SigmaFiniteFiltration P 𝓕]
     (hX : Supermartingale X 𝓕 P) {k : ℕ} (hτk : ∀ᵐ ω ∂P, τ ω ≤ k)
     (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
     P[stoppedValue X τ|hσ.measurableSpace] ≤ᵐ[P] stoppedValue X (τ ⊓ σ) := by
