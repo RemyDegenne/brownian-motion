@@ -6,6 +6,8 @@
 
 
 \begin{definition}[Stochastic intervals]\label{def:stochasticInterval}
+  \leanok
+  \lean{ProbabilityTheory.stochIcc, ProbabilityTheory.stochIco, ProbabilityTheory.stochIoc, ProbabilityTheory.stochIoo, ProbabilityTheory.stochGraph}
 Let $T$ be a time domain and let $\sigma, \tau$ be functions $\Omega \to T \cup \{\infty\}$.
 We define
 \begin{align*}
@@ -42,11 +44,13 @@ If $\sigma$ and $\tau$ are stopping times, then the stochastic interval $]\!]\si
 
 \begin{lemma}\label{lem:elementaryPredictableSet_stochasticInterval}
   \uses{def:stochasticInterval, def:elementaryPredictableSet, def:IsStoppingTime}
-If $\sigma$ and $\tau$ are bounded stopping times on $\mathbb{N}$, then the stochastic interval $]\!]\sigma, \tau]\!]$ is an elementary predictable set.
+  \leanok
+  \lean{ProbabilityTheory.stochIoc.exists_elementaryPredictableSet}
+If $\sigma$ and $\tau$ are stopping times on $\mathbb{N}$, with $\tau$ bounded, then the stochastic interval $]\!]\sigma, \tau]\!]$ is an elementary predictable set.
 \end{lemma}
 
-\begin{proof}
-Let $n$ be a common upper bound for $\sigma$ and $\tau$.
+\begin{proof}\leanok
+Let $n$ be an upper bound for $\tau$.
 To see that the stochastic interval is an elementary predictable set, note that it can be written as a finite disjoint union of sets
 \begin{align*}
   \{\sigma(\omega) < t \le \tau(\omega)\}
