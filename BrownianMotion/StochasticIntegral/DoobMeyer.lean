@@ -798,6 +798,15 @@ noncomputable def martingaleConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) : ι → Ω → ℝ :=
   (weight hd hs n).weights.sum fun m r ↦ r • martingaleSeqStep P S 𝓕 m
 
+/-- `L¹` norm convergence of `martingaleConvexStep`, proved by using conditional Jensen. -/
+lemma martingaleConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (t : ι) :
+    Tendsto (fun n ↦ eLpNorm
+      (martingaleConvexStep hd hs n t - martingalePartLim hd hs t) 1 P) atTop (𝓝 0) := by
+  sorry
+
 end MartingalePartLimDef
 
 -- We define the predictable part in the doob-meyer decomposition.
