@@ -108,7 +108,7 @@ instance sigmaFiniteFiltration_meshFiltration {ι Ω : Type*} [TopologicalSpace 
 /-- Predictable part of a discrete process. -/
 noncomputable def predictablePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
     [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     ι → Ω → E :=
   fun n ↦ ∑ i ∈ Finset.Iio n, P[S (succ i) - S i | 𝓕 i]
 
@@ -789,7 +789,7 @@ noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
 /-- The extension of the discrete martingale part `M^n`. -/
 noncomputable def martingaleSeqStep {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
     [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
-    (P : Measure Ω) [IsFiniteMeasure P] (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
   P[martingaleSeqTop S 𝓕 P n | 𝓕 i]
 
 /-- The convexly averaged mesh step-extension `ℳ^n` of the martingale parts. -/
@@ -813,7 +813,7 @@ def meshPredIoc {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι] [Topol
 /-- The mesh step-extension of the discrete predictable part `A^n`. -/
 noncomputable def predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} (P : Measure Ω) [IsFiniteMeasure P] (S : ι → Ω → ℝ)
+    {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ)
     (𝓕 : Filtration ι mΩ) (n : ℕ) : ι → Ω → ℝ :=
   fun t ↦ ∑ u : mesh ι n, (meshPredIoc n u).indicator
     (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u) t
@@ -1106,10 +1106,6 @@ lemma isStronglyPredictable_predictableConvexStep {ι Ω : Type*} [TopologicalSp
     (predictableConvexStep_leftContinuous hd hs n)
 
 end PredictableConvexStepPredictable
-
-section Fatou
-
-end Fatou
 
 section PredictablePartIsStronglyPredictable
 
