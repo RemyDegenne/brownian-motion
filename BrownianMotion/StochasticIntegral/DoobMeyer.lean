@@ -175,7 +175,7 @@ lemma MeasureTheory.Submartingale.predictablePart_nonneg' {ι Ω E : Type*} [Lin
 /-- Martingale part of a discrete process. -/
 noncomputable def martingalePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
     [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     ι → Ω → E :=
   S - predictablePart S 𝓕 P
 
@@ -215,7 +215,7 @@ lemma martingalePart_add_predictablePart {ι Ω E : Type*} [Preorder ι] [Locall
 /-- Sequence of terminal values of the predictable part. -/
 noncomputable def predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
+    [NormedSpace ℝ E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
     (n : ℕ) : Ω → E :=
   predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
@@ -241,8 +241,7 @@ lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpac
 /-- Sequence of terminal values of the martingale part. -/
 noncomputable def martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
-    (n : ℕ) : Ω → E :=
+    [NormedSpace ℝ E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) : Ω → E :=
   martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
 /-- The terminal values of the discrete martingale parts are additive. -/
@@ -788,8 +787,8 @@ noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
 
 /-- The extension of the discrete martingale part `M^n`. -/
 noncomputable def martingaleSeqStep {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
-    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (P : Measure Ω)
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
   P[martingaleSeqTop S 𝓕 P n | 𝓕 i]
 
 /-- The convexly averaged mesh step-extension `ℳ^n` of the martingale parts. -/
@@ -812,9 +811,9 @@ def meshPredIoc {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι] [Topol
 
 /-- The mesh step-extension of the discrete predictable part `A^n`. -/
 noncomputable def predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (n : ℕ) : ι → Ω → ℝ :=
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
+    ι → Ω → ℝ :=
   fun t ↦ ∑ u : mesh ι n, (meshPredIoc n u).indicator
     (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u) t
 
