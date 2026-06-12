@@ -840,11 +840,12 @@ noncomputable def predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ι → Ω → ℝ :=
   S - martingalePartLim hd hs
 
-/-- `L¹` norm convergence of `predictableConvexStep`. -/
+/-- `L¹` norm convergence of `predictableConvexStep` for `t` in `denseSet ι`. -/
 lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (t : ι) :
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) {t : ι}
+    (ht : t ∈ denseSet ι) :
     Tendsto (fun n ↦ eLpNorm
       (predictableConvexStep hd hs n t - predictablePartLim hd hs t) 1 P) atTop (𝓝 0) := by
   sorry
@@ -853,7 +854,8 @@ lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι
 lemma predictableConvexStep_ae_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (t : ι) :
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) {t : ι}
+    (ht : t ∈ denseSet ι) :
     ∃ φ : ℕ → ℕ, StrictMono φ ∧
       ∀ᵐ ω ∂P, Tendsto (fun n ↦ predictableConvexStep hd hs (φ n) t ω)
         atTop (𝓝 (predictablePartLim hd hs t ω)) := by
@@ -869,8 +871,7 @@ lemma monotone_of_frequently_monotone_of_tendsto {ι α β : Type*} [Preorder α
     [Preorder β] [OrderClosedTopology β] {l : Filter ι} {F : ι → α → β} {f : α → β}
     (hF : ∃ᶠ i in l, Monotone (F i)) (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) :
     Monotone f :=
-  fun a b hab => le_of_tendsto_of_tendsto_of_frequently (hlim a) (hlim b)
-    (hF.mono (fun _ hi => hi hab))
+  isClosed_monotone.mem_of_frequently_of_tendsto hF ((tendsto_pi_nhds).2 hlim)
 
 /-- The limit of a collection of functions that is frequently antitone is antitone. -/
 lemma antitone_of_frequently_antitone_of_tendsto {ι α β : Type*} [Preorder α] [TopologicalSpace β]
@@ -1160,7 +1161,7 @@ lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictab
       (𝓝 <| ∫ ω, stoppedValue (predictablePartLim hd hs) τ ω ∂P) := by
   sorry
 
-/-- See also `limsup_lintegral_le`. -/
+/-- Reverse Fatou's lemma. See also `limsup_lintegral_le`. -/
 lemma limsup_integral_le_integral_limsup_of_tendsto_integral_posPart_sub {Ω : Type*}
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
     (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P) (hY_nonneg : 0 ≤ᵐ[P] Y)
