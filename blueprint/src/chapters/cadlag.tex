@@ -249,7 +249,7 @@ Go from $T$ to a subset of $\mathbb{N}$ and use Lemma~\ref{lem:upcrossing_simple
   \uses{def:elemStochIntegral, def:modification}
   \leanok
   \lean{ProbabilityTheory.exists_modification_left_right_limit}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
+Let $T$ be a separable time domain, and let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process such that $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
 % \begin{enumerate}
 %   \item $X$ is integrable and for every $t \in T$ the set $\{\mathbb{E}[(\mathbb{1}_A \bullet X)_t] \mid A \text{ elementary predictable}\}$ is bounded.
 %   \item For every $t \in T$ the set $\{(\mathbb{1}_A \bullet X)_t \mid A \text{ elementary predictable}\}$ is bounded in probability.
@@ -328,7 +328,7 @@ In the following, we say that a stochastic process $X$ is \emph{right-continuous
   \uses{def:elemStochIntegral, def:modification}
   \leanok
   \lean{ProbabilityTheory.exists_modification_isCadlag}
-Let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
+Let $T$ be a separable time domain, and let $X : T \to \Omega \to \mathbb{R}$ be an adapted stochastic process which is right-continuous in probability and such that the boundedness condition of Theorem~\ref{thm:exists_rightContinuous_modification_of_bounded_elemStochIntegral} holds.
 Then $X$ has a cadlag modification.
 \end{corollary}
 
