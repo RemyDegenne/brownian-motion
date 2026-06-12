@@ -367,11 +367,123 @@ lemma komlos_convergence_L2
     Tendsto (fun n ↦ eLpNorm (fun ω ↦ ((cw n).weights.sum (fun i wi ↦ wi • f' i n)) ω - lim ω) 2 P)
       atTop (𝓝 0) := by sorry
 
+private noncomputable def komlosTrunc (f : ℕ → Ω → E) (i m : ℕ) : Ω → E :=
+  ({ω : Ω | ‖f m ω‖ ≤ (i : ℝ)}).indicator (f m)
+
+omit [InnerProductSpace ℝ E] [CompleteSpace E] in
+private lemma komlosTrunc_tail_eLpNorm {P : Measure Ω} {f : ℕ → Ω → E}
+    (hf : UniformIntegrable f 1 P) {ε : ℝ} (hε : 0 < ε) :
+    ∃ i : ℕ, ∀ m, eLpNorm (f m - komlosTrunc f i m) 1 P ≤ ENNReal.ofReal ε := by
+  obtain ⟨C, hC⟩ := hf.spec one_ne_zero ENNReal.one_ne_top hε
+  refine ⟨⌈(C : ℝ)⌉₊, fun m ↦ le_trans (eLpNorm_mono fun ω ↦ ?_) (hC m)⟩
+  rw [komlosTrunc, ← Set.indicator_compl]
+  refine norm_indicator_le_of_subset (fun ω hω ↦ ?_) (f m) ω
+  have : (⌈(C : ℝ)⌉₊ : ℝ) < ‖f m ω‖ := by simpa using hω
+  exact (Nat.le_ceil (C : ℝ)).trans this.le
+
+omit [CompleteSpace E] in
+private lemma komlos_eLpNorm_stdSimplex_sum_le {P : Measure Ω} (w : StdSimplex ℝ ℕ)
+    {h : ℕ → Ω → E} (hmeas : ∀ m, AEStronglyMeasurable (h m) P) {B : ℝ≥0∞}
+    (hB : ∀ m, eLpNorm (h m) 1 P ≤ B) :
+    eLpNorm (w.weights.sum fun m c ↦ c • h m) 1 P ≤ B := by
+  rw [Finsupp.sum]
+  calc eLpNorm (∑ m ∈ w.weights.support, w.weights m • h m) 1 P
+      ≤ ∑ m ∈ w.weights.support, eLpNorm (w.weights m • h m) 1 P :=
+        eLpNorm_sum_le (fun m _ ↦ (hmeas m).const_smul _) le_rfl
+    _ ≤ ∑ m ∈ w.weights.support, ENNReal.ofReal (w.weights m) * B :=
+        Finset.sum_le_sum fun m _ ↦ by
+          rw [eLpNorm_const_smul, Real.enorm_eq_ofReal (w.nonneg m)]
+          exact mul_le_mul_right (hB m) _
+    _ = B := by
+        rw [← Finset.sum_mul, ← ENNReal.ofReal_sum_of_nonneg fun m _ ↦ w.nonneg m,
+          show ∑ m ∈ w.weights.support, w.weights m = 1 from w.total, ENNReal.ofReal_one,
+          one_mul]
+
+omit [CompleteSpace E] in
+private lemma komlos_coeFn_sum_smul {P : Measure Ω} {p : ℝ≥0∞} (s : Finset ℕ) (c : ℕ → ℝ)
+    {h : ℕ → Ω → E} (hmem : ∀ m, MemLp (h m) p P) :
+    ⇑(∑ m ∈ s, c m • (hmem m).toLp (h m)) =ᵐ[P] ∑ m ∈ s, c m • h m := by
+  induction s using Finset.induction_on with
+  | empty => simpa using Lp.coeFn_zero E p P
+  | insert a t hat ih =>
+    rw [Finset.sum_insert hat, Finset.sum_insert hat]
+    exact (Lp.coeFn_add _ _).trans <|
+      ((Lp.coeFn_smul _ _).trans ((hmem a).coeFn_toLp.const_smul (c a))).add ih
+
 theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P : Measure Ω}
-    (hf : UniformIntegrable f 1 P) :
+    [IsFiniteMeasure P] (hf : UniformIntegrable f 1 P) :
     ∃ (g : ℕ → Ω → E) (glim : Ω → E), (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
       Tendsto (fun n ↦ eLpNorm (g n - glim) 1 P) atTop (𝓝 0) := by
-  sorry
+  have hnorm i m ω : ‖komlosTrunc f i m ω‖ ≤ (i : ℝ) := by
+    by_cases h : ‖f m ω‖ ≤ (i : ℝ) <;> simp [komlosTrunc, h]
+  have hmeas i m : AEStronglyMeasurable (komlosTrunc f i m) P :=
+    (hf.1 m).indicator₀ (nullMeasurableSet_le (hf.1 m).norm.aemeasurable aemeasurable_const)
+  have hmem2 i m : MemLp (komlosTrunc f i m) 2 P :=
+    (memLp_top_of_bound (hmeas i m) _ (ae_of_all _ (hnorm i m))).mono_exponent le_top
+  have hbdd i : ∃ M, ∀ m, ‖(hmem2 i m).toLp (komlosTrunc f i m)‖ ≤ M :=
+    ⟨_, fun m ↦ Lp.norm_le_of_ae_bound i.cast_nonneg <|
+      (hmem2 i m).coeFn_toLp.mono fun ω hω ↦ hω ▸ hnorm i m ω⟩
+  obtain ⟨η, hη0, hηlim⟩ := komlos_convex_weights_diagonal
+    (x := fun i m ↦ (hmem2 i m).toLp (komlosTrunc f i m)) hbdd
+  choose G hG using hηlim
+  set g : ℕ → Ω → E := fun n ↦ (η n).weights.sum fun m c ↦ c • f m with hg_def
+  set T : ℕ → ℕ → Ω → E := fun i n ↦ (η n).weights.sum fun m c ↦ c • komlosTrunc f i m
+    with hT_def
+  have h_convex n : g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m)) := by
+    refine Convex.sum_mem (convex_convexHull ℝ _) (fun m _ ↦ (η n).nonneg m) (η n).total
+      fun m hm ↦ subset_convexHull ℝ _ ⟨m - n, ?_⟩
+    have hnm : n ≤ m := le_of_not_gt fun hlt ↦ Finsupp.mem_support_iff.mp hm (hη0 n m hlt)
+    exact congrArg f (Nat.add_sub_cancel' hnm)
+  have hgmem1 n : MemLp (g n) 1 P := memLp_finsetSum' _ fun m _ ↦ (hf.memLp m).const_smul _
+  have hTmem2 i n : MemLp (T i n) 2 P := memLp_finsetSum' _ fun m _ ↦ (hmem2 i m).const_smul _
+  have hL2 i : Tendsto (fun n ↦ eLpNorm (T i n - ⇑(G i)) 2 P) atTop (𝓝 0) :=
+    ((Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ (G i)).mp (hG i)).congr fun n ↦
+      eLpNorm_congr_ae ((komlos_coeFn_sum_smul _ _ (hmem2 i)).sub EventuallyEq.rfl)
+  have hL1 i : Tendsto (fun n ↦ eLpNorm (T i n - ⇑(G i)) 1 P) atTop (𝓝 0) := by
+    have hκ : P Set.univ ^ (1 / (1 : ℝ≥0∞).toReal - 1 / (2 : ℝ≥0∞).toReal) ≠ ∞ :=
+      ENNReal.rpow_ne_top_of_nonneg (by norm_num) (measure_ne_top P _)
+    have hmul := ENNReal.Tendsto.mul_const (hL2 i) (.inr hκ)
+    rw [zero_mul] at hmul
+    exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hmul (fun n ↦ zero_le')
+      fun n ↦ eLpNorm_le_eLpNorm_mul_rpow_measure_univ one_le_two
+        ((hTmem2 i n).1.sub (Lp.aestronglyMeasurable (G i)))
+  have tri {u v w : Ω → E} (hu : AEStronglyMeasurable u P) (hv : AEStronglyMeasurable v P)
+      (hw : AEStronglyMeasurable w P) :
+      eLpNorm (u - w) 1 P ≤ eLpNorm (u - v) 1 P + eLpNorm (v - w) 1 P :=
+    sub_add_sub_cancel u v w ▸ eLpNorm_add_le (hu.sub hv) (hv.sub hw) le_rfl
+  have hcau : CauchySeq fun n ↦ (hgmem1 n).toLp (g n) := by
+    refine Metric.cauchySeq_iff.mpr fun ε hε ↦ ?_
+    obtain ⟨i₀, hi₀⟩ := komlosTrunc_tail_eLpNorm hf (show (0 : ℝ) < ε / 6 by positivity)
+    have houter n : eLpNorm (g n - T i₀ n) 1 P ≤ ENNReal.ofReal (ε / 6) := by
+      have : g n - T i₀ n = (η n).weights.sum fun m c ↦ c • (f m - komlosTrunc f i₀ m) := by
+        simp only [hg_def, hT_def, smul_sub, Finsupp.sum_sub]
+      rw [this]
+      exact komlos_eLpNorm_stdSimplex_sum_le _ (fun m ↦ (hf.1 m).sub (hmeas i₀ m)) hi₀
+    obtain ⟨N, hN⟩ := ENNReal.tendsto_atTop_zero.mp (hL1 i₀) (ENNReal.ofReal (ε / 6))
+      (ENNReal.ofReal_pos.mpr (by positivity))
+    have key k (hk : N ≤ k) : eLpNorm (g k - ⇑(G i₀)) 1 P ≤ ENNReal.ofReal (ε / 3) :=
+      calc eLpNorm (g k - ⇑(G i₀)) 1 P
+          ≤ eLpNorm (g k - T i₀ k) 1 P + eLpNorm (T i₀ k - ⇑(G i₀)) 1 P :=
+            tri (hgmem1 k).1 (hTmem2 i₀ k).1 (Lp.aestronglyMeasurable _)
+        _ ≤ ENNReal.ofReal (ε / 6) + ENNReal.ofReal (ε / 6) := add_le_add (houter k) (hN k hk)
+        _ = ENNReal.ofReal (ε / 3) := by
+            rw [← ENNReal.ofReal_add (by positivity) (by positivity),
+              show ε / 6 + ε / 6 = ε / 3 by ring]
+    refine ⟨N, fun n hn m hm ↦ ?_⟩
+    rw [Lp.dist_def, eLpNorm_congr_ae ((hgmem1 n).coeFn_toLp.sub (hgmem1 m).coeFn_toLp)]
+    refine lt_of_le_of_lt (ENNReal.toReal_le_of_le_ofReal (by positivity) ?_)
+      (show 2 * ε / 3 < ε by linarith)
+    calc eLpNorm (g n - g m) 1 P
+        ≤ eLpNorm (g n - ⇑(G i₀)) 1 P + eLpNorm (⇑(G i₀) - g m) 1 P :=
+          tri (hgmem1 n).1 (Lp.aestronglyMeasurable _) (hgmem1 m).1
+      _ ≤ ENNReal.ofReal (ε / 3) + ENNReal.ofReal (ε / 3) :=
+          add_le_add (key n hn) (eLpNorm_sub_comm (g m) ⇑(G i₀) 1 P ▸ key m hm)
+      _ = ENNReal.ofReal (2 * ε / 3) := by
+          rw [← ENNReal.ofReal_add (by positivity) (by positivity),
+            show ε / 3 + ε / 3 = 2 * ε / 3 by ring]
+  obtain ⟨L, hL⟩ := cauchySeq_tendsto_of_complete hcau
+  exact ⟨g, ⇑L, h_convex, ((Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ L).mp hL).congr fun n ↦
+    eLpNorm_congr_ae ((hgmem1 n).coeFn_toLp.sub EventuallyEq.rfl)⟩
 
 -- todo: check measurability hypothesis/conclusion
 lemma komlos_ennreal (X : ℕ → Ω → ℝ≥0∞) (hX : ∀ n, Measurable (X n))
