@@ -17,6 +17,19 @@ variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [Nonempty
 lemma stoppedValue_norm [SeminormedAddCommGroup E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
     stoppedValue (fun t ω => ‖u t ω‖) τ = fun ω => ‖(stoppedValue u τ ω)‖ := rfl
 
+namespace stoppedValue
+
+@[simp] lemma add [Add E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u + v) τ = stoppedValue u τ + stoppedValue v τ := rfl
+
+@[simp] lemma neg [Neg E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (-u) τ = -stoppedValue u τ := rfl
+
+@[simp] lemma sub [Sub E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u - v) τ = stoppedValue u τ - stoppedValue v τ := rfl
+
+end stoppedValue
+
 variable [LinearOrder ι]
 
 @[simp] lemma stoppedProcess_const {β : Type*} {u₀ : Ω → β} {τ : Ω → WithTop ι} :

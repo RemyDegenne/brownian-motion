@@ -15,12 +15,115 @@ public import Mathlib.Probability.Martingale.OptionalSampling
 
 @[expose] public section
 
-open scoped NNReal ENNReal
+open scoped NNReal ENNReal Topology
 open Filter
 
 namespace MeasureTheory
 
 variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
+
+/-- An analogue of `uniformIntegrable_iff`, but the nonstrict inequality in `C ≤ ‖X i x‖₊` is
+replaced by a strict inequality. -/
+theorem uniformIntegrable_iff' [IsFiniteMeasure μ] [NormedAddCommGroup E] {X : κ → Ω → E} {p : ℝ≥0∞}
+    (hp : 1 ≤ p) (hp' : p ≠ ∞) :
+    UniformIntegrable X p μ ↔
+      (∀ i, AEStronglyMeasurable (X i) μ) ∧
+        ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
+          ∀ i, eLpNorm ({x | C < ‖X i x‖₊}.indicator (X i)) p μ ≤ ENNReal.ofReal ε := by
+  rw [uniformIntegrable_iff hp hp']
+  refine ⟨fun h ↦ ⟨h.1, fun ε hε ↦ ?_⟩, fun h ↦ ⟨h.1, fun ε hε ↦ ?_⟩⟩
+  · obtain ⟨C, hC⟩ := h.2 ε hε
+    refine ⟨C, fun i ↦ (eLpNorm_mono fun x ↦ ?_).trans (hC i)⟩
+    by_cases hx : C < ‖X i x‖₊
+    · simp [hx, hx.le]
+    · simp [hx]
+  · obtain ⟨C, hC⟩ := h.2 ε hε
+    refine ⟨C + 1, fun i ↦ (eLpNorm_mono fun x ↦ ?_).trans (hC i)⟩
+    by_cases hx : C + 1 ≤ ‖X i x‖₊
+    · have hx' : C < ‖X i x‖₊ := (lt_add_of_pos_right C zero_lt_one).trans_le hx
+      simp [hx, hx']
+    · simp [hx]
+
+/-- A family of random variables is uniformly integrable iff its `L¹` tails above `c` tend to
+zero uniformly in the index. -/
+lemma uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm [IsFiniteMeasure μ]
+    [NormedAddCommGroup E] {X : κ → Ω → E} (hX : ∀ k, AEStronglyMeasurable (X k) μ) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ≥0 =>
+        ⨆ k, eLpNorm ({ω | c < ‖X k ω‖₊}.indicator (X k)) 1 μ) atTop (𝓝 0) := by
+  let tail : ℝ≥0 → ℝ≥0∞ := fun c ↦ ⨆ i : κ, eLpNorm ({ω | c < ‖X i ω‖₊}.indicator (X i)) 1 μ
+  -- We first show that this tail function is antitone so that convergence at `atTop` can be checked
+  -- by `ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_mono`.
+  have htail_anti : Antitone tail := by
+    refine fun c d hcd => iSup_mono fun k => eLpNorm_mono_enorm fun ω => ?_
+    by_cases hω : d < ‖X k ω‖₊
+    · simp [hω, hcd.trans_lt hω]
+    · simp [hω]
+  rw [uniformIntegrable_iff' (refl 1) ENNReal.one_ne_top]
+  refine ⟨fun ⟨_, htail⟩ => ?_, fun htail => ⟨hX, fun ε hε => ?_⟩⟩
+  · refine (ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_anti).2 fun ε hε => ?_
+    by_cases hε_top : ε = ∞
+    · exact ⟨0, by simp [hε_top]⟩
+    · have hε_real_pos : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hε_top
+      obtain ⟨C, hC⟩ := htail ε.toReal hε_real_pos
+      exact ⟨C, iSup_le_iff.2 fun i => (hC i).trans_eq (ENNReal.ofReal_toReal hε_top)⟩
+  · rw [ENNReal.tendsto_atTop_zero_iff_le_of_antitone htail_anti] at htail
+    obtain ⟨C, hC⟩ := htail (ENNReal.ofReal ε) (ENNReal.ofReal_pos.2 hε)
+    exact ⟨C, fun i => (le_iSup _ i).trans hC⟩
+
+/-- A helper lemma for `uniformIntegrable_iff_tendsto_iSup_setIntegral_norm`. -/
+lemma eLpNorm_indicator_tail_eq_setIntegral_norm [NormedAddCommGroup E] {f : Ω → E}
+    (hf : Integrable f μ) (c : ℝ≥0) :
+    eLpNorm ({ω | c < ‖f ω‖₊}.indicator f) 1 μ =
+      ENNReal.ofReal (∫ ω in {ω | c < ‖f ω‖}, ‖f ω‖ ∂μ) := by
+  have hs : NullMeasurableSet {ω | c < ‖f ω‖} μ :=
+    aestronglyMeasurable_const.nullMeasurableSet_lt hf.aestronglyMeasurable.norm
+  have hs_eq : {ω | c < ‖f ω‖₊} = {ω | c < ‖f ω‖} := by ext; simp [NNReal.coe_lt_coe.symm]
+  simp [eLpNorm_one_eq_lintegral_enorm, hs_eq,
+    ← ofReal_integral_norm_eq_lintegral_enorm (hf.indicator₀ hs),
+    norm_indicator_eq_indicator_norm, integral_indicator₀ hs]
+
+/-- Use integral of norm instead of `eLpNorm` in the characterization of `UniformIntegrable`. -/
+lemma uniformIntegrable_iff_tendsto_nnReal_iSup_setIntegral_norm [IsFiniteMeasure μ]
+    [NormedAddCommGroup E] {X : κ → Ω → E} (hX : ∀ k, AEStronglyMeasurable (X k) μ)
+    (hXint : ∀ k, Integrable (X k) μ) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ≥0 =>
+        ⨆ k, ENNReal.ofReal (∫ ω in {ω | c < ‖X k ω‖}, ‖X k ω‖ ∂μ)) atTop (𝓝 0) := by
+  rw [uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm hX]
+  apply tendsto_congr'
+  filter_upwards with c using iSup_congr
+    fun i => eLpNorm_indicator_tail_eq_setIntegral_norm (hXint i) c
+
+/-- A helper lemma for `uniformIntegrable_iff_tendsto_iSup_setIntegral_of_nonneg`. -/
+lemma eLpNorm_indicator_tail_eq_setIntegral_of_nonneg {f : Ω → ℝ}
+    (hf : Integrable f μ) (hnonneg : 0 ≤ᵐ[μ] f) (c : ℝ≥0) :
+    eLpNorm ({ω | c < ‖f ω‖₊}.indicator f) 1 μ =
+      ENNReal.ofReal (∫ ω in {ω | c < f ω}, f ω ∂μ) := by
+  rw [eLpNorm_indicator_tail_eq_setIntegral_norm hf]
+  apply congrArg
+  calc
+  _ = ∫ (ω : Ω) in {ω | c < f ω}, ‖f ω‖ ∂μ := by
+    apply setIntegral_congr_set
+    filter_upwards [hnonneg] with ω hω
+    simp [setOf, abs_of_nonneg hω]
+  _ = _ := by
+    refine setIntegral_congr_fun₀
+      (aestronglyMeasurable_const.nullMeasurableSet_lt hf.aestronglyMeasurable) fun ω hω => ?_
+    exact Real.norm_of_nonneg (c.2.trans hω.le)
+
+/-- Use integral instead of `eLpNorm` in the characterization of `UniformIntegrable` for nonnegative
+functions. -/
+lemma uniformIntegrable_iff_tendsto_nnReal_iSup_setIntegral_of_nonneg [IsFiniteMeasure μ]
+    {X : κ → Ω → ℝ} (hX : ∀ k, AEStronglyMeasurable (X k) μ) (hnonneg : ∀ k, 0 ≤ᵐ[μ] X k)
+    (hXint : ∀ k, Integrable (X k) μ) :
+    UniformIntegrable X 1 μ ↔
+      Tendsto (fun c : ℝ≥0 =>
+        ⨆ k, ENNReal.ofReal (∫ ω in {ω | c < X k ω}, X k ω ∂μ)) atTop (𝓝 0) := by
+  rw [uniformIntegrable_iff_tendsto_iSup_eLpNorm_indicator_norm hX]
+  apply tendsto_congr'
+  filter_upwards with c using iSup_congr
+    fun i => eLpNorm_indicator_tail_eq_setIntegral_of_nonneg (hXint i) (hnonneg i) c
 
 lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞} (hp : 1 ≤ p)
     (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
@@ -33,6 +136,18 @@ lemma UniformIntegrable.add [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : 
     obtain ⟨C_Y, hC_Y⟩ := hY.2.2
     exact ⟨C_X + C_Y,
       fun i ↦ le_trans (eLpNorm_add_le (hX.1 i) (hY.1 i) hp) (add_le_add (hC_X i) (hC_Y i))⟩
+
+lemma UniformIntegrable.neg [NormedAddCommGroup E] {X : ι → Ω → E} {p : ℝ≥0∞}
+    (hX : UniformIntegrable X p μ) :
+    UniformIntegrable (-X) p μ := by
+  refine ⟨fun i => (hX.1 i).neg, hX.unifIntegrable.neg, ?_⟩
+  obtain ⟨C, hC⟩ := hX.2.2
+  exact ⟨C, by simp [hC]⟩
+
+lemma UniformIntegrable.sub [NormedAddCommGroup E] {X Y : ι → Ω → E} {p : ℝ≥0∞}
+    (hp : 1 ≤ p) (hX : UniformIntegrable X p μ) (hY : UniformIntegrable Y p μ) :
+    UniformIntegrable (X - Y) p μ := by
+  simpa [sub_eq_add_neg] using hX.add hp hY.neg
 
 lemma uniformIntegrable_of_dominated [NormedAddCommGroup E] [NormedAddCommGroup F]
     {X : ι → Ω → E} {Y : κ → Ω → F} {p : ℝ≥0∞}

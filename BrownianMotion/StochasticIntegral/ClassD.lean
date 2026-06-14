@@ -113,6 +113,20 @@ structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure �
   uniformIntegrable : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦ stoppedValue X τ.1) 1 P
 
+lemma ClassD.add {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : ClassD X 𝓕 P) (hY : ClassD Y 𝓕 P) :
+    ClassD (X + Y) 𝓕 P :=
+  ⟨hX.1.add hY.1, hX.2.add le_rfl hY.2⟩
+
+lemma ClassD.neg {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ClassD X 𝓕 P) :
+    ClassD (-X) 𝓕 P :=
+  ⟨hX.1.neg, hX.2.neg⟩
+
+lemma ClassD.sub {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : ClassD X 𝓕 P) (hY : ClassD Y 𝓕 P) :
+    ClassD (X - Y) 𝓕 P :=
+  ⟨hX.1.sub hY.1, hX.2.sub le_rfl hY.2⟩
+
 /-- A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t$, the set
 $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. -/
 structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop where
