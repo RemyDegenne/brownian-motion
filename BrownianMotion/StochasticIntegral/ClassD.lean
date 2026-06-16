@@ -241,11 +241,12 @@ section Order
 
 variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
   [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [IsFiniteMeasure P]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
 
 /-- A nonnegative right-continuous submartingale is of class DL. -/
-lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :
-    ClassDL X 𝓕 P := by
+lemma _root_.MeasureTheory.Submartingale.classDL
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω))
+    (hX3 : 0 ≤ X) : ClassDL X 𝓕 P := by
   refine ⟨StronglyAdapted.isStronglyProgressive_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
@@ -861,9 +862,9 @@ lemma locally_classD_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRig
 /-- A right-continuous, nonnegative submartingale is locally of class D. -/
 lemma _root_.MeasureTheory.Submartingale.locally_classD
     [NormedSpace ℝ E] [CompleteSpace E] [Lattice E] [HasSolidNorm E]
-    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
-    (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
-    (hX_nonneg : 0 ≤ X) :
+    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E] (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P)
+    (hC : ∀ ω, IsRightContinuous (X · ω)) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rw [locally_classD_iff_locally_classDL]
   exact .of_prop (hX.classDL hC hX_nonneg)
