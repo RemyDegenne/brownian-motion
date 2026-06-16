@@ -1,7 +1,7 @@
 module
 
-public import Mathlib.Analysis.InnerProductSpace.Defs
 public import Mathlib.Geometry.Convex.ConvexSpace.Defs
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-
 # Lemmas on StdSimplex
@@ -83,5 +83,37 @@ lemma bind_sum_smul {E : Type*} (f : N → E) [AddCommGroup E] [Module R E] [IsD
   have hsupp : (a.weights i • (b i).weights).support = (b i).weights.support :=
     Finsupp.support_smul_eq (by grind)
   simp [hsupp, Finset.smul_sum, Finsupp.smul_apply, smul_smul]
+
+open MeasureTheory
+open scoped ENNReal NNReal
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {Ω : Type*} [MeasurableSpace Ω]
+
+lemma eLpNorm_weights_sum_le {μ : Measure Ω} (w : StdSimplex ℝ ℕ)
+    {h : ℕ → Ω → E} (hmeas : ∀ m, AEStronglyMeasurable (h m) μ) {B : ℝ≥0∞}
+    (hB : ∀ m, eLpNorm (h m) 1 μ ≤ B) :
+    eLpNorm (w.weights.sum fun m c ↦ c • h m) 1 μ ≤ B := by
+  rw [Finsupp.sum]
+  calc eLpNorm (∑ m ∈ w.weights.support, w.weights m • h m) 1 μ
+      ≤ ∑ m ∈ w.weights.support, eLpNorm (w.weights m • h m) 1 μ :=
+        eLpNorm_sum_le (fun m _ ↦ (hmeas m).const_smul _) le_rfl
+    _ ≤ ∑ m ∈ w.weights.support, ENNReal.ofReal (w.weights m) * B :=
+        Finset.sum_le_sum fun m _ ↦ by
+          rw [eLpNorm_const_smul, Real.enorm_eq_ofReal (w.nonneg m)]
+          exact mul_le_mul_right (hB m) _
+    _ = B := by
+        rw [← Finset.sum_mul, ← ENNReal.ofReal_sum_of_nonneg fun m _ ↦ w.nonneg m,
+          show ∑ m ∈ w.weights.support, w.weights m = 1 from w.total, ENNReal.ofReal_one,
+          one_mul]
+
+lemma coeFn_sum_smul {μ : Measure Ω} {p : ℝ≥0∞} (s : Finset ℕ) (c : ℕ → ℝ)
+    {h : ℕ → Ω → E} (hmem : ∀ m, MemLp (h m) p μ) :
+    ⇑(∑ m ∈ s, c m • (hmem m).toLp (h m)) =ᵐ[μ] ∑ m ∈ s, c m • h m := by
+  induction s using Finset.induction_on with
+  | empty => simpa using Lp.coeFn_zero E p μ
+  | insert j t hjt ih =>
+    rw [Finset.sum_insert hjt, Finset.sum_insert hjt]
+    exact (Lp.coeFn_add _ _).trans <|
+      ((Lp.coeFn_smul _ _).trans ((hmem j).coeFn_toLp.const_smul (c j))).add ih
 
 end Convexity.StdSimplex
