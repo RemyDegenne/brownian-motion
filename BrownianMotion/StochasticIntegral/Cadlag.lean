@@ -41,6 +41,12 @@ structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop wher
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+/-- A continuous function is càdlàg. -/
+lemma Continuous.isCadlag [TopologicalSpace E] [PartialOrder ι] {f : ι → E}
+    (hf : Continuous f) : IsCadlag f where
+  right_continuous x := (hf.continuousAt (x := x)).continuousWithinAt
+  left_limit x := ⟨f x, tendsto_nhdsWithin_of_tendsto_nhds (hf.continuousAt (x := x))⟩
+
 section Jump
 
 /-- The set of left jump times of a function. -/
@@ -143,6 +149,15 @@ lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [Continu
   refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
   obtain ⟨l, hl⟩ := hf.2 i
   exact ⟨r • l, hl.const_smul r⟩
+
+/-- A continuous map sends càdlàg paths to càdlàg paths. -/
+lemma IsCadlag.continuous_comp {F : Type*} [TopologicalSpace E] [TopologicalSpace F]
+    [PartialOrder ι]
+    {g : E → F} {f : ι → E} (hf : IsCadlag f) (hg : Continuous g) :
+    IsCadlag (g ∘ f) := by
+  refine ⟨Function.IsRightContinuous.continuous_comp hg hf.right_continuous, fun x ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.left_limit x
+  exact ⟨g l, (hg.tendsto l).comp hl⟩
 
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]

@@ -31,6 +31,15 @@ structure IsSquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P
   cadlag : ∀ ω, IsCadlag (X · ω)
   bounded : ⨆ i, eLpNorm (X i) 2 P < ∞
 
+lemma IsSquareIntegrable.eLpNorm_two_lt_top (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
+    eLpNorm (X i) 2 P < ∞ :=
+  lt_of_le_of_lt (le_iSup (fun j ↦ eLpNorm (X j) 2 P) i) hX.bounded
+
+lemma IsSquareIntegrable.memLp_two (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
+    MemLp (X i) 2 P :=
+  ⟨((hX.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable,
+    hX.eLpNorm_two_lt_top i⟩
+
 lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     Integrable (fun ω ↦ ‖X i ω‖ ^ 2) P := by
   constructor
