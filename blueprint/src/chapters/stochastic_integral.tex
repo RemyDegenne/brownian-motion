@@ -667,11 +667,12 @@ For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
 TODO: filtrations should be assumed right-continuous and complete whenever needed.
 
 
-\begin{lemma}\label{lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
-  \uses{def:IsLocalMartingale, def:IsLocalSubmartingale}
+\begin{lemma}\label{lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocallySquareIntegrable, def:IsLocalSubmartingale}
   \leanok
-  \lean{ProbabilityTheory.IsLocalMartingale.isLocalSubmartingale_sq_norm}
-If $M$ is a cadlag local martingale, then $\Vert M \Vert^2$ is a cadlag local sub-martingale.
+  \lean{ProbabilityTheory.IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+If $M$ is a locally square-integrable martingale, then $\Vert M \Vert^2$ is a càdlàg local
+submartingale.
 \end{lemma}
 
 \begin{proof}
@@ -680,17 +681,21 @@ If $M$ is a cadlag local martingale, then $\Vert M \Vert^2$ is a cadlag local su
 
 
 \begin{definition}[Quadratic variation]\label{def:quadraticVariation}
-  \uses{def:IsLocalMartingale, thm:local_doobMeyer, lem:IsLocalMartingale.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocallySquareIntegrable, def:IsCadlag, thm:local_doobMeyer,
+    lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
   \leanok
   \lean{ProbabilityTheory.quadraticVariation}
-For $M$ a local martingale, the predictable quadratic variation of $M$ is defined as the predictable part of the Doob-Meyer decomposition of the local sub-martingale $\Vert M \Vert^2$~.
+For $M$ a locally square-integrable martingale with càdlàg paths, the predictable
+quadratic variation of $M$ is defined as the predictable part of the Doob-Meyer decomposition of
+the local submartingale $\Vert M \Vert^2$~.
 We denote it by $\langle M \rangle$~.
 \end{definition}
 
 
 \begin{lemma}\label{lem:predictable_quadraticVariation}
   \uses{def:quadraticVariation}
-The quadratic variation $\langle M \rangle$ of a local martingale $M$ is a predictable process.
+The quadratic variation $\langle M \rangle$ of a locally square-integrable martingale $M$ is a
+predictable process.
 \end{lemma}
 
 \begin{proof}
@@ -701,7 +706,8 @@ The quadratic variation $\langle M \rangle$ of a local martingale $M$ is a predi
 
 \begin{lemma}\label{lem:cadlag_quadraticVariation}
   \uses{def:quadraticVariation}
-The quadratic variation $\langle M \rangle$ of a local martingale $M$ is cadlag.
+The quadratic variation $\langle M \rangle$ of a locally square-integrable martingale $M$ is
+càdlàg.
 \end{lemma}
 
 \begin{proof}
@@ -712,7 +718,8 @@ The quadratic variation $\langle M \rangle$ of a local martingale $M$ is cadlag.
 
 \begin{lemma}\label{lem:locallyIntegrable_quadraticVariation}
   \uses{def:quadraticVariation}
-The quadratic variation $\langle M \rangle$ of a local martingale $M$ is locally integrable.
+The quadratic variation $\langle M \rangle$ of a locally square-integrable martingale $M$ is
+locally integrable.
 \end{lemma}
 
 \begin{proof}
@@ -734,7 +741,8 @@ $\langle M \rangle_0 = 0$~.
 
 \begin{lemma}\label{lem:monotone_quadraticVariation}
   \uses{def:quadraticVariation}
-The quadratic variation $\langle M \rangle$ of a local martingale $M$ is non-decreasing.
+The quadratic variation $\langle M \rangle$ of a locally square-integrable martingale $M$ is
+non-decreasing.
 \end{lemma}
 
 \begin{proof}
@@ -745,7 +753,8 @@ The quadratic variation $\langle M \rangle$ of a local martingale $M$ is non-dec
 
 \begin{lemma}\label{lem:local_martingale_sub_quadraticVariation}
   \uses{def:quadraticVariation}
-For $M$ a local martingale, the process $\Vert M_t \Vert^2 - \langle M \rangle_t$ is a local martingale.
+For $M$ a locally square-integrable martingale, the process
+$\Vert M_t \Vert^2 - \langle M \rangle_t$ is a local martingale.
 \end{lemma}
 
 \begin{proof}
@@ -756,18 +765,23 @@ For $M$ a local martingale, the process $\Vert M_t \Vert^2 - \langle M \rangle_t
 
 \begin{definition}\label{def:quadraticVariationMeasure}
   \uses{def:quadraticVariation, def:StieltjesFunction.measure}
-For $M$ a local martingale, we denote by $d\langle M \rangle$ the measure on $\mathbb{R}_+$ associated to the non-decreasing càdlàg function $\langle M \rangle$~.
+For $M$ a locally square-integrable martingale, we denote by $d\langle M \rangle$ the measure on
+$\mathbb{R}_+$ associated to the non-decreasing càdlàg function $\langle M \rangle$~.
 \end{definition}
 
 
 \begin{definition}[Covariation]\label{def:covariation}
-  \uses{def:IsLocalMartingale, def:quadraticVariation}
-For $M$ and $N$ local martingales, the covariation $\langle M, N \rangle$ is a stochastic process defined by polarization of the quadratic variation:
+  \uses{def:IsLocallySquareIntegrable, def:quadraticVariation}
+For $M$ and $N$ locally square-integrable martingales, the covariation
+$\langle M, N \rangle$ is a stochastic process defined by polarization of the quadratic variation:
 \begin{align*}
   \langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)
   \: .
 \end{align*}
-% For any local martingales $M$ and $N$, there exists a cadlag process $\langle M,N \rangle$ with $\langle M,N \rangle_0 = 0$ such that $MN - \langle M,N \rangle$ is a local martingale. That process is a.s. unique and is called the \emph{covariation} of $M$ and $N$.
+% For any locally square-integrable martingales $M$ and $N$, there exists a cadlag process
+% $\langle M,N \rangle$ with $\langle M,N \rangle_0 = 0$ such that
+% $MN - \langle M,N \rangle$ is a local martingale. That process is a.s. unique and is called the
+% \emph{covariation} of $M$ and $N$.
 
 % It can be defined by $\langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)$~.
 \end{definition}
@@ -775,7 +789,8 @@ For $M$ and $N$ local martingales, the covariation $\langle M, N \rangle$ is a s
 
 \begin{lemma}\label{lem:predictable_covariation}
   \uses{def:covariation}
-The covariation $\langle M, N \rangle$ of local martingales $M$ and $N$ is a predictable process.
+The covariation $\langle M, N \rangle$ of locally square-integrable martingales $M$ and $N$ is a
+predictable process.
 \end{lemma}
 
 \begin{proof}
@@ -786,7 +801,8 @@ The covariation $\langle M, N \rangle$ of local martingales $M$ and $N$ is a pre
 
 \begin{lemma}\label{lem:cadlag_covariation}
   \uses{def:covariation}
-The covariation $\langle M, N \rangle$ of local martingales $M$ and $N$ is cadlag.
+The covariation $\langle M, N \rangle$ of locally square-integrable martingales $M$ and $N$ is
+càdlàg.
 \end{lemma}
 
 \begin{proof}
@@ -808,7 +824,8 @@ $\langle M, N \rangle_0 = 0$~.
 
 \begin{lemma}\label{lem:local_martingale_sub_covariation}
   \uses{def:covariation}
-For $M, N$ local martingales, the process $\langle M_t, N_t \rangle_E - \langle M, N \rangle_t$ is a local martingale.
+For $M, N$ locally square-integrable martingales, the process
+$\langle M_t, N_t \rangle_E - \langle M, N \rangle_t$ is a local martingale.
 \end{lemma}
 
 \begin{proof}
