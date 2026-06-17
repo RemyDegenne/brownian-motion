@@ -251,8 +251,8 @@ lemma martingaleSeqTop_add {ι Ω E : Type*} [TopologicalSpace ι] [SecondCounta
     {S₁ S₂ : ι → Ω → E} (𝓕 : Filtration ι mΩ) (hS₁ : ∀ t, Integrable (S₁ t) P)
     (hS₂ : ∀ t, Integrable (S₂ t) P) (n : ℕ) :
     martingaleSeqTop (S₁ + S₂) 𝓕 P n =ᵐ[P]
-      martingaleSeqTop S₁ 𝓕 P n + martingaleSeqTop S₂ 𝓕 P n := by
-  simpa [martingaleSeqTop] using martingalePart_add (fun t : mesh ι n ↦ hS₁ t) (fun t ↦ hS₂ t) ⊤
+      martingaleSeqTop S₁ 𝓕 P n + martingaleSeqTop S₂ 𝓕 P n :=
+  martingalePart_add (fun t : mesh ι n ↦ hS₁ t) (fun t ↦ hS₂ t) ⊤
 
 /-- The terminal values of the martingale parts of a martingale are its terminal value on every
 mesh. -/
@@ -957,7 +957,7 @@ lemma Dense.monotone_of_isRightContinuous {α β : Type*} [LinearOrder α] [Orde
       have := isOpen_lt_prod.mem_nhds_iff.2 (by simp [hab] : ⟨a, b⟩ ∈ {p : α × α | p.1 < p.2})
       filter_upwards [this] with p hlt _ a rfl using hlt.le
     exact t.isClosed_le'.mem_of_tendsto (Tendsto.comp ((hf a).prodMap (hf b)) tendsto_comap)
-      (this.mono fun d hd => by simpa using hm hd)
+      (this.mono fun d hd => hm hd)
 
 /-- A helper lemma. -/
 lemma Filter.IsCoboundedUnder.trans {ι α : Type*} {r : α → α → Prop} {l : Filter ι} [l.NeBot]

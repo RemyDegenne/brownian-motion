@@ -250,15 +250,6 @@ lemma MeasurableSpace.comap_le_comap
   rw [h, ← MeasurableSpace.comap_comp]
   exact MeasurableSpace.comap_mono hf.comap_le
 
-lemma ProbabilityTheory.measure_eq_zero_or_one_of_indep_self {Ω : Type*} {m mΩ : MeasurableSpace Ω}
-    {P : Measure Ω} [IsZeroOrProbabilityMeasure P]
-    (hm1 : m ≤ mΩ) (hm2 : Indep m m P) {A : Set Ω} (hA : MeasurableSet[m] A) :
-    P A = 0 ∨ P A = 1 := by
-  rw [Indep_iff_IndepSets, indepSets_iff_singleton_indepSets] at hm2
-  replace hm2 := indepSets_iff_singleton_indepSets.1 (hm2 A hA).symm A hA
-  exact measure_eq_zero_or_one_of_indepSet_self <|
-    (indepSet_iff_indepSets_singleton (hm1 A hA) (hm1 A hA) P).2 hm2
-
 lemma MeasurableSpace.generateFrom_singleton_eq_comap_indicator_one {Ω : Type*} {A : Set Ω} :
     MeasurableSpace.generateFrom {A} =
       MeasurableSpace.comap (A.indicator (1 : Ω → ℝ)) inferInstance := by

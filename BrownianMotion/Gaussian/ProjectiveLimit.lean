@@ -208,6 +208,8 @@ lemma covariance_eval_gaussianLimit {s t : ℝ≥0} :
     cov[fun x ↦ x s, fun x ↦ x t; gaussianLimit] = min s t := by
   convert (hasLaw_restrict_gaussianLimit (I := {s, t})).covariance_fun_comp
     (f := Function.eval ⟨s, by simp⟩) (g := Function.eval ⟨t, by simp⟩) ?_ ?_
+  · rfl
+  · rfl
   · rw [covariance_eval_gaussianProjectiveFamily]
   all_goals exact Measurable.aemeasurable (by fun_prop)
 

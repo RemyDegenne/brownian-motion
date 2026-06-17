@@ -76,7 +76,9 @@ lemma maximal_ineq_finset (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
     _ ≤ ∫ ω in {ω | (ε : ℝ) ≤ (range (#J + 1)).sup' nonempty_range_add_one fun k ↦ Y (toι k) ω},
         Y n ω ∂P := by
       convert maximal_ineq' (hsub.indexComap toι_mono) (fun _ ↦ hnonneg _) ε #J
-      simp [toι]
+      · rfl
+      · rfl
+      · simp [toι]
     _ = _ := by
       congr! with ω
       simp_rw [hcongr]
@@ -179,7 +181,10 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
       have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
         rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
         change Tendsto (fun r : ℕ ↦ _) _ _
-        simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
+        simp only [ne_eq, AddLeftCancelMonoid.add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
+          not_false_eq_true, ENNReal.coe_inv, ENNReal.coe_add, ENNReal.coe_natCast, ENNReal.coe_one,
+          comp_apply, ENNReal.toNNReal_inv, ENNReal.toNNReal_zero]
+        exact tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
       obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
       exact (lt_tsub_comm.mp hr).trans (h r)
   have hinter_le (c : Ω → ℝ≥0∞) : {ω | ε ≤ c ω} = ⋂ r : ℕ, {ω | ε' r ≤ c ω} := by
@@ -194,7 +199,10 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
       have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
         rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
         change Tendsto (fun r : ℕ ↦ _) _ _
-        simpa using tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
+        simp only [ne_eq, AddLeftCancelMonoid.add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
+          not_false_eq_true, ENNReal.coe_inv, ENNReal.coe_add, ENNReal.coe_natCast, ENNReal.coe_one,
+          comp_apply, ENNReal.toNNReal_inv, ENNReal.toNNReal_zero]
+        exact tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
       obtain ⟨r, hr⟩ := this.eventually_lt_const (tsub_pos_of_lt hε') |>.exists
       exact (lt_tsub_comm.mp hr).trans_le (h r)
   have hmeasY (i : ι) : Measurable (Y i) :=
@@ -207,6 +215,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
     apply (show Tendsto .. by simpa using tendsto_inv_add_atTop_nhds_zero_nat.const_sub ε).smul
     erw [ENNReal.tendsto_toReal_iff (by finiteness) (by finiteness)]
     convert tendsto_measure_iInter_atTop ?_ ?_ ?_
+    · rfl
     · exact hinter_lt _
     · infer_instance
     · exact fun r ↦ (measurableSet_lt measurable_const (by fun_prop)).nullMeasurableSet
@@ -255,7 +264,8 @@ lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingal
         gcongr with ε
         refine le_iInf fun hε0 ↦ ?_
         rw [ENNReal.ofReal_smul, le_inv_smul_iff_of_pos hε0, ENNReal.le_ofReal_iff_toReal_le]
-        · simpa using maximal_ineq_countable_ennreal hsub hnonneg ε n
+        · simp only [Measure.nnreal_smul_coe_apply, ENNReal.toReal_mul, ENNReal.coe_toReal]
+          exact maximal_ineq_countable_ennreal hsub hnonneg ε n
         · finiteness
         · exact setIntegral_nonneg (measurableSet_le measurable_const (by fun_prop))
             fun ω _ ↦ hnonneg n ω
@@ -433,7 +443,8 @@ lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Su
         gcongr with ε
         refine le_iInf fun hε0 ↦ ?_
         rw [ENNReal.ofReal_smul, le_inv_smul_iff_of_pos hε0, ENNReal.le_ofReal_iff_toReal_le]
-        · simpa using maximal_ineq_ennreal hsub hnonneg ε n hY_cont
+        · simp only [Measure.nnreal_smul_coe_apply, ENNReal.toReal_mul, ENNReal.coe_toReal]
+          exact maximal_ineq_ennreal hsub hnonneg ε n hY_cont
         · finiteness
         · exact setIntegral_nonneg (measurableSet_le measurable_const hmY) fun ω _ ↦ hnonneg n ω
       _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω, Y n ω ∂P) := by

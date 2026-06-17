@@ -98,8 +98,8 @@ variable {α : Type*} (d : DynkinSystem α)
 lemma _root_.MeasurableSpace.DynkinSystem.has_iUnion_of_mono {α : Type*} (d : DynkinSystem α)
     {A : ℕ → Set α} (h_mono : Monotone A) (hA : ∀ (i : ℕ), d.Has (A i)) : d.Has (⋃ i, A i) := by
   have h_union : d.Has (⋃ n, (A (n + 1) \ A n)) := by
-    refine d.has_iUnion (fun i j hij  ↦ ?_) (fun n ↦ d.has_diff (hA _) (hA _) (h_mono n.le_succ))
-    cases lt_or_gt_of_ne hij <;> simp only [disjoint_left, mem_diff, not_and, not_not, and_imp]
+    refine d.has_iUnion (fun i j hij  ↦ ?_) (fun n ↦ d.has_sdiff (hA _) (hA _) (h_mono n.le_succ))
+    cases lt_or_gt_of_ne hij <;> simp only [disjoint_left, mem_sdiff, not_and, not_not, and_imp]
     · exact fun x hx₁ _ _ ↦ h_mono (by grind) hx₁
     · exact fun x hx₁ hx₂ hx₃ ↦ (hx₂ (h_mono (by grind) hx₃)).elim
   have : ⋃ n, A n = A 0 ∪ ⋃ n, A (n + 1) \ A n := by
@@ -109,20 +109,20 @@ lemma _root_.MeasurableSpace.DynkinSystem.has_iUnion_of_mono {α : Type*} (d : D
     contrapose! h
     exact w.recOn h.1 (by grind)
   refine this ▸ d.has_union (hA 0) h_union ?_
-  simp only [disjoint_left, mem_iUnion, mem_diff, not_exists, not_and, not_not]
+  simp only [disjoint_left, mem_iUnion, mem_sdiff, not_exists, not_and, not_not]
   exact fun x hx n _ ↦ h_mono n.zero_le hx
 
 lemma _root_.MeasurableSpace.DynkinSystem.has_iInter_of_anti {α : Type*} (d : DynkinSystem α)
     {B : ℕ → Set α} (h_anti : Antitone B) (hB : ∀ (i : ℕ), d.Has (B i)) : d.Has (⋂ i, B i) := by
   have h_sdiff : d.Has (⋃ n, (B n) \ (B (n + 1))) := by
-    refine d.has_iUnion (fun i j hij  ↦ ?_) (fun n ↦ d.has_diff (hB n) (hB _) (h_anti n.le_succ))
-    cases lt_or_gt_of_ne hij <;> simp only [disjoint_left, mem_diff, not_and, not_not, and_imp]
+    refine d.has_iUnion (fun i j hij  ↦ ?_) (fun n ↦ d.has_sdiff (hB n) (hB _) (h_anti n.le_succ))
+    cases lt_or_gt_of_ne hij <;> simp only [disjoint_left, mem_sdiff, not_and, not_not, and_imp]
     · exact fun x hx₁ hx₂ hx₃ ↦ (hx₂ <| h_anti (by grind) hx₃).elim
     · exact fun _ h _ _ ↦ h_anti (by grind) h
   have : ⋂ n, B n = (( ⋃ n, (B n) \ (B (n + 1)) ) ∪ ( B 0 )ᶜ)ᶜ := by
     ext x
     refine ⟨by simp_all, ?_⟩
-    simp only [compl_union, compl_iUnion, mem_inter_iff, mem_iInter, mem_compl_iff, mem_diff,
+    simp only [compl_union, compl_iUnion, mem_inter_iff, mem_iInter, mem_compl_iff, mem_sdiff,
       not_and, not_not, and_imp]
     exact fun h h0 i ↦ Nat.recOn i h0 fun n ih ↦ h n ih
   rw [this, ← d.has_compl_iff, compl_compl]
@@ -234,7 +234,9 @@ def toMeasurableSpace (C : MonotoneClass α) (h : IsSetAlgebra C.Has) :
     rw [← biUnion_lt_eq_iUnion]
     refine C.has_iUnion (fun n ↦ ?_) ?_
     · induction n with
-      | zero => simpa using h.empty_mem
+      | zero =>
+        simp only [not_lt_zero, iUnion_of_empty, iUnion_empty]
+        exact h.empty_mem
       | succ n ih => exact biUnion_lt_succ _ _ ▸  h.union_mem ih (hf n)
     · exact fun n m hnm ↦ iUnion_subset fun i ↦ iUnion_subset fun hi ↦ subset_iUnion_of_subset i
         (subset_iUnion_of_subset (hi.trans_le hnm) (Subset.refl _))

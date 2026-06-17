@@ -197,9 +197,11 @@ lemma constL_lt_top (hT : Metric.ediam U < ∞)
     obtain ⟨n₀, hn₀⟩ := exists_nat_gt (- Real.logb 2 c.toReal / d)
     rw [eventually_atTop]
     use n₀
+    replace hn₀ : -Real.logb 2 c.toReal < d * ↑n₀ := by field_simp at hn₀; exact hn₀
     intro n hn
-    grw [hn, add_mul, add_mul, ← le_of_lt ((div_lt_iff₀ hd_pos).mp hn₀), add_assoc, ← add_assoc]
-    simp only [add_neg_cancel, zero_add]
+    rw [← neg_le_iff_add_nonneg']
+    grw [hn₀, hn]
+    suffices 0 ≤ (k : ℝ) * d + 2 * d by grind
     positivity
   apply Asymptotics.IsEquivalent.congr_right; swap
   · filter_upwards [h 0] with n h_nonneg
