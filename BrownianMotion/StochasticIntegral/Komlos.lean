@@ -447,12 +447,8 @@ theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P :
     [IsFiniteMeasure P] (hf : UniformIntegrable f 1 P) :
     ∃ (g : ℕ → Ω → E) (glim : Ω → E), (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
       Tendsto (fun n ↦ eLpNorm (g n - glim) 1 P) atTop (𝓝 0) := by
-  have hnorm i m ω : ‖komlosTrunc f i m ω‖ ≤ (i : ℝ) := komlosTrunc_norm_le i m ω
-  have hmeas i m : AEStronglyMeasurable (komlosTrunc f i m) P :=
-    komlosTrunc_aestronglyMeasurable i m (hf.1 m)
-  have hmem2 i m : MemLp (komlosTrunc f i m) 2 P := komlosTrunc_memLp i m (hf.1 m)
-  have hbdd i : ∃ M, ∀ m, ‖(hmem2 i m).toLp (komlosTrunc f i m)‖ ≤ M :=
-    ⟨_, fun m ↦ komlosTrunc_norm_toLp_le i m (hmem2 i m)⟩
+  have hbdd i : ∃ M, ∀ m, ‖(komlosTrunc_memLp i m (hf.1 m)).toLp (komlosTrunc f i m)‖ ≤ M :=
+    ⟨_, fun m ↦ komlosTrunc_norm_toLp_le i m (komlosTrunc_memLp i m (hf.1 m))⟩
   obtain ⟨η, hη0, hηlim⟩ := komlos_convex_weights_diagonal hbdd
   choose G hG using hηlim
   set g : ℕ → Ω → E := fun n ↦ (η n).weights.sum fun m c ↦ c • f m with hg_def
@@ -463,10 +459,12 @@ theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P :
       fun m hm ↦ subset_convexHull ℝ _ ⟨m - n, ?_⟩
     grind
   have hgmem1 n : MemLp (g n) 1 P := memLp_finsetSum' _ fun m _ ↦ (hf.memLp m).const_smul _
-  have hTmem2 i n : MemLp (T i n) 2 P := memLp_finsetSum' _ fun m _ ↦ (hmem2 i m).const_smul _
+  have hTmem2 i n : MemLp (T i n) 2 P :=
+    memLp_finsetSum' _ fun m _ ↦ (komlosTrunc_memLp i m (hf.1 m)).const_smul _
   have hL2 i : Tendsto (fun n ↦ eLpNorm (T i n - ⇑(G i)) 2 P) atTop (𝓝 0) :=
     ((Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ (G i)).mp (hG i)).congr fun n ↦
-      eLpNorm_congr_ae ((coeFn_sum_smul _ _ (hmem2 i)).sub EventuallyEq.rfl)
+      eLpNorm_congr_ae
+        ((coeFn_sum_smul _ _ fun m ↦ komlosTrunc_memLp i m (hf.1 m)).sub EventuallyEq.rfl)
   have hL1 i : Tendsto (fun n ↦ eLpNorm (T i n - ⇑(G i)) 1 P) atTop (𝓝 0) := by
     have hκ : P Set.univ ^ (1 / (1 : ℝ≥0∞).toReal - 1 / (2 : ℝ≥0∞).toReal) ≠ ∞ :=
       ENNReal.rpow_ne_top_of_nonneg (by norm_num) (measure_ne_top P _)
@@ -483,7 +481,8 @@ theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P :
         have : g n - T i₀ n = (η n).weights.sum fun m c ↦ c • (f m - komlosTrunc f i₀ m) := by
           simp only [hg_def, hT_def, smul_sub, Finsupp.sum_sub]
         rw [this]
-        exact eLpNorm_weights_sum_le _ (fun m ↦ (hf.1 m).sub (hmeas i₀ m))
+        exact eLpNorm_weights_sum_le _
+          (fun m ↦ (hf.1 m).sub (komlosTrunc_aestronglyMeasurable i₀ m (hf.1 m)))
           fun m ↦ (le_iSup _ m).trans (hi₀sup i₀ le_rfl)
       obtain ⟨N, hN⟩ := ENNReal.tendsto_atTop_zero.mp (hL1 i₀) (ENNReal.ofReal (ε / 2))
         (ENNReal.ofReal_pos.mpr (by positivity))
