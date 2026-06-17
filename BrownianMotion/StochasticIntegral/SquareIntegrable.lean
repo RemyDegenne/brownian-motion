@@ -61,9 +61,16 @@ lemma IsSquareIntegrable.add [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P
         · exact le_iSup (fun i => eLpNorm (Y i) 2 P) i
     _ < ∞ := ENNReal.add_lt_top.mpr ⟨hX_bound, hY_bound⟩
 
-lemma IsSquareIntegrable.smul (hX : IsSquareIntegrable X 𝓕 P) (r : ℝ) :
-    IsSquareIntegrable (fun i ω ↦ r • X i ω) 𝓕 P := by
-  sorry
+lemma IsSquareIntegrable.smul [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P) (r : ℝ) :
+    IsSquareIntegrable (fun i ω ↦ r • X i ω) 𝓕 P where
+  martingale := by
+    simpa [Pi.smul_apply] using hX.martingale.smul r
+  cadlag ω := by
+    simpa [Pi.smul_apply] using (hX.cadlag ω).const_smul r
+  bounded := by
+    change (⨆ i, eLpNorm (r • X i) 2 P) < ∞
+    simpa [eLpNorm_const_smul, ENNReal.mul_iSup] using
+      ENNReal.mul_lt_top ENNReal.coe_lt_top hX.bounded
 
 variable [SigmaFiniteFiltration P 𝓕]
 
