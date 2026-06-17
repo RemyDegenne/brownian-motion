@@ -160,9 +160,10 @@ theorem stoppedValue_ae_eq_condExp_of_le_const'
   convert stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence h hRC
     (isStoppingTime_const 𝓕 n) hτ (fun _ ↦ le_rfl) (discreteApproxSequence_const 𝓕 n)
       (hτ.discreteApproxSequence μ) using 2
-  ext ω
-  rw [eq_comm, min_eq_right_iff]
-  exact hτ_le ω
+  · ext ω
+    rw [eq_comm, min_eq_right_iff]
+    exact hτ_le ω
+  · rfl
 
 theorem condExp_stoppedValue_ae_eq_stoppedProcess [Approximable 𝓕 μ] {n : ι}
     (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))

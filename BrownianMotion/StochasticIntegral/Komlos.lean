@@ -155,6 +155,8 @@ lemma convex_combination_bounded {x : ℕ → E}
   have h_sum : ‖(w n).weights.sum (fun i wi => wi • x i)‖ ≤
     ∑ i ∈ (w n).weights.support, ((w n).weights i) * ‖x i‖ := by
     convert norm_sum_le _ _
+    · rfl
+    · rfl
     simp [norm_smul, abs_of_nonneg ((w _).nonneg _)]
   refine le_trans h_sum (le_trans (Finset.sum_le_sum fun i hi =>
     mul_le_mul_of_nonneg_left (hx i) ((w n).nonneg i)) ?_)

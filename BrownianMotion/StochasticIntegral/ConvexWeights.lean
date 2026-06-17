@@ -15,7 +15,7 @@ namespace Convexity.StdSimplex
 
 instance instFunLike : FunLike (StdSimplex R M) M R := {
   coe s := s.weights.toFun
-  coe_injective' := fun _ _ h ↦ ext (Finsupp.ext fun i ↦ congrFun h i)
+  coe_injective := fun _ _ h ↦ ext (Finsupp.ext fun i ↦ congrFun h i)
 }
 
 variable [IsStrictOrderedRing R]

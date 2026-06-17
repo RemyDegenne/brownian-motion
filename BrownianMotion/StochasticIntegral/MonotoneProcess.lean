@@ -61,7 +61,7 @@ lemma StieltjesFunction.iInf_restrict_Ioc (f : StieltjesFunction ι) (hab : a < 
       refine tendsto_nhdsWithin_iff.2 ⟨?_, .of_forall (by grind)⟩
       apply tendsto_atBot_isGLB (Subtype.mono_coe _)
       simp [Subtype.range_coe_subtype, -mem_Ioc, isGLB_Ioc hab]
-    simpa [restrict] using (f.right_continuous a).tendsto.comp this
+    exact (f.right_continuous a).tendsto.comp this
   exact (tendsto_nhds_unique this (tendsto_atBot_ciInf (f.restrict (Ioc a b)).mono
     f.bddBelow_restrict_Ioc)).symm
 
@@ -108,7 +108,7 @@ lemma StieltjesFunction.measure_restrict_Ioc (f : StieltjesFunction ι) (hab : a
       refine tendsto_nhdsWithin_iff.2 ⟨?_, .of_forall (by grind)⟩
       apply tendsto_atBot_isGLB (Subtype.mono_coe _)
       simp [Subtype.range_coe_subtype, -mem_Ioc, isGLB_Ioc hab]
-    simpa [restrict] using (f.right_continuous a).tendsto.comp this
+    exact (f.right_continuous a).tendsto.comp this
   have htop : Tendsto (f.restrict (Ioc a b)) atTop (𝓝 (f b)) := by
     rw [← f.iSup_restrict_Ioc hab]
     convert tendsto_atTop_ciSup (f.restrict (Ioc a b)).mono f.bddAbove_restrict_Ioc

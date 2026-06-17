@@ -727,15 +727,14 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     intro s t
     suffices chainingSequence C s k 0 = chainingSequence C t k 0 by simp [this, hX.p_pos]
     rw [Finset.card_le_one_iff] at hC_zero
-    exact hC_zero (chainingSequence_mem hC hJ_nonempty s.2 0 zero_le')
-      (chainingSequence_mem hC hJ_nonempty t.1.2 0 zero_le')
+    exact hC_zero (chainingSequence_mem hC hJ_nonempty s.2 0 zero_le)
+      (chainingSequence_mem hC hJ_nonempty t.1.2 0 zero_le)
   simp only [h_first_eq_zero, mul_zero, zero_add]
   -- the second term is bounded by the result we want
   simp_rw [mul_assoc]
   gcongr
   simp_rw [← mul_assoc]
-  refine (second_term_bound hX ?_ hC hC_subset hC_card hdq_lt hJ
-    zero_le').trans ?_
+  refine (second_term_bound hX ?_ hC hC_subset hC_card hdq_lt hJ zero_le).trans ?_
   · simp [ε₀, ENNReal.coe_toNNReal hε'.ne]
   simp only [pow_zero, mul_one]
   have hδ_le' : Metric.ediam J ≤ δ := by
@@ -746,6 +745,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     norm_cast
   simp only [ε₀, ENNReal.coe_toNNReal hε'.ne]
   grw [hδ_le']
+  swap; · positivity
   refine le_of_eq ?_
   calc 2 ^ d * M * c * (2 * δ) ^ (q - d) * Cp d p q
   _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
@@ -918,6 +918,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
       have hmδ'' : ((ε₀ * 2⁻¹ ^ m : ℝ≥0) : ℝ≥0∞) ≤ δ := mod_cast hmδ
       simpa [ENNReal.inv_pow] using hmδ''
     grw [hmδ']
+    swap; · positivity
     gcongr ?_ * _
     rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
     calc 2 ^ d * M * c * (2 ^ (q - d) * δ ^ (q - d))

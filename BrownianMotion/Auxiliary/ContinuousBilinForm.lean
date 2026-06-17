@@ -63,7 +63,7 @@ variable {f}
 it takes on the diagonal. -/
 lemma IsSymm.polarization (x y : E) (hf : f.IsSymm) :
     f x y = (f (x + y) (x + y) - f x x - f y y) / 2 := by
-  simp only [map_add, ContinuousLinearMap.add_apply]
+  simp only [map_add, add_apply]
   rw [hf.map_symm y x]
   ring
 
@@ -91,7 +91,7 @@ lemma isSymm_iff_basis : f.IsSymm ↔ ∀ i j, f (b i) (b j) = f (b j) (b i) whe
     obtain ⟨fy, ty, iy, -, hy⟩ := Submodule.mem_span_iff_exists_finset_subset.1
       (by simp : y ∈ Submodule.span 𝕜 (Set.range b))
     rw [← hx, ← hy]
-    simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+    simp only [map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul,
       Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
     rw [Finset.sum_comm]
     refine Finset.sum_congr rfl (fun b₁ h₁ ↦ Finset.sum_congr rfl fun b₂ h₂ ↦ ?_)
@@ -120,7 +120,7 @@ lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
     x ⬝ᵥ (f.toMatrix b) *ᵥ y = f (b.equivFun.symm x) (b.equivFun.symm y) := by
   simp only [dotProduct, Matrix.mulVec_eq_sum, op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply,
     Matrix.transpose_apply, toMatrix_apply, smul_eq_mul, Finset.mul_sum, Basis.equivFun_symm_apply,
-    map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul']
+    map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul]
   rw [Finset.sum_comm]
   refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
   ring
@@ -128,7 +128,7 @@ lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
 lemma apply_eq_dotProduct_toMatrix_mulVec (x y : E) :
     f x y = (b.repr x) ⬝ᵥ (f.toMatrix b) *ᵥ (b.repr y) := by
   nth_rw 1 [← b.sum_repr x, ← b.sum_repr y]
-  simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+  simp only [map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul,
     Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum, dotProduct, Matrix.mulVec_eq_sum,
     op_smul_eq_smul, Matrix.transpose_apply, toMatrix_apply]
   rw [Finset.sum_comm]
@@ -329,7 +329,7 @@ def diagonalStrongDual : ContinuousBilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) 
     simp only [LinearMap.mk₂_apply, g]
     grw [norm_sum_le, Finset.sum_mul, Finset.sum_mul]
     gcongr with i _
-    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one]
+    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one, norm_single_le_one]
     simp
 
 lemma diagonalStrongDual_apply (x y : StrongDual 𝕜 (Π i, E i)) :

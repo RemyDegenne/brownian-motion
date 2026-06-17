@@ -43,8 +43,7 @@ structure DiscreteApproxSequence (𝓕 : Filtration ι mΩ) (τ : Ω → WithTop
 
 instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) where
   coe s := s.seq
-  coe_injective' s t h := by
-    cases s; cases t; congr
+  coe_injective s t h := by cases s; cases t; congr
 
 -- Should replace `isStoppingTime_const`
 theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
@@ -206,7 +205,7 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
         τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
       have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
-        simp only [ne_eq, mem_atTop_sets, ge_iff_le, Set.mem_setOf_eq]
+        simp only [ne_eq, mem_atTop_sets, Set.mem_setOf_eq]
         by_contra!
         have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
           simp only [tendsto_atTop_nhds]
@@ -219,7 +218,7 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
         exact hτ (tendsto_nhds_unique hω this)
       filter_upwards [this] with n hn
       simpa using WithTop.untopA_mono hn (τn.le n ω)
-    simpa using (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
+    exact (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
 
 /-- For `τ` a time bounded by `i` and `τn` a discrete approximation sequence of `τ`,
 `discreteApproxSequence_of` is the discrete approximation sequence of `τ` defined by `τn ∧ i`. -/
@@ -239,6 +238,7 @@ def discreteApproxSequence_of {i : ι}
   tendsto := by
     filter_upwards [τn.tendsto] with ω hω
     convert hω.min (tendsto_const_nhds (x := (i : WithTop ι)))
+    · rfl
     exact (min_eq_left (hτ ω)).symm
 
 lemma discreteApproxSequence_of_le {i : ι}

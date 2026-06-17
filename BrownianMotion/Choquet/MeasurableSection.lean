@@ -335,6 +335,7 @@ private lemma measure_sectionSeq_add_one_ne_top_ge (hs : IsPavingAnalytic Measur
   rw [measure_sectionSeq_add_one_ne_top]
   gcongr
   convert measure_step_ne_top_ge with ω
+  · rfl
   simp [debut_ne_top_iff]
 
 private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
@@ -355,9 +356,12 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
     (.of_forall (measure_sectionSeq_add_one_ne_top_ge hs (μ := μ))) (b := atTop)
   · refine Tendsto.add ?_ ?_
     · convert tendsto_measure_iUnion_atTop h_mono
-      ext; simp
+      · rfl
+      ext
+      simp
     · refine ENNReal.Tendsto.div_const ?_ (by simp)
       convert tendsto_measure_iInter_atTop ?_ ?_ ?_
+      · rfl
       · ext ω
         simp only [ne_eq, iInf_eq_top, Set.mem_setOf_eq, Set.mem_iInter]
         exact ⟨fun ⟨hd, h_seq⟩ i ↦ ⟨hd, h_seq i⟩, fun h ↦ ⟨(h 0).1, fun i ↦ (h i).2⟩⟩
@@ -378,6 +382,7 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
       · exact ⟨0, by simp⟩
   · simp only [ne_eq, iInf_eq_top, not_forall]
     convert tendsto_measure_iUnion_atTop ?_
+    · rfl
     · ext ω
       simp only [Set.mem_setOf_eq, Set.mem_iUnion]
       refine ⟨fun ⟨n, hω⟩ ↦ ⟨n, ?_⟩, fun ⟨n, hω⟩ ↦ ⟨n + 1, hω⟩⟩
@@ -442,7 +447,7 @@ lemma IsPavingAnalytic.exists_measurable_section_left_nnreal (hs : IsPavingAnaly
       refine tendsto_nhds_unique (f := fun n ↦ (sectionSeq μ hs n).1 ω) (l := atTop) ?_ ?_
       · exact tendsto_atTop_iInf fun n m hnm ↦ antitone_sectionSeq hs hnm ω
       · refine tendsto_nhds_of_eventually_eq ?_
-        simp only [eventually_atTop, ge_iff_le]
+        simp only [eventually_atTop]
         exact ⟨n, h_eq⟩
     rw [this]
     exact sectionSeq_mem hs hn.ne

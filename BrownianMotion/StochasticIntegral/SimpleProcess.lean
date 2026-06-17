@@ -447,7 +447,6 @@ variable [MeasurableSpace G] [BorelSpace G] [SecondCountableTopology G]
     · simp at h
   bounded_valueBot := by
     refine ⟨‖B‖ * V.valueBotBound * W.valueBotBound, fun ω ↦ ?_⟩
-    dsimp
     grw [B.le_opNorm₂, V.valueBot_le_valueBotBound, W.valueBot_le_valueBotBound]
     exact mul_nonneg B.opNorm_nonneg V.valueBotBound_nonneg
   bounded_value := by
@@ -493,7 +492,7 @@ theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semirin
     [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R₁ M₁] [Module R₂ M₂] [ContinuousAdd M₂]
     {ι A : Type*} [Zero A] (g : ι →₀ A) (f : ι → A → M₁ →SL[σ₁₂] M₂) (b : M₁) :
     g.sum f b = g.sum fun i a ↦ f i a b :=
-  ContinuousLinearMap.sum_apply _ _ _
+  sum_apply _ _ _
 
 /-- Interpreted as functions, `map₂` is just applying `B` pointwise. -/
 @[simp] lemma coe_map₂ (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕)

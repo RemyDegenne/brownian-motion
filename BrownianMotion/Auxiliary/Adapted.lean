@@ -94,7 +94,8 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
         Finset.max'_eq_iff, Subtype.forall, mem_Iic, Subtype.mk_le_mk, v, r,
         Finset.mem_image, Finset.mem_range, comp_apply]
       exact ⟨⟨k, by linarith, by simp [hk]⟩, fun a ha _ => ha⟩
-    simpa [l] using mem_Iic.mp a.1.2
+    simp only [l, ge_iff_le]
+    exact mem_Iic.mp a.1.2
   have disj (n : ℕ) : Pairwise (Disjoint on (f n)) := by
     simp only [pairwise_disjoint_on]
     intro i j hij

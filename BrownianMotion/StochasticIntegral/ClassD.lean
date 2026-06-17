@@ -206,7 +206,7 @@ lemma classD_of_uniformIntegrable_bounded_stoppingTime
       have : (T.1 ω).untopA = T.1 ω := by simp [WithTop.untopA_eq_untop (T.2.2 ω)]
       rw [stoppedValue, Pi.inf_apply, ← this, ← WithTop.coe_min (v n) (T.1 ω).untopA,
         min_eq_right (hN n hn)]
-      simpa using hU
+      exact hU
   exact ⟨hm, (hX.uniformIntegrable_of_ae_tendsto _).comp
     (fun T : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} => ⟨stoppedValue X T.1, this T⟩)⟩
 
@@ -256,7 +256,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T.1) ≤ᵐ[P]
         P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] from by
-        have : T.1 ⊓ (fun ω => t) = T.1 := by simpa [inf_eq_left] using T.2.2
+        have : T.1 ⊓ (fun ω => t) = T.1 := by simp only [inf_eq_left]; exact T.2.2
         simpa [inf_comm, this] using lem
       exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
         (Eventually.of_forall (fun ω => le_rfl)) T.2.1 (isStoppingTime_const 𝓕 t)
@@ -282,7 +282,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
   · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
           P[stoppedValue X (fun ω => t)|hT.measurableSpace] by
-        have : T ⊓ (fun _ ↦ t) = T := by simpa [inf_eq_left] using ht
+        have : T ⊓ (fun _ ↦ t) = T := by simp only [inf_eq_left]; exact ht
         simpa [inf_comm, this] using lem
       exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
         (ae_of_all _ fun _ ↦ le_rfl) hT (isStoppingTime_const 𝓕 t)
@@ -575,7 +575,7 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
       let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
       have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
         ext T
-        simpa [Y, f] using stoppedValue_stoppedProcess_apply (T.2.2 _)
+        exact stoppedValue_stoppedProcess_apply (T.2.2 _)
       rw [this]
       exact UniformIntegrable.comp (hX.2 (v n)) f
     · by_cases hb : ⊥ < (v n : WithTop ι)
