@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
+public import Mathlib.Analysis.Normed.Group.Continuity
 public import Mathlib.Topology.Algebra.MulAction
 public import Mathlib.Topology.Instances.ENNReal.Lemmas
 public import Mathlib.Topology.MetricSpace.Bounded
@@ -143,6 +144,19 @@ lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [Continu
   refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
   obtain ⟨l, hl⟩ := hf.2 i
   exact ⟨r • l, hl.const_smul r⟩
+
+lemma IsCadlag.continuous_comp {κ E F : Type*} [TopologicalSpace κ] [TopologicalSpace E]
+    [TopologicalSpace F] [Preorder κ] {g : E → F} {f : κ → E}
+    (hg : Continuous g) (hf : IsCadlag f) : IsCadlag (g ∘ f) where
+  right_continuous := Function.IsRightContinuous.continuous_comp hg hf.right_continuous
+  left_limit i := by
+    obtain ⟨l, hl⟩ := hf.left_limit i
+    exact ⟨g l, (hg.tendsto l).comp hl⟩
+
+lemma IsCadlag.norm_sq {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] [Preorder κ]
+    {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖ ^ 2) := by
+  change IsCadlag ((fun x : F ↦ ‖x‖ ^ 2) ∘ f)
+  exact IsCadlag.continuous_comp ((continuous_pow 2).comp continuous_norm) hf
 
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
