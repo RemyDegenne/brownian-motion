@@ -165,7 +165,7 @@ lemma convex_combination_bounded {x : ℕ → E}
   refine mul_le_of_le_one_left ?_ bound
   exact le_trans (norm_nonneg (x 0)) (hx 0)
 
-open Convexity.StdSimplex
+open Convexity
 
 /-- `komlosFormula x cw k n` is the convex combination of the stage-`k` vectors `x k m`,
 weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
@@ -176,7 +176,7 @@ noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → St
 lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
   {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
   komlosFormula x cw1 k = komlosFormula x cw2 k := by
-  unfold komlosFormula; rw [StdSimplex.iteratedBind_congr]
+  unfold komlosFormula; rw [iteratedComb_congr]
   exact h
 
 /--
@@ -260,7 +260,7 @@ lemma komlos_step {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n,
     have aux : (iteratedComb cw_new (k + 1) n)
       = (iConvexComb (cw_step n) (iteratedComb cw k)) := by
       unfold cw_new
-      rw [iteratedComb, Function.update_self, iteratedBind_congr]
+      rw [iteratedComb, Function.update_self, iteratedComb_congr]
       grind
     rw [g_step_eq_gtilde n, aux, ← iConvexComb_sum_smul]
   use cw_new

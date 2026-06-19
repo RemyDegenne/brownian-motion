@@ -9,41 +9,11 @@ public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 @[expose] public section
 
-variable {R : Type*} [PartialOrder R] [Semiring R] {M N P : Type*}
+variable {R : Type*} [PartialOrder R] [Semiring R] [IsStrictOrderedRing R] {M N P : Type*}
 
-namespace Convexity.StdSimplex
+namespace Convexity
 
-instance instFunLike : FunLike (StdSimplex R M) M R := {
-  coe s := s.weights.toFun
-  coe_injective := fun _ _ h ↦ ext (Finsupp.ext fun i ↦ congrFun h i)
-}
-
-variable [IsStrictOrderedRing R]
-
-variable (a : StdSimplex R M) (b : M → StdSimplex R N)
-
--- Slightly more general than weights_iConvexComb which only works for M = N
-lemma weights_iConvexComb' : (iConvexComb a b).weights
-    = (fun m ↦ a.weights.sum (fun k ak ↦ ak * (b k).weights m)) :=
-  by
-  ext m
-  rw [iConvexComb, map, weights_sConvexComb]
-  simp only [Finsupp.sum_apply, Finsupp.coe_smul, Pi.smul_apply, smul_eq_mul]
-  rw [Finsupp.sum_mapDomain_index (fun _ => by simp) (fun _ _ _ => by simp [add_mul])]
-
-lemma support_subset_support_iConvexComb {a : StdSimplex R M} (b : M → StdSimplex R N)
-    {i : M} (hi : i ∈ a.weights.support) :
-    (b i).weights.support ⊆ (iConvexComb a b).weights.support := by
-  intro m hm
-  have hpos : 0 < a.weights i * (b i).weights m :=
-    mul_pos ((a.nonneg i).lt_of_ne' (by grind)) (((b i).nonneg m).lt_of_ne' (by grind))
-  have hnonneg (k : M) (hk : k ∈ a.weights.support) : 0 ≤ a.weights k * (b k).weights m := by
-    exact mul_nonneg (a.nonneg k) ((b k).nonneg m)
-  have hsum_pos : 0 < ∑ k ∈ a.weights.support, a.weights k * (b k).weights m :=
-    lt_of_lt_of_le hpos (Finset.single_le_sum hnonneg hi)
-  rw [Finsupp.mem_support_iff]
-  rw [weights_iConvexComb']
-  positivity
+open StdSimplex
 
 /-- Given a doubly-indexed family of convex weights `cw : ℕ → ℕ → StdSimplex R ℕ`,
 `iteratedComb cw k n` is the iterated convex multiplication obtained by combining
@@ -52,15 +22,16 @@ public noncomputable def iteratedComb (cw : ℕ → ℕ → StdSimplex R ℕ) : 
   | 0 => cw 0
   | k + 1 => fun n ↦ iConvexComb (cw (k + 1) n) (iteratedComb cw k)
 
-lemma iteratedBind_congr {cw1 cw2 : ℕ → ℕ → StdSimplex R ℕ} {k : ℕ}
+lemma iteratedComb_congr {cw1 cw2 : ℕ → ℕ → StdSimplex R ℕ} {k : ℕ}
     (h : ∀ i ≤ k, cw1 i = cw2 i) :
     iteratedComb cw1 k = iteratedComb cw2 k := by
   induction k with
   | zero => simp [iteratedComb, h]
   | succ k ih => simp [iteratedComb, h, ih (fun i hi => h i (Nat.le_succ_of_le hi))]
 
-lemma iConvexComb_sum_smul {E : Type*} (f : N → E) [AddCommGroup E] [Module R E] [IsDomain R] :
-  (iConvexComb a b).weights.sum (fun m cwm ↦ cwm • f m) =
+lemma iConvexComb_sum_smul {E : Type*} (a : StdSimplex R M) (b : M → StdSimplex R N) (f : N → E)
+    [AddCommGroup E] [Module R E] [IsDomain R] :
+    (iConvexComb a b).weights.sum (fun m cwm ↦ cwm • f m) =
   a.weights.sum (fun i wi ↦ wi • (b i).weights.sum (fun m bm ↦ bm • f m)) := by
   classical
   simp only [iConvexComb, weights_sConvexComb, weights_map]
@@ -68,11 +39,9 @@ lemma iConvexComb_sum_smul {E : Type*} (f : N → E) [AddCommGroup E] [Module R 
       Finsupp.sum_mapDomain_index (fun _ => by simp)
       (fun d r₁ r₂ => by simp [add_smul, Finsupp.sum_add_index, add_smul])]
   simp only [Finsupp.sum]
-  refine Finset.sum_congr rfl ?_
-  intro i hi
-  have hsupp : (a.weights i • (b i).weights).support = (b i).weights.support :=
-    Finsupp.support_smul_eq (by grind)
-  simp [hsupp, Finset.smul_sum, Finsupp.smul_apply, smul_smul]
+  refine Finset.sum_congr rfl fun i hi => ?_
+  rw [Finsupp.support_smul_eq (by grind)]
+  simp [Finset.smul_sum, Finsupp.smul_apply, smul_smul]
 
 open MeasureTheory
 open scoped ENNReal NNReal
@@ -106,4 +75,4 @@ lemma coeFn_sum_smul {μ : Measure Ω} {p : ℝ≥0∞} (s : Finset ℕ) (c : �
     exact (Lp.coeFn_add _ _).trans <|
       ((Lp.coeFn_smul _ _).trans ((hmem j).coeFn_toLp.const_smul (c j))).add ih
 
-end Convexity.StdSimplex
+end Convexity
