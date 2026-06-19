@@ -185,6 +185,13 @@ every `y n` can be written as a convex combination of elements `x k` with `k ≥
 def convexTail (x : ℕ → E) : Set (ℕ → E) :=
   { y | ∀ n, y n ∈ convexHull ℝ (Set.range (fun m ↦ x (n + m))) }
 
+lemma convexTail_self (x : ℕ → E) : x ∈ convexTail x := by
+  simp only [convexTail, Set.mem_setOf_eq]
+  intro n
+  rw [mem_convexHull_iff_exists_fintype]
+  use (Fin 1), (by infer_instance), (fun _ ↦ (1 : ℝ)), (fun _ ↦ (x n))
+  simp [Exists.intro 0]
+
 lemma exists_stdSimplex_of_mem_convexTail_reindexed {x g : ℕ → E} (hg : g ∈ convexTail x) (n : ℕ) :
   ∃ w : StdSimplex ℝ ℕ, g n = w.weights.sum (fun i wi ↦ wi • x i) ∧ ∀ m < n, w.weights m = 0 := by
   obtain ⟨w₀, hw₀⟩ := exists_stdSimplex_of_mem_convexHull (hg n)
@@ -339,26 +346,124 @@ lemma TendstoUniformly_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atT
   simpa only [gt_iff_lt] using this
 
 omit [CompleteSpace E] in
-lemma Tendsto_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim)) :
-    ∀ y ∈ convexTail x, Tendsto y atTop (𝓝 xlim) := by
-  intro y hy
-  exact TendstoUniformly.tendsto_at (TendstoUniformly_convexTail hx) ⟨y, hy⟩
+lemma TendstoUniformly_convexTail' {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim))
+    {y : ℕ → ℕ → E} (hy : ∀ᶠ i in atTop, (fun n ↦ y n i) ∈ convexTail x) :
+    TendstoUniformly y (fun _ ↦ xlim) atTop := by
+    intro u hu
+    rcases Metric.mem_uniformity_dist.mp hu with ⟨ε, εpos, hεu⟩
+    have hxε : ∀ᶠ n in atTop, dist (x n) xlim < ε := by
+      simpa using hx (Metric.ball_mem_nhds _ εpos)
+    rcases Filter.eventually_atTop.mp hxε with ⟨N, hN⟩
+    rcases Filter.eventually_atTop.mp hy with ⟨M, hM⟩
+    refine Filter.eventually_atTop.mpr ⟨max N M, ?_⟩
+    intro n hNM i
+    have hn : n ≥ N := by grind
+    apply hεu
+    simp only
+    clear hεu hu u
+
+    have htail : Set.range (fun m ↦ x (n + m)) ⊆ Metric.ball xlim ε := by
+      rintro _ ⟨m, rfl⟩
+      simpa using hN (n + m) (le_trans hn (Nat.le_add_right n m))
+
+    have aux : y n i ∈ Metric.ball xlim ε := by
+      sorry
+
+    simp only [gt_iff_lt]
+    exact Metric.mem_ball'.mp aux
+
+lemma komlosFormula_convexTail_incr (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (i : ℕ) :
+    komlosFormula x cw (i + 1) i ∈ convexTail (komlosFormula x cw i i) := by
+  simp only [convexTail, Set.mem_setOf_eq, komlosFormula]
+  intro n
+  sorry
+
+lemma komlosFormula_convexTail (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i : ℕ)
+  (hk : i ≤ k) :
+  komlosFormula x cw k i ∈ convexTail (komlosFormula x cw i i) := by
+  let n := k - i
+  rw [(show k = i + n by grind)]
+  induction n with
+  | zero => simp only [add_zero]; exact convexTail_self (komlosFormula x cw i i)
+  | succ m hm => sorry
 
 lemma komlos_uniform_convergence
     {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
     (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
     (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) :
-    ∀ i, TendstoUniformly (fun k ↦ komlosFormula x cw k i) lim atTop
-    -- maybe too strong, the blueprint statement limits to k ≥ i
+    ∀ i, TendstoUniformly (fun k ↦ komlosFormula x cw k i) (fun _ ↦ lim i) atTop
      := by
   intro i
+  apply TendstoUniformly_convexTail' (hcw i)
+  simp only [eventually_atTop]
+  use i -- check if this is right!
+  intro k hk
+  -- unfold komlosFormula
+  -- informal argument: to show convergence, it suffices to show convergence for k >= K with some
+  -- fix K. Let's consider K := i.
+  -- we want to rewrite `fun k ↦ komlosFormula x cw k i` in terms of convexTail
   sorry
 
-lemma komlos_convex_weights_diagonal
-    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
+lemma komlos_uniform_convergence_epsilon
+    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
+    (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
+    (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) (i : ℕ) :
+    ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ k ≥ i, ‖komlosFormula x cw k i n - lim i‖ < ε
+     := by
+  intro ε hε
+  unfold komlosFormula
+  have (k : ℕ) (hk : i ≤ k) :
+    (komlosFormula x cw k i) ∈ convexTail (fun n ↦ komlosFormula x cw i i n)
+    := by -- WIP proof. Need the right lemmas on convexTail + komlosFormula
+    unfold komlosFormula
+    unfold convexTail
+    simp only [Set.mem_setOf_eq]
+    intro n
+    unfold convexHull
+    simp only [ClosureOperator.ofCompletePred_apply, Set.le_eq_subset, Set.iInf_eq_iInter,
+      Set.mem_iInter, Subtype.forall, and_imp]
+    intro s hsub hconv
+    sorry
+  sorry
+
+-- statement needs work!
+lemma weights_zero {cw : ℕ → ℕ → StdSimplex ℝ ℕ}
+    (h : ∀ (k n m : ℕ), m < n → (cw k n).weights m = 0) (k n m : ℕ) (hm : m < k) (hn : n ≤ k) :
+    (iteratedBind cw k n).weights m = 0 := by -- 2nd k needs generalisation
+  induction k with
+  | zero => grind
+  | succ k hk =>
+    simp [iteratedBind]
+    rw [weights_bind]
+    simp -- need to adjust the statement!
+    sorry
+
+lemma komlos_convex_weights_diagonal {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
     ∃ (η : ℕ → StdSimplex ℝ ℕ), (∀ n, ∀ m < n, (η n).weights m = 0) ∧ ∀ i : ℕ,
     ∃ glim : E, Tendsto (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by
-  sorry
+  let ⟨cw, cwlim, cwnonneg⟩ := komlos_convex_weights hx
+  let g (i : ℕ) := Classical.choose (cwlim i)
+  have glim (i : ℕ) := Classical.choose_spec (cwlim i)
+  let η (n : ℕ) : StdSimplex ℝ ℕ := StdSimplex.iteratedBind cw n n
+  have lim (i : ℕ) : Tendsto
+    (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 (g i)) := by
+    apply Filter.tendsto_of_sub_tendsto_zero
+      (g := fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) (f := fun n ↦ g i)
+    · simp
+    rw [NormedAddGroup.tendsto_nhds_zero]
+    intro ε hε
+    simp only [Pi.sub_apply, eventually_atTop]
+    have ⟨N, hN⟩ := komlos_uniform_convergence_epsilon hx cw g glim i ε hε
+    use max N i
+    intro k _
+    replace hN := hN k (by grind) k (by grind)
+    exact hN
+  use η
+  refine ⟨?_, ?_⟩
+  · intro n m hm
+    unfold η
+    sorry -- should be easy
+  · exact fun i ↦ Exists.intro (g i) (lim i)
 
 lemma komlos_convergence_L2
     (f : ℕ → Ω → E) {P : Measure Ω} :
