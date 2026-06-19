@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.Auxiliary.Martingale
-public import BrownianMotion.StochasticIntegral.Cadlag
+public import BrownianMotion.StochasticIntegral.LocalMartingale
 
 /-! # Square integrable martingales
 
@@ -30,6 +30,13 @@ structure IsSquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P
   martingale : Martingale X 𝓕 P
   cadlag : ∀ ω, IsCadlag (X · ω)
   bounded : ⨆ i, eLpNorm (X i) 2 P < ∞
+
+/-- A stochastic process is locally square-integrable if it satisfies the square-integrable
+martingale property locally. -/
+def IsLocallySquareIntegrable [OrderBot ι] [OrderTopology ι]
+    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
+    (P : Measure Ω := by volume_tac) : Prop :=
+  Locally (fun Y ↦ IsSquareIntegrable Y 𝓕 P) 𝓕 X P
 
 lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     Integrable (fun ω ↦ ‖X i ω‖ ^ 2) P := by
@@ -80,6 +87,26 @@ lemma IsSquareIntegrable.submartingale_sq_norm [CompleteSpace E] (hX : IsSquareI
   · refine MemLp.integrable_norm_pow ⟨?_, ?_⟩ (by linarith)
     · exact hX.1.1.stronglyMeasurable.aestronglyMeasurable
     · exact lt_of_le_of_lt (le_iSup (fun i ↦ eLpNorm (X i) 2 P) i) hX.3
+
+/-- A locally square-integrable martingale has locally submartingale squared norm. -/
+lemma IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm
+    [OrderBot ι] [OrderTopology ι] [CompleteSpace E]
+    (hX : IsLocallySquareIntegrable X 𝓕 P) :
+    IsLocalSubmartingale (fun t ω ↦ ‖X t ω‖ ^ 2) 𝓕 P := by
+  have h_stopped_sq_norm {τ : Ω → WithTop ι} :
+      stoppedProcess (fun t ↦ {ω | ⊥ < τ ω}.indicator (fun ω ↦ ‖X t ω‖ ^ 2)) τ =
+        fun t ω ↦ ‖stoppedProcess (fun t ↦ {ω | ⊥ < τ ω}.indicator (X t)) τ t ω‖ ^ 2 := by
+    ext t ω
+    by_cases hτ : ⊥ < τ ω <;> simp [stoppedProcess, hτ]
+  unfold IsLocalSubmartingale
+  change Locally (fun Y : ι → Ω → ℝ ↦ Submartingale Y 𝓕 P ∧
+      ∀ ω, IsCadlag (Y · ω)) 𝓕 (fun t ω ↦ ‖X t ω‖ ^ 2) P
+  refine ⟨hX.localSeq, hX.isLocalizingSequence_localSeq, fun n ↦ ?_⟩
+  have hXn := hX.stoppedProcess_localSeq n
+  constructor
+  · simpa [h_stopped_sq_norm] using hXn.submartingale_sq_norm
+  · intro ω
+    simpa [h_stopped_sq_norm] using IsCadlag.norm_sq (hXn.cadlag ω)
 
 lemma IsSquareIntegrable.eLpNorm_mono [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P)
     {i j : ι} (hij : i ≤ j) :
