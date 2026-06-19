@@ -20,10 +20,8 @@ open scoped ENNReal
 namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  [MeasurableSpace ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-
-variable [MeasurableSpace ι]
 
 /-- The quadratic variation of a locally square-integrable martingale, defined as the predictable
 part of the Doob-Meyer decomposition of its squared norm.
