@@ -422,6 +422,19 @@ property.
 \end{definition}
 
 
+\begin{lemma}\label{lem:IsSquareIntegrable.isLocallySquareIntegrable}
+  \uses{def:IsSquareIntegrable, def:IsLocallySquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.isLocallySquareIntegrable}
+Every square-integrable martingale is locally square-integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:implies_locally}
+This follows from Lemma~\ref{lem:implies_locally}.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsSquareIntegrable.module}
   \uses{def:IsSquareIntegrable}
   \leanok

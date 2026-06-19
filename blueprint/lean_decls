@@ -454,6 +454,7 @@ MeasureTheory.sum_addContent_eq_of_sUnion_eq
 IndexedPartition
 ProbabilityTheory.IsSquareIntegrable
 ProbabilityTheory.IsLocallySquareIntegrable
+ProbabilityTheory.IsSquareIntegrable.isLocallySquareIntegrable
 ProbabilityTheory.IsSquareIntegrable.add
 ProbabilityTheory.IsSquareIntegrable.smul
 ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm

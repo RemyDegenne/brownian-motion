@@ -38,6 +38,11 @@ def IsLocallySquareIntegrable [OrderBot ι] [OrderTopology ι]
     (P : Measure Ω := by volume_tac) : Prop :=
   Locally (fun Y ↦ IsSquareIntegrable Y 𝓕 P) 𝓕 X P
 
+lemma IsSquareIntegrable.isLocallySquareIntegrable [OrderBot ι] [OrderTopology ι]
+    (hX : IsSquareIntegrable X 𝓕 P) :
+    IsLocallySquareIntegrable X 𝓕 P :=
+  Locally.of_prop hX
+
 lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     Integrable (fun ω ↦ ‖X i ω‖ ^ 2) P := by
   constructor
