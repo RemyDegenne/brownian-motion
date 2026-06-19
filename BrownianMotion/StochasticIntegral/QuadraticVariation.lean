@@ -32,7 +32,8 @@ decomposition of its squared norm. -/
 noncomputable
 def quadraticVariation (hX : IsLocalMartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
     ι → Ω → ℝ :=
-  have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X t ω‖ ^ 2) := sorry
+  have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X t ω‖ ^ 2) :=
+    fun ω ↦ IsCadlag.norm_sq (hX_cadlag ω)
   (hX.isLocalSubmartingale_sq_norm hX_cadlag).predictablePart (fun t ω ↦ ‖X t ω‖ ^ 2) hX2_cadlag
 
 end ProbabilityTheory
