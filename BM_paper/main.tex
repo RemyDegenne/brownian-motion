@@ -1093,7 +1093,7 @@ The main issue is that we manipulate finite-dimensional laws as distributions ov
 In particular, the way to prove Proposition~\ref{prop:isBrownianOfIndep} is to first show that the hypotheses imply that the process is Gaussian, and then apply Proposition~\ref{prop:isBrownianOfCov}. To do that we prove this more general result:
 
 \begin{lemma}[\bmlink{Gaussian/BrownianMotion}{L161-L168}{ProbabilityTheory.HasIndepIncrements.isGaussianProcess}]
-Let $E$ be a second-countable Banach space and $T$ be an index set with a least element $\bot$. Consider $(X_t)_{t \in T}$ an $E$-valued stochastic process with independent increments, and such that for all $t$, $X_t$ has a Gaussian law. Further assume that $X_\bot$ is almost surely equal to $0$. Then $X$ is a Gaussian process.
+Let $E$ be a second-countable Banach space and $T$ be an index set that is linearly ordered with a least element $\bot$. Consider $(X_t)_{t \in T}$ an $E$-valued stochastic process with independent increments, and such that for all $t$, $X_t$ has a Gaussian law. Further assume that $X_\bot$ is almost surely equal to $0$. Then $X$ is a Gaussian process.
 \end{lemma}
 
 This is probably the lemma which required most work. The idea is to say that $(X_{t_1}, ..., X_{t_n})$ can be expressed as a linear combination of the increments $(X_{t_1} - X_\bot, ..., X_{t_n} - X_{t_{n-1}})$. Because the increments are independent and each $X_t$ is Gaussian, we can prove that each increment is Gaussian. Because they are independent, their linear combination is also Gaussian, and so $(X_{t_1}, ..., X_{t_n})$ is Gaussian. Making the linear combination explicit and proving the equality was rather technical.
