@@ -346,33 +346,6 @@ lemma TendstoUniformly_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atT
     simpa [dist_comm] using (convexHull_min htail (convex_ball xlim ε)) (y.2 n)
   simpa only [gt_iff_lt] using this
 
-omit [CompleteSpace E] in
-lemma TendstoUniformly_convexTail' {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim))
-    {y : ℕ → ℕ → E} (hy : ∀ᶠ i in atTop, (fun n ↦ y n i) ∈ convexTail x) :
-    TendstoUniformly y (fun _ ↦ xlim) atTop := by
-    intro u hu
-    rcases Metric.mem_uniformity_dist.mp hu with ⟨ε, εpos, hεu⟩
-    have hxε : ∀ᶠ n in atTop, dist (x n) xlim < ε := by
-      simpa using hx (Metric.ball_mem_nhds _ εpos)
-    rcases Filter.eventually_atTop.mp hxε with ⟨N, hN⟩
-    rcases Filter.eventually_atTop.mp hy with ⟨M, hM⟩
-    refine Filter.eventually_atTop.mpr ⟨max N M, ?_⟩
-    intro n hNM i
-    have hn : n ≥ N := by grind
-    apply hεu
-    simp only
-    clear hεu hu u
-
-    have htail : Set.range (fun m ↦ x (n + m)) ⊆ Metric.ball xlim ε := by
-      rintro _ ⟨m, rfl⟩
-      simpa using hN (n + m) (le_trans hn (Nat.le_add_right n m))
-
-    have aux : y n i ∈ Metric.ball xlim ε := by
-      sorry
-
-    simp only [gt_iff_lt]
-    exact Metric.mem_ball'.mp aux
-
 lemma komlosFormula_convexTail_incr (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (i : ℕ) :
     komlosFormula x cw (i + 1) i ∈ convexTail (komlosFormula x cw i i) := by
   simp only [convexTail, Set.mem_setOf_eq, komlosFormula]
@@ -387,6 +360,33 @@ lemma komlosFormula_convexTail (x : ℕ → ℕ → E) (cw : ℕ → ℕ → Std
   induction n with
   | zero => simp only [add_zero]; exact convexTail_self (komlosFormula x cw i i)
   | succ m hm => sorry
+
+omit [CompleteSpace E] in
+lemma TendstoUniformly_convexTail' {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim))
+    {y : ℕ → ℕ → E} (hy : ∀ᶠ i in atTop, (fun n ↦ y n i) ∈ convexTail x) :
+    TendstoUniformly y (fun _ ↦ xlim) atTop := by
+  intro u hu
+  rcases Metric.mem_uniformity_dist.mp hu with ⟨ε, εpos, hεu⟩
+  have hxε : ∀ᶠ n in atTop, dist (x n) xlim < ε := by
+    simpa using hx (Metric.ball_mem_nhds _ εpos)
+  rcases Filter.eventually_atTop.mp hxε with ⟨N, hN⟩
+  rcases Filter.eventually_atTop.mp hy with ⟨M, hM⟩
+  refine Filter.eventually_atTop.mpr ⟨max N M, ?_⟩
+  intro n hNM i
+  have hn : n ≥ N := by grind
+  apply hεu
+  simp only
+  clear hεu hu u
+
+  have htail : Set.range (fun m ↦ x (n + m)) ⊆ Metric.ball xlim ε := by
+    rintro _ ⟨m, rfl⟩
+    simpa using hN (n + m) (le_trans hn (Nat.le_add_right n m))
+
+  have aux : y n i ∈ Metric.ball xlim ε := by
+    sorry
+
+  simp only [gt_iff_lt]
+  exact Metric.mem_ball'.mp aux
 
 lemma komlos_uniform_convergence
     {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
