@@ -1083,7 +1083,7 @@ Mimicking this process, we introduced a predicate \lean{IsPreBrownian X P}, whic
 The second characterization of the Brownian motion we formalized is the one below.
 
 \begin{proposition}[\bmlink{Gaussian/BrownianMotion}{L391-L393}{ProbabilityTheory.HasIndepIncrements.isPreBrownian_of_hasLaw}]\label{prop:isBrownianOfIndep}
-An almost surely continuous stochastic process with independent increments such that for all $t$, $X_t$ has law $N(0,t)$ is a Brownian motion.
+An almost surely continuous stochastic process indexed by $\mathbb{R}_+$ with independent increments such that for all $t$, $X_t$ has law $N(0,t)$ is a Brownian motion.
 \end{proposition}
 
 This characterization required us to define a predicate \lean{HasIndepIncrements X P} stating that the process $X$ has independent increments under the measure $P$.
