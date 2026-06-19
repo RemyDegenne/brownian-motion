@@ -1064,21 +1064,59 @@ end PredictablePartLimMono
 
 section PredictableConvexStepPredictable
 
+/-- The indicator of a half-open interval `Ioc a b` with constant value `c` is left-continuous:
+when approached from the left it is eventually constant, so it is continuous within `Iio t` at `t`
+for every `t`. -/
+lemma continuousWithinAt_Iio_indicator_Ioc {α M : Type*} [LinearOrder α] [TopologicalSpace α]
+    [OrderTopology α] [Zero M] [TopologicalSpace M] (a b : α) (c : M) (t : α) :
+    ContinuousWithinAt ((Set.Ioc a b).indicator (fun _ ↦ c)) (Set.Iio t) t := by
+  refine (continuousWithinAt_const
+    (b := (Set.Ioc a b).indicator (fun _ ↦ c) t)).congr_of_eventuallyEq ?_ rfl
+  rcases le_or_gt t a with hta | hat
+  · refine eventually_nhdsWithin_of_forall fun x hx ↦ ?_
+    rw [Set.indicator_of_notMem fun h ↦ (not_lt.2 ((Set.mem_Iio.1 hx).le.trans hta)) h.1,
+      Set.indicator_of_notMem fun h ↦ (not_lt.2 hta) h.1]
+  · rcases le_or_gt t b with htb | hbt
+    · filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hat)]
+        with x hx_lt hx_gt
+      rw [Set.indicator_of_mem
+          (Set.mem_Ioc.2 ⟨Set.mem_Ioi.1 hx_gt, (Set.mem_Iio.1 hx_lt).le.trans htb⟩),
+        Set.indicator_of_mem (Set.mem_Ioc.2 ⟨hat, htb⟩)]
+    · filter_upwards [mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hbt)] with x hx_gt
+      rw [Set.indicator_of_notMem fun h ↦ (not_le.2 (Set.mem_Ioi.1 hx_gt)) h.2,
+        Set.indicator_of_notMem fun h ↦ (not_le.2 hbt) h.2]
+
 /-- The mesh step-extension of the discrete predictable part is left-continuous in time. -/
 lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (n : ℕ) (ω : Ω) (t : ι) :
     ContinuousWithinAt (fun s ↦ predictableSeqStep P S 𝓕 n s ω) (Set.Iio t) t := by
-  sorry
+  have hrw : (fun s ↦ predictableSeqStep P S 𝓕 n s ω)
+      = fun s ↦ ∑ u : mesh ι n, (meshPredIoc n u).indicator
+          (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω) s := by
+    funext s
+    simp only [predictableSeqStep, Finset.sum_apply]
+    refine Finset.sum_congr rfl fun u _ ↦ ?_
+    by_cases hs : s ∈ meshPredIoc n u <;> simp [hs]
+  rw [hrw]
+  exact tendsto_finsetSum _ fun u _ ↦ continuousWithinAt_Iio_indicator_Ioc _ _ _ t
 
 /-- `predictableConvexStep` is left-continuous in time. -/
 lemma predictableConvexStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (ω : Ω) (t : ι) :
     ContinuousWithinAt (fun s ↦ predictableConvexStep hd hs n s ω) (Set.Iio t) t := by
-  sorry
+  have hrw : (fun s ↦ predictableConvexStep hd hs n s ω)
+      = fun s ↦ ∑ m ∈ (weight hd hs n).weights.support,
+          (weight hd hs n).weights m • predictableSeqStep P S 𝓕 m s ω := by
+    funext s
+    simp only [predictableConvexStep, Finsupp.sum, Finset.sum_apply, Pi.smul_apply]
+  rw [hrw]
+  exact tendsto_finsetSum _ fun m _ ↦ (predictableSeqStep_leftContinuous m ω t).const_smul _
 
 /-- The mesh step-extension of the discrete predictable part is strongly adapted. -/
 lemma stronglyAdapted_predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
