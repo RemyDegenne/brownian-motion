@@ -123,7 +123,6 @@ lemma komlos_norm [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpac
   rcases CompleteSpace.complete g_cauchy with ⟨x, hx⟩
   tauto
 
-
 lemma exists_stdSimplex_of_mem_convexHull {M ι : Type*} [AddCommGroup E] [Field M] [LinearOrder M]
     [IsStrictOrderedRing M] [Module M E] {s : ι → E} {x : E}
     (hx : x ∈ convexHull M (Set.range s)) :
@@ -166,11 +165,13 @@ lemma convex_combination_bounded {x : ℕ → E}
   refine mul_le_of_le_one_left ?_ bound
   exact le_trans (norm_nonneg (x 0)) (hx 0)
 
+open Convexity.StdSimplex
+
 /-- `komlosFormula x cw k n` is the convex combination of the stage-`k` vectors `x k m`,
 weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
 established at each stage of the Komlós construction. -/
 noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) : E :=
-  (StdSimplex.iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
+  (iteratedComb cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
 
 lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
   {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
@@ -242,7 +243,7 @@ lemma komlos_step {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n,
   ∃ (cw_new : ℕ → ℕ → StdSimplex ℝ ℕ),
     (∃ glim : E, Tendsto (komlosFormula x cw_new (k+1) (k+1)) atTop (𝓝 glim))
     ∧ (∀ i ≤ k, cw_new i = cw i) ∧ (∀ n, ∀ m < n, (cw_new (k+1) n).weights m = 0) := by
-  let gtilde := fun n ↦ (iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • (x (k+1) m))
+  let gtilde := fun n ↦ (iteratedComb cw k n).weights.sum (fun m cwm ↦ cwm • (x (k+1) m))
   obtain ⟨M, hM⟩ := hx (k+1)
   have gtilde_bound : ∃ M, ∀ n, ‖gtilde n‖ ≤ M := ⟨M, convex_combination_bounded hM⟩
   obtain ⟨g_step, gstep_conv, glim, hglim⟩ := komlos_norm (gtilde_bound)
@@ -255,13 +256,13 @@ lemma komlos_step {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n,
       (fun n ↦ (Classical.choose_spec (existence n)).1)⟩
   let cw_new := Function.update cw (k+1) cw_step
   have g_step_eq (n : ℕ) : g_step n =
-    (iteratedBind cw_new (k + 1) n).weights.sum (fun m cwm ↦ cwm • x (k+1) m) := by
-    have aux : (iteratedBind cw_new (k + 1) n)
-      = (bind (cw_step n) (iteratedBind cw k)) := by
+    (iteratedComb cw_new (k + 1) n).weights.sum (fun m cwm ↦ cwm • x (k+1) m) := by
+    have aux : (iteratedComb cw_new (k + 1) n)
+      = (iConvexComb (cw_step n) (iteratedComb cw k)) := by
       unfold cw_new
-      rw [iteratedBind, Function.update_self, iteratedBind_congr]
+      rw [iteratedComb, Function.update_self, iteratedBind_congr]
       grind
-    rw [g_step_eq_gtilde n, aux, ← bind_sum_smul]
+    rw [g_step_eq_gtilde n, aux, ← iConvexComb_sum_smul]
   use cw_new
   refine ⟨?_, by grind, ?_⟩
   · use glim; exact Tendsto.congr g_step_eq hglim
@@ -429,13 +430,12 @@ lemma komlos_uniform_convergence_epsilon
 -- statement needs work!
 lemma weights_zero {cw : ℕ → ℕ → StdSimplex ℝ ℕ}
     (h : ∀ (k n m : ℕ), m < n → (cw k n).weights m = 0) (k n m : ℕ) (hm : m < k) (hn : n ≤ k) :
-    (iteratedBind cw k n).weights m = 0 := by -- 2nd k needs generalisation
+    (iteratedComb cw k n).weights m = 0 := by -- 2nd k needs generalisation
   induction k with
   | zero => grind
   | succ k hk =>
-    simp [iteratedBind]
-    rw [weights_bind]
-    simp -- need to adjust the statement!
+    simp [iteratedComb]
+    -- need to adjust the statement!
     sorry
 
 lemma komlos_convex_weights_diagonal {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
@@ -444,7 +444,7 @@ lemma komlos_convex_weights_diagonal {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, 
   let ⟨cw, cwlim, cwnonneg⟩ := komlos_convex_weights hx
   let g (i : ℕ) := Classical.choose (cwlim i)
   have glim (i : ℕ) := Classical.choose_spec (cwlim i)
-  let η (n : ℕ) : StdSimplex ℝ ℕ := StdSimplex.iteratedBind cw n n
+  let η (n : ℕ) : StdSimplex ℝ ℕ := iteratedComb cw n n
   have lim (i : ℕ) : Tendsto
     (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 (g i)) := by
     apply Filter.tendsto_of_sub_tendsto_zero
