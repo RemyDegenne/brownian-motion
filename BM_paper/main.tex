@@ -175,7 +175,7 @@ Finally, Section~\ref{S:BM} contains the final construction of Brownian motion a
 This section gives an overview of the different theorems and definitions we formalized in order to construct Brownian motion. Subsequent sections will go into more detail for each of these steps.
 We refer to the implementation using links, like \mllink{Probability/Distributions/Gaussian/Basic}{L43-L46}{ProbabilityTheory.IsGaussian}, which point either to \mathlib or to \href{https://github.com/RemyDegenne/brownian-motion}{our repository}.
 Our goal is to eventually integrate all of our code into \mathlib, and that process is ongoing.
-All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and to commit {\tt 6a7a3141c6bc217484f635f3ab861316a37c0362} for our repository, which correspond its state on December 1, 2025.
+All links point to commit {\tt 82d756ea359cfa0f2c10bc00b8a997822c3b32ea} for \mathlib, and to commit {\tt 6a7a3141c6bc217484f635f3ab861316a37c0362} for our repository, which corresponds to its state on December 1, 2025.
 
 Let us start with notation. Any stochastic process has an index set $T$ (usually called {\em time}, usually uncountably infinite), and a state space.
 While the general use of the word {\em time} implies a (total) order, the index set $T$ does not need to be ordered for the general construction of stochastic processes. Only for the definition of the covariance matrix in Section~\ref{ss:char}, we need the order relation. In addition, $T$ is assumed to be metric in Section~\ref{ss:kolchen}. For the state space, since we use dependent type theory, the state space may depend on the time, i.e.\ the state space at time $t$ is $E_t$.
