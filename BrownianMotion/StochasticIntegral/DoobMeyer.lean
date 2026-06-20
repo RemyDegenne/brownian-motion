@@ -1162,12 +1162,43 @@ lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictab
   sorry
 
 /-- Reverse Fatou's lemma. See also `limsup_lintegral_le`. -/
-lemma limsup_integral_le_integral_limsup_of_tendsto_integral_posPart_sub {Ω : Type*}
+lemma limsup_integral_le_integral_limsup_of_le {Ω : Type*}
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
-    (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P) (hY_nonneg : 0 ≤ᵐ[P] Y)
-    (h_tendsto : Tendsto (fun n => ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop (𝓝 0)) :
+    (hX_meas : ∀ n, Measurable (X n)) (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P)
+    (hXY : ∀ n, X n ≤ᵐ[P] Y) :
     limsup (fun n => ∫ ω, X n ω ∂P) atTop ≤ ∫ ω, limsup (fun n => X n ω) atTop ∂P := by
-  sorry
+  have hYnn : 0 ≤ᵐ[P] Y := by
+    filter_upwards [hX_nonneg 0, hXY 0] with ω h0 h1 using h0.trans h1
+  have hnorm : ∀ {f : Ω → ℝ}, 0 ≤ᵐ[P] f → f ≤ᵐ[P] Y → ∀ᵐ ω ∂P, ‖f ω‖ ≤ ‖Y ω‖ := by
+    intro f h0 h1
+    filter_upwards [h0, h1, hYnn] with ω hf0 hfY hY0
+    rw [Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg hf0, abs_of_nonneg hY0]; exact hfY
+  have hXi : ∀ n, Integrable (X n) P := fun n ↦
+    hY.mono (hX_meas n).aestronglyMeasurable (hnorm (hX_nonneg n) (hXY n))
+  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) atTop (fun n ↦ X n ω) ∧
+      IsCoboundedUnder (· ≤ ·) atTop (fun n ↦ X n ω) := by
+    filter_upwards [ae_all_iff.2 hXY, ae_all_iff.2 hX_nonneg] with ω hub hlb
+    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le atTop hlb⟩
+  have hL_nonneg : 0 ≤ᵐ[P] fun ω ↦ limsup (fun n ↦ X n ω) atTop := by
+    filter_upwards [ae_all_iff.2 hX_nonneg, hae] with ω hlb hbdd
+    refine le_limsup_of_le hbdd.1 fun b hb ↦ ?_
+    obtain ⟨n, hn⟩ := (hb.and (Eventually.of_forall hlb)).exists
+    exact hn.2.trans hn.1
+  have hLi : Integrable (fun ω ↦ limsup (fun n ↦ X n ω) atTop) P :=
+    hY.mono (Measurable.limsup hX_meas).aestronglyMeasurable <| hnorm hL_nonneg <| by
+      filter_upwards [ae_all_iff.2 hXY, hae] with ω hub hbdd
+      exact limsup_le_of_le hbdd.2 (Eventually.of_forall hub)
+  rw [← ENNReal.ofReal_le_ofReal_iff (integral_nonneg_of_ae hL_nonneg),
+    ofReal_integral_eq_lintegral_ofReal hLi hL_nonneg,
+    ENNReal.ofReal_limsup
+      (isCoboundedUnder_le_of_le atTop fun n ↦ integral_nonneg_of_ae (hX_nonneg n))
+      (isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun n ↦ integral_mono_ae (hXi n) hY (hXY n)⟩)]
+  simp_rw [ofReal_integral_eq_lintegral_ofReal (hXi _) (hX_nonneg _)]
+  refine (limsup_lintegral_le _ (fun n ↦ (hX_meas n).ennreal_ofReal)
+      (fun n ↦ (hXY n).mono fun ω h ↦ ENNReal.ofReal_le_ofReal h)
+      (by rw [← ofReal_integral_eq_lintegral_ofReal hY hYnn]; exact ENNReal.ofReal_ne_top)).trans
+    (le_of_eq (lintegral_congr_ae
+      (hae.mono fun ω hbdd ↦ (ENNReal.ofReal_limsup hbdd.2 hbdd.1).symm)))
 
 /-- For each stopping time `τ`, `limsup (fun n => stoppedValue 𝒜^n τ) atTop = stoppedValue A τ`
 almost everywhere. -/
