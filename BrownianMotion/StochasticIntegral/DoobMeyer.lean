@@ -1084,7 +1084,7 @@ lemma continuousWithinAt_Iio_indicator_Ioc {α M : Type*} [LinearOrder α] [Topo
 /-- The mesh step-extension of the discrete predictable part is left-continuous in time. -/
 lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι]
+    [ClosedIicTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (n : ℕ) (ω : Ω) (t : ι) :
     ContinuousWithinAt (fun s ↦ predictableSeqStep P S 𝓕 n s ω) (Set.Iio t) t := by
@@ -1101,7 +1101,7 @@ lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T
 /-- `predictableConvexStep` is left-continuous in time. -/
 lemma predictableConvexStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι]
+    [ClosedIicTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (ω : Ω) (t : ι) :
     ContinuousWithinAt (fun s ↦ predictableConvexStep hd hs n s ω) (Set.Iio t) t := by
