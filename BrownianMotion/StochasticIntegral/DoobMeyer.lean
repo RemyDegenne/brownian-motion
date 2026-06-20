@@ -1064,6 +1064,10 @@ end PredictablePartLimMono
 
 section PredictableConvexStepPredictable
 
+lemma Set.indicator_eval {ι Ω M : Type*} [Zero M] (s : Set ι) (f : ι → Ω → M) (i : ι) (ω : Ω) :
+    s.indicator f i ω = s.indicator (fun j ↦ f j ω) i := by
+  by_cases h : i ∈ s <;> simp [h]
+
 /-- The indicator of a half-open interval `Ioc a b` with constant value `c` is left-continuous:
 when approached from the left it is eventually constant, so it is continuous within `Iio t` at `t`
 for every `t`. -/
@@ -1093,8 +1097,7 @@ lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T
           (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω) s := by
     funext s
     simp only [predictableSeqStep, Finset.sum_apply]
-    refine Finset.sum_congr rfl fun u _ ↦ ?_
-    by_cases hs : s ∈ meshPredIoc n u <;> simp [hs]
+    exact Finset.sum_congr rfl fun u _ ↦ Set.indicator_eval _ _ s ω
   rw [hrw]
   exact tendsto_finsetSum _ fun u _ ↦ continuousWithinAt_Iio_indicator_Ioc _ _ _ t
 
