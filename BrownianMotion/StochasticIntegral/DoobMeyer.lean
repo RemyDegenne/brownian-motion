@@ -1216,6 +1216,22 @@ lemma limsup_integral_le_integral_limsup_of_le' {Ω : Type*}
     (le_of_eq (lintegral_congr_ae
       (hae.mono fun ω hbdd ↦ (ENNReal.ofReal_limsup hbdd.2 hbdd.1).symm)))
 
+/-- Reverse Fatou's lemma in the form used for the Doob–Meyer decomposition. -/
+theorem limsup_integral_le_integral_of_tendsto_integral_posPart_sub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
+    (hX_int : ∀ n, Integrable (X n) P) (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P)
+    (h_tendsto : Tendsto (fun n ↦ ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop (𝓝 0)) :
+    limsup (fun n ↦ ∫ ω, X n ω ∂P) atTop ≤ ∫ ω, Y ω ∂P := by
+  have h_lim : Tendsto (fun n ↦ ∫ ω, Y ω ∂P + ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop
+      (𝓝 (∫ ω, Y ω ∂P)) := by simpa using tendsto_const_nhds.add h_tendsto
+  refine (limsup_le_limsup (.of_forall fun n ↦ ?_)
+    (isCoboundedUnder_le_of_le atTop fun n ↦ integral_nonneg_of_ae (hX_nonneg n))
+    h_lim.isBoundedUnder_le).trans h_lim.limsup_eq.le
+  have hle : ∫ ω, X n ω - Y ω ∂P ≤ ∫ ω, max (X n ω - Y ω) 0 ∂P :=
+    integral_mono ((hX_int n).sub hY) ((hX_int n).sub hY).pos_part fun ω ↦ le_max_left _ _
+  rw [integral_sub (hX_int n) hY] at hle
+  linarith
+
 /-- For each stopping time `τ`, `limsup (fun n => stoppedValue 𝒜^n τ) atTop = stoppedValue A τ`
 almost everywhere. -/
 lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePartLim {ι Ω : Type*}
