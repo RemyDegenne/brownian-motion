@@ -1070,21 +1070,16 @@ for every `t`. -/
 lemma continuousWithinAt_Iio_indicator_Ioc {α M : Type*} [LinearOrder α] [TopologicalSpace α]
     [OrderTopology α] [Zero M] [TopologicalSpace M] (a b : α) (c : M) (t : α) :
     ContinuousWithinAt ((Set.Ioc a b).indicator (fun _ ↦ c)) (Set.Iio t) t := by
-  refine (continuousWithinAt_const
-    (b := (Set.Ioc a b).indicator (fun _ ↦ c) t)).congr_of_eventuallyEq ?_ rfl
+  refine continuousWithinAt_const.congr_of_eventuallyEq ?_ rfl
   rcases le_or_gt t a with hta | hat
-  · refine eventually_nhdsWithin_of_forall fun x hx ↦ ?_
-    rw [Set.indicator_of_notMem fun h ↦ (not_lt.2 ((Set.mem_Iio.1 hx).le.trans hta)) h.1,
-      Set.indicator_of_notMem fun h ↦ (not_lt.2 hta) h.1]
+  · filter_upwards [self_mem_nhdsWithin] with x hx
+    simp_all [hx.le.trans hta]
   · rcases le_or_gt t b with htb | hbt
     · filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hat)]
         with x hx_lt hx_gt
-      rw [Set.indicator_of_mem
-          (Set.mem_Ioc.2 ⟨Set.mem_Ioi.1 hx_gt, (Set.mem_Iio.1 hx_lt).le.trans htb⟩),
-        Set.indicator_of_mem (Set.mem_Ioc.2 ⟨hat, htb⟩)]
+      simp_all [hx_lt.le.trans htb]
     · filter_upwards [mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hbt)] with x hx_gt
-      rw [Set.indicator_of_notMem fun h ↦ (not_le.2 (Set.mem_Ioi.1 hx_gt)) h.2,
-        Set.indicator_of_notMem fun h ↦ (not_le.2 hbt) h.2]
+      simp_all
 
 /-- The mesh step-extension of the discrete predictable part is left-continuous in time. -/
 lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
