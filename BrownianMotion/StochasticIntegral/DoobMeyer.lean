@@ -1068,7 +1068,7 @@ section PredictableConvexStepPredictable
 when approached from the left it is eventually constant, so it is continuous within `Iio t` at `t`
 for every `t`. -/
 lemma continuousWithinAt_Iio_indicator_Ioc {α M : Type*} [LinearOrder α] [TopologicalSpace α]
-    [OrderTopology α] [Zero M] [TopologicalSpace M] (a b : α) (c : M) (t : α) :
+    [ClosedIicTopology α] [Zero M] [TopologicalSpace M] (a b : α) (c : M) (t : α) :
     ContinuousWithinAt ((Set.Ioc a b).indicator (fun _ ↦ c)) (Set.Iio t) t := by
   refine continuousWithinAt_const.congr_of_eventuallyEq ?_ rfl
   rcases le_or_gt t a with hta | hat
