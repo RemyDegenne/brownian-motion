@@ -11,6 +11,7 @@ public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Topology.Order.LiminfLimsup
 
 import Mathlib.Order.CompleteLattice.Group
+import Mathlib.Topology.Algebra.Order.LiminfLimsup
 
 /-! # Doob-Meyer decomposition theorem
 
@@ -1161,8 +1162,7 @@ lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictab
       (𝓝 <| ∫ ω, stoppedValue (predictablePartLim hd hs) τ ω ∂P) := by
   sorry
 
-/-- `AEMeasurable` version of `MeasureTheory.limsup_lintegral_le`. -/
-theorem limsup_lintegral_le' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+private theorem limsup_lintegral_le_nat' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {f : ℕ → Ω → ℝ≥0∞} (g : Ω → ℝ≥0∞) (hf_meas : ∀ n, AEMeasurable (f n) P)
     (h_bound : ∀ n, f n ≤ᵐ[P] g) (h_fin : ∫⁻ ω, g ω ∂P ≠ ∞) :
     limsup (fun n ↦ ∫⁻ ω, f n ω ∂P) atTop ≤ ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂P :=
@@ -1178,59 +1178,193 @@ theorem limsup_lintegral_le' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measur
         exact (ae_all_iff.2 h_bound).mono fun ω hω ↦ iSup_le fun i ↦ iSup_le fun _ ↦ hω i
     _ = ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂P := by simp only [limsup_eq_iInf_iSup_of_nat]
 
-/-- Reverse Fatou's lemma, `AEMeasurable` version. -/
-lemma limsup_integral_le_integral_limsup_of_le' {Ω : Type*}
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
-    (hX_meas : ∀ n, AEMeasurable (X n) P) (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P)
-    (hXY : ∀ n, X n ≤ᵐ[P] Y) :
-    limsup (fun n => ∫ ω, X n ω ∂P) atTop ≤ ∫ ω, limsup (fun n => X n ω) atTop ∂P := by
+/-- Reverse Fatou's lemma for the lower Lebesgue integral along a countably generated filter,
+`AEMeasurable` version. -/
+theorem limsup_lintegral_le' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*}
+    {L : Filter ι} [L.IsCountablyGenerated] {f : ι → Ω → ℝ≥0∞} (g : Ω → ℝ≥0∞)
+    (hf_meas : ∀ i, AEMeasurable (f i) P) (h_bound : ∀ i, f i ≤ᵐ[P] g)
+    (h_fin : ∫⁻ ω, g ω ∂P ≠ ∞) :
+    limsup (fun i ↦ ∫⁻ ω, f i ω ∂P) L ≤ ∫⁻ ω, limsup (fun i ↦ f i ω) L ∂P := by
+  by_cases! hL : ¬ L.NeBot
+  · simp_all
+  · obtain ⟨x, hx⟩ := exists_seq_tendsto_limsup (u := fun i ↦ ∫⁻ ω, f i ω ∂P) (f := L)
+    calc limsup (fun i ↦ ∫⁻ ω, f i ω ∂P) L = limsup (fun n ↦ ∫⁻ ω, f (x n) ω ∂P) atTop :=
+          hx.1.limsup_eq.symm
+      _ ≤ ∫⁻ ω, limsup (fun n ↦ f (x n) ω) atTop ∂P :=
+          limsup_lintegral_le_nat' g (fun n ↦ hf_meas (x n)) (fun n ↦ h_bound (x n)) h_fin
+      _ ≤ ∫⁻ ω, limsup (fun i ↦ f i ω) L ∂P := lintegral_mono fun ω ↦
+          hx.2.limsup_comp_le_limsup (u := fun i ↦ f i ω) isCobounded_le_of_bot isBounded_le_of_top
+
+private lemma aemeasurable_limsup {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {ι : Type*} [Countable ι] {L : Filter ι} [L.IsCountablyGenerated] {X : ι → Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) :
+    AEMeasurable (fun ω ↦ limsup (fun i ↦ X i ω) L) P := by
+  obtain ⟨b, hb⟩ := L.exists_antitone_basis
+  exact ⟨_, Measurable.limsup' (fun i ↦ (hX_meas i).measurable_mk)
+      ⟨hb.toHasBasis, Set.countable_univ⟩ fun n ↦ (b n).to_countable,
+    (ae_all_iff.2 fun i ↦ (hX_meas i).ae_eq_mk).mono fun ω hω ↦
+      congrArg (limsup · L) (funext hω)⟩
+
+private lemma limsup_integral_le_integral_limsup_of_le' {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {Y : Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hX_nonneg : ∀ i, 0 ≤ᵐ[P] X i) (hY : Integrable Y P)
+    (hXY : ∀ i, X i ≤ᵐ[P] Y) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
   have hint : ∀ {f : Ω → ℝ}, AEMeasurable f P → 0 ≤ᵐ[P] f → f ≤ᵐ[P] Y → Integrable f P :=
     fun hf h0 h1 ↦ hY.mono' hf.aestronglyMeasurable <|
       (h0.and h1).mono fun ω ⟨ha, hb⟩ ↦ by rwa [Real.norm_eq_abs, abs_of_nonneg ha]
-  have hXi : ∀ n, Integrable (X n) P := fun n ↦ hint (hX_meas n) (hX_nonneg n) (hXY n)
-  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) atTop (fun n ↦ X n ω) ∧
-      IsCoboundedUnder (· ≤ ·) atTop (fun n ↦ X n ω) := by
+  have hXi : ∀ i, Integrable (X i) P := fun i ↦ hint (hX_meas i) (hX_nonneg i) (hXY i)
+  have ⟨i₀⟩ := L.nonempty_of_neBot
+  have hY_nonneg : 0 ≤ᵐ[P] Y := (hX_nonneg i₀).trans (hXY i₀)
+  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L (fun i ↦ X i ω) ∧
+      IsCoboundedUnder (· ≤ ·) L (fun i ↦ X i ω) := by
     filter_upwards [ae_all_iff.2 hXY, ae_all_iff.2 hX_nonneg] with ω hub hlb
-    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le atTop hlb⟩
-  have hL_nonneg : 0 ≤ᵐ[P] fun ω ↦ limsup (fun n ↦ X n ω) atTop := by
+    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le L hlb⟩
+  have hL_nonneg : 0 ≤ᵐ[P] fun ω ↦ limsup (fun i ↦ X i ω) L := by
     filter_upwards [ae_all_iff.2 hX_nonneg, hae] with ω hlb hbdd
     refine le_limsup_of_le hbdd.1 fun b hb ↦ ?_
-    obtain ⟨n, hn⟩ := (hb.and (Eventually.of_forall hlb)).exists
-    exact hn.2.trans hn.1
-  have hLi : Integrable (fun ω ↦ limsup (fun n ↦ X n ω) atTop) P :=
-    hint ⟨_, Measurable.limsup fun n ↦ (hX_meas n).measurable_mk,
-        (ae_all_iff.2 fun n ↦ (hX_meas n).ae_eq_mk).mono fun ω hω ↦
-          congrArg (limsup · atTop) (funext hω)⟩ hL_nonneg <| by
+    obtain ⟨i, hi⟩ := (hb.and (Eventually.of_forall hlb)).exists
+    exact hi.2.trans hi.1
+  have hLi : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P :=
+    hint (aemeasurable_limsup hX_meas) hL_nonneg <| by
       filter_upwards [ae_all_iff.2 hXY, hae] with ω hub hbdd
       exact limsup_le_of_le hbdd.2 (Eventually.of_forall hub)
   rw [← ENNReal.ofReal_le_ofReal_iff (integral_nonneg_of_ae hL_nonneg),
     ofReal_integral_eq_lintegral_ofReal hLi hL_nonneg,
     ENNReal.ofReal_limsup
-      (isCoboundedUnder_le_of_le atTop fun n ↦ integral_nonneg_of_ae (hX_nonneg n))
-      (isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun n ↦ integral_mono_ae (hXi n) hY (hXY n)⟩)]
+      (isCoboundedUnder_le_of_le L fun i ↦ integral_nonneg_of_ae (hX_nonneg i))
+      (isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hXi i) hY (hXY i)⟩)]
   simp_rw [ofReal_integral_eq_lintegral_ofReal (hXi _) (hX_nonneg _)]
-  refine (limsup_lintegral_le' _ (fun n ↦ (hX_meas n).ennreal_ofReal)
-      (fun n ↦ (hXY n).mono fun ω h ↦ ENNReal.ofReal_le_ofReal h)
-      (by rw [← ofReal_integral_eq_lintegral_ofReal hY ((hX_nonneg 0).trans (hXY 0))]
+  refine (limsup_lintegral_le' _ (fun i ↦ (hX_meas i).ennreal_ofReal)
+      (fun i ↦ (hXY i).mono fun ω h ↦ ENNReal.ofReal_le_ofReal h)
+      (by rw [← ofReal_integral_eq_lintegral_ofReal hY hY_nonneg]
           exact ENNReal.ofReal_ne_top)).trans
     (le_of_eq (lintegral_congr_ae
       (hae.mono fun ω hbdd ↦ (ENNReal.ofReal_limsup hbdd.2 hbdd.1).symm)))
 
-/-- Reverse Fatou's lemma in the form used for the Doob–Meyer decomposition. -/
-theorem limsup_integral_le_integral_of_tendsto_integral_posPart_sub {Ω : Type*}
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
-    (hX_int : ∀ n, Integrable (X n) P) (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P)
-    (h_tendsto : Tendsto (fun n ↦ ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop (𝓝 0)) :
-    limsup (fun n ↦ ∫ ω, X n ω ∂P) atTop ≤ ∫ ω, Y ω ∂P := by
-  have h_lim : Tendsto (fun n ↦ ∫ ω, Y ω ∂P + ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop
-      (𝓝 (∫ ω, Y ω ∂P)) := by simpa using tendsto_const_nhds.add h_tendsto
-  refine (limsup_le_limsup (.of_forall fun n ↦ ?_)
-    (isCoboundedUnder_le_of_le atTop fun n ↦ integral_nonneg_of_ae (hX_nonneg n))
-    h_lim.isBoundedUnder_le).trans h_lim.limsup_eq.le
-  have hle : ∫ ω, X n ω - Y ω ∂P ≤ ∫ ω, max (X n ω - Y ω) 0 ∂P :=
-    integral_mono ((hX_int n).sub hY) ((hX_int n).sub hY).pos_part fun ω ↦ le_max_left _ _
-  rw [integral_sub (hX_int n) hY] at hle
-  linarith
+private lemma limsup_integral_le_integral_limsup_of_le_of_le' {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {W Y : Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hW : Integrable W P) (hY : Integrable Y P)
+    (hWX : ∀ i, W ≤ᵐ[P] X i) (hXY : ∀ i, X i ≤ᵐ[P] Y) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hXi : ∀ i, Integrable (X i) P := fun i ↦
+    integrable_of_le_of_le (hX_meas i).aestronglyMeasurable (hWX i) (hXY i) hW hY
+  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L (fun i ↦ X i ω) ∧
+      IsCoboundedUnder (· ≤ ·) L (fun i ↦ X i ω) := by
+    filter_upwards [ae_all_iff.2 hXY, ae_all_iff.2 hWX] with ω hub hlb
+    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le L hlb⟩
+  have hZ : limsup (fun i ↦ ∫ ω, X i ω - W ω ∂P) L
+      ≤ ∫ ω, limsup (fun i ↦ X i ω - W ω) L ∂P :=
+    limsup_integral_le_integral_limsup_of_le' (fun i ↦ (hX_meas i).sub hW.aemeasurable)
+      (fun i ↦ (hWX i).mono fun ω h ↦ sub_nonneg.2 h) (hY.sub hW)
+      (fun i ↦ (hXY i).mono fun ω h ↦ by simpa using sub_le_sub_right h (W ω))
+  have hLW : ∀ᵐ ω ∂P, limsup (fun i ↦ X i ω - W ω) L = limsup (fun i ↦ X i ω) L - W ω := by
+    filter_upwards [hae] with ω hbdd
+    simpa [sub_eq_add_neg] using limsup_add_const L (fun i ↦ X i ω) (-W ω) hbdd.1 hbdd.2
+  have hL_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P := by
+    refine integrable_of_le_of_le (aemeasurable_limsup hX_meas).aestronglyMeasurable ?_ ?_ hW hY
+    · filter_upwards [ae_all_iff.2 hWX, hae] with ω hlb hbdd
+      refine le_limsup_of_le hbdd.1 fun b hb ↦ ?_
+      obtain ⟨i, hi⟩ := (hb.and (Eventually.of_forall hlb)).exists
+      exact hi.2.trans hi.1
+    · filter_upwards [ae_all_iff.2 hXY, hae] with ω hub hbdd
+      exact limsup_le_of_le hbdd.2 (Eventually.of_forall hub)
+  have h_bdd : IsBoundedUnder (· ≤ ·) L (fun i ↦ ∫ ω, X i ω ∂P) :=
+    isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hXi i) hY (hXY i)⟩
+  have h_cobdd : IsCoboundedUnder (· ≤ ·) L (fun i ↦ ∫ ω, X i ω ∂P) :=
+    isCoboundedUnder_le_of_le L fun i ↦ integral_mono_ae hW (hXi i) (hWX i)
+  have hZ_eq : (fun i ↦ ∫ ω, X i ω - W ω ∂P) = fun i ↦ (∫ ω, X i ω ∂P) + -∫ ω, W ω ∂P := by
+    funext i
+    rw [integral_sub (hXi i) hW, sub_eq_add_neg]
+  rw [hZ_eq, limsup_add_const L _ (-∫ ω, W ω ∂P) h_bdd h_cobdd, integral_congr_ae hLW,
+    integral_sub hL_int hW, sub_eq_add_neg] at hZ
+  exact le_of_add_le_add_right hZ
+
+/-- Reverse Fatou's lemma along a countably generated filter for a family uniformly bounded
+below by an integrable function `W`. -/
+theorem limsup_integral_le_integral_limsup_of_le_of_tendsto_integral_posPart_sub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {W Y : Ω → ℝ}
+    (hX_int : ∀ i, Integrable (X i) P) (hW : Integrable W P) (hWX : ∀ i, W ≤ᵐ[P] X i)
+    (hY : Integrable Y P)
+    (hX_bdd : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L fun i ↦ X i ω)
+    (h_tendsto : Tendsto (fun i ↦ ∫ ω, max (X i ω - Y ω) 0 ∂P) L (𝓝 0))
+    (hL_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hmin_int : ∀ i, Integrable (fun ω ↦ X i ω ⊓ Y ω) P := fun i ↦ (hX_int i).inf hY
+  have hpos_int : ∀ i, Integrable (fun ω ↦ max (X i ω - Y ω) 0) P :=
+    fun i ↦ ((hX_int i).sub hY).pos_part
+  have hWY_int : Integrable (fun ω ↦ W ω ⊓ Y ω) P := hW.inf hY
+  have hmin_lb : ∀ i, (fun ω ↦ W ω ⊓ Y ω) ≤ᵐ[P] fun ω ↦ X i ω ⊓ Y ω := fun i ↦
+    (hWX i).mono fun ω h ↦ inf_le_inf_right _ h
+  have hmin_ub : ∀ i, (fun ω ↦ X i ω ⊓ Y ω) ≤ᵐ[P] Y := fun i ↦ .of_forall fun ω ↦ inf_le_right
+  set u : ι → ℝ := fun i ↦ ∫ ω, X i ω ⊓ Y ω ∂P with hu_def
+  set v : ι → ℝ := fun i ↦ ∫ ω, max (X i ω - Y ω) 0 ∂P with hv_def
+  have h_pt : ∀ i ω, X i ω = X i ω ⊓ Y ω + max (X i ω - Y ω) 0 := by
+    intro i ω
+    rcases le_total (X i ω) (Y ω) with h | h
+    · rw [inf_of_le_left h, max_eq_right (by linarith), add_zero]
+    · rw [inf_of_le_right h, max_eq_left (by linarith)]
+      ring
+  have hsum : (fun i ↦ ∫ ω, X i ω ∂P) = u + v := by
+    funext i
+    rw [hu_def, hv_def, Pi.add_apply, ← integral_add (hmin_int i) (hpos_int i)]
+    exact integral_congr_ae (.of_forall (h_pt i))
+  have h_bdd_u : IsBoundedUnder (· ≤ ·) L u :=
+    isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hmin_int i) hY (hmin_ub i)⟩
+  have h_cobdd_u : IsBoundedUnder (· ≥ ·) L u :=
+    isBoundedUnder_of ⟨∫ ω, W ω ⊓ Y ω ∂P, fun i ↦ integral_mono_ae hWY_int (hmin_int i) (hmin_lb i)⟩
+  have h_le : limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ limsup u L :=
+    calc limsup (fun i ↦ ∫ ω, X i ω ∂P) L = limsup (u + v) L := by rw [hsum]
+      _ ≤ limsup u L + limsup v L :=
+        limsup_add_le h_cobdd_u h_bdd_u
+          (isCoboundedUnder_le_of_le L fun i ↦ integral_nonneg_of_ae
+            (.of_forall fun ω ↦ le_max_right _ _)) h_tendsto.isBoundedUnder_le
+      _ = limsup u L := by rw [show limsup v L = 0 from h_tendsto.limsup_eq, add_zero]
+  have hL_min_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω ⊓ Y ω) L) P := by
+    refine integrable_of_le_of_le
+      (aemeasurable_limsup fun i ↦ (hmin_int i).aemeasurable).aestronglyMeasurable ?_ ?_ hWY_int hY
+    · filter_upwards [hX_bdd, ae_all_iff.2 hmin_lb] with ω hbdd hlb
+      refine le_limsup_of_le (hbdd.mono_le (.of_forall fun i ↦ inf_le_left)) fun c hc ↦ ?_
+      obtain ⟨i, hi⟩ := (hc.and (Eventually.of_forall hlb)).exists
+      exact hi.2.trans hi.1
+    · filter_upwards [ae_all_iff.2 hmin_lb] with ω hlb
+      exact limsup_le_of_le (isCoboundedUnder_le_of_le L hlb)
+        (Eventually.of_forall fun i ↦ inf_le_right)
+  refine h_le.trans ((limsup_integral_le_integral_limsup_of_le_of_le'
+    (fun i ↦ (hmin_int i).aemeasurable) hWY_int hY hmin_lb hmin_ub).trans ?_)
+  refine integral_mono_ae hL_min_int hL_int ?_
+  filter_upwards [hX_bdd, ae_all_iff.2 hmin_lb] with ω hbdd hlb
+  exact limsup_le_limsup (.of_forall fun i ↦ inf_le_left)
+    (isCoboundedUnder_le_of_le L hlb) hbdd
+
+/-- Reverse Fatou's lemma for the lower Lebesgue integral along a countably generated filter,
+when the integral of the truncated difference `X i - g` tends to `0`. -/
+theorem limsup_lintegral_le_of_tendsto_lintegral_sub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} {L : Filter ι} [L.IsCountablyGenerated]
+    {X : ι → Ω → ℝ≥0∞} {g : Ω → ℝ≥0∞}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hg_meas : AEMeasurable g P)
+    (hg_fin : ∫⁻ ω, g ω ∂P ≠ ∞)
+    (h_tendsto : Tendsto (fun i ↦ ∫⁻ ω, X i ω - g ω ∂P) L (𝓝 0)) :
+    limsup (fun i ↦ ∫⁻ ω, X i ω ∂P) L ≤ ∫⁻ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hmin_meas : ∀ i, AEMeasurable (fun ω ↦ X i ω ⊓ g ω) P :=
+    fun i ↦ (hX_meas i).inf hg_meas
+  set u : ι → ℝ≥0∞ := fun i ↦ ∫⁻ ω, X i ω ⊓ g ω ∂P with hu_def
+  set v : ι → ℝ≥0∞ := fun i ↦ ∫⁻ ω, X i ω - g ω ∂P with hv_def
+  have hsum : (fun i ↦ ∫⁻ ω, X i ω ∂P) = u + v := by
+    funext i
+    rw [hu_def, hv_def, Pi.add_apply, ← lintegral_add_left' (hmin_meas i)]
+    refine lintegral_congr fun ω ↦ ?_
+    rw [add_comm, tsub_add_min]
+  have h_limsup : limsup (fun i ↦ ∫⁻ ω, X i ω ∂P) L = limsup u L := by
+    rw [hsum, ENNReal.limsup_add_of_right_tendsto_zero h_tendsto]
+  rw [h_limsup]
+  refine (limsup_lintegral_le' g hmin_meas (fun i ↦ .of_forall fun ω ↦ inf_le_right)
+    hg_fin).trans ?_
+  exact lintegral_mono fun ω ↦ limsup_le_limsup (.of_forall fun i ↦ inf_le_left)
+    isCobounded_le_of_bot isBounded_le_of_top
 
 /-- For each stopping time `τ`, `limsup (fun n => stoppedValue 𝒜^n τ) atTop = stoppedValue A τ`
 almost everywhere. -/
