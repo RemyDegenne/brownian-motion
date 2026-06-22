@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb, xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\newcommand{\TODO}[1]{\textcolor{teal}{TODO #1}}
+
+\begin{document}
+\section*{Answers to the reports}
+We thank both referees for their careful reading of the manuscript. Below are our answers.
+
+\paragraph{Report 6a...:}
+The typos and small changed you suggest we carried out without further mentioning them. Here are the changes of more than one or two words:
+\begin{itemize}
+  \item We have added a list of contributors to the repository with more than five commits.
+  \item Lemma 4.3 and footnote: done
+  \item Thm 4.7: You are right, $\sigma$-finiteness is not needed here.
+  \item Before Thm 4.20: xxx
+  \item In Thm 4.20, dependence $L(T,...)$
+  \item Section 4.4.3:
+  \item Proposition 5.3:
+\end{itemize}
+
+\paragraph{Report 69...:}
+
+\begin{itemize}
+  \item The author should mention the book by Revuz and Yor which is the most
+  definitive reference on the Brownian motion.
+  \\{\color{blue} We have added this book right at the beginning of the text.}
+  \item The definition of a stochastic process should appear clearly as a
+  definition (and maybe indicate which Lean predicate it refers to as for other
+  definitions?).
+  \\{\color{blue} \TODO{We should discuss this, I think. As far as I can see, defining what a stochastic process is does not really fit into Mathlib. Rather, it only involves some measurability assumptions, which we currently do not state explicitely.}}
+  \item The Kolmogorov continuity theorem for processes indexed by an abstract
+  spaces is classical and largely predates the work Kr\"atschmer and Urusov
+  [KU23] quoted in the paper (see for instance chapters 11 and 12 in the book
+  Ledoux and Talagrand, or Theorems 1.4.2 and 2.15.3 in the second edition
+  of Talagrand's book \emph{Upper and Lower Bounds for Stochastic Processes}).
+  In particular, when $(X_t)_{t \in T}$ is Gaussian, one can always equip $T$ with the
+  ``canonical'' pseudo-distance
+  \[
+    d(s,t) := \mathbb{E}[(X_t - X_s)^2]^{1/2},
+  \]
+  and deduce regularity from there. It is not clear to me what the advantage
+  of [KU23] is compared to the historical chaining approach and the authors
+  should at least quote a more standard reference in addition to [KU23].
+  \\{\color{blue} Thanks for pointing us to these references, which we carefully checked. Our goal was to have a directly usable result which is most general. (For the latter reason, we do not want to restrict to the Gaussian case, covered in Chapter 12 and the book by Talagrand.) Although Ledoux and Talagrand formally restrict to the case of real-valued processes, we agree that their result is in fact more general that [KU23] since they use a Young function $\psi$, which must be specialized to $\psi(x) = x^p$ in [KU23]. However, Holder continuity in [KU23] is direct, and would have to be extracted from $\psi$ in LT, which is not immediate. We added a reference to [LT91] in 2.3.}
+  \item The authors define Gaussian random variables on Banach spaces but at the
+  most general level they can be defined on locally convex vector spaces. In
+  that regard, the Bochner--Minlos theorem guarantees existence of Gaussian
+  random variables on nuclear spaces (which incidentally can be used to
+  construct Gaussian fields).
+  \\{\color{blue}Thanks for pointing this out! Since the Bochner-Minlos theorem is not yet part of mathlib, this is not an option at the moment. We have added two sentences on the construction of Gaussian distributions on more general spaces at the end of 4.3.}
+  \item The simplest construction of the Brownian motion, and Gaussian field
+  in general, does not require Kolmogorov extension theorem. Consider a
+  Hilbert basis $(e_n)$ of $L^2(\mathbb{R}_+)$ and family $(G_n)$ of independent standard
+  Gaussian variables. For $f \in L^2$, set
+  \[
+    X(f) := \sum_{n \in \mathbb{N}} \Bigl( \int_{\mathbb{R}_+} f(x) e_n(x)\,dx \Bigr) G_n,
+  \]
+  which converges in $L^2(\Omega)$. Then $B_t := X(\mathbf{1}_{[0,t]})$ is a Brownian motion.
+  Other Gaussian fields can be defined by changing the base Hilbert space.
+  \\{\color{blue}This basically leads to Lévy's construction of BM, where continuity of the sample paths is a rather direct result (if the proper base is chosen). We discussed this approach, but found that the path via Kolmogorov-Chentsov will pay off since it will be used more often (for processes rather than fields). We now refer to this construction in the new Section 2.5.}
+  \item The construction of the authors is correct and Kolmogorov extension
+  theorem is unavoidable for the construction of other stochastic processes
+  (for instance Markov processes). However, from a formalization point of
+  view it could be interesting to have the construction that relies on as few
+  results as possible on other results.
+  \\{\color{blue} Since Lean uses proof irrelevance, this statement can be debated. For example, real numbers in mathlib are based on Cauchy sequences rather than Dedekind cuts.}
+\end{itemize}
+
+\end{document}
