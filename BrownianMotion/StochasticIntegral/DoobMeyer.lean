@@ -1073,7 +1073,7 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) (_t : ι) :
+    {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableSeqStep P S 𝓕 n t ω := by
   have hsub : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
     hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
@@ -1081,8 +1081,7 @@ lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
     fun s ↦ ⟨⊤, by simp⟩
   set ceil : ι → mesh ι n :=
     fun s ↦ (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).min' (hne s)
-  have hmem : ∀ s : ι, s ≤ (ceil s : ι) :=
-    fun s ↦ (Finset.mem_filter.1 (Finset.min'_mem _ (hne s))).2
+  have hne (s : ι) : (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty := ⟨⊤, by simp⟩
   have hle : ∀ (s : ι) (u : mesh ι n), s ≤ (u : ι) → ceil s ≤ u :=
     fun s u hu ↦ Finset.min'_le _ u (Finset.mem_filter.2 ⟨Finset.mem_univ u, hu⟩)
   filter_upwards [hsub.monotone_predictablePart_ae] with ω hmono
@@ -1104,20 +1103,17 @@ lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
       exact not_le.1 fun hcon ↦ absurd (hle s _ hcon) (not_le.2
         (Order.pred_lt_of_not_isMin fun hmin ↦ hcne (le_bot_iff.1 (hmin bot_le))))
   intro s₁ s₂ hs12
-  change predictableSeqStep P S 𝓕 n s₁ ω ≤ predictableSeqStep P S 𝓕 n s₂ ω
-  rw [hval s₁, hval s₂]
+  simp only [hval s₁, hval s₂]
   exact hmono (hle s₁ (ceil s₂) (hs12.trans (hmem s₂)))
 
 lemma predictableConvexStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (t : ι) :
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableConvexStep hd hs n t ω := by
   have key : ∀ᵐ ω ∂P, ∀ m : ℕ, Monotone fun s ↦ predictableSeqStep P S 𝓕 m s ω :=
-    ae_all_iff.2 fun m ↦ predictableSeqStep_monotone_ae hs m t
-  filter_upwards [key] with ω hω
-  intro s₁ s₂ hs12
-  change predictableConvexStep hd hs n s₁ ω ≤ predictableConvexStep hd hs n s₂ ω
+    ae_all_iff.2 fun m ↦ predictableSeqStep_monotone_ae hs m
+  filter_upwards [key] with ω hω s₁ s₂ hs12
   simp only [predictableConvexStep, Finsupp.sum, Finset.sum_apply, Pi.smul_apply]
   exact Finset.sum_le_sum fun m _ ↦
     smul_le_smul_of_nonneg_left (hω m hs12) ((weight hd hs n).weights_nonneg m)
