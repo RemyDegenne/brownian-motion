@@ -1055,20 +1055,19 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
     (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) {t : ι} {u : mesh ι n}
     (ht : t ∈ meshPredIoc n u) :
     predictableSeqStep P S 𝓕 n t ω
-      = _root_.predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω := by
-  have h : predictableSeqStep P S 𝓕 n t ω = ∑ v : mesh ι n, (meshPredIoc n v).indicator
-      (fun _ : ι ↦ _root_.predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P v ω) t := by
-    simp only [predictableSeqStep, Finset.sum_apply]
-    exact Finset.sum_congr rfl fun v _ ↦ by by_cases hv : t ∈ meshPredIoc n v <;> simp [hv]
-  rw [h, Finset.sum_eq_single_of_mem u (Finset.mem_univ _) fun v _ hv ↦
-    Set.indicator_of_notMem (fun hv' ↦ hv (by
-      rcases lt_trichotomy v u with h' | h' | h'
-      · exact absurd (lt_of_le_of_lt hv'.2 (lt_of_le_of_lt
-          (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) ht.1)) (lt_irrefl t)
-      · exact h'
-      · exact absurd (lt_of_le_of_lt ht.2 (lt_of_le_of_lt
-          (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv'.1)) (lt_irrefl t))) _,
-    Set.indicator_of_mem ht]
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω := by
+  rw [predictableSeqStep_eq_sum_indicator,
+    Finset.sum_eq_single_of_mem u (Finset.mem_univ _) ?_, Set.indicator_of_mem ht]
+  intro v _ hvu
+  apply Set.indicator_of_notMem
+  intro hv
+  apply hvu
+  rcases lt_trichotomy v u with h' | h' | h'
+  · exact absurd (lt_of_le_of_lt hv.2 (lt_of_le_of_lt
+      (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) ht.1)) (lt_irrefl t)
+  · exact h'
+  · exact absurd (lt_of_le_of_lt ht.2 (lt_of_le_of_lt
+      (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv.1)) (lt_irrefl t)
 
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -1077,23 +1076,21 @@ lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableSeqStep P S 𝓕 n t ω := by
   have hsub : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
     hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
-  have hne : ∀ s : ι, (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty :=
-    fun s ↦ ⟨⊤, by simp⟩
+  have hne (s : ι) : (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty := ⟨⊤, by simp⟩
   set ceil : ι → mesh ι n :=
     fun s ↦ (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).min' (hne s)
-  have hne (s : ι) : (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty := ⟨⊤, by simp⟩
-  have hle : ∀ (s : ι) (u : mesh ι n), s ≤ (u : ι) → ceil s ≤ u :=
-    fun s u hu ↦ Finset.min'_le _ u (Finset.mem_filter.2 ⟨Finset.mem_univ u, hu⟩)
+  have hmem (s : ι) : s ≤ (ceil s : ι) := (Finset.mem_filter.1 (Finset.min'_mem _ (hne s))).2
+  have hle (s : ι) (u : mesh ι n) (hu : s ≤ (u : ι)) : ceil s ≤ u :=
+    Finset.min'_le _ u (Finset.mem_filter.2 ⟨Finset.mem_univ u, hu⟩)
   filter_upwards [hsub.monotone_predictablePart_ae] with ω hmono
   have hval : ∀ s : ι, predictableSeqStep P S 𝓕 n s ω
-      = _root_.predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P (ceil s) ω := by
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P (ceil s) ω := by
     intro s
     rcases eq_or_ne s ⊥ with rfl | hs0
-    · rw [show ceil ⊥ = ⊥ from le_antisymm (hle ⊥ ⊥ (by simp)) bot_le,
-        predictablePart_bot, Pi.zero_apply]
-      simp only [predictableSeqStep, Finset.sum_apply]
-      exact Finset.sum_eq_zero fun u _ ↦ by
-        rw [Set.indicator_of_notMem fun h ↦ absurd h.1 (not_lt.2 bot_le), Pi.zero_apply]
+    · have hceil : ceil ⊥ = ⊥ := le_antisymm (hle ⊥ ⊥ (by simp)) bot_le
+      rw [hceil, predictablePart_bot, Pi.zero_apply, predictableSeqStep_eq_sum_indicator]
+      refine Finset.sum_eq_zero fun u _ ↦ ?_
+      apply Set.indicator_of_notMem fun h ↦ absurd h.1 (not_lt.2 bot_le)
     · refine predictableSeqStep_apply P S 𝓕 n ω (Set.mem_Ioc.2 ⟨?_, hmem s⟩)
       have hcne : ceil s ≠ ⊥ := by
         intro hc
@@ -1113,10 +1110,10 @@ lemma predictableConvexStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableConvexStep hd hs n t ω := by
   have key : ∀ᵐ ω ∂P, ∀ m : ℕ, Monotone fun s ↦ predictableSeqStep P S 𝓕 m s ω :=
     ae_all_iff.2 fun m ↦ predictableSeqStep_monotone_ae hs m
-  filter_upwards [key] with ω hω s₁ s₂ hs12
+  filter_upwards [key] with ω hω
   simp only [predictableConvexStep, Finsupp.sum, Finset.sum_apply, Pi.smul_apply]
-  exact Finset.sum_le_sum fun m _ ↦
-    smul_le_smul_of_nonneg_left (hω m hs12) ((weight hd hs n).weights_nonneg m)
+  exact Monotone.finset_sum fun m _ ↦
+    (hω m).const_smul_of_nonneg ((weight hd hs n).weights_nonneg m)
 
 lemma predictablePartLim_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
