@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.Algebra
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.Komlos
 public import BrownianMotion.StochasticIntegral.Predictable
@@ -1039,6 +1040,14 @@ end MonotoneLim
 
 section PredictablePartLimMono
 
+lemma predictableSeqStep_eq_sum_indicator {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) (t : ι) :
+    predictableSeqStep P S 𝓕 n t ω = ∑ v : mesh ι n, (meshPredIoc n v).indicator
+      (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P v ω) t := by
+  simp only [predictableSeqStep, Finset.sum_apply]
+  exact Finset.sum_congr rfl fun v _ ↦ Set.indicator_apply_apply _ _ t ω
+
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
@@ -1063,10 +1072,6 @@ lemma predictablePartLim_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
 end PredictablePartLimMono
 
 section PredictableConvexStepPredictable
-
-lemma Set.indicator_eval {ι Ω M : Type*} [Zero M] (s : Set ι) (f : ι → Ω → M) (i : ι) (ω : Ω) :
-    s.indicator f i ω = s.indicator (fun j ↦ f j ω) i := by
-  by_cases h : i ∈ s <;> simp [h]
 
 /-- The indicator of a half-open interval `Ioc a b` with constant value `c` is left-continuous:
 when approached from the left it is eventually constant, so it is continuous within `Iio t` at `t`
@@ -1097,7 +1102,7 @@ lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T
           (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω) s := by
     funext s
     simp only [predictableSeqStep, Finset.sum_apply]
-    exact Finset.sum_congr rfl fun u _ ↦ Set.indicator_eval _ _ s ω
+    exact Finset.sum_congr rfl fun u _ ↦ Set.indicator_apply_apply _ _ s ω
   rw [hrw]
   exact tendsto_finsetSum _ fun u _ ↦ continuousWithinAt_Iio_indicator_Ioc _ _ _ t
 
