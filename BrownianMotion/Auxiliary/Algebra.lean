@@ -1,8 +1,5 @@
 module
 
-public import Mathlib.Algebra.Notation.Indicator
-public import Mathlib.Algebra.Order.BigOperators.Group.Finset
-public import Mathlib.Algebra.Order.Module.Defs
 public import Mathlib.LinearAlgebra.Dimension.Finite
 
 @[expose] public section

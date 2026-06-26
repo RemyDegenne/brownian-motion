@@ -1058,10 +1058,7 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
       = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω := by
   rw [predictableSeqStep_eq_sum_indicator,
     Finset.sum_eq_single_of_mem u (Finset.mem_univ _) ?_, Set.indicator_of_mem ht]
-  intro v _ hvu
-  apply Set.indicator_of_notMem
-  intro hv
-  apply hvu
+  refine fun v _ hvu => Set.indicator_of_notMem (fun hv => hvu ?_) _
   rcases lt_trichotomy v u with h' | h' | h'
   · exact absurd (lt_of_le_of_lt hv.2 (lt_of_le_of_lt
       (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) ht.1)) (lt_irrefl t)
