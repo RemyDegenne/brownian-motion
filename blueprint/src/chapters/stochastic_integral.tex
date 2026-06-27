@@ -413,6 +413,28 @@ We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is 
 \end{definition}
 
 
+\begin{definition}[Locally square-integrable martingales]\label{def:IsLocallySquareIntegrable}
+  \uses{def:IsSquareIntegrable, def:locally}
+  \leanok
+  \lean{ProbabilityTheory.IsLocallySquareIntegrable}
+A process is locally square-integrable if it locally satisfies the square-integrable martingale
+property.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.isLocallySquareIntegrable}
+  \uses{def:IsSquareIntegrable, def:IsLocallySquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.isLocallySquareIntegrable}
+Every square-integrable martingale is locally square-integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:implies_locally}
+This follows from Lemma~\ref{lem:implies_locally}.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsSquareIntegrable.module}
   \uses{def:IsSquareIntegrable}
   \leanok
@@ -435,6 +457,19 @@ If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submarting
   \uses{lem:Martingale.submartingale_convex_comp}
   \leanok
 Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex function $f: x \mapsto \Vert x \Vert^2$~.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocallySquareIntegrable, def:IsLocalSubmartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+If $M$ is locally square-integrable, then $\Vert M \Vert^2$ is a càdlàg local submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.submartingale_sq}
+  \leanok
 \end{proof}
 
 
