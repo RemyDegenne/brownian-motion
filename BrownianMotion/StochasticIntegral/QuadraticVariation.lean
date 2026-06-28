@@ -24,10 +24,7 @@ variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] 
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 /-- The quadratic variation of a locally square-integrable martingale, defined as the predictable
-part of the Doob-Meyer decomposition of its squared norm.
-
-The explicit càdlàg hypothesis remains because `predictablePart` requires càdlàg paths for
-every `ω`. -/
+part of the Doob-Meyer decomposition of its squared norm. -/
 noncomputable
 def quadraticVariation [SigmaFiniteFiltration P 𝓕]
     (hX_sq : IsLocallySquareIntegrable X 𝓕 P)
