@@ -34,8 +34,7 @@ structure IsSquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P
 /-- A stochastic process is locally square-integrable if it satisfies the square-integrable
 martingale property locally. -/
 def IsLocallySquareIntegrable [OrderBot ι] [OrderTopology ι]
-    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
-    (P : Measure Ω := by volume_tac) : Prop :=
+    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω := by volume_tac) : Prop :=
   Locally (fun Y ↦ IsSquareIntegrable Y 𝓕 P) 𝓕 X P
 
 lemma IsSquareIntegrable.isLocallySquareIntegrable [OrderBot ι] [OrderTopology ι]
