@@ -1333,6 +1333,46 @@ lemma monotone_predictablePart (hX : IsLocalSubmartingale X 𝓕 P)
     ∀ ω, Monotone (hX.predictablePart X hX_cadlag · ω) :=
   (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.2.2.2.2
 
+section Normalized
+
+variable {κ Ω' : Type*} [ConditionallyCompleteLinearOrderBot κ] [TopologicalSpace κ]
+  [OrderTopology κ] [MeasurableSpace κ] [BorelSpace κ] [PolishSpace κ]
+  {mΩ' : MeasurableSpace Ω'} {P' : Measure Ω'} {X' : κ → Ω' → ℝ}
+  {𝓕' : Filtration κ mΩ'} [IsFiniteMeasure P'] [Approximable 𝓕' P']
+  [𝓕'.IsComplete P'] [𝓕'.IsRightContinuous]
+
+/-- A normalized local Doob-Meyer decomposition whose predictable part starts from zero. -/
+theorem doob_meyer_normalized (hX : IsLocalSubmartingale X' 𝓕' P')
+    (hX_cadlag : ∀ ω, IsCadlag (X' · ω)) :
+    ∃ (M A : κ → Ω' → ℝ), X' = M + A ∧ IsLocalMartingale M 𝓕' P' ∧
+      (∀ ω, IsCadlag (M · ω)) ∧ IsStronglyPredictable 𝓕' A ∧
+      IsStronglyProgressive 𝓕' A ∧ (∀ ω, IsCadlag (A · ω)) ∧
+      HasLocallyIntegrableSup A 𝓕' P' ∧ (∀ ω, Monotone (A · ω)) ∧
+      (∀ ω, A ⊥ ω = 0) := by
+  sorry
+
+/-- The normalized predictable part of the Doob-Meyer decomposition. -/
+noncomputable
+def normalizedPredictablePart (X : κ → Ω' → ℝ)
+    (hX : IsLocalSubmartingale X 𝓕' P') (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
+    κ → Ω' → ℝ :=
+  (hX.doob_meyer_normalized hX_cadlag).choose_spec.choose
+
+/-- Any normalized Doob-Meyer decomposition has the same predictable part as the choice-based
+normalized decomposition, at each deterministic time and almost surely. -/
+lemma normalizedPredictablePart_eq_of_normalized_decomposition
+    (hX : IsLocalSubmartingale X' 𝓕' P') (hX_cadlag : ∀ ω, IsCadlag (X' · ω))
+    {M A : κ → Ω' → ℝ} (hXA : X' = M + A)
+    (hM : IsLocalMartingale M 𝓕' P') (hM_cadlag : ∀ ω, IsCadlag (M · ω))
+    (hA_pred : IsStronglyPredictable 𝓕' A) (hA_prog : IsStronglyProgressive 𝓕' A)
+    (hA_cadlag : ∀ ω, IsCadlag (A · ω))
+    (hA_int : HasLocallyIntegrableSup A 𝓕' P') (hA_mono : ∀ ω, Monotone (A · ω))
+    (hA_zero : ∀ ω, A ⊥ ω = 0) (t : κ) :
+    hX.normalizedPredictablePart X' hX_cadlag t =ᵐ[P'] A t := by
+  sorry
+
+end Normalized
+
 end IsLocalSubmartingale
 
 end ProbabilityTheory
