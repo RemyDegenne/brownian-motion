@@ -151,7 +151,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
       (eLpNorm_eq_zero_iff ((stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable.indicator
         (hmeas n 0)) one_ne_zero).2 ?_).trans zero_le⟩
     filter_upwards [condExp_congr_ae (m := ℱ n) hne] with x hx
-    simp only [zero_le', Set.setOf_true, Set.indicator_univ, Pi.zero_apply, hx, condExp_zero]
+    simp only [zero_le, Set.setOf_true, Set.indicator_univ, Pi.zero_apply, hx, condExp_zero]
   obtain ⟨δ, hδ, h⟩ := hg.eLpNorm_indicator_le le_rfl ENNReal.one_ne_top hε
   set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (eLpNorm g 1 μ).toNNReal with hC
   have hCpos : 0 < C := mul_pos (inv_pos.2 hδ) (ENNReal.toNNReal_pos hne hg.eLpNorm_lt_top.ne)
@@ -163,6 +163,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
       convert mul_meas_ge_le_pow_eLpNorm μ one_ne_zero ENNReal.one_ne_top
         (stronglyMeasurable_condExp.mono (hℱ n)).aestronglyMeasurable C
       · rw [ENNReal.toReal_one, ENNReal.rpow_one, enorm_eq_nnnorm]
+      · simp
     rw [ENNReal.toReal_one, ENNReal.rpow_one, mul_comm, ←
       ENNReal.le_div_iff_mul_le (Or.inl (ENNReal.coe_ne_zero.2 hCpos.ne'))
         (Or.inl ENNReal.coe_lt_top.ne)] at this
@@ -176,6 +177,7 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     · convert one_mul _
       simp only [ofReal_eq_one]
       exact mul_inv_cancel₀ hδ.ne'
+    · infer_instance
     · infer_instance
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=

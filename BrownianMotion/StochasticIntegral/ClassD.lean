@@ -113,6 +113,20 @@ structure ClassD (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure �
   uniformIntegrable : UniformIntegrable
     (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦ stoppedValue X τ.1) 1 P
 
+lemma ClassD.add {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : ClassD X 𝓕 P) (hY : ClassD Y 𝓕 P) :
+    ClassD (X + Y) 𝓕 P :=
+  ⟨hX.1.add hY.1, hX.2.add le_rfl hY.2⟩
+
+lemma ClassD.neg {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : ClassD X 𝓕 P) :
+    ClassD (-X) 𝓕 P :=
+  ⟨hX.1.neg, hX.2.neg⟩
+
+lemma ClassD.sub {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : ClassD X 𝓕 P) (hY : ClassD Y 𝓕 P) :
+    ClassD (X - Y) 𝓕 P :=
+  ⟨hX.1.sub hY.1, hX.2.sub le_rfl hY.2⟩
+
 /-- A stochastic process $(X_t)$ is of class DL if it is adapted and for all $t$, the set
 $\{X_\tau \mid \tau \text{ is a stopping time with } \tau \le t\}$ is uniformly integrable. -/
 structure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop where
@@ -192,7 +206,7 @@ lemma classD_of_uniformIntegrable_bounded_stoppingTime
       have : (T.1 ω).untopA = T.1 ω := by simp [WithTop.untopA_eq_untop (T.2.2 ω)]
       rw [stoppedValue, Pi.inf_apply, ← this, ← WithTop.coe_min (v n) (T.1 ω).untopA,
         min_eq_right (hN n hn)]
-      simpa using hU
+      exact hU
   exact ⟨hm, (hX.uniformIntegrable_of_ae_tendsto _).comp
     (fun T : {T | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} => ⟨stoppedValue X T.1, this T⟩)⟩
 
@@ -227,11 +241,12 @@ section Order
 
 variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
   [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [IsFiniteMeasure P]
+  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
 
 /-- A nonnegative right-continuous submartingale is of class DL. -/
-lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
-    (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :
-    ClassDL X 𝓕 P := by
+lemma _root_.MeasureTheory.Submartingale.classDL
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω))
+    (hX3 : 0 ≤ X) : ClassDL X 𝓕 P := by
   refine ⟨StronglyAdapted.isStronglyProgressive_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
   have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
@@ -241,7 +256,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL (hX1 : Submartingale X 𝓕 P)
   · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T.1) ≤ᵐ[P]
         P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] from by
-        have : T.1 ⊓ (fun ω => t) = T.1 := by simpa [inf_eq_left] using T.2.2
+        have : T.1 ⊓ (fun ω => t) = T.1 := by simp only [inf_eq_left]; exact T.2.2
         simpa [inf_comm, this] using lem
       exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
         (Eventually.of_forall (fun ω => le_rfl)) T.2.1 (isStoppingTime_const 𝓕 t)
@@ -267,7 +282,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
   · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
       suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
           P[stoppedValue X (fun ω => t)|hT.measurableSpace] by
-        have : T ⊓ (fun _ ↦ t) = T := by simpa [inf_eq_left] using ht
+        have : T ⊓ (fun _ ↦ t) = T := by simp only [inf_eq_left]; exact ht
         simpa [inf_comm, this] using lem
       exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
         (ae_of_all _ fun _ ↦ le_rfl) hT (isStoppingTime_const 𝓕 t)
@@ -560,7 +575,7 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
       let f : A → B := fun T => ⟨T.1 ⊓ (fun ω => ↑(v n)), ⟨T.2.1.min_const (v n), by simp⟩⟩
       have : Y = (fun T : B ↦ stoppedValue X T) ∘ f := by
         ext T
-        simpa [Y, f] using stoppedValue_stoppedProcess_apply (T.2.2 _)
+        exact stoppedValue_stoppedProcess_apply (T.2.2 _)
       rw [this]
       exact UniformIntegrable.comp (hX.2 (v n)) f
     · by_cases hb : ⊥ < (v n : WithTop ι)
@@ -847,9 +862,9 @@ lemma locally_classD_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRig
 /-- A right-continuous, nonnegative submartingale is locally of class D. -/
 lemma _root_.MeasureTheory.Submartingale.locally_classD
     [NormedSpace ℝ E] [CompleteSpace E] [Lattice E] [HasSolidNorm E]
-    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
-    (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
-    (hX_nonneg : 0 ≤ X) :
+    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [MeasurableSpace E] [BorelSpace E]
+    [SecondCountableTopology E] (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P)
+    (hC : ∀ ω, IsRightContinuous (X · ω)) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rw [locally_classD_iff_locally_classDL]
   exact .of_prop (hX.classDL hC hX_nonneg)

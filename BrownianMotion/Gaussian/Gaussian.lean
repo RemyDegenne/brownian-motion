@@ -18,17 +18,6 @@ namespace ProbabilityTheory
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [SecondCountableTopology E]
   [CompleteSpace E] [MeasurableSpace E] [BorelSpace E] {μ : Measure E}
 
-lemma HasGaussianLaw.map_eq_gaussianReal {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    {X : Ω → ℝ} (h : HasGaussianLaw X P) :
-    P.map X = gaussianReal P[X] Var[X; P].toNNReal := by
-  rw [IsGaussian.eq_gaussianReal (.map _ _), integral_map, variance_map]
-  · rfl
-  · fun_prop
-  · fun_prop
-  · fun_prop
-  · fun_prop
-  · exact h.isGaussian_map
-
 set_option backward.isDefEq.respectTransparency false in
 lemma HasGaussianLaw.charFun_map_real {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     {X : Ω → ℝ} (h : HasGaussianLaw X P) (t : ℝ) :

@@ -26,6 +26,10 @@ def Filtration.indexComap (𝓕 : Filtration ι mΩ) {f : ι' → ι} (hf : Mono
 
 variable {𝓕 : Filtration ι mΩ} {f : ι' → ι} (hf : Monotone f)
 
+instance {μ : Measure Ω} [SigmaFiniteFiltration μ 𝓕] :
+    SigmaFiniteFiltration μ (𝓕.indexComap hf) where
+  SigmaFinite i := SigmaFiniteFiltration.SigmaFinite (f i)
+
 variable {E : Type*} [TopologicalSpace E] {X : ι → Ω → E}
 
 theorem StronglyAdapted.indexComap (hX : StronglyAdapted 𝓕 X) (hf : Monotone f) :

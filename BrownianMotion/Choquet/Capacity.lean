@@ -51,7 +51,7 @@ namespace Capacity
 
 instance : FunLike (Capacity p) (Set 𝓧) ℝ≥0∞ where
   coe m := m.capacityOf
-  coe_injective' | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
+  coe_injective | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
 
 @[simp] theorem capacityOf_eq_coe (m : Capacity p) : m.capacityOf = m := rfl
 
@@ -387,7 +387,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       have hsub : ⋃ i, f i ⊆ s := Set.iUnion_subset fun i => (hf i).2.1
       have hm := MeasurableSet.iUnion fun i ↦ .of_mem_countableInfClosure (hf i).1
       refine ⟨⋃ i, f i, hm, ae_eq_set.2 ⟨?_, ?_⟩⟩
-      · rw [measure_diff hsub hm.nullMeasurableSet (by finiteness)]
+      · rw [measure_sdiff hsub hm.nullMeasurableSet (by finiteness)]
         suffices μ (⋃ i, f i) = μ s from by simp_all
         refine le_antisymm (measure_mono hsub) ?_
         have : Tendsto (fun n : ℕ => μ s * (1 - (n + 1 : ℝ≥0∞)⁻¹)) atTop (𝓝 (μ s)) := by
@@ -399,7 +399,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
           simp
         refine le_of_tendsto_of_tendsto' this tendsto_const_nhds fun n => (hf n).2.2.trans ?_
         simpa using measure_mono (Set.subset_iUnion _ _)
-      · simp_all [← Set.diff_eq_empty]
+      · simp_all [← Set.sdiff_eq_empty]
   · refine fun a ha ↦ ⟨(toMeasurable μ sᶜ)ᶜ, subset_countableInfClosure ?_, ?_, ?_⟩
     · exact (measurableSet_toMeasurable _ _).compl
     · rw [Set.compl_subset_comm]

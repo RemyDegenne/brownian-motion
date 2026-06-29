@@ -17,6 +17,7 @@ public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
 public import Mathlib.Probability.Independence.BoundedContinuousFunction
 public import Mathlib.Probability.Independence.Process.HasIndepIncrements.Basic
 public import Mathlib.Topology.ContinuousMap.SecondCountableSpace
+public import Mathlib.Probability.BrownianMotion.Basic
 
 /-!
 # Brownian motion
@@ -169,72 +170,26 @@ lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
 
 end Increments
 
-section IsPreBrownian
+section IsPreBrownianReal
 
 variable (X : ℝ≥0 → Ω → ℝ)
 
-/-- A stochastic process is called **pre-Brownian** if its finite-dimensional laws are those
-of a Brownian motion, see `gaussianProjectiveFamily`. -/
-class IsPreBrownian (P : Measure Ω := by volume_tac) : Prop where
-  mk' ::
-  hasLaw : ∀ I : Finset ℝ≥0, HasLaw (fun ω ↦ I.restrict (X · ω)) (gaussianProjectiveFamily I) P
-
 variable {X} {P : Measure Ω}
 
-lemma IsPreBrownian.congr {Y : ℝ≥0 → Ω → ℝ} [hX : IsPreBrownian X P] (h : ∀ t, X t =ᵐ[P] Y t) :
-    IsPreBrownian Y P where
-  hasLaw I := by
-    refine (hX.hasLaw I).congr ?_
-    have : ∀ᵐ ω ∂P, ∀ i : I, X i ω = Y i ω := ae_all_iff.2 fun _ ↦ h _
-    filter_upwards [this] with ω hω using funext fun i ↦ (hω i).symm
-
-lemma IsPreBrownian.isGaussianProcess [IsPreBrownian X P] : IsGaussianProcess X P where
-  hasGaussianLaw I := (IsPreBrownian.hasLaw I).hasGaussianLaw
-
-lemma IsPreBrownian.aemeasurable [hX : IsPreBrownian X P] (t : ℝ≥0) : AEMeasurable (X t) P :=
-  HasGaussianLaw.aemeasurable (hX.isGaussianProcess.hasGaussianLaw_eval t)
-
-lemma IsPreBrownian.hasLaw_gaussianLimit [IsPreBrownian X P]
-    (hX : AEMeasurable (fun ω ↦ (X · ω)) P) :
+lemma IsPreBrownianReal.hasLaw_gaussianLimit (hX : IsPreBrownianReal X P)
+    (hXm : AEMeasurable (fun ω ↦ (X · ω)) P) :
     HasLaw (fun ω ↦ (X · ω)) gaussianLimit P where
-  aemeasurable := hX
+  aemeasurable := hXm
   map_eq := by
     refine isProjectiveLimit_gaussianLimit.unique (fun I ↦ ?_) |>.symm
-    rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hX]
-    exact (IsPreBrownian.hasLaw I).map_eq
+    rw [AEMeasurable.map_map_of_aemeasurable (by fun_prop) hXm]
+    exact (IsPreBrownianReal.hasLaw hX I).map_eq
 
-lemma HasLaw.isPreBrownian (hX : HasLaw (fun ω ↦ (X · ω)) gaussianLimit P) :
-    IsPreBrownian X P where
+lemma HasLaw.IsPreBrownianReal (hX : HasLaw (fun ω ↦ (X · ω)) gaussianLimit P) :
+    IsPreBrownianReal X P where
   hasLaw _ := hasLaw_restrict_gaussianLimit.comp hX
 
-lemma IsPreBrownian.hasLaw_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
-    HasLaw (X t) (gaussianReal 0 t) P :=
-  (hasLaw_eval_gaussianProjectiveFamily ⟨t, by simp⟩).comp (h.hasLaw {t})
-
-lemma IsPreBrownian.hasLaw_sub [IsPreBrownian X P] (s t : ℝ≥0) :
-    HasLaw (X s - X t) (gaussianReal 0 (max (s - t) (t - s))) P :=
-  (hasLaw_eval_sub_eval_gaussianProjectiveFamily {s, t} ⟨s, by simp⟩ ⟨t, by simp⟩).comp
-    (IsPreBrownian.hasLaw _)
-
-lemma IsPreBrownian.integral_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
-    P[X t] = 0 := by
-  rw [(h.hasLaw_eval t).integral_eq, integral_id_gaussianReal]
-
-lemma IsPreBrownian.integrable_eval [h : IsPreBrownian X P] (t : ℝ≥0) :
-    Integrable (X t) P := (h.isGaussianProcess.hasGaussianLaw_eval t).integrable
-
-lemma IsPreBrownian.covariance_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
-    cov[X s, X t; P] = min s t := by
-  convert (h.hasLaw {s, t}).covariance_comp
-    (f := Function.eval ⟨s, by simp⟩) (g := Function.eval ⟨t, by simp⟩) ?_ ?_
-  · rw [covariance_eval_gaussianProjectiveFamily]
-  all_goals exact Measurable.aemeasurable (by fun_prop)
-
-lemma IsPreBrownian.covariance_fun_eval [h : IsPreBrownian X P] (s t : ℝ≥0) :
-    cov[fun ω ↦ X s ω, fun ω ↦ X t ω; P] = min s t :=
-  h.covariance_eval s t
-
-lemma IsPreBrownian.isAEKolmogorovProcess {n : ℕ} (hn : 0 < n) [h : IsPreBrownian X P] :
+lemma IsPreBrownianReal.isAEKolmogorovProcess {n : ℕ} (hn : 0 < n) (h : IsPreBrownianReal X P) :
     IsAEKolmogorovProcess X P (2 * n) n (Nat.doubleFactorial (2 * n - 1)) := by
   let Y t ω := (h.aemeasurable t).mk (X t) ω
   have hXY t := (h.aemeasurable t).ae_eq_mk
@@ -258,19 +213,21 @@ lemma IsPreBrownian.isAEKolmogorovProcess {n : ℕ} (hn : 0 < n) [h : IsPreBrown
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
   · simp_rw [pow_two_mul_abs]
-    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (max _ _),
+    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (nndist _ _),
     centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
     norm_cast
-    rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg, ← NNReal.nndist_eq,
-      NNReal.coe_pow, coe_nndist]
+    congr
+    rw [pow_mul, NNReal.sq_sqrt]
+    simp only [val_eq_coe, NNReal.coe_pow, coe_nndist, dist_nonneg, ENNReal.ofReal_pow]
+    congr
   · simp_rw [← Real.norm_eq_abs]
     apply MemLp.integrable_norm_pow'
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
   · exact ae_of_all _ fun _ ↦ by positivity
 
 /-- If `X` is a pre-Brownian process then there exists a modification of `X` which is measurable
-and locally β-Hölder for `0 < β < 1/2` (and thus continuous). See `IsPreBrownian.mk`. -/
-lemma IsPreBrownian.exists_continuous_modification [h : IsPreBrownian X P] :
+and locally β-Hölder for `0 < β < 1/2` (and thus continuous). See `IsPreBrownianReal.mk`. -/
+lemma IsPreBrownianReal.exists_continuous_modification (h : IsPreBrownianReal X P) :
     ∃ Y : ℝ≥0 → Ω → ℝ, (∀ t, Measurable (Y t)) ∧ (∀ t, Y t =ᵐ[P] X t)
       ∧ ∀ ω t (β : ℝ≥0) (_ : 0 < β) (_ : β < ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ))),
         ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (Y · ω) U :=
@@ -279,14 +236,15 @@ lemma IsPreBrownian.exists_continuous_modification [h : IsPreBrownian X P] :
     (fun n ↦ h.isAEKolmogorovProcess (by positivity : 0 < n + 2))
     (fun n ↦ by finiteness) zero_lt_one (fun n ↦ by simp; norm_cast; omega)
 
-/-- If `h : IsPreBrownian X P`, then `h.mk X` is a continuous modification of `X`. -/
-protected noncomputable def IsPreBrownian.mk (X) [h : IsPreBrownian X P] : ℝ≥0 → Ω → ℝ :=
+/-- If `h : IsPreBrownianReal X P`, then `h.mk X` is a continuous modification of `X`. -/
+protected noncomputable def IsPreBrownianReal.mk (X) (h : IsPreBrownianReal X P) : ℝ≥0 → Ω → ℝ :=
   h.exists_continuous_modification.choose
 
-lemma IsPreBrownian.memHolder_mk [h : IsPreBrownian X P] (ω : Ω) (t : ℝ≥0) (β : ℝ≥0)
+lemma IsPreBrownianReal.memHolder_mk (h : IsPreBrownianReal X P) (ω : Ω) (t : ℝ≥0) (β : ℝ≥0)
     (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) :
     ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (h.mk X · ω) U := by
   convert h.exists_continuous_modification.choose_spec.2.2 ω t β hβ_pos ?_
+  · rfl
   suffices ⨆ n, (((n + 2 : ℕ) : ℝ) - 1) / (2 * (n + 2 : ℕ)) = 2⁻¹ by rw [this]; norm_cast
   refine iSup_eq_of_forall_le_of_tendsto (F := Filter.atTop) (fun n ↦ ?_) ?_
   · calc
@@ -306,198 +264,34 @@ lemma IsPreBrownian.memHolder_mk [h : IsPreBrownian X P] (ω : Ω) (t : ℝ≥0)
     exact (tendsto_natCast_div_add_atTop (1 : ℝ)).const_mul _
 
 @[fun_prop]
-lemma IsPreBrownian.measurable_mk [h : IsPreBrownian X P] (t : ℝ≥0) :
+lemma IsPreBrownianReal.measurable_mk (h : IsPreBrownianReal X P) (t : ℝ≥0) :
     Measurable (h.mk X t) :=
   h.exists_continuous_modification.choose_spec.1 t
 
-lemma IsPreBrownian.mk_ae_eq [h : IsPreBrownian X P] (t : ℝ≥0) :
+lemma IsPreBrownianReal.mk_ae_eq (h : IsPreBrownianReal X P) (t : ℝ≥0) :
     h.mk X t =ᵐ[P] X t :=
   h.exists_continuous_modification.choose_spec.2.1 t
 
-lemma IsPreBrownian.continuous_mk [h : IsPreBrownian X P] (ω : Ω) :
+lemma IsPreBrownianReal.continuous_mk (h : IsPreBrownianReal X P) (ω : Ω) :
     Continuous (h.mk X · ω) := by
   refine continuous_iff_continuousAt.mpr fun t ↦ ?_
   obtain ⟨U, hu_mem, ⟨C, h⟩⟩ := h.memHolder_mk ω t 4⁻¹ (by norm_num)
     (NNReal.inv_lt_inv (by norm_num) (by norm_num))
   exact (h.continuousOn (by norm_num)).continuousAt hu_mem
 
-lemma IsPreBrownian.hasIndepIncrements [h : IsPreBrownian X P] : HasIndepIncrements X P := by
-  have : IsProbabilityMeasure P := h.isGaussianProcess.isProbabilityMeasure
-  refine fun n t ht ↦ h.isGaussianProcess.hasGaussianLaw_increments.iIndepFun_of_covariance_eq_zero
-    fun i j hij ↦ ?_
-  rw [covariance_fun_sub_left, covariance_fun_sub_right, covariance_fun_sub_right]
-  · simp_rw [IsPreBrownian.covariance_fun_eval]
-    wlog h' : i < j generalizing i j
-    · simp_rw [← this j i hij.symm (by omega), min_comm]
-      ring
-    have h1 : i.succ ≤ j.succ := Fin.strictMono_succ h' |>.le
-    have h2 : i.castSucc ≤ j.succ := Fin.le_of_lt h1
-    have h3 : i.castSucc ≤ j.castSucc := Fin.le_castSucc_iff.mpr h1
-    rw [min_eq_left (ht h1), min_eq_left (ht h'), min_eq_left (ht h2), min_eq_left (ht h3)]
-    simp
-  any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
-  exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
-
-lemma IsGaussianProcess.isPreBrownian_of_covariance (h1 : IsGaussianProcess X P)
-    (h2 : ∀ t, P[X t] = 0) (h3 : ∀ s t, s ≤ t → cov[X s, X t; P] = s) :
-    IsPreBrownian X P where
-  hasLaw I := by
-    refine ⟨aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _, ?_⟩
-    apply (MeasurableEquiv.toLp 2 (_ → ℝ)).map_measurableEquiv_injective
-    rw [MeasurableEquiv.coe_toLp, ← PiLp.coe_symm_continuousLinearEquiv 2 ℝ]
-    have : IsGaussian
-        (Measure.map (⇑(PiLp.continuousLinearEquiv 2 ℝ fun a ↦ ℝ).symm)
-        (Measure.map (fun ω ↦ I.restrict fun x ↦ X x ω) P)) := by
-      have := (h1.hasGaussianLaw I).isGaussian_map
-      infer_instance
-    apply IsGaussian.ext
-    · rw [integral_map, integral_map, integral_map]
-      · simp only [PiLp.continuousLinearEquiv_symm_apply, id_eq]
-        simp_rw [← PiLp.continuousLinearEquiv_symm_apply 2 ℝ, ← ContinuousLinearEquiv.coe_coe]
-        rw [ContinuousLinearMap.integral_comp_id_comm, integral_id_gaussianProjectiveFamily,
-          ContinuousLinearMap.integral_comp_comm]
-        · simp only [ContinuousLinearEquiv.coe_coe, PiLp.continuousLinearEquiv_symm_apply]
-          congr with i
-          rw [eval_integral]
-          · simpa using h2 _
-          · exact fun _ ↦ (h1.hasGaussianLaw_eval _).integrable
-        · exact Integrable.of_eval fun _ ↦ (h1.hasGaussianLaw_eval _).integrable
-        · exact IsGaussian.integrable_id
-      any_goals fun_prop
-      exact aemeasurable_pi_lambda _ fun _ ↦ h1.aemeasurable _
-    · rw [← ContinuousLinearMap.toBilinForm_inj]
-      refine LinearMap.BilinForm.ext_of_isSymm isSymm_covarianceBilin isSymm_covarianceBilin
-        fun x ↦ ?_
-      simp only [ContinuousLinearMap.toBilinForm_apply]
-      have : IsFiniteMeasure (Measure.map (fun ω ↦ I.restrict fun x ↦ X x ω) P) := by
-        have := (h1.hasGaussianLaw I).isGaussian_map
-        infer_instance
-      rw [PiLp.coe_symm_continuousLinearEquiv, covarianceBilin_apply_pi, covarianceBilin_apply_pi]
-      · congrm ∑ i, ∑ j, _ * ?_
-        rw [covariance_eval_gaussianProjectiveFamily, covariance_map]
-        · wlog hij : i.1 ≤ j.1 generalizing i j
-          · rw [covariance_comm, this j i (by grind), min_comm]
-          rw [min_eq_left hij]
-          exact h3 i j hij
-        any_goals exact Measurable.aestronglyMeasurable (by fun_prop)
-        exact aemeasurable_pi_lambda _ (fun _ ↦ h1.aemeasurable _)
-      · exact fun i ↦ (IsGaussian.hasGaussianLaw_id.eval i).memLp_two
-      · exact fun i ↦ ((h1.hasGaussianLaw I).isGaussian_map.hasGaussianLaw_id.eval i).memLp_two
-
-lemma HasIndepIncrements.isPreBrownian_of_hasLaw
-    (law : ∀ t, HasLaw (X t) (gaussianReal 0 t) P) (incr : HasIndepIncrements X P) :
-    IsPreBrownian X P := by
-  apply IsGaussianProcess.isPreBrownian_of_covariance
-  · exact incr.isGaussianProcess (fun t ↦ (law t).hasGaussianLaw)
-      (law 0).ae_eq_const_of_gaussianReal
-  · intro t
-    rw [(law t).integral_eq, integral_id_gaussianReal]
-  · intro s t hst
-    have h1 := incr.indepFun_eval_sub zero_le hst (law 0).ae_eq_const_of_gaussianReal
-    have := (law 0).isProbabilityMeasure_iff.2 inferInstance
-    have h2 : X t = X t - X s + X s := by simp
-    rw [h2, covariance_add_right, h1.covariance_eq_zero, covariance_self, (law s).variance_eq,
-      variance_id_gaussianReal]
-    · simp
-    · exact (law s).aemeasurable
-    · exact (law s).hasGaussianLaw.memLp_two
-    · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
-    · exact (law s).hasGaussianLaw.memLp_two
-    · exact (law t).hasGaussianLaw.memLp_two.sub (law s).hasGaussianLaw.memLp_two
-    · exact (law s).hasGaussianLaw.memLp_two
-
-lemma IsPreBrownian.neg [hX : IsPreBrownian X P] : IsPreBrownian (-X) P := by
-  apply HasIndepIncrements.isPreBrownian_of_hasLaw _ _
-  · exact fun t ↦ by simpa using gaussianReal_neg (hX.hasLaw_eval t)
-  intro n s hs
-  convert (hX.hasIndepIncrements n s hs).comp (fun _ x ↦ -x) (by measurability)
-  simp; linarith
-
-lemma IsPreBrownian.smul [hX : IsPreBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
-    IsPreBrownian (fun t ω ↦ (X (c * t) ω) / √c) P := by
-  refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
-  · have this t ω : X (c * t) ω / √c = (1 / √c) • ((X ∘ (c * ·)) t ω) := by
-      simp [inv_mul_eq_div]
-    simp_rw [this]
-    exact (IsGaussianProcess.comp_right hX.isGaussianProcess _).smul _
-  · rw [integral_div, IsPreBrownian.integral_eval, zero_div]
-  · rw [covariance_fun_div_left, covariance_fun_div_right, IsPreBrownian.covariance_eval,
-      min_eq_left]
-    · simp [field]
-    · exact mul_le_mul_right hst c
-
-/-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
-`X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
-This is the proof that it is pre-Brownian, see `IsPreBrownian.indepFun_shift` for independence. -/
-lemma IsPreBrownian.shift [h : IsPreBrownian X P] (t₀ : ℝ≥0) :
-    IsPreBrownian (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) P := by
-  refine (h.isGaussianProcess.shift t₀).isPreBrownian_of_covariance (fun t ↦ ?_) (fun s t hst ↦ ?_)
-  · rw [integral_sub, IsPreBrownian.integral_eval, IsPreBrownian.integral_eval, sub_zero]
-    all_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).integrable
-  · have := h.isGaussianProcess.isProbabilityMeasure
-    rw [covariance_fun_sub_left, covariance_fun_sub_right, covariance_fun_sub_right,
-      h.covariance_eval, h.covariance_eval, h.covariance_eval, h.covariance_eval, ← add_min,
-      min_eq_left hst, min_eq_right, min_eq_left, min_self]
-    any_goals simp
-    any_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
-    exact h.isGaussianProcess.hasGaussianLaw_sub.memLp_two
-
-/-- **Weak Markov property**: If `X` is a pre-Brownian motion, then
-`X (t₀ + t) - X t₀` is a pre-Brownian motion which is independent from `(B t, t ≤ t₀)`.
-This is the proof that of independence, see `IsPreBrownian.shift` for the proof
-that it is pre-Brownian. -/
-lemma IsPreBrownian.indepFun_shift [h : IsPreBrownian X P] (hX : ∀ t, Measurable (X t)) (t₀ : ℝ≥0) :
-    IndepFun (fun ω t ↦ X (t₀ + t) ω - X t₀ ω) (fun ω (t : Set.Iic t₀) ↦ X t ω) P := by
-  apply IsGaussianProcess.indepFun''
-  · apply h.isGaussianProcess.of_isGaussianProcess
-    rintro (t | ⟨t, ht⟩)
-    · let L : (({t₀, t₀ + t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ :=
-        { toFun x := x ⟨t₀ + t, by simp⟩ - x ⟨t₀, by simp⟩
-          map_add' x y := by simp; abel
-          map_smul' c x := by simp; ring }
-      exact ⟨_, L, fun ω ↦ by simp [L]⟩
-    · let L : (({t} : Finset ℝ≥0) → ℝ) →L[ℝ] ℝ :=
-        { toFun x := x ⟨t, by simp⟩
-          map_add' x y := by simp
-          map_smul' c x := by simp }
-      exact ⟨_, L, fun ω ↦ by simp [L]⟩
-  any_goals fun_prop
-  · rintro s ⟨t, ht : t ≤ t₀⟩
-    have := h.isGaussianProcess.isProbabilityMeasure
-    rw [covariance_fun_sub_left, h.covariance_eval, h.covariance_eval, min_eq_right, min_eq_right,
-      sub_self]
-    · grind
-    · simp [ht, le_add_right]
-    all_goals exact (h.isGaussianProcess.hasGaussianLaw_eval _).memLp_two
-
-lemma IsPreBrownian.inv [h : IsPreBrownian X P] :
-    IsPreBrownian (fun t ω ↦ t * (X (1 / t) ω)) P := by
-  refine IsGaussianProcess.isPreBrownian_of_covariance ?_ (fun t ↦ ?_) (fun s t hst ↦ ?_)
-  · exact (IsGaussianProcess.comp_right h.isGaussianProcess _).smul _
-  · rw [integral_const_mul, IsPreBrownian.integral_eval, mul_zero]
-  · have := h.isGaussianProcess.isProbabilityMeasure
-    rw [covariance_const_mul_left, covariance_const_mul_right, h.covariance_eval]
-    obtain rfl | hs := eq_or_ne s 0
-    · simp
-    have : 0 < t := (pos_of_ne_zero hs).trans_le hst
-    rw [min_eq_right]
-    · norm_cast
-      field_simp
-    exact one_div_le_one_div_of_le (pos_of_ne_zero hs) hst
-
 /-- A pre-Brownian motion `X` is **filtered** with respect to a filtration `𝓕` if it is adapted
 to `𝓕` and the increments of `X` after time `t` are independent of `𝓕 t` -/
 class IsFilteredPreBrownian (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω) : Prop
-  extends IsPreBrownian X P where
+  extends IsPreBrownianReal X P where
     stronglyAdapted : StronglyAdapted 𝓕 X
     indep : ∀ s t, s ≤ t → Indep (MeasurableSpace.comap (X t - X s) inferInstance) (𝓕 s) P
 
-instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
+lemma IsPreBrownianReal.isFilteredPreBrownian (h : IsPreBrownianReal X P)
     (hX : ∀ t : ℝ≥0, Measurable (X t)) :
     IsFilteredPreBrownian X (natural X (fun t ↦ (hX t).stronglyMeasurable)) P where
   stronglyAdapted := stronglyAdapted_natural (fun t ↦ (hX t).stronglyMeasurable)
   indep s t hst := by
-    have h := (IndepFun_iff_Indep _ _ _).1 (h.indepFun_shift hX s)
+    have h := (IndepFun_iff_Indep _ _ _).1 (h.indepFun_shift s)
     refine indep_of_indep_of_le_right (indep_of_indep_of_le_left h ?_) ?_
     · have hX : X t - X s = (fun f ↦ f (t - s)) ∘ (fun ω u ↦ (X (s + u) ω - X s ω)) := by
         funext; simp [add_tsub_cancel_of_le, hst]
@@ -506,8 +300,9 @@ instance IsPreBrownian.isFilteredPreBrownian [h : IsPreBrownian X P]
       have hX : (X u) = ((fun f ↦ f ⟨u,hu⟩) ∘ (fun ω (t : Set.Iic s) ↦ X t ω)) := by
         funext; simp
       rw [hX, ←comap_comp]; apply comap_mono (Measurable.comap_le _); fun_prop
+  hasLaw := h.hasLaw
 
-lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω)
+lemma IsPreBrownianReal.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration ℝ≥0 mΩ) (P : Measure Ω)
     [IsProbabilityMeasure P] [hX : IsFilteredPreBrownian X 𝓕 P] : Martingale X 𝓕 P := by
   refine ⟨hX.stronglyAdapted, fun s t hst => ?_⟩
   have hM := fun t ↦ ((hX.stronglyAdapted t).mono (𝓕.le t)).measurable
@@ -527,61 +322,37 @@ lemma IsPreBrownian.isMartingale (X : ℝ≥0 → Ω → ℝ) (𝓕 : Filtration
     _ =ᵐ[P] (fun _ ↦ P[X t - X s]) + X s := by filter_upwards [h_no_cond] with ω hω; simp [hω]
     _ = X s := by aesop
 
-end IsPreBrownian
+end IsPreBrownianReal
 
-section IsBrownian
+section IsBrownianReal
 
 variable (X : ℝ≥0 → Ω → ℝ)
 
-/-- A stochastic process is called **Brownian** if its finite-dimensional laws are those
-of a Brownian motion, see `IsPreBrownian`, and if it has almost-sure continuous paths. -/
-class IsBrownian (X) (P : Measure Ω := by volume_tac) : Prop extends IsPreBrownian X P where
-  cont : ∀ᵐ ω ∂P, Continuous (X · ω)
-
 variable {X}
 
-instance IsPreBrownian.isBrownian_mk [h : IsPreBrownian X P] :
-    IsBrownian (h.mk X) P where
-  toIsPreBrownian := h.congr fun _ ↦ (h.mk_ae_eq _).symm
+lemma IsPreBrownianReal.isBrownianReal_mk (h : IsPreBrownianReal X P) :
+    IsBrownianReal (h.mk X) P where
+  toIsPreBrownianReal := h.congr fun _ ↦ (h.mk_ae_eq _).symm
   cont := ae_of_all _ h.continuous_mk
 
-lemma IsBrownian.mk_ae_forall_eq [h : IsBrownian X P] :
-    ∀ᵐ ω ∂P, ∀ t : ℝ≥0, (h.toIsPreBrownian.mk) t ω = X t ω := by
-  apply indistinguishable_of_modification _ h.cont h.toIsPreBrownian.mk_ae_eq
-  exact .of_forall h.toIsPreBrownian.continuous_mk
+lemma IsBrownianReal.mk_ae_forall_eq (h : IsBrownianReal X P) :
+    ∀ᵐ ω ∂P, ∀ t : ℝ≥0, (h.toIsPreBrownianReal.mk) t ω = X t ω := by
+  apply indistinguishable_of_modification _ h.cont h.toIsPreBrownianReal.mk_ae_eq
+  exact .of_forall h.toIsPreBrownianReal.continuous_mk
 
-lemma IsBrownian.aemeasurable [h : IsBrownian X P] :
+lemma IsBrownianReal.aemeasurable (h : IsBrownianReal X P) :
     AEMeasurable (fun ω t ↦ X t ω) P := by
-  refine ⟨Function.swap h.toIsPreBrownian.mk, by measurability, ?_⟩
+  refine ⟨Function.swap h.toIsPreBrownianReal.mk, by measurability, ?_⟩
   exact h.mk_ae_forall_eq.mono <| fun _ ↦ by aesop
 
-lemma IsBrownian.neg [h : IsBrownian X P] :
-    IsBrownian (-X) P where
-  toIsPreBrownian := h.toIsPreBrownian.neg
-  cont := h.cont.mono (fun _ _ ↦ by simpa [← Pi.neg_def, continuous_neg_iff])
-
-lemma IsBrownian.smul [h : IsBrownian X P] {c : ℝ≥0} (hc : c ≠ 0) :
-    IsBrownian (fun t ω ↦ (X (c * t) ω) / √c) P where
-  toIsPreBrownian := h.toIsPreBrownian.smul hc
-  cont := by
-    filter_upwards [h.cont] with ω h
-    fun_prop
-
-lemma IsBrownian.shift [h : IsBrownian X P] (t₀ : ℝ≥0) :
-    IsBrownian (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) P where
-  toIsPreBrownian := h.toIsPreBrownian.shift t₀
-  cont := by
-    filter_upwards [h.cont] with ω h
-    fun_prop
-
 /-- If `X` is a Brownian motion then so is `fun t ω ↦ t * (B (1 / t) ω)`. -/
-lemma IsBrownian.inv [h : IsBrownian X P] :
-    IsBrownian (fun t ω ↦ t * (X (1 / t) ω)) P where
-  toIsPreBrownian := h.toIsPreBrownian.inv
+lemma IsBrownianReal.inv (h : IsBrownianReal X P) :
+    IsBrownianReal (fun t ω ↦ t * (X (1 / t) ω)) P where
+  toIsPreBrownianReal := h.toIsPreBrownianReal.inv
   cont := by
     obtain ⟨s, cs, ds⟩ := TopologicalSpace.exists_countable_dense ℝ≥0
     let Y := fun t ω ↦ t * X (1 / t) ω
-    have hY : IsPreBrownian Y P := h.toIsPreBrownian.inv
+    have hY : IsPreBrownianReal Y P := h.toIsPreBrownianReal.inv
     have h1 : ∀ᵐ ω ∂P, ∀ q : s, Y q ω = hY.mk Y q ω :=
       haveI : Countable s := cs
       ae_all_iff.2 fun q ↦ (hY.mk_ae_eq q).symm
@@ -598,10 +369,11 @@ lemma IsBrownian.inv [h : IsBrownian X P] :
     have : ∀ᵐ ω ∂P, ∀ t ≠ 0, Y t ω = hY.mk Y t ω := by
       filter_upwards [h2, h3] with ω h1 h2
       convert h1.of_subset_closure h2 (hY.continuous_mk ω |>.continuousOn) (by grind) _
+      · rfl
       convert Set.subset_univ _
-      exact (ds.diff_singleton 0).closure_eq
+      exact (ds.sdiff_singleton 0).closure_eq
     have h4 : ∀ᵐ ω ∂P, ∀ t, Y t ω = hY.mk Y t ω := by
-      filter_upwards [this, (hY.isBrownian_mk.hasLaw_eval 0).ae_eq_const_of_gaussianReal]
+      filter_upwards [this, (hY.isBrownianReal_mk.hasLaw_eval 0).ae_eq_const_of_gaussianReal]
         with ω h1 h2 t
       obtain rfl | ht := eq_or_ne t 0
       · simp_all [Y]
@@ -611,13 +383,7 @@ lemma IsBrownian.inv [h : IsBrownian X P] :
     simp_rw [h]
     exact hY.continuous_mk ω
 
-lemma IsBrownian.tendsto_nhds_zero [h : IsBrownian X P] :
-    ∀ᵐ ω ∂P, Filter.Tendsto (X · ω) (𝓝 0) (𝓝 0) := by
-  filter_upwards [h.cont, (h.hasLaw_eval 0).ae_eq_const_of_gaussianReal] with ω h1 h2
-  convert h1.tendsto 0
-  exact h2.symm
-
-lemma IsBrownian.tendsto_div_id_atTop [h : IsBrownian X P] :
+lemma IsBrownianReal.tendsto_div_id_atTop (h : IsBrownianReal X P) :
     ∀ᵐ ω ∂P, Filter.Tendsto (fun t ↦ (X t ω) / t) .atTop (𝓝 0) := by
   filter_upwards [h.inv.tendsto_nhds_zero] with ω hω
   have : (fun t ↦ (X t ω) / t) = (fun t ↦ t * (X (1 / t) ω)) ∘ (fun t ↦ t⁻¹) := by ext; simp [field]
@@ -626,7 +392,7 @@ lemma IsBrownian.tendsto_div_id_atTop [h : IsBrownian X P] :
 
 /-- **Blumenthal's zero-one law**: Let `𝓕` be the canonical filtration associated to a Brownian
 motion. Then the `σ`-algebra `⨅ s > 0, 𝓕 s` is trivial. -/
-lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
+lemma IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
     (hA : MeasurableSet[⨅ s > 0, natural X (fun t ↦ (hX t).stronglyMeasurable) s] A) :
     P A = 0 ∨ P A = 1 := by
@@ -669,7 +435,7 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
     exact @measurable_of_tendsto_metrizable' _ _ (iSup _) _ _ _ _ _ _ _ _ l _
       (fun t ↦ (comap_measurable _).iSup' t) this
   -- We prove the result by showing that `m3` is independent of itself.
-  refine measure_eq_zero_or_one_of_indep_self hm3' ?_ hA
+  refine measure_eq_zero_or_one_of_indep_self ?_ hA
   -- To do so, we show that for all `A ∈ m3`, all finite set `I ⊆ (0, +∞)` and all
   -- bounded continuous function `f : (I → ℝ) → ℝ`,
   -- `∫ ω in A, f (fun t ↦ X t) ∂P = P.real A * ∫ ω, f (fun t ↦ X t) ∂P`.
@@ -687,7 +453,7 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
   have key (ε : ℝ≥0) (hε1 : 0 < ε) (hε2 : ε ≤ I.min' hI) :
       ∫ ω in A, f (fun t ↦ X t ω - X ε ω) ∂P = P.real A * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P := by
     rw [IndepSets.setIntegral_eq_mul _ (by fun_prop) (hm3' A hA) (by fun_prop)]
-    have := (IndepFun_iff_Indep _ _ _).1 <| h.indepFun_shift hX ε |>.symm
+    have := (IndepFun_iff_Indep _ _ _).1 <| h.indepFun_shift ε |>.symm
     refine indepSets_of_indepSets_of_le_right (Indep.singleton_indepSets this ?_) ?_
     · suffices m3 ≤ (.comap (fun ω (t : Set.Iic ε) ↦ X t ω) MeasurableSpace.pi) from this A hA
       apply iInf₂_le_of_le ε hε1
@@ -729,7 +495,7 @@ lemma IsBrownian.indep_zero [h : IsBrownian X P] (hX : ∀ t, Measurable (X t))
   · exact Eventually.of_forall fun _ ↦ Measurable.aestronglyMeasurable (by fun_prop)
   · exact Eventually.of_forall fun _ ↦ ae_of_all _ fun _ ↦ f.norm_coe_le_norm _
 
-end IsBrownian
+end IsBrownianReal
 
 def preBrownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := fun t ω ↦ ω t
 
@@ -742,24 +508,24 @@ lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit
   aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
   map_eq := Measure.map_id
 
-instance isPreBrownian_preBrownian : IsPreBrownian preBrownian gaussianLimit :=
-  hasLaw_preBrownian.isPreBrownian
+lemma isPreBrownianReal_preBrownian : IsPreBrownianReal preBrownian gaussianLimit :=
+  hasLaw_preBrownian.IsPreBrownianReal
 
 -- for blueprint
 lemma isGaussianProcess_preBrownian : IsGaussianProcess preBrownian gaussianLimit :=
-  isPreBrownian_preBrownian.isGaussianProcess
+  isPreBrownianReal_preBrownian.isGaussianProcess
 
 lemma hasLaw_restrict_preBrownian (I : Finset ℝ≥0) :
     HasLaw (fun ω ↦ I.restrict (preBrownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
-  IsPreBrownian.hasLaw I
+  isPreBrownianReal_preBrownian.hasLaw I
 
 lemma hasLaw_preBrownian_eval (t : ℝ≥0) :
     HasLaw (preBrownian t) (gaussianReal 0 t) gaussianLimit :=
-  IsPreBrownian.hasLaw_eval t
+  isPreBrownianReal_preBrownian.hasLaw_eval t
 
 lemma hasLaw_preBrownian_sub (s t : ℝ≥0) :
-    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
-  IsPreBrownian.hasLaw_sub s t
+    HasLaw (preBrownian s - preBrownian t) (gaussianReal 0 (nndist s t)) gaussianLimit :=
+  isPreBrownianReal_preBrownian.hasLaw_sub s t
 
 lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
     IsKolmogorovProcess preBrownian gaussianLimit (2 * n) n
@@ -781,57 +547,58 @@ lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
   · simp_rw [pow_two_mul_abs]
-    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (max _ _),
+    rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (nndist _ _),
     centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
     norm_cast
-    rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg, ← NNReal.nndist_eq,
-      NNReal.coe_pow, coe_nndist]
+    congr
+    rw [pow_mul, NNReal.sq_sqrt, ← ENNReal.ofReal_pow dist_nonneg]
+    simp only [NNReal.coe_pow, coe_nndist, dist_nonneg, ENNReal.ofReal_pow]
   · simp_rw [← Real.norm_eq_abs]
     apply MemLp.integrable_norm_pow'
     exact IsGaussian.memLp_id _ _ (ENNReal.natCast_ne_top (2 * n))
   · exact ae_of_all _ fun _ ↦ by positivity
 
 noncomputable
-def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := isPreBrownian_preBrownian.mk
+def brownian : ℝ≥0 → (ℝ≥0 → ℝ) → ℝ := isPreBrownianReal_preBrownian.mk
 
 @[fun_prop]
 lemma measurable_brownian (t : ℝ≥0) : Measurable (brownian t) :=
-  IsPreBrownian.measurable_mk t
+  isPreBrownianReal_preBrownian.measurable_mk t
 
 lemma brownian_ae_eq_preBrownian (t : ℝ≥0) :
     brownian t =ᵐ[gaussianLimit] preBrownian t :=
-  IsPreBrownian.mk_ae_eq t
+  isPreBrownianReal_preBrownian.mk_ae_eq t
 
 lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (hβ_pos : 0 < β) (hβ_lt : β < 2⁻¹) :
     ∃ U ∈ 𝓝 t, ∃ C, HolderOnWith C β (brownian · ω) U :=
-  IsPreBrownian.memHolder_mk ω t β hβ_pos hβ_lt
+  isPreBrownianReal_preBrownian.memHolder_mk ω t β hβ_pos hβ_lt
 
 @[fun_prop]
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :=
-  IsPreBrownian.continuous_mk ω
+  isPreBrownianReal_preBrownian.continuous_mk ω
 
-instance IsBrownian_brownian : IsBrownian brownian gaussianLimit :=
-  IsPreBrownian.isBrownian_mk
+lemma isBrownianReal_brownian : IsBrownianReal brownian gaussianLimit :=
+  isPreBrownianReal_preBrownian.isBrownianReal_mk
 
 -- for blueprint
 lemma isGaussianProcess_brownian : IsGaussianProcess brownian gaussianLimit :=
-  IsBrownian_brownian.toIsPreBrownian.isGaussianProcess
+  isBrownianReal_brownian.toIsPreBrownianReal.isGaussianProcess
 
 lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
     HasLaw (fun ω ↦ I.restrict (brownian · ω)) (gaussianProjectiveFamily I) gaussianLimit :=
-  IsPreBrownian.hasLaw I
+  isBrownianReal_brownian.hasLaw I
 
 lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit :=
-  IsPreBrownian.hasLaw_gaussianLimit
+  isBrownianReal_brownian.hasLaw_gaussianLimit
     (measurable_pi_lambda _ fun t ↦ measurable_brownian t).aemeasurable
 
 lemma hasLaw_brownian_eval {t : ℝ≥0} :
     HasLaw (brownian t) (gaussianReal 0 t) gaussianLimit :=
-  IsPreBrownian.hasLaw_eval t
+  isBrownianReal_brownian.hasLaw_eval t
 
 lemma hasLaw_brownian_sub {s t : ℝ≥0} :
-    HasLaw (brownian s - brownian t) (gaussianReal 0 (max (s - t) (t - s))) gaussianLimit :=
-  IsPreBrownian.hasLaw_sub s t
+    HasLaw (brownian s - brownian t) (gaussianReal 0 (nndist s t)) gaussianLimit :=
+  isBrownianReal_brownian.hasLaw_sub s t
 
 lemma measurable_brownian_uncurry : Measurable brownian.uncurry :=
   measurable_uncurry_of_continuous_of_measurable continuous_brownian measurable_brownian
@@ -846,10 +613,10 @@ lemma isKolmogorovProcess_brownian {n : ℕ} (hn : 0 < n) :
   q_pos := by positivity
 
 lemma covariance_brownian (s t : ℝ≥0) : cov[brownian s, brownian t; gaussianLimit] = min s t :=
-    IsPreBrownian.covariance_eval s t
+    isBrownianReal_brownian.covariance_eval s t
 
 lemma hasIndepIncrements_brownian : HasIndepIncrements brownian gaussianLimit :=
-  IsPreBrownian.hasIndepIncrements
+  isBrownianReal_brownian.hasIndepIncrements
 
 section Measure
 

@@ -88,7 +88,7 @@ lemma debut_prod [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) (A : Set Ω) :
   ext ω
   split_ifs with hI hω
   · simp only [debut_eq_ite, Set.mem_prod, hω, and_true]
-    convert if_pos (Set.nonempty_iff_ne_empty.mpr hI) using 1
+    exact if_pos (Set.nonempty_iff_ne_empty.mpr hI)
   · simp [debut_eq_ite, hω]
   · simp only [ne_eq, Decidable.not_not] at hI
     refine if_neg ?_

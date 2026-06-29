@@ -52,7 +52,7 @@ lemma HasBoundedCoveringNumber.subset {B : Set T}
     replace h := h.coveringNumber_le 0 (by simp)
     simp only [hdA.1, ENNReal.rpow_zero, mul_one] at h
     calc (coveringNumber ε B : ℝ≥0∞)
-    _ ≤ coveringNumber 0 B := mod_cast coveringNumber_anti zero_le'
+    _ ≤ coveringNumber 0 B := mod_cast coveringNumber_anti zero_le
     _ ≤ coveringNumber (0 / 2) A := mod_cast coveringNumber_subset_le hBA
     _ = coveringNumber 0 A := by simp
     _ ≤ c := h

@@ -49,7 +49,7 @@ example (s t : ℝ≥0) : cov[B s, B t] = min s t :=
   covariance_brownian s t
 
 example (s t : ℝ≥0) :
-    HasLaw (B s - B t) (gaussianReal 0 (max (s - t) (t - s))) :=
+    HasLaw (B s - B t) (gaussianReal 0 (nndist s t)) :=
   hasLaw_brownian_sub
 
 example (I : Finset ℝ≥0) :
@@ -70,7 +70,7 @@ example (ω : Ω) : Continuous (B · ω) := continuous_brownian ω
 /- Conclution: IsBrownian. In particular, IsGaussianProcess. -/
 
 --ANCHOR: IsBrownian
-example : IsBrownian B := IsBrownian_brownian
+example : IsBrownianReal B := isBrownianReal_brownian
 
 example : IsGaussianProcess B := isGaussianProcess_brownian
 
@@ -85,7 +85,7 @@ example : HasIndepIncrements B := hasIndepIncrements_brownian
 example (X : ℝ≥0 → Ω → ℝ) (hX : AEMeasurable (fun ω ↦ (X · ω)))
     (law : ∀ t, HasLaw (X t) (gaussianReal 0 t)) (incr : HasIndepIncrements X) :
     HasLaw (fun ω ↦ (X · ω)) gaussianLimit :=
-  (incr.isPreBrownian_of_hasLaw law).hasLaw_gaussianLimit hX
+  (incr.isPreBrownianReal_of_hasLaw law).hasLaw_gaussianLimit hX
 -- ANCHOR_END: HasIndepIncrements
 
 /- Other. -/
@@ -97,21 +97,21 @@ example {n : ℕ} (hn : 0 < n) :
 -- ANCHOR: Transformations
 variable {X : ℝ≥0 → Ω → ℝ}
 
-example [IsBrownian X] {c : ℝ≥0} (hc : c ≠ 0) :
-    IsBrownian (fun t ω ↦ (X (c * t) ω) / √c) :=
-  IsBrownian.smul hc
+example (hX : IsBrownianReal X) {c : ℝ≥0} (hc : c ≠ 0) :
+    IsBrownianReal (fun t ω ↦ (√↑c)⁻¹ * X (c * t) ω) :=
+  hX.smul hc
 
-example [IsBrownian X] (t₀ : ℝ≥0) :
-    IsBrownian (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) :=
-  IsBrownian.shift t₀
+example (hX : IsBrownianReal X) (t₀ : ℝ≥0) :
+    IsBrownianReal (fun t ω ↦ X (t₀ + t) ω - X t₀ ω) :=
+  hX.shift t₀
 
-example [IsBrownian X] :
-    IsBrownian (fun t ω ↦ t * (X (1 / t) ω)) :=
-  IsBrownian.inv
+example (hX : IsBrownianReal X) :
+    IsBrownianReal (fun t ω ↦ t * (X (1 / t) ω)) :=
+  hX.inv
 
-example [IsBrownian X] :
+example (hX : IsBrownianReal X) :
     ∀ᵐ ω, Filter.Tendsto (X · ω) (𝓝 0) (𝓝 0) :=
-  IsBrownian.tendsto_nhds_zero
+  hX.tendsto_nhds_zero
 -- ANCHOR_END: Transformations
 
 end

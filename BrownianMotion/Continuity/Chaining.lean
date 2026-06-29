@@ -171,7 +171,9 @@ lemma edist_chainingSequence_le_sum_edist {T : Type*} [PseudoEMetricSpace T] (f 
         edist (f (chainingSequence C x k (m + i))) (f (chainingSequence C x k (m + i + 1))) := by
   simp only [Nat.add_assoc, edist_comm (f x)]
   convert edist_le_range_sum_edist (fun i => f (chainingSequence C x k (m + i))) (k - m)
-  simp [(show m + (k - m) = k by omega)]
+  · rfl
+  · simp
+  · simp [(show m + (k - m) = k by lia)]
 
 lemma edist_chainingSequence_le_sum_edist' {T : Type*} [PseudoEMetricSpace T] (f : E → T)
     {m : ℕ} (hm : m ≤ k) :

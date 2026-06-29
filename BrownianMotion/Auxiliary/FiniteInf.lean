@@ -3,8 +3,9 @@ module
 public import Mathlib.Data.Finset.Max
 public import Mathlib.Data.Set.Finite.Lattice
 public import Mathlib.Order.CompletePartialOrder
-public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 public import Mathlib.Order.ConditionallyCompletePartialOrder.Indexed
+
+import Mathlib.Order.ConditionallyCompleteLattice.Finset
 
 @[expose] public section
 
@@ -26,7 +27,7 @@ theorem Finset.iSup_eq_max'_image (f : ι → α) {s : Finset ι} (h : s.Nonempt
     intro i
     by_cases his : i ∈ s
     · exact ⟨i, by assumption, fun _ ↦ le_rfl⟩
-    · simpa [his] using h
+    · simpa [his] using h.exists_mem
   · simp only [Set.mem_image, mem_coe, Set.mem_range, exists_exists_eq_and, forall_exists_index,
       and_imp, forall_apply_eq_imp_iff₂]
     intro i hi
@@ -53,26 +54,8 @@ theorem Set.Finite.iInf_mem_image (f : ι → α) {s : Set ι} (h : s.Nonempty) 
   lift s to Finset ι using hs
   simpa using Finset.iInf_mem_image f h
 
-theorem Set.Finite.lt_iInf_iff {s : Set ι} {f : ι → α} (h : s.Nonempty) (hs : s.Finite) {a : α} :
+lemma Set.Finite.lt_iInf_iff {α ι : Type*} [CompleteLinearOrder α]
+    {s : Set ι} {f : ι → α} (h : s.Nonempty) (hs : s.Finite) {a : α} :
     a < ⨅ i ∈ s, f i ↔ ∀ x ∈ s, a < f x := by
-  constructor
-  · intro h x hx
-    refine h.trans_le (csInf_le ?_ ?_)
-    · classical
-      refine (((hs.image f).union (finite_singleton (sInf ∅))).subset ?_).bddBelow
-      intro
-      simp only [ciInf_eq_ite, dite_eq_ite, mem_range, union_singleton, mem_insert_iff, mem_image,
-        forall_exists_index]
-      intro x hx
-      split_ifs at hx
-      · exact Or.inr ⟨_, by assumption, hx⟩
-      · simp_all
-    · simp only [mem_range]
-      refine ⟨x, ?_⟩
-      simp [hx]
-  · intro H
-    have := hs.iInf_mem_image f h
-    simp only [mem_image] at this
-    obtain ⟨_, hmem, hx⟩ := this
-    rw [← hx]
-    exact H _ hmem
+  rw [Set.Finite.lt_ciInf_iff hs]
+  simpa

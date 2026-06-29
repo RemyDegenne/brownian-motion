@@ -11,34 +11,17 @@ namespace MeasureTheory
 
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [Nonempty ι]
 
-@[simp] lemma stoppedValue_comp {F : Type*} {u : ι → Ω → E} {τ : Ω → WithTop ι} {f : E → F} :
-    stoppedValue (fun t ω => f (u t ω)) τ = f ∘ (stoppedValue u τ) := rfl
+namespace stoppedValue
 
-lemma stoppedValue_norm [SeminormedAddCommGroup E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
-    stoppedValue (fun t ω => ‖u t ω‖) τ = fun ω => ‖(stoppedValue u τ ω)‖ := rfl
+@[simp] lemma add [Add E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u + v) τ = stoppedValue u τ + stoppedValue v τ := rfl
 
-variable [LinearOrder ι]
+@[simp] lemma neg [Neg E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (-u) τ = -stoppedValue u τ := rfl
 
-@[simp] lemma stoppedProcess_const {β : Type*} {u₀ : Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (fun _ ↦ u₀) τ = fun _ ↦ u₀ := rfl
+@[simp] lemma sub [Sub E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u - v) τ = stoppedValue u τ - stoppedValue v τ := rfl
 
-@[simp] lemma stoppedProcess_neg {β : Type*} [Neg β] {u : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (-u) τ = -stoppedProcess u τ := rfl
-
-@[simp] lemma stoppedProcess_add {β : Type*} [Add β] {u v : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (u + v) τ = stoppedProcess u τ + stoppedProcess v τ := rfl
-
-@[simp] lemma stoppedProcess_sub {β : Type*} [Sub β] {u v : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (u - v) τ = stoppedProcess u τ - stoppedProcess v τ := rfl
-
-@[simp] lemma stoppedProcess_const_smul {β : Type*} [SMul ℝ β] (c : ℝ) {u : ι → Ω → β}
-    {τ : Ω → WithTop ι} : stoppedProcess (c • u) τ = c • stoppedProcess u τ := rfl
-
-@[simp] lemma stoppedProcess_const_bot [OrderBot ι] {E} (X : ι → Ω → E) :
-    stoppedProcess X (fun _ ↦ ⊥) = fun _ ↦ X ⊥ := by
-  ext; simp [stoppedProcess, ← WithTop.coe_bot]
-
-@[simp] lemma stoppedProcess_const_top {E} (X : ι → Ω → E) :
-    stoppedProcess X (fun _ ↦ ⊤) = X := by ext; simp [stoppedProcess]
+end stoppedValue
 
 end MeasureTheory

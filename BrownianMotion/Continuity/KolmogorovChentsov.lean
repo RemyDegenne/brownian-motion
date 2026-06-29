@@ -39,13 +39,13 @@ lemma UniformContinuousOn.exists_tendsto {α β : Type*} [UniformSpace α] [Firs
       have h_cauchy := hu.cauchySeq
       rw [cauchySeq_iff] at h_cauchy
       rw [cauchySeq_iff, uniformity_subtype]
-      simp only [mem_comap, ge_iff_le, forall_exists_index, and_imp] at h_cauchy ⊢
+      simp only [mem_comap, forall_exists_index, and_imp] at h_cauchy ⊢
       intro V s hs hsV
       obtain ⟨N, hN⟩ := h_cauchy s hs
       exact ⟨N, fun k hNk l hNl ↦ hsV (hN k hNk l hNl)⟩
     · rw [tendsto_principal]
       have hut : ∀ᶠ n in atTop, (u n : α) ∈ t := hu.eventually_mem (ht.mem_nhds ha)
-      simp only [eventually_atTop, ge_iff_le, Set.mem_prod, Set.mem_setOf_eq, Prod.forall,
+      simp only [eventually_atTop, Set.mem_prod, Set.mem_setOf_eq, Prod.forall,
         Prod.exists, Prod.mk_le_mk, and_imp] at hut ⊢
       obtain ⟨N, hN⟩ := hut
       exact ⟨N, N, fun a b hNa hNb ↦ ⟨hN a hNa, hN b hNb⟩⟩
@@ -589,8 +589,7 @@ lemma IsLimitOfIndicator.measurable {Y X : T → Ω → E}
       · simpa [hω, indicatorProcess] using hY_tendsto t htU ω hω
       · simp only [indicatorProcess, hω, ↓reduceIte]
         exact ⟨hE.some, tendsto_const_nhds⟩
-    · simp only
-      exact Measurable.ite hA (hX t') measurable_const
+    · exact Measurable.ite hA (hX t') measurable_const
   · exact Measurable.of_edist_eq_zero (X := fun _ ↦ hE.some) measurable_const (hYUc t htU)
 
 /-- A Hölder continuous modification of a process `X`. -/
@@ -1399,8 +1398,7 @@ lemma exists_modification_holder_iSup' {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     obtain ⟨U, hU_mem, hU⟩ := hZ_holder n ω t
     have hβ_pos_half : 0 < β n / 2 := by specialize hβ_pos n; positivity
     specialize hU (β n / 2) hβ_pos_half ?_
-    · simp only [NNReal.coe_div, NNReal.coe_ofNat, β]
-      convert half_lt_self (h_ratio_pos _)
+    · exact half_lt_self (h_ratio_pos _)
     · obtain ⟨_, h⟩ := hU
       exact (h.continuousOn hβ_pos_half).continuousAt hU_mem
   have hZ_ae_eq' n : ∀ᵐ ω ∂P, ∀ t, edist (Z n t ω) (Z 0 t ω) = 0 := by
