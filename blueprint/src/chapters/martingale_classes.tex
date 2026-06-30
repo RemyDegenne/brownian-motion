@@ -133,6 +133,38 @@ We denote by $\mathcal{A}^+$ the class of non-decreasing adapted integrable proc
 We denote by $\mathcal{V}^+$ the class of non-decreasing adapted processes.
 
 
+\begin{lemma}\label{lem:HasIntegrableVariation.eq_sub_monotone}
+  \uses{def:HasIntegrableVariation, def:HasIntegrableSup}
+A process with integrable variation can be written as the difference of two non-decreasing adapted integrable processes.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_doobMeyer_integrable_variation}
+  \uses{def:HasIntegrableVariation}
+A process in $\mathcal{A}_{\mathrm{loc}}$ (locally integrable variation) can be written as a sum of a local martingale and a predictable locally integrable process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:HasIntegrableVariation.eq_sub_monotone, lem:local_doobMeyer_increasing}
+We write the process as a difference of two non-decreasing locally integrable processes, and then apply Lemma~\ref{lem:local_doobMeyer_increasing} to each of them.
+We take the difference of the two resulting local martingales and the difference of the two resulting predictable locally integrable processes.
+\end{proof}
+
+
+\begin{lemma}\label{lem:}
+  \uses{def:HasIntegrableVariation, def:Martingale}
+Let $M \in \mathcal{M} \cap \mathcal{A}$ be a martingale with integrable variation. Then the jump part $M^d$ is an adapted process with integrable variation. Let $M^d_m$ be the martingale part of the Doob decomposition of $M^d$. Then $M = M_0 + M^d_m$. Finally, the predictable part of the decomposition of $M^d$ is continuous.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
 
 \section{Square integrable martingales}
 
