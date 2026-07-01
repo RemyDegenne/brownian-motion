@@ -25,13 +25,13 @@ The jumps of a process $X : T \to \Omega \to E$ is the process $\Delta X : T \to
 
 \begin{definition}[Jump part]\label{def:jumpPart}
   \uses{def:jump}
-The jump part (or purely discontinuous part) of a process $X : T \to \Omega \to E$ is the process $X^d : T \to \Omega \to E$ defined by $(t, \omega) \mapsto \sum_{0 < s \le t} \Delta X_s(\omega)$~.
+The jump part (or purely discontinuous part) of a process $X : T \to \Omega \to E$ is the process $T \to \Omega \to E$ defined by $(t, \omega) \mapsto \sum_{0 < s \le t} \Delta X_s(\omega)$~.
 \end{definition}
 
 
 \begin{definition}[Continuous part]\label{def:continuousPart}
   \uses{def:jumpPart}
-The continuous part of a process $X : T \to \Omega \to E$ is the process $X^c : T \to \Omega \to E$ defined by $(t, \omega) \mapsto X_t(\omega) - X^d_t(\omega)$~.
+The continuous part of a process $X : T \to \Omega \to E$ is the process $X^c : T \to \Omega \to E$ defined by $(t, \omega) \mapsto X_t(\omega) - \sum_{0 < s \le t} \Delta X_s(\omega)$~.
 \end{definition}
 
 
@@ -154,16 +154,24 @@ We write the process as a difference of two non-decreasing locally integrable pr
 We take the difference of the two resulting local martingales and the difference of the two resulting predictable locally integrable processes.
 \end{proof}
 
-
-\begin{lemma}\label{lem:}
+\begin{lemma}\label{lem:martingalePart_jumpPart}
   \uses{def:HasIntegrableVariation, def:Martingale}
-Let $M \in \mathcal{M} \cap \mathcal{A}$ be a martingale with integrable variation. Then the jump part $M^d$ is an adapted process with integrable variation. Let $M^d_m$ be the martingale part of the Doob decomposition of $M^d$. Then $M = M_0 + M^d_m$. Finally, the predictable part of the decomposition of $M^d$ is continuous.
+Let $M \in \mathcal{M} \cap \mathcal{A}$ be a martingale with integrable variation. Then the jump part $A = \sum_{0 < s \le \cdot} \Delta M_s$ is an adapted process with integrable variation. Let $A_m$ be the martingale part of the Doob decomposition of $A$. Then $M = M_0 + A_m$. Finally, the predictable part of the decomposition of $A$ is continuous.
 \end{lemma}
 
 \begin{proof}
 
 \end{proof}
 
+
+\begin{lemma}\label{lem:Martingale.continuous_of_isStronglyPredictable_of_uniformIntegrable}
+  \uses{def:Martingale, def:predictable}
+A predictable uniformly integrable martingale is continuous.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
 
 
 \section{Square integrable martingales}
