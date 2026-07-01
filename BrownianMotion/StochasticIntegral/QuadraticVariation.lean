@@ -19,9 +19,11 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+variable {ι Ω E : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι]
+  [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [PolishSpace ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+  [IsFiniteMeasure P] [Approximable 𝓕 P] [𝓕.IsComplete P] [𝓕.IsRightContinuous]
 
 /-- The quadratic variation of a locally square-integrable martingale, defined as the predictable
 part of the Doob-Meyer decomposition of its squared norm. -/
@@ -32,7 +34,7 @@ def quadraticVariation [SigmaFiniteFiltration P 𝓕]
     ι → Ω → ℝ :=
   have hX2_cadlag : ∀ ω, IsCadlag (fun t ↦ ‖X t ω‖ ^ 2) :=
     fun ω ↦ IsCadlag.norm_sq (hX_cadlag ω)
-  (hX_sq.isLocalSubmartingale_sq_norm).predictablePart
+  (hX_sq.isLocalSubmartingale_sq_norm).normalizedPredictablePart
     (fun t ω ↦ ‖X t ω‖ ^ 2) hX2_cadlag
 
 end ProbabilityTheory

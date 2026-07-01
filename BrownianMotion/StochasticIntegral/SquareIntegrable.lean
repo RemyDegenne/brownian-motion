@@ -82,6 +82,12 @@ lemma IsSquareIntegrable.smul [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 
     simp only [eLpNorm_const_smul, ← ENNReal.mul_iSup]
     exact ENNReal.mul_lt_top ENNReal.coe_lt_top hX.bounded
 
+lemma Martingale.isLocallySquareIntegrable_of_continuous [OrderBot ι] [OrderTopology ι]
+    [IsFiniteMeasure P] [Approximable 𝓕 P] [𝓕.IsComplete P] [𝓕.IsRightContinuous]
+    (hX : Martingale X 𝓕 P) (hX_cont : ∀ ω, Continuous (X · ω)) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  sorry
+
 variable [SigmaFiniteFiltration P 𝓕]
 
 lemma IsSquareIntegrable.submartingale_sq_norm [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P) :

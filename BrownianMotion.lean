@@ -62,6 +62,7 @@ public import BrownianMotion.StochasticIntegral.MonotoneProcess
 public import BrownianMotion.StochasticIntegral.OptionalSampling
 public import BrownianMotion.StochasticIntegral.Predictable
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
+public import BrownianMotion.StochasticIntegral.QuadraticVariationBrownian
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
 public import BrownianMotion.StochasticIntegral.StochasticInterval
