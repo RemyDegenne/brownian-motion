@@ -1048,19 +1048,69 @@ lemma predictableSeqStep_eq_sum_indicator {ι Ω : Type*} [TopologicalSpace ι]
   simp only [predictableSeqStep, Finset.sum_apply]
   exact Finset.sum_congr rfl fun v _ ↦ Set.indicator_apply_apply _ _ t ω
 
+/-- On the mesh cell `Ioc (pred u) u` containing `t`, the step process `predictableSeqStep` is
+constant, equal to the discrete predictable part at the cell's right endpoint `u`. -/
+lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (P : Measure Ω)
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) {t : ι} {u : mesh ι n}
+    (ht : t ∈ meshPredIoc n u) :
+    predictableSeqStep P S 𝓕 n t ω
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω := by
+  rw [predictableSeqStep_eq_sum_indicator,
+    Finset.sum_eq_single_of_mem u (Finset.mem_univ _) ?_, Set.indicator_of_mem ht]
+  refine fun v _ hvu => Set.indicator_of_notMem (fun hv => hvu ?_) _
+  rcases lt_trichotomy v u with h' | h' | h'
+  · exact absurd (lt_of_le_of_lt hv.2 (lt_of_le_of_lt
+      (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) ht.1)) (lt_irrefl t)
+  · exact h'
+  · exact absurd (lt_of_le_of_lt ht.2 (lt_of_le_of_lt
+      (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv.1)) (lt_irrefl t)
+
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) (t : ι) :
+    {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableSeqStep P S 𝓕 n t ω := by
-  sorry
+  have hsub : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
+    hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+  have hne (s : ι) : (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty := ⟨⊤, by simp⟩
+  set ceil : ι → mesh ι n :=
+    fun s ↦ (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).min' (hne s)
+  have hmem (s : ι) : s ≤ (ceil s : ι) := (Finset.mem_filter.1 (Finset.min'_mem _ (hne s))).2
+  have hle (s : ι) (u : mesh ι n) (hu : s ≤ (u : ι)) : ceil s ≤ u :=
+    Finset.min'_le _ u (Finset.mem_filter.2 ⟨Finset.mem_univ u, hu⟩)
+  filter_upwards [hsub.monotone_predictablePart_ae] with ω hmono
+  have hval : ∀ s : ι, predictableSeqStep P S 𝓕 n s ω
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P (ceil s) ω := by
+    intro s
+    rcases eq_or_ne s ⊥ with rfl | hs0
+    · have hceil : ceil ⊥ = ⊥ := le_antisymm (hle ⊥ ⊥ (by simp)) bot_le
+      rw [hceil, predictablePart_bot, Pi.zero_apply, predictableSeqStep_eq_sum_indicator]
+      refine Finset.sum_eq_zero fun u _ ↦ ?_
+      apply Set.indicator_of_notMem fun h ↦ absurd h.1 (not_lt.2 bot_le)
+    · refine predictableSeqStep_apply P S 𝓕 n ω (Set.mem_Ioc.2 ⟨?_, hmem s⟩)
+      have hcne : ceil s ≠ ⊥ := by
+        intro hc
+        have h := hmem s
+        rw [hc, bot_eq_bot] at h
+        exact hs0 (le_bot_iff.1 h)
+      exact not_le.1 fun hcon ↦ absurd (hle s _ hcon) (not_le.2
+        (Order.pred_lt_of_not_isMin fun hmin ↦ hcne (le_bot_iff.1 (hmin bot_le))))
+  intro s₁ s₂ hs12
+  simp only [hval s₁, hval s₂]
+  exact hmono (hle s₁ (ceil s₂) (hs12.trans (hmem s₂)))
 
 lemma predictableConvexStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (t : ι) :
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableConvexStep hd hs n t ω := by
-  sorry
+  have key : ∀ᵐ ω ∂P, ∀ m : ℕ, Monotone fun s ↦ predictableSeqStep P S 𝓕 m s ω :=
+    ae_all_iff.2 fun m ↦ predictableSeqStep_monotone_ae hs m
+  filter_upwards [key] with ω hω
+  simp only [predictableConvexStep, Finsupp.sum, Finset.sum_apply, Pi.smul_apply]
+  exact Monotone.finset_sum fun m _ ↦
+    (hω m).const_smul_of_nonneg ((weight hd hs n).weights_nonneg m)
 
 lemma predictablePartLim_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
