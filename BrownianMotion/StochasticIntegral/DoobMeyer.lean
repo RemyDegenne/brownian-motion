@@ -619,29 +619,20 @@ lemma isStoppingTime_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCo
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
     (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     IsStoppingTime 𝓕 (tauMeshLift S 𝓕 P n c) := by
-  classical
   intro s
-  have hbot : ((⊥ : mesh ι n) : ι) ≤ s := by rw [bot_eq_bot]; exact bot_le
-  set T : Finset (mesh ι n) := Finset.univ.filter (fun u => ((u : ι) ≤ s)) with hTdef
-  have hTne : T.Nonempty :=
-    ⟨⊥, by simp only [hTdef, Finset.mem_filter, Finset.mem_univ, true_and]; exact hbot⟩
+  set T : Finset (mesh ι n) := Finset.univ.filter (fun u => u ≤ s)
+  have hTne : T.Nonempty := ⟨⊥, by simp [T]⟩
   set u : mesh ι n := T.max' hTne
-  have hu_le_s : (u : ι) ≤ s := by
-    have h := T.max'_mem hTne
-    simp only [hTdef, Finset.mem_filter, Finset.mem_univ, true_and] at h
-    exact h
-  have hequiv : ∀ v : mesh ι n, (v : ι) ≤ s ↔ v ≤ u := by
-    intro v
-    refine ⟨fun hv => T.le_max' v ?_, fun hv => le_trans (by exact_mod_cast hv) hu_le_s⟩
-    simp only [hTdef, Finset.mem_filter, Finset.mem_univ, true_and]; exact hv
-  have hset : {ω | tauMeshLift S 𝓕 P n c ω ≤ (s : WithTop ι)}
-      = {ω | tauMesh S 𝓕 P n c ω ≤ ((u : mesh ι n) : WithTop (mesh ι n))} := by
-    ext ω
-    simp only [Set.mem_setOf_eq, tauMeshLift]
-    rw [WithTop.coe_le_coe, hequiv]
-    exact WithTop.untopA_le_iff (tauMesh_ne_top S 𝓕 P n c ω)
-  rw [hset]
-  exact (𝓕.mono hu_le_s) _ (isStoppingTime_tauMesh S 𝓕 P n c u)
+  have hu_mem : u ∈ T := T.max'_mem hTne
+  have hu_le_s : (u : ι) ≤ s := by simpa [T] using hu_mem
+  have hequiv (v : mesh ι n) : (v : ι) ≤ s ↔ v ≤ u :=
+    ⟨fun hv => T.le_max' v (by simp [T, hv]), fun hv => le_trans hv hu_le_s⟩
+  suffices h : {ω | tauMeshLift S 𝓕 P n c ω ≤ s} = {ω | tauMesh S 𝓕 P n c ω ≤ u} by
+    rw [h]; exact (𝓕.mono hu_le_s) _ (isStoppingTime_tauMesh S 𝓕 P n c u)
+  ext ω
+  simp only [Set.mem_setOf_eq, tauMeshLift]
+  rw [WithTop.coe_le_coe, hequiv]
+  exact WithTop.untopA_le_iff (tauMesh_ne_top S 𝓕 P n c ω)
 
 /-- Used in estimating the size of the set `{τₙ(b) < 1}`. -/
 lemma integral_predictableSeqTop_eq_neg_integral_bot {ι Ω : Type*} [TopologicalSpace ι]
@@ -682,6 +673,28 @@ lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι] [T1Space �
   _ = ENNReal.ofReal (- ∫ ω, S ⊥ ω ∂P) / ENNReal.ofReal c := by
     rw [integral_predictableSeqTop_eq_neg_integral_bot hstop n]
 
+/-- If `X` is uniformly integrable in `Lᵖ` and the sets `A k i` have supremum-over-`i` measure
+tending to `0` along `l`, then `⨆ i, eLpNorm ((A k i).indicator (X (F k i)))` tends to `0`. This
+isolates the ε–δ core of uniform integrability from any particular application: reindexing the
+family by `F` is harmless because uniform integrability controls the whole index type at once. -/
+lemma UniformIntegrable.eLpNorm_tendsto_zero_of_iSup_measure_tendsto_zero
+    {α ι κ Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [NormedAddCommGroup E] {X : α → Ω → E}
+    {p : ℝ≥0∞} (hX : UniformIntegrable X p μ) {A : κ → ι → Set Ω}
+    (hA_meas : ∀ k i, MeasurableSet (A k i)) {F : κ → ι → α} {l : Filter κ}
+    (hA : Tendsto (fun k ↦ ⨆ i, μ (A k i)) l (𝓝 0)) :
+    Tendsto (fun k ↦ ⨆ i, eLpNorm ((A k i).indicator (X (F k i))) p μ) l (𝓝 0) := by
+  rw [ENNReal.tendsto_nhds_zero] at hA ⊢
+  intro ε hε
+  rcases eq_or_ne ε ∞ with rfl | hεtop
+  · exact Eventually.of_forall fun _ ↦ le_top
+  obtain ⟨δ, hδ, hUI⟩ := hX.2.1 (ENNReal.toReal_pos hε.ne' hεtop)
+  filter_upwards [hA (ENNReal.ofReal δ) (ENNReal.ofReal_pos.mpr hδ)] with k hk
+  refine iSup_le fun i ↦ ?_
+  calc eLpNorm ((A k i).indicator (X (F k i))) p μ
+      ≤ ENNReal.ofReal ε.toReal :=
+        hUI (F k i) (A k i) (hA_meas k i) ((le_iSup (fun i ↦ μ (A k i)) i).trans hk)
+    _ = ε := ENNReal.ofReal_toReal hεtop
+
 /-- For a non-positive constant `a` and a level `b c → ∞`, the supremum over the meshes of the
 integral of `a • (stopped value)` over the hitting set `{τₙ(b c) < ⊤}` tends to `0`. The hitting
 sets have measure `≤ (-∫ S ⊥) / (b c) → 0` uniformly in the mesh (`measure_tauMesh_lt_top_le`),
@@ -696,37 +709,20 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     Tendsto (fun c : ℝ≥0 => ⨆ k, ENNReal.ofReal
       (∫ ω in {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)},
         a * stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k (b c)) ω ∂P)) atTop (𝓝 0) := by
-  refine ENNReal.tendsto_atTop_zero.mpr fun ε hε => ?_
-  rcases eq_top_or_lt_top ε with rfl | hεtop
-  · exact ⟨0, fun c _ => le_top⟩
-  have hεr_pos : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hεtop.ne
-  set ε' := ε.toReal / (|a| + 1) with hε'def
-  have hε'_pos : 0 < ε' := by positivity
-  obtain ⟨δ, hδ_pos, hUI⟩ := hd.2.1 hε'_pos
-  set M := -∫ ω, S ⊥ ω ∂P
-  obtain ⟨N, hN⟩ := eventually_atTop.1
-    ((hb.eventually_ge_atTop (M / δ)).and (hb.eventually_gt_atTop 0))
-  refine ⟨N, fun c hcN => iSup_le fun k => ?_⟩
-  obtain ⟨hbc_ge, hbc_pos⟩ := hN c hcN
-  set sk : Set Ω := {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)}
-  have hsk_meas : MeasurableSet sk :=
+  have hA_meas : ∀ (c : ℝ≥0) (k : ℕ),
+      MeasurableSet {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)} := fun c k =>
     (isStoppingTime_tauMesh S 𝓕 P k (b c)).measurableSpace_le _
       ((isStoppingTime_tauMesh S 𝓕 P k (b c)).measurableSet_lt' ⊤)
-  have hmeask : P sk ≤ ENNReal.ofReal δ := by
-    refine (measure_tauMesh_lt_top_le hs hstop k hbc_pos).trans ?_
-    rw [ENNReal.div_le_iff (ENNReal.ofReal_pos.mpr hbc_pos).ne' ENNReal.ofReal_ne_top,
-      ← ENNReal.ofReal_mul hδ_pos.le]
-    apply ENNReal.ofReal_le_ofReal
-    rw [div_le_iff₀ hδ_pos] at hbc_ge
-    rw [mul_comm]; exact hbc_ge
-  have hmem : tauMeshLift S 𝓕 P k (b c) ∈
-      {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} :=
+  have hmem : ∀ (c : ℝ≥0) (k : ℕ), tauMeshLift S 𝓕 P k (b c) ∈
+      {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤} := fun c k =>
     ⟨isStoppingTime_tauMeshLift S 𝓕 P k (b c), tauMeshLift_ne_top S 𝓕 P k (b c)⟩
-  have hUIk := hUI ⟨tauMeshLift S 𝓕 P k (b c), hmem⟩ sk hsk_meas hmeask
-  have hbridge : ENNReal.ofReal (∫ ω in sk,
+  -- (1) each set-integral is `|a|` times the `L¹` norm of an indicator of a stopped value
+  have hbridge : ∀ (c : ℝ≥0) (k : ℕ),
+      ENNReal.ofReal (∫ ω in {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)},
         a * stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k (b c)) ω ∂P)
-      = ENNReal.ofReal |a| *
-        eLpNorm (sk.indicator (stoppedValue S (tauMeshLift S 𝓕 P k (b c)))) 1 P := by
+      = ENNReal.ofReal |a| * eLpNorm ({ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)}.indicator
+          (stoppedValue S (tauMeshLift S 𝓕 P k (b c)))) 1 P := by
+    intro c k
     rw [stoppedValue_tauMeshLift]
     set g : Ω → ℝ := stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k (b c)) with hgdef
     have hmesh : ∀ᵐ ω ∂P, ∀ t : mesh ι k, S t ω ≤ 0 := ae_all_iff.2 fun t => ht t
@@ -735,8 +731,9 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
       simp only [hgdef, stoppedValue, Function.comp_apply]
       exact hω ((tauMesh S 𝓕 P k (b c) ω).untopA)
     have hg_int : Integrable g P := hs.integrable_stoppedValue_tauMesh k (b c)
-    have heLpNorm : eLpNorm (sk.indicator g) 1 P = ENNReal.ofReal (∫ ω in sk, -g ω ∂P) := by
-      rw [eLpNorm_indicator_eq_eLpNorm_restrict hsk_meas, eLpNorm_one_eq_lintegral_enorm,
+    have heLpNorm : eLpNorm ({ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)}.indicator g) 1 P
+        = ENNReal.ofReal (∫ ω in {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)}, -g ω ∂P) := by
+      rw [eLpNorm_indicator_eq_eLpNorm_restrict (hA_meas c k), eLpNorm_one_eq_lintegral_enorm,
         ← ofReal_integral_norm_eq_lintegral_enorm hg_int.restrict]
       congr 1
       refine integral_congr_ae ?_
@@ -746,15 +743,28 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     congr 1
     rw [integral_const_mul, integral_neg, abs_of_nonpos ha]
     ring
-  rw [hbridge]
-  calc ENNReal.ofReal |a| * eLpNorm (sk.indicator (stoppedValue S (tauMeshLift S 𝓕 P k (b c)))) 1 P
-      ≤ ENNReal.ofReal |a| * ENNReal.ofReal ε' := by gcongr
-    _ = ENNReal.ofReal (|a| * ε') := (ENNReal.ofReal_mul (abs_nonneg a)).symm
-    _ ≤ ε := by
-        rw [← ENNReal.ofReal_toReal hεtop.ne]
-        refine ENNReal.ofReal_le_ofReal ?_
-        rw [hε'def, ← mul_div_assoc, div_le_iff₀ (by positivity)]
-        nlinarith [abs_nonneg a, hεr_pos.le]
+  -- (2) the hitting sets shrink in measure, uniformly in the mesh, as `b c → ∞`
+  have hmeas : Tendsto (fun c : ℝ≥0 => ⨆ k, P {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)})
+      atTop (𝓝 0) := by
+    rw [ENNReal.tendsto_nhds_zero]
+    intro ε hε
+    rcases eq_or_ne ε ∞ with rfl | hεtop
+    · exact Eventually.of_forall fun _ => le_top
+    have hεr : 0 < ε.toReal := ENNReal.toReal_pos hε.ne' hεtop
+    filter_upwards [hb.eventually_ge_atTop ((-∫ ω, S ⊥ ω ∂P) / ε.toReal),
+      hb.eventually_gt_atTop 0] with c hc_ge hc_pos
+    refine iSup_le fun k => (measure_tauMesh_lt_top_le hs hstop k hc_pos).trans ?_
+    rw [ENNReal.div_le_iff (ENNReal.ofReal_pos.mpr hc_pos).ne' ENNReal.ofReal_ne_top,
+      ← ENNReal.ofReal_toReal hεtop, ← ENNReal.ofReal_mul hεr.le]
+    refine ENNReal.ofReal_le_ofReal ?_
+    rw [div_le_iff₀ hεr] at hc_ge
+    rwa [mul_comm ε.toReal (b c)]
+  -- (3) uniform integrability turns (2) into vanishing `L¹` norms; reassemble via (1)
+  simp_rw [hbridge, ← ENNReal.mul_iSup]
+  have hnorm := UniformIntegrable.eLpNorm_tendsto_zero_of_iSup_measure_tendsto_zero hd
+    (A := fun c k => {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)})
+    (F := fun c k => ⟨tauMeshLift S 𝓕 P k (b c), hmem c k⟩) hA_meas hmeas
+  simpa using ENNReal.Tendsto.const_mul hnorm (Or.inr ENNReal.ofReal_ne_top)
 
 /-- The terminal values of the predictable parts are uniformly integrable. -/
 lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
