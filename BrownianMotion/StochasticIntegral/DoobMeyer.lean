@@ -688,8 +688,8 @@ sets have measure `≤ (-∫ S ⊥) / (b c) → 0` uniformly in the mesh (`measu
 and `hd` provides uniform integrability of the stopped values along the lifted stopping times. -/
 private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P)
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+    [SigmaFiniteFiltration P 𝓕] (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦
       stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0) (ht : ∀ t, S t ≤ᵐ[P] 0)
     (a : ℝ) (ha : a ≤ 0) (b : ℝ≥0 → ℝ) (hb : Tendsto b atTop atTop) :
