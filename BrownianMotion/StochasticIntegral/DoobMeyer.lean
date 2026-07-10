@@ -780,8 +780,7 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
     · rw [← zero_add (0 : ℝ≥0∞)]
       apply Tendsto.add
       · exact tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop ht (-2) (by norm_num)
-          (fun c => (c : ℝ) / 2)
-          ((NNReal.tendsto_coe_atTop.mpr tendsto_id).atTop_div_const (by norm_num))
+          (fun c => c / 2) ((NNReal.tendsto_coe_atTop.mpr tendsto_id).atTop_div_const (by norm_num))
       · have h := tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop ht (-1) (by norm_num)
           (fun c => (c : ℝ)) (NNReal.tendsto_coe_atTop.mpr tendsto_id)
         simp only [neg_one_mul] at h
