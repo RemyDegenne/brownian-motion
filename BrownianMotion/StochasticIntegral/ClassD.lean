@@ -88,6 +88,11 @@ measurable as a function on the product. -/
 def HasStronglyMeasurableSupProcess [LinearOrder ι] [MeasurableSpace ι] (X : ι → Ω → E) : Prop :=
   (StronglyMeasurable (fun (tω : ι × Ω) ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ))
 
+lemma hasStronglyMeasurableSupProcess_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
+    HasStronglyMeasurableSupProcess (fun _ _ ↦ c : ι → Ω → E) (mΩ := mΩ) := by
+  simp only [HasStronglyMeasurableSupProcess]
+  sorry
+
 /-- A stochastic process has integrable supremum if the function `(t, ω) ↦ sup_{s ≤ t} ‖X s ω‖`
 is strongly measurable and if for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖`
 is integrable. -/
@@ -95,12 +100,23 @@ def HasIntegrableSup [LinearOrder ι] [MeasurableSpace ι] (X : ι → Ω → E)
     (P : Measure Ω := by volume_tac) : Prop :=
   HasStronglyMeasurableSupProcess (mΩ:= mΩ) X ∧ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P
 
+lemma hasIntegrableSup_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
+    HasIntegrableSup (fun _ _ ↦ c : ι → Ω → E) (mΩ := mΩ) (P := P) := by
+  simp only [HasIntegrableSup, hasStronglyMeasurableSupProcess_const c, true_and]
+  intro t
+  sorry
+
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
 for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrable. -/
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [MeasurableSpace ι]
     (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω := by volume_tac) : Prop :=
   Locally (HasIntegrableSup · P) 𝓕 X P
+
+lemma hasLocallyIntegrableSup_const [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι]
+    [OrderTopology ι] [MeasurableSpace ι] (c : E) (𝓕 : Filtration ι mΩ) :
+    HasLocallyIntegrableSup (fun _ _ ↦ c : ι → Ω → E) 𝓕 P :=
+  Locally.of_prop (hasIntegrableSup_const c)
 
 section Defs
 

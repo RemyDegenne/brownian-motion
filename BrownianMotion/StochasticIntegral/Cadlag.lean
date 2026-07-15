@@ -42,6 +42,10 @@ structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop wher
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+@[simp]
+lemma isCadlag_const [TopologicalSpace E] [Preorder ι] (c : E) : IsCadlag (fun _ ↦ c : ι → E) :=
+  ⟨Function.isRightContinuous_const c, fun _ ↦ ⟨c, tendsto_const_nhds⟩⟩
+
 section Jump
 
 /-- The set of left jump times of a function. -/
