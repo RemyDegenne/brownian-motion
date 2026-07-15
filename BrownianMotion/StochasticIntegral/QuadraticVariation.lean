@@ -51,18 +51,24 @@ lemma predQuadVariation_of_not_cadlag (hX_cadlag : ¬∀ ω, IsCadlag (X · ω))
   unfold predQuadVariation
   simp [hX_cadlag]
 
-lemma isStronglyProgressive_predQuadVariation : IsStronglyProgressive 𝓕 ⟨X ; P, 𝓕⟩ₘ := by
+lemma isStronglyPredictable_const {ι E : Type*} [Preorder ι] [OrderBot ι] [MeasurableSpace ι]
+    [TopologicalSpace E] (c : E) (𝓕 : Filtration ι mΩ) :
+    IsStronglyPredictable 𝓕 (fun _ _ ↦ c : ι → Ω → E) := by
+  unfold IsStronglyPredictable
+  fun_prop
+
+lemma isStronglyPredictable_predQuadVariation : IsStronglyPredictable 𝓕 ⟨X ; P, 𝓕⟩ₘ := by
   by_cases hX : IsLocallySquareIntegrable X 𝓕 P
   swap
   · rw [predQuadVariation_of_not_isLocallySquareIntegrable hX]
-    exact isStronglyProgressive_const _ _
+    exact isStronglyPredictable_const _ _
   by_cases hX_cadlag : ∀ ω, IsCadlag (X · ω)
   swap
   · rw [predQuadVariation_of_not_cadlag hX_cadlag]
-    exact isStronglyProgressive_const _ _
+    exact isStronglyPredictable_const _ _
   unfold predQuadVariation
   rw [dif_pos ⟨hX, hX_cadlag⟩]
-  exact hX.isLocalSubmartingale_sq_norm.isStronglyProgressive_predictablePart
+  exact hX.isLocalSubmartingale_sq_norm.isStronglyPredictable_predictablePart
     (fun ω ↦ (hX_cadlag ω).norm_sq)
 
 lemma isCadlag_predQuadVariation (ω : Ω) : IsCadlag (⟨X ; P, 𝓕⟩ₘ · ω) := by
