@@ -76,7 +76,7 @@ lemma IsSquareIntegrable.smul [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 
     IsSquareIntegrable (fun i ω ↦ r • X i ω) 𝓕 P where
   martingale := hX.martingale.smul r
   cadlag ω := by
-    simpa [Pi.smul_apply] using (hX.cadlag ω).const_smul r
+    simpa [Pi.smul_apply] using (hX.cadlag ω).fun_const_smul r
   bounded := by
     change (⨆ i, eLpNorm (r • X i) 2 P) < ∞
     simp only [eLpNorm_const_smul, ← ENNReal.mul_iSup]

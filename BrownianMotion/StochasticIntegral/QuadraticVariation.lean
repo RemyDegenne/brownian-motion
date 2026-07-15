@@ -23,7 +23,7 @@ variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] 
   [MeasurableSpace ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω}
   {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
-  {X : ι → Ω → E}
+  {X Y : ι → Ω → E}
 
 open Classical in
 /-- The predictable quadratic variation of a locally square-integrable martingale,
@@ -109,5 +109,23 @@ def predQuadCovariation (X Y : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtrat
     [SigmaFiniteFiltration P 𝓕] :
     ι → Ω → ℝ :=
   (⟨X + Y ; P, 𝓕⟩ₘ - ⟨X ; P, 𝓕⟩ₘ - ⟨Y ; P, 𝓕⟩ₘ) / 2
+
+scoped notation "⟨" X ", " Y " ; " P ", " 𝓕 "⟩ₘ" => predQuadCovariation X Y P 𝓕
+
+lemma isStronglyPredictable_predQuadCovariation : IsStronglyPredictable 𝓕 ⟨X, Y ; P, 𝓕⟩ₘ := by
+  unfold predQuadCovariation
+  sorry
+
+lemma isCadlag_predQuadCovariation (ω : Ω) : IsCadlag (⟨X, Y ; P, 𝓕⟩ₘ · ω) := by
+  unfold predQuadCovariation
+  simp_rw [div_eq_inv_mul]
+  simp only [Pi.mul_apply, Pi.inv_apply, Pi.ofNat_apply, Pi.sub_apply]
+  refine IsCadlag.const_smul ?_ _
+  refine IsCadlag.sub ?_ (isCadlag_predQuadVariation ω)
+  exact (isCadlag_predQuadVariation ω).sub (isCadlag_predQuadVariation ω)
+
+lemma hasLocallyIntegrableSup_predQuadCovariation :
+    HasLocallyIntegrableSup ⟨X, Y ; P, 𝓕⟩ₘ 𝓕 P := by
+  sorry
 
 end ProbabilityTheory

@@ -478,7 +478,7 @@ We denote it by $\langle M \rangle$~.
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -491,7 +491,7 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -504,7 +504,7 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is locally integrable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -528,7 +528,7 @@ $\langle M \rangle_0 = 0$~.
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is non-decreasing.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -559,6 +559,8 @@ For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the predictable covariation $\langl
 
 \begin{lemma}\label{lem:predictable_covariation}
   \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadCovariation}
 The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
 \end{lemma}
 
@@ -570,10 +572,12 @@ The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\
 
 \begin{lemma}\label{lem:cadlag_covariation}
   \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadCovariation}
 The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:cadlag_quadraticVariation}
 
 \end{proof}
