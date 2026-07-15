@@ -464,7 +464,7 @@ A continuous local martingale is locally square-integrable: $\mathcal{M}^c_{\mat
   \uses{def:IsLocallySquareIntegrable, def:IsCadlag, thm:local_doobMeyer,
     lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
   \leanok
-  \lean{ProbabilityTheory.quadraticVariation}
+  \lean{ProbabilityTheory.predQuadVariation}
 For $M \in \mathcal{M}^2_{\mathrm{loc}}$ with càdlàg paths, the predictable
 quadratic variation of $M$ is defined as the predictable part of the Doob-Meyer decomposition of the local submartingale $\Vert M \Vert^2$~.
 We denote it by $\langle M \rangle$~.
@@ -473,10 +473,12 @@ We denote it by $\langle M \rangle$~.
 
 \begin{lemma}\label{lem:predictable_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -484,10 +486,12 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 
 \begin{lemma}\label{lem:cadlag_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -495,10 +499,12 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 
 \begin{lemma}\label{lem:locallyIntegrable_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.hasLocallyIntegrableSup_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is locally integrable.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -517,10 +523,12 @@ $\langle M \rangle_0 = 0$~.
 
 \begin{lemma}\label{lem:monotone_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.monotone_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is non-decreasing.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{thm:local_doobMeyer}
 
 \end{proof}
@@ -539,9 +547,11 @@ For $M \in \mathcal{M}^2_{\mathrm{loc}}$, the process $\Vert M_t \Vert^2 - \lang
 
 \begin{definition}[Predictable covariation]\label{def:covariation}
   \uses{def:IsLocallySquareIntegrable, def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.predQuadCovariation}
 For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the predictable covariation $\langle M, N \rangle$ is a stochastic process defined by polarization of the predictable quadratic variation:
 \begin{align*}
-  \langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)
+  \langle M, N \rangle_t = \frac{1}{2}\left(\langle M+N \rangle_t - \langle M \rangle_t - \langle N \rangle_t \right)
   \: .
 \end{align*}
 \end{definition}
@@ -549,10 +559,12 @@ For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the predictable covariation $\langl
 
 \begin{lemma}\label{lem:predictable_covariation}
   \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadCovariation}
 The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:predictable_quadraticVariation}
 
 \end{proof}
@@ -560,10 +572,12 @@ The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\
 
 \begin{lemma}\label{lem:cadlag_covariation}
   \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadCovariation}
 The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\leanok
   \uses{lem:cadlag_quadraticVariation}
 
 \end{proof}
