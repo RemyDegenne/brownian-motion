@@ -42,6 +42,12 @@ structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop wher
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+/-- A continuous function is càdlàg. -/
+lemma Continuous.isCadlag [TopologicalSpace E] [Preorder ι] {f : ι → E}
+    (hf : Continuous f) : IsCadlag f where
+  right_continuous _ := hf.continuousAt.continuousWithinAt
+  left_limit x := ⟨f x, hf.continuousAt.tendsto.mono_left nhdsWithin_le_nhds⟩
+
 section Jump
 
 /-- The set of left jump times of a function. -/
