@@ -104,4 +104,10 @@ lemma monotone_predQuadVariation (ω : Ω) : Monotone (⟨X ; P, 𝓕⟩ₘ · �
   rw [dif_pos ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.monotone_predictablePart (fun ω ↦ (hX_cadlag ω).norm_sq) ω
 
+noncomputable
+def predQuadCovariation (X Y : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtration ι mΩ)
+    [SigmaFiniteFiltration P 𝓕] :
+    ι → Ω → ℝ :=
+  (⟨X + Y ; P, 𝓕⟩ₘ - ⟨X ; P, 𝓕⟩ₘ - ⟨Y ; P, 𝓕⟩ₘ) / 2
+
 end ProbabilityTheory

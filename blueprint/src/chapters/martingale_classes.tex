@@ -473,6 +473,8 @@ We denote it by $\langle M \rangle$~.
 
 \begin{lemma}\label{lem:predictable_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
 \end{lemma}
 
@@ -484,6 +486,8 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 
 \begin{lemma}\label{lem:cadlag_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
 \end{lemma}
 
@@ -495,6 +499,8 @@ The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_
 
 \begin{lemma}\label{lem:locallyIntegrable_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.hasLocallyIntegrableSup_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is locally integrable.
 \end{lemma}
 
@@ -517,6 +523,8 @@ $\langle M \rangle_0 = 0$~.
 
 \begin{lemma}\label{lem:monotone_quadraticVariation}
   \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.monotone_predQuadVariation}
 The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is non-decreasing.
 \end{lemma}
 
@@ -539,9 +547,11 @@ For $M \in \mathcal{M}^2_{\mathrm{loc}}$, the process $\Vert M_t \Vert^2 - \lang
 
 \begin{definition}[Predictable covariation]\label{def:covariation}
   \uses{def:IsLocallySquareIntegrable, def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.predQuadCovariation}
 For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the predictable covariation $\langle M, N \rangle$ is a stochastic process defined by polarization of the predictable quadratic variation:
 \begin{align*}
-  \langle M, N \rangle_t = \frac{1}{4}\left(\langle M+N \rangle_t - \langle M-N \rangle_t \right)
+  \langle M, N \rangle_t = \frac{1}{2}\left(\langle M+N \rangle_t - \langle M \rangle_t - \langle N \rangle_t \right)
   \: .
 \end{align*}
 \end{definition}
