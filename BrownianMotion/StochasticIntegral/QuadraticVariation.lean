@@ -37,6 +37,7 @@ def predQuadVariation (X : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtration 
       (fun ω ↦ (hX.2 ω).norm_sq)
   else fun _ _ ↦ 0
 
+@[inherit_doc predQuadVariation]
 scoped notation "⟨" X " ; " P ", " 𝓕 "⟩ₘ" => predQuadVariation X P 𝓕
 
 @[simp]
@@ -104,17 +105,22 @@ lemma monotone_predQuadVariation (ω : Ω) : Monotone (⟨X ; P, 𝓕⟩ₘ · �
   rw [dif_pos ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.monotone_predictablePart (fun ω ↦ (hX_cadlag ω).norm_sq) ω
 
+/-- Predictable quadratic covariation of two processes. -/
 noncomputable
 def predQuadCovariation (X Y : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtration ι mΩ)
     [SigmaFiniteFiltration P 𝓕] :
     ι → Ω → ℝ :=
   (⟨X + Y ; P, 𝓕⟩ₘ - ⟨X ; P, 𝓕⟩ₘ - ⟨Y ; P, 𝓕⟩ₘ) / 2
 
+@[inherit_doc predQuadCovariation]
 scoped notation "⟨" X ", " Y " ; " P ", " 𝓕 "⟩ₘ" => predQuadCovariation X Y P 𝓕
 
 lemma isStronglyPredictable_predQuadCovariation : IsStronglyPredictable 𝓕 ⟨X, Y ; P, 𝓕⟩ₘ := by
   unfold predQuadCovariation
-  sorry
+  simp_rw [div_eq_inv_mul]
+  refine IsStronglyPredictable.const_smul 2⁻¹ ?_
+  refine IsStronglyPredictable.sub ?_ isStronglyPredictable_predQuadVariation
+  exact isStronglyPredictable_predQuadVariation.sub isStronglyPredictable_predQuadVariation
 
 lemma isCadlag_predQuadCovariation (ω : Ω) : IsCadlag (⟨X, Y ; P, 𝓕⟩ₘ · ω) := by
   unfold predQuadCovariation

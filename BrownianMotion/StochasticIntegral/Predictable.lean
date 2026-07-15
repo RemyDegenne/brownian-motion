@@ -56,6 +56,44 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
+section IsStronglyPredictable
+
+variable {ι Ω E : Type*} [Preorder ι] [OrderBot ι] [TopologicalSpace E]
+
+@[to_additive (attr := to_fun)]
+lemma IsStronglyPredictable.mul [Mul E] [ContinuousMul E]
+    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : IsStronglyPredictable 𝓕 X) (hY : IsStronglyPredictable 𝓕 Y) :
+    IsStronglyPredictable 𝓕 (X * Y) := by
+  unfold IsStronglyPredictable at hX hY ⊢
+  exact hX.mul hY
+
+@[to_additive (attr := to_fun)]
+lemma IsStronglyPredictable.inv [Inv E] [ContinuousInv E]
+    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
+    (hX : IsStronglyPredictable 𝓕 X) :
+    IsStronglyPredictable 𝓕 X⁻¹ := by
+  unfold IsStronglyPredictable at hX ⊢
+  exact hX.inv
+
+@[to_fun]
+lemma IsStronglyPredictable.sub [Sub E] [ContinuousSub E]
+    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
+    (hX : IsStronglyPredictable 𝓕 X) (hY : IsStronglyPredictable 𝓕 Y) :
+    IsStronglyPredictable 𝓕 (X - Y) := by
+  unfold IsStronglyPredictable at hX hY ⊢
+  exact hX.sub hY
+
+@[to_fun]
+lemma IsStronglyPredictable.const_smul [SMul ℝ E] [ContinuousSMul ℝ E]
+    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (c : ℝ)
+    (hX : IsStronglyPredictable 𝓕 X) :
+    IsStronglyPredictable 𝓕 (c • X) := by
+  unfold IsStronglyPredictable at hX ⊢
+  exact hX.const_smul c
+
+end IsStronglyPredictable
+
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι]
 
 /-- helper function which (strictly) rounds down `i` onto the set `{⊥} ∪ s` -/
