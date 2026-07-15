@@ -160,7 +160,7 @@ lemma IsCadlag.inv {E : Type*} [Group E] [TopologicalSpace E] [ContinuousInv E] 
   exact ⟨l⁻¹, hl.inv⟩
 
 @[to_fun]
-lemma IsCadlag.sub {E : Type*} [AddGroup E] [TopologicalSpace E] [ContinuousSub E]
+lemma IsCadlag.sub {E : Type*} [Sub E] [TopologicalSpace E] [ContinuousSub E]
     [Preorder ι] {f g : ι → E} (hf : IsCadlag f) (hg : IsCadlag g) :
     IsCadlag (f - g) := by
   refine ⟨fun i ↦ ContinuousWithinAt.sub (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
