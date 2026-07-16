@@ -335,8 +335,12 @@ lemma Martingale.isLocallySquareIntegrable_of_continuous
     IsLocallySquareIntegrable X 𝓕 P := by
   refine hX.isLocallySquareIntegrable_of_jump_le (fun ω ↦ (h_cont ω).isCadlag) (fun t ω ↦ ?_)
     (C := 0)
+  by_cases hτ_bot : t = ⊥
+  · simp [hτ_bot]
   rw [(h_cont ω).continuousAt.jump_eq_zero]
   · simp
-  · sorry
+  · suffices (𝓝[<] t).NeBot from this.ne
+    refine nhdsLT_neBot_of_exists_lt ?_
+    exact ⟨⊥, by grind⟩
 
 end ProbabilityTheory
