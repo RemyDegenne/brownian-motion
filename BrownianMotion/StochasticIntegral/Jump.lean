@@ -15,9 +15,17 @@ open scoped Topology
 
 variable {T E : Type*} [ConditionallyCompleteLinearOrder T] {f : T → E} {t : T}
 
+/-- The jump of a function at a point `t`, defined as the difference between the value of
+the function at that point and its left limit at the least upper bound of the set of points
+strictly smaller.
+If the point is not isolated from the left, then it is `f t - leftLim f t`.
+If the point is isolated from the left, and the l.u.b. or the strictly smaller points is `s < t`,
+then the jump is `f t - leftLim f s`. In particular, if `s` is also isolated
+(for example if the index set is `ℕ`), then the jump is `f t - f s`. -/
 noncomputable def Function.jump [TopologicalSpace E] [Sub E] (f : T → E) (t : T) : E :=
   f t - Function.leftLim f (sSup (Set.Iio t))
 
+@[inherit_doc Function.jump]
 scoped[Function] notation "Δ" => Function.jump
 
 open Function
