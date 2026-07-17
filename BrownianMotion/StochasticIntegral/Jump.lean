@@ -68,7 +68,6 @@ lemma jump_of_isBot (h : IsBot t) :
   rw [dif_neg this, leftLim_eq_of_eq_bot, sub_self]
   exact nhdsLT_eq_bot_iff.mpr (Or.inl h)
 
-@[simp]
 lemma jump_bot {T : Type*} [ConditionallyCompleteLinearOrderBot T] [TopologicalSpace T]
     [OrderTopology T] {f : T → E} :
     Δ f ⊥ = 0 := by simp
