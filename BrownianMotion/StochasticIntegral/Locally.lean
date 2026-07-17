@@ -69,7 +69,7 @@ lemma locally_of_ae [𝓕.IsComplete P] {p : (ι → E) → Prop} (hpX : ∀ᵐ 
 
 section TopologicalSpace
 
-lemma Locally.todo (p : (ι → E) → ι → Prop)
+lemma Locally.ae (p : (ι → E) → ι → Prop)
     (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i))
     (hX : Locally (fun X ↦ ∀ ω i, p (X · ω) i) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ i, p (X · ω) i := by
@@ -81,29 +81,21 @@ lemma Locally.todo (p : (ι → E) → ι → Prop)
   have hτ_ne_bot : τ N ω ≠ ⊥ := by
     intro h_eq
     simp [h_eq] at hNi
-  by_cases hNω : τ N ω < ⊤
-  · have hs : Set.Iio (τ N ω).untopA ∈ 𝓝[Set.Ioi i] i := by
-      simp only [mem_nhdsWithin]
-      refine ⟨Set.Iio (τ N ω).untopA, isOpen_Iio, ?_, by grind⟩
-      exact (WithTop.lt_untopA_iff (ne_of_lt hNω)).mpr hNi
-    have (y : ι) (hy : y < τ N ω) : (MeasureTheory.stoppedProcess (fun i => ({ω |
-      ⊥ < τ N ω}.indicator (X i))) (τ N)) y ω = X y ω := by
-      simp [MeasureTheory.stoppedProcess, min_eq_left (hy.le)]; aesop
-    have h := hτ.2 N ω i
-    simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_ne_bot, Set.indicator_of_mem] at h
-    refine (hp_congr _ _ i ?_).mp h
-    simp only [Set.mem_Ioi] at hNi
-    have hNi' : i < (τ N ω).untopA := by rwa [WithTop.lt_untopA_iff hNω.ne]
-    refine ⟨(τ N ω).untopA, hNi', fun j hj ↦ ?_⟩
-    rw [min_eq_left]
-    · simp
-    · rw [WithTop.lt_untopA_iff hNω.ne] at hj
-      exact hj.le
-  · have := hτ.2 N ω i
-    simp_all [MeasureTheory.stoppedProcess]
+  have h := hτ.2 N ω i
+  by_cases hτ_top : τ N ω = ⊤
+  · simpa [stoppedProcess, hτ_top] using h
+  simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_ne_bot, Set.indicator_of_mem] at h
+  refine (hp_congr _ _ i ?_).mp h
+  simp only [Set.mem_Ioi] at hNi
+  have hNi' : i < (τ N ω).untopA := by rwa [WithTop.lt_untopA_iff hτ_top]
+  refine ⟨(τ N ω).untopA, hNi', fun j hj ↦ ?_⟩
+  rw [min_eq_left]
+  · simp
+  · rw [WithTop.lt_untopA_iff hτ_top] at hj
+    exact hj.le
 
 omit [TopologicalSpace ι] [OrderTopology ι] in
-lemma isStable_todo (p : (ι → E) → ι → Prop)
+lemma isStable_pathwise (p : (ι → E) → ι → Prop)
     (hp_zero : ∀ i, p 0 i) (hp_stop : ∀ X a, (∀ i, p X i) → ∀ i, a ≤ i → p (fun x ↦ X (min x a)) i)
     (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i)) :
     IsStable 𝓕 (fun X ↦ ∀ ω i, p (X · ω) i) := by
@@ -131,12 +123,17 @@ lemma isStable_todo (p : (ι → E) → ι → Prop)
     · rw [min_eq_right h, min_eq_right]
       rwa [WithTop.untopA_le_iff hτ_top] at h
 
+lemma locally_iff_ae [𝓕.IsComplete P] (p : (ι → E) → ι → Prop) (hp_zero : ∀ i, p 0 i)
+    (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i)) :
+    Locally (fun X ↦ ∀ ω i, p (X · ω) i) 𝓕 X P ↔ ∀ᵐ ω ∂P, ∀ i, p (X · ω) i :=
+  ⟨fun h ↦ h.ae p hp_congr, fun h ↦ locally_of_ae (p := fun X ↦ ∀ i, p X i) h hp_zero⟩
+
 variable [TopologicalSpace E]
 
 lemma Locally.rightContinuous
     (hX : Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) := by
-  refine Locally.todo (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun X Y i hXY ↦ ?_) hX
+  refine Locally.ae (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun X Y i hXY ↦ ?_) hX
   refine EventuallyEq.congr_continuousWithinAt ?_ ?_
   · rw [eventuallyEq_nhdsWithin_iff]
     obtain ⟨k, hik, hk⟩ := hXY
@@ -148,7 +145,7 @@ lemma Locally.rightContinuous
 lemma Locally.left_limit
     (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
-  refine Locally.todo (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun X Y i hXY ↦ ?_) hX
+  refine Locally.ae (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun X Y i hXY ↦ ?_) hX
   have h_eq : X =ᶠ[𝓝[<] i] Y := by
     rw [eventuallyEq_nhdsWithin_iff]
     obtain ⟨k, hik, hk⟩ := hXY
@@ -167,7 +164,8 @@ lemma Locally.isCadlag
 /-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.IsRightContinuous (X · ω)) := by
-  refine isStable_todo (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun _ ↦ by fun_prop) ?_ ?_
+  refine isStable_pathwise (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun _ ↦ by fun_prop)
+    ?_ ?_
   · intro X a hX i hai
     specialize hX i
     have h_eq : (fun x ↦ X (min x a)) =ᶠ[𝓝[>] i] fun _ ↦ X a := by
@@ -190,7 +188,7 @@ lemma isStable_rightContinuous :
 /-- The processes with left limits are a stable class. -/
 lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
-  refine isStable_todo (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun i ↦ ?_) ?_ ?_
+  refine isStable_pathwise (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun i ↦ ?_) ?_ ?_
   · exact ⟨0, tendsto_const_nhds⟩
   · intro X a hX i hai
     cases lt_or_eq_of_le hai with
@@ -231,8 +229,8 @@ lemma isStable_isCadlag :
 variable [𝓕.IsComplete P]
 
 lemma locally_rightContinuous_iff :
-    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P
-    ↔ ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
+    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
   ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
 
 lemma locally_left_limit_iff :

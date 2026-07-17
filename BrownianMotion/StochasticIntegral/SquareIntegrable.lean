@@ -271,7 +271,7 @@ lemma isStable_jump_le
   suffices IsStable 𝓕 fun X ↦ ∀ ω i, ‖Δ (X · ω) i‖ ≤ C by
     convert this
     exact ⟨fun h i ω ↦ h ω i, fun h ω i ↦ h i ω⟩
-  refine isStable_todo (fun (X : ι → E) i ↦ ‖Δ X i‖ ≤ C) (𝓕 := 𝓕) (fun i ↦ ?_) ?_ ?_
+  refine isStable_pathwise (fun (X : ι → E) i ↦ ‖Δ X i‖ ≤ C) (𝓕 := 𝓕) (fun i ↦ ?_) ?_ ?_
   · simp [hC]
   · intro X i hX j hij
     cases lt_or_eq_of_le hij with
