@@ -317,17 +317,15 @@ lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
     [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
     [Approximable 𝓕 P]
-    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C) (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
+    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C)
+    (h_jump : Locally (fun X ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) 𝓕 X P) :
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
   refine IsStable.locally_induction₂
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
-    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) (𝓕 := 𝓕) (P := P) ?_ ?_ ?_ ?_ hX ?_
-  · intro X hX hX_jump
-    exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
-  · exact isStable_martingale
-  · refine isStable_jump_le hC
-  · exact isStable_isSquareIntegrable
-  · exact .of_prop h_jump
+    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) ?_ isStable_martingale
+    (isStable_jump_le hC) isStable_isSquareIntegrable hX h_jump
+  intro X hX hX_jump
+  exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
 
 end ProbabilityTheory
