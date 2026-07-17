@@ -208,8 +208,7 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
     grind
   have hY_le t ω : ‖Y t ω‖ ≤ (n : ℝ) + ‖Δ (X · ω) (τ n ω).untopA‖ :=
     stoppedAtNorm_le_add_jump h_cadlag t ω (by simp)
-  borelize ι
-  borelize E
+  borelize ι E
   have h_stop : IsStoppingTime 𝓕 (τ n) := by
     refine isStoppingTime_leastGE P (IsStronglyProgressive.norm ?_) (n : ℝ) (𝓕 := 𝓕)
     exact StronglyAdapted.isStronglyProgressive_of_rightContinuous hX.stronglyAdapted
@@ -260,36 +259,75 @@ lemma isStable_isSquareIntegrable
   simp_rw [h_iff]
   refine IsStable.and isStable_martingale ?_
   intro X hX τ hτ
-  refine lt_of_le_of_lt ?_ hX
-  simp only [iSup_le_iff]
-  intro i
+  -- 6.11.1 in He et al., using 6.8.1
   sorry
 
+omit [NormedSpace ℝ E] in
 lemma isStable_jump_le
     {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
-    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] {C : ℝ} :
+    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] {C : ℝ} (hC : 0 ≤ C) :
     IsStable 𝓕 fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C := by
-  intro X hX τ hτ t ω
-  sorry
+  suffices IsStable 𝓕 fun X ↦ ∀ ω i, ‖Δ (X · ω) i‖ ≤ C by
+    convert this
+    exact ⟨fun h i ω ↦ h ω i, fun h ω i ↦ h i ω⟩
+  refine isStable_todo (fun (X : ι → E) i ↦ ‖Δ X i‖ ≤ C) (𝓕 := 𝓕) (fun i ↦ ?_) ?_ ?_
+  · simp [hC]
+  · intro X i hX j hij
+    cases lt_or_eq_of_le hij with
+    | inl hij =>
+      suffices Δ (fun x ↦ X (min x i)) j = 0 by simp [this, hC]
+      unfold jump
+      split_ifs with h
+      · simp only [hij.le, inf_of_le_right]
+        rw [min_eq_right]
+        · simp
+        · by_contra! h_lt
+          have h_covBy := h.choose_spec.2 h_lt
+          grind
+      · have ht_ne_bot : 𝓝[<] j ≠ ⊥ := by
+          rw [ne_eq, nhdsLT_eq_bot_iff]
+          simp only [isBot_iff_eq_bot, h, or_false]
+          intro ht_bot
+          simp [ht_bot] at hij
+        simp only [hij.le, inf_of_le_right]
+        rw [leftLim_congr' (g := fun _ ↦ X i)]
+        · rw [leftLim_eq_of_tendsto (y := X i)]
+          · simp
+          · exact ht_ne_bot
+          · exact tendsto_const_nhds
+        · exact ht_ne_bot
+        · rw [eventuallyEq_nhdsWithin_iff]
+          filter_upwards [eventually_gt_nhds hij] with s hsτ hst
+          rw [min_eq_right]
+          exact hsτ.le
+        · rw [min_eq_right hij.le]
+    | inr h =>
+      simp only [h]
+      convert hX j using 2
+      rw [jump_congr]
+      grind
+  · intro X Y i ⟨k, hik, hk⟩
+    rw [jump_congr]
+    intro s hsi
+    exact hk s (hsi.trans_lt hik)
 
 lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
     {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
     {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
     [Approximable 𝓕 P]
-    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
+    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C) (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
   refine IsStable.locally_induction₂
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
-    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) (𝓕 := 𝓕) (P := P) ?_ ?_ ?_ ?_ ?_ ?_
+    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) (𝓕 := 𝓕) (P := P) ?_ ?_ ?_ ?_ hX ?_
   · intro X hX hX_jump
     exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
   · exact isStable_martingale
-  · exact isStable_jump_le
+  · refine isStable_jump_le hC
   · exact isStable_isSquareIntegrable
-  · exact hX
   · exact .of_prop h_jump
 
 end ProbabilityTheory

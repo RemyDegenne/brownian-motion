@@ -59,6 +59,54 @@ lemma leftLim_add_jump_of_not_covBy {E : Type*} [AddCommGroup E] [TopologicalSpa
 variable [TopologicalSpace T] [OrderTopology T] [AddGroup E] [TopologicalSpace E]
 
 @[simp]
+lemma jump_zero [T2Space E] : Δ (fun _ : T ↦ (0 : E)) t = 0 := by
+  unfold jump
+  split_ifs with h
+  · simp
+  · simp only [zero_sub, neg_eq_zero]
+    by_cases h_bot : IsBot t
+    · rw [leftLim_eq_of_eq_bot]
+      rw [nhdsLT_eq_bot_iff]
+      exact Or.inl h_bot
+    · rw [leftLim_eq_of_tendsto]
+      · rw [ne_eq, nhdsLT_eq_bot_iff]
+        simp [h_bot, h]
+      · exact tendsto_const_nhds
+
+@[simp]
+lemma jump_zero' [T2Space E] : Δ (0 : T → E) t = 0 := jump_zero
+
+lemma leftLim_congr' {E : Type*} [AddGroup E] [TopologicalSpace E] [T2Space E] {f g : T → E}
+    (h_ne_bot : 𝓝[<] t ≠ ⊥) (h : f =ᶠ[𝓝[<] t] g) (ht : f t = g t) :
+    Function.leftLim f t = Function.leftLim g t := by
+  by_cases h_tendsto : ∃ y, Tendsto f (𝓝[<] t) (𝓝 y)
+  · obtain ⟨y, hy⟩ := h_tendsto
+    have hy' : Tendsto g (𝓝[<] t) (𝓝 y) := by
+      refine hy.congr' h
+    rw [leftLim_eq_of_tendsto h_ne_bot hy, leftLim_eq_of_tendsto h_ne_bot hy']
+  have hg_tendsto : ¬ ∃ y, Tendsto g (𝓝[<] t) (𝓝 y) := by
+    rintro ⟨y, hy⟩
+    refine h_tendsto ⟨y, hy.congr' h.symm⟩
+  rw [leftLim_eq_of_not_tendsto _ h_tendsto, leftLim_eq_of_not_tendsto _ hg_tendsto, ht]
+
+lemma leftLim_congr {E : Type*} [AddGroup E] [TopologicalSpace E] [T2Space E] {f g : T → E}
+    (h : ∀ s ≤ t, f s = g s) :
+    Function.leftLim f t = Function.leftLim g t := by
+  by_cases h_bot : 𝓝[<] t = ⊥
+  · rw [leftLim_eq_of_eq_bot _ h_bot, leftLim_eq_of_eq_bot _ h_bot]
+    exact h t le_rfl
+  refine leftLim_congr' h_bot ?_ (h t le_rfl)
+  exact eventually_nhdsWithin_of_forall fun s hs ↦ h s (by simp at hs; exact hs.le)
+
+lemma jump_congr {E : Type*} [AddGroup E] [TopologicalSpace E] [T2Space E] {f g : T → E}
+    (h : ∀ s ≤ t, f s = g s) :
+    Δ f t = Δ g t := by
+  unfold jump
+  split_ifs with h_covBy
+  · rw [h t le_rfl, h _ h_covBy.choose_spec.1.le]
+  · rw [h t le_rfl, leftLim_congr h]
+
+@[simp]
 lemma jump_of_isBot (h : IsBot t) :
     Δ f t = 0 := by
   unfold jump
