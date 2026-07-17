@@ -1,0 +1,528 @@
+/-
+Copyright (c) 2026 Yongxi Lin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yongxi Lin
+-/
+module
+
+public import Mathlib.Probability.Process.Adapted
+public import Mathlib.Topology.EMetricSpace.BoundedVariation
+
+/-!
+# The pathwise variation process
+
+For a process `X : ι → Ω → E` and a starting time `a : ι`, the *variation process* of `X` sends a
+time `t` and an outcome `ω` to the total variation of the path `s ↦ X s ω` on the interval `[a, t]`:
+`variationProcess X a t ω = (eVariationOn (X · ω) (Set.Icc a t)).toReal`.
+
+Because `Set.Icc a t` is empty for `t < a`, the process vanishes below `a`, which is what makes it
+adapted when the index type `ι` is not assumed to have a bottom element. This process is the main
+tool in the reduction of Kallenberg, Proposition 18.2: to show that a continuous local martingale of
+locally finite variation is almost surely constant, one stops the process once the variation of its
+path reaches a level `n`.
+
+## Main definitions
+
+* `variationProcess`: the pathwise variation of `X` measured from a starting time `a`, as a process.
+
+## Main results
+
+* `variationProcess_nonneg`: the variation process is nonnegative.
+* `monotone_variationProcess`: the variation process of a path of locally bounded variation is
+  monotone in time.
+* `continuous_variationProcess`: the variation process of a continuous path of locally bounded
+  variation is continuous.
+* `MeasureTheory.StronglyAdapted.variationProcess`: the variation process of an adapted process with
+  continuous paths is adapted.
+* `isStronglyProgressive_variationProcess`: the variation process of an adapted process with
+  continuous paths is progressively measurable.
+
+## Implementation notes
+
+The one-sided continuity results reduce to Mathlib's
+`BoundedVariationOn.tendsto_eVariationOn_Icc_zero_left` and `..._right`, which only require
+continuity of the path *at* the point in question; global continuity is used solely to combine the
+two sides into `continuous_variationProcess`.
+
+Adaptedness and progressive measurability rest on `eVariationOn_inter_Icc_of_dense`: for a
+continuous path the variation on `[a, t]` is already attained by partitions whose points lie in a
+countable dense set containing `a` and every point that is isolated on the left. This exhibits the
+variation as a countable supremum of measurable partial sums.
+-/
+
+@[expose] public section
+
+open Filter MeasureTheory Finset Set TopologicalSpace ProbabilityTheory
+open scoped ENNReal Topology
+
+variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω}
+
+section Basic
+
+variable [LinearOrder ι] [PseudoEMetricSpace E]
+
+/-- The pathwise variation process of `X` measured from the starting time `a`: at time `t` and
+outcome `ω`, the total variation of the path `s ↦ X s ω` on `[a, t]`. For `t < a` the interval is
+empty and the value is `0`, which makes the process adapted. -/
+noncomputable def variationProcess (X : ι → Ω → E) (a : ι) : ι → Ω → ℝ :=
+  fun t ω ↦ (eVariationOn (X · ω) (Set.Icc a t)).toReal
+
+theorem variationProcess_eq_toReal_eVariationOn_Icc (X : ι → Ω → E) (a t : ι) (ω : Ω) :
+    variationProcess X a t ω = (eVariationOn (X · ω) (Set.Icc a t)).toReal :=
+  rfl
+
+theorem variationProcess_nonneg (X : ι → Ω → E) (a t : ι) (ω : Ω) :
+    0 ≤ variationProcess X a t ω :=
+  ENNReal.toReal_nonneg
+
+theorem variationProcess_of_le (X : ι → Ω → E) {a t : ι} (hta : t ≤ a) (ω : Ω) :
+    variationProcess X a t ω = 0 := by
+  rw [variationProcess_eq_toReal_eVariationOn_Icc,
+    eVariationOn.subsingleton _ fun x hx y hy ↦
+      le_antisymm (hx.2.trans (hta.trans hy.1)) (hy.2.trans (hta.trans hx.1)),
+    ENNReal.toReal_zero]
+
+/-- The total variation of the path `s ↦ X s ω` on `[u, v]` is finite. -/
+theorem eVariationOn_Icc_ne_top {X : ι → Ω → E} {ω : Ω}
+    (hX : LocallyBoundedVariationOn (X · ω) Set.univ) (u v : ι) :
+    eVariationOn (X · ω) (Set.Icc u v) ≠ ∞ := by
+  rw [← Set.univ_inter (Set.Icc u v)]
+  exact hX u v (Set.mem_univ u) (Set.mem_univ v)
+
+theorem monotone_variationProcess {X : ι → Ω → E} {ω : Ω}
+    (hX : LocallyBoundedVariationOn (X · ω) Set.univ) (a : ι) :
+    Monotone fun t ↦ variationProcess X a t ω := by
+  intro s t hst
+  simp only [variationProcess_eq_toReal_eVariationOn_Icc]
+  exact ENNReal.toReal_mono (eVariationOn_Icc_ne_top hX a t)
+    (eVariationOn.mono _ (Set.Icc_subset_Icc le_rfl hst))
+
+end Basic
+
+section Continuity
+
+variable [ConditionallyCompleteLinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+  [PseudoEMetricSpace E] {X : ι → Ω → E} {ω : Ω} {c : ι}
+
+/-- The variation process of a path of locally bounded variation that is continuous from the left at
+`c` is left-continuous at `c`. -/
+theorem continuousWithinAt_variationProcess_Iic
+    (hX : LocallyBoundedVariationOn (X · ω) Set.univ)
+    (hcont : ContinuousWithinAt (fun t ↦ X t ω) (Set.Iic c) c) (a : ι) :
+    ContinuousWithinAt (fun t ↦ variationProcess X a t ω) (Set.Iic c) c := by
+  rcases le_or_gt c a with hca | hac
+  · -- Below the starting time the process vanishes.
+    exact continuousWithinAt_const.congr (fun t ht ↦ variationProcess_of_le X (ht.trans hca) ω)
+      (variationProcess_of_le X hca ω)
+  · have hBV : BoundedVariationOn (X · ω) (Set.Icc a c) := eVariationOn_Icc_ne_top hX a c
+    have hnhds : 𝓝[Set.Icc a c] c = 𝓝[Set.Iic c] c := by
+      rw [← Set.Ici_inter_Iic]
+      exact nhdsWithin_inter_of_mem (mem_nhdsWithin_of_mem_nhds (Ici_mem_nhds hac))
+    have htend : Tendsto (fun t ↦ (eVariationOn (X · ω) (Set.Icc a c ∩ Set.Icc t c)).toReal)
+        (𝓝[Set.Iic c] c) (𝓝 0) := by
+      have hE : Tendsto (fun t ↦ eVariationOn (X · ω) (Set.Icc a c ∩ Set.Icc t c))
+          (𝓝[Set.Iic c] c) (𝓝 0) := by
+        rw [← hnhds]
+        refine hBV.tendsto_eVariationOn_Icc_zero_left ?_
+        rw [Set.inter_eq_left.2 Set.Icc_subset_Iic_self]
+        exact hcont.mono Set.Icc_subset_Iic_self
+      simpa [Function.comp_def] using (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hE
+    have hrepr : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Set.Iic c] c]
+        fun t ↦ variationProcess X a c ω
+          - (eVariationOn (X · ω) (Set.Icc a c ∩ Set.Icc t c)).toReal := by
+      filter_upwards [mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hac), self_mem_nhdsWithin]
+        with t hat htc
+      have hadd : eVariationOn (X · ω) (Set.Icc a t) + eVariationOn (X · ω) (Set.Icc t c)
+          = eVariationOn (X · ω) (Set.Icc a c) := by
+        simpa using eVariationOn.Icc_add_Icc (X · ω) (s := Set.univ) hat.le htc (Set.mem_univ t)
+      rw [Set.inter_eq_right.2 (Set.Icc_subset_Icc hat.le le_rfl),
+        variationProcess_eq_toReal_eVariationOn_Icc, variationProcess_eq_toReal_eVariationOn_Icc,
+        ← hadd, ENNReal.toReal_add (eVariationOn_Icc_ne_top hX a t)
+          (eVariationOn_Icc_ne_top hX t c)]
+      ring
+    change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Set.Iic c] c)
+      (𝓝 (variationProcess X a c ω))
+    refine Tendsto.congr' hrepr.symm ?_
+    simpa using tendsto_const_nhds.sub htend
+
+/-- The variation process of a path of locally bounded variation that is continuous from the right
+at `c` is right-continuous at `c`. -/
+theorem continuousWithinAt_variationProcess_Ici
+    (hX : LocallyBoundedVariationOn (X · ω) Set.univ)
+    (hcont : ContinuousWithinAt (fun t ↦ X t ω) (Set.Ici c) c) (a : ι) :
+    ContinuousWithinAt (fun t ↦ variationProcess X a t ω) (Set.Ici c) c := by
+  rcases lt_or_ge c a with hca | hac
+  · -- Below the starting time the process vanishes near `c`.
+    have hev : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Set.Ici c] c] fun _ ↦ (0 : ℝ) := by
+      filter_upwards [mem_nhdsWithin_of_mem_nhds (Iio_mem_nhds hca)] with t ht
+      exact variationProcess_of_le X ht.le ω
+    change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Set.Ici c] c)
+      (𝓝 (variationProcess X a c ω))
+    rw [variationProcess_of_le X hca.le ω]
+    exact Tendsto.congr' hev.symm tendsto_const_nhds
+  · by_cases hd : ∃ d, c < d
+    · obtain ⟨d, hcd⟩ := hd
+      have hBV : BoundedVariationOn (X · ω) (Set.Icc c d) := eVariationOn_Icc_ne_top hX c d
+      have hnhds : 𝓝[Set.Icc c d] c = 𝓝[Set.Ici c] c := by
+        rw [← Set.Ici_inter_Iic, Set.inter_comm]
+        exact nhdsWithin_inter_of_mem (mem_nhdsWithin_of_mem_nhds (Iic_mem_nhds hcd))
+      have htend : Tendsto (fun t ↦ (eVariationOn (X · ω) (Set.Icc c d ∩ Set.Icc c t)).toReal)
+          (𝓝[Set.Ici c] c) (𝓝 0) := by
+        have hE : Tendsto (fun t ↦ eVariationOn (X · ω) (Set.Icc c d ∩ Set.Icc c t))
+            (𝓝[Set.Ici c] c) (𝓝 0) := by
+          rw [← hnhds]
+          refine hBV.tendsto_eVariationOn_Icc_zero_right c ?_
+          rw [Set.inter_eq_left.2 Set.Icc_subset_Ici_self]
+          exact hcont.mono Set.Icc_subset_Ici_self
+        simpa [Function.comp_def] using (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hE
+      have hrepr : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Set.Ici c] c]
+          fun t ↦ variationProcess X a c ω
+            + (eVariationOn (X · ω) (Set.Icc c d ∩ Set.Icc c t)).toReal := by
+        filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Iio_mem_nhds hcd)]
+          with t hct htd
+        have hadd : eVariationOn (X · ω) (Set.Icc a c) + eVariationOn (X · ω) (Set.Icc c t)
+            = eVariationOn (X · ω) (Set.Icc a t) := by
+          simpa using eVariationOn.Icc_add_Icc (X · ω) (s := Set.univ) hac hct (Set.mem_univ c)
+        rw [Set.inter_eq_right.2 (Set.Icc_subset_Icc le_rfl htd.le),
+          variationProcess_eq_toReal_eVariationOn_Icc, variationProcess_eq_toReal_eVariationOn_Icc,
+          ← hadd, ENNReal.toReal_add (eVariationOn_Icc_ne_top hX a c)
+            (eVariationOn_Icc_ne_top hX c t)]
+      change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Set.Ici c] c)
+        (𝓝 (variationProcess X a c ω))
+      refine Tendsto.congr' hrepr.symm ?_
+      simpa using tendsto_const_nhds.add htend
+    · -- `c` is the greatest element, so `Ici c = {c}`.
+      have hsingle : Set.Ici c = {c} := by
+        ext x
+        simp only [Set.mem_Ici, Set.mem_singleton_iff]
+        exact ⟨fun hx ↦ le_antisymm (not_lt.1 fun h ↦ hd ⟨x, h⟩) hx, fun hx ↦ hx ▸ le_rfl⟩
+      rw [hsingle]
+      exact continuousWithinAt_singleton
+
+/-- The variation process of a continuous path of locally bounded variation is continuous. -/
+theorem continuous_variationProcess (hX : LocallyBoundedVariationOn (X · ω) Set.univ)
+    (hcont : Continuous fun t ↦ X t ω) (a : ι) :
+    Continuous fun t ↦ variationProcess X a t ω := by
+  rw [continuous_iff_continuousAt]
+  intro c
+  rw [← continuousWithinAt_univ, ← Set.Iic_union_Ici_of_le (le_refl c)]
+  exact (continuousWithinAt_variationProcess_Iic hX hcont.continuousWithinAt a).union
+    (continuousWithinAt_variationProcess_Ici hX hcont.continuousWithinAt a)
+
+end Continuity
+
+section Measurability
+
+/-- There is a countable dense set containing a given point and every point that is isolated on
+the left.  Partitions with points in such a set suffice to compute the variation of a continuous
+function on an interval. -/
+private lemma exists_countable_dense_mem_isolated [LinearOrder ι] [TopologicalSpace ι]
+    [OrderTopology ι] [SecondCountableTopology ι] (a : ι) :
+    ∃ Q : Set ι, Q.Countable ∧ Dense Q ∧ a ∈ Q ∧ ∀ x : ι, 𝓝[<] x = ⊥ → x ∈ Q := by
+  obtain ⟨D, hDc, hDd⟩ := TopologicalSpace.exists_countable_dense ι
+  exact ⟨D ∪ {x | 𝓝[<] x = ⊥} ∪ {a},
+    (hDc.union countable_setOf_isolated_left).union (Set.countable_singleton a),
+    hDd.mono (Set.subset_union_left.trans Set.subset_union_left),
+    Or.inr rfl, fun x hx ↦ Or.inl (Or.inr hx)⟩
+
+/-- For a continuous function, the variation on `[a, c]` can be computed using only partition
+points in a dense set containing `a` and all points that are isolated on the left: every
+partition point can be approximated from the left inside its gap, which preserves
+monotonicity. -/
+private lemma eVariationOn_inter_Icc_of_dense [LinearOrder ι] [TopologicalSpace ι]
+    [OrderTopology ι] [PseudoEMetricSpace E] {f : ι → E} (hf : Continuous f) {Q : Set ι}
+    (hQd : Dense Q) (hQiso : ∀ x, 𝓝[<] x = ⊥ → x ∈ Q) {a : ι} (haQ : a ∈ Q) (c : ι) :
+    eVariationOn f (Q ∩ Set.Icc a c) = eVariationOn f (Set.Icc a c) := by
+  classical
+  refine le_antisymm (eVariationOn.mono f Set.inter_subset_right) ?_
+  have hdef : eVariationOn f (Set.Icc a c) =
+      ⨆ p : ℕ × {u : ℕ → ι // Monotone u ∧ ∀ i, u i ∈ Set.Icc a c},
+        ∑ i ∈ Finset.range p.1, edist (f (p.2.1 (i + 1))) (f (p.2.1 i)) := rfl
+  rw [hdef]
+  refine iSup_le ?_
+  rintro ⟨n, u, hu, hus⟩
+  refine ENNReal.le_of_forall_pos_le_add fun δ hδ _ ↦ ?_
+  set ε : ℝ≥0∞ := δ / (2 * (n + 1)) with hεdef
+  have hε0 : ε ≠ 0 := by
+    refine ENNReal.div_ne_zero.2 ⟨by exact_mod_cast hδ.ne', ?_⟩
+    finiteness
+  -- a point of `Q` approximating `y` from the left within `(x, y]`
+  have choice : ∀ x y : ι, x < y → ∃ w ∈ Q, w ∈ Set.Ioc x y ∧ edist (f w) (f y) ≤ ε := by
+    intro x y hxy
+    by_cases hiso : 𝓝[<] y = ⊥
+    · exact ⟨y, hQiso y hiso, ⟨hxy, le_rfl⟩, by simp⟩
+    haveI : (𝓝[<] y).NeBot := ⟨hiso⟩
+    have hball : IsOpen {z | edist (f z) (f y) < ε} :=
+      isOpen_Iio.preimage (hf.edist continuous_const)
+    have hmem : Set.Ioo x y ∩ {z | edist (f z) (f y) < ε} ∈ 𝓝[<] y :=
+      inter_mem (Ioo_mem_nhdsLT hxy) (mem_nhdsWithin_of_mem_nhds (hball.mem_nhds
+        (by simpa [edist_self] using pos_iff_ne_zero.2 hε0)))
+    obtain ⟨w, hwQ, hw⟩ := hQd.exists_mem_open (isOpen_Ioo.inter hball)
+      (Filter.nonempty_of_mem hmem)
+    exact ⟨w, hwQ, ⟨hw.1.1, hw.1.2.le⟩, hw.2.le⟩
+  have choice₀ : ∃ w ∈ Q, w ∈ Set.Icc a (u 0) ∧ edist (f w) (f (u 0)) ≤ ε := by
+    rcases (hus 0).1.eq_or_lt with heq | hlt
+    · exact ⟨a, haQ, ⟨le_rfl, heq.le⟩, by simp [← heq]⟩
+    · obtain ⟨w, hwQ, hw, hwd⟩ := choice a (u 0) hlt
+      exact ⟨w, hwQ, ⟨hw.1.le, hw.2⟩, hwd⟩
+  -- an approximating point for each partition point, chosen in the gap below its first
+  -- occurrence so that the assignment is monotone
+  have hex : ∀ m : ℕ, ∃ w : ι, (∀ j < m, u j < u m) → w ∈ Q ∧ w ∈ Set.Icc a c ∧ w ≤ u m ∧
+      edist (f w) (f (u m)) ≤ ε ∧ ∀ j, u j < u m → u j < w := by
+    intro m
+    by_cases hm : ∀ j < m, u j < u m
+    swap
+    · exact ⟨a, fun hm' ↦ absurd hm' hm⟩
+    cases m with
+    | zero =>
+      obtain ⟨w, hwQ, hwmem, hwd⟩ := choice₀
+      exact ⟨w, fun _ ↦ ⟨hwQ, ⟨hwmem.1, hwmem.2.trans (hus 0).2⟩, hwmem.2, hwd,
+        fun j hj ↦ absurd hj (not_lt.2 (hu (Nat.zero_le j)))⟩⟩
+    | succ m =>
+      obtain ⟨w, hwQ, hw, hwd⟩ := choice (u m) (u (m + 1)) (hm m m.lt_succ_self)
+      refine ⟨w, fun _ ↦ ⟨hwQ, ⟨(hus m).1.trans hw.1.le, hw.2.trans (hus (m + 1)).2⟩, hw.2, hwd,
+        fun j hj ↦ ?_⟩⟩
+      have hjm : j ≤ m := by
+        by_contra hjm
+        exact absurd (hu (Nat.succ_le_of_lt (not_le.1 hjm))) (not_le.2 hj)
+      exact (hu hjm).trans_lt hw.1
+  choose W hW using hex
+  have hrex : ∀ i : ℕ, ∃ j, u j = u i := fun i ↦ ⟨i, rfl⟩
+  set r : ℕ → ℕ := fun i ↦ Nat.find (hrex i) with hrdef
+  have hr_eq : ∀ i, u (r i) = u i := fun i ↦ Nat.find_spec (hrex i)
+  have hr_lt : ∀ i, ∀ j < r i, u j < u (r i) := by
+    intro i j hj
+    refine lt_of_le_of_ne (hu hj.le) fun hjeq ↦ ?_
+    exact absurd (Nat.find_min' (hrex i) (hjeq.trans (hr_eq i))) (not_le.2 hj)
+  set q : ℕ → ι := fun i ↦ W (r i) with hqdef
+  have hprops := fun i ↦ hW (r i) (hr_lt i)
+  have hqd : ∀ i, edist (f (q i)) (f (u i)) ≤ ε := fun i ↦ by
+    have := (hprops i).2.2.2.1
+    rwa [hr_eq i] at this
+  have hqmono : Monotone q := by
+    intro i i' hii'
+    rcases (hu hii').eq_or_lt with heq | hlt
+    · have hr : r i = r i' := le_antisymm (Nat.find_min' (hrex i) ((hr_eq i').trans heq.symm))
+        (Nat.find_min' (hrex i') ((hr_eq i).trans heq))
+      simp [q, hr]
+    · refine (((hprops i).2.2.1).trans_eq (hr_eq i)).trans ?_
+      exact ((hprops i').2.2.2.2 i (by rw [hr_eq i']; exact hlt)).le
+  calc ∑ i ∈ Finset.range n, edist (f (u (i + 1))) (f (u i))
+      ≤ ∑ i ∈ Finset.range n, (edist (f (q (i + 1))) (f (q i)) + 2 * ε) := by
+        refine Finset.sum_le_sum fun i _ ↦ ?_
+        calc edist (f (u (i + 1))) (f (u i))
+            ≤ edist (f (u (i + 1))) (f (q (i + 1))) + edist (f (q (i + 1))) (f (q i)) +
+              edist (f (q i)) (f (u i)) := edist_triangle4 _ _ _ _
+          _ ≤ ε + edist (f (q (i + 1))) (f (q i)) + ε := by
+              gcongr
+              · rw [edist_comm]; exact hqd (i + 1)
+              · exact hqd i
+          _ = edist (f (q (i + 1))) (f (q i)) + 2 * ε := by ring
+    _ = ∑ i ∈ Finset.range n, edist (f (q (i + 1))) (f (q i)) + n * (2 * ε) := by
+        rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+    _ ≤ eVariationOn f (Q ∩ Set.Icc a c) + ↑δ := by
+        refine add_le_add (eVariationOn.sum_le hqmono fun i ↦ ⟨(hprops i).1, (hprops i).2.1⟩) ?_
+        calc (n : ℝ≥0∞) * (2 * ε) ≤ ((n : ℝ≥0∞) + 1) * (2 * ε) := by
+              gcongr
+              exact le_add_of_nonneg_right zero_le_one
+          _ = 2 * ((n : ℝ≥0∞) + 1) * (δ / (2 * ((n : ℝ≥0∞) + 1))) := by rw [hεdef]; ring
+          _ = δ := ENNReal.mul_div_cancel'
+              (fun h ↦ absurd h (mul_ne_zero two_ne_zero (by simp)))
+              (fun h ↦ absurd h (ENNReal.mul_ne_top ENNReal.ofNat_ne_top
+                (ENNReal.add_ne_top.2 ⟨ENNReal.natCast_ne_top n, ENNReal.one_ne_top⟩)))
+
+/-- The clamped inclusion `ℕ → Fin (n + 1)` used to index partitions by tuples. -/
+private def clampIdx (n i : ℕ) : Fin (n + 1) := ⟨min i n, Nat.lt_succ_of_le (min_le_right i n)⟩
+
+@[simp]
+private lemma clampIdx_val (n i : ℕ) : (clampIdx n i : ℕ) = min i n := rfl
+
+/-- The variation of an adapted process over a countable set of times before `t` is
+`𝓕 t`-measurable, as a countable supremum of measurable partial sums. -/
+private lemma measurable_eVariationOn_of_countable [LinearOrder ι] [PseudoEMetricSpace E]
+    {m' : MeasurableSpace Ω} {S : Set ι} (hS : S.Countable) {X : ι → Ω → E}
+    (hX : ∀ s ∈ S, StronglyMeasurable[m'] (X s)) :
+    Measurable[m'] fun ω ↦ eVariationOn (X · ω) S := by
+  classical
+  rcases S.eq_empty_or_nonempty with rfl | hSne
+  · have h0 : (fun ω ↦ eVariationOn (X · ω) ∅) = fun _ ↦ 0 :=
+      funext fun ω ↦ eVariationOn.subsingleton _ Set.subsingleton_empty
+    rw [h0]
+    exact measurable_const
+  obtain ⟨e, he⟩ := Set.Countable.exists_eq_range hS hSne
+  have heS : ∀ k, e k ∈ S := fun k ↦ he ▸ Set.mem_range_self k
+  have hkey : (fun ω ↦ eVariationOn (X · ω) S) = fun ω ↦
+      ⨆ (n : ℕ) (σ : Fin (n + 1) → ℕ),
+        if Monotone (fun i : ℕ ↦ e (σ (clampIdx n i))) then
+          ∑ i ∈ Finset.range n,
+            edist (X (e (σ (clampIdx n (i + 1)))) ω) (X (e (σ (clampIdx n i))) ω)
+        else 0 := by
+    funext ω
+    refine le_antisymm ?_ (iSup_le fun n ↦ iSup_le fun σ ↦ ?_)
+    · have hdef : eVariationOn (X · ω) S =
+          ⨆ p : ℕ × {u : ℕ → ι // Monotone u ∧ ∀ i, u i ∈ S},
+            ∑ i ∈ Finset.range p.1, edist (X (p.2.1 (i + 1)) ω) (X (p.2.1 i) ω) := rfl
+      rw [hdef]
+      refine iSup_le ?_
+      rintro ⟨n, u, hu, hus⟩
+      have hpre : ∀ i, ∃ k, e k = u i := fun i ↦ by rw [he] at hus; exact hus i
+      choose κ hκ using hpre
+      refine le_iSup_of_le n (le_iSup_of_le (fun i ↦ κ i) ?_)
+      rw [if_pos]
+      · refine le_of_eq (Finset.sum_congr rfl fun i hi ↦ ?_)
+        have hin := Finset.mem_range.1 hi
+        simp only [clampIdx_val, hκ]
+        rw [min_eq_left (by omega), min_eq_left (by omega)]
+      · intro i j hij
+        simp only [clampIdx_val, hκ]
+        exact hu (min_le_min hij le_rfl)
+    · by_cases hmono : Monotone (fun i : ℕ ↦ e (σ (clampIdx n i)))
+      · rw [if_pos hmono]
+        exact eVariationOn.sum_le hmono fun i ↦ heS _
+      · rw [if_neg hmono]
+        exact zero_le
+  rw [hkey]
+  refine Measurable.iSup fun n ↦ Measurable.iSup fun σ ↦ ?_
+  by_cases hmono : Monotone (fun i : ℕ ↦ e (σ (clampIdx n i)))
+  · simp only [if_pos hmono]
+    refine Finset.measurable_sum _ fun i _ ↦ ?_
+    exact (continuous_edist.comp_stronglyMeasurable
+      ((hX _ (heS _)).prodMk (hX _ (heS _)))).measurable
+  · simp only [if_neg hmono]
+    exact measurable_const
+
+/-- The variation process of an adapted process with continuous paths is adapted. -/
+theorem MeasureTheory.StronglyAdapted.variationProcess [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [PseudoEMetricSpace E]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (hX : StronglyAdapted 𝓕 X)
+    (hcont : ∀ ω, Continuous fun t ↦ X t ω) (a : ι) :
+    StronglyAdapted 𝓕 (_root_.variationProcess X a) := by
+  obtain ⟨Q, hQc, hQd, haQ, hQiso⟩ := exists_countable_dense_mem_isolated a
+  intro t
+  have hform : _root_.variationProcess X a t = fun ω ↦
+      (eVariationOn (X · ω) (Q ∩ Set.Icc a t)).toReal := funext fun ω ↦ by
+    rw [variationProcess_eq_toReal_eVariationOn_Icc,
+      ← eVariationOn_inter_Icc_of_dense (hcont ω) hQd hQiso haQ t]
+  rw [hform]
+  exact (Measurable.ennreal_toReal (measurable_eVariationOn_of_countable
+    (hQc.mono Set.inter_subset_left)
+    fun s hs ↦ (hX s).mono (𝓕.mono hs.2.2))).stronglyMeasurable
+
+/-- The variation process of an adapted process with continuous paths is progressively
+measurable. -/
+theorem isStronglyProgressive_variationProcess [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [BorelSpace ι] [PseudoMetrizableSpace ι] [PseudoEMetricSpace E] {𝓕 : Filtration ι mΩ}
+    {X : ι → Ω → E} (hX : StronglyAdapted 𝓕 X) (hcont : ∀ ω, Continuous fun t ↦ X t ω) (a : ι) :
+    IsStronglyProgressive 𝓕 (variationProcess X a) := by
+  classical
+  obtain ⟨Q, hQc, hQd, haQ, hQiso⟩ := exists_countable_dense_mem_isolated a
+  intro t
+  rcases le_or_gt a t with hat | hta
+  swap
+  · have hzero : (fun p : Set.Iic t × Ω ↦ variationProcess X a p.1 p.2) = fun _ ↦ 0 :=
+      funext fun p ↦ variationProcess_of_le X (p.1.2.trans hta.le) p.2
+    rw [hzero]
+    exact stronglyMeasurable_const
+  have hSc : (Q ∩ Set.Icc a t).Countable := hQc.mono Set.inter_subset_left
+  obtain ⟨e, he⟩ := Set.Countable.exists_eq_range hSc ⟨a, haQ, le_rfl, hat⟩
+  have heS : ∀ k, e k ∈ Q ∩ Set.Icc a t := fun k ↦ he ▸ Set.mem_range_self k
+  have hform : (fun p : Set.Iic t × Ω ↦ variationProcess X a p.1 p.2) = fun p ↦
+      (eVariationOn (X · p.2) (Q ∩ Set.Icc a ↑p.1)).toReal := by
+    funext p
+    rw [variationProcess_eq_toReal_eVariationOn_Icc,
+      ← eVariationOn_inter_Icc_of_dense (hcont p.2) hQd hQiso haQ ↑p.1]
+  rw [hform]
+  refine (Measurable.ennreal_toReal ?_).stronglyMeasurable
+  have hkey : (fun p : Set.Iic t × Ω ↦ eVariationOn (X · p.2) (Q ∩ Set.Icc a ↑p.1)) =
+      fun p ↦ ⨆ (n : ℕ) (σ : Fin (n + 1) → ℕ),
+        if Monotone (fun i : ℕ ↦ e (σ (clampIdx n i))) ∧
+            (∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1) then
+          ∑ i ∈ Finset.range n,
+            edist (X (e (σ (clampIdx n (i + 1)))) p.2) (X (e (σ (clampIdx n i))) p.2)
+        else 0 := by
+    funext p
+    refine le_antisymm ?_ (iSup_le fun n ↦ iSup_le fun σ ↦ ?_)
+    · have hdef : eVariationOn (X · p.2) (Q ∩ Set.Icc a ↑p.1) =
+          ⨆ pt : ℕ × {u : ℕ → ι // Monotone u ∧ ∀ i, u i ∈ Q ∩ Set.Icc a ↑p.1},
+            ∑ i ∈ Finset.range pt.1, edist (X (pt.2.1 (i + 1)) p.2) (X (pt.2.1 i) p.2) := rfl
+      rw [hdef]
+      refine iSup_le ?_
+      rintro ⟨n, u, hu, hus⟩
+      have hpre : ∀ i, ∃ k, e k = u i := fun i ↦ by
+        have hmem : u i ∈ Q ∩ Set.Icc a t :=
+          ⟨(hus i).1, (hus i).2.1, (hus i).2.2.trans p.1.2⟩
+        rw [he] at hmem
+        exact hmem
+      choose κ hκ using hpre
+      refine le_iSup_of_le n (le_iSup_of_le (fun i ↦ κ i) ?_)
+      rw [if_pos]
+      · refine le_of_eq (Finset.sum_congr rfl fun i hi ↦ ?_)
+        have hin := Finset.mem_range.1 hi
+        simp only [clampIdx_val, hκ]
+        rw [min_eq_left (by omega), min_eq_left (by omega)]
+      · constructor
+        · intro i j hij
+          simp only [clampIdx_val, hκ]
+          exact hu (min_le_min hij le_rfl)
+        · intro k
+          simp only [clampIdx_val, hκ]
+          exact (hus _).2.2
+    · by_cases hcond : Monotone (fun i : ℕ ↦ e (σ (clampIdx n i))) ∧
+          ∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1
+      · rw [if_pos hcond]
+        exact eVariationOn.sum_le hcond.1 fun i ↦ ⟨(heS _).1, (heS _).2.1, hcond.2 i⟩
+      · rw [if_neg hcond]
+        exact zero_le
+  rw [hkey]
+  refine Measurable.iSup fun n ↦ Measurable.iSup fun σ ↦ ?_
+  by_cases hmono : Monotone (fun i : ℕ ↦ e (σ (clampIdx n i)))
+  swap
+  · have h0 : (fun p : Set.Iic t × Ω ↦
+        if Monotone (fun i : ℕ ↦ e (σ (clampIdx n i))) ∧
+            (∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1) then
+          ∑ i ∈ Finset.range n,
+            edist (X (e (σ (clampIdx n (i + 1)))) p.2) (X (e (σ (clampIdx n i))) p.2)
+        else 0) = fun _ ↦ 0 := by
+      funext p
+      rw [if_neg fun h ↦ hmono h.1]
+    rw [h0]
+    exact measurable_const
+  have hset : MeasurableSet[Subtype.instMeasurableSpace.prod (𝓕 t)]
+      {p : Set.Iic t × Ω | ∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1} := by
+    have hrw : {p : Set.Iic t × Ω | ∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1} =
+        Prod.fst ⁻¹' ⋂ k : ℕ, {s : Set.Iic t | e (σ (clampIdx n k)) ≤ ↑s} := by
+      ext p
+      simp
+    rw [hrw]
+    refine measurable_fst (MeasurableSet.iInter fun k ↦ ?_)
+    have hIci : {s : Set.Iic t | e (σ (clampIdx n k)) ≤ ↑s} =
+        Subtype.val ⁻¹' Set.Ici (e (σ (clampIdx n k))) := by
+      ext s
+      simp
+    rw [hIci]
+    exact measurable_subtype_coe measurableSet_Ici
+  have hsum : Measurable[𝓕 t] fun ω ↦ ∑ i ∈ Finset.range n,
+      edist (X (e (σ (clampIdx n (i + 1)))) ω) (X (e (σ (clampIdx n i))) ω) := by
+    refine Finset.measurable_sum _ fun i _ ↦ ?_
+    have hmeas : ∀ k : ℕ, StronglyMeasurable[𝓕 t] (X (e (σ (clampIdx n k)))) := fun k ↦
+      (hX _).mono (𝓕.mono (heS (σ (clampIdx n k))).2.2)
+    exact (continuous_edist.comp_stronglyMeasurable ((hmeas _).prodMk (hmeas _))).measurable
+  have hind : (fun p : Set.Iic t × Ω ↦
+      if Monotone (fun i : ℕ ↦ e (σ (clampIdx n i))) ∧
+          (∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1) then
+        ∑ i ∈ Finset.range n,
+          edist (X (e (σ (clampIdx n (i + 1)))) p.2) (X (e (σ (clampIdx n i))) p.2)
+      else 0) =
+      {p : Set.Iic t × Ω | ∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1}.indicator
+        (fun p ↦ ∑ i ∈ Finset.range n,
+          edist (X (e (σ (clampIdx n (i + 1)))) p.2) (X (e (σ (clampIdx n i))) p.2)) := by
+    funext p
+    simp only [Set.indicator_apply, Set.mem_setOf_eq]
+    by_cases hp : ∀ k : ℕ, e (σ (clampIdx n k)) ≤ ↑p.1
+    · rw [if_pos ⟨hmono, hp⟩, if_pos hp]
+    · rw [if_neg fun h ↦ hp h.2, if_neg hp]
+  rw [hind]
+  exact (hsum.comp measurable_snd).indicator hset
+
+end Measurability
