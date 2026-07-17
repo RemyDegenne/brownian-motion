@@ -192,6 +192,7 @@ lemma IsSquareIntegrable.tendsto_eLpNorm_two_limitProcess (hX : IsSquareIntegrab
 
 open scoped Function
 
+/-- The stopped process at the time when the norm of the process first exceeds a threshold. -/
 noncomputable
 def stoppedAtNorm {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] (X : ι → Ω → E) (r : ℝ) :
     ι → Ω → E :=
@@ -216,6 +217,18 @@ lemma stoppedAtNorm_of_nonpos {ι : Type*} [ConditionallyCompleteLinearOrderBot 
   refine fun i hi ↦ ?_
   simp only [mem_lowerBounds, Set.mem_setOf_eq] at hi
   exact hi ⊥ h_le
+
+@[to_dual]
+theorem _root_.WithBot.unbotA_inj {α : Type*} [Nonempty α] {a b : WithBot α}
+    (ha : a ≠ ⊥) (hb : b ≠ ⊥) :
+    a.unbotA = b.unbotA ↔ a = b := by
+  rw [WithBot.unbotA_eq_unbot ha, WithBot.unbotA_eq_unbot hb]
+  exact WithBot.unbot_inj ha hb
+
+@[to_dual (attr := simp)]
+lemma _root_.WithBot.coe_unbotA {α : Type*} [Nonempty α] {x : WithBot α} (hx : x ≠ ⊥) :
+    x.unbotA = x := by
+  rw [WithBot.unbotA_eq_unbot hx, WithBot.coe_unbot]
 
 omit [NormedSpace ℝ E] in
 lemma stoppedAtNorm_le_add_jump
@@ -246,43 +259,36 @@ lemma stoppedAtNorm_le_add_jump
   · have hge' : τ n ω ≤ t := by rwa [WithTop.untopA_le_iff hτ_top] at hge
     rw [stoppedProcess_eq_of_ge hge']
     simp only [Set.mem_setOf_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem, ge_iff_le]
-    calc ‖X (τ n ω).untopA ω‖
-    _ ≤ ‖leftLim (X · ω) (sSup (Set.Iio (τ n ω).untopA))‖ + ‖Δ (X · ω) (τ n ω).untopA‖ := by
-      rw [← leftLim_add_jump (f := (X · ω))]
-      exact norm_add_le _ _
-    _ ≤ n + ‖Δ (fun x ↦ X x ω) (τ n ω).untopA‖ := by
-      gcongr
-      by_cases h_bot : 𝓝[<] (τ n ω).untopA = ⊥
-      · have : sSup (Set.Iio (τ n ω).untopA) < (τ n ω).untopA := by
-          have h_nonempty : (Set.Iio (τ n ω).untopA).Nonempty := by
-            refine ⟨⊥, ?_⟩
-            simp only [Set.mem_Iio]
-            rw [WithTop.lt_untopA_iff hτ_top]
-            simp [Ne.bot_lt hτ_bot]
-          refine lt_of_le_of_ne (sSup_Iio_le_self h_nonempty) ?_
-          rw [ne_eq, sSup_Iio_eq_self_iff_nhdsWithin_neBot h_nonempty]
-          simpa
-        by_cases h_bot' : 𝓝[<] (sSup (Set.Iio (τ n ω).untopA)) = ⊥
-        · rw [leftLim_eq_of_eq_bot _ h_bot']
-          rw [WithTop.lt_untopA_iff hτ_top] at this
-          exact (hX_lt this).le
-        have h_NeBot : (𝓝[<] (sSup (Set.Iio (τ n ω).untopA))).NeBot := ⟨h_bot'⟩
-        refine le_of_tendsto (f := fun t ↦ ‖X t ω‖) (x := 𝓝[<] (sSup (Set.Iio (τ n ω).untopA)))
-          ?_ ?_
+    by_cases! h_covBy : ∃ s, s ⋖ (τ n ω).untopA
+    · obtain ⟨s, hs_covBy⟩ := h_covBy
+      rw [jump_of_covBy hs_covBy]
+      calc ‖X (τ n ω).untopA ω‖
+      _ = ‖X s ω + (X (τ n ω).untopA ω - X s ω)‖ := by congr; abel
+      _ ≤ ‖X s ω‖ + ‖X (τ n ω).untopA ω - X s ω‖ := norm_add_le _ _
+      _ ≤ n + ‖X (τ n ω).untopA ω - X s ω‖ := by
+        gcongr
+        refine (hX_lt ?_).le
+        have hs_lt : s < (τ n ω).untopA := hs_covBy.1
+        rwa [WithTop.lt_untopA_iff hτ_top] at hs_lt
+    · calc ‖X (τ n ω).untopA ω‖
+      _ ≤ ‖leftLim (X · ω) (τ n ω).untopA‖ + ‖Δ (X · ω) (τ n ω).untopA‖ := by
+        rw [← leftLim_add_jump_of_not_covBy (f := (X · ω)) h_covBy]
+        exact norm_add_le _ _
+      _ ≤ n + ‖Δ (fun x ↦ X x ω) (τ n ω).untopA‖ := by
+        gcongr
+        have h_bot : 𝓝[<] (τ n ω).untopA ≠ ⊥ := by
+          have h_ne_bot : (τ n ω).untopA ≠ ⊥ := by
+            refine fun h_eq_bot ↦ hτ_bot ?_
+            rw [← WithTop.coe_untopA hτ_top, h_eq_bot]
+            rfl
+          simp [h_ne_bot, h_covBy, nhdsLT_eq_bot_iff]
+        have : (𝓝[<] (τ n ω).untopA).NeBot := ⟨h_bot⟩
+        refine le_of_tendsto (f := fun t ↦ ‖X t ω‖) (x := 𝓝[<] ((τ n ω).untopA)) ?_ ?_
         · exact (tendsto_leftLim_of_tendsto ((h_cadlag ω).left_limit _)).norm
         · refine eventually_nhdsWithin_of_forall fun t ht ↦ ?_
           refine (hX_lt ?_).le
           simp only [Set.mem_Iio] at ht
-          have ht' := ht.trans this
-          rwa [WithTop.lt_untopA_iff hτ_top] at ht'
-      rw [sSup_Iio_eq_self_of_nhdsWithin_neBot h_bot]
-      have : (𝓝[<] (τ n ω).untopA).NeBot := ⟨h_bot⟩
-      refine le_of_tendsto (f := fun t ↦ ‖X t ω‖) (x := 𝓝[<] ((τ n ω).untopA)) ?_ ?_
-      · exact (tendsto_leftLim_of_tendsto ((h_cadlag ω).left_limit _)).norm
-      · refine eventually_nhdsWithin_of_forall fun t ht ↦ ?_
-        refine (hX_lt ?_).le
-        simp only [Set.mem_Iio] at ht
-        rwa [WithTop.lt_untopA_iff hτ_top] at ht
+          rwa [WithTop.lt_untopA_iff hτ_top] at ht
 
 lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
     {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
