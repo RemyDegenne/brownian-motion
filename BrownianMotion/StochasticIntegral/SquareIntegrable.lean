@@ -291,10 +291,7 @@ lemma isStable_jump_le {C : ℝ} (hC : 0 ≤ C) :
           simp [ht_bot] at hij
         simp only [hij.le, inf_of_le_right]
         rw [leftLim_congr' (g := fun _ ↦ X i)]
-        · rw [leftLim_eq_of_tendsto (y := X i)]
-          · simp
-          · exact ht_ne_bot
-          · exact tendsto_const_nhds
+        · simp [leftLim_eq_of_tendsto (y := X i) ht_ne_bot tendsto_const_nhds]
         · exact ht_ne_bot
         · rw [eventuallyEq_nhdsWithin_iff]
           filter_upwards [eventually_gt_nhds hij] with s hsτ hst
@@ -302,7 +299,6 @@ lemma isStable_jump_le {C : ℝ} (hC : 0 ≤ C) :
           exact hsτ.le
         · rw [min_eq_right hij.le]
     | inr h =>
-      simp only [h]
       convert hX j using 2
       rw [jump_congr]
       grind
