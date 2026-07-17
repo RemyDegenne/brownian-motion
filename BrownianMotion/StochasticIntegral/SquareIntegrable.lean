@@ -8,7 +8,6 @@ module
 public import BrownianMotion.Auxiliary.Martingale
 public import BrownianMotion.StochasticIntegral.LocalizingLeastGE
 public import BrownianMotion.StochasticIntegral.LocalMartingale
-public import Mathlib.Probability.Process.HittingTime
 
 /-! # Square integrable martingales
 
