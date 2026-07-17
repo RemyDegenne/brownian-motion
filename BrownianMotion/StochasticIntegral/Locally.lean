@@ -161,6 +161,15 @@ lemma Locally.isCadlag
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
+lemma Locally.continuous (hX : Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, Continuous (X · ω) := by
+  simp_rw [continuous_iff_continuousAt] at hX ⊢
+  refine Locally.ae (fun X i ↦ ContinuousAt X i) (fun X Y i hXY ↦ ?_) hX
+  rw [continuousAt_congr]
+  obtain ⟨k, hik, hk⟩ := hXY
+  filter_upwards [eventually_lt_nhds hik] with j hjk
+  exact hk j hjk
+
 /-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.IsRightContinuous (X · ω)) := by
@@ -225,6 +234,37 @@ lemma isStable_isCadlag :
   fun X hX τ hτ ω ↦
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
+
+lemma isStable_continuous :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Continuous (X · ω)) := by
+  simp_rw [continuous_iff_continuousAt]
+  refine isStable_pathwise (fun X i ↦ ContinuousAt X i) (fun _ ↦ by fun_prop) ?_ ?_
+  · intro X a hX i hai
+    cases lt_or_eq_of_le hai with
+    | inl hai =>
+      have h_eq : (fun x ↦ X (min x a)) =ᶠ[𝓝 i] fun _ ↦ X a := by
+        filter_upwards [eventually_gt_nhds hai] with j haj
+        rw [min_eq_right haj.le]
+      rw [continuousAt_congr h_eq]
+      fun_prop
+    | inr hai =>
+      simp only [hai]
+      specialize hX i
+      rw [continuousAt_iff_continuous_left'_right'] at hX ⊢
+      replace hX := hX.1
+      constructor
+      · refine (continuousWithinAt_congr ?_ (by simp)).mpr hX
+        grind
+      · have h_eq : (fun x ↦ X (min x i)) =ᶠ[𝓝[>] i] fun _ ↦ X i := by
+          rw [eventuallyEq_nhdsWithin_iff]
+          filter_upwards [] with j hij
+          grind
+        exact ContinuousWithinAt.congr_of_eventuallyEq (by fun_prop) h_eq (by simp)
+  · intro X Y i hXY
+    rw [continuousAt_congr]
+    obtain ⟨k, hik, hk⟩ := hXY
+    filter_upwards [eventually_lt_nhds hik] with j hjk
+    exact hk j hjk
 
 variable [𝓕.IsComplete P]
 
