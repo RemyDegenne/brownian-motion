@@ -20,8 +20,8 @@ public import Mathlib.Topology.EMetricSpace.BoundedVariation
 * `variationProcess_nonneg`: for `a ≤ t` the variation process is nonnegative.
 * `monotone_variationProcess`: the variation process of a path of locally bounded variation is
   monotone in time.
-* `continuous_variationProcess`: the variation process of a continuous path of locally bounded
-  variation is continuous.
+* `continuous_variationProcess`: the variation process of a continuous path of bounded variation is
+  continuous.
 * `MeasureTheory.StronglyAdapted.stronglyMeasurable_variationProcess`: for `a ≤ t`, the value of the
   variation process at time `t` is `𝓕 t`-measurable.
 
@@ -52,13 +52,6 @@ theorem variationProcess_nonneg (X : ι → Ω → E) {a t : ι} (hat : a ≤ t)
     0 ≤ variationProcess X a t ω :=
   variationOnFromTo.nonneg_of_le _ _ hat
 
-/-- The total variation of the path `s ↦ X s ω` on `[u, v]` is finite. -/
-theorem eVariationOn_Icc_ne_top {X : ι → Ω → E} {ω : Ω}
-    (hX : LocallyBoundedVariationOn (X · ω) univ) (u v : ι) :
-    eVariationOn (X · ω) (Icc u v) ≠ ∞ := by
-  rw [← univ_inter (Icc u v)]
-  exact hX u v (mem_univ u) (mem_univ v)
-
 theorem monotone_variationProcess {X : ι → Ω → E} {ω : Ω}
     (hX : LocallyBoundedVariationOn (X · ω) univ) (a : ι) :
     Monotone fun t ↦ variationProcess X a t ω := fun _ _ hst ↦
@@ -71,102 +64,44 @@ section Continuity
 variable [ConditionallyCompleteLinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
   [PseudoEMetricSpace E] {X : ι → Ω → E} {ω : Ω} {c : ι}
 
-/-- The variation process of a path of locally bounded variation that is continuous from the left at
-`c` is left-continuous at `c`. -/
+/-- The variation process of a path of bounded variation that is continuous from the left at `c` is
+left-continuous at `c`. -/
 theorem continuousWithinAt_variationProcess_Iic
-    (hX : LocallyBoundedVariationOn (X · ω) univ)
+    (hX : BoundedVariationOn (X · ω) univ)
     (hcont : ContinuousWithinAt (fun t ↦ X t ω) (Iic c) c) (a : ι) :
     ContinuousWithinAt (fun t ↦ variationProcess X a t ω) (Iic c) c := by
-  by_cases hd : ∃ d, d < c
-  · obtain ⟨d, hdc⟩ := hd
-    have hBV : BoundedVariationOn (X · ω) (Icc d c) := eVariationOn_Icc_ne_top hX d c
-    have hnhds : 𝓝[Icc d c] c = 𝓝[Iic c] c := by
-      rw [← Ici_inter_Iic]
-      exact nhdsWithin_inter_of_mem (mem_nhdsWithin_of_mem_nhds (Ici_mem_nhds hdc))
-    have htend : Tendsto (fun t ↦ (eVariationOn (X · ω) (Icc d c ∩ Icc t c)).toReal)
-        (𝓝[Iic c] c) (𝓝 0) := by
-      have hE : Tendsto (fun t ↦ eVariationOn (X · ω) (Icc d c ∩ Icc t c))
-          (𝓝[Iic c] c) (𝓝 0) := by
-        rw [← hnhds]
-        refine hBV.tendsto_eVariationOn_Icc_zero_left ?_
-        rw [inter_eq_left.2 Icc_subset_Iic_self]
-        exact hcont.mono Icc_subset_Iic_self
-      simpa [Function.comp_def] using (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hE
-    have hrepr : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Iic c] c]
-        fun t ↦ variationProcess X a c ω
-          - (eVariationOn (X · ω) (Icc d c ∩ Icc t c)).toReal := by
-      filter_upwards [mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hdc), self_mem_nhdsWithin]
-        with t hdt htc
-      rw [inter_eq_right.2 (Icc_subset_Icc hdt.le le_rfl)]
-      have hadd := variationOnFromTo.add (f := fun s ↦ X s ω) (s := univ) hX
-        (mem_univ a) (mem_univ c) (mem_univ t)
-      have hge : variationOnFromTo (fun s ↦ X s ω) univ c t
-          = -(eVariationOn (X · ω) (Icc t c)).toReal := by
-        rw [variationOnFromTo.eq_of_ge _ _ htc, univ_inter]
-      change variationOnFromTo (fun s ↦ X s ω) univ a t
-        = variationOnFromTo (fun s ↦ X s ω) univ a c
-          - (eVariationOn (X · ω) (Icc t c)).toReal
-      rw [← hadd, hge]; ring
-    change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Iic c] c)
-      (𝓝 (variationProcess X a c ω))
-    refine Tendsto.congr' hrepr.symm ?_
-    simpa using tendsto_const_nhds.sub htend
-  · have hsingle : Iic c = {c} := by
-      ext x
-      simp only [mem_Iic, mem_singleton_iff]
-      exact ⟨fun hx ↦ le_antisymm hx (not_lt.1 fun h ↦ hd ⟨x, h⟩), fun hx ↦ hx ▸ le_rfl⟩
-    rw [hsingle]
-    exact continuousWithinAt_singleton
+  have hE : Tendsto (fun t ↦ eVariationOn (X · ω) (Icc t c)) (𝓝[Iic c] c) (𝓝 0) := by
+    have h0 := hX.tendsto_eVariationOn_Icc_zero_left (x := c) (by simpa using hcont)
+    rw [nhdsWithin_univ] at h0
+    simpa [univ_inter] using h0.mono_left nhdsWithin_le_nhds
+  have htend : Tendsto (fun t ↦ (eVariationOn (X · ω) (Icc t c)).toReal) (𝓝[Iic c] c) (𝓝 0) := by
+    simpa [Function.comp_def] using (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hE
+  have hrepr : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Iic c] c]
+      fun t ↦ variationProcess X a c ω - (eVariationOn (X · ω) (Icc t c)).toReal := by
+    filter_upwards [self_mem_nhdsWithin] with t htc
+    have hadd := variationOnFromTo.add (f := fun s ↦ X s ω) (s := univ)
+      hX.locallyBoundedVariationOn (mem_univ a) (mem_univ c) (mem_univ t)
+    have hge : variationOnFromTo (fun s ↦ X s ω) univ c t
+        = -(eVariationOn (X · ω) (Icc t c)).toReal := by
+      rw [variationOnFromTo.eq_of_ge _ _ htc, univ_inter]
+    change variationOnFromTo (fun s ↦ X s ω) univ a t
+      = variationOnFromTo (fun s ↦ X s ω) univ a c - (eVariationOn (X · ω) (Icc t c)).toReal
+    rw [← hadd, hge]; ring
+  change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Iic c] c) (𝓝 (variationProcess X a c ω))
+  refine Tendsto.congr' hrepr.symm ?_
+  simpa using tendsto_const_nhds.sub htend
 
-/-- The variation process of a path of locally bounded variation that is continuous from the right
-at `c` is right-continuous at `c`. -/
+/-- The variation process of a path of bounded variation that is continuous from the right at `c` is
+right-continuous at `c`. This is Mathlib's `continuousWithinAt_variationOnFromTo_Ici`, since
+`variationProcess X a · ω = variationOnFromTo (X · ω) univ a`. -/
 theorem continuousWithinAt_variationProcess_Ici
-    (hX : LocallyBoundedVariationOn (X · ω) univ)
+    (hX : BoundedVariationOn (X · ω) univ)
     (hcont : ContinuousWithinAt (fun t ↦ X t ω) (Ici c) c) (a : ι) :
-    ContinuousWithinAt (fun t ↦ variationProcess X a t ω) (Ici c) c := by
-  by_cases hd : ∃ d, c < d
-  · obtain ⟨d, hcd⟩ := hd
-    have hBV : BoundedVariationOn (X · ω) (Icc c d) := eVariationOn_Icc_ne_top hX c d
-    have hnhds : 𝓝[Icc c d] c = 𝓝[Ici c] c := by
-      rw [← Ici_inter_Iic, inter_comm]
-      exact nhdsWithin_inter_of_mem (mem_nhdsWithin_of_mem_nhds (Iic_mem_nhds hcd))
-    have htend : Tendsto (fun t ↦ (eVariationOn (X · ω) (Icc c d ∩ Icc c t)).toReal)
-        (𝓝[Ici c] c) (𝓝 0) := by
-      have hE : Tendsto (fun t ↦ eVariationOn (X · ω) (Icc c d ∩ Icc c t))
-          (𝓝[Ici c] c) (𝓝 0) := by
-        rw [← hnhds]
-        refine hBV.tendsto_eVariationOn_Icc_zero_right c ?_
-        rw [inter_eq_left.2 Icc_subset_Ici_self]
-        exact hcont.mono Icc_subset_Ici_self
-      simpa [Function.comp_def] using (ENNReal.tendsto_toReal ENNReal.zero_ne_top).comp hE
-    have hrepr : (fun t ↦ variationProcess X a t ω) =ᶠ[𝓝[Ici c] c]
-        fun t ↦ variationProcess X a c ω
-          + (eVariationOn (X · ω) (Icc c d ∩ Icc c t)).toReal := by
-      filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Iio_mem_nhds hcd)]
-        with t hct htd
-      rw [inter_eq_right.2 (Icc_subset_Icc le_rfl htd.le)]
-      have hadd := variationOnFromTo.add (f := fun s ↦ X s ω) (s := univ) hX
-        (mem_univ a) (mem_univ c) (mem_univ t)
-      have hle : variationOnFromTo (fun s ↦ X s ω) univ c t
-          = (eVariationOn (X · ω) (Icc c t)).toReal := by
-        rw [variationOnFromTo.eq_of_le _ _ hct, univ_inter]
-      change variationOnFromTo (fun s ↦ X s ω) univ a t
-        = variationOnFromTo (fun s ↦ X s ω) univ a c
-          + (eVariationOn (X · ω) (Icc c t)).toReal
-      rw [← hadd, hle]
-    change Tendsto (fun t ↦ variationProcess X a t ω) (𝓝[Ici c] c)
-      (𝓝 (variationProcess X a c ω))
-    refine Tendsto.congr' hrepr.symm ?_
-    simpa using tendsto_const_nhds.add htend
-  · have hsingle : Ici c = {c} := by
-      ext x
-      simp only [mem_Ici, mem_singleton_iff]
-      exact ⟨fun hx ↦ le_antisymm (not_lt.1 fun h ↦ hd ⟨x, h⟩) hx, fun hx ↦ hx ▸ le_rfl⟩
-    rw [hsingle]
-    exact continuousWithinAt_singleton
+    ContinuousWithinAt (fun t ↦ variationProcess X a t ω) (Ici c) c :=
+  hX.continuousWithinAt_variationOnFromTo_Ici hcont
 
-/-- The variation process of a continuous path of locally bounded variation is continuous. -/
-theorem continuous_variationProcess (hX : LocallyBoundedVariationOn (X · ω) univ)
+/-- The variation process of a continuous path of bounded variation is continuous. -/
+theorem continuous_variationProcess (hX : BoundedVariationOn (X · ω) univ)
     (hcont : Continuous fun t ↦ X t ω) (a : ι) :
     Continuous fun t ↦ variationProcess X a t ω := by
   rw [continuous_iff_continuousAt]
