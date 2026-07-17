@@ -284,6 +284,12 @@ lemma locally_isCadlag_iff :
   ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
     ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
 
+lemma locally_continuous_iff :
+    Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, Continuous (X · ω) := by
+  refine ⟨fun h ↦ h.continuous, fun h ↦ ?_⟩
+  simp_rw [continuous_iff_continuousAt] at h ⊢
+  exact locally_of_ae (p := fun f ↦ ∀ i, ContinuousAt f i) h (fun _ ↦ continuousAt_const)
+
 end TopologicalSpace
 
 end LinearOrder

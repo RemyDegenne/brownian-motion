@@ -20,9 +20,12 @@ open scoped ENNReal Topology NNReal
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι]
-  [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {Ω E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+
+section LinearOrder
+
+variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι]
   {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 /-- A square integrable martingale is a martingale with cadlag paths and uniformly bounded
@@ -188,11 +191,16 @@ lemma IsSquareIntegrable.tendsto_eLpNorm_two_limitProcess (hX : IsSquareIntegrab
     Tendsto (fun i ↦ eLpNorm (X i - 𝓕.limitProcess X P) 2 P) atTop (𝓝 0) := by
   sorry
 
+end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+variable {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
+  [Approximable 𝓕 P]
+
 lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
-    [Approximable 𝓕 P]
     (hX : Martingale X 𝓕 P) (h_cadlag : ∀ ω, IsCadlag (X · ω))
     {C : ℝ} (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
     IsLocallySquareIntegrable X 𝓕 P := by
@@ -230,10 +238,7 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
     exact h_jump _ _
 
 lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_continuous
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PolishSpace ι] [DenselyOrdered ι] [CompleteSpace E] [SecondCountableTopology E]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
-    [Approximable 𝓕 P]
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι]
     (hX : Martingale X 𝓕 P) (h_cont : ∀ ω, Continuous (X · ω)) :
     IsLocallySquareIntegrable X 𝓕 P := by
   refine hX.isLocallySquareIntegrable_of_jump_le (fun ω ↦ (h_cont ω).isCadlag) (fun t ω ↦ ?_)
@@ -247,10 +252,7 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_continuous
     exact ⟨⊥, by grind⟩
 
 lemma isStable_isSquareIntegrable
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
-    {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
-    [Approximable 𝓕 P] :
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι] :
     IsStable 𝓕 fun X : ι → Ω → E ↦ IsSquareIntegrable X 𝓕 P := by
   borelize ι E
   have h_iff (X : ι → Ω → E) : IsSquareIntegrable X 𝓕 P ↔
@@ -262,11 +264,8 @@ lemma isStable_isSquareIntegrable
   -- 6.11.1 in He et al., using 6.8.1
   sorry
 
-omit [NormedSpace ℝ E] in
-lemma isStable_jump_le
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
-    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] {C : ℝ} (hC : 0 ≤ C) :
+omit [NormedSpace ℝ E] [𝓕.IsRightContinuous] in
+lemma isStable_jump_le {C : ℝ} (hC : 0 ≤ C) :
     IsStable 𝓕 fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C := by
   suffices IsStable 𝓕 fun X ↦ ∀ ω i, ‖Δ (X · ω) i‖ ≤ C by
     convert this
@@ -312,15 +311,28 @@ lemma isStable_jump_le
     intro s hsi
     exact hk s (hsi.trans_lt hik)
 
-lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
-    [Approximable 𝓕 P]
+omit [NormedSpace ℝ E] [𝓕.IsRightContinuous] [IsFiniteMeasure P] [Approximable 𝓕 P] in
+lemma locally_jump_le_iff {C : ℝ} (hC : 0 ≤ C) {X : ι → Ω → E} :
+    Locally (fun X ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) 𝓕 X P ↔ ∀ᵐ ω ∂P, ∀ t, ‖Δ (X · ω) t‖ ≤ C := by
+  have h := locally_iff_ae (fun (X : ι → E) t ↦ ‖Δ X t‖ ≤ C) ?_ ?_ (𝓕 := 𝓕) (P := P) (X := X)
+  rotate_left
+  · simp [hC]
+  · intro X Y i ⟨k, hik, hk⟩
+    rw [jump_congr]
+    intro s hsi
+    exact hk s (hsi.trans_lt hik)
+  rw [← h]
+  congr!
+  exact ⟨fun h ω t ↦ h t ω, fun h t ω ↦ h ω t⟩
+
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le [DenselyOrdered ι]
+    [NoMaxOrder ι] [PolishSpace ι]
+    [SecondCountableTopology E] [CompleteSpace E]
     (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C)
-    (h_jump : Locally (fun X ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) 𝓕 X P) :
+    (h_jump : ∀ᵐ ω ∂P, ∀ t, ‖Δ (X · ω) t‖ ≤ C) :
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
+  rw [← locally_jump_le_iff (𝓕 := 𝓕) hC] at h_jump
   refine IsStable.locally_induction₂
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
     (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) ?_ isStable_martingale
@@ -328,19 +340,20 @@ lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
   intro X hX hX_jump
   exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
 
-lemma IsLocalMartingale.isLocallySquareIntegrable_of_continuous
-    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
-    [Approximable 𝓕 P]
-    (hX : IsLocalMartingale X 𝓕 P) (h_cont : Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P) :
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_continuous [DenselyOrdered ι]
+    [NoMaxOrder ι] [PolishSpace ι]
+    [SecondCountableTopology E] [CompleteSpace E]
+    (hX : IsLocalMartingale X 𝓕 P) (h_cont : ∀ᵐ ω ∂P, Continuous (X · ω)) :
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
+  rw [← locally_continuous_iff (𝓕 := 𝓕)] at h_cont
   refine IsStable.locally_induction₂
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
     (p := fun X : ι → Ω → E ↦ ∀ ω, Continuous (X · ω)) ?_ isStable_martingale
     isStable_continuous isStable_isSquareIntegrable hX h_cont
   intro X hX hX_cont
   exact hX.1.isLocallySquareIntegrable_of_continuous hX_cont
+
+end ConditionallyCompleteLinearOrderBot
 
 end ProbabilityTheory
