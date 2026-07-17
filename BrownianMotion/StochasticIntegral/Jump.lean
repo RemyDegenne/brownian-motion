@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
+public import Mathlib.Topology.Instances.Discrete
 public import Mathlib.Topology.Order.LeftRightLim
 
 @[expose] public section
@@ -85,6 +86,12 @@ lemma leftLim_add_jump_of_ne_bot {E : Type*} [AddCommGroup E] [TopologicalSpace 
     (h : 𝓝[<] t ≠ ⊥) :
     leftLim f t + Δ f t = f t := by
   rw [jump_of_nhdsLT_ne_bot h, add_sub_assoc', add_sub_cancel_left]
+
+@[simp]
+lemma jump_nat {f : ℕ → E} (n : ℕ) : Δ f n = f n - f (n - 1) := by
+  cases n with
+  | zero => rw [← Nat.bot_eq_zero, jump_bot]; simp
+  | succ n => have : (n : ℕ) ⋖ n + 1 := ⟨by simp, by grind⟩; simp [jump_of_covBy this]
 
 lemma jump_eq_zero_of_tendsto [T2Space E] (h : 𝓝[<] t ≠ ⊥) (h' : Tendsto f (𝓝[<] t) (𝓝 (f t))) :
     Δ f t = 0 := by

@@ -445,6 +445,7 @@ MeasureTheory.martingale_martingalePart
 MeasureTheory.Submartingale.monotone_predictablePart
 MeasureTheory.Submartingale.predictablePart_nonneg
 ProbabilityTheory.IsLocalSubmartingale.doob_meyer
+Function.jump
 eVariationOn
 BoundedVariationOn
 LocallyBoundedVariationOn
