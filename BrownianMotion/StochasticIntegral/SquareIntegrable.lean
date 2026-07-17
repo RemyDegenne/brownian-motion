@@ -247,4 +247,49 @@ lemma Martingale.isLocallySquareIntegrable_of_continuous
     refine nhdsLT_neBot_of_exists_lt ?_
     exact ⟨⊥, by grind⟩
 
+lemma isStable_isSquareIntegrable
+    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
+    {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
+    [Approximable 𝓕 P] :
+    IsStable 𝓕 fun X : ι → Ω → E ↦ IsSquareIntegrable X 𝓕 P := by
+  borelize ι E
+  have h_iff (X : ι → Ω → E) : IsSquareIntegrable X 𝓕 P ↔
+      ((Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) ∧ ⨆ i, eLpNorm (X i) 2 P < ∞) :=
+    ⟨fun h ↦ ⟨⟨h.martingale, h.cadlag⟩, h.bounded⟩, fun h ↦ ⟨h.1.1, h.1.2, h.2⟩⟩
+  simp_rw [h_iff]
+  refine IsStable.and isStable_martingale ?_
+  intro X hX τ hτ
+  refine lt_of_le_of_lt ?_ hX
+  simp only [iSup_le_iff]
+  intro i
+  sorry
+
+lemma isStable_jump_le
+    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
+    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] {C : ℝ} :
+    IsStable 𝓕 fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C := by
+  intro X hX τ hτ t ω
+  sorry
+
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
+    {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [CompleteSpace E] [SecondCountableTopology E]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
+    [Approximable 𝓕 P]
+    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  borelize ι E
+  refine IsStable.locally_induction₂
+    (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
+    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) (𝓕 := 𝓕) (P := P) ?_ ?_ ?_ ?_ ?_ ?_
+  · intro X hX hX_jump
+    exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
+  · exact isStable_martingale
+  · exact isStable_jump_le
+  · exact isStable_isSquareIntegrable
+  · exact hX
+  · exact .of_prop h_jump
+
 end ProbabilityTheory
