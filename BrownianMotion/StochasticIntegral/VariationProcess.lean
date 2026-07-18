@@ -39,13 +39,14 @@ the regularity of the paths, and we provide two independent results:
   counterparts `eVariationOn_eq_comp_val_of_dense_Iio` and
   `measurable_eVariationOn_of_continuousWithinAt_Iio`, obtained by order duality.
 
-Neither hypothesis implies the other, and the second genuinely needs second countability: a dense
-set computes the variation of a right-continuous function only if it contains every point that is
-isolated on the right, so those points must be countable, and they need not be in a merely
-separable linear order (as in the split interval). Under two-sided continuity no such condition is
-needed: a point isolated in the subspace `↥s` is an open singleton, so every dense set already
-contains it. Separability alone then suffices, since a separable linear order is hereditarily
-separable (`Set.separableSpace`, which rests on `countable_setOf_isolated_subtype`).
+Neither hypothesis implies the other as separability usually does not imply second countable
+topology in an order topology.
+
+## TODO
+
+There are several results in Mathlib about the continuity of the variation (e.g.
+`BoundedVariationOn.continuousWithinAt_variationOnFromTo_Ici`), and these should be generalized to
+functions of locally bounded variation.
 
 -/
 
