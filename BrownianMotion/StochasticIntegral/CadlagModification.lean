@@ -90,8 +90,8 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
     ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
       (S.indicator (1 : ℝ) ● X) t ω
-        = ∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
-  set K : Finset ℕ := {k ∈ Finset.range n | idx k < idx (k + 1)} with hK
+        = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
+  set K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)} with hK
   have hKmem : ∀ {k}, k ∈ K → k < n ∧ idx k < idx (k + 1) := by
     intro k hk
     simpa [hK] using hk
@@ -109,7 +109,7 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     grind
   · -- measurableSet_set
     intro p hp
-    obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 hp
+    obtain ⟨k, hk, rfl⟩ := mem_image.1 hp
     have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
     simp only [dif_pos hex]
     obtain ⟨hcK, hceq⟩ := hex.choose_spec
@@ -119,7 +119,7 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     rwa [h1] at h2
   · -- pairwiseDisjoint
     intro p hp q hq hpq
-    simp only [Finset.coe_image, Set.mem_image, Finset.mem_coe] at hp hq
+    simp only [coe_image, Set.mem_image, mem_coe] at hp hq
     obtain ⟨k, hk, rfl⟩ := hp
     obtain ⟨l, hl, rfl⟩ := hq
     have hkl : k ≠ l := fun h ↦ hpq (by rw [h])
@@ -132,9 +132,8 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
   · -- the integral computation
     intro ω
     rw [ElementaryPredictableSet.integral_indicator_apply,
-      Finset.sum_image fun k hk l hl h ↦ hinj hk hl h]
-    refine (Finset.sum_congr rfl fun k hk ↦ ?_).trans
-      (Finset.sum_subset (Finset.filter_subset _ _) fun k hk hkK ↦ ?_)
+      sum_image fun k hk l hl h ↦ hinj hk hl h]
+    refine (sum_congr rfl fun k hk ↦ ?_).trans (sum_subset (filter_subset _ _) fun k hk hkK ↦ ?_)
     · -- per-term equality on K
       have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
       have hchoose : hex.choose = k := hinj hex.choose_spec.1 hk hex.choose_spec.2
@@ -146,7 +145,7 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
       · rw [Set.indicator_of_mem (by simp [h1]), h1, one_mul]
         simp [ContinuousLinearMap.mul_apply', hst]
     · -- terms outside K vanish
-      have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, Finset.mem_range.1 hk, h])
+      have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, mem_range.1 hk, h])
       have heq : idx (k + 1) = idx k :=
         le_antisymm (not_lt.1 hno) (hidx k.le_succ)
       rw [heq, sub_self, mul_zero]
@@ -163,7 +162,7 @@ variable {a b : ℝ} {t : ι} {F : Finset ι} {m : ℕ}
 lemma upcrossingStrat_eq_zero_or_one (a b : ℝ) (f : ℕ → Ω → ℝ) (N n : ℕ) (ω : Ω) :
     upcrossingStrat a b f N n ω = 0 ∨ upcrossingStrat a b f N n ω = 1 := by
   classical
-  rw [upcrossingStrat, ← Finset.indicator_biUnion_apply]
+  rw [upcrossingStrat, ← indicator_biUnion_apply]
   · rw [Set.indicator_apply]
     split_ifs
     · exact Or.inr rfl
@@ -209,14 +208,14 @@ lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ
       rw [finIdx_eq_of_card_le hn.ge]
     rw [hfn] at h1
     have h2 : (S.indicator (1 : ℝ) ● X) t ω
-        = ∑ k ∈ Finset.range n, upcrossingStrat a b f n k ω * (f (k + 1) - f k) ω := hS ω
+        = ∑ k ∈ range n, upcrossingStrat a b f n k ω * (f (k + 1) - f k) ω := hS ω
     rwa [← h2] at h1
   -- integrability of the elementary integral at `t`
   have hWmeas : ∀ k, Measurable (upcrossingStrat a b f n k) := fun k ↦
     ((hadapt.upcrossingStrat k).measurable).mono (𝓕.le _) le_rfl
   have hintS : Integrable ((S.indicator (1 : ℝ) ● X) t) μ := by
     have hSfun : ((S.indicator (1 : ℝ) ● X) t)
-        = fun ω ↦ ∑ k ∈ Finset.range n,
+        = fun ω ↦ ∑ k ∈ range n,
           upcrossingStrat a b f n k ω * (X (finIdx F t (k + 1)) ω - X (finIdx F t k) ω) :=
       funext hS
     rw [hSfun]
@@ -304,42 +303,46 @@ section Maximal
 
 variable {t : ι} {F : Finset ι} {lam : ℝ}
 
+@[simp]
+lemma hittingBtwn_self (f : ℕ → Ω → ℝ) (s : Set ℝ) (n : ℕ) (ω : Ω) :
+    hittingBtwn f s n n ω = n := by
+  rw [hittingBtwn]
+  simp only [Set.Icc_self, Set.mem_singleton_iff, exists_eq_left, ite_eq_right_iff]
+  intro h
+  simp [h]
+
+-- todo name
+lemma sum_indicator_mul_sub_eq_stopped'' (f : ℕ → Ω → ℝ) (s : Set ℝ) (n : ℕ) (ω : Ω) :
+    ∑ k ∈ range n, {ω' | ∀ j ≤ k, f j ω' ∉ s}.indicator 1 ω * (f (k + 1) ω - f k ω)
+      = f (hittingBtwn f s 0 n ω) ω - f 0 ω := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [sum_range_succ, ih]
+    by_cases hhit : ∃ j ∈ Set.Icc 0 n, f j ω ∈ s
+    · -- already hit by time `n`: the hitting time stabilizes and the last weight vanishes
+      have hstab : hittingBtwn f s 0 n ω = hittingBtwn f s 0 (n + 1) ω :=
+        hittingBtwn_eq_hittingBtwn_of_exists (Nat.le_succ n) hhit
+      obtain ⟨j, hj, hjs⟩ := hhit
+      rw [Set.indicator_of_notMem]
+      · grind
+      · simp only [Set.mem_setOf_eq, not_forall, not_not]
+        exact ⟨j, hj.2, hjs⟩
+    · rw [hittingBtwn, if_neg hhit]
+      have h2 : hittingBtwn f s 0 (n + 1) ω = n + 1 := by
+        refine le_antisymm (hittingBtwn_le ω) (not_lt.1 fun hlt ↦ ?_)
+        obtain ⟨j, hj, hjs⟩ := (hittingBtwn_lt_iff (n + 1) le_rfl).1 hlt
+        grind
+      rw [h2, Set.indicator_of_mem (by simpa using hhit)]
+      simp
+
 /-- Discrete stopped telescoping identity: weighting the increments of `f` by the indicator of
 "not yet above `lam`" telescopes to the value at the first time `f` exceeds `lam`. -/
 lemma sum_indicator_mul_sub_eq_stopped (f : ℕ → Ω → ℝ) (lam : ℝ) (n : ℕ) (ω : Ω) :
-    ∑ k ∈ Finset.range n,
-        ({ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω : ℝ) * (f (k + 1) ω - f k ω)
+    ∑ k ∈ range n, {ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω * (f (k + 1) ω - f k ω)
       = f (hittingBtwn f (Set.Ioi lam) 0 n ω) ω - f 0 ω := by
-  induction n with
-  | zero =>
-    have h0 : hittingBtwn f (Set.Ioi lam) 0 0 ω = 0 := Nat.le_zero.1 (hittingBtwn_le ω)
-    simp [h0]
-  | succ n ih =>
-    rw [Finset.sum_range_succ, ih]
-    by_cases hhit : ∃ j ∈ Set.Icc 0 n, f j ω ∈ Set.Ioi lam
-    · -- already hit by time `n`: the hitting time stabilizes and the last weight vanishes
-      have hstab : hittingBtwn f (Set.Ioi lam) 0 n ω = hittingBtwn f (Set.Ioi lam) 0 (n + 1) ω :=
-        hittingBtwn_eq_hittingBtwn_of_exists (Nat.le_succ n) hhit
-      obtain ⟨j, hj, hjs⟩ := hhit
-      have hnotmem : ω ∉ {ω' | ∀ j' ≤ n, f j' ω' ≤ lam} :=
-        fun hmem ↦ absurd (hmem j hj.2) (not_le.2 hjs)
-      rw [Set.indicator_of_notMem hnotmem, hstab]
-      ring
-    · -- no hit yet: all weights up to `n` equal one and the hitting time is the horizon
-      have hno : ∀ j, j ≤ n → f j ω ≤ lam :=
-        fun j hj ↦ not_lt.1 fun hlt ↦ hhit ⟨j, ⟨Nat.zero_le j, hj⟩, hlt⟩
-      have h1 : hittingBtwn f (Set.Ioi lam) 0 n ω = n := by
-        refine le_antisymm (hittingBtwn_le ω) (not_lt.1 fun hlt ↦ ?_)
-        obtain ⟨j, hj, hjs⟩ := (hittingBtwn_lt_iff n le_rfl).1 hlt
-        exact absurd hjs (not_lt.2 (hno j hj.2.le))
-      have h2 : hittingBtwn f (Set.Ioi lam) 0 (n + 1) ω = n + 1 := by
-        refine le_antisymm (hittingBtwn_le ω) (not_lt.1 fun hlt ↦ ?_)
-        obtain ⟨j, hj, hjs⟩ := (hittingBtwn_lt_iff (n + 1) le_rfl).1 hlt
-        exact absurd hjs (not_lt.2 (hno j (Nat.lt_succ_iff.1 hj.2)))
-      have hmem : ω ∈ {ω' | ∀ j' ≤ n, f j' ω' ≤ lam} := hno
-      rw [Set.indicator_of_mem hmem, h1, h2]
-      simp only [Pi.one_apply]
-      ring
+  convert sum_indicator_mul_sub_eq_stopped'' f (Set.Ioi lam) n ω
+  simp
 
 omit [LinearOrder ι] in
 /-- Integrability of bounded-weight increment sums. -/
@@ -347,9 +350,9 @@ lemma integrable_sum_weight_increments {g : ι → Ω → ℝ} (hgint : ∀ s, I
     {n : ℕ} {idx : ℕ → ι} {W : ℕ → Ω → ℝ}
     (hWmeas : ∀ k, k < n → AEStronglyMeasurable (W k) μ)
     (hWb : ∀ k, k < n → ∀ ω, ‖W k ω‖ ≤ 1) :
-    Integrable (fun ω ↦ ∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) μ :=
+    Integrable (fun ω ↦ ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) μ :=
   integrable_finsetSum _ fun k hk ↦ Integrable.bdd_mul ((hgint _).sub (hgint _))
-    (hWmeas k (Finset.mem_range.1 hk)) (ae_of_all _ (hWb k (Finset.mem_range.1 hk)))
+    (hWmeas k (mem_range.1 hk)) (ae_of_all _ (hWb k (mem_range.1 hk)))
 
 /-- Two-sided expectation bound for adapted `{0,1}`-weighted increment sums of `X`, from the
 boundedness of elementary stochastic integrals at time `t`. The lower bound uses the
@@ -360,7 +363,7 @@ lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
     {n : ℕ} {idx : ℕ → ι} (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t)
     {W : ℕ → Ω → ℝ} (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
-    ∫ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
+    ∫ ω, (∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
         ∈ Set.Icc (-(C + ∫ ω, |X (idx n) ω - X (idx 0) ω| ∂μ)) C := by
   have hb01 : ∀ (V : ℕ → Ω → ℝ), (∀ k, k < n → ∀ ω, V k ω = 0 ∨ V k ω = 1) →
       ∀ k, k < n → ∀ ω, ‖V k ω‖ ≤ 1 := by
@@ -368,11 +371,11 @@ lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
     rcases hV k hk ω with h | h <;> simp [h]
   have hupper : ∀ (V : ℕ → Ω → ℝ), (∀ k, k < n → ∀ ω, V k ω = 0 ∨ V k ω = 1) →
       (∀ k, k < n → Measurable[𝓕 (idx k)] (V k)) →
-      ∫ ω, (∑ k ∈ Finset.range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ ≤ C := by
+      ∫ ω, (∑ k ∈ range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ ≤ C := by
     intro V hV01 hVmeas
     obtain ⟨S, hS⟩ := exists_elementaryPredictableSet_integral_eq (𝓕 := 𝓕) (X := X) n
       hidx hidxt (W := V) hV01 hVmeas
-    have : (fun ω ↦ ∑ k ∈ Finset.range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω))
+    have : (fun ω ↦ ∑ k ∈ range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω))
         = ((S.indicator (1 : ℝ) ● X) t) := (funext hS).symm
     rw [this]
     exact hC S
@@ -382,24 +385,24 @@ lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
     have hW1meas : ∀ k, k < n → Measurable[𝓕 (idx k)] (fun ω ↦ 1 - W k ω) :=
       fun k hk ↦ (measurable_const.sub (hWmeas k hk))
     have hco := hupper (fun k ω ↦ 1 - W k ω) hW1 hW1meas
-    have hsplit : ∀ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω))
+    have hsplit : ∀ ω, (∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω))
         = (X (idx n) ω - X (idx 0) ω)
-          - ∑ k ∈ Finset.range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω) := by
+          - ∑ k ∈ range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω) := by
       intro ω
-      have htel : ∑ k ∈ Finset.range n, (X (idx (k + 1)) ω - X (idx k) ω)
-          = X (idx n) ω - X (idx 0) ω := Finset.sum_range_sub (fun k ↦ X (idx k) ω) n
-      rw [← htel, ← Finset.sum_sub_distrib]
+      have htel : ∑ k ∈ range n, (X (idx (k + 1)) ω - X (idx k) ω)
+          = X (idx n) ω - X (idx 0) ω := sum_range_sub (fun k ↦ X (idx k) ω) n
+      rw [← htel, ← sum_sub_distrib]
       grind
     have hint1 : Integrable
-        (fun ω ↦ ∑ k ∈ Finset.range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω)) μ :=
+        (fun ω ↦ ∑ k ∈ range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω)) μ :=
       integrable_sum_weight_increments hXint
         (fun k hk ↦ ((hW1meas k hk).mono (𝓕.le _) le_rfl).aestronglyMeasurable)
         (hb01 _ hW1)
     have hintsub : Integrable (fun ω ↦ X (idx n) ω - X (idx 0) ω) μ :=
       (hXint _).sub (hXint _)
-    have hI : ∫ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
+    have hI : ∫ ω, (∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
         = (∫ ω, (X (idx n) ω - X (idx 0) ω) ∂μ)
-          - ∫ ω, (∑ k ∈ Finset.range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ := by
+          - ∫ ω, (∑ k ∈ range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ := by
       rw [integral_congr_ae (μ := μ) (ae_of_all _ hsplit), integral_sub hintsub hint1]
     have hT : -(∫ ω, |X (idx n) ω - X (idx 0) ω| ∂μ)
         ≤ ∫ ω, (X (idx n) ω - X (idx 0) ω) ∂μ := by
@@ -418,7 +421,7 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
     {n : ℕ} {idx : ℕ → ι} (hidx : Monotone idx) {K : ℝ}
     (hK : ∀ W : ℕ → Ω → ℝ, (∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1) →
       (∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) →
-      ∫ ω, (∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) ∂μ ≤ K) :
+      ∫ ω, (∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) ∂μ ≤ K) :
     lam * μ.real {ω | ∃ k ≤ n, lam < g (idx k) ω}
       ≤ K + ∫ ω, |g (idx 0) ω| ∂μ + ∫ ω, |g (idx n) ω| ∂μ := by
   set f : ℕ → Ω → ℝ := fun k ω ↦ g (idx k) ω with hf
@@ -431,12 +434,12 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
   have hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k) := by
     intro k _
     have hset : MeasurableSet[𝓕 (idx k)] {ω' | ∀ j ≤ k, f j ω' ≤ lam} := by
-      have : {ω' | ∀ j ≤ k, f j ω' ≤ lam} = ⋂ j ∈ Finset.Iic k, f j ⁻¹' Set.Iic lam := by
+      have : {ω' | ∀ j ≤ k, f j ω' ≤ lam} = ⋂ j ∈ Iic k, f j ⁻¹' Set.Iic lam := by
         ext ω'
         simp [Set.mem_iInter]
       rw [this]
-      refine MeasurableSet.biInter (Finset.Iic k).countable_toSet fun j hj ↦ ?_
-      have hj' : j ≤ k := Finset.mem_Iic.1 hj
+      refine MeasurableSet.biInter (Iic k).countable_toSet fun j hj ↦ ?_
+      have hj' : j ≤ k := mem_Iic.1 hj
       exact (𝓕.mono (hidx hj')) _ ((hg (idx j)).measurable measurableSet_Iic)
     exact (measurable_const.indicator hset)
   have hWb : ∀ k, k < n → ∀ ω, ‖W k ω‖ ≤ 1 := by
@@ -446,34 +449,30 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
   set tau : Ω → ℕ := fun ω ↦ hittingBtwn f (Set.Ioi lam) 0 n ω with htau
   set ftau : Ω → ℝ := fun ω ↦ f (tau ω) ω with hftau
   have htel : ∀ ω, ftau ω = f 0 ω
-      + ∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω) := by
+      + ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω) := by
     intro ω
     have := sum_indicator_mul_sub_eq_stopped f lam n ω
     rw [hftau, htau]
-    have hterm : ∀ k, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)
-        = ({ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω : ℝ) * (f (k + 1) ω - f k ω) := by
-      intro k
-      rfl
+    have hterm k : W k ω * (g (idx (k + 1)) ω - g (idx k) ω)
+        = ({ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω : ℝ) * (f (k + 1) ω - f k ω) := rfl
     simp_rw [hterm]
     rw [this]
     ring
   have hint_sum : Integrable
-      (fun ω ↦ ∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) μ :=
+      (fun ω ↦ ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) μ :=
     integrable_sum_weight_increments hgint
       (fun k hk ↦ ((hWmeas k hk).mono (𝓕.le _) le_rfl).aestronglyMeasurable) hWb
   have hint_ftau : Integrable ftau μ := by
     have : ftau = fun ω ↦ f 0 ω
-        + ∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω) := funext htel
+        + ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω) := funext htel
     rw [this]
     exact (hgint _).add hint_sum
   -- the event
   set H : Set Ω := {ω | ∃ k ≤ n, lam < g (idx k) ω} with hH
   have hHmeas : MeasurableSet H := by
-    have : H = ⋃ k ∈ Finset.Iic n, (g (idx k)) ⁻¹' Set.Ioi lam := by
-      ext ω
-      simp [hH]
+    have : H = ⋃ k ∈ Iic n, (g (idx k)) ⁻¹' Set.Ioi lam := by ext; simp [hH]
     rw [this]
-    exact MeasurableSet.biUnion (Finset.Iic n).countable_toSet fun k _ ↦
+    exact MeasurableSet.biUnion (Iic n).countable_toSet fun k _ ↦
       (𝓕.le _) _ ((hg (idx k)).measurable measurableSet_Ioi)
   -- on `H`, the stopped value exceeds `lam`
   have hHval : ∀ ω ∈ H, lam < ftau ω := by
@@ -512,7 +511,7 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
           setIntegral_le_integral (hgint _).abs (ae_of_all _ fun ω ↦ abs_nonneg _)
   have htotal : ∫ ω, ftau ω ∂μ ≤ K + ∫ ω, |g (idx 0) ω| ∂μ := by
     have : ∫ ω, ftau ω ∂μ = (∫ ω, f 0 ω ∂μ)
-        + ∫ ω, (∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) ∂μ := by
+        + ∫ ω, (∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) ∂μ := by
       rw [← integral_add (hgint _) hint_sum]
       exact integral_congr_ae (ae_of_all _ htel)
     rw [this]
@@ -523,7 +522,7 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
   linarith [hsplit, hlower, hcompl, htotal]
 
 lemma finIdx_zero_eq_bot [OrderBot ι] {F : Finset ι} {t : ι} (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
-  have hcard : 0 < F.card := Finset.card_pos.2 ⟨⊥, hbot⟩
+  have hcard : 0 < F.card := card_pos.2 ⟨⊥, hbot⟩
   obtain ⟨k, hk, hkeq⟩ := exists_finIdx_eq (t := t) hbot
   rcases Nat.eq_zero_or_pos k with rfl | hkpos
   · exact hkeq
@@ -538,21 +537,17 @@ lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
     μ.real {ω | ∃ s ∈ F, lam < |X s ω|}
       ≤ 2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ + ∫ ω, |X t ω| ∂μ) / lam := by
   set G : Finset ι := insert ⊥ F with hG
-  have hGF : F ⊆ G := Finset.subset_insert _ _
-  have hGle : ∀ s ∈ G, s ≤ t := by
-    intro s hs
-    rcases Finset.mem_insert.1 hs with rfl | hs
-    · exact bot_le
-    · exact hF s hs
+  have hGF : F ⊆ G := subset_insert _ _
+  have hGle : ∀ s ∈ G, s ≤ t := by simp [G]; grind
   set n : ℕ := G.card with hn
   set idx : ℕ → ι := finIdx G t with hidx
   have hmono : Monotone idx := finIdx_monotone hGle
-  have hidx0 : idx 0 = ⊥ := finIdx_zero_eq_bot (Finset.mem_insert_self _ _)
+  have hidx0 : idx 0 = ⊥ := finIdx_zero_eq_bot (mem_insert_self _ _)
   have hidxn : idx n = t := finIdx_eq_of_card_le hn.ge
   -- two-sided expectation bound for adapted 0/1 weights along `idx`
   have hbdd : ∀ W : ℕ → Ω → ℝ, (∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1) →
       (∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) →
-      ∫ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
+      ∫ ω, (∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
         ∈ Set.Icc (-(C + ∫ ω, |X (idx n) ω - X (idx 0) ω| ∂μ)) C :=
     fun W hW01 hWmeas ↦ integral_sum_weight_increments_mem_Icc (t := t) hXint hC hmono
       (finIdx_le hGle) hW01 hWmeas
@@ -566,13 +561,12 @@ lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
     (K := C + ∫ ω, |X (idx n) ω - X (idx 0) ω| ∂μ)
     (fun W hW01 hWmeas ↦ by
       have h1 := (hbdd W hW01 hWmeas).1
-      have h2 : ∫ ω, (∑ k ∈ Finset.range n, W k ω * (-X (idx (k + 1)) ω - -X (idx k) ω)) ∂μ
-          = -∫ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ := by
+      have h2 : ∫ ω, (∑ k ∈ range n, W k ω * (-X (idx (k + 1)) ω - -X (idx k) ω)) ∂μ
+          = -∫ ω, (∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ := by
         rw [← integral_neg]
         congr 1 with ω
-        rw [← Finset.sum_neg_distrib]
-        congr 1 with k
-        ring
+        rw [← sum_neg_distrib]
+        grind
       rw [h2]
       linarith)
   -- combine the two events
@@ -580,18 +574,10 @@ lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
       ⊆ {ω | ∃ k ≤ n, lam < X (idx k) ω} ∪ {ω | ∃ k ≤ n, lam < -X (idx k) ω} := by
     rintro ω ⟨s, hs, habs⟩
     obtain ⟨k, hk, hkeq⟩ := exists_finIdx_eq (t := t) (hGF hs)
-    have hkeq' : idx k = s := hkeq
-    rcases lt_abs.1 habs with h | h
-    · exact Or.inl ⟨k, hk.le, hkeq'.symm ▸ h⟩
-    · exact Or.inr ⟨k, hk.le, hkeq'.symm ▸ h⟩
-  have habs0 : ∫ ω, |(fun s ω ↦ -X s ω) ⊥ ω| ∂μ = ∫ ω, |X ⊥ ω| ∂μ := by
-    congr 1 with ω
-    rw [abs_neg]
-  have habsn : ∫ ω, |(fun s ω ↦ -X s ω) t ω| ∂μ = ∫ ω, |X t ω| ∂μ := by
-    congr 1 with ω
-    rw [abs_neg]
+    grind
+  have habs u : ∫ ω, |(fun s ω ↦ -X s ω) u ω| ∂μ = ∫ ω, |X u ω| ∂μ := by simp
   rw [hidx0, hidxn] at hpos hneg
-  rw [habs0, habsn] at hneg
+  rw [habs ⊥, habs t] at hneg
   have hunion : μ.real {ω | ∃ s ∈ F, lam < |X s ω|}
       ≤ μ.real {ω | ∃ k ≤ n, lam < X (idx k) ω} + μ.real {ω | ∃ k ≤ n, lam < -X (idx k) ω} :=
     (measureReal_mono hsub).trans (measureReal_union_le _ _)
@@ -606,24 +592,21 @@ lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
 
 end Maximal
 
-variable [TopologicalSpace ι] [OrderBot ι] [OrderTopology ι]
-  [FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
-  [DenselyOrdered ι] [NoMaxOrder ι] -- required for ∀ t : ι, (𝓝[>] t).NeBot)
-
 /-! ### Almost-sure regularity along countable time sets -/
 
 section CountableEvents
 
-set_option linter.unusedSectionVars false
-
 variable {T : Set ι} {t : ι} {a b lam : ℝ} {m : ℕ}
 
+omit [LinearOrder ι] in
 lemma countable_setOf_finset_coe_subset (hT : T.Countable) :
     {F : Finset ι | ↑F ⊆ T}.Countable := by
   have h1 : {F : Finset ι | ↑F ⊆ T}
       ⊆ (fun F : Finset ι ↦ (F : Set ι)) ⁻¹' {u : Set ι | u.Finite ∧ u ⊆ T} :=
     fun F hF ↦ ⟨F.finite_toSet, hF⟩
-  exact ((Set.countable_setOf_finite_subset hT).preimage Finset.coe_injective).mono h1
+  exact ((Set.countable_setOf_finite_subset hT).preimage coe_injective).mono h1
+
+variable [OrderBot ι]
 
 /-- The union of the alternation events over all finite subsets of a countable set of times
 below `t` has measure at most `K / ((b - a) * m)`. -/
@@ -637,8 +620,8 @@ lemma measure_biUnion_altSet_le [IsFiniteMeasure μ]
     countable_setOf_finset_coe_subset (hT.mono Set.inter_subset_left)
   have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ altSet X F a b m)
       {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} :=
-    fun F₁ h₁ F₂ h₂ ↦ ⟨F₁ ∪ F₂, by grind, altSet_mono Finset.subset_union_left,
-      altSet_mono Finset.subset_union_right⟩
+    fun F₁ h₁ F₂ h₂ ↦ ⟨F₁ ∪ F₂, by grind, altSet_mono subset_union_left,
+      altSet_mono subset_union_right⟩
   rw [measure_biUnion_eq_iSup hcnt hdir]
   refine iSup₂_le fun F hF ↦ ?_
   have hF' : ∀ s ∈ F, s ≤ t := fun s hs ↦ (hF hs).2
@@ -725,6 +708,10 @@ lemma measure_iInter_biUnion_exists_abs [IsFiniteMeasure μ]
 
 end CountableEvents
 
+variable [TopologicalSpace ι] [OrderBot ι] [OrderTopology ι]
+  [FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
+  [DenselyOrdered ι] [NoMaxOrder ι] -- required for ∀ t : ι, (𝓝[>] t).NeBot)
+
 /-! ### Selection of alternating tuples from frequent oscillation -/
 
 section Selection
@@ -771,7 +758,7 @@ lemma exists_finset_altSet_of_frequently_right (hxd : x < d)
   obtain ⟨c, hdesc, hmem, hval⟩ := hsel (2 * m)
   -- reverse the order
   set ca : ℕ → ι := fun j ↦ c (2 * m - 1 - j) with hca
-  exact ⟨(Finset.range (2 * m)).image ca, by grind, ca, by grind⟩
+  exact ⟨(range (2 * m)).image ca, by grind, ca, by grind⟩
 
 /-- Left-neighborhood version of `exists_finset_altSet_of_frequently_right`: the alternations
 occur in `T ∩ Iio x`. -/
@@ -811,16 +798,13 @@ lemma exists_finset_altSet_of_frequently_left
       refine ⟨Function.update c k s, ?_, by grind⟩
       intro i hi
       rcases Nat.lt_or_ge (i + 1) k with h | h
-      · rw [Function.update_of_ne (by lia), Function.update_of_ne (by lia)]
-        exact hasc i h
+      · grind
       · have hik : i + 1 = k := by lia
-        have hipos : 0 < k := by lia
         rw [hik, Function.update_self, Function.update_of_ne (by lia)]
-        rw [if_pos hipos] at hsIoo
         have hci : c i = c (k - 1) := by congr 1; lia
         grind
   obtain ⟨c, hasc, hmem, hval⟩ := hsel (2 * m)
-  exact ⟨(Finset.range (2 * m)).image c, by grind, c, hasc, by grind⟩
+  exact ⟨(range (2 * m)).image c, by grind, c, hasc, by grind⟩
 
 end Selection
 
@@ -867,9 +851,9 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
     by_contra hcon
     push Not at hcon
     refine hM (Set.mem_biUnion (x := ({s'} : Finset ι)) ?_ ?_)
-    · rw [Set.mem_setOf_eq, Finset.coe_singleton, Set.singleton_subset_iff]
+    · rw [Set.mem_setOf_eq, coe_singleton, Set.singleton_subset_iff]
       exact hs'
-    · exact ⟨s', Finset.mem_singleton_self s', hcon⟩
+    · exact ⟨s', mem_singleton_self s', hcon⟩
   have hdense : Dense (Set.range ((↑) : ℚ → ℝ)) := Rat.denseRange_cast
   constructor
   · -- right limits
