@@ -1,0 +1,118 @@
+/-
+Copyright (c) 2026 Rohit Manokaran. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rohit Manokaran
+-/
+module
+
+public import Mathlib.Probability.Martingale.Upcrossing
+
+@[expose] public section
+
+namespace MeasureTheory
+
+variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
+  {f g : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ} {ω : Ω}
+
+/-- `hittingBtwn` only depends on the hitting predicate. -/
+lemma hittingBtwn_congr {s : Set ℝ}
+    (h : ∀ i ω, f i ω ∈ s ↔ g i ω ∈ s) (n m : ℕ) :
+    hittingBtwn f s n m = hittingBtwn g s n m := by
+  ext
+  unfold hittingBtwn
+  congr <;> ext <;> simp [h]
+
+/-- Upper crossing times only depend on the position of the process relative to `a` and `b`. -/
+lemma upperCrossingTime_congr
+    (hIic : ∀ i ω, f i ω ≤ a ↔ g i ω ≤ a) (hIci : ∀ i ω, b ≤ f i ω ↔ b ≤ g i ω) (n : ℕ) :
+    upperCrossingTime a b f N n = upperCrossingTime a b g N n := by
+  have hIic' : ∀ i ω, f i ω ∈ Set.Iic a ↔ g i ω ∈ Set.Iic a := hIic
+  have hIci' : ∀ i ω, f i ω ∈ Set.Ici b ↔ g i ω ∈ Set.Ici b := hIci
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    ext ω
+    rw [upperCrossingTime_succ_eq, upperCrossingTime_succ_eq, lowerCrossingTime,
+      lowerCrossingTime, ih, hittingBtwn_congr hIic', hittingBtwn_congr hIci']
+
+/-- Lower crossing times only depend on the position of the process relative to `a` and `b`. -/
+lemma lowerCrossingTime_congr
+    (hIic : ∀ i ω, f i ω ≤ a ↔ g i ω ≤ a) (hIci : ∀ i ω, b ≤ f i ω ↔ b ≤ g i ω) (n : ℕ) :
+    lowerCrossingTime a b f N n = lowerCrossingTime a b g N n := by
+  ext ω
+  rw [lowerCrossingTime, lowerCrossingTime, upperCrossingTime_congr hIic hIci,
+    hittingBtwn_congr hIic]
+
+lemma upcrossingStrat_congr
+    (hIic : ∀ i ω, f i ω ≤ a ↔ g i ω ≤ a) (hIci : ∀ i ω, b ≤ f i ω ↔ b ≤ g i ω) (n : ℕ) :
+    upcrossingStrat a b f N n = upcrossingStrat a b g N n := by
+  ext ω
+  simp_rw [upcrossingStrat, upperCrossingTime_congr hIic hIci, lowerCrossingTime_congr hIic hIci]
+
+lemma upcrossingsBefore_congr
+    (hIic : ∀ i ω, f i ω ≤ a ↔ g i ω ≤ a) (hIci : ∀ i ω, b ≤ f i ω ↔ b ≤ g i ω) :
+    upcrossingsBefore a b f N ω = upcrossingsBefore a b g N ω := by
+  simp_rw [upcrossingsBefore, upperCrossingTime_congr hIic hIci]
+
+/-- Pathwise upcrossing inequality with correction term: unlike
+`MeasureTheory.mul_upcrossingsBefore_le`, this requires no assumption `a ≤ f N ω`, at the price
+of the extra term `max (a - f N ω) 0`. -/
+lemma mul_upcrossingsBefore_le_sum_add_max (hab : a < b) :
+    (b - a) * upcrossingsBefore a b f N ω ≤
+      (∑ k ∈ Finset.range N, upcrossingStrat a b f N k ω * (f (k + 1) - f k) ω)
+        + max (a - f N ω) 0 := by
+  rcases N with _ | M
+  · simp [upcrossingsBefore_zero]
+  let g : ℕ → Ω → ℝ := fun k ω' ↦ if k = M + 1 then max (f k ω') a else f k ω'
+  have hIic i ω' : g i ω' ≤ a ↔ f i ω' ≤ a := by simp [g]; grind
+  have hIci i ω' : b ≤ g i ω' ↔ b ≤ f i ω' := by simp [g]; grind
+  have hga : a ≤ g (M + 1) ω := by simp [g]
+  have key : (b - a) * upcrossingsBefore a b g (M + 1) ω ≤
+      ∑ k ∈ Finset.range (M + 1), upcrossingStrat a b g (M + 1) k ω * (g (k + 1) - g k) ω :=
+    mul_upcrossingsBefore_le (f := g) (N := M + 1) (ω := ω) hga hab
+  simp_rw [upcrossingsBefore_congr hIic hIci, upcrossingStrat_congr hIic hIci] at key
+  refine key.trans ?_
+  rw [Finset.sum_range_succ, Finset.sum_range_succ
+    (f := fun k ↦ upcrossingStrat a b f (M + 1) k ω * (f (k + 1) - f k) ω)]
+  have hsum k (hk : k ∈ Finset.range M) :
+      upcrossingStrat a b f (M + 1) k ω * (g (k + 1) - g k) ω
+        = upcrossingStrat a b f (M + 1) k ω * (f (k + 1) - f k) ω := by simp [g]; grind
+  rw [Finset.sum_congr rfl hsum, add_assoc]
+  gcongr
+  have hgM : g M = f M := by simp [g]
+  have hgM1 : g (M + 1) ω = f (M + 1) ω + max (a - f (M + 1) ω) 0 := by simp [g]; grind
+  rw [Pi.sub_apply, hgM, hgM1]
+  have h11 : upcrossingStrat a b f (M + 1) M ω ≤ 1 := upcrossingStrat_le_one
+  calc upcrossingStrat a b f (M + 1) M ω * (f (M + 1) ω + max (a - f (M + 1) ω) 0 - f M ω)
+  _ = upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω
+      + upcrossingStrat a b f (M + 1) M ω * max (a - f (M + 1) ω) 0 := by rw [Pi.sub_apply]; ring
+  _ ≤ upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + 1 * max (a - f (M + 1) ω) 0 := by
+    gcongr
+  _ = upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + max (a - f (M + 1) ω) 0 := by ring
+
+/-- Alternations force upcrossings: if there are `m` pairs of (strictly increasing) times below
+`N` at which `f` is alternately strictly below `a` and strictly above `b`, then `f` has at least
+`m` upcrossings of `[a, b]` before `N`. -/
+lemma le_upcrossingsBefore_of_alternating (hab : a < b) {m : ℕ} {c : ℕ → ℕ}
+    (hmono : ∀ i, i + 1 < 2 * m → c i < c (i + 1)) (hN : ∀ i < 2 * m, c i < N)
+    (ha : ∀ i < m, f (c (2 * i)) ω < a) (hb : ∀ i < m, b < f (c (2 * i + 1)) ω) :
+    m ≤ upcrossingsBefore a b f N ω := by
+  rcases m with _ | m
+  · simp
+  have key i : i < m + 1 → i + 1 ≤ upcrossingsBefore a b f (c (2 * i + 1) + 1) ω := by
+    induction i with
+    | zero =>
+      intro h0
+      have := upcrossingsBefore_lt_of_exists_upcrossing (f := f) (ω := ω) (N := 0) hab
+        (by lia) (ha 0 h0) (hmono 0 (by lia)).le (hb 0 h0)
+      lia
+    | succ i ih =>
+      intro hi
+      have h2 := upcrossingsBefore_lt_of_exists_upcrossing (f := f) (ω := ω)
+        (N := c (2 * i + 1) + 1) hab (hmono (2 * i + 1) (by lia)) (ha (i + 1) hi)
+        (hmono (2 * (i + 1)) (by lia)).le (hb (i + 1) hi)
+      lia
+  refine (key m (by lia)).trans ?_
+  exact upcrossingsBefore_mono (f := f) hab (hN (2 * m + 1) (by lia)) ω
+
+end MeasureTheory
