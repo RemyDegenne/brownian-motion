@@ -61,7 +61,7 @@ lemma finIdx_mem {F : Finset ι} {t : ι} {k : ℕ} (h : k < F.card) : finIdx F 
 
 lemma finIdx_eq_of_card_le {F : Finset ι} {t : ι} {k : ℕ} (h : F.card ≤ k) :
     finIdx F t k = t := by
-  rw [finIdx, dif_neg (by omega)]
+  rw [finIdx, dif_neg (by lia)]
 
 lemma finIdx_le {F : Finset ι} {t : ι} (hF : ∀ s ∈ F, s ≤ t) (k : ℕ) : finIdx F t k ≤ t := by
   rcases lt_or_ge k F.card with h | h
@@ -113,9 +113,7 @@ lemma exists_elementaryPredictableSet_integral_eq {t : ι} (n : ℕ) {idx : ℕ 
     fun p ↦ if h : ∃ k ∈ K, (idx k, idx (k + 1)) = p then W h.choose ⁻¹' {1} else ∅,
     ?_, @MeasurableSet.empty _ (𝓕 ⊥), ?_, ?_⟩, ?_⟩
   · -- le_of_mem_I
-    intro p hp
-    obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 hp
-    exact (hKmem hk).2.le
+    grind
   · -- measurableSet_set
     intro p hp
     obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 hp
@@ -269,30 +267,17 @@ enumeration of `F`. -/
 lemma altSet_subset_upcrossingsBefore (hab : a < b) :
     altSet X F a b m
       ⊆ {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) F.card ω} := by
-  classical
   rintro ω ⟨c, hc1, hc2, hca, hcb⟩
   have hex : ∀ i, i < 2 * m → ∃ k, k < F.card ∧ finIdx F t k = c i :=
     fun i hi ↦ exists_finIdx_eq (hc2 i hi)
-  set c' : ℕ → ℕ := fun i ↦ if hi : i < 2 * m then (hex i hi).choose else 0 with hc'
-  have hc'spec : ∀ i (hi : i < 2 * m),
-      c' i < F.card ∧ finIdx F t (c' i) = c i := by
-    intro i hi
-    rw [hc']
-    simp only [dif_pos hi]
-    exact (hex i hi).choose_spec
-  refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ ?_ ?_ ?_
-  · intro i hi
-    obtain ⟨hlt1, heq1⟩ := hc'spec i (by omega)
-    obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
-    rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
-    exact hc1 i hi
-  · exact fun i hi ↦ (hc'spec i hi).1
-  · intro i hi
-    rw [(hc'spec (2 * i) (by omega)).2]
-    exact hca i hi
-  · intro i hi
-    rw [(hc'spec (2 * i + 1) (by omega)).2]
-    exact hcb i hi
+  let c' : ℕ → ℕ := fun i ↦ if hi : i < 2 * m then (hex i hi).choose else 0
+  have hc'spec : ∀ i (hi : i < 2 * m), c' i < F.card ∧ finIdx F t (c' i) = c i := by grind
+  refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ (by grind) (by grind) (by grind)
+  intro i hi
+  obtain ⟨hlt1, heq1⟩ := hc'spec i (by lia)
+  obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
+  rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
+  exact hc1 i hi
 
 /-- Quantitative alternation bound: the probability of `m` alternations along any finite
 `F ⊆ Iic t` is at most `K / m` with `K` independent of `F` and `m`. -/
@@ -302,33 +287,24 @@ lemma measureReal_altSet_le [IsFiniteMeasure μ]
     (hab : a < b) (hm : 0 < m) (hF : ∀ s ∈ F, s ≤ t) :
     μ.real (altSet X F a b m)
       ≤ (C + ∫ ω, max (a - X t ω) 0 ∂μ) / (b - a) / m := by
-  classical
-  set f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω with hf
+  let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
   have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
   have hsub : altSet X F a b m
-      ⊆ {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)} := by
-    refine (altSet_subset_upcrossingsBefore (t := t) hab).trans ?_
-    intro ω hω
-    exact_mod_cast hω
+      ⊆ {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)} :=
+    (altSet_subset_upcrossingsBefore (t := t) hab).trans (fun ω hω ↦ mod_cast hω)
   have hmono : μ.real (altSet X F a b m)
-      ≤ μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)} :=
-    measureReal_mono hsub
-  have hmarkov := mul_meas_ge_le_integral_of_nonneg (μ := μ)
-    (f := fun ω ↦ (upcrossingsBefore a b f F.card ω : ℝ))
-    (ae_of_all _ fun ω ↦ by positivity)
-    (hadapt.integrable_upcrossingsBefore hab) (m : ℝ)
-  have hbound := mul_integral_upcrossingsBefore_finIdx_le
-    (μ := μ) hX hXint hC hab hF
-  have hbpos : (0 : ℝ) < b - a := sub_pos.2 hab
-  have hmpos : (0 : ℝ) < m := by exact_mod_cast hm
+      ≤ μ.real {ω | (m : ℝ) ≤ upcrossingsBefore a b f F.card ω} := measureReal_mono hsub
   refine hmono.trans ?_
   rw [div_div, le_div_iff₀ (by positivity)]
   calc μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)} * ((b - a) * m)
-      = (b - a) * ((m : ℝ) * μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)}) := by
-        ring
-    _ ≤ (b - a) * ∫ ω, (upcrossingsBefore a b f F.card ω : ℝ) ∂μ := by gcongr
-    _ ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ := hbound
+  _ = (b - a) * ((m : ℝ) * μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f F.card ω : ℝ)}) := by ring
+  _ ≤ (b - a) * ∫ ω, (upcrossingsBefore a b f F.card ω : ℝ) ∂μ := by
+    gcongr
+    exact mul_meas_ge_le_integral_of_nonneg
+      (ae_of_all _ fun ω ↦ by positivity) (hadapt.integrable_upcrossingsBefore hab) m
+  _ ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ :=
+    mul_integral_upcrossingsBefore_finIdx_le (μ := μ) hX hXint hC hab hF
 
 end UpcrossingBound
 
@@ -415,9 +391,7 @@ lemma integral_sum_weight_increments_mem_Icc [IsFiniteMeasure μ]
     exact hC S
   constructor
   · -- lower bound via the complementary weights
-    have hW1 : ∀ k, k < n → ∀ ω, (1 - W k ω) = 0 ∨ (1 - W k ω) = 1 := by
-      intro k hk ω
-      rcases hW01 k hk ω with h | h <;> simp [h]
+    have hW1 : ∀ k, k < n → ∀ ω, (1 - W k ω) = 0 ∨ (1 - W k ω) = 1 := by grind
     have hW1meas : ∀ k, k < n → Measurable[𝓕 (idx k)] (fun ω ↦ 1 - W k ω) :=
       fun k hk ↦ (measurable_const.sub (hWmeas k hk))
     have hco := hupper (fun k ω ↦ 1 - W k ω) hW1 hW1meas
@@ -428,8 +402,7 @@ lemma integral_sum_weight_increments_mem_Icc [IsFiniteMeasure μ]
       have htel : ∑ k ∈ Finset.range n, (X (idx (k + 1)) ω - X (idx k) ω)
           = X (idx n) ω - X (idx 0) ω := Finset.sum_range_sub (fun k ↦ X (idx k) ω) n
       rw [← htel, ← Finset.sum_sub_distrib]
-      congr 1 with k
-      ring
+      grind
     have hint1 : Integrable
         (fun ω ↦ ∑ k ∈ Finset.range n, (1 - W k ω) * (X (idx (k + 1)) ω - X (idx k) ω)) μ :=
       integrable_sum_weight_increments hXint
@@ -793,21 +766,13 @@ lemma exists_finset_altSet_of_frequently_right (hxd : x < d)
       ∧ (∀ i < k, if Even i then b < X (c i) ω else X (c i) ω < a) := by
     intro k
     induction k with
-    | zero => exact ⟨fun _ ↦ d, by omega, by omega, by omega⟩
+    | zero => exact ⟨fun _ ↦ d, by lia, by lia, by lia⟩
     | succ k ih =>
       obtain ⟨c, hdesc, hmem, hval⟩ := ih
       -- previous lower endpoint
       set u : ι := if hk : 0 < k then c (k - 1) else d with hu
-      have hxu : x < u := by
-        rw [hu]
-        split_ifs with hk
-        · exact (hmem (k - 1) (by omega)).2.1
-        · exact hxd
-      have hud : u ≤ d := by
-        rw [hu]
-        split_ifs with hk
-        · exact (hmem (k - 1) (by omega)).2.2.le
-        · exact le_rfl
+      have hxu : x < u := by grind
+      have hud : u ≤ d := by grind
       have hU : Set.Ioo x u ∩ T ∈ 𝓝[>] x ⊓ 𝓟 T :=
         Filter.inter_mem (Filter.mem_inf_of_left (Ioo_mem_nhdsGT hxu))
           (Filter.mem_inf_of_right (Filter.mem_principal_self T))
@@ -823,65 +788,11 @@ lemma exists_finset_altSet_of_frequently_right (hxd : x < d)
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
       obtain ⟨s, ⟨hsIoo, hsT⟩, hsval⟩ := hpick
-      refine ⟨Function.update c k s, ?_, ?_, ?_⟩
-      · intro i hi
-        rcases Nat.lt_or_ge (i + 1) k with h | h
-        · rw [Function.update_of_ne (by omega), Function.update_of_ne (by omega)]
-          exact hdesc i h
-        · have hik : i + 1 = k := by omega
-          have hipos : 0 < k := by omega
-          rw [hik, Function.update_self, Function.update_of_ne (by omega)]
-          have hci : c i = u := by
-            rw [hu, dif_pos hipos]
-            congr 1
-            omega
-          rw [hci]
-          exact hsIoo.2
-      · intro i hi
-        rcases Nat.lt_or_ge i k with h | h
-        · rw [Function.update_of_ne (by omega)]
-          exact hmem i h
-        · have hik : i = k := by omega
-          rw [hik, Function.update_self]
-          exact ⟨hsT, hsIoo.1, hsIoo.2.trans_le hud⟩
-      · intro i hi
-        rcases Nat.lt_or_ge i k with h | h
-        · rw [Function.update_of_ne (by omega)]
-          exact hval i h
-        · have hik : i = k := by omega
-          subst hik
-          rw [Function.update_self]
-          exact hsval
+      exact ⟨Function.update c k s, by grind⟩
   obtain ⟨c, hdesc, hmem, hval⟩ := hsel (2 * m)
   -- reverse the order
   set ca : ℕ → ι := fun j ↦ c (2 * m - 1 - j) with hca
-  refine ⟨(Finset.range (2 * m)).image ca, ?_, ca, ?_, ?_, ?_, ?_⟩
-  · intro s hs
-    simp only [Finset.coe_image, Set.mem_image, Finset.coe_range, Set.mem_Iio] at hs
-    obtain ⟨j, hj, rfl⟩ := hs
-    exact hmem _ (by omega)
-  · intro j hj
-    have h1 : 2 * m - 1 - (j + 1) + 1 = 2 * m - 1 - j := by omega
-    have h2 := hdesc (2 * m - 1 - (j + 1)) (by omega)
-    rw [h1] at h2
-    exact h2
-  · intro j hj
-    exact Finset.mem_image_of_mem _ (Finset.mem_range.2 hj)
-  · intro i hi
-    have hodd : ¬ Even (2 * m - 1 - 2 * i) := by
-      have h1 : 2 * m - 1 - 2 * i = 2 * (m - i - 1) + 1 := by omega
-      rw [h1]
-      simp
-    have h2 := hval (2 * m - 1 - 2 * i) (by omega)
-    rw [if_neg hodd] at h2
-    exact h2
-  · intro i hi
-    have heven : Even (2 * m - 1 - (2 * i + 1)) := by
-      have h1 : 2 * m - 1 - (2 * i + 1) = 2 * (m - i - 1) := by omega
-      exact h1 ▸ even_two_mul _
-    have h2 := hval (2 * m - 1 - (2 * i + 1)) (by omega)
-    rw [if_pos heven] at h2
-    exact h2
+  exact ⟨(Finset.range (2 * m)).image ca, by grind, ca, by grind⟩
 
 /-- Left-neighborhood version of `exists_finset_altSet_of_frequently_right`: the alternations
 occur in `T ∩ Iio x`. -/
@@ -896,7 +807,7 @@ lemma exists_finset_altSet_of_frequently_left
       ∧ (∀ i < k, if Even i then X (c i) ω < a else b < X (c i) ω) := by
     intro k
     induction k with
-    | zero => exact ⟨fun _ ↦ x, by omega, by omega, by omega⟩
+    | zero => exact ⟨fun _ ↦ x, by lia, by lia, by lia⟩
     | succ k ih =>
       obtain ⟨c, hasc, hmem, hval⟩ := ih
       have hU : (if 0 < k then Set.Ioo (c (k - 1)) x else Set.Iio x) ∩ T
@@ -904,7 +815,7 @@ lemma exists_finset_altSet_of_frequently_left
         refine Filter.inter_mem (Filter.mem_inf_of_left ?_)
           (Filter.mem_inf_of_right (Filter.mem_principal_self T))
         split_ifs with hk
-        · exact Ioo_mem_nhdsLT (hmem (k - 1) (by omega)).2
+        · exact Ioo_mem_nhdsLT (hmem (k - 1) (by lia)).2
         · exact self_mem_nhdsWithin
       have hpick : ∃ s, s ∈ (if 0 < k then Set.Ioo (c (k - 1)) x else Set.Iio x) ∩ T
           ∧ if Even k then X s ω < a else b < X s ω := by
@@ -924,48 +835,19 @@ lemma exists_finset_altSet_of_frequently_left
           exact hsIoo.2
         · rw [if_neg hk] at hsIoo
           exact hsIoo
-      refine ⟨Function.update c k s, ?_, ?_, ?_⟩
-      · intro i hi
-        rcases Nat.lt_or_ge (i + 1) k with h | h
-        · rw [Function.update_of_ne (by omega), Function.update_of_ne (by omega)]
-          exact hasc i h
-        · have hik : i + 1 = k := by omega
-          have hipos : 0 < k := by omega
-          rw [hik, Function.update_self, Function.update_of_ne (by omega)]
-          rw [if_pos hipos] at hsIoo
-          have hci : c i = c (k - 1) := by congr 1; omega
-          rw [hci]
-          exact hsIoo.1
-      · intro i hi
-        rcases Nat.lt_or_ge i k with h | h
-        · rw [Function.update_of_ne (by omega)]
-          exact hmem i h
-        · have hik : i = k := by omega
-          rw [hik, Function.update_self]
-          exact ⟨hsT, hsx⟩
-      · intro i hi
-        rcases Nat.lt_or_ge i k with h | h
-        · rw [Function.update_of_ne (by omega)]
-          exact hval i h
-        · have hik : i = k := by omega
-          subst hik
-          rw [Function.update_self]
-          exact hsval
+      refine ⟨Function.update c k s, ?_, by grind⟩
+      intro i hi
+      rcases Nat.lt_or_ge (i + 1) k with h | h
+      · rw [Function.update_of_ne (by lia), Function.update_of_ne (by lia)]
+        exact hasc i h
+      · have hik : i + 1 = k := by lia
+        have hipos : 0 < k := by lia
+        rw [hik, Function.update_self, Function.update_of_ne (by lia)]
+        rw [if_pos hipos] at hsIoo
+        have hci : c i = c (k - 1) := by congr 1; lia
+        grind
   obtain ⟨c, hasc, hmem, hval⟩ := hsel (2 * m)
-  refine ⟨(Finset.range (2 * m)).image c, ?_, c, hasc, ?_, ?_, ?_⟩
-  · intro s hs
-    simp only [Finset.coe_image, Set.mem_image, Finset.coe_range, Set.mem_Iio] at hs
-    obtain ⟨j, hj, rfl⟩ := hs
-    exact hmem _ (by omega)
-  · intro j hj
-    exact Finset.mem_image_of_mem _ (Finset.mem_range.2 hj)
-  · intro i hi
-    have h2 := hval (2 * i) (by omega)
-    rwa [if_pos (even_two_mul i)] at h2
-  · intro i hi
-    have hodd : ¬ Even (2 * i + 1) := by simp
-    have h2 := hval (2 * i + 1) (by omega)
-    rwa [if_neg hodd] at h2
+  exact ⟨(Finset.range (2 * m)).image c, by grind, c, hasc, by grind⟩
 
 end Selection
 
@@ -993,13 +875,8 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
   -- the bad sets are null
   have h1 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ∀ q r : ℚ, (q : ℝ) < (r : ℝ) → ω ∉ badAlt q r d := by
     rw [ae_ball_iff hT]
-    intro d _
-    rw [ae_all_iff]
-    intro q
-    rw [ae_all_iff]
-    intro r
-    rw [eventually_imp_distrib_left]
-    intro hqr
+    simp_rw [ae_all_iff]
+    intro d _ q r hqr
     exact compl_mem_ae_iff.2 (measure_iInter_biUnion_altSet hX hXint (hC d) hqr hT)
   have h2 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ω ∉ badMax d := by
     rw [ae_ball_iff hT]
