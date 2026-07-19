@@ -46,38 +46,32 @@ def pullbackFiltration (𝓕 : Filtration ι mΩ) {idx : ℕ → ι} (hidx : Mon
 
 /-- The monotone enumeration of a finite set of times, extended by the constant `t` at indices
 beyond `F.card`. -/
+@[grind]
 noncomputable def finIdx (F : Finset ι) (t : ι) : ℕ → ι := fun k ↦
-  if h : k < F.card then (F.orderIsoOfFin rfl ⟨k, h⟩ : ι) else t
+  if h : k < #F then (F.orderIsoOfFin rfl ⟨k, h⟩ : ι) else t
 
-lemma finIdx_mem {F : Finset ι} {t : ι} {k : ℕ} (h : k < F.card) : finIdx F t k ∈ F := by
-  rw [finIdx, dif_pos h]
-  exact (F.orderIsoOfFin rfl ⟨k, h⟩).2
+variable {F : Finset ι} {t : ι} {k l : ℕ}
 
-lemma finIdx_eq_of_card_le {F : Finset ι} {t : ι} {k : ℕ} (h : F.card ≤ k) :
-    finIdx F t k = t := by
-  rw [finIdx, dif_neg (by lia)]
+lemma finIdx_mem (h : k < #F) : finIdx F t k ∈ F := by grind
 
-lemma finIdx_le {F : Finset ι} {t : ι} (hF : ∀ s ∈ F, s ≤ t) (k : ℕ) : finIdx F t k ≤ t := by
-  rcases lt_or_ge k F.card with h | h
-  · exact hF _ (finIdx_mem h)
-  · exact (finIdx_eq_of_card_le h).le
+lemma finIdx_eq_of_card_le (h : #F ≤ k) : finIdx F t k = t := by grind
 
-lemma finIdx_lt_of_lt {F : Finset ι} {t : ι} {k l : ℕ} (hkl : k < l) (hl : l < F.card) :
-    finIdx F t k < finIdx F t l := by
+lemma finIdx_le (hF : ∀ s ∈ F, s ≤ t) (k : ℕ) : finIdx F t k ≤ t := by grind
+
+lemma finIdx_lt_of_lt (hkl : k < l) (hl : l < #F) : finIdx F t k < finIdx F t l := by
   rw [finIdx, finIdx, dif_pos (hkl.trans hl), dif_pos hl]
   exact mod_cast (F.orderIsoOfFin rfl).strictMono (mod_cast hkl)
 
-lemma finIdx_monotone {F : Finset ι} {t : ι} (hF : ∀ s ∈ F, s ≤ t) : Monotone (finIdx F t) := by
+@[gcongr]
+lemma finIdx_monotone (hF : ∀ s ∈ F, s ≤ t) : Monotone (finIdx F t) := by
   intro k l hkl
   rcases eq_or_lt_of_le hkl with rfl | hkl
   · exact le_rfl
-  rcases lt_or_ge l F.card with h | h
+  rcases lt_or_ge l #F with h | h
   · exact (finIdx_lt_of_lt hkl h).le
-  · rw [finIdx_eq_of_card_le h]
-    exact finIdx_le hF k
+  · grind
 
-lemma exists_finIdx_eq {F : Finset ι} {t : ι} {s : ι} (hs : s ∈ F) :
-    ∃ k, k < F.card ∧ finIdx F t k = s := by
+lemma exists_finIdx_eq {s : ι} (hs : s ∈ F) : ∃ k, k < #F ∧ finIdx F t k = s := by
   obtain ⟨k, hk⟩ := (F.orderIsoOfFin rfl).surjective ⟨s, hs⟩
   exact ⟨k, k.2, by rw [finIdx, dif_pos k.2, Fin.eta, hk]⟩
 
@@ -89,8 +83,7 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
     ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
-      (S.indicator (1 : ℝ) ● X) t ω
-        = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
+      (S.indicator (1 : ℝ) ● X) t ω = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
   set K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)} with hK
   have hKmem : ∀ {k}, k ∈ K → k < n ∧ idx k < idx (k + 1) := by
     intro k hk
@@ -104,9 +97,7 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     · exact absurd ((hidx (Nat.succ_le_of_lt h)).trans_eq hkl.1) (hKmem hl).2.not_ge
   refine ⟨⟨∅, K.image fun k ↦ (idx k, idx (k + 1)),
     fun p ↦ if h : ∃ k ∈ K, (idx k, idx (k + 1)) = p then W h.choose ⁻¹' {1} else ∅,
-    ?_, @MeasurableSet.empty _ (𝓕 ⊥), ?_, ?_⟩, ?_⟩
-  · -- le_of_mem_I
-    grind
+    by grind, @MeasurableSet.empty _ (𝓕 ⊥), ?_, ?_⟩, ?_⟩
   · -- measurableSet_set
     intro p hp
     obtain ⟨k, hk, rfl⟩ := mem_image.1 hp
@@ -141,9 +132,8 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
         fun j ↦ stoppedProcess_eq_of_le (mod_cast hidxt j)
       simp only [dif_pos hex, hchoose]
       rcases hW01 k (hKmem hk).1 ω with h0 | h1
-      · rw [Set.indicator_of_notMem (by simp [h0]), h0, zero_mul]
-      · rw [Set.indicator_of_mem (by simp [h1]), h1, one_mul]
-        simp [ContinuousLinearMap.mul_apply', hst]
+      · simp [h0]
+      · simp [h1, hst]
     · -- terms outside K vanish
       have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, mem_range.1 hk, h])
       have heq : idx (k + 1) = idx k :=
@@ -157,31 +147,6 @@ end Bridge
 section UpcrossingBound
 
 variable {a b : ℝ} {t : ι} {F : Finset ι} {m : ℕ}
-
-/-- `upcrossingStrat` takes only the values `0` and `1`. -/
-lemma upcrossingStrat_eq_zero_or_one (a b : ℝ) (f : ℕ → Ω → ℝ) (N n : ℕ) (ω : Ω) :
-    upcrossingStrat a b f N n ω = 0 ∨ upcrossingStrat a b f N n ω = 1 := by
-  classical
-  rw [upcrossingStrat, ← indicator_biUnion_apply]
-  · rw [Set.indicator_apply]
-    split_ifs
-    · exact Or.inr rfl
-    · exact Or.inl rfl
-  intro i _ j _ hij
-  simp only [Set.Ico_disjoint_Ico]
-  obtain hij' | hij' := lt_or_gt_of_ne hij
-  · rw [min_eq_left (upperCrossingTime_mono (Nat.succ_le_succ hij'.le) :
-      upperCrossingTime a b f N _ ω ≤ upperCrossingTime a b f N _ ω),
-      max_eq_right (lowerCrossingTime_mono hij'.le :
-        lowerCrossingTime a b f N _ _ ≤ lowerCrossingTime _ _ _ _ _ _)]
-    exact le_trans upperCrossingTime_le_lowerCrossingTime
-      (lowerCrossingTime_mono (Nat.succ_le_of_lt hij'))
-  · rw [min_eq_right (upperCrossingTime_mono (Nat.succ_le_succ hij'.le) :
-      upperCrossingTime a b f N _ ω ≤ upperCrossingTime a b f N _ ω),
-      max_eq_left (lowerCrossingTime_mono hij'.le :
-        lowerCrossingTime a b f N _ _ ≤ lowerCrossingTime _ _ _ _ _ _)]
-    exact le_trans upperCrossingTime_le_lowerCrossingTime
-      (lowerCrossingTime_mono (Nat.succ_le_of_lt hij'))
 
 /-- Expectation bound on the number of upcrossings along a finite set of times `F ⊆ Iic t`,
 from the boundedness of elementary stochastic integrals at time `t`. -/
@@ -302,14 +267,6 @@ end UpcrossingBound
 section Maximal
 
 variable {t : ι} {F : Finset ι} {lam : ℝ}
-
-@[simp]
-lemma hittingBtwn_self (f : ℕ → Ω → ℝ) (s : Set ℝ) (n : ℕ) (ω : Ω) :
-    hittingBtwn f s n n ω = n := by
-  rw [hittingBtwn]
-  simp only [Set.Icc_self, Set.mem_singleton_iff, exists_eq_left, ite_eq_right_iff]
-  intro h
-  simp [h]
 
 -- todo name
 lemma sum_indicator_mul_sub_eq_stopped'' (f : ℕ → Ω → ℝ) (s : Set ℝ) (n : ℕ) (ω : Ω) :

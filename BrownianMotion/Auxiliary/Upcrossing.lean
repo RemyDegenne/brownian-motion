@@ -11,8 +11,17 @@ public import Mathlib.Probability.Martingale.Upcrossing
 
 namespace MeasureTheory
 
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω}
+variable {ι Ω β : Type*} {mΩ : MeasurableSpace Ω}
   {f g : ℕ → Ω → ℝ} {a b : ℝ} {N : ℕ} {ω : Ω}
+
+@[simp]
+lemma hittingBtwn_self [ConditionallyCompletePartialOrderInf ι]
+    (f : ι → Ω → β) (s : Set β) (n : ι) (ω : Ω) :
+    hittingBtwn f s n n ω = n := by
+  rw [hittingBtwn]
+  simp only [Set.Icc_self, Set.mem_singleton_iff, exists_eq_left, ite_eq_right_iff]
+  intro h
+  simp [h]
 
 /-- `hittingBtwn` only depends on the hitting predicate. -/
 lemma hittingBtwn_congr {s : Set ℝ}
@@ -53,6 +62,29 @@ lemma upcrossingsBefore_congr
     (hIic : ∀ i ω, f i ω ≤ a ↔ g i ω ≤ a) (hIci : ∀ i ω, b ≤ f i ω ↔ b ≤ g i ω) :
     upcrossingsBefore a b f N ω = upcrossingsBefore a b g N ω := by
   simp_rw [upcrossingsBefore, upperCrossingTime_congr hIic hIci]
+
+/-- `upcrossingStrat` takes only the values `0` and `1`. -/
+lemma upcrossingStrat_eq_zero_or_one (a b : ℝ) (f : ℕ → Ω → ℝ) (N n : ℕ) (ω : Ω) :
+    upcrossingStrat a b f N n ω = 0 ∨ upcrossingStrat a b f N n ω = 1 := by
+  classical
+  rw [upcrossingStrat, ← Finset.indicator_biUnion_apply]
+  · rw [Set.indicator_apply]
+    split_ifs <;> simp
+  intro i _ j _ hij
+  simp only [Set.Ico_disjoint_Ico]
+  rcases lt_or_gt_of_ne hij with hij' | hij'
+  · rw [min_eq_left (upperCrossingTime_mono (Nat.succ_le_succ hij'.le) :
+      upperCrossingTime a b f N _ ω ≤ upperCrossingTime a b f N _ ω),
+      max_eq_right (lowerCrossingTime_mono hij'.le :
+        lowerCrossingTime a b f N _ _ ≤ lowerCrossingTime _ _ _ _ _ _)]
+    exact le_trans upperCrossingTime_le_lowerCrossingTime
+      (lowerCrossingTime_mono (Nat.succ_le_of_lt hij'))
+  · rw [min_eq_right (upperCrossingTime_mono (Nat.succ_le_succ hij'.le) :
+      upperCrossingTime a b f N _ ω ≤ upperCrossingTime a b f N _ ω),
+      max_eq_left (lowerCrossingTime_mono hij'.le :
+        lowerCrossingTime a b f N _ _ ≤ lowerCrossingTime _ _ _ _ _ _)]
+    exact upperCrossingTime_le_lowerCrossingTime.trans
+      (lowerCrossingTime_mono (Nat.succ_le_of_lt hij'))
 
 /-- Pathwise upcrossing inequality with correction term: unlike
 `MeasureTheory.mul_upcrossingsBefore_le`, this requires no assumption `a ≤ f N ω`, at the price
