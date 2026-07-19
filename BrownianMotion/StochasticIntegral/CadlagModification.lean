@@ -19,13 +19,9 @@ public import Mathlib.Probability.Martingale.Upcrossing
 open MeasureTheory Finset Filter
 open scoped ENNReal Topology MeasureTheory
 
-noncomputable section
-
 namespace ProbabilityTheory
 
-variable {ι Ω : Type*} [TopologicalSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTopology ι]
-  [FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
-  [DenselyOrdered ι] [NoMaxOrder ι] -- required for ∀ t : ι, (𝓝[>] t).NeBot)
+variable {ι Ω : Type*} [LinearOrder ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
   {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 
@@ -37,8 +33,6 @@ Discrete data along a monotone sequence of times is converted into elementary pr
 whose elementary stochastic integrals compute weighted sums of increments of `X`. -/
 
 section Bridge
-
-set_option linter.unusedSectionVars false
 
 /-- The filtration on `ℕ` obtained by pulling back `𝓕` along a monotone sequence of times. -/
 def pullbackFiltration (𝓕 : Filtration ι mΩ) {idx : ℕ → ι} (hidx : Monotone idx) :
@@ -71,7 +65,7 @@ lemma finIdx_le {F : Finset ι} {t : ι} (hF : ∀ s ∈ F, s ≤ t) (k : ℕ) :
 lemma finIdx_lt_of_lt {F : Finset ι} {t : ι} {k l : ℕ} (hkl : k < l) (hl : l < F.card) :
     finIdx F t k < finIdx F t l := by
   rw [finIdx, finIdx, dif_pos (hkl.trans hl), dif_pos hl]
-  exact_mod_cast (F.orderIsoOfFin rfl).strictMono (by exact_mod_cast hkl)
+  exact mod_cast (F.orderIsoOfFin rfl).strictMono (mod_cast hkl)
 
 lemma finIdx_monotone {F : Finset ι} {t : ι} (hF : ∀ s ∈ F, s ≤ t) : Monotone (finIdx F t) := by
   intro k l hkl
@@ -90,14 +84,13 @@ lemma exists_finIdx_eq {F : Finset ι} {t : ι} {s : ι} (hs : s ∈ F) :
 /-- **Bridge lemma**: a finite collection of `{0,1}`-valued adapted weights along a monotone
 sequence of times below `t` is realized by an elementary predictable set whose elementary
 stochastic integral at time `t` is the weighted sum of increments of `X`. -/
-lemma exists_elementaryPredictableSet_integral_eq {t : ι} (n : ℕ) {idx : ℕ → ι}
+lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → ι}
     (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t) {W : ℕ → Ω → ℝ}
     (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
     ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
       (S.indicator (1 : ℝ) ● X) t ω
         = ∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
-  classical
   set K : Finset ℕ := {k ∈ Finset.range n | idx k < idx (k + 1)} with hK
   have hKmem : ∀ {k}, k ∈ K → k < n ∧ idx k < idx (k + 1) := by
     intro k hk
@@ -146,7 +139,7 @@ lemma exists_elementaryPredictableSet_integral_eq {t : ι} (n : ℕ) {idx : ℕ 
       have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
       have hchoose : hex.choose = k := hinj hex.choose_spec.1 hk hex.choose_spec.2
       have hst : ∀ j, stoppedProcess X (fun _ ↦ (t : WithTop ι)) (idx j) ω = X (idx j) ω :=
-        fun j ↦ stoppedProcess_eq_of_le (by exact_mod_cast hidxt j)
+        fun j ↦ stoppedProcess_eq_of_le (mod_cast hidxt j)
       simp only [dif_pos hex, hchoose]
       rcases hW01 k (hKmem hk).1 ω with h0 | h1
       · rw [Set.indicator_of_notMem (by simp [h0]), h0, zero_mul]
@@ -163,8 +156,6 @@ end Bridge
 /-! ### Upcrossing and alternation bounds along finite time sets -/
 
 section UpcrossingBound
-
-set_option linter.unusedSectionVars false
 
 variable {a b : ℝ} {t : ι} {F : Finset ι} {m : ℕ}
 
@@ -195,13 +186,12 @@ lemma upcrossingStrat_eq_zero_or_one (a b : ℝ) (f : ℕ → Ω → ℝ) (N n :
 
 /-- Expectation bound on the number of upcrossings along a finite set of times `F ⊆ Iic t`,
 from the boundedness of elementary stochastic integrals at time `t`. -/
-lemma mul_integral_upcrossingsBefore_finIdx_le [IsFiniteMeasure μ]
+lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hab : a < b) (hF : ∀ s ∈ F, s ≤ t) :
     (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) F.card ω : ℝ) ∂μ
       ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ := by
-  classical
   set f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω with hf
   set n := F.card with hn
   have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
@@ -281,7 +271,7 @@ lemma altSet_subset_upcrossingsBefore (hab : a < b) :
 
 /-- Quantitative alternation bound: the probability of `m` alternations along any finite
 `F ⊆ Iic t` is at most `K / m` with `K` independent of `F` and `m`. -/
-lemma measureReal_altSet_le [IsFiniteMeasure μ]
+lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hab : a < b) (hm : 0 < m) (hF : ∀ s ∈ F, s ≤ t) :
@@ -312,8 +302,6 @@ end UpcrossingBound
 
 section Maximal
 
-set_option linter.unusedSectionVars false
-
 variable {t : ι} {F : Finset ι} {lam : ℝ}
 
 /-- Discrete stopped telescoping identity: weighting the increments of `f` by the indicator of
@@ -322,7 +310,6 @@ lemma sum_indicator_mul_sub_eq_stopped (f : ℕ → Ω → ℝ) (lam : ℝ) (n :
     ∑ k ∈ Finset.range n,
         ({ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω : ℝ) * (f (k + 1) ω - f k ω)
       = f (hittingBtwn f (Set.Ioi lam) 0 n ω) ω - f 0 ω := by
-  classical
   induction n with
   | zero =>
     have h0 : hittingBtwn f (Set.Ioi lam) 0 0 ω = 0 := Nat.le_zero.1 (hittingBtwn_le ω)
@@ -354,6 +341,7 @@ lemma sum_indicator_mul_sub_eq_stopped (f : ℕ → Ω → ℝ) (lam : ℝ) (n :
       simp only [Pi.one_apply]
       ring
 
+omit [LinearOrder ι] in
 /-- Integrability of bounded-weight increment sums. -/
 lemma integrable_sum_weight_increments {g : ι → Ω → ℝ} (hgint : ∀ s, Integrable (g s) μ)
     {n : ℕ} {idx : ℕ → ι} {W : ℕ → Ω → ℝ}
@@ -366,7 +354,7 @@ lemma integrable_sum_weight_increments {g : ι → Ω → ℝ} (hgint : ∀ s, I
 /-- Two-sided expectation bound for adapted `{0,1}`-weighted increment sums of `X`, from the
 boundedness of elementary stochastic integrals at time `t`. The lower bound uses the
 complementary weights `1 - W`. -/
-lemma integral_sum_weight_increments_mem_Icc [IsFiniteMeasure μ]
+lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
     (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     {n : ℕ} {idx : ℕ → ι} (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t)
@@ -374,7 +362,6 @@ lemma integral_sum_weight_increments_mem_Icc [IsFiniteMeasure μ]
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
     ∫ ω, (∑ k ∈ Finset.range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ
         ∈ Set.Icc (-(C + ∫ ω, |X (idx n) ω - X (idx 0) ω| ∂μ)) C := by
-  classical
   have hb01 : ∀ (V : ℕ → Ω → ℝ), (∀ k, k < n → ∀ ω, V k ω = 0 ∨ V k ω = 1) →
       ∀ k, k < n → ∀ ω, ‖V k ω‖ ≤ 1 := by
     intro V hV k hk ω
@@ -434,7 +421,6 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
       ∫ ω, (∑ k ∈ Finset.range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) ∂μ ≤ K) :
     lam * μ.real {ω | ∃ k ≤ n, lam < g (idx k) ω}
       ≤ K + ∫ ω, |g (idx 0) ω| ∂μ + ∫ ω, |g (idx n) ω| ∂μ := by
-  classical
   set f : ℕ → Ω → ℝ := fun k ω ↦ g (idx k) ω with hf
   set W : ℕ → Ω → ℝ := fun k ↦ {ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 with hW
   have hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1 := by
@@ -536,7 +522,7 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
     linarith
   linarith [hsplit, hlower, hcompl, htotal]
 
-lemma finIdx_zero_eq_bot {F : Finset ι} {t : ι} (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
+lemma finIdx_zero_eq_bot [OrderBot ι] {F : Finset ι} {t : ι} (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
   have hcard : 0 < F.card := Finset.card_pos.2 ⟨⊥, hbot⟩
   obtain ⟨k, hk, hkeq⟩ := exists_finIdx_eq (t := t) hbot
   rcases Nat.eq_zero_or_pos k with rfl | hkpos
@@ -545,13 +531,12 @@ lemma finIdx_zero_eq_bot {F : Finset ι} {t : ι} (hbot : ⊥ ∈ F) : finIdx F 
 
 /-- **Maximal inequality**: the probability that `|X|` exceeds `lam` somewhere on a finite set
 `F ⊆ Iic t` is at most `K / lam`, with `K` independent of `F`. -/
-lemma measureReal_exists_abs_lt_le [IsFiniteMeasure μ]
+lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hlam : 0 < lam) (hF : ∀ s ∈ F, s ≤ t) :
     μ.real {ω | ∃ s ∈ F, lam < |X s ω|}
       ≤ 2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ + ∫ ω, |X t ω| ∂μ) / lam := by
-  classical
   set G : Finset ι := insert ⊥ F with hG
   have hGF : F ⊆ G := Finset.subset_insert _ _
   have hGle : ∀ s ∈ G, s ≤ t := by
@@ -621,6 +606,10 @@ lemma measureReal_exists_abs_lt_le [IsFiniteMeasure μ]
 
 end Maximal
 
+variable [TopologicalSpace ι] [OrderBot ι] [OrderTopology ι]
+  [FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
+  [DenselyOrdered ι] [NoMaxOrder ι] -- required for ∀ t : ι, (𝓝[>] t).NeBot)
+
 /-! ### Almost-sure regularity along countable time sets -/
 
 section CountableEvents
@@ -647,12 +636,9 @@ lemma measure_biUnion_altSet_le [IsFiniteMeasure μ]
   have hcnt : {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}.Countable :=
     countable_setOf_finset_coe_subset (hT.mono Set.inter_subset_left)
   have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ altSet X F a b m)
-      {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} := by
-    intro F₁ h₁ F₂ h₂
-    refine ⟨F₁ ∪ F₂, ?_, altSet_mono Finset.subset_union_left,
+      {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} :=
+    fun F₁ h₁ F₂ h₂ ↦ ⟨F₁ ∪ F₂, by grind, altSet_mono Finset.subset_union_left,
       altSet_mono Finset.subset_union_right⟩
-    rw [Set.mem_setOf_eq, Finset.coe_union]
-    exact Set.union_subset h₁ h₂
   rw [measure_biUnion_eq_iSup hcnt hdir]
   refine iSup₂_le fun F hF ↦ ?_
   have hF' : ∀ s ∈ F, s ≤ t := fun s hs ↦ (hF hs).2
@@ -698,14 +684,9 @@ lemma measure_biUnion_exists_abs_le [IsFiniteMeasure μ]
           + ∫ ω, |X t ω| ∂μ) / lam) := by
   have hcnt : {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}.Countable :=
     countable_setOf_finset_coe_subset (hT.mono Set.inter_subset_left)
-  have hdir : DirectedOn (Function.onFun (· ⊆ ·)
-      fun F : Finset ι ↦ {ω | ∃ s ∈ F, lam < |X s ω|})
-      {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} := by
-    intro F₁ h₁ F₂ h₂
-    refine ⟨F₁ ∪ F₂, ?_, fun ω ⟨s, hs, hval⟩ ↦ ⟨s, Finset.mem_union_left _ hs, hval⟩,
-      fun ω ⟨s, hs, hval⟩ ↦ ⟨s, Finset.mem_union_right _ hs, hval⟩⟩
-    rw [Set.mem_setOf_eq, Finset.coe_union]
-    exact Set.union_subset h₁ h₂
+  have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ {ω | ∃ s ∈ F, lam < |X s ω|})
+      {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} :=
+    fun F₁ h₁ F₂ h₂ ↦ ⟨F₁ ∪ F₂, by grind, by grind, by grind⟩
   rw [measure_biUnion_eq_iSup hcnt hdir]
   refine iSup₂_le fun F hF ↦ ?_
   have hF' : ∀ s ∈ F, s ≤ t := fun s hs ↦ (hF hs).2
@@ -723,12 +704,11 @@ lemma measure_iInter_biUnion_exists_abs [IsFiniteMeasure μ]
     μ (⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t},
       {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|}) = 0 := by
   refine le_antisymm ?_ zero_le
-  have hbound : ∀ M : ℕ,
+  have hbound (M : ℕ) :
       μ (⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t},
           {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|})
         ≤ ENNReal.ofReal (2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
             + ∫ ω, |X t ω| ∂μ) / (M + 1)) := by
-    intro M
     refine (measure_mono (Set.iInter_subset _ M)).trans ?_
     exact measure_biUnion_exists_abs_le (μ := μ) hX hXint hC (by positivity) hT
   have hlim : Tendsto (fun M : ℕ ↦
@@ -740,7 +720,7 @@ lemma measure_iInter_biUnion_exists_abs [IsFiniteMeasure μ]
         + ∫ ω, |X t ω| ∂μ)) / n) atTop (𝓝 0) := tendsto_const_div_atTop_nhds_zero_nat _
     have h2 := h1.comp (tendsto_add_atTop_nat 1)
     refine h2.congr fun M ↦ ?_
-    simp [Function.comp]
+    simp
   exact ge_of_tendsto' hlim hbound
 
 end CountableEvents
@@ -759,7 +739,6 @@ lemma exists_finset_altSet_of_frequently_right (hxd : x < d)
     (hfa : ∃ᶠ s in 𝓝[>] x ⊓ 𝓟 T, X s ω < a)
     (hfb : ∃ᶠ s in 𝓝[>] x ⊓ 𝓟 T, b < X s ω) (m : ℕ) :
     ∃ F : Finset ι, ↑F ⊆ T ∩ Set.Ioo x d ∧ ω ∈ altSet X F a b m := by
-  classical
   -- descending selection: even picks above `b`, odd picks below `a`
   have hsel : ∀ k : ℕ, ∃ c : ℕ → ι, (∀ i, i + 1 < k → c (i + 1) < c i)
       ∧ (∀ i < k, c i ∈ T ∩ Set.Ioo x d)
@@ -800,7 +779,6 @@ lemma exists_finset_altSet_of_frequently_left
     (hfa : ∃ᶠ s in 𝓝[<] x ⊓ 𝓟 T, X s ω < a)
     (hfb : ∃ᶠ s in 𝓝[<] x ⊓ 𝓟 T, b < X s ω) (m : ℕ) :
     ∃ F : Finset ι, ↑F ⊆ T ∩ Set.Iio x ∧ ω ∈ altSet X F a b m := by
-  classical
   -- ascending selection: even picks below `a`, odd picks above `b`
   have hsel : ∀ k : ℕ, ∃ c : ℕ → ι, (∀ i, i + 1 < k → c i < c (i + 1))
       ∧ (∀ i < k, c i ∈ T ∩ Set.Iio x)
@@ -829,12 +807,7 @@ lemma exists_finset_altSet_of_frequently_left
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
       obtain ⟨s, ⟨hsIoo, hsT⟩, hsval⟩ := hpick
-      have hsx : s < x := by
-        by_cases hk : 0 < k
-        · rw [if_pos hk] at hsIoo
-          exact hsIoo.2
-        · rw [if_neg hk] at hsIoo
-          exact hsIoo
+      have hsx : s < x := by grind
       refine ⟨Function.update c k s, ?_, by grind⟩
       intro i hi
       rcases Nat.lt_or_ge (i + 1) k with h | h
@@ -865,7 +838,6 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
     {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x < d) :
     ∀ᵐ ω ∂μ, ∀ x : ι, (∃ l, Tendsto (fun s ↦ X s ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 l))
       ∧ (∃ l, Tendsto (fun s ↦ X s ω) (𝓝[<] x ⊓ 𝓟 T) (𝓝 l)) := by
-  classical
   choose C hC using hXbdd
   set badAlt : ℚ → ℚ → ι → Set Ω := fun q r d ↦
     ⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic d}, altSet X F q r (m + 1) with hbadAlt_def
@@ -917,8 +889,7 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
     refine tendsto_of_no_upcrossings hdense ?_ hbddAbove hbddBelow
     rintro p ⟨q, rfl⟩ p' ⟨r, rfl⟩ hqr ⟨hfa, hfb⟩
     refine hω1 d hdT q r hqr ?_
-    rw [hbadAlt_def]
-    rw [Set.mem_iInter]
+    rw [hbadAlt_def, Set.mem_iInter]
     intro m
     obtain ⟨F, hFsub, hFalt⟩ := exists_finset_altSet_of_frequently_right hxd hfa hfb (m + 1)
     refine Set.mem_biUnion ?_ hFalt
@@ -933,7 +904,7 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
       refine ⟨(M : ℝ) + 1, ?_⟩
       rw [Filter.eventually_map]
       filter_upwards [hU] with s' hs'
-      exact le_of_abs_le (hM s' ⟨hs'.2, (hs'.1.trans hxd).le⟩)
+      grind
     have hbddBelow : Filter.IsBoundedUnder (· ≥ ·) (𝓝[<] x ⊓ 𝓟 T) (fun s' ↦ X s' ω) := by
       refine ⟨-((M : ℝ) + 1), ?_⟩
       rw [Filter.eventually_map]
@@ -942,14 +913,11 @@ lemma ae_tendsto_along_countable [IsFiniteMeasure μ]
     refine tendsto_of_no_upcrossings hdense ?_ hbddAbove hbddBelow
     rintro p ⟨q, rfl⟩ p' ⟨r, rfl⟩ hqr ⟨hfa, hfb⟩
     refine hω1 d hdT q r hqr ?_
-    rw [hbadAlt_def]
-    rw [Set.mem_iInter]
+    rw [hbadAlt_def, Set.mem_iInter]
     intro m
     obtain ⟨F, hFsub, hFalt⟩ := exists_finset_altSet_of_frequently_left hfa hfb (m + 1)
     refine Set.mem_biUnion ?_ hFalt
-    rw [Set.mem_setOf_eq]
-    refine hFsub.trans (Set.inter_subset_inter_right T ?_)
-    exact fun s' hs' ↦ le_of_lt (lt_trans hs' hxd)
+    grind
 
 end AETendsto
 
@@ -960,10 +928,9 @@ regularization `r` is right-continuous and inherits the left limits of `h`. -/
 
 section PathRegularization
 
-set_option linter.unusedSectionVars false
-
 variable {T : Set ι} {h r : ι → ℝ} {x : ι}
 
+omit [OrderBot ι] [FirstCountableTopology ι] in
 lemma nhdsGT_inf_principal_neBot (hTd : Dense T) (x : ι) : (𝓝[>] x ⊓ 𝓟 T).NeBot := by
   rw [Filter.inf_principal_neBot_iff]
   intro U hU
@@ -972,6 +939,7 @@ lemma nhdsGT_inf_principal_neBot (hTd : Dense T) (x : ι) : (𝓝[>] x ⊓ 𝓟 
     (Set.nonempty_Ioo.2 hxu)
   exact ⟨s', hsub hs', hs'T⟩
 
+omit [OrderBot ι] [FirstCountableTopology ι] in
 /-- The right-limit regularization is right-continuous at every point. -/
 lemma continuousWithinAt_rightLim (hTd : Dense T)
     (hr : ∀ y, Tendsto h (𝓝[>] y ⊓ 𝓟 T) (𝓝 (r y))) (x : ι) :
@@ -995,6 +963,7 @@ lemma continuousWithinAt_rightLim (hTd : Dense T)
     _ ≤ ε / 2 := hle
     _ < ε := by linarith
 
+omit [OrderBot ι] [FirstCountableTopology ι] in
 /-- The right-limit regularization inherits left limits of `h` along `T`. -/
 lemma tendsto_rightLim_nhdsLT (hTd : Dense T)
     (hr : ∀ y, Tendsto h (𝓝[>] y ⊓ 𝓟 T) (𝓝 (r y))) {L : ℝ}
@@ -1026,6 +995,7 @@ lemma tendsto_rightLim_nhdsLT (hTd : Dense T)
     _ ≤ ε / 2 := hle
     _ < ε := by linarith
 
+omit [OrderBot ι] [FirstCountableTopology ι] in
 /-- Along a strictly increasing sequence `u → x` from the left, the regularized values
 `r (u k)` tend to the left limit of `h` at `x` along `T' ⊇ T`. -/
 lemma tendsto_rightLim_comp_of_lt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T')
@@ -1055,6 +1025,7 @@ lemma tendsto_rightLim_comp_of_lt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T'
     _ ≤ ε / 2 := hle
     _ < ε := by linarith
 
+omit [OrderBot ι] [FirstCountableTopology ι] in
 /-- Along a strictly decreasing sequence `u → x` from the right, the regularized values
 `r (u k)` tend to the right limit of `h` at `x` along `T' ⊇ T`. -/
 lemma tendsto_rightLim_comp_of_gt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T')
@@ -1090,13 +1061,11 @@ end PathRegularization
 
 section Accumulation
 
-set_option linter.unusedSectionVars false
-
+omit [OrderBot ι] [FirstCountableTopology ι] [NoMaxOrder ι] in
 /-- In a separable, densely-ordered linear order with order topology, the set of points of `A`
 that are isolated from the right in `A` is countable. -/
 lemma countable_setOf_right_isolated [TopologicalSpace.SeparableSpace ι] (A : Set ι) :
     {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅}.Countable := by
-  classical
   obtain ⟨D₀, hD₀c, hD₀d⟩ := TopologicalSpace.exists_countable_dense ι
   set I := {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅} with hI
   have hbw : ∀ p ∈ I, ∃ bq : ι × ι, p < bq.1 ∧ Set.Ioo p bq.1 ∩ A = ∅
@@ -1122,13 +1091,13 @@ lemma countable_setOf_right_isolated [TopologicalSpace.SeparableSpace ι] (A : S
     · exact absurd hqq.symm (hkey p' hp' p hp h).ne
   exact Set.MapsTo.countable_of_injOn (fun p hp ↦ hb3 p hp) hinj hD₀c
 
+omit [OrderBot ι] in
 /-- Any uncountable set in a separable, densely-ordered, first-countable linear order admits a
 strictly decreasing sequence of its elements converging to a point from the right. -/
 lemma exists_seq_strictAnti_tendsto_of_not_countable [TopologicalSpace.SeparableSpace ι]
     {A : Set ι} (hA : ¬ A.Countable) :
     ∃ p : ι, ∃ u : ℕ → ι, StrictAnti u ∧ (∀ k, u k ∈ A) ∧ (∀ k, p < u k)
       ∧ Tendsto u atTop (𝓝 p) := by
-  classical
   have hsub : ¬ (A ⊆ {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅}) := by
     intro hcon
     exact hA ((countable_setOf_right_isolated A).mono hcon)
@@ -1233,7 +1202,7 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
         intro n n' hnn' ω hω
         simp only [Set.mem_setOf_eq] at hω ⊢
         refine lt_of_le_of_lt (one_div_le_one_div_of_le (by positivity) ?_) hω
-        have : (n : ℝ) ≤ (n' : ℝ) := by exact_mod_cast hnn'
+        have : (n : ℝ) ≤ (n' : ℝ) := mod_cast hnn'
         linarith
       have hBunion : {ω | Rm x ω ≠ X x ω}
           = ⋃ n : ℕ, {ω | 1 / (n + 1 : ℝ) < |Rm x ω - X x ω|} := by
@@ -1243,7 +1212,7 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
         · intro hne
           have habs : 0 < |Rm x ω - X x ω| := abs_pos.2 (sub_ne_zero.2 hne)
           obtain ⟨n, hn⟩ := exists_nat_one_div_lt habs
-          exact ⟨n, by exact_mod_cast hn⟩
+          exact ⟨n, mod_cast hn⟩
         · rintro ⟨n, hn⟩
           intro hcon
           rw [hcon, sub_self, abs_zero] at hn
@@ -1274,11 +1243,11 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
       calc ENNReal.ofReal (1 / (n + 1))
           ≤ ENNReal.ofReal (1 / (n₁ + 1)) := by
             refine ENNReal.ofReal_le_ofReal (one_div_le_one_div_of_le (by positivity) ?_)
-            have hcast : (n₁ : ℝ) ≤ (n : ℝ) := by exact_mod_cast le_max_right n₀ n₁
+            have hcast : (n₁ : ℝ) ≤ (n : ℝ) := mod_cast le_max_right n₀ n₁
             linarith
         _ < ENNReal.ofReal ε := by
             refine ENNReal.ofReal_lt_ofReal_iff_of_nonneg (by positivity) |>.2 ?_
-            exact_mod_cast hn₁
+            exact mod_cast hn₁
         _ = μ {ω | 1 / ((n₀ : ℝ) + 1) < |Rm x ω - X x ω|} := by
             rw [hε, ENNReal.ofReal_toReal hfin]
         _ ≤ μ {ω | 1 / ((n : ℝ) + 1) < |Rm x ω - X x ω|} := measure_mono hsub2
