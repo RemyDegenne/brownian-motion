@@ -540,7 +540,7 @@ Fake lemma: import this lemma when using the basic properties of the Doob decomp
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:predictablePart_zero, lem:martingalePart_zero, lem:predictablePart_add, lem:martingalePart_add, lem:predictablePart_smul, lem:martingalePart_smul, lem:Martingale.predictablePart_eq_zero, lem:isPredictable.predictablePart_eq, lem:martingalePart_eq_zero, lem:Martingale.martingalePart_eq, lem:Submartingale.monotone_predictablePart, lem:Submartingale.predictablePart_nonneg, lem:predictable_predictablePart, lem:martingale_martingalePart}
+  \uses{lem:predictablePart_zero, lem:martingalePart_zero, lem:predictablePart_add, lem:martingalePart_add, lem:predictablePart_smul, lem:martingalePart_smul, lem:Martingale.predictablePart_eq_zero, lem:isStronglyPredictable.predictablePart_eq, lem:martingalePart_eq_zero, lem:Martingale.martingalePart_eq, lem:Submartingale.monotone_predictablePart, lem:Submartingale.predictablePart_nonneg, lem:predictable_predictablePart, lem:martingale_martingalePart}
 
 \end{proof}
 
@@ -1132,6 +1132,7 @@ we know that $A_\tau- \limsup_n \mathcal{A}_\tau^n $ is an a.s. nonnegative func
 
 
 \begin{theorem}[Doob-Meyer decomposition]\label{thm:Doob_Meyer}
+  \uses{def:Submartingale, def:classD, def:predictable, def:Martingale}
   Let $S = (S_t )_{0\leq t\leq T}$ be a cadlag submartingale of class $D$.
   Then, $S$ can be written in a unique way in the form  $S = M + A$ where $M$ is a cadlag martingale and $A$ is a predictable increasing process starting at $0$.
 \end{theorem}
@@ -1168,3 +1169,29 @@ The processes $M$ and $A$ are uniquely determined by $X$ a.s.
   \uses{lem:IsLocalSubmartingale.locally_classD, thm:Doob_Meyer}
 
 \end{proof}
+
+
+\paragraph{Corollaries}
+
+\begin{lemma}\label{lem:submartingale_iff_integrable}
+  \uses{def:Submartingale, def:HasIntegrableSup}
+An adapted increasing process $A$ is a submartingale iff it is integrable.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_doobMeyer_increasing}
+  \uses{def:IsLocalMartingale, def:predictable}
+An adapted locally integrable increasing process $A$ can be written as a sum of a local martingale and a predictable locally integrable increasing process.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer, lem:submartingale_iff_integrable}
+A locally integrable increasing process is a local submartingale, thus we can apply Theorem~\ref{thm:local_doobMeyer}.
+\end{proof}
+
+
+See Lemma~\ref{lem:local_doobMeyer_integrable_variation} further down for an application to processes with locally integrable variation.

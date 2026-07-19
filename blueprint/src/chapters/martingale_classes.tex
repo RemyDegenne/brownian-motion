@@ -1,0 +1,733 @@
+\chapter{Classes of martingales and related processes}
+
+The main reference for this part is \cite{he2019semimartingale}.
+
+Notations for classes of processes:
+\begin{itemize}
+  \item $\mathcal{V}$: finite variation processes (Definition~\ref{def:HasFiniteVariation})
+  \item $\mathcal{V}^+$: non-decreasing finite variation processes
+  \item $\mathcal{A}$: adapted processes with integrable variation (Definition~\ref{def:HasIntegrableVariation})
+  \item $\mathcal{A}^+$: non-decreasing adapted integrable processes
+  \item $\mathcal{M}$: càdlàg martingales (TODO: \cite{he2019semimartingale} add uniform integrability)
+  \item $\mathcal{M}^c$: continuous martingales
+  \item $\mathcal{M}^2$: square-integrable martingales (Definition~\ref{def:IsSquareIntegrable})
+  \item $\mathcal{C}_{\mathrm{loc}}$ for a class $\mathcal{C}$: processes that are locally in $\mathcal{C}$
+\end{itemize}
+
+Note: \cite{he2019semimartingale} use $\mathcal{W}$ for $\mathcal{M} \cap \mathcal{A}$.
+
+\section{Jumps of a process}
+
+\begin{definition}[Jumps of a process]\label{def:jump}
+The jumps of a process $X : T \to \Omega \to E$ is the process $\Delta X : T \to \Omega \to E$ defined by $(t, \omega) \mapsto X_t(\omega) - X_{t^-}(\omega)$~.
+\end{definition}
+
+
+\begin{definition}[Jump part]\label{def:jumpPart}
+  \uses{def:jump}
+The jump part (or purely discontinuous part) of a process $X : T \to \Omega \to E$ is the process $T \to \Omega \to E$ defined by $(t, \omega) \mapsto \sum_{0 < s \le t} \Delta X_s(\omega)$~.
+\end{definition}
+
+
+\begin{definition}[Continuous part]\label{def:continuousPart}
+  \uses{def:jumpPart}
+The continuous part of a process $X : T \to \Omega \to E$ is the process $X^c : T \to \Omega \to E$ defined by $(t, \omega) \mapsto X_t(\omega) - \sum_{0 < s \le t} \Delta X_s(\omega)$~.
+\end{definition}
+
+
+\begin{definition}[Large jumps]\label{def:largeJump}
+  \uses{def:jump}
+The large jump part of a process $X : T \to \Omega \to E$ at level $\varepsilon$ is the process $X^{d, \varepsilon} : T \to \Omega \to E$ defined by $(t, \omega) \mapsto \sum_{0 < s \le t} \Delta X_s(\omega) \mathbb{1}_{\{\Vert \Delta X_s(\omega) \Vert > \varepsilon\}}$~.
+\end{definition}
+
+
+\section{Integrable variation}
+
+\begin{definition}[Extended variation]\label{def:eVariationOn}
+  \mathlibok
+  \lean{eVariationOn}
+The (extended-real-valued) variation of a function $f : T \to E$ on a set $s$ inside a linear order is the supremum of $\sum_i \mathrm{edist}(f(u_{i+1}, f(u_i)))$ over all finite increasing sequences $u : N \to T$ in $s$.
+We denote it by $V_f(s)$~.
+\end{definition}
+
+
+\begin{definition}[Bounded variation]\label{def:BoundedVariationOn}
+  \uses{def:eVariationOn}
+  \mathlibok
+  \lean{BoundedVariationOn}
+A function $f : T \to E$ is of bounded variation on a set $s$ if its variation $V_f(s)$ is finite.
+\end{definition}
+
+
+\begin{definition}[Locally bounded variation]\label{def:LocallyBoundedVariationOn}
+  \uses{def:BoundedVariationOn}
+  \mathlibok
+  \lean{LocallyBoundedVariationOn}
+A function $f : T \to E$ is of locally bounded variation on a set $s$ if for every $a, b$ in $s$, the variation $V_f(s \cap [a, b])$ is finite.
+\end{definition}
+
+
+\begin{lemma}\label{lem:LocallyBoundedVariationOn.countable_not_continuous_at}
+  \uses{def:LocallyBoundedVariationOn}
+The set of points of discontinuity of a function of locally bounded variation is at most countable.
+\end{lemma}
+
+\begin{proof}
+Mathlib has the result for monotone functions and has the fact that a function of locally bounded variation is the difference of two monotone functions.
+\end{proof}
+
+
+\begin{definition}[Finite variation process, $\mathcal{V}$]\label{def:HasFiniteVariation}
+  \uses{def:LocallyBoundedVariationOn}
+A process $X : T \to \Omega \to E$ is of finite variation if it is right-continuous and for every $\omega \in \Omega$, the path $t \mapsto X_t(\omega)$ is of locally bounded variation on $T$~.
+
+We denote by $\mathcal{V}$ the class of finite variation processes.
+\end{definition}
+
+
+\begin{lemma}\label{lem:HasFiniteVariation.isCadlag}
+  \uses{def:HasFiniteVariation, def:IsCadlag}
+A finite variation process is càdlàg.
+\end{lemma}
+
+\begin{proof}
+Right-continuity is by definition. Left limits exist because a function of locally bounded variation has left limits (that should be in Mathlib's file about locally bounded variation).
+\end{proof}
+
+
+\begin{definition}\label{def:variationProcess}
+  \uses{def:eVariationOn, def:LocallyBoundedVariationOn}
+The variation of a process $X : T \to \Omega \to E$ is the process $V_X : T \to \Omega \to \mathbb{R}$ defined by $(t, \omega) \mapsto V_{X(\omega)}([0,t])$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:monotone_variationProcess}
+  \uses{def:variationProcess}
+The variation process $V_X$ of a process $X$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:rightContinuous_variationProcess}
+  \uses{def:variationProcess}
+The variation process $V_X$ of a right-continuous process $X$ is right-continuous.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{definition}[Integrable variation, $\mathcal{A}$]\label{def:HasIntegrableVariation}
+  \uses{def:HasIntegrableSup, def:variationProcess}
+We say that a stochastic process $X$ has integrable variation if its variation process $V_X$ (Definition~\ref{def:variationProcess}) is integrable (Definition~\ref{def:HasIntegrableSup}).
+
+We denote by $\mathcal{A}$ the class of adapted processes with integrable variation.
+\end{definition}
+
+We denote by $\mathcal{A}^+$ the class of non-decreasing adapted integrable processes.
+
+We denote by $\mathcal{V}^+$ the class of non-decreasing adapted processes.
+
+
+\begin{lemma}\label{lem:HasIntegrableVariation.eq_sub_monotone}
+  \uses{def:HasIntegrableVariation, def:HasIntegrableSup}
+A process with integrable variation can be written as the difference of two non-decreasing adapted integrable processes.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_doobMeyer_integrable_variation}
+  \uses{def:HasIntegrableVariation}
+A process in $\mathcal{A}_{\mathrm{loc}}$ (locally integrable variation) can be written as a sum of a local martingale and a predictable locally integrable process.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:HasIntegrableVariation.eq_sub_monotone, lem:local_doobMeyer_increasing}
+We write the process as a difference of two non-decreasing locally integrable processes, and then apply Lemma~\ref{lem:local_doobMeyer_increasing} to each of them.
+We take the difference of the two resulting local martingales and the difference of the two resulting predictable locally integrable processes.
+\end{proof}
+
+
+\begin{lemma}\label{lem:martingalePart_jumpPart}
+  \uses{def:HasIntegrableVariation, def:Martingale}
+Let $M \in \mathcal{M} \cap \mathcal{A}$ be a martingale with integrable variation. Then the jump part $A = \sum_{0 < s \le \cdot} \Delta M_s$ is an adapted process with integrable variation. Let $A_m$ be the martingale part of the Doob decomposition of $A$. Then $M = M_0 + A_m$. Finally, the predictable part of the decomposition of $A$ is continuous.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:Martingale.continuous_of_isStronglyPredictable_of_uniformIntegrable}
+  \uses{def:Martingale, def:predictable}
+A predictable uniformly integrable martingale is continuous.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\section{Square integrable martingales}
+
+In this section, $E$ denotes a complete normed space.
+
+\begin{definition}[Square integrable martingales]\label{def:IsSquareIntegrable}
+  \uses{def:Martingale}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable}
+Let $T$ be a linear order with bottom element 0, on which we have a filtration $\mathcal{F}$ satisfying the usual conditions.
+We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is càdlàg and $\sup_{t \in T} \Vert M_t \Vert_{L^2} < \infty$ (Lean remark: use \texttt{eLpNorm (M t) 2}).
+\end{definition}
+
+
+\subsection{The Hilbert space of square integrable martingales}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.module}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.add, ProbabilityTheory.IsSquareIntegrable.smul}
+If $M$ and $N$ are square integrable martingales and $a \in \mathbb{R}$, then $M + N$ and $a M$ are square integrable martingales.
+\end{lemma}
+
+\begin{proof}
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.submartingale_sq}
+  \uses{def:IsSquareIntegrable, def:Submartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.submartingale_sq_norm}
+If $M$ is a square integrable martingale, then $\Vert M \Vert^2$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:Martingale.submartingale_convex_comp}
+  \leanok
+Apply Lemma~\ref{lem:Martingale.submartingale_convex_comp} with the convex function $f: x \mapsto \Vert x \Vert^2$~.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.eLpNorm_two_mono}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.eLpNorm_mono}
+For $M$ a square integrable martingale, the function $t \mapsto \Vert M_t \Vert_{L^2}$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.submartingale_sq}
+  \leanok
+By Lemma~\ref{lem:IsSquareIntegrable.submartingale_sq}, $\Vert M_t \Vert^2$ is a submartingale.
+Thus, for $s \le t$~,
+\begin{align*}
+  \Vert M_s \Vert_{L^2}^2
+  &= \mathbb{E}[\Vert M_s \Vert^2]
+  \\
+  &\le \mathbb{E}[\Vert M_t \Vert^2]
+  \\
+  &= \Vert M_t \Vert_{L^2}^2
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.tendsto_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.ae_tendsto_limitProcess, ProbabilityTheory.IsSquareIntegrable.tendsto_eLpNorm_two_limitProcess}
+For $M$ a square integrable martingale, we have $M_t \to M_\infty$ almost surely and in $L^2$ as $t \to \infty$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:tendsto_limitProcess_of_cadlag}
+TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tendsto_limitProcess_of_cadlag} is what we need.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+For $M$ a square integrable martingale,
+\begin{align*}
+  \sup_{t \in T} \Vert M_t \Vert_{L^2}
+  &= \Vert M_\infty \Vert_{L^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono, lem:IsSquareIntegrable.tendsto_limitProcess}
+
+\end{proof}
+
+
+\begin{definition}\label{def:L2Martingales}
+  \uses{def:IsSquareIntegrable}
+We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of equivalence classes with respect to indistinguishability of square integrable martingales $T \to \Omega \to E$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:L2Martingales.module}
+  \uses{def:L2Martingales}
+The space $\mathcal{M}^2(E)$ is a real vector space.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.module}
+
+\end{proof}
+
+
+\begin{definition}\label{def:L2Martingales.norm}
+  \uses{def:L2Martingales, def:limitProcess}
+We define a norm on $\mathcal{M}^2$ by
+\begin{align*}
+  \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:L2Martingales.norm_eq_zero}
+  \uses{def:L2Martingales.norm}
+For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M = 0$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Vert M \Vert = 0$ if and only if for all $t \in T$, $\Vert M_t \Vert_{L^2} = 0$~.
+\end{proof}
+
+
+\begin{definition}\label{def:L2Martingales.inner}
+  \uses{def:L2Martingales.norm}
+We define an inner product on $\mathcal{M}^2$ by
+\begin{align*}
+  \langle M, N \rangle_{\mathcal{M}^2} = \mathbb{E}[M_\infty N_\infty]
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{theorem}\label{thm:hilbertSpace_L2Martingales}
+  \uses{def:L2Martingales.inner, lem:L2Martingales.norm_eq_zero}
+The space $\mathcal{M}^2$ is a Hilbert space.
+\end{theorem}
+
+\begin{proof}
+  \uses{cor:doob_lp_norm, lem:L2Martingales.module}
+We already know that $\mathcal{M}^2$ is an inner product space.
+We need to show that it is complete.
+
+It suffices to show that every Cauchy sequence with a distance bound converges to a limit in $\mathcal{M}^2$.
+Namely, we can consider sequences $(M^n)_{n \in \mathbb{N}}$ in $\mathcal{M}^2$ such that for $n, m \ge N$, $\Vert M^n - M^m \Vert < 2^{-N}$ (See \texttt{Metric.complete\_of\_convergent\_controlled\_sequences}, or the \texttt{EMetric} version).
+
+Let then $(M^n)_{n \in \mathbb{N}}$ be such a Cauchy sequence.
+
+TODO
+\end{proof}
+
+
+\subsection{Elementary stochastic integrals}
+
+\begin{lemma}\label{lem:eLpNorm_elemStochIntegralBilin_le}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, F}$ bounded by a constant $D$, $M \in \mathcal{M}^2(E)$ and a continuous bilinear map $B: E \times F \to G$,
+\begin{align*}
+  \Vert (V \bullet_B M)_t \Vert_{L^2}
+  \le 2 D \: \Vert B \Vert \: \sup_t \Vert M_t \Vert_{L^2}
+\end{align*}
+TODO: this can be improved to $D \: \Vert B \Vert \: \Vert M_t \Vert_{L^2}$?
+\end{lemma}
+
+\begin{proof}
+Let $C$ be a bound on $\Vert M_t \Vert_{L^2}$ for all $t \in T$~.
+Let $(s_k < t_k)_{k \in \{1, ..., n\}}$ and $\eta_k$ be the intervals and random variables defining $V$~.
+Let $D$ be a bound on $\Vert\eta_k\Vert$.
+Then, for all $t$~,
+\begin{align*}
+  \Vert (V \bullet_B M)_t \Vert_{L^2}
+  &\le \sum_{k=1}^n \Vert B(M^t_{t_k} - M^t_{s_k}, \eta_k) \Vert_{L^2}
+  \: .
+\end{align*}
+Since only at most one term of that sum is non-zero for each fixed $t$~, we can bound the sum by the maximum of its terms.
+It suffices then to bound each term of that sum.
+
+TODO: here we supposed that the intervals of the simple process are disjoint. Check with our Lean def.
+
+For each $k$~,
+\begin{align*}
+  \Vert B(M^t_{t_k} - M^t_{s_k}, \eta_k) \Vert_{L^2}
+  &\le \left\Vert \Vert B \Vert \: \Vert M^t_{t_k} - M^t_{s_k} \Vert  \: \Vert \eta_k \Vert \right\Vert_{L^2}
+  \\
+  &\le \Vert B \Vert \: \Vert M^t_{t_k} - M^t_{s_k} \Vert_{L^2} \: D
+  \\
+  &\le 2 \Vert B \Vert \: C \: D
+  \: .
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:isSquareIntegrable_elemStochIntegralBilin}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, F}$, $M \in \mathcal{M}^2(E)$ and a continuous bilinear map $B: E \times F \to G$, the elementary stochastic integral $V \bullet_B M$ is in $\mathcal{M}^2(G)$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:cadlag_elemStochIntegralBilin, lem:Martingale.elemStochIntegral, lem:eLpNorm_elemStochIntegralBilin_le}
+By Lemma~\ref{lem:cadlag_elemStochIntegralBilin}, $V \bullet_B M$ is càdlàg, and we know that it is a martingale by Lemma~\ref{lem:Martingale.elemStochIntegral}~.
+It remains to show that $\sup_{t \in T} \Vert (V \bullet_B M)_t \Vert_{L^2} < \infty$~.
+By Lemma~\ref{lem:eLpNorm_elemStochIntegralBilin_le}, this supremum is bounded by $2 D \Vert B \Vert \sup_{t \in T} \Vert M_t \Vert_{L^2}$, which is finite since $M \in \mathcal{M}^2(E)$ and $V$ is bounded.
+\end{proof}
+
+
+\begin{lemma}\label{lem:inner_elemStochIntegral}
+  \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin, lem:isSquareIntegrable_elemStochIntegralBilin}
+For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
+\begin{align*}
+  \langle V \bullet_{\mathbb{R}} M, N \rangle_{\mathcal{M}^2}
+  &= V \bullet_{\mathbb{R}} \langle M, N \rangle_{\mathcal{M}^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+
+
+\section{Locally square integrable martingales}
+
+\subsection{Definition and basic properties}
+
+\begin{definition}[Locally square-integrable martingales]\label{def:IsLocallySquareIntegrable}
+  \uses{def:IsSquareIntegrable, def:locally}
+  \leanok
+  \lean{ProbabilityTheory.IsLocallySquareIntegrable}
+A process is locally square-integrable if it locally satisfies the square-integrable martingale property.
+We denote that class of processes by $\mathcal{M}^2_{\mathrm{loc}}$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.isLocallySquareIntegrable}
+  \uses{def:IsSquareIntegrable, def:IsLocallySquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.isLocallySquareIntegrable}
+Every square-integrable martingale is locally square-integrable: $\mathcal{M}^2 \subseteq \mathcal{M}^2_{\mathrm{loc}}$~.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:implies_locally}
+This follows from Lemma~\ref{lem:implies_locally}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+  \uses{def:IsLocallySquareIntegrable, def:IsLocalSubmartingale}
+  \leanok
+  \lean{ProbabilityTheory.IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+If $M \in \mathcal{M}^2_{\mathrm{loc}}$, then $\Vert M \Vert^2$ is a càdlàg local submartingale.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:IsSquareIntegrable.submartingale_sq}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsLocalMartingale.isLocallySquareIntegrable_of_continuous}
+  \uses{def:IsLocalMartingale, def:IsLocallySquareIntegrable}
+A continuous local martingale is locally square-integrable: $\mathcal{M}^c_{\mathrm{loc}} \subseteq \mathcal{M}^2_{\mathrm{loc}}$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+\subsection{Predictable quadratic variation}
+
+
+\begin{definition}[Predictable quadratic variation]\label{def:quadraticVariation}
+  \uses{def:IsLocallySquareIntegrable, def:IsCadlag, thm:local_doobMeyer,
+    lem:IsLocallySquareIntegrable.isLocalSubmartingale_sq_norm}
+  \leanok
+  \lean{ProbabilityTheory.predQuadVariation}
+For $M \in \mathcal{M}^2_{\mathrm{loc}}$ with càdlàg paths, the predictable
+quadratic variation of $M$ is defined as the predictable part of the Doob-Meyer decomposition of the local submartingale $\Vert M \Vert^2$~.
+We denote it by $\langle M \rangle$~.
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_quadraticVariation}
+  \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadVariation}
+The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:cadlag_quadraticVariation}
+  \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadVariation}
+The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:locallyIntegrable_quadraticVariation}
+  \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.hasLocallyIntegrableSup_predQuadVariation}
+The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is locally integrable.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:quadraticVariation_zero}
+  \uses{def:quadraticVariation}
+$\langle M \rangle_0 = 0$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:monotone_quadraticVariation}
+  \uses{def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.monotone_predQuadVariation}
+The predictable quadratic variation $\langle M \rangle$ of $M \in \mathcal{M}^2_{\mathrm{loc}}$ is non-decreasing.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_martingale_sub_quadraticVariation}
+  \uses{def:quadraticVariation}
+For $M \in \mathcal{M}^2_{\mathrm{loc}}$, the process $\Vert M_t \Vert^2 - \langle M \rangle_t$ is a local martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_doobMeyer}
+
+\end{proof}
+
+
+\begin{definition}[Predictable covariation]\label{def:covariation}
+  \uses{def:IsLocallySquareIntegrable, def:quadraticVariation}
+  \leanok
+  \lean{ProbabilityTheory.predQuadCovariation}
+For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the predictable covariation $\langle M, N \rangle$ is a stochastic process defined by polarization of the predictable quadratic variation:
+\begin{align*}
+  \langle M, N \rangle_t = \frac{1}{2}\left(\langle M+N \rangle_t - \langle M \rangle_t - \langle N \rangle_t \right)
+  \: .
+\end{align*}
+\end{definition}
+
+
+\begin{lemma}\label{lem:predictable_covariation}
+  \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isStronglyPredictable_predQuadCovariation}
+The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is a predictable process.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:predictable_quadraticVariation}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:cadlag_covariation}
+  \uses{def:covariation}
+  \leanok
+  \lean{ProbabilityTheory.isCadlag_predQuadCovariation}
+The predictable covariation $\langle M, N \rangle$ of $M, N \in \mathcal{M}^2_{\mathrm{loc}}$ is càdlàg.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{lem:cadlag_quadraticVariation}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:covariation_zero}
+  \uses{def:covariation}
+$\langle M, N \rangle_0 = 0$~.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:quadraticVariation_zero}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:local_martingale_sub_covariation}
+  \uses{def:covariation}
+For $M, N \in \mathcal{M}^2_{\mathrm{loc}}$, the process $\langle M_t, N_t \rangle_E - \langle M, N \rangle_t$ is a local martingale.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:local_martingale_sub_quadraticVariation}
+\begin{align*}
+  &\langle M_t, N_t \rangle_E - \langle M, N \rangle_t
+  \\
+  &= \frac{1}{4}\left( \left(\Vert M_t + N_t \Vert^2 - \langle M+N \rangle_t\right) - \left(\Vert M_t - N_t \Vert^2 - \langle M-N \rangle_t\right) \right)
+  \: .
+\end{align*}
+The two differences are local martingales by Lemma~\ref{lem:local_martingale_sub_quadraticVariation}, so their linear combination is also a local martingale.
+\end{proof}
+
+
+\begin{lemma}\label{lem:covariation_eq_inner}
+  \uses{def:covariation, def:IsSquareIntegrable}
+Let $M$ and $N$ be square integrable martingales. Then
+\begin{align*}
+  \mathbb{E}\left[\langle M,N \rangle_\infty\right] = \langle M - M_0, N - N_0 \rangle_{\mathcal{M}^2}
+  \: .
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+% TODO: move elsewhere?
+\begin{lemma}\label{lem:quadraticVariation_brownian}
+  \uses{def:brownian, def:quadraticVariation}
+Let $B$ be a standard Brownian motion. Then the quadratic variation of $B$ is given by $\langle B \rangle_t = t$~.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+
+
+\section{Local martingales}
+
+\begin{lemma}\label{lem:IsLocalMartingale.locally_hasIntegrableVariation_largeJumps}
+  \uses{def:IsLocalMartingale, def:HasIntegrableVariation, def:largeJump}
+The large jump process of a local martingale is a process with locally integrable variation (it's in $(\mathcal{A} \cap \mathcal{M})_{\mathrm{loc}}$).
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{theorem}\label{thm:local_martingale_decomposition}
+  \uses{def:IsLocalMartingale}
+Let $M$ be a local martingale.
+Then for any $\varepsilon > 0$, $M$ can be decomposed as $M = M_0 + U + V$, where $U$ is a locally bounded martingale (local version of both bounded and martingale) with $\vert \Delta U \vert \le \varepsilon$ and $U_0 = 0$ and $V$ is a local martingale with locally integrable variation ($V \in (\mathcal{M} \cap \mathcal{A})_{\mathrm{loc}}$) and $V_0 = 0$.
+\end{theorem}
+
+\begin{proof}
+  \uses{lem:IsLocalMartingale.locally_hasIntegrableVariation_largeJumps}
+See  \cite{he2019semimartingale}, 7.17
+\end{proof}
+
+Remark:
+$U$ is locally bounded, hence locally square integrable, so we can use the integration machinery for those to define an integral.
+$V$ has locally integrable variation so we can integrate it with Stieltjes integrals.
+
+
+\section{Semimartingales}
+
+
+\begin{definition}[Semimartingale]\label{def:IsSemimartingale}
+  \uses{def:IsLocalMartingale, def:HasFiniteVariation, def:adapted}
+A process $X$ is a semimartingale if it can be decomposed as $X = M + A$, where $M$ is a local martingale ($M \in \mathcal{M}_{\mathrm{loc}}$) and $A$ is an adapted process with finite variation.
+\end{definition}
+
+TODO: it's adapted and cadlag.
+
+
+\begin{lemma}\label{lem:IsSemimartingale.decomposition}
+  \uses{def:IsSemimartingale}
+A semimartingale $X$ can be decomposed as $X = M + A$, where $M$ is a locally bounded martingale with bounded jumps and $A$ is an adapted process with finite variation.
+\end{lemma}
+
+\begin{proof}
+  \uses{thm:local_martingale_decomposition}
+Decompose $X = M + A$ as in Definition~\ref{def:IsSemimartingale}.
+Then decompose $M$ as in Theorem~\ref{thm:local_martingale_decomposition} with $\varepsilon = 1$.
+Then $M = M_0 + U + V$ with $U$ a locally bounded martingale with $\vert \Delta U \vert \le 1$ and $V$ a local martingale with locally integrable variation.
+Then $X = (M_0 + U) + (A + V)$, with $U$ a locally bounded martingale with bounded jumps and $A + V$ an adapted process of finite variation (since $V$ has locally integrable variation, hence finite variation).
+\end{proof}
+
+
+\begin{definition}[Continuous martingale part]\label{def:IsSemimartingale.continuousMartingalePart}
+  \uses{def:IsSemimartingale, lem:IsSemimartingale.decomposition}
+TODO. Denoted by $X^c$.
+\end{definition}
+
+
+\begin{definition}[Quadratic covariation of semimartingales]\label{def:quadCovariation}
+  \uses{def:IsSemimartingale, def:quadraticVariation, def:IsSemimartingale.continuousMartingalePart}
+Let $X$ and $Y$ be semimartingales. Their quadratic covariation $[X, Y]$ is defined as
+\begin{align*}
+  [X, Y]_t = X_0 Y_0 + \langle X^c, Y^c \rangle_t + \sum_{0 < s \le t} \Delta X_s \Delta Y_s
+  \: .
+\end{align*}
+\end{definition}
+
+TODO: this is an adapted process with finite variation (it's in $\mathcal{V}$).
+
+
+\begin{definition}[Quadratic variation of a semimartingale]\label{def:quadVariation}
+  \uses{def:quadCovariation}
+The quadratic variation of a semimartingale $X$ is defined as $[X] = [X, X]$~.
+\end{definition}
+
+TODO: $[X]$ is an adapted increasing process.
+
+
+\begin{definition}[Special semimartingale]\label{def:IsSpecialSemimartingale}
+  \uses{def:IsSemimartingale, def:HasIntegrableVariation}
+A semimartingale $X$ is a special semimartingale if it can be decomposed as $X = M + A$, where $M$ is a local martingale and $A$ is an adapted process with locally integrable variation.
+\end{definition}
+
+
+\begin{theorem}\label{lem:IsSpecialSemimartingale.decomposition}
+  \uses{def:IsSpecialSemimartingale}
+A special semimartingale $X$ can be decomposed as $X = M + A$, where $M$ is a local martingale and $A$ is a predictable process with finite variation and $A_0 = 0$.
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
