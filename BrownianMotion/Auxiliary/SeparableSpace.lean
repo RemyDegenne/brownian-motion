@@ -5,7 +5,6 @@ Authors: Yongxi Lin
 -/
 module
 
-public import Mathlib.Topology.Bases
 public import Mathlib.Topology.Order.T5
 
 /-!
@@ -15,7 +14,7 @@ public import Mathlib.Topology.Order.T5
 
 * `exists_isOpen_ordConnected_mem_subset`: every point of an open set has an open order connected
   neighbourhood contained in that set.
-* `isTopologicalBasis_isOpen_ordConnected`: the open order-convex sets form a topological basis.
+* `isTopologicalBasis_isOpen_ordConnected`: the open order connected sets form a topological basis.
 * `countable_setOf_isolated_subtype`: in a separable linearly ordered topological space, the
   points of a subset that are isolated in the subspace topology form a countable set.
 * `Set.separableSpace`: a separable linearly ordered topological space is hereditarily separable.
@@ -27,17 +26,15 @@ public import Mathlib.Topology.Order.T5
 open Filter Set TopologicalSpace
 open scoped Topology
 
-variable {X : Type*} [TopologicalSpace X] {α : Type*} [LinearOrder α] [TopologicalSpace α]
+variable {α : Type*} [LinearOrder α] [TopologicalSpace α] [OrderTopology α]
 
 /-- A dense set contains every point whose singleton is open, that is, every isolated point. -/
-theorem Dense.mem_of_isOpen_singleton {s : Set X} {x : X} (hs : Dense s) (hx : IsOpen {x}) :
-    x ∈ s := by
+theorem Dense.mem_of_isOpen_singleton {X : Type*} [TopologicalSpace X] {s : Set X} {x : X}
+    (hs : Dense s) (hx : IsOpen {x}) : x ∈ s := by
   obtain ⟨y, hys, hy⟩ := hs.exists_mem_open hx ⟨x, rfl⟩
   exact mem_singleton_iff.1 hy ▸ hys
 
 section OrdConnected
-
-variable [OrderTopology α]
 
 /-- Every point `x` of an open set `U` has an open order connected neighbourhood contained in `U`.
 -/
@@ -53,7 +50,7 @@ theorem exists_isOpen_ordConnected_mem_subset {U : Set α} (hU : IsOpen U) {x : 
   exact mem_interior.2 ⟨Ioo y z, fun v hv ↦ OrdConnected.out inferInstance
     (interior_subset hy) (interior_subset hz) ⟨hv.1.le, hv.2.le⟩, isOpen_Ioo, hyw, hwz⟩
 
-/-- The open order-convex sets form a topological basis of a linearly ordered topological
+/-- The open order connected sets form a topological basis of a linearly ordered topological
 space. -/
 theorem isTopologicalBasis_isOpen_ordConnected :
     IsTopologicalBasis {V : Set α | IsOpen V ∧ V.OrdConnected} :=
@@ -61,7 +58,7 @@ theorem isTopologicalBasis_isOpen_ordConnected :
     let ⟨V, hVo, hVc, haV, hVu⟩ := exists_isOpen_ordConnected_mem_subset hu ha
     ⟨V, ⟨hVo, hVc⟩, haV, hVu⟩
 
-/-- The open order-convex sets containing a point form a basis of its neighbourhood filter. -/
+/-- The open order connected sets containing a point form a basis of its neighbourhood filter. -/
 theorem nhds_basis_isOpen_ordConnected (x : α) :
     (𝓝 x).HasBasis (fun V : Set α ↦ (IsOpen V ∧ V.OrdConnected) ∧ x ∈ V) id :=
   isTopologicalBasis_isOpen_ordConnected.nhds_hasBasis
@@ -70,12 +67,10 @@ end OrdConnected
 
 section Separable
 
-variable [OrderTopology α]
-
 /-- In a separable linearly ordered topological space, the points of a subset `s` that are
 isolated in the subspace `↥s` form a countable set.
 
-Each such point `x` has an open order-convex neighbourhood `W x` meeting `s` only in `x`. The
+Each such point `x` has an open order connected neighbourhood `W x` meeting `s` only in `x`. The
 sets `W x ∩ Ioi x` are then pairwise disjoint, as are the sets `W x ∩ Iio x`, so in a separable
 space only countably many of each are nonempty; and if both are empty then `W x = {x}` is open,
 so `x` belongs to any dense set. -/
@@ -144,7 +139,7 @@ instance Set.separableSpace [SeparableSpace α] (s : Set α) : SeparableSpace s 
   · exact ⟨x, hxO, Or.inl hxiso⟩
   obtain ⟨U, hU, hUO⟩ := Topology.IsInducing.subtypeVal.isOpen_iff.1 hO
   obtain ⟨W, hWo, hWc, hWx, hWU⟩ := exists_isOpen_ordConnected_mem_subset hU (hUO.ge hxO)
-  -- as `x` is not isolated in `↥s`, every open set containing it meets `s` in a different point
+  -- as `x` is not isolated in `s`, every open set containing it meets `s` in a different point
   have hnot (G : Set α) (hG : IsOpen G) (hxG : x.1 ∈ G) : ∃ y ∈ s, y ∈ G ∧ y ≠ x := by
     by_contra! hcon
     suffices hGx : Subtype.val ⁻¹' G = {x} from hxiso (hGx ▸ hG.preimage continuous_subtype_val)
@@ -169,11 +164,3 @@ instance Set.separableSpace [SeparableSpace α] (s : Set α) : SeparableSpace s 
     Or.inr ⟨p, hpD, q, hqD, rfl⟩⟩
 
 end Separable
-
-/-- A point of a subset `s` is isolated on the right in the subspace `↥s` exactly when it is
-isolated on the right within `s`. -/
-theorem nhdsGT_subtype_eq_bot_iff {s : Set α} {x : s} :
-    𝓝[>] x = ⊥ ↔ 𝓝[s ∩ Ioi (x : α)] (x : α) = ⊥ := by
-  have : ((↑) : s → α) ⁻¹' Ioi (x : α) = Ioi x := rfl
-  rw [← this, nhdsWithin_subtype_eq_bot_iff, nhdsWithin, inf_assoc, inf_principal, inter_comm,
-    ← nhdsWithin]

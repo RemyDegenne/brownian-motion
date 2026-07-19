@@ -303,6 +303,14 @@ end Separable
 
 section SecondCountableTopology
 
+/-- A point of a subset `s` is isolated on the right in the subspace `↥s` exactly when it is
+isolated on the right within `s`. -/
+theorem nhdsGT_subtype_eq_bot_iff {s : Set ι} {x : s} :
+    𝓝[>] x = ⊥ ↔ 𝓝[s ∩ Ioi x.1] x.1 = ⊥ := by
+  have : ((↑) : s → ι) ⁻¹' Ioi x.1 = Ioi x := rfl
+  rw [← this, nhdsWithin_subtype_eq_bot_iff, nhdsWithin, inf_assoc, inf_principal, inter_comm,
+    ← nhdsWithin]
+
 /-- The variation of a function that is right-continuous within `s` at every point of `s` can be
 computed using only points of a dense subset `t` of `s`, provided `t` contains every point of `s`
 that is isolated on the right. -/
