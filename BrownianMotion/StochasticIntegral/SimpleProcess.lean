@@ -640,6 +640,12 @@ def indicator (S : ElementaryPredictableSet 𝓕) (e : E) : SimpleProcess E 𝓕
     intro (i, ω)
     simp +contextual
 
+@[simp]
+lemma value_indicator (S : ElementaryPredictableSet 𝓕) (c : E) (p : ι × ι) :
+    (S.indicator c).value p = if p ∈ S.I then (S.set p).indicator fun _ ↦ c else 0 := by
+  unfold ElementaryPredictableSet.indicator SimpleProcess.value
+  simp only [Finsupp.onFinset_apply]
+
 variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 variable {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
 

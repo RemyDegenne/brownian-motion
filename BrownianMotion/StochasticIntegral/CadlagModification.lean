@@ -10,7 +10,6 @@ public import BrownianMotion.StochasticIntegral.Cadlag
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.OptionalSampling
 public import Mathlib.Probability.Notation
-public import Mathlib.Probability.Martingale.Upcrossing
 
 /-! # Cadlag modification stochastic processes -/
 
@@ -75,15 +74,52 @@ lemma exists_finIdx_eq {s : ι} (hs : s ∈ F) : ∃ k, k < #F ∧ finIdx F t k 
   obtain ⟨k, hk⟩ := (F.orderIsoOfFin rfl).surjective ⟨s, hs⟩
   exact ⟨k, k.2, by rw [finIdx, dif_pos k.2, Fin.eta, hk]⟩
 
-/-- **Bridge lemma**: a finite collection of `{0,1}`-valued adapted weights along a monotone
-sequence of times below `t` is realized by an elementary predictable set whose elementary
-stochastic integral at time `t` is the weighted sum of increments of `X`. -/
-lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → ι}
+lemma finIdx_zero_eq_bot [OrderBot ι] (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
+  have hcard : 0 < #F := card_pos.2 ⟨⊥, hbot⟩
+  obtain ⟨k, hk, hkeq⟩ := exists_finIdx_eq (t := t) hbot
+  rcases Nat.eq_zero_or_pos k with rfl | hkpos
+  · exact hkeq
+  · exact le_bot_iff.1 (hkeq ▸ (finIdx_lt_of_lt hkpos hk).le)
+
+@[simps]
+noncomputable
+def elemPredSetOfSeq [OrderBot ι] {idx : ℕ → ι} (hidx : Monotone idx) {W : ℕ → Ω → ℝ} (n : ℕ)
+    (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
+    ElementaryPredictableSet 𝓕 :=
+  letI K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)}
+  { setBot := ∅
+    I := K.image fun k ↦ (idx k, idx (k + 1))
+    set := fun p ↦ if h : ∃ k ∈ K, (idx k, idx (k + 1)) = p then W h.choose ⁻¹' {1} else ∅
+    le_of_mem_I := by grind
+    measurableSet_setBot := @MeasurableSet.empty _ (𝓕 ⊥)
+    measurableSet_set p hp := by
+      obtain ⟨k, hk, rfl⟩ := mem_image.1 hp
+      have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
+      simp only [dif_pos hex]
+      obtain ⟨hcK, hceq⟩ := hex.choose_spec
+      have h1 : idx hex.choose = idx k := (Prod.ext_iff.1 hceq).1
+      have hKmem {k} (hk : k ∈ K) : k < n ∧ idx k < idx (k + 1) := by simpa [K] using hk
+      have h2 : MeasurableSet[𝓕 (idx hex.choose)] (W hex.choose ⁻¹' {1}) :=
+        hWmeas _ (hKmem hcK).1 (measurableSet_singleton 1)
+      rwa [h1] at h2
+    pairwiseDisjoint p hp q hq hpq := by
+      simp only [coe_image, Set.mem_image, mem_coe] at hp hq
+      obtain ⟨k, hk, rfl⟩ := hp
+      obtain ⟨l, hl, rfl⟩ := hq
+      have hkl : k ≠ l := fun h ↦ hpq (by rw [h])
+      have hIoc : Disjoint (Set.Ioc (idx k) (idx (k + 1))) (Set.Ioc (idx l) (idx (l + 1))) := by
+        rcases lt_or_gt_of_ne hkl with h | h
+        · exact Set.Ioc_disjoint_Ioc_of_le (hidx (Nat.succ_le_of_lt h))
+        · exact (Set.Ioc_disjoint_Ioc_of_le (hidx (Nat.succ_le_of_lt h))).symm
+      exact Set.disjoint_left.2 fun x hx hx' ↦
+        Set.disjoint_left.1 hIoc hx.1 hx'.1 }
+
+lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → ι}
     (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t) {W : ℕ → Ω → ℝ}
     (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
-    (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
-    ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
-      (S.indicator (1 : ℝ) ● X) t ω = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
+    (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) (ω : Ω) :
+    ((elemPredSetOfSeq hidx n hWmeas).indicator (1 : ℝ) ● X) t ω =
+      ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
   set K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)} with hK
   have hKmem : ∀ {k}, k ∈ K → k < n ∧ idx k < idx (k + 1) := by
     intro k hk
@@ -95,50 +131,47 @@ lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : �
     rcases lt_or_gt_of_ne hne with h | h
     · exact absurd ((hidx (Nat.succ_le_of_lt h)).trans_eq hkl.1.symm) (hKmem hk).2.not_ge
     · exact absurd ((hidx (Nat.succ_le_of_lt h)).trans_eq hkl.1) (hKmem hl).2.not_ge
-  refine ⟨⟨∅, K.image fun k ↦ (idx k, idx (k + 1)),
-    fun p ↦ if h : ∃ k ∈ K, (idx k, idx (k + 1)) = p then W h.choose ⁻¹' {1} else ∅,
-    by grind, @MeasurableSet.empty _ (𝓕 ⊥), ?_, ?_⟩, ?_⟩
-  · -- measurableSet_set
-    intro p hp
-    obtain ⟨k, hk, rfl⟩ := mem_image.1 hp
-    have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
-    simp only [dif_pos hex]
-    obtain ⟨hcK, hceq⟩ := hex.choose_spec
-    have h1 : idx hex.choose = idx k := (Prod.ext_iff.1 hceq).1
-    have h2 : MeasurableSet[𝓕 (idx hex.choose)] (W hex.choose ⁻¹' {1}) :=
-      hWmeas _ (hKmem hcK).1 (measurableSet_singleton 1)
-    rwa [h1] at h2
-  · -- pairwiseDisjoint
-    intro p hp q hq hpq
-    simp only [coe_image, Set.mem_image, mem_coe] at hp hq
-    obtain ⟨k, hk, rfl⟩ := hp
-    obtain ⟨l, hl, rfl⟩ := hq
-    have hkl : k ≠ l := fun h ↦ hpq (by rw [h])
-    have hIoc : Disjoint (Set.Ioc (idx k) (idx (k + 1))) (Set.Ioc (idx l) (idx (l + 1))) := by
-      rcases lt_or_gt_of_ne hkl with h | h
-      · exact Set.Ioc_disjoint_Ioc_of_le (hidx (Nat.succ_le_of_lt h))
-      · exact (Set.Ioc_disjoint_Ioc_of_le (hidx (Nat.succ_le_of_lt h))).symm
-    exact Set.disjoint_left.2 fun x hx hx' ↦
-      Set.disjoint_left.1 hIoc hx.1 hx'.1
-  · -- the integral computation
-    intro ω
-    rw [ElementaryPredictableSet.integral_indicator_apply,
-      sum_image fun k hk l hl h ↦ hinj hk hl h]
-    refine (sum_congr rfl fun k hk ↦ ?_).trans (sum_subset (filter_subset _ _) fun k hk hkK ↦ ?_)
-    · -- per-term equality on K
-      have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
-      have hchoose : hex.choose = k := hinj hex.choose_spec.1 hk hex.choose_spec.2
-      have hst : ∀ j, stoppedProcess X (fun _ ↦ (t : WithTop ι)) (idx j) ω = X (idx j) ω :=
-        fun j ↦ stoppedProcess_eq_of_le (mod_cast hidxt j)
-      simp only [dif_pos hex, hchoose]
-      rcases hW01 k (hKmem hk).1 ω with h0 | h1
-      · simp [h0]
-      · simp [h1, hst]
-    · -- terms outside K vanish
-      have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, mem_range.1 hk, h])
-      have heq : idx (k + 1) = idx k :=
-        le_antisymm (not_lt.1 hno) (hidx k.le_succ)
-      rw [heq, sub_self, mul_zero]
+  rw [ElementaryPredictableSet.integral_indicator_apply]
+  simp only [elemPredSetOfSeq_I, elemPredSetOfSeq_set]
+  simp only [mem_filter, mem_range, ContinuousLinearMap.mul_apply', one_mul]
+  rw [sum_image fun k hk l hl h ↦ hinj hk hl h]
+  simp only [mem_filter, mem_range, Prod.mk.injEq]
+  refine (sum_congr rfl fun k hk ↦ ?_).trans (sum_subset (filter_subset _ _) fun k hk hkK ↦ ?_)
+  · -- per-term equality on K
+    have h : ∃ k_1 ∈ {k ∈ range n | idx k < idx (k + 1)},
+      (idx k_1, idx (k_1 + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
+    rw [dif_pos h]
+    suffices (W h.choose ⁻¹' {1}).indicator
+        (fun ω ↦ stoppedProcess X (fun x ↦ ↑t) (idx (k + 1)) ω -
+          stoppedProcess X (fun x ↦ ↑t) (idx k) ω) ω =
+        W k ω * (X (idx (k + 1)) ω - X (idx k) ω) by
+      convert this
+      · rfl
+      · simp
+      · simp
+    have hchoose : h.choose = k := hinj h.choose_spec.1 hk h.choose_spec.2
+    have hst : ∀ j, stoppedProcess X (fun _ ↦ (t : WithTop ι)) (idx j) ω = X (idx j) ω :=
+      fun j ↦ stoppedProcess_eq_of_le (mod_cast hidxt j)
+    simp only [hchoose]
+    rcases hW01 k (hKmem hk).1 ω with h0 | h1
+    · simp [h0]
+    · simp [h1, hst]
+  · -- terms outside K vanish
+    have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, mem_range.1 hk, h])
+    have heq : idx (k + 1) = idx k :=
+      le_antisymm (not_lt.1 hno) (hidx k.le_succ)
+    rw [heq, sub_self, mul_zero]
+
+-- /-- **Bridge lemma**: a finite collection of `{0,1}`-valued adapted weights along a monotone
+-- sequence of times below `t` is realized by an elementary predictable set whose elementary
+-- stochastic integral at time `t` is the weighted sum of increments of `X`. -/
+-- lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → ι}
+--     (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t) {W : ℕ → Ω → ℝ}
+--     (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
+--     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
+--     ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
+--       (S.indicator (1 : ℝ) ● X) t ω = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) :=
+--   ⟨elemPredSetOfSeq hidx n hWmeas, integral_elementaryPredSetOfSeq n hidx hidxt hW01 hWmeas⟩
 
 end Bridge
 
@@ -148,25 +181,42 @@ section UpcrossingBound
 
 variable {a b : ℝ} {t : ι} {F : Finset ι} {m : ℕ}
 
+lemma integrable_integral_elementaryPredictableSet [OrderBot ι] [IsFiniteMeasure μ]
+    (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (c : ℝ) :
+    Integrable (((S.indicator c) ● X) t) μ := by
+  refine integrable_finsetSum _ fun p hp ↦ Integrable.bdd_mul
+    (((hXint _).sub (hXint _))) ?_ (c := ‖c‖) (ae_of_all _ fun ω ↦ ?_)
+  · simp only [ElementaryPredictableSet.value_indicator]
+    split_ifs with hp
+    swap; · fun_prop
+    refine StronglyMeasurable.aestronglyMeasurable ?_
+    refine StronglyMeasurable.indicator (by fun_prop) ?_
+    have hmeas : MeasurableSet[𝓕 p.1] (S.set p) := S.measurableSet_set p hp
+    exact 𝓕.le _ _ hmeas
+  · simp only [ElementaryPredictableSet.value_indicator, Real.norm_eq_abs]
+    split_ifs with hp
+    · by_cases hω : ω ∈ S.set p <;> simp [hω]
+    · simp
+
 /-- Expectation bound on the number of upcrossings along a finite set of times `F ⊆ Iic t`,
 from the boundedness of elementary stochastic integrals at time `t`. -/
 lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
+    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator 1 ● X) t] ≤ C)
     (hab : a < b) (hF : ∀ s ∈ F, s ≤ t) :
-    (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) F.card ω : ℝ) ∂μ
-      ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ := by
+    (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω : ℝ) ∂μ
+      ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by
   set f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω with hf
   set n := F.card with hn
   have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
-  obtain ⟨S, hS⟩ := exists_elementaryPredictableSet_integral_eq (𝓕 := 𝓕) (X := X) n
-    (finIdx_monotone hF) (finIdx_le hF) (W := upcrossingStrat a b f n)
-    (fun k _ ω ↦ upcrossingStrat_eq_zero_or_one a b f n k ω)
+  let S := elemPredSetOfSeq (W := upcrossingStrat a b f n) (finIdx_monotone hF) n fun k hk ↦
+    (hadapt.upcrossingStrat k).measurable
+  have hS := integral_elemPredSetOfSeq (𝓕 := 𝓕) (X := X) n (finIdx_monotone hF) (finIdx_le hF)
+    (W := upcrossingStrat a b f n) (fun k _ ω ↦ upcrossingStrat_eq_zero_or_one a b f n k ω)
     (fun k _ ↦ (hadapt.upcrossingStrat k).measurable)
-  have hpath : ∀ ω, (b - a) * (upcrossingsBefore a b f n ω : ℝ)
+  have hpath ω : (b - a) * (upcrossingsBefore a b f n ω : ℝ)
       ≤ (S.indicator (1 : ℝ) ● X) t ω + max (a - X t ω) 0 := by
-    intro ω
     have h1 := mul_upcrossingsBefore_le_sum_add_max (f := f) (N := n) (ω := ω) hab
     have hfn : f n ω = X t ω := by
       change X (finIdx F t n) ω = X t ω
@@ -178,28 +228,19 @@ lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ
   -- integrability of the elementary integral at `t`
   have hWmeas : ∀ k, Measurable (upcrossingStrat a b f n k) := fun k ↦
     ((hadapt.upcrossingStrat k).measurable).mono (𝓕.le _) le_rfl
-  have hintS : Integrable ((S.indicator (1 : ℝ) ● X) t) μ := by
-    have hSfun : ((S.indicator (1 : ℝ) ● X) t)
-        = fun ω ↦ ∑ k ∈ range n,
-          upcrossingStrat a b f n k ω * (X (finIdx F t (k + 1)) ω - X (finIdx F t k) ω) :=
-      funext hS
-    rw [hSfun]
-    refine integrable_finsetSum _ fun k _ ↦ Integrable.bdd_mul
-      (((hXint _).sub (hXint _)))
-      (hWmeas k).aestronglyMeasurable (c := 1) (ae_of_all _ fun ω ↦ ?_)
-    rw [Real.norm_eq_abs, abs_of_nonneg upcrossingStrat_nonneg]
-    exact upcrossingStrat_le_one
-  have hintmax : Integrable (fun ω ↦ max (a - X t ω) 0) μ :=
+  have hintS : Integrable ((S.indicator (1 : ℝ) ● X) t) μ :=
+    integrable_integral_elementaryPredictableSet hXint S 1
+  have hintmax : Integrable (fun ω ↦ (a - X t ω)⁺) μ :=
     (((integrable_const a).sub (hXint t))).pos_part
   have hintcount : Integrable (fun ω ↦ (upcrossingsBefore a b f n ω : ℝ)) μ :=
     hadapt.integrable_upcrossingsBefore hab
   calc (b - a) * ∫ ω, (upcrossingsBefore a b f n ω : ℝ) ∂μ
       = ∫ ω, (b - a) * (upcrossingsBefore a b f n ω : ℝ) ∂μ := (integral_const_mul _ _).symm
-    _ ≤ ∫ ω, ((S.indicator (1 : ℝ) ● X) t ω + max (a - X t ω) 0) ∂μ :=
+    _ ≤ ∫ ω, ((S.indicator (1 : ℝ) ● X) t ω + (a - X t ω)⁺) ∂μ :=
         integral_mono (hintcount.const_mul _) (hintS.add hintmax) hpath
-    _ = μ[(S.indicator (1 : ℝ) ● X) t] + ∫ ω, max (a - X t ω) 0 ∂μ :=
+    _ = μ[(S.indicator (1 : ℝ) ● X) t] + ∫ ω, (a - X t ω)⁺ ∂μ :=
         integral_add hintS hintmax
-    _ ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ := by gcongr; exact hC S
+    _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by gcongr; exact hC S
 
 variable (X) in
 /-- The event that `X` makes `m` alternations from strictly below `a` to strictly above `b` at
@@ -239,8 +280,7 @@ lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hab : a < b) (hm : 0 < m) (hF : ∀ s ∈ F, s ≤ t) :
-    μ.real (altSet X F a b m)
-      ≤ (C + ∫ ω, max (a - X t ω) 0 ∂μ) / (b - a) / m := by
+    μ.real (altSet X F a b m) ≤ (C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / m := by
   let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
   have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
@@ -257,7 +297,7 @@ lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
     gcongr
     exact mul_meas_ge_le_integral_of_nonneg
       (ae_of_all _ fun ω ↦ by positivity) (hadapt.integrable_upcrossingsBefore hab) m
-  _ ≤ C + ∫ ω, max (a - X t ω) 0 ∂μ :=
+  _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ :=
     mul_integral_upcrossingsBefore_finIdx_le (μ := μ) hX hXint hC hab hF
 
 end UpcrossingBound
@@ -330,11 +370,10 @@ lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
       (∀ k, k < n → Measurable[𝓕 (idx k)] (V k)) →
       ∫ ω, (∑ k ∈ range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω)) ∂μ ≤ C := by
     intro V hV01 hVmeas
-    obtain ⟨S, hS⟩ := exists_elementaryPredictableSet_integral_eq (𝓕 := 𝓕) (X := X) n
-      hidx hidxt (W := V) hV01 hVmeas
-    have : (fun ω ↦ ∑ k ∈ range n, V k ω * (X (idx (k + 1)) ω - X (idx k) ω))
-        = ((S.indicator (1 : ℝ) ● X) t) := (funext hS).symm
-    rw [this]
+    let S := elemPredSetOfSeq hidx n hVmeas
+    have hS := integral_elemPredSetOfSeq (𝓕 := 𝓕) (X := X) n hidx hidxt (W := V) hV01 hVmeas
+    rw [← funext_iff] at hS
+    rw [← hS]
     exact hC S
   constructor
   · -- lower bound via the complementary weights
@@ -477,13 +516,6 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
     have hsum := hK W hW01 hWmeas
     linarith
   linarith [hsplit, hlower, hcompl, htotal]
-
-lemma finIdx_zero_eq_bot [OrderBot ι] {F : Finset ι} {t : ι} (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
-  have hcard : 0 < F.card := card_pos.2 ⟨⊥, hbot⟩
-  obtain ⟨k, hk, hkeq⟩ := exists_finIdx_eq (t := t) hbot
-  rcases Nat.eq_zero_or_pos k with rfl | hkpos
-  · exact hkeq
-  · exact le_bot_iff.1 (hkeq ▸ (finIdx_lt_of_lt hkpos hk).le)
 
 /-- **Maximal inequality**: the probability that `|X|` exceeds `lam` somewhere on a finite set
 `F ⊆ Iic t` is at most `K / lam`, with `K` independent of `F`. -/
@@ -1008,28 +1040,20 @@ that are isolated from the right in `A` is countable. -/
 lemma countable_setOf_right_isolated [TopologicalSpace.SeparableSpace ι] (A : Set ι) :
     {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅}.Countable := by
   obtain ⟨D₀, hD₀c, hD₀d⟩ := TopologicalSpace.exists_countable_dense ι
-  set I := {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅} with hI
+  let I := {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅}
   have hbw : ∀ p ∈ I, ∃ bq : ι × ι, p < bq.1 ∧ Set.Ioo p bq.1 ∩ A = ∅
       ∧ bq.2 ∈ D₀ ∧ bq.2 ∈ Set.Ioo p bq.1 := by
     rintro p ⟨hpA, b, hpb, hbA⟩
     obtain ⟨q, hqD, hq⟩ := hD₀d.exists_mem_open isOpen_Ioo (Set.nonempty_Ioo.2 hpb)
     exact ⟨(b, q), hpb, hbA, hqD, hq⟩
   choose! bq hb1 hb2 hb3 hb4 using hbw
-  have hkey : ∀ p ∈ I, ∀ p' ∈ I, p < p' → (bq p).2 < (bq p').2 := by
-    intro p hp p' hp' hlt
+  have hkey p (hp : p ∈ I) p' (hp' : p' ∈ I) (hlt : p < p') : (bq p).2 < (bq p').2 := by
     have hble : (bq p).1 ≤ p' := by
-      by_contra hcon
-      rw [not_le] at hcon
+      by_contra! hcon
       have hmem : p' ∈ Set.Ioo p (bq p).1 ∩ A := ⟨⟨hlt, hcon⟩, hp'.1⟩
-      rw [hb2 p hp] at hmem
-      exact hmem
-    exact ((hb4 p hp).2.trans_le hble).trans (hb4 p' hp').1
-  have hinj : Set.InjOn (fun p ↦ (bq p).2) I := by
-    intro p hp p' hp' hqq
-    rcases lt_trichotomy p p' with h | h | h
-    · exact absurd hqq (hkey p hp p' hp' h).ne
-    · exact h
-    · exact absurd hqq.symm (hkey p' hp' p hp h).ne
+      grind
+    grind
+  have hinj : Set.InjOn (fun p ↦ (bq p).2) I := by intro p hp p' hp' hqq; grind
   exact Set.MapsTo.countable_of_injOn (fun p hp ↦ hb3 p hp) hinj hD₀c
 
 omit [OrderBot ι] in
@@ -1037,25 +1061,20 @@ omit [OrderBot ι] in
 strictly decreasing sequence of its elements converging to a point from the right. -/
 lemma exists_seq_strictAnti_tendsto_of_not_countable [TopologicalSpace.SeparableSpace ι]
     {A : Set ι} (hA : ¬ A.Countable) :
-    ∃ p : ι, ∃ u : ℕ → ι, StrictAnti u ∧ (∀ k, u k ∈ A) ∧ (∀ k, p < u k)
-      ∧ Tendsto u atTop (𝓝 p) := by
+    ∃ (p : ι) (u : ℕ → ι), StrictAnti u ∧ (∀ k, u k ∈ A) ∧ (∀ k, p < u k) ∧
+      Tendsto u atTop (𝓝 p) := by
   have hsub : ¬ (A ⊆ {p ∈ A | ∃ b, p < b ∧ Set.Ioo p b ∩ A = ∅}) := by
     intro hcon
     exact hA ((countable_setOf_right_isolated A).mono hcon)
   rw [Set.not_subset] at hsub
   obtain ⟨p, hpA, hpiso⟩ := hsub
-  have hacc : ∀ b, p < b → (Set.Ioo p b ∩ A).Nonempty := by
-    intro b hb
+  have hacc b (hb : p < b) : (Set.Ioo p b ∩ A).Nonempty := by
     rw [Set.nonempty_iff_ne_empty]
-    intro hcon
-    exact hpiso ⟨hpA, b, hb, hcon⟩
+    grind
   obtain ⟨V, hV⟩ := (𝓝 p).exists_antitone_basis
-  have hstep : ∀ prev : ι, p < prev → ∀ j : ℕ, ∃ y, y ∈ A ∧ p < y ∧ y < prev ∧ y ∈ V j := by
-    intro prev hprev j
+  have hstep (prev : ι) (hprev : p < prev) j : ∃ y, y ∈ A ∧ p < y ∧ y < prev ∧ y ∈ V j := by
     obtain ⟨w, hw, hsubV⟩ := exists_Ico_subset_of_mem_nhds (hV.mem j) ⟨prev, hprev⟩
-    obtain ⟨y, hy⟩ := hacc (min w prev) (lt_min hw hprev)
-    exact ⟨y, hy.2, hy.1.1, hy.1.2.trans_le (min_le_right _ _),
-      hsubV ⟨hy.1.1.le, hy.1.2.trans_le (min_le_left _ _)⟩⟩
+    grind
   obtain ⟨w0, hw0⟩ := exists_gt p
   obtain ⟨y0, hy0⟩ := hacc w0 hw0
   -- build the sequence by recursion through a subtype
@@ -1065,14 +1084,8 @@ lemma exists_seq_strictAnti_tendsto_of_not_countable [TopologicalSpace.Separable
       (hstep prev.1 prev.2.2 (k + 1)).choose_spec.2.1⟩
   let u' : ℕ → Q := fun k ↦ Nat.rec ⟨y0, hy0.2, hy0.1.1⟩ step k
   have hu'succ : ∀ k, u' (k + 1) = step k (u' k) := fun k ↦ rfl
-  have hlt : ∀ k, (u' (k + 1)).1 < (u' k).1 := by
-    intro k
-    rw [hu'succ k]
-    exact (hstep (u' k).1 (u' k).2.2 (k + 1)).choose_spec.2.2.1
-  have hmemV : ∀ k, (u' (k + 1)).1 ∈ V (k + 1) := by
-    intro k
-    rw [hu'succ k]
-    exact (hstep (u' k).1 (u' k).2.2 (k + 1)).choose_spec.2.2.2
+  have hlt : ∀ k, (u' (k + 1)).1 < (u' k).1 := by grind
+  have hmemV : ∀ k, (u' (k + 1)).1 ∈ V (k + 1) := by grind
   refine ⟨p, fun k ↦ (u' k).1, strictAnti_nat_of_succ_lt hlt, fun k ↦ (u' k).2.1,
     fun k ↦ (u' k).2.2, ?_⟩
   rw [← Filter.tendsto_add_atTop_iff_nat 1]
@@ -1234,7 +1247,6 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
         μ {ω | ENNReal.ofReal (1 / (n + 1 : ℝ)) ≤ edist (Rm (u k) ω - X (u k) ω) 0}
           < ENNReal.ofReal (1 / (n + 1)) := by
       refine hcontra.eventually_lt_const ?_
-      rw [ENNReal.ofReal_pos]
       positivity
     obtain ⟨k, hk⟩ := hev.exists
     have hmem := huSn k
@@ -1329,23 +1341,14 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
     by_cases hω : ω ∈ Gset
     · exact ⟨Lc x ω, hYleft ω hω x⟩
     · refine ⟨0, ?_⟩
-      have hconst : (fun x' ↦ Y x' ω) = fun _ ↦ (0 : ℝ) := by
-        funext x'
-        rw [hYdef]
-        simp only [if_neg hω]
-      rw [hconst]
+      simp only [hω, ↓reduceIte, Y]
       exact tendsto_const_nhds
   · -- right limits everywhere, for every ω
     intro x ω
     by_cases hω : ω ∈ Gset
     · exact ⟨R T'' x ω, hYright ω hω x⟩
     · refine ⟨0, ?_⟩
-      have hconst : (fun x' ↦ Y x' ω) = fun _ ↦ (0 : ℝ) := by
-        funext x'
-        rw [hYdef]
-        simp only [if_neg hω]
-      rw [hconst]
-      exact tendsto_const_nhds
+      simp [Y, hω]
   · -- right continuity off `Sset`, for every ω
     intro x hxS ω
     by_cases hω : ω ∈ Gset
@@ -1354,15 +1357,7 @@ lemma exists_modification_left_right_limit [TopologicalSpace.SeparableSpace ι] 
         simp only [if_pos hω, if_neg hxS]
       rw [ContinuousWithinAt, hYx]
       exact hYright ω hω x
-    · have hconst : (fun x' ↦ Y x' ω) = fun _ ↦ (0 : ℝ) := by
-        funext x'
-        rw [hYdef]
-        simp only [if_neg hω]
-      have hYx0 : Y x ω = 0 := by
-        rw [hYdef]
-        simp only [if_neg hω]
-      rw [ContinuousWithinAt, hYx0, hconst]
-      exact tendsto_const_nhds
+    · simp [Y, hω]
 
 /-- If `X` is an adapted integrable stochastic process which is right continuous in probability,
 and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t,
