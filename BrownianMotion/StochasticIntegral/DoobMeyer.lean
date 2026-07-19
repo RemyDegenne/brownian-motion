@@ -620,13 +620,13 @@ lemma isStoppingTime_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCo
     (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     IsStoppingTime 𝓕 (tauMeshLift S 𝓕 P n c) := by
   intro s
-  set T : Finset (mesh ι n) := Finset.univ.filter (fun u => u ≤ s)
+  set T : Finset (mesh ι n) := Finset.univ.filter (fun u ↦ u ≤ s)
   have hTne : T.Nonempty := ⟨⊥, by simp [T]⟩
   set u : mesh ι n := T.max' hTne
   have hu_mem : u ∈ T := T.max'_mem hTne
   have hu_le_s : (u : ι) ≤ s := by simpa [T] using hu_mem
   have hequiv (v : mesh ι n) : (v : ι) ≤ s ↔ v ≤ u :=
-    ⟨fun hv => T.le_max' v (by simp [T, hv]), fun hv => le_trans hv hu_le_s⟩
+    ⟨fun hv ↦ T.le_max' v (by simp [T, hv]), fun hv ↦ le_trans hv hu_le_s⟩
   suffices h : {ω | tauMeshLift S 𝓕 P n c ω ≤ s} = {ω | tauMesh S 𝓕 P n c ω ≤ u} by
     rw [h]; exact (𝓕.mono hu_le_s) _ (isStoppingTime_tauMesh S 𝓕 P n c u)
   ext ω
@@ -703,7 +703,7 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦
       stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0) (ht : ∀ t, S t ≤ᵐ[P] 0)
     (a : ℝ) (ha : a ≤ 0) (b : ℝ≥0 → ℝ) (hb : Tendsto b atTop atTop) :
-    Tendsto (fun c : ℝ≥0 => ⨆ k, ENNReal.ofReal
+    Tendsto (fun c : ℝ≥0 ↦ ⨆ k, ENNReal.ofReal
       (∫ ω in {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)},
         a * stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k (b c)) ω ∂P)) atTop (𝓝 0) := by
   have hA_meas (c : ℝ≥0) (k : ℕ) :
