@@ -16,8 +16,8 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y Z : ι → Ω → E}
 
 @[expose]
-def Indistinguishable (P : Measure Ω) (X Y : ι → Ω → E) :
-    Prop := ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω
+def Indistinguishable (P : Measure Ω) (X Y : ι → Ω → E) : Prop :=
+  ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω
 
 notation3:50 X " ≡ᵐ[" P:50 "] " Y:50 => Indistinguishable P X Y
 
@@ -49,12 +49,24 @@ protected lemma fun_comp₂ {F G : Type*} {Z T : ι → Ω → F} (h1 : X ≡ᵐ
   filter_upwards [h1, h2] with ω h1 h2 t
   rw [h1, h2]
 
-protected lemma neg [Neg E] (h : X ≡ᵐ[P] Y) :
-    -X ≡ᵐ[P] -Y := h.fun_comp _
+@[to_additive (attr := to_fun)]
+protected lemma inv [Inv E] (h : X ≡ᵐ[P] Y) :
+    X⁻¹ ≡ᵐ[P] Y⁻¹ := h.fun_comp _
 
-protected lemma add [Add E] {Z T : ι → Ω → E} (h1 : X ≡ᵐ[P] Y) (h2 : Z ≡ᵐ[P] T) :
-    X + Z ≡ᵐ[P] Y + T := h1.fun_comp₂ h2 _
+@[to_additive (attr := to_fun)]
+protected lemma mul [Mul E] {Z T : ι → Ω → E} (h1 : X ≡ᵐ[P] Y) (h2 : Z ≡ᵐ[P] T) :
+    X * Z ≡ᵐ[P] Y * T := h1.fun_comp₂ h2 _
 
+@[to_additive (attr := to_fun)]
+protected lemma div [Div E] {Z T : ι → Ω → E} (h1 : X ≡ᵐ[P] Y) (h2 : Z ≡ᵐ[P] T) :
+    X / Z ≡ᵐ[P] Y / T := h1.fun_comp₂ h2 _
+
+@[to_additive (attr := to_fun)]
+protected lemma smul {F : Type*} {Z T : ι → Ω → F} [SMul F E] (h1 : X ≡ᵐ[P] Y)
+    (h2 : Z ≡ᵐ[P] T) :
+    Z • X ≡ᵐ[P] T • Y := h2.fun_comp₂ h1 _
+
+@[to_additive (attr := to_fun)]
 protected lemma const_smul {F : Type*} [SMul F E] {c : F} (h : X ≡ᵐ[P] Y) :
     c • X ≡ᵐ[P] c • Y := h.fun_comp _
 
