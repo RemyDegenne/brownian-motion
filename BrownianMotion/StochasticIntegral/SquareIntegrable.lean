@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.AEEq
 public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.Martingale
 public import BrownianMotion.StochasticIntegral.LocalMartingale

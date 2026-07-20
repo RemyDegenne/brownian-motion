@@ -15,10 +15,12 @@ namespace ProbabilityTheory
 
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y Z : ι → Ω → E}
 
+/-- Two processes are indistinguishable if almost surely they agree everywhere. -/
 @[expose]
 def Indistinguishable (P : Measure Ω) (X Y : ι → Ω → E) : Prop :=
   ∀ᵐ ω ∂P, ∀ t, X t ω = Y t ω
 
+/-- Two processes are indistinguishable if almost surely they agree everywhere. -/
 notation3:50 X " ≡ᵐ[" P:50 "] " Y:50 => Indistinguishable P X Y
 
 namespace Indistinguishable
