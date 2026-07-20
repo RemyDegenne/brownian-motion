@@ -427,7 +427,7 @@ variable [Nonempty ι]
 
 variable (ι E P 𝓕) in
 /-- The injection of square integrable martingales into the `L^2` given by `X ↦ X ∞`.
-This is an `IsometryEquiv` onto the subspace of functions that are strongly measurable
+This is a `LinearIsometryEquiv` onto the subspace of functions that are strongly measurable
 with respect to `⨆ t, 𝓕 t`, see `SquareIntegrable.toL2Isom`. -/
 noncomputable def SquareIntegrable.toL2 : SquareIntegrable ι E P 𝓕 →ₗ[ℝ] Lp E 2 P where
   toFun X := (isSquareIntegrable_coe X).memLp_limitProcess.toLp
@@ -527,16 +527,19 @@ lemma isSquareIntegrable_modif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
     refine LE.le.trans_lt (iSup_le fun i ↦ ?_) hX.2
     grw [eLpNorm_congr_ae (modification_modif (martingale_condExp X 𝓕 P) i), eLpNorm_condExp_le]
 
-/-- The `IsometryEquiv` between square integrable martingales and the type of `L^2` random variables
-that are strongly measurable with respect to `⨆ t, 𝓕 t`, given by `X ↦ X ∞`. -/
+/-- The `LinearIsometryEquiv` between square integrable martingales and
+the type of `L^2` random variables that are strongly measurable with respect to `⨆ t, 𝓕 t`,
+given by `X ↦ X ∞`. -/
 noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
-    SquareIntegrable ι E P 𝓕 ≃ᵢ lpMeas E ℝ (⨆ t, 𝓕 t) 2 P where
+    SquareIntegrable ι E P 𝓕 ≃ₗᵢ[ℝ] lpMeas E ℝ (⨆ t, 𝓕 t) 2 P where
   toFun X := ⟨toL2 ι E P 𝓕 X, by {
     rw [mem_lpMeas_iff_aestronglyMeasurable, aestronglyMeasurable_congr (toL2_ae_eq X)]
     exact 𝓕.stronglyMeasurable_limitProcess.aestronglyMeasurable
   }⟩
   invFun X := mk (modif (fun t ↦ P[X.1 | 𝓕 t]))
     (isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp X.1)).isAESquareIntegrable
+  map_add' := by simp
+  map_smul' := by simp
   left_inv X := by
     ext
     apply indistinguishable_of_modification'
@@ -570,12 +573,12 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     rw [← h4]
     apply tendsto_nhds_unique ?_ (h3.comp hu)
     apply Tendsto.congr h1 (h2.comp hu)
-  isometry_toFun X Y := rfl
+  norm_map' X := rfl
 
 instance SquareIntegrable.completeSpace [OrderTopology ι] :
     CompleteSpace (SquareIntegrable ι E P 𝓕) :=
   haveI : Fact (⨆ t, 𝓕 t ≤ mΩ) := ⟨iSup_le 𝓕.le⟩
-  toL2Isom.completeSpace
+  toL2Isom.toIsometryEquiv.completeSpace
 
 end Hilbert
 
