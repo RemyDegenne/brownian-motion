@@ -216,6 +216,7 @@ lemma IsSquareIntegrable.ae_tendsto_limitProcess (hX : IsSquareIntegrable X 𝓕
     ∀ᵐ ω ∂P, Tendsto (X · ω) atTop (𝓝 (𝓕.limitProcess X P ω)) := by
   sorry
 
+variable (𝓕) in
 lemma tendsto_ae_condExp' (X : Ω → E) :
     ∀ᵐ ω ∂P, Tendsto (P[X | 𝓕 ·] ω) atTop (𝓝 (P[X | ⨆ t, 𝓕 t] ω)) := by
   sorry
@@ -369,12 +370,14 @@ lemma SquareIntegrable.mk_eq_mk {X Y : ι → Ω → E} {hX : IsAESquareIntegrab
     rwa [funext_iff]
 
 @[to_fun limitProcess_fun_add]
-lemma limitProcess_add {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : ι → Ω → E}
+lemma IsSquareIntegrable.limitProcess_add {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {X Y : ι → Ω → E}
     [LinearOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ} [NormedAddCommGroup E] [TopologicalSpace ι]
     [SigmaFiniteFiltration P 𝓕] [NormedSpace ℝ E]
     (hX : IsSquareIntegrable X 𝓕 P) (hY : IsSquareIntegrable Y 𝓕 P) :
     𝓕.limitProcess (X + Y) P =ᵐ[P] 𝓕.limitProcess X P + 𝓕.limitProcess Y P := by
-  apply limitProcess_ae_eq (𝓕.stronglyMeasurable_limitProcess.add 𝓕.stronglyMeasurable_limitProcess)
+  apply 𝓕.limitProcess_ae_eq
+    (𝓕.stronglyMeasurable_limitProcess.add 𝓕.stronglyMeasurable_limitProcess)
   filter_upwards [hX.ae_tendsto_limitProcess, hY.ae_tendsto_limitProcess] with ω h1 h2 using
     h1.add h2
 
@@ -396,8 +399,8 @@ with respect to `⨆ t, 𝓕 t`, see `SquareIntegrable.toL2Isom`. -/
 noncomputable def SquareIntegrable.toL2 : SquareIntegrable ι E P 𝓕 →ₗ[ℝ] Lp E 2 P where
   toFun X := (SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess.toLp
   map_add' X Y := by
-    rw [MemLp.toLp_congr _ _ (limitProcess_congr (SquareIntegrable.coe_add X Y)),
-      MemLp.toLp_congr _ _ (limitProcess_add _ _), MemLp.toLp_add]
+    rw [MemLp.toLp_congr _ _ (𝓕.limitProcess_congr (SquareIntegrable.coe_add X Y)),
+      MemLp.toLp_congr _ _ (IsSquareIntegrable.limitProcess_add _ _), MemLp.toLp_add]
     · exact (SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess.add
         (SquareIntegrable.isSquareIntegrable_coe Y).memLp_limitProcess
     · exact SquareIntegrable.isSquareIntegrable_coe X
@@ -405,8 +408,8 @@ noncomputable def SquareIntegrable.toL2 : SquareIntegrable ι E P 𝓕 →ₗ[�
     · exact ((SquareIntegrable.isSquareIntegrable_coe X).add
         (SquareIntegrable.isSquareIntegrable_coe Y)).memLp_limitProcess
   map_smul' c X := by
-    rw [MemLp.toLp_congr _ _ (limitProcess_congr (SquareIntegrable.coe_smul X c)),
-      MemLp.toLp_congr _ _ (limitProcess_smul _ _), MemLp.toLp_const_smul]
+    rw [MemLp.toLp_congr _ _ (𝓕.limitProcess_congr (SquareIntegrable.coe_smul X c)),
+      MemLp.toLp_congr _ _ (𝓕.limitProcess_smul _ _), MemLp.toLp_const_smul]
     · simp
     · exact (SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess
     · exact (SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess.const_smul c
@@ -445,8 +448,9 @@ lemma SquareIntegrable.injective_toL2 : Injective (toL2 ι E P 𝓕) := by
       t).aestronglyMeasurable.mono (𝓕.le t)
   · exact (SquareIntegrable.isSquareIntegrable_coe X).memLp_two t
 
-noncomputable instance : NormedAddCommGroup (SquareIntegrable ι E P 𝓕) :=
-  NormedAddCommGroup.induced _ _ (SquareIntegrable.toL2 ι E P 𝓕) SquareIntegrable.injective_toL2
+noncomputable instance SquareIntegrable.normedAddCommGroup :
+    NormedAddCommGroup (SquareIntegrable ι E P 𝓕) :=
+  NormedAddCommGroup.induced _ _ (toL2 ι E P 𝓕) injective_toL2
 
 lemma SquareIntegrable.norm_def {X : SquareIntegrable ι E P 𝓕} :
     ‖X‖ = lpNorm (𝓕.limitProcess X P) 2 P := by
@@ -458,8 +462,9 @@ end NormedSpace
 
 variable [InnerProductSpace ℝ E] [Nonempty ι] [SeparableSpace ι]
 
-noncomputable instance : InnerProductSpace ℝ (SquareIntegrable ι E P 𝓕) :=
-  InnerProductSpace.induced (SquareIntegrable.toL2 ι E P 𝓕)
+noncomputable instance SquareIntegrable.innerProductSpace :
+    InnerProductSpace ℝ (SquareIntegrable ι E P 𝓕) :=
+  InnerProductSpace.induced (toL2 ι E P 𝓕)
 
 lemma SquareIntegrable.inner_def {X Y : SquareIntegrable ι E P 𝓕} :
     ⟪X, Y⟫ = P[fun ω ↦ ⟪𝓕.limitProcess X P ω, 𝓕.limitProcess Y P ω⟫] := by
@@ -481,6 +486,7 @@ lemma _root_.MeasureTheory.modification_modif (hX : Martingale X 𝓕 P) (t : ι
 
 lemma _root_.MeasureTheory.martingale_modif : Martingale (modif X) 𝓕 P := sorry
 
+variable (𝓕) in
 lemma isSquareIntegrable_modif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
     IsSquareIntegrable (modif (fun t ↦ P[X | 𝓕 t])) 𝓕 P where
   martingale := martingale_modif
@@ -498,7 +504,7 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     exact 𝓕.stronglyMeasurable_limitProcess.aestronglyMeasurable
   }⟩
   invFun X := SquareIntegrable.mk (modif (fun t ↦ P[X.1 | 𝓕 t]))
-    (isSquareIntegrable_modif_condExp (Lp.memLp X.1)).isAESquareIntegrable
+    (isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp X.1)).isAESquareIntegrable
   left_inv X := by
     rw [SquareIntegrable.eq_iff]
     apply indistinguishable_of_modification'
@@ -507,10 +513,10 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     · exact ae_of_all _ fun _ ↦
         ((SquareIntegrable.isSquareIntegrable_coe _).cadlag _).right_continuous
     intro t
-    filter_upwards [SquareIntegrable.mk_ae_eq (𝓕 := 𝓕)
+    filter_upwards [SquareIntegrable.mk_ae_eq
       (X := modif
         (fun t ↦ P[(SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess.toLp _ | 𝓕 t]))
-        (isSquareIntegrable_modif_condExp
+        (isSquareIntegrable_modif_condExp 𝓕
         (SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess).isAESquareIntegrable,
       modification_modif (martingale_condExp
         ((SquareIntegrable.isSquareIntegrable_coe X).memLp_limitProcess.toLp _) 𝓕 P) t,
@@ -526,10 +532,10 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     have h1 : ∀ᵐ ω ∂P, ∀ n, modif (fun t ↦ P[X.1 | 𝓕 t]) (u n) ω = P[X.1 | 𝓕 (u n)] ω := by
       rw [ae_all_iff]
       exact fun _ ↦ modification_modif (martingale_condExp X.1 𝓕 P) _
-    grw [limitProcess_congr (SquareIntegrable.mk_ae_eq _)]
+    grw [𝓕.limitProcess_congr (SquareIntegrable.mk_ae_eq _)]
     filter_upwards [h1,
-      (isSquareIntegrable_modif_condExp (𝓕 := 𝓕) (Lp.memLp X.1)).ae_tendsto_limitProcess,
-      tendsto_ae_condExp' (𝓕 := 𝓕) X.1,
+      (isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp X.1)).ae_tendsto_limitProcess,
+      tendsto_ae_condExp' 𝓕 X.1,
       condExp_of_aestronglyMeasurable' (iSup_le 𝓕.le) X.2
         ((Lp.memLp X.1).integrable (by simp))] with ω h1 h2 h3 h4
     rw [← h4]
@@ -537,12 +543,13 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     apply Tendsto.congr h1 (h2.comp hu)
   isometry_toFun X Y := rfl
 
-instance [OrderTopology ι] : CompleteSpace (SquareIntegrable ι E P 𝓕) :=
+instance SquareIntegrable.completeSpace [OrderTopology ι] :
+    CompleteSpace (SquareIntegrable ι E P 𝓕) :=
   haveI : IsClosed {f : Lp E 2 P | AEStronglyMeasurable[⨆ t, 𝓕 t] f P} :=
     isClosed_aestronglyMeasurable (iSup_le 𝓕.le)
   haveI : CompleteSpace {f : Lp E 2 P // AEStronglyMeasurable[⨆ t, 𝓕 t] f P} :=
     this.completeSpace_coe
-  SquareIntegrable.toL2Isom.completeSpace
+  toL2Isom.completeSpace
 
 end Hilbert
 

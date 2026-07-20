@@ -13,6 +13,8 @@ public section
 open MeasureTheory Filter
 open scoped Topology
 
+namespace MeasureTheory.Filtration
+
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y Z : ι → Ω → E}
   [LinearOrder ι] [Nonempty ι] {𝓕 : Filtration ι mΩ}
 
@@ -85,3 +87,5 @@ lemma limitProcess_neg (X : ι → Ω → E) :
   refine ⟨-g, hg1.neg, ?_⟩
   filter_upwards [hg2] with ω h1
   simpa using h1.neg
+
+end MeasureTheory.Filtration
