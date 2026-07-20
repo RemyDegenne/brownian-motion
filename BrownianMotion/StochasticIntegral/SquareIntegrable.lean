@@ -280,6 +280,8 @@ def SquareIntegrable : Submodule ℝ (Ω →ₘ[P] (ι → E)) where
 
 /- This uses `sorry` because a martingale is not necessarily strongly measurable as a map from
 `Ω` to `ι → E`. -/
+/-- The equivalence class of a process that is indistinguishable from a square integrable
+martingale. -/
 noncomputable def SquareIntegrable.mk (X : ι → Ω → E) (hX : IsAESquareIntegrable X 𝓕 P) :
     SquareIntegrable ι E P 𝓕 :=
   ⟨.mk (fun ω t ↦ X t ω) sorry, ⟨hX.choose, hX.choose_spec.1, by
