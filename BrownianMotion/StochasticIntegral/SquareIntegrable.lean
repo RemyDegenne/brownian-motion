@@ -274,6 +274,8 @@ def SquareIntegrable : Submodule ℝ (Ω →ₘ[P] (ι → E)) where
     rw [funext_iff] at h1 ⊢
     simp_all
 
+/-- Given an equivalence class of square integrable martingales, this is a version that satisfies
+`IsSquareIntegrable`. Don't use this directly, use the coercion system instead. -/
 @[coe]
 noncomputable def SquareIntegrable.out (X : SquareIntegrable ι E P 𝓕) : ι → Ω → E := X.2.choose
 
