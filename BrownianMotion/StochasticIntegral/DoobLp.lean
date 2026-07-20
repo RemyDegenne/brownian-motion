@@ -6,6 +6,7 @@ Authors: Rémy Degenne, Thomas Zhu
 module
 
 public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.Auxiliary.SeparableSpace
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.Probability.Martingale.OptionalStopping
 
@@ -331,6 +332,81 @@ theorem preimage_iSup {ι β : Type*} [CompleteLinearOrder β] (f : ι → Ω �
     (b : β) : (⨆ i, f i) ⁻¹' (Set.Ioi b) = ⋃ i, f i ⁻¹' (Set.Ioi b) := by
   ext; simp [lt_iSup_iff]
 
+/-- If the running supremum `⨆ i : Set.Iic n` of a nonnegative submartingale is measurable and
+satisfies Doob's maximal inequality (in `ℝ≥0∞` form), then it is a.e. finite. This is the
+topology-free core of `MeasureTheory.Submartingale.iSup_ofReal_ne_top`. -/
+lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top_of_measurable
+    (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (n : ι)
+    (hmY : Measurable fun ω ↦ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω))
+    (hmax : ∀ ε : ℝ≥0, ε * P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} ≤
+      ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P) :
+    ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
+  let supY (ω : Ω) := ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)
+  change P {ω | ¬supY ω ≠ ∞} = 0
+  push Not
+  convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
+  · ext ω
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    constructor
+    · simp +contextual
+    · apply ENNReal.eq_top_of_forall_nnreal_le
+  · symm
+    erw [← le_bot_iff]
+    calc
+      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω in {ω | ε ≤ supY ω}, Y n ω ∂P) := by
+        gcongr with ε
+        refine le_iInf fun hε0 ↦ ?_
+        rw [ENNReal.ofReal_smul, le_inv_smul_iff_of_pos hε0, ENNReal.le_ofReal_iff_toReal_le]
+        · simp only [Measure.nnreal_smul_coe_apply, ENNReal.toReal_mul, ENNReal.coe_toReal]
+          exact hmax ε
+        · finiteness
+        · exact setIntegral_nonneg (measurableSet_le measurable_const hmY) fun ω _ ↦ hnonneg n ω
+      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω, Y n ω ∂P) := by
+        gcongr with ε hε0
+        · exact .of_forall (hnonneg n)
+        · exact hsub.integrable n
+        · exact P.restrict_le_self
+      _ = 0 := by
+        apply iInf_eq_of_tendsto
+        · intro ε₁ ε₂ h
+          refine le_iInf fun hε₁ ↦ ?_
+          simp only [iInf_pos (hε₁.trans_le h)]
+          gcongr
+          exact integral_nonneg (hnonneg n)
+        · convert (ENNReal.tendsto_ofReal ((tendsto_inv_atTop_zero (𝕜 := ℝ≥0)).smul_const
+            (∫ ω, Y n ω ∂P))).congr' ?_
+          · simp
+          · filter_upwards [eventually_gt_atTop 0] with ε hε0
+            simp [hε0]
+  · exact Set.monotone_preimage.comp_antitone ENNReal.coe_mono.Ici
+  · exact fun r ↦ (measurableSet_le measurable_const hmY).nullMeasurableSet
+  · use 0; finiteness
+
+omit [IsFiniteMeasure P] in
+/-- Doob's maximal inequality in real form, derived from the `ℝ≥0∞` form together with a.e.
+finiteness of the running supremum. This is the topology-free core of `maximal_ineq_nonneg`. -/
+theorem maximal_ineq_nonneg_of_ne_top (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι)
+    (hfin : ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞)
+    (hmax : ε * P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} ≤
+      ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P) :
+    ε * P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
+  have hpt (ω : Ω) : ⨆ i : Set.Iic n, Y i ω = (⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)).toReal := by
+    rw [ENNReal.toReal_iSup]
+    · congr with i
+      rw [ENNReal.toReal_ofReal (hnonneg _ _)]
+    · finiteness
+  have hae : {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} =ᵐ[P]
+      {ω | ε ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} := by
+    filter_upwards [hfin] with ω htop
+    ext
+    change _ ≤ _ ↔ _ ≤ _
+    rw [← ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_le_iff_le_toReal htop, hpt]
+  rw [measureReal_congr hae, setIntegral_congr_set hae]
+  exact hmax
+
+section SecondCountableTopology
+
 variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
 
 theorem measurable_iSup_of_rightContinuous {β : Type*} {f : ι → Ω → β}
@@ -417,74 +493,24 @@ theorem maximal_ineq_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
 lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Submartingale Y 𝓕 P)
     (hnonneg : 0 ≤ Y) (n : ι) (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
-  let supY (ω : Ω) := ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)
-  have hmeasY (i : ι) : Measurable (Y i) :=
-    (hsub.stronglyMeasurable i).measurable.mono (𝓕.le _) (le_refl _)
-  have hmY : Measurable supY := by
-    have : supY = ⨆ i : Set.Iic n, (fun ω => ENNReal.ofReal (Y i ω)) := by ext; simp [supY]
-    rw [this]
-    refine measurable_iSup_of_rightContinuous (fun ω => ?_) fun t => ?_
-    · refine fun a => ((hY_cont ω).continuous_comp ENNReal.continuous_ofReal a).comp ?_ ?_
-      · exact continuous_subtype_val.continuousWithinAt
-      · exact fun x => by simp
-    · exact Measurable.ennreal_ofReal (hmeasY t)
-  change P {ω | ¬supY ω ≠ ∞} = 0
-  push Not
-  convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
-  · ext ω
-    simp only [Set.mem_setOf_eq, Set.mem_iInter]
-    constructor
-    · simp +contextual
-    · apply ENNReal.eq_top_of_forall_nnreal_le
-  · symm
-    erw [← le_bot_iff]
-    calc
-      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω in {ω | ε ≤ supY ω}, Y n ω ∂P) := by
-        gcongr with ε
-        refine le_iInf fun hε0 ↦ ?_
-        rw [ENNReal.ofReal_smul, le_inv_smul_iff_of_pos hε0, ENNReal.le_ofReal_iff_toReal_le]
-        · simp only [Measure.nnreal_smul_coe_apply, ENNReal.toReal_mul, ENNReal.coe_toReal]
-          exact maximal_ineq_ennreal hsub hnonneg ε n hY_cont
-        · finiteness
-        · exact setIntegral_nonneg (measurableSet_le measurable_const hmY) fun ω _ ↦ hnonneg n ω
-      _ ≤ ⨅ ε > (0 : ℝ≥0), ENNReal.ofReal (ε⁻¹ • ∫ ω, Y n ω ∂P) := by
-        gcongr with ε hε0
-        · exact .of_forall (hnonneg n)
-        · exact hsub.integrable n
-        · exact P.restrict_le_self
-      _ = 0 := by
-        apply iInf_eq_of_tendsto
-        · intro ε₁ ε₂ h
-          refine le_iInf fun hε₁ ↦ ?_
-          simp only [iInf_pos (hε₁.trans_le h)]
-          gcongr
-          exact integral_nonneg (hnonneg n)
-        · convert (ENNReal.tendsto_ofReal ((tendsto_inv_atTop_zero (𝕜 := ℝ≥0)).smul_const
-            (∫ ω, Y n ω ∂P))).congr' ?_
-          · simp
-          · filter_upwards [eventually_gt_atTop 0] with ε hε0
-            simp [hε0]
-  · exact Set.monotone_preimage.comp_antitone ENNReal.coe_mono.Ici
-  · exact fun r ↦ (measurableSet_le measurable_const hmY).nullMeasurableSet
-  · use 0; finiteness
+  refine hsub.iSup_ofReal_ne_top_of_measurable hnonneg n ?_
+    fun ε ↦ maximal_ineq_ennreal hsub hnonneg ε n hY_cont
+  have heq : (fun ω ↦ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω))
+      = ⨆ i : Set.Iic n, fun ω ↦ ENNReal.ofReal (Y i ω) := by ext; simp
+  rw [heq]
+  refine measurable_iSup_of_rightContinuous (fun ω => ?_) fun t => ?_
+  · refine fun a => ((hY_cont ω).continuous_comp ENNReal.continuous_ofReal a).comp ?_ ?_
+    · exact continuous_subtype_val.continuousWithinAt
+    · exact fun x => by simp
+  · exact Measurable.ennreal_ofReal
+      ((hsub.stronglyMeasurable t).measurable.mono (𝓕.le _) (le_refl _))
 
 theorem maximal_ineq_nonneg (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ≥0) (n : ι)
     (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) :
     ε * P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
-      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
-  have (ω : Ω) : ⨆ i : Set.Iic n, Y i ω = (⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)).toReal := by
-    rw [ENNReal.toReal_iSup]
-    · congr with i
-      rw [ENNReal.toReal_ofReal (hnonneg _ _)]
-    · finiteness
-  have : {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} =ᵐ[P]
-    {ω | ε ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} := by
-    filter_upwards [hsub.rightCont_iSup_ofReal_ne_top hnonneg n hY_cont] with ω htop
-    ext
-    change _ ≤ _ ↔ _ ≤ _
-    rw [← ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_le_iff_le_toReal htop, this]
-  rw [measureReal_congr this, setIntegral_congr_set this]
-  exact maximal_ineq_ennreal hsub hnonneg ε n hY_cont
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P :=
+  maximal_ineq_nonneg_of_ne_top hnonneg ε n (hsub.rightCont_iSup_ofReal_ne_top hnonneg n hY_cont)
+    (maximal_ineq_ennreal hsub hnonneg ε n hY_cont)
 
 -- Remove the nonnegative constraint on `ε`.
 theorem maximal_ineq (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ) (n : ι)
@@ -502,5 +528,104 @@ theorem maximal_ineq_norm (hmar : Martingale X 𝓕 P) (ε : ℝ) (n : ι)
       ∫ ω in {ω | ε ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P := by
   refine maximal_ineq hmar.submartingale_norm (fun _ _ ↦ norm_nonneg _) ε n fun ω => ?_
   exact (hX_cont ω).continuous_comp continuous_norm
+
+end SecondCountableTopology
+
+/-! ## Lower semicontinuous submartingales on a separable index set
+
+For processes whose paths are *lower semicontinuous* we can weaken the index assumption from
+`SecondCountableTopology` to `SeparableSpace`. This covers in particular continuous paths. The
+key input is Mathlib's `measurable_iSup_of_lowerSemicontinuous`: a countable dense set of times
+already computes the running supremum, because a lower semicontinuous path pulls `Set.Ioi` back
+to an open set, and separability of `Set.Iic n` follows from hereditary separability of separable
+linearly ordered spaces. -/
+
+section Separable
+
+variable [TopologicalSpace ι] [OrderTopology ι] [SeparableSpace ι]
+
+/-- **Doob's maximal inequality** in `ℝ≥0∞` form for a nonnegative submartingale whose paths are
+lower semicontinuous, indexed by a separable linearly ordered topological space. -/
+theorem maximal_ineq_ennreal_of_lowerSemicontinuous (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
+    (ε : ℝ≥0) (n : ι) (hY_lsc : ∀ ω, LowerSemicontinuous (Y · ω)) :
+    ε * P.real {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} ≤
+      ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)}, Y n ω ∂P := by
+  obtain ⟨T, hT_countable, hT_dense⟩ := TopologicalSpace.exists_countable_dense (Set.Iic n)
+  -- add `n` to the countable dense set so that it has a top element
+  let S : Set (Set.Iic n) := insert ⟨n, le_rfl⟩ T
+  have hn : (⟨n, le_rfl⟩ : Set.Iic n) ∈ S := Set.mem_insert _ _
+  have hS : Countable S := by rw [Set.countable_coe_iff]; exact hT_countable.insert _
+  have hSd : Dense S := hT_dense.mono (Set.subset_insert _ _)
+  have h1 (ω : Ω) : ⨆ s : S, ENNReal.ofReal (Y s ω) = ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) := by
+    refine iSup_eq_of_forall_le_of_forall_lt_exists_gt (fun s => ?_) (fun a ha => ?_)
+    · exact le_iSup (fun i : Set.Iic n => ENNReal.ofReal (Y i ω)) s
+    · obtain ⟨i, hi⟩ := lt_iSup_iff.1 ha
+      -- `x ↦ ENNReal.ofReal (Y x ω)` is lower semicontinuous, so `{x | a < ofReal (Y x ω)}` is open
+      have hlsc : LowerSemicontinuous fun x : Set.Iic n ↦ ENNReal.ofReal (Y x ω) :=
+        ENNReal.continuous_ofReal.comp_lowerSemicontinuous
+          ((hY_lsc ω).comp continuous_subtype_val) ENNReal.ofReal_mono
+      obtain ⟨k, hkS, hk⟩ := hSd.exists_mem_open (hlsc.isOpen_preimage a) ⟨i, hi⟩
+      exact ⟨⟨k, hkS⟩, hk⟩
+  have h2 (ω : Ω) : ⨆ s : S, ENNReal.ofReal (Y s ω) =
+      ⨆ s ≤ (⟨⟨n, le_rfl⟩, hn⟩ : S), ENNReal.ofReal (Y s ω) := by simp_all [iSup_subtype]
+  calc
+  _ = ε * P.real {ω | ε ≤ ⨆ s : S, ENNReal.ofReal (Y s ω)} := by simp [h1]
+  _ = ε * P.real {ω | ε ≤ ⨆ s ≤ (⟨⟨n, le_rfl⟩, hn⟩ : S), ENNReal.ofReal (Y s ω)} := by simp [h2]
+  _ ≤ ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ s ≤ (⟨⟨n, le_rfl⟩, hn⟩ : S), ENNReal.ofReal (Y s ω)},
+      Y n ω ∂P := by
+    have : Monotone (fun x : S => x.1.1) := Subtype.mono_coe _
+    exact maximal_ineq_countable_ennreal (hsub.indexComap this) (fun x => hnonneg _) ε _
+  _ ≤ ∫ ω in {ω | (ε : ℝ≥0∞) ≤ ⨆ s : S, ENNReal.ofReal (Y s ω)}, Y n ω ∂P := by simp [h2]
+  _ = _ := by simp [h1]
+
+/-- Alternative form of `Submartingale.ae_bddAbove` for lower semicontinuous paths on a separable
+index. -/
+lemma _root_.MeasureTheory.Submartingale.lowerSemicontinuous_iSup_ofReal_ne_top
+    (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (n : ι)
+    (hY_lsc : ∀ ω, LowerSemicontinuous (Y · ω)) :
+    ∀ᵐ ω ∂P, ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω) ≠ ∞ := by
+  refine hsub.iSup_ofReal_ne_top_of_measurable hnonneg n ?_
+    fun ε ↦ maximal_ineq_ennreal_of_lowerSemicontinuous hsub hnonneg ε n hY_lsc
+  have heq : (fun ω ↦ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω))
+      = ⨆ i : Set.Iic n, fun ω ↦ ENNReal.ofReal (Y i ω) := by ext; simp
+  rw [heq]
+  refine measurable_iSup_of_lowerSemicontinuous (fun t => ?_) fun ω => ?_
+  · exact Measurable.ennreal_ofReal
+      ((hsub.stronglyMeasurable t).measurable.mono (𝓕.le _) (le_refl _))
+  · exact ENNReal.continuous_ofReal.comp_lowerSemicontinuous
+      ((hY_lsc ω).comp continuous_subtype_val) ENNReal.ofReal_mono
+
+/-- **Doob's maximal inequality** for a nonnegative submartingale with lower semicontinuous paths,
+indexed by a separable linearly ordered topological space. -/
+theorem maximal_ineq_nonneg_of_lowerSemicontinuous (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
+    (ε : ℝ≥0) (n : ι) (hY_lsc : ∀ ω, LowerSemicontinuous (Y · ω)) :
+    ε * P.real {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+      ∫ ω in {ω | (ε : ℝ) ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P :=
+  maximal_ineq_nonneg_of_ne_top hnonneg ε n
+    (hsub.lowerSemicontinuous_iSup_ofReal_ne_top hnonneg n hY_lsc)
+    (maximal_ineq_ennreal_of_lowerSemicontinuous hsub hnonneg ε n hY_lsc)
+
+/-- **Doob's maximal inequality** for a nonnegative submartingale with lower semicontinuous paths,
+indexed by a separable linearly ordered topological space, without the nonnegativity constraint
+on `ε`. -/
+theorem maximal_ineq_of_lowerSemicontinuous (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (ε : ℝ)
+    (n : ι) (hY_lsc : ∀ ω, LowerSemicontinuous (Y · ω)) :
+    ε * P.real {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} ≤
+      ∫ ω in {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω}, Y n ω ∂P := by
+  by_cases! hε : 0 ≤ ε
+  · exact maximal_ineq_nonneg_of_lowerSemicontinuous hsub hnonneg ⟨ε, hε⟩ n hY_lsc
+  · exact (mul_nonpos_of_nonpos_of_nonneg hε.le measureReal_nonneg).trans
+      (integral_nonneg (hnonneg n))
+
+/-- **Doob's maximal inequality** for a martingale with continuous paths, indexed by a separable
+linearly ordered topological space, stated for the norm of the process. -/
+theorem maximal_ineq_norm_of_continuous (hmar : Martingale X 𝓕 P) (ε : ℝ) (n : ι)
+    (hX_cont : ∀ ω, Continuous (X · ω)) :
+    ε • P.real {ω | ε ≤ ⨆ i : Set.Iic n, ‖X i ω‖} ≤
+      ∫ ω in {ω | ε ≤ ⨆ i : Set.Iic n, ‖X i ω‖}, ‖X n ω‖ ∂P :=
+  maximal_ineq_of_lowerSemicontinuous hmar.submartingale_norm (fun _ _ ↦ norm_nonneg _) ε n
+    fun ω ↦ (continuous_norm.comp (hX_cont ω)).lowerSemicontinuous
+
+end Separable
 
 end ProbabilityTheory
