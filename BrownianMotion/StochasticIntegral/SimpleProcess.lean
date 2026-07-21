@@ -165,6 +165,29 @@ namespace SimpleProcess
 
 attribute [fun_prop] measurable_valueBot
 
+-- todo: replace the condition on W by IsPredictable
+def ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C) :
+    SimpleProcess E 𝓕 where
+  valueBot := W 0
+  value := Finsupp.onFinset ((Finset.range n).map ⟨fun k ↦ (k, k + 1), fun _ ↦ by grind⟩)
+      (fun p ↦ if p.1 < n ∧ p.2 = p.1 + 1 then W p.2 else 0)
+      (fun p ↦ by simp; grind)
+  le_of_mem_support_value p hp := by simp at hp; grind
+  bounded_valueBot := ⟨C, by simp [hC 0 zero_le]⟩
+  bounded_value := by
+    simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq,
+      ite_eq_right_iff, and_imp, Classical.not_imp, Prod.forall, forall_eq_apply_imp_iff, and_true]
+    use C
+    grind
+  measurable_value' p hp := by
+    simp only [Finsupp.onFinset_apply]
+    split_ifs with h
+    · rw [h.2]
+      exact hW p.1 h.1
+    · exact measurable_const
+
 /-- A bound on the value at ⊥. -/
 noncomputable def valueBotBound (V : SimpleProcess E 𝓕) : ℝ := max 0 V.bounded_valueBot.choose
 
@@ -349,19 +372,21 @@ section Integral
 
 /-- The **elementary stochastic integral** with respect to a continuous bilinear map `B`. -/
 def integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
-    WithTop ι → Ω → G :=
+    ι → Ω → G :=
   fun i ω ↦ V.value.sum fun p v =>
     B (v ω) (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
-local notation:25 V " ●[" B "]" X => integral B V X
+scoped notation:25 V " ●[" B "]" X => integral B V X
 
 /-- The **linear elementary stochastic integral** where the simple process takes values in
 `E →L[ℝ] F`, as a special case of `integral` with `B` the evaluation map. -/
 abbrev integralEval [SecondCountableTopology (E →L[ℝ] F)] (V : SimpleProcess (E →L[ℝ] F) 𝓕)
-    (X : ι → Ω → E) : WithTop ι → Ω → F :=
+    (X : ι → Ω → E) : ι → Ω → F :=
   V ●[(.id ℝ (E →L[ℝ] F))] X
 
--- TODO: possible notation V●X, possibly for more general integrals
+scoped notation:25 V " ●L " X => integralEval V X
+
+scoped notation:25 V " ● " X => integral (ContinuousLinearMap.mul ℝ ℝ) V X
 
 variable {B : E →L[ℝ] F →L[ℝ] G}
 
@@ -407,17 +432,37 @@ variable {B : E →L[ℝ] F →L[ℝ] G}
 @[simp] lemma integral_bot (V : SimpleProcess E 𝓕) (X : ι → Ω → F) :
     integral B V X ⊥ = fun _ ↦ 0 := by ext; simp [integral]
 
-@[simp] lemma integral_top (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (ω : Ω) :
-    integral B V X ⊤ ω = V.value.sum fun p v ↦ B (v ω) (X p.2 ω - X p.1 ω) := by simp [integral]
+-- @[simp] lemma integral_top (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (ω : Ω) :
+--     integral B V X ⊤ ω = V.value.sum fun p v ↦ B (v ω) (X p.2 ω - X p.1 ω) := by simp [integral]
 
 theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (τ : Ω → WithTop ι) :
-    stoppedProcess (integral B V X ∘ WithTop.some) τ =
-      integral B V (stoppedProcess X τ) ∘ WithTop.some := by
+    stoppedProcess (integral B V X) τ =
+      integral B V (stoppedProcess X τ) := by
   ext i ω
   rw [stoppedProcess]
   dsimp [integral]
   conv_rhs => rw [stoppedProcess_stoppedProcess]
   simp [stoppedProcess, WithTop.untopA_eq_untop]
+
+lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
+    (X : ℕ → Ω → F) :
+    integral B (SimpleProcess.ofNat W n hW0 hW hC) X =
+      fun i ω ↦ ∑ k ∈ range n, B (W (k + 1) ω) (X (min (k + 1) i) ω - X (min k i) ω) := by
+  ext i ω
+  simp only [integral, ofNat, ENat.some_eq_coe, map_sub, Finsupp.sum_sub, Finset.mem_map, mem_range,
+    Function.Embedding.coeFn_mk, Pi.ofNat_apply, map_zero, zero_apply, implies_true,
+    Finsupp.sum_onFinset, sum_map, and_true, sum_sub_distrib]
+  congr 1
+  · refine Finset.sum_congr rfl fun k hk ↦ ?_
+    simp only [mem_range] at hk
+    simp only [hk, ↓reduceIte]
+    congr
+  · refine Finset.sum_congr rfl fun k hk ↦ ?_
+    simp only [mem_range] at hk
+    simp only [hk, ↓reduceIte]
+    congr
 
 end Integral
 
@@ -537,13 +582,13 @@ variable [MeasurableSpace J] [BorelSpace J] [SecondCountableTopology J]
 theorem integral_assoc {B₁ : E →L[ℝ] H →L[ℝ] I} {B₂ : F →L[ℝ] G →L[ℝ] H} {B₃ : E →L[ℝ] F →L[ℝ] J}
     {B₄ : J →L[ℝ] G →L[ℝ] I} (hB : ∀ x y z, B₁ x (B₂ y z) = B₄ (B₃ x y) z)
     (V : SimpleProcess E 𝓕) (W : SimpleProcess F 𝓕) (X : ι → Ω → G) :
-    integral B₁ V (integral B₂ W X ∘ WithTop.some) = integral B₄ (map₂ B₃ V W) X := by
+    integral B₁ V (integral B₂ W X) = integral B₄ (map₂ B₃ V W) X := by
   ext i ω
   let Xi := stoppedProcess X (fun _ ↦ i)
   calc
     _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ B₄ (B₃ (v ω) (w ω))
         ((Xi (p.2 ⊓ q.2) ω - Xi (p.2 ⊓ q.1) ω) - (Xi (p.1 ⊓ q.2) ω - Xi (p.1 ⊓ q.1) ω)) := by
-      simp only [integral, stoppedProcess_integral, Function.comp_apply,
+      simp only [integral, stoppedProcess_integral,
         stoppedProcess_stoppedProcess, map_sub, Finsupp.sum_sub, map_finsuppSum]
       congr! 6 with p v q w <;> simp [Xi, hB, stoppedProcess, min_left_comm, min_assoc]
     _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then
@@ -586,7 +631,7 @@ omit mE [SecondCountableTopology E]
 
 theorem integralEval_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)
     (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
-    integralEval V (integralEval W X ∘ WithTop.some) = integralEval (comp V W) X := by
+    integralEval V (integralEval W X) = integralEval (comp V W) X := by
   apply integral_assoc
   simp
 

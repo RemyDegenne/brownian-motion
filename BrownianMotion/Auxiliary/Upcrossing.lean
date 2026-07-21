@@ -89,12 +89,11 @@ lemma upcrossingStrat_eq_zero_or_one (a b : ℝ) (f : ℕ → Ω → ℝ) (N n :
 /-- Pathwise upcrossing inequality with correction term: unlike
 `MeasureTheory.mul_upcrossingsBefore_le`, this requires no assumption `a ≤ f N ω`, at the price
 of the extra term `max (a - f N ω) 0`. -/
-lemma mul_upcrossingsBefore_le_sum_add_max (hab : a < b) :
+lemma mul_upcrossingsBefore_le_sum_add_posPart (hab : a < b) :
     (b - a) * upcrossingsBefore a b f N ω ≤
-      (∑ k ∈ Finset.range N, upcrossingStrat a b f N k ω * (f (k + 1) - f k) ω)
-        + max (a - f N ω) 0 := by
+      (∑ k ∈ Finset.range N, upcrossingStrat a b f N k ω * (f (k + 1) - f k) ω) + (a - f N ω)⁺ := by
   rcases N with _ | M
-  · simp [upcrossingsBefore_zero]
+  · simp [posPart, upcrossingsBefore_zero]
   let g : ℕ → Ω → ℝ := fun k ω' ↦ if k = M + 1 then max (f k ω') a else f k ω'
   have hIic i ω' : g i ω' ≤ a ↔ f i ω' ≤ a := by simp [g]; grind
   have hIci i ω' : b ≤ g i ω' ↔ b ≤ f i ω' := by simp [g]; grind
@@ -112,15 +111,15 @@ lemma mul_upcrossingsBefore_le_sum_add_max (hab : a < b) :
   rw [Finset.sum_congr rfl hsum, add_assoc]
   gcongr
   have hgM : g M = f M := by simp [g]
-  have hgM1 : g (M + 1) ω = f (M + 1) ω + max (a - f (M + 1) ω) 0 := by simp [g]; grind
+  have hgM1 : g (M + 1) ω = f (M + 1) ω + (a - f (M + 1) ω)⁺ := by simp [g, posPart]; grind
   rw [Pi.sub_apply, hgM, hgM1]
   have h11 : upcrossingStrat a b f (M + 1) M ω ≤ 1 := upcrossingStrat_le_one
-  calc upcrossingStrat a b f (M + 1) M ω * (f (M + 1) ω + max (a - f (M + 1) ω) 0 - f M ω)
+  calc upcrossingStrat a b f (M + 1) M ω * (f (M + 1) ω + (a - f (M + 1) ω)⁺ - f M ω)
   _ = upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω
-      + upcrossingStrat a b f (M + 1) M ω * max (a - f (M + 1) ω) 0 := by rw [Pi.sub_apply]; ring
-  _ ≤ upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + 1 * max (a - f (M + 1) ω) 0 := by
+      + upcrossingStrat a b f (M + 1) M ω * (a - f (M + 1) ω)⁺ := by rw [Pi.sub_apply]; ring
+  _ ≤ upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + 1 * (a - f (M + 1) ω)⁺ := by
     gcongr
-  _ = upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + max (a - f (M + 1) ω) 0 := by ring
+  _ = upcrossingStrat a b f (M + 1) M ω * (f (M + 1) - f M) ω + (a - f (M + 1) ω)⁺ := by ring
 
 /-- Alternations force upcrossings: if there are `m` pairs of (strictly increasing) times below
 `N` at which `f` is alternately strictly below `a` and strictly above `b`, then `f` has at least
