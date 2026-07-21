@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.AEEq
 public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.Martingale
 public import BrownianMotion.StochasticIntegral.LocalMartingale
@@ -20,7 +21,7 @@ import BrownianMotion.Gaussian.StochasticProcesses
 
 @[expose] public section
 
-open MeasureTheory Filter Function TopologicalSpace
+open MeasureTheory Filter Function TopologicalSpace AEEqProcess
 open scoped ENNReal Topology RealInnerProductSpace
 
 namespace ProbabilityTheory
@@ -56,6 +57,10 @@ lemma IsSquareIntegrable.const [IsFiniteMeasure P] {c : E} :
 square integrable martingale, see `IsSquareIntegrable`. -/
 def IsAESquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop :=
   ∃ Y : ι → Ω → E, IsSquareIntegrable Y 𝓕 P ∧ X ≡ᵐ[P] Y
+
+lemma IsAESquareIntegrable.aestronglyAdapted (hX : IsAESquareIntegrable X 𝓕 P) :
+    AEStronglyAdapted X 𝓕 P :=
+  hX.choose_spec.1.martingale.stronglyAdapted.aestronglyAdapted.congr hX.choose_spec.2.symm
 
 lemma IsSquareIntegrable.isAESquareIntegrable (hX : IsSquareIntegrable X 𝓕 P) :
     IsAESquareIntegrable X 𝓕 P := ⟨X, hX, by rfl⟩
@@ -261,22 +266,11 @@ TODO: we rely on the already existing `AEEqFun` machinery, but this is about equ
 of strongly measurable functions, while here we are interested in indistinguishability only
 so measurablility is the way to go. It seems we will need to duplicate `AEEqFun` for the measurable
 case. -/
-def SquareIntegrable : Submodule ℝ (Ω →ₘ[P] (ι → E)) where
-  carrier := {X | ∃ Y : ι → Ω → E, IsSquareIntegrable Y 𝓕 P ∧ (fun ω t ↦ Y t ω) =ᵐ[P] X}
-  add_mem' {X Y} hX hY := by
-    obtain ⟨Z, hZ1, hZ2⟩ := hX
-    obtain ⟨T, hT1, hT2⟩ := hY
-    refine ⟨Z + T, hZ1.add hT1, ?_⟩
-    filter_upwards [hZ2, hT2, X.coeFn_add Y] with ω h1 h2 h3
-    rw [funext_iff] at h1 h2 ⊢
-    simp_all
-  zero_mem' := ⟨0, .const, AEEqFun.coeFn_zero.symm⟩
-  smul_mem' c {X} hX := by
-    obtain ⟨Y, hY1, hY2⟩ := hX
-    refine ⟨c • Y, hY1.smul c, ?_⟩
-    filter_upwards [hY2, X.coeFn_smul c] with ω h1 h2
-    rw [funext_iff] at h1 ⊢
-    simp_all
+def SquareIntegrable : Submodule ℝ (Ω →ₚ[P, 𝓕] E) where
+  carrier := {X | IsAESquareIntegrable X 𝓕 P}
+  add_mem' {X Y} hX hY := (hX.add hY).congr (coeFn_add X Y).symm
+  zero_mem' := IsAESquareIntegrable.const.congr coeFn_zero.symm
+  smul_mem' c {X} hX := (hX.smul c).congr (coeFn_smul c X).symm
 
 /- This uses `sorry` because a martingale is not necessarily strongly measurable as a map from
 `Ω` to `ι → E`. -/
@@ -284,97 +278,63 @@ def SquareIntegrable : Submodule ℝ (Ω →ₘ[P] (ι → E)) where
 martingale. -/
 noncomputable def SquareIntegrable.mk (X : ι → Ω → E) (hX : IsAESquareIntegrable X 𝓕 P) :
     SquareIntegrable ι E P 𝓕 :=
-  ⟨.mk (fun ω t ↦ X t ω) sorry, ⟨hX.choose, hX.choose_spec.1, by
-      grw [AEEqFun.coeFn_mk]
-      filter_upwards [hX.choose_spec.2] with ω h1
-      simp [h1]⟩⟩
+  ⟨.mk X hX.aestronglyAdapted, ⟨hX.choose, hX.choose_spec.1, by grw [coeFn_mk, hX.choose_spec.2]⟩⟩
 
 open scoped Classical in
 /-- Given an equivalence class of square integrable martingales, this is a version that satisfies
 `IsSquareIntegrable`. Don't use this directly, use the coercion system instead. -/
 @[coe]
 noncomputable def SquareIntegrable.out (X : SquareIntegrable ι E P 𝓕) : ι → Ω → E :=
-  if h : ∃ c, X = SquareIntegrable.mk (fun _ _ ↦ c) .const
-    then (fun _ _ ↦ h.choose)
-    else X.2.choose
+  X.2.choose
 
 noncomputable instance : CoeFun (SquareIntegrable ι E P 𝓕) (fun _ ↦ ι → Ω → E) where
   coe := SquareIntegrable.out
 
 lemma SquareIntegrable.isSquareIntegrable_coe (X : SquareIntegrable ι E P 𝓕) :
-    IsSquareIntegrable X 𝓕 P := by
-  rw [SquareIntegrable.out]
-  split_ifs
-  · exact .const
-  · exact X.2.choose_spec.1
+    IsSquareIntegrable X 𝓕 P := X.2.choose_spec.1
 
 lemma SquareIntegrable.val_indist_coe (X : SquareIntegrable ι E P 𝓕) :
-    (fun t ω ↦ X.1 ω t) ≡ᵐ[P] X := by
-  rw [SquareIntegrable.out]
-  split_ifs with h
-  · have := AEEqFun.ext_iff.1 (Subtype.coe_inj.2 h.choose_spec)
-    filter_upwards [this,
-      AEEqFun.coeFn_mk (fun _ _ ↦ h.choose) aestronglyMeasurable_const] with ω h1 h2 t
-    rw [h1, SquareIntegrable.mk, h2]
-  filter_upwards [X.2.choose_spec.2] with ω h t
-  rw [funext_iff] at h
-  rw [← h]
+    X.1 ≡ᵐ[P] ↑X := by
+  grw [X.2.choose_spec.2]
+  rfl
 
 @[ext]
 lemma SquareIntegrable.ext {X Y : SquareIntegrable ι E P 𝓕} (h : ↑X ≡ᵐ[P] ↑Y) :
     X = Y := by
   ext
-  filter_upwards [h, val_indist_coe X, val_indist_coe Y] with ω h1 h2 h3
-  ext t
-  rw [h2, h1, h3]
+  grw [val_indist_coe, val_indist_coe, h]
 
 lemma SquareIntegrable.coe_add (X Y : SquareIntegrable ι E P 𝓕) :
     ↑(X + Y) ≡ᵐ[P] ↑X + ↑Y := by
-  filter_upwards [val_indist_coe X, val_indist_coe Y, val_indist_coe (X + Y),
-    X.1.coeFn_add Y] with ω h1 h2 h3 h4 t
-  rw [← h3, Submodule.coe_add, h4]
-  simp_all
+  grw [← val_indist_coe, Submodule.coe_add, coeFn_add, val_indist_coe, val_indist_coe]
 
 lemma SquareIntegrable.coe_smul (X : SquareIntegrable ι E P 𝓕) (c : ℝ) :
     ↑(c • X) ≡ᵐ[P] c • ↑X := by
-  filter_upwards [val_indist_coe X, val_indist_coe (c • X), X.1.coeFn_smul c] with ω h1 h2 h3 t
-  rw [← h2, Submodule.coe_smul, h3]
-  simp [h1 t]
+  grw [← val_indist_coe, Submodule.coe_smul, coeFn_smul, val_indist_coe]
 
 lemma SquareIntegrable.coe_neg (X : SquareIntegrable ι E P 𝓕) :
     ↑(-X) ≡ᵐ[P] -↑X := by
-  convert SquareIntegrable.coe_smul X (-1 : ℝ) using 1
-  · congr
-    exact (neg_one_smul ℝ X).symm
-  exact (neg_one_smul ℝ _).symm
+  grw [← val_indist_coe, Submodule.coe_neg, coeFn_neg, val_indist_coe]
 
 lemma SquareIntegrable.val_mk (X : ι → Ω → E) (hX : IsAESquareIntegrable X 𝓕 P)
-    (h : AEStronglyMeasurable (fun ω t ↦ X t ω) P) :
-    (mk X hX).1 = .mk (fun ω t ↦ X t ω) h := rfl
+    (h : AEStronglyAdapted X 𝓕 P) :
+    (mk X hX).1 = .mk X h := rfl
 
 /- This uses `sorry` because a martingale is not necessarily strongly measurable as a map from
 `Ω` to `ι → E`. -/
 lemma SquareIntegrable.mk_ae_eq {X : ι → Ω → E} (hX : IsAESquareIntegrable X 𝓕 P) :
     mk X hX ≡ᵐ[P] X := by
-  filter_upwards [SquareIntegrable.val_indist_coe (mk X hX),
-    AEEqFun.coeFn_mk (fun ω t ↦ X t ω) sorry] with ω h1 h2 t
-  rw [SquareIntegrable.val_mk] at h1
-  · rw [funext_iff] at h2
-    rw [← h1, h2]
-  sorry
+  grw [← val_indist_coe, val_mk X hX hX.aestronglyAdapted, coeFn_mk]
 
 lemma SquareIntegrable.mk_eq_mk {X Y : ι → Ω → E} {hX : IsAESquareIntegrable X 𝓕 P}
     {hY : IsAESquareIntegrable Y 𝓕 P} :
-    SquareIntegrable.mk X hX = SquareIntegrable.mk Y hY ↔ X ≡ᵐ[P] Y where
+    mk X hX = mk Y hY ↔ X ≡ᵐ[P] Y where
   mp h := by
-    rw [Subtype.ext_iff] at h
-    simp only [mk] at h
-    filter_upwards [AEEqFun.mk_eq_mk.1 h] with ω h1
-    rwa [← funext_iff]
+    rw [Subtype.ext_iff, mk, mk] at h
+    rwa [AEEqProcess.mk_eq_mk] at h
   mpr h := by
     ext
-    filter_upwards [mk_ae_eq hX, h, mk_ae_eq hY] with ω h1 h2 h3 t
-    rw [h1, h2, h3]
+    grw [mk_ae_eq, mk_ae_eq, h]
 
 variable (E P 𝓕) in
 lemma SquareIntegrable.coe_const (c : E) :
@@ -384,25 +344,7 @@ lemma SquareIntegrable.coe_const (c : E) :
 variable (E P 𝓕) in
 lemma SquareIntegrable.coe_zero :
     (0 : SquareIntegrable ι E P 𝓕) ≡ᵐ[P] 0 := by
-  filter_upwards [val_indist_coe (0 : SquareIntegrable ι E P 𝓕),
-    AEEqFun.coeFn_zero (β := ι → E)] with ω h1 h2 t
-  rw [funext_iff] at h2
-  rw [← h1, Submodule.coe_zero, h2]
-  simp
-
-variable (E P 𝓕) in
-lemma SquareIntegrable.coe_const_eq [NeZero P] (c : E) :
-    (mk (fun _ _ ↦ c) .const : SquareIntegrable ι E P 𝓕) = (fun _ _ ↦ c : ι → Ω → E) := by
-  obtain h | ⟨⟨t⟩⟩ := isEmpty_or_nonempty ι
-  · ext t; exact h.elim t
-  rw [out]
-  split_ifs with h
-  swap; · exact h.elim ⟨c, rfl⟩
-  have := h.choose_spec
-  set b := h.choose with hb
-  simp_rw [mk_eq_mk, Indistinguishable] at this
-  have ⟨_, h1⟩ := Eventually.exists this
-  rw [h1 t]
+  grw [← val_indist_coe, Submodule.coe_zero, coeFn_zero]
 
 @[to_fun limitProcess_fun_add]
 lemma IsSquareIntegrable.limitProcess_add {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
