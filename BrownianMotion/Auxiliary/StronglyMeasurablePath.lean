@@ -120,8 +120,7 @@ theorem stronglyMeasurable_path_of_isRightContinuous
     · have : (𝓝[d ∩ Ioi i] i).NeBot := nhdsWithin_inter_Ioi_neBot hd_dense (hD_ne i hi)
       have h1 : Tendsto (X · ω) (𝓝[d ∩ Set.Ioi i] i) (𝓝 (X i ω)) :=
         (hX_cont ω i).mono_left (nhdsWithin_mono i Set.inter_subset_right)
-      rw [← closure_closure]
-      refine mem_closure_of_tendsto h1 ?_
+      refine isClosed_closure.mem_of_tendsto h1 ?_
       filter_upwards [self_mem_nhdsWithin] with t ht using
         hD_val t (Set.mem_union_left _ ht.1) ω
   -- The approximating simple functions.
