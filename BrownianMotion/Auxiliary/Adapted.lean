@@ -240,6 +240,8 @@ section AEStronglyAdapted
 variable {Ω ι E : Type*} {mΩ : MeasurableSpace Ω} [Preorder ι] {𝓕 : Filtration ι mΩ}
   {X Y : ι → Ω → E} {P : Measure Ω} [TopologicalSpace E]
 
+/-- A stochastic process is a.e. strongly adapted if it is undistinguishable from a
+strongly adapted process. -/
 def AEStronglyAdapted (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop :=
   ∃ Y, StronglyAdapted 𝓕 Y ∧ X ≡ᵐ[P] Y
 
@@ -254,6 +256,8 @@ lemma StronglyAdapted.aestronglyAdapted (hX : StronglyAdapted 𝓕 X) :
 lemma AEStronglyAdapted.const {c : E} : AEStronglyAdapted (fun _ _ ↦ c) 𝓕 P :=
   (stronglyAdapted_const 𝓕 c).aestronglyAdapted
 
+/-- Given a `hX : AEStronglyAdapted` process `X`, `hX.mk X` is a strongly adapted process
+that is indistinguishable from `X`.  -/
 noncomputable def AEStronglyAdapted.mk (X : ι → Ω → E) (hX : AEStronglyAdapted X 𝓕 P) :
     ι → Ω → E := hX.choose
 

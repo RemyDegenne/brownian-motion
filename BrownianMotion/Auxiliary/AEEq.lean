@@ -128,7 +128,7 @@ protected theorem stronglyAdapted (f : α →ₚ[μ, 𝓕] β) : StronglyAdapted
 protected theorem aestronglyAdapted (f : α →ₚ[μ, 𝓕] β) : AEStronglyAdapted f 𝓕 μ :=
   f.stronglyAdapted.aestronglyAdapted
 
-protected theorem measurable [PseudoMetrizableSpace β] [MeasurableSpace β] [BorelSpace β]
+protected theorem adapted [PseudoMetrizableSpace β] [MeasurableSpace β] [BorelSpace β]
     (f : α →ₚ[μ, 𝓕] β) : Adapted 𝓕 f :=
   f.stronglyAdapted.adapted
 
