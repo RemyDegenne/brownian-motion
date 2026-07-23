@@ -436,8 +436,7 @@ variable {B : E →L[ℝ] F →L[ℝ] G}
 --     integral B V X ⊤ ω = V.value.sum fun p v ↦ B (v ω) (X p.2 ω - X p.1 ω) := by simp [integral]
 
 theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (τ : Ω → WithTop ι) :
-    stoppedProcess (integral B V X) τ =
-      integral B V (stoppedProcess X τ) := by
+    stoppedProcess (V ●[B] X) τ = (V ●[B] stoppedProcess X τ) := by
   ext i ω
   rw [stoppedProcess]
   dsimp [integral]
@@ -448,7 +447,7 @@ lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ
     (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
     {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
     (X : ℕ → Ω → F) :
-    integral B (SimpleProcess.ofNat W n hW0 hW hC) X =
+    (SimpleProcess.ofNat W n hW0 hW hC ●[B] X) =
       fun i ω ↦ ∑ k ∈ range n, B (W (k + 1) ω) (X (min (k + 1) i) ω - X (min k i) ω) := by
   ext i ω
   simp only [integral, ofNat, ENat.some_eq_coe, map_sub, Finsupp.sum_sub, Finset.mem_map, mem_range,
@@ -463,6 +462,44 @@ lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ
     simp only [mem_range] at hk
     simp only [hk, ↓reduceIte]
     congr
+
+lemma integral_ofNat_apply {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
+    (X : ℕ → Ω → F) (i : ℕ) (ω : Ω) :
+    (SimpleProcess.ofNat W n hW0 hW hC ●[B] X) i ω =
+      ∑ k ∈ range n with k < i, B (W (k + 1) ω) (X (k + 1) ω - X k ω) := by
+  simp only [integral_ofNat, sum_filter]
+  congr with k
+  split_ifs with hki
+  · simp [hki, min_eq_left hki.le]
+  · rw [min_eq_right (by grind), min_eq_right (by grind)]
+    simp
+
+lemma integral_real_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → ℝ) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
+    (X : ℕ → Ω → ℝ) :
+    (SimpleProcess.ofNat W n hW0 hW hC ● X) =
+      fun i ω ↦ ∑ k ∈ range n, W (k + 1) ω * (X (min (k + 1) i) ω - X (min k i) ω) := by
+  simp [integral_ofNat]
+
+lemma integral_real_ofNat_apply {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → ℝ) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
+    (X : ℕ → Ω → ℝ) (i : ℕ) (ω : Ω) :
+    (SimpleProcess.ofNat W n hW0 hW hC ● X) i ω =
+      ∑ k ∈ range n with k < i, W (k + 1) ω * (X (k + 1) ω - X k ω) := by
+  simp [integral_ofNat_apply]
+
+lemma integral_real_ofNat_apply_self {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → ℝ) (n : ℕ)
+    (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
+    {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
+    (X : ℕ → Ω → ℝ) (ω : Ω) :
+    (SimpleProcess.ofNat W n hW0 hW hC ● X) n ω =
+      ∑ k ∈ range n, W (k + 1) ω * (X (k + 1) ω - X k ω) := by
+  rw [integral_real_ofNat_apply, sum_filter_of_ne]
+  grind
 
 end Integral
 
