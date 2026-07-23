@@ -26,6 +26,39 @@ variable {ι Ω : Type*} [LinearOrder ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
   {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 
+lemma TendstoInMeasure.add {ι E : Type*} [NormedAddCommGroup E] [IsFiniteMeasure μ]
+    {f g : ι → Ω → E} {l₁ l₂ : Ω → E} {u : Filter ι}
+    (hf : TendstoInMeasure μ f u l₁) (hg : TendstoInMeasure μ g u l₂) :
+    TendstoInMeasure μ (fun n ω ↦ f n ω + g n ω) u (fun ω ↦ l₁ ω + l₂ ω) := by
+  unfold TendstoInMeasure at hf hg ⊢
+  intro ε hε
+  have hε' : 0 < ε / 2 := ENNReal.half_pos hε.ne'
+  specialize hf (ε / 2) hε'
+  specialize hg (ε / 2) hε'
+  simp only
+  have h_subset1 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
+      ⊆ {x | ε ≤ edist (f i x) (l₁ x) + edist (g i x) (l₂ x)} := by
+    intro x hx
+    simp only [Set.mem_setOf_eq] at hx ⊢
+    exact hx.trans (edist_add_add_le _ _ _ _)
+  have h_subset2 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
+      ⊆ {x | ε / 2 ≤ edist (f i x) (l₁ x)} ∪ {x | ε / 2 ≤ edist (g i x) (l₂ x)} := by
+    refine (h_subset1 i).trans fun x ↦ ?_
+    simp only [Set.mem_setOf_eq, Set.mem_union]
+    contrapose!
+    intro ⟨h1, h2⟩
+    conv_rhs => rw [← ENNReal.add_halves ε]
+    gcongr
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    (h := fun i ↦ μ {x | ε / 2 ≤ edist (f i x) (l₁ x)} + μ {x | ε / 2 ≤ edist (g i x) (l₂ x)})
+    ?_ (by positivity) ?_
+  · rw [← add_zero (0 : ℝ≥0∞)]
+    exact hf.add hg
+  · intro i
+    simp only
+    grw [measure_mono (h_subset2 i)]
+    exact measure_union_le _ _
+
 /-! ### Finite skeletons and the elementary integral bridge
 
 Discrete data along a monotone sequence of times is converted into elementary predictable sets,
@@ -974,111 +1007,6 @@ lemma mem_infiniteAlt_of_frequently_left (hxd : x ≤ d)
 
 end Selection
 
-/-! ### Almost-sure existence of one-sided limits along a countable time set -/
-
-section AETendsto
-
-variable [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-
-lemma ae_isBoundedUnder_le_nhdsGT_inf_principal [IsFiniteMeasure μ]
-    (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x < d) :
-    ∀ᵐ ω ∂μ, ∀ x, Filter.IsBoundedUnder (· ≤ ·) (𝓝[T ∩ Set.Ioi x] x) (X · ω) := by
-  filter_upwards [ae_exists_bound hX hT hT] with ω hω1 x
-  obtain ⟨d, hdT, hxd⟩ := hTcof x
-  obtain ⟨M, hM⟩ : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := hω1 d hdT
-  refine ⟨(M : ℝ) + 1, ?_⟩
-  rw [Filter.eventually_map]
-  have hU : Set.Ioc x d ∩ T ∈ 𝓝[T ∩ Set.Ioi x] x := Filter.mem_of_superset (aux1 hxd) (by grind)
-  filter_upwards [hU] with s' hs' using by grind
-
-lemma ae_isBoundedUnder_ge_nhdsGT_inf_principal [IsFiniteMeasure μ]
-    (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x < d) :
-    ∀ᵐ ω ∂μ, ∀ x, Filter.IsBoundedUnder (· ≥ ·) (𝓝[T ∩ Set.Ioi x] x) (X · ω) := by
-  filter_upwards [ae_exists_bound hX hT hT] with ω hω1 x
-  obtain ⟨d, hdT, hxd⟩ := hTcof x
-  obtain ⟨M, hM⟩ : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := hω1 d hdT
-  refine ⟨-((M : ℝ) + 1), ?_⟩
-  rw [Filter.eventually_map]
-  have hU : Set.Ioc x d ∩ T ∈ 𝓝[T ∩ Set.Ioi x] x := Filter.mem_of_superset (aux1 hxd) (by grind)
-  filter_upwards [hU] with s' hs' using by grind
-
-omit [OrderTopology ι] in
-lemma ae_isBoundedUnder_le_nhdsLT_inf_principal [IsFiniteMeasure μ]
-    (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x ≤ d) :
-    ∀ᵐ ω ∂μ, ∀ x, Filter.IsBoundedUnder (· ≤ ·) (𝓝[T ∩ Set.Iio x] x) (X · ω) := by
-  filter_upwards [ae_exists_bound hX hT hT] with ω hω1 x
-  obtain ⟨d, hdT, hxd⟩ := hTcof x
-  obtain ⟨M, hM⟩ : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := hω1 d hdT
-  refine ⟨(M : ℝ) + 1, ?_⟩
-  rw [Filter.eventually_map]
-  have hU : Set.Iio x ∩ T ∈ 𝓝[T ∩ Set.Iio x] x := by
-    rw [Set.inter_comm]
-    exact self_mem_nhdsWithin
-  filter_upwards [hU] with s' hs' using by grind
-
-omit [OrderTopology ι] in
-lemma ae_isBoundedUnder_ge_nhdsLT_inf_principal [IsFiniteMeasure μ]
-    (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x ≤ d) :
-    ∀ᵐ ω ∂μ, ∀ x, Filter.IsBoundedUnder (· ≥ ·) (𝓝[T ∩ Set.Iio x] x) (X · ω) := by
-  filter_upwards [ae_exists_bound hX hT hT] with ω hω1 x
-  obtain ⟨d, hdT, hxd⟩ := hTcof x
-  obtain ⟨M, hM⟩ : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := hω1 d hdT
-  refine ⟨-((M : ℝ) + 1), ?_⟩
-  rw [Filter.eventually_map]
-  have hU : Set.Iio x ∩ T ∈ 𝓝[T ∩ Set.Iio x] x := by
-    rw [Set.inter_comm]
-    exact self_mem_nhdsWithin
-  filter_upwards [hU] with s' hs' using by grind
-
-lemma ae_right_limit [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x, ∃ d ∈ T, x < d) :
-    ∀ᵐ ω ∂μ, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l) := by
-  have h1 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ∀ q r, q < r → ω ∉ infiniteAlt T d X q r :=
-    measure_all_infiniteAlt hX hT hT
-  have h2 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 :=
-    ae_exists_bound hX hT hT
-  filter_upwards [h1, h2, ae_isBoundedUnder_le_nhdsGT_inf_principal hX hT hTcof,
-    ae_isBoundedUnder_ge_nhdsGT_inf_principal hX hT hTcof]
-    with ω hω1 hω2 hbu_le hbu_ge x
-  obtain ⟨d, hdT, hxd⟩ := hTcof x
-  refine tendsto_of_no_upcrossings dense_univ ?_ (hbu_le x) (hbu_ge x)
-  rintro p _ p' _ hqr ⟨hfa, hfb⟩
-  refine hω1 d hdT p p' hqr ?_
-  exact mem_infiniteAlt_of_frequently_right hxd hfa hfb
-
-lemma ae_left_limit [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x, ∃ d ∈ T, x ≤ d) :
-    ∀ᵐ ω ∂μ, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 l) := by
-  have h1 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ∀ q r, q < r → ω ∉ infiniteAlt T d X q r :=
-    measure_all_infiniteAlt hX hT hT
-  have h2 : ∀ᵐ ω ∂μ, ∀ d ∈ T, ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 :=
-    ae_exists_bound hX hT hT
-  filter_upwards [h1, h2, ae_isBoundedUnder_le_nhdsLT_inf_principal hX hT hTcof,
-    ae_isBoundedUnder_ge_nhdsLT_inf_principal hX hT hTcof]
-    with ω hω1 hω2 hbu_le hbu_ge x
-  obtain ⟨d, hdT, hxle⟩ := hTcof x
-  refine tendsto_of_no_upcrossings dense_univ ?_ (hbu_le x) (hbu_ge x)
-  rintro p _ p' _ hqr ⟨hfa, hfb⟩
-  refine hω1 d hdT p p' hqr ?_
-  exact mem_infiniteAlt_of_frequently_left hxle hfa hfb
-
-/-- **Almost surely, `X` admits one-sided limits along a countable cofinal time set `T` at every
-point of `ι`.** This is the probabilistic core of the regularization theorem. -/
-lemma ae_tendsto_along_countable [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
-    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x : ι, ∃ d ∈ T, x < d) :
-    ∀ᵐ ω ∂μ, ∀ x, (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l))
-      ∧ (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 l)) := by
-  filter_upwards [ae_right_limit hX hT hTcof, ae_left_limit hX hT (fun x ↦
-    let ⟨d, hdT, hxd⟩ := hTcof x
-    ⟨d, hdT, le_of_lt hxd⟩)] with ω hω1 hω2 x
-  exact ⟨hω1 x, hω2 x⟩
-
-end AETendsto
-
 section RegularitySet
 
 def regularitySet (T : Set ι) (X : ι → Ω → ℝ) (d : ι) : Set Ω :=
@@ -1343,10 +1271,26 @@ lemma eventually_left_limit_of_mem_regularitySetRight' {T : Set ι}
   filter_upwards [eventually_mem_regularitySetRight_of_mem hω] with y hy
   exact left_limit_of_mem_regularitySetRight hy le_rfl
 
+lemma ae_right_limit [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x, ∃ d ∈ T, x < d) :
+    ∀ᵐ ω ∂μ, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l) := by
+  filter_upwards [ae_mem_all_regularitySet hX hT] with ω hω
+  intro x
+  obtain ⟨d, hdT, hxd⟩ := hTcof x
+  exact right_limit_of_mem_regularitySet x d hxd (hω d hdT)
+
+lemma ae_left_limit [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hT : T.Countable) (hTcof : ∀ x, ∃ d ∈ T, x ≤ d) :
+    ∀ᵐ ω ∂μ, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 l) := by
+  filter_upwards [ae_mem_all_regularitySet hX hT] with ω hω
+  intro x
+  obtain ⟨d, hdT, hxle⟩ := hTcof x
+  exact left_limit_of_mem_regularitySet x d hxle (hω d hdT)
+
 end RegularitySet
 
 variable [TopologicalSpace ι] [OrderBot ι] [OrderTopology ι]
-  [FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
+  --[FirstCountableTopology ι] -- required for ∀ t : ι, (𝓝[>] t).IsCountablyGenerated
   [DenselyOrdered ι] [NoMaxOrder ι] -- required for ∀ t : ι, (𝓝[>] t).NeBot)
 
 /-! ### Pathwise regularization
@@ -1359,12 +1303,12 @@ section PathRegularization
 variable {T : Set ι} {h r : ι → ℝ} {x : ι}
 
 -- todo: delete this
-omit [OrderBot ι] [FirstCountableTopology ι] in
+omit [OrderBot ι] in
 lemma nhdsGT_inf_principal_neBot (hTd : Dense T) (x : ι) : (𝓝[T ∩ Set.Ioi x] x).NeBot := by
   rw [Set.inter_comm]
   exact nhdsWithin_Ioi_inter_neBot hTd x
 
-omit [OrderBot ι] [FirstCountableTopology ι] in
+omit [OrderBot ι] in
 /-- The right-limit regularization inherits left limits of `h` along `T`. -/
 lemma tendsto_rightLim_nhdsLT (hTd : Dense T)
     (hr : ∀ᶠ y in 𝓝[<] x, Tendsto h (𝓝[T ∩ Set.Ioi y] y) (𝓝 (r y))) {L : ℝ}
@@ -1390,7 +1334,7 @@ lemma tendsto_rightLim_nhdsLT (hTd : Dense T)
   filter_upwards [Ioo_mem_nhdsGT hy.2] with s hs hsT
   exact hv ⟨hy.1.trans hs.1, hs.2⟩ hsT
 
-omit [OrderBot ι] [FirstCountableTopology ι] in
+omit [OrderBot ι] in
 /-- Along a strictly increasing sequence `u → x` from the left, the regularized values
 `r (u k)` tend to the left limit of `h` at `x` along `T' ⊇ T`. -/
 lemma tendsto_rightLim_comp_of_lt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T')
@@ -1414,7 +1358,7 @@ lemma tendsto_rightLim_comp_of_lt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T'
   filter_upwards [Ioo_mem_nhdsGT (hux k)] with s hs hsT
   exact hv ⟨hk.trans hs.1, hs.2⟩ (hTT' hsT)
 
-omit [OrderBot ι] [FirstCountableTopology ι] in
+omit [OrderBot ι] in
 /-- Along a strictly decreasing sequence `u → x` from the right, the regularized values
 `r (u k)` tend to the right limit of `h` at `x` along `T' ⊇ T`. -/
 lemma tendsto_rightLim_comp_of_gt (hTd : Dense T) {T' : Set ι} (hTT' : T ⊆ T')
@@ -1474,7 +1418,7 @@ noncomputable
 def rightLimWithin (T : Set ι) (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
   fun t ω ↦ Function.rightLimWithin (X · ω) T t
 
-omit [OrderBot ι] [FirstCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] in
+omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
 lemma tendsto_rightLimWithin {ω : Ω} {T : Set ι} {x : ι}
     (h : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l)) :
     Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin T X x ω)) := by
@@ -1482,9 +1426,40 @@ lemma tendsto_rightLimWithin {ω : Ω} {T : Set ι} {x : ι}
   simp_rw [Set.inter_comm T] at h ⊢
   exact tendsto_rightLimWithin_of_tendsto h
 
+omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
+lemma tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight
+    {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
+    Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin T X x ω)) := by
+  have h := right_limit_of_mem_regularitySetRight hmem le_rfl
+  rw [Set.inter_comm] at h ⊢
+  exact tendsto_rightLimWithin_of_tendsto h
+
+omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
+lemma tendsto_nhdsLT_leftLimWithin_of_mem_regularitySetRight
+    {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
+    Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 (Function.leftLimWithin (X · ω) T x)) := by
+  have h := left_limit_of_mem_regularitySetRight hmem le_rfl
+  rw [Set.inter_comm] at h ⊢
+  exact tendsto_leftLimWithin_of_tendsto h
+
 omit [OrderBot ι] in
-lemma measurableSet_tendsto_nhdsGT [𝓕.IsRightContinuous] {T : Set ι} (hT : T.Countable)
-    (hX : Adapted 𝓕 X) (t : ι) :
+lemma rightContinuous_rightLimWithin_of_mem_regularitySetRight
+    {T : Set ι} (hTd : Dense T) {x : ι}
+    {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
+    ContinuousWithinAt (rightLimWithin T X · ω) (Set.Ici x) x := by
+  refine continuousWithinAt_rightLimWithin_Ici_of_dense hTd ?_ ?_
+  · have h := right_limit_of_mem_regularitySetRight hmem le_rfl
+    rw [Set.inter_comm] at h
+    exact tendsto_rightLimWithin_of_tendsto h
+  · have h_ev_mem : ∀ᶠ y in 𝓝[>] x, ω ∈ regularitySetRight T X y :=
+      eventually_mem_regularitySetRight_of_mem hmem
+    filter_upwards [h_ev_mem] with y hy
+    rw [Set.inter_comm]
+    exact tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hy
+
+omit [OrderBot ι] in
+lemma measurableSet_tendsto_nhdsGT [FirstCountableTopology ι] [𝓕.IsRightContinuous]
+    {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) (t : ι) :
     MeasurableSet[𝓕 t] {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)} := by
   -- It suffices to prove `𝓕 s`-measurability for every `s > t`.
   refine measurableSet_of_forall_gt fun s hts ↦ ?_
@@ -1513,7 +1488,8 @@ lemma measurableSet_tendsto_nhdsGT [𝓕.IsRightContinuous] {T : Set ι} (hT : T
   exact @MeasureTheory.measurableSet_exists_tendsto S ℝ Ω (𝓕 s) _ _ _ _ _ _ l₀ _ _ hf
 
 omit [OrderBot ι] [OrderTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] in
-lemma measurableSet_tendsto_nhdsLT {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) (t : ι) :
+lemma measurableSet_tendsto_nhdsLT [FirstCountableTopology ι]
+    {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) (t : ι) :
     MeasurableSet[𝓕 t] {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio t] t) (𝓝 l)} := by
   -- Every point of `S = T ∩ Iio t` is `< t`, so `X` there is already `𝓕 t`-measurable; the limit
   -- along `𝓝[T ∩ Iio t] t` is a limit along the countable index `↥S`.
@@ -1538,8 +1514,8 @@ lemma measurableSet_tendsto_nhdsLT {T : Set ι} (hT : T.Countable) (hX : Adapted
   exact @MeasureTheory.measurableSet_exists_tendsto S ℝ Ω (𝓕 t) _ _ _ _ _ _ l₀ _ _ hf
 
 omit [OrderBot ι] in
-lemma adapted_rightLimWithin [𝓕.IsRightContinuous] {T : Set ι} (hT : T.Countable)
-    (hX : Adapted 𝓕 X) :
+lemma adapted_rightLimWithin [FirstCountableTopology ι] [𝓕.IsRightContinuous]
+    {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) :
     Adapted 𝓕 (rightLimWithin T X) := by
   classical
   intro t
@@ -1551,8 +1527,7 @@ lemma adapted_rightLimWithin [𝓕.IsRightContinuous] {T : Set ι} (hT : T.Count
       exact rightLimWithin_eq_of_eq_bot _ (by rw [Set.inter_comm]; exact hlbot)
     rw [heq]
     exact (hX t)
-  · haveI : (𝓝[T ∩ Set.Ioi t] t).NeBot := hlne
-    -- The set where the right limit exists is `𝓕 t`-measurable.
+  · -- The set where the right limit exists is `𝓕 t`-measurable.
     have hAmeas : MeasurableSet[𝓕 t] {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)} :=
       measurableSet_tendsto_nhdsGT hT hX t
     -- Off that set, the right limit equals `X t`.
@@ -1601,7 +1576,7 @@ lemma adapted_rightLimWithin [𝓕.IsRightContinuous] {T : Set ι} (hT : T.Count
     -- Assemble via `piecewise`.
     have hpw : rightLimWithin T X t
         = {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)}.piecewise
-            (fun ω => limUnder l₀ (fun s' : ↥S => X ↑s' ω)) (X t) := by
+            (fun ω ↦ limUnder l₀ (fun s' : ↥S => X ↑s' ω)) (X t) := by
       funext ω
       simp only [Set.piecewise]
       split_ifs with hω
@@ -1612,32 +1587,36 @@ lemma adapted_rightLimWithin [𝓕.IsRightContinuous] {T : Set ι} (hT : T.Count
     · exact 𝓕.mono hts.le _ hAmeas
     · exact (hX t).mono (𝓕.mono hts.le) le_rfl
 
-lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+def notContSet (T : Set ι) (X : ι → Ω → ℝ) (μ : Measure Ω) : Set ι :=
+  {t | ¬ rightLimWithin T X t =ᵐ[μ] X t}
+
+omit [OrderBot ι] in
+protected lemma Dense.exists_gt {T : Set ι} (hTd : Dense T) (x : ι) :
+    ∃ d ∈ T, x < d := by
+  obtain ⟨y, hy⟩ := exists_gt x
+  obtain ⟨d, hdT, hd⟩ := hTd.exists_mem_open isOpen_Ioo (exists_between hy)
+  exact ⟨d, hdT, hd.1⟩
+
+lemma countable_notContSet [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
     (hX : IsRealQuasimartingale 𝓕 X μ) :
-    Set.Countable {x | ¬ rightLimWithin (denseCountable ι) X x =ᵐ[μ] X x} := by
-  let D₀ := denseCountable ι
-  have hD₀c : D₀.Countable := countable_denseCountable
-  have hD₀d : Dense D₀ := dense_denseCountable
+    (notContSet T X μ).Countable := by
   -- every dense set is cofinal
-  have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := by
-    intro T hTd x
-    obtain ⟨y, hy⟩ := exists_gt x
-    obtain ⟨d, hdT, hd⟩ := hTd.exists_mem_open isOpen_Ioo (exists_between hy)
-    exact ⟨d, hdT, hd.1⟩
+  have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := fun T hTd x ↦ hTd.exists_gt x
   -- the right-limit value along `T`, by choice
-  let R T x ω : ℝ := Function.rightLimWithin (X · ω) T x
-  have hRspec T x ω (h : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l)) :
-      Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (R T x ω)) := tendsto_rightLimWithin h
+  let R T' x ω : ℝ := Function.rightLimWithin (X · ω) T' x
+  have hRspec T' x ω (h : ∃ l, Tendsto (X · ω) (𝓝[T' ∩ Set.Ioi x] x) (𝓝 l)) :
+      Tendsto (X · ω) (𝓝[T' ∩ Set.Ioi x] x) (𝓝 (R T' x ω)) := tendsto_rightLimWithin h
   -- Stage 1: a.e. one-sided limits along D₀
-  have hae₀ := ae_tendsto_along_countable hX hD₀c (hcof D₀ hD₀d)
+  have hae₀ := ae_right_limit hX hTc (hcof T hTd)
   -- Stage 2: measurable versions of `R D₀ x`
-  have hRm : ∀ x : ι, ∃ g : Ω → ℝ, Measurable g ∧ g =ᵐ[μ] R D₀ x := by
+  have hRm : ∀ x : ι, ∃ g : Ω → ℝ, Measurable g ∧ g =ᵐ[μ] R T x := by
     intro x
-    have hne : (𝓝[D₀ ∩ Set.Ioi x] x).NeBot := nhdsGT_inf_principal_neBot hD₀d x
-    obtain ⟨v, hv⟩ := exists_seq_tendsto (𝓝[D₀ ∩ Set.Ioi x] x)
-    have haet : ∀ᵐ ω ∂μ, Tendsto (fun j ↦ X (v j) ω) atTop (𝓝 (R D₀ x ω)) := by
+    have hne : (𝓝[T ∩ Set.Ioi x] x).NeBot := nhdsGT_inf_principal_neBot hTd x
+    obtain ⟨v, hv⟩ := exists_seq_tendsto (𝓝[T ∩ Set.Ioi x] x)
+    have haet : ∀ᵐ ω ∂μ, Tendsto (fun j ↦ X (v j) ω) atTop (𝓝 (R T x ω)) := by
       filter_upwards [hae₀] with ω hω
-      exact (hRspec D₀ x ω (hω x).1).comp hv
+      exact (hRspec T x ω (hω x)).comp hv
     obtain ⟨g, hgmeas, hgae⟩ := measurable_limit_of_tendsto_metrizable_ae
       (f := fun j ↦ X (v j)) (L := atTop) (fun j ↦ (hX.measurable' (v j)).aemeasurable)
       (by filter_upwards [haet] with ω hω using ⟨_, hω⟩)
@@ -1646,7 +1625,7 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
     exact tendsto_nhds_unique h2 h1
   choose Rm hRmMeas hRmae using hRm
   -- Stage 3: the set of points where `R D₀ x` and `X x` disagree is countable
-  let Sset : Set ι := {x | ¬ R D₀ x =ᵐ[μ] X x}
+  let Sset : Set ι := {x | ¬ R T x =ᵐ[μ] X x}
   change Sset.Countable
   by_contra hSunc
   set Sn : ℕ → Set ι := fun n ↦
@@ -1703,22 +1682,21 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
   obtain ⟨n, hSnunc⟩ := hexSn
   obtain ⟨p, u, huSn, hup, hutend⟩ :=
     exists_seq_strictAnti_tendsto_of_not_countable hSnunc
-  set T' : Set ι := D₀ ∪ (Set.range u ∪ {p}) with hT'
+  set T' : Set ι := T ∪ (Set.range u ∪ {p}) with hT'
   have hT'c : T'.Countable :=
-    hD₀c.union ((Set.countable_range u).union (Set.countable_singleton p))
-  have hT'd : Dense T' := hD₀d.mono Set.subset_union_left
-  have hae' := ae_tendsto_along_countable hX hT'c (hcof T' hT'd)
+    hTc.union ((Set.countable_range u).union (Set.countable_singleton p))
+  have hT'd : Dense T' := hTd.mono Set.subset_union_left
   have haediff : ∀ᵐ ω ∂μ, Tendsto (fun k ↦ Rm (u k) ω - X (u k) ω) atTop (𝓝 0) := by
-    have hcnt : ∀ᵐ ω ∂μ, ∀ k, Rm (u k) ω = R D₀ (u k) ω := ae_all_iff.2 fun k ↦ hRmae (u k)
-    filter_upwards [hae₀, hae', hcnt] with ω hω₀ hω' hkeq
-    have hL' := hRspec T' p ω (hω' p).1
+    have hcnt : ∀ᵐ ω ∂μ, ∀ k, Rm (u k) ω = R T (u k) ω := ae_all_iff.2 fun k ↦ hRmae (u k)
+    filter_upwards [hae₀, ae_right_limit hX hT'c (hcof T' hT'd), hcnt] with ω hω₀ hω' hkeq
+    have hL' := hRspec T' p ω (hω' p)
     have hXu : Tendsto (fun k ↦ X (u k) ω) atTop (𝓝 (R T' p ω)) := by
       refine hL'.comp ?_
       rw [tendsto_nhdsWithin_iff]
       exact ⟨hutend, Filter.Eventually.of_forall fun k ↦ by grind⟩
-    have hRu : Tendsto (fun k ↦ R D₀ (u k) ω) atTop (𝓝 (R T' p ω)) :=
-      tendsto_rightLim_comp_of_gt hD₀d Set.subset_union_left
-        (fun y ↦ hRspec D₀ y ω (hω₀ y).1) hup hutend hL'
+    have hRu : Tendsto (fun k ↦ R T (u k) ω) atTop (𝓝 (R T' p ω)) :=
+      tendsto_rightLim_comp_of_gt hTd Set.subset_union_left
+        (fun y ↦ hRspec T y ω (hω₀ y)) hup hutend hL'
     have hsub := hRu.sub hXu
     rw [sub_self] at hsub
     refine Tendsto.congr (fun k ↦ ?_) hsub
@@ -1746,184 +1724,142 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
     exact ENNReal.ofReal_le_ofReal hω.le
   exact lt_irrefl _ ((hmem.trans_le (measure_mono hsub3)).trans hk)
 
-lemma tendsto_nhdsWithin_left_iff_eventually {E F : Type*} [TopologicalSpace E] [TopologicalSpace F]
-    {f : E → F} {s : Set E} {x : E} {L : Filter F} :
-    Tendsto f (𝓝[s] x) L ↔
-      ∀ ⦃p : F → Prop⦄, (∀ᶠ y in L, p y) → ∀ᶠ y in 𝓝 x, y ∈ s → p (f y) := by
-  simp_rw [tendsto_iff_eventually, eventually_nhdsWithin_iff]
+noncomputable
+def rightContModif (T : Set ι) (X : ι → Ω → ℝ) (t : ι) (ω : Ω) : ℝ :=
+  open Classical in
+  if ω ∈ regularitySetRight T X t then rightLimWithin T X t ω else 0
 
-omit [OrderBot ι] [FirstCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] in
-lemma tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight
-    {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin T X x ω)) := by
-  have h := right_limit_of_mem_regularitySetRight hmem le_rfl
-  rw [Set.inter_comm] at h ⊢
-  exact tendsto_rightLimWithin_of_tendsto h
-
-omit [OrderBot ι] [FirstCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] in
-lemma tendsto_nhdsLT_leftLimWithin_of_mem_regularitySetRight
-    {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 (Function.leftLimWithin (X · ω) T x)) := by
-  have h := left_limit_of_mem_regularitySetRight hmem le_rfl
-  rw [Set.inter_comm] at h ⊢
-  exact tendsto_leftLimWithin_of_tendsto h
-
-omit [OrderBot ι] [FirstCountableTopology ι] in
-lemma rightContinuous_rightLimWithin_of_mem_regularitySetRight
-    {T : Set ι} (hTd : Dense T) {x : ι}
-    {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    ContinuousWithinAt (rightLimWithin T X · ω) (Set.Ici x) x := by
-  refine continuousWithinAt_rightLimWithin_Ici_of_dense hTd ?_ ?_
-  · have h := right_limit_of_mem_regularitySetRight hmem le_rfl
-    rw [Set.inter_comm] at h
-    exact tendsto_rightLimWithin_of_tendsto h
-  · have h_ev_mem : ∀ᶠ y in 𝓝[>] x, ω ∈ regularitySetRight T X y :=
-      eventually_mem_regularitySetRight_of_mem hmem
-    filter_upwards [h_ev_mem] with y hy
-    rw [Set.inter_comm]
-    exact tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hy
-
-/-- If `X` is an adapted integrable stochastic process such that the sets
-`{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t, then it has a modification `Y`
-which has left and right limits everywhere and is right continuous on a co-countable set
-`s : Set ι`. -/
-lemma exists_modification_left_right_limit [SecondCountableTopology ι] [IsFiniteMeasure μ]
-    [𝓕.IsRightContinuous]
+lemma stronglyAdapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
     (hX : IsRealQuasimartingale 𝓕 X μ) :
-    ∃ Y : ι → Ω → ℝ, StronglyAdapted 𝓕 Y ∧ (∀ t, Y t =ᵐ[μ] X t) ∧
-      (∀ x ω, ∃ l, Tendsto (Y · ω) (𝓝[<] x) (𝓝 l)) ∧ -- left limit
-      (∀ x ω, ∃ l, Tendsto (Y · ω) (𝓝[>] x) (𝓝 l)) ∧ -- right limit
-      ∃ s : Set ι, s.Countable ∧ ∀ x ∉ s, ∀ ω, ContinuousWithinAt (Y · ω) (Set.Ioi x) x := by
+    StronglyAdapted 𝓕 (rightContModif T X) := by
+  refine fun i ↦ StronglyMeasurable.ite (measurableSet_regularitySetRight hX hTc hTd i) ?_
+    (by fun_prop)
+  refine Measurable.stronglyMeasurable ?_
+  exact adapted_rightLimWithin hTc hX.stronglyAdapted.adapted i
+
+omit [OrderBot ι] in
+lemma tendsto_rightContModif_rightLimWithin [SecondCountableTopology ι]
+    {T : Set ι} (hTd : Dense T) {x : ι} {ω : Ω}
+    (hω : ω ∈ regularitySetRight T X x) :
+    Tendsto (rightContModif T X · ω) (𝓝[>] x) (𝓝 (rightLimWithin T X x ω)) := by
+  have h_mem : ∀ᶠ y in 𝓝[>] x, ω ∈ regularitySetRight T X y :=
+    eventually_mem_regularitySetRight_of_mem hω
   classical
-  let D₀ := denseCountable ι
-  have hD₀c : D₀.Countable := countable_denseCountable
-  have hD₀d : Dense D₀ := dense_denseCountable
-  -- every dense set is cofinal
-  have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := by
-    intro T hTd x
-    obtain ⟨y, hy⟩ := exists_gt x
-    obtain ⟨d, hdT, hd⟩ := hTd.exists_mem_open isOpen_Ioo (exists_between hy)
-    exact ⟨d, hdT, hd.1⟩
-  -- the right-limit value along `T`
-  let R T x ω : ℝ := rightLimWithin T X x ω
-  have hRspec T x ω (h : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l)) :
-      Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (R T x ω)) := by
-    unfold R
-    simp_rw [Set.inter_comm T] at h ⊢
-    exact tendsto_rightLimWithin_of_tendsto h
-  -- Stage 1: a.e. one-sided limits along D₀
-  have hae₀ := ae_tendsto_along_countable hX hD₀c (hcof D₀ hD₀d)
-  -- Stage 2: the exceptional set is countable
-  let Sset : Set ι := {x | ¬ R D₀ x =ᵐ[μ] X x}
-  have hScount : Sset.Countable := countable_not_rightLimWithin_ae_eq hX
-  -- Stage 3: the final process along T'' = D₀ ∪ Sset
-  set T'' : Set ι := D₀ ∪ Sset with hT''
-  have hT''c : T''.Countable := hD₀c.union hScount
-  have hT''d : Dense T'' := hD₀d.mono Set.subset_union_left
-  let Gset x : Set Ω := regularitySetRight T'' X x
-  have hGset_meas x : MeasurableSet[𝓕 x] (Gset x) :=
-    measurableSet_regularitySetRight hX hT''c hT''d x
-  have hGae : ∀ᵐ ω ∂μ, ∀ x, ω ∈ Gset x := ae_mem_regularitySetRight hX hT''c (hcof T'' hT''d)
-  have hRspec' x ω (hω : ω ∈ Gset x) : Tendsto (X · ω) (𝓝[T'' ∩ Set.Ioi x] x) (𝓝 (R T'' x ω)) :=
+  rw [tendsto_congr' (f₂ := (rightLimWithin T X · ω))]
+  swap; · filter_upwards [h_mem] with s' hs using by grind [notContSet, rightContModif]
+  suffices ContinuousWithinAt (rightLimWithin T X · ω) (Set.Ici x) x by
+    rwa [← continuousWithinAt_Ioi_iff_Ici] at this
+  exact rightContinuous_rightLimWithin_of_mem_regularitySetRight hTd hω
+
+omit [OrderBot ι] in
+lemma tendsto_rightContModif_leftLimWithin [SecondCountableTopology ι]
+    {T : Set ι} (hTd : Dense T) {x : ι} {ω : Ω}
+    (hω : ω ∈ regularitySetRight T X x) :
+    Tendsto (rightContModif T X · ω) (𝓝[<] x) (𝓝 (Function.leftLimWithin (X · ω) T x)) := by
+  let R := rightLimWithin T X
+  have hRspec x ω (hω : ω ∈ regularitySetRight T X x) :
+      Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (R x ω)) :=
     tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hω
-  -- left-limit values along T''
-  let Lc : ι → Ω → ℝ := fun x ω ↦ Function.leftLimWithin (X · ω) T'' x
-  have hLspec x ω (h : ∃ l, Tendsto (fun s' ↦ X s' ω) (𝓝[T'' ∩ Set.Iio x] x) (𝓝 l)) :
-      Tendsto (fun s' ↦ X s' ω) (𝓝[T'' ∩ Set.Iio x] x) (𝓝 (Lc x ω)) := by
+  let Lc x ω := Function.leftLimWithin (X · ω) T x
+  have hLspec x ω (h : ∃ l, Tendsto (fun s' ↦ X s' ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 l)) :
+      Tendsto (fun s' ↦ X s' ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 (Lc x ω)) := by
     unfold Lc
-    simp_rw [Set.inter_comm T''] at h ⊢
+    simp_rw [Set.inter_comm T] at h ⊢
     exact tendsto_leftLimWithin_of_tendsto h
-  let Y : ι → Ω → ℝ := fun x ω ↦ if ω ∈ Gset x then (if x ∈ Sset then X x ω else R T'' x ω) else 0
-  have hY : StronglyAdapted 𝓕 Y := by
-    refine fun i ↦ StronglyMeasurable.ite (hGset_meas i) ?_ (by fun_prop)
-    refine StronglyMeasurable.ite ?_ ?_ ?_
-    · simp
-    · exact hX.stronglyAdapted i
-    · refine Measurable.stronglyMeasurable ?_
-      exact adapted_rightLimWithin hT''c hX.stronglyAdapted.adapted i
-  -- key: for good ω, `Y · ω` tends to `R T'' x ω` from the right at every `x`
-  have hYright ω x (hω : ω ∈ Gset x) : Tendsto (Y · ω) (𝓝[>] x) (𝓝 (R T'' x ω)) := by
-    have h_mem : ∀ᶠ y in 𝓝[>] x, ω ∈ Gset y := eventually_mem_regularitySetRight_of_mem hω
-    rw [tendsto_congr' (f₂ := (fun x ↦ if x ∈ Sset then X x ω else R T'' x ω))]
-    swap; · filter_upwards [h_mem] with s' hs using by grind
-    refine Tendsto.piecewise ?_ ?_
-    · suffices Tendsto (fun x ↦ X x ω) (𝓝[>] x ⊓ 𝓟 T'') (𝓝 (R T'' x ω)) from
-        Tendsto.mono_left this (by gcongr; grind)
+  have h_mem y (hyx : y ≤ x) : ω ∈ regularitySetRight T X y := regularitySetRight_anti hyx hω
+  classical
+  rw [tendsto_congr' (f₂ := (R · ω))]
+  swap; · exact eventually_nhdsWithin_of_forall fun y hy ↦ by grind [notContSet, rightContModif]
+  unfold R
+  refine tendsto_rightLim_nhdsLT hTd ?_ (hLspec x ω ?_)
+  · refine eventually_nhdsWithin_of_forall fun y hy ↦ ?_
+    exact hRspec y ω (h_mem y (by grind))
+  · exact left_limit_of_mem_regularitySetRight (h_mem x le_rfl) le_rfl
+
+omit [OrderBot ι] [OrderTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] in
+lemma rightContModif_eq_zero [SecondCountableTopology ι]
+    {T : Set ι} {x : ι} {ω : Ω} (hω : ω ∉ regularitySetRight T X x) :
+    (rightContModif T X · ω) =ᶠ[𝓝[>] x] 0 := by
+  have h_all y (hy : x ≤ y) : ω ∉ regularitySetRight T X y :=
+    fun hω' ↦ hω (regularitySetRight_anti hy hω')
+  refine eventually_nhdsWithin_of_forall fun y hy ↦ ?_
+  simp at hy ⊢
+  grind [rightContModif]
+
+omit [OrderBot ι] in
+lemma continuousWithinAt_rightContModif [SecondCountableTopology ι]
+    {T : Set ι} (hTd : Dense T) (x : ι) (ω : Ω) :
+    ContinuousWithinAt (rightContModif T X · ω) (Set.Ioi x) x := by
+  by_cases hω : ω ∈ regularitySetRight T X x
+  · have hYx : rightContModif T X x ω =
+        rightLimWithin T X x ω := by
+      simp only [rightContModif, if_pos hω]
+    rw [ContinuousWithinAt, hYx]
+    exact tendsto_rightContModif_rightLimWithin hTd hω
+  · refine ContinuousWithinAt.congr_of_eventuallyEq ?_ (rightContModif_eq_zero hω) ?_
+    · fun_prop
+    · simp [rightContModif, hω]
+
+omit [DenselyOrdered ι] in
+lemma rightContModif_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (hX : IsRealQuasimartingale 𝓕 X μ) :
+    ∀ t ∉ notContSet T X μ, rightContModif T X t =ᵐ[μ] X t := by
+  have hGae : ∀ᵐ ω ∂μ, ∀ x, ω ∈ regularitySetRight T X x :=
+    ae_mem_regularitySetRight hX hTc hTd.exists_gt
+  intro t htS
+  have htR : rightLimWithin T X t =ᵐ[μ] X t := not_not.1 htS
+  filter_upwards [hGae, htR] with ω hω hωR
+  simp only [rightContModif, if_pos (hω _)]
+  exact hωR
+
+lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    [𝓕.IsRightContinuous] {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
+    rightContModif T X t =ᵐ[μ] X t := by
+  classical
+  -- every dense set is cofinal
+  have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := fun T hTd x ↦ hTd.exists_gt x
+  let Y := rightContModif T X
+  have hY_meas : StronglyAdapted 𝓕 Y := stronglyAdapted_rightContModif hTc hTd hX
+  have hYCont x ω: ContinuousWithinAt (Y · ω) (Set.Ioi x) x :=
+    continuousWithinAt_rightContModif hTd x ω
+  have hX_cont x : ∀ᵐ ω ∂μ, Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (Y x ω)) := by
+    have hX_cont' x ω (hω : ω ∈ regularitySetRight T X x) :
+        Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (rightLimWithin T X x ω)) := by
       rw [nhdsWithin_inf_principal, Set.inter_comm]
       exact tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hω
-    · suffices Tendsto (fun x ↦ R T'' x ω) (𝓝[>] x) (𝓝 (R T'' x ω)) from tendsto_inf_left this
-      suffices ContinuousWithinAt (fun x ↦ R T'' x ω) (Set.Ici x) x by
-        rwa [← continuousWithinAt_Ioi_iff_Ici] at this
-      exact rightContinuous_rightLimWithin_of_mem_regularitySetRight hT''d hω
-  -- and to `Lc x ω` from the left
-  have hYleft ω x (hω : ω ∈ Gset x) : Tendsto (Y · ω) (𝓝[<] x) (𝓝 (Lc x ω)) := by
-    have h_mem y (hyx : y ≤ x) : ω ∈ Gset y := regularitySetRight_anti hyx hω
-    rw [tendsto_congr' (f₂ := (fun x ↦ if x ∈ Sset then X x ω else R T'' x ω))]
-    swap; · exact eventually_nhdsWithin_of_forall fun y hy ↦ by grind
-    refine Tendsto.piecewise ?_ ?_
-    · suffices Tendsto (X · ω) (𝓝[<] x ⊓ 𝓟 T'') (𝓝 (Lc x ω)) from
-        Tendsto.mono_left this (by gcongr; grind)
-      rw [nhdsWithin_inf_principal, Set.inter_comm]
-      exact tendsto_nhdsLT_leftLimWithin_of_mem_regularitySetRight hω
-    · suffices Tendsto (fun x ↦ R T'' x ω) (𝓝[<] x) (𝓝 (Lc x ω)) from tendsto_inf_left this
-      unfold Lc R
-      refine tendsto_rightLim_nhdsLT hT''d ?_ (hLspec x ω ?_)
-      · refine eventually_nhdsWithin_of_forall fun y hy ↦ ?_
-        exact hRspec' y ω (h_mem y (by grind))
-      · exact left_limit_of_mem_regularitySetRight (h_mem x le_rfl) le_rfl
-  have h_eq_zero ω x (hω : ω ∉ Gset x) : (Y · ω) =ᶠ[𝓝[>] x] 0 := by
-    have h_all y (hy : x ≤ y) : ω ∉ Gset y := fun hω' ↦ hω (regularitySetRight_anti hy hω')
-    refine eventually_nhdsWithin_of_forall fun y hy ↦ ?_
-    simp at hy ⊢
-    grind
-  refine ⟨Y, hY, ?_, ?_, ?_, Sset, hScount, ?_⟩
-  · -- modification
-    intro t
-    by_cases htS : t ∈ Sset
-    · filter_upwards [hGae] with ω hω
-      simp [Y, hω, htS]
-    · have htR : R D₀ t =ᵐ[μ] X t := not_not.1 htS
-      filter_upwards [hGae, hae₀, htR] with ω hω hω₀ hωR
-      simp only [Y, if_pos (hω _), if_neg htS]
-      have hne : (𝓝[D₀ ∩ Set.Ioi t] t).NeBot := nhdsGT_inf_principal_neBot hD₀d t
-      have h1 : Tendsto (X · ω) (𝓝[D₀ ∩ Set.Ioi t] t) (𝓝 (R T'' t ω)) :=
-        (hRspec' t ω (hω _)).mono_left (inf_le_inf_left _
-          (Filter.principal_mono.2 (Set.inter_subset_inter_left _ Set.subset_union_left)))
-      have h2 := hRspec D₀ t ω (hω₀ t).1
-      rw [tendsto_nhds_unique h1 h2]
-      exact hωR
-  · -- left limits everywhere, for every ω
-    intro x ω
-    by_cases hω : ω ∈ Gset x
-    · exact ⟨Lc x ω, hYleft ω x hω⟩
-    · by_cases! h_forall : ∀ y < x, ω ∈ Gset y
-      · unfold Y
-        sorry
-      · obtain ⟨y, hyx, hyG⟩ := h_forall
-        refine ⟨0, ?_⟩
-        have : Tendsto (fun x ↦ (0 : ℝ)) (𝓝[<] x) (𝓝 0) := tendsto_const_nhds
-        refine (tendsto_congr' ?_).mpr this
-        rw [EventuallyEq, eventually_nhdsWithin_iff]
-        filter_upwards [eventually_gt_nhds hyx] with z hyz hzx
-        unfold Y
-        rw [if_neg]
-        exact fun h_mem ↦ hyG (regularitySetRight_anti hyz.le h_mem)
-  · -- right limits everywhere, for every ω
-    intro x ω
-    by_cases hω : ω ∈ Gset x
-    · exact ⟨R T'' x ω, hYright ω x hω⟩
-    · refine ⟨0, ?_⟩
-      rw [tendsto_congr' (h_eq_zero ω x hω)]
-      exact tendsto_const_nhds
-  · -- right continuity off `Sset`, for every ω
-    intro x hxS ω
-    by_cases hω : ω ∈ Gset x
-    · have hYx : Y x ω = R T'' x ω := by simp only [Y, if_pos hω, if_neg hxS]
-      rw [ContinuousWithinAt, hYx]
-      exact hYright ω x hω
-    · refine ContinuousWithinAt.congr_of_eventuallyEq ?_ (h_eq_zero ω x hω) ?_
-      · fun_prop
-      · simp [Y, hω]
+    have h1 := ae_mem_regularitySetRight hX hTc (hcof T hTd)
+    filter_upwards [h1] with ω hω using by grind [notContSet, rightContModif]
+  have : (𝓝[Set.Ioi t ∩ T] t).NeBot := by
+    rw [Set.inter_comm]; exact nhdsGT_inf_principal_neBot hTd t
+  obtain ⟨w, hseq'⟩ := exists_seq_tendsto (𝓝[Set.Ioi t ∩ T] t)
+  obtain hseq : Tendsto w atTop (𝓝[>] t) := by
+    rw [tendsto_nhdsWithin_iff] at hseq' ⊢
+    refine ⟨hseq'.1, ?_⟩
+    filter_upwards [hseq'.2] with n hn using by grind
+  refine tendstoInMeasure_ae_unique ?_ ?_ (f := Y ∘ w) (u := atTop)
+  · refine tendstoInMeasure_of_tendsto_ae (fun n ↦ ?_) ?_
+    · exact ((hY_meas (w n)).mono (𝓕.le _)).aestronglyMeasurable
+    · exact ae_of_all _ fun ω ↦ (hYCont t ω).tendsto.comp hseq
+  suffices TendstoInMeasure μ (fun k ω ↦ Y (w k) ω - X (w k) ω) atTop 0 by
+    have hX_tendsto := hXRC.comp hseq
+    have h_eq : Y ∘ w = (fun k ω ↦ Y (w k) ω - X (w k) ω) + (X ∘ w) := by ext; simp
+    rw [h_eq, ← zero_add (X t)]
+    exact TendstoInMeasure.add this hX_tendsto
+  refine tendstoInMeasure_of_tendsto_ae (fun n ↦ ?_) ?_
+  · refine StronglyMeasurable.aestronglyMeasurable ?_
+    exact ((hY_meas (w n)).mono (𝓕.le _)).sub ((hX.stronglyAdapted (w n)).mono (𝓕.le _))
+  filter_upwards [hX_cont t] with ω hX_cont
+  simp only [Pi.zero_apply]
+  have : 0 = Y t ω - Y t ω := by simp
+  rw [this]
+  refine Tendsto.sub ?_ ?_
+  · exact (hYCont t ω).tendsto.comp hseq
+  · refine hX_cont.comp ?_
+    rwa [nhdsWithin_inf_principal]
 
 /-- If `X` is an adapted integrable stochastic process which is right continuous in probability,
 and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t,
@@ -1933,36 +1869,6 @@ lemma exists_modification_isCadlag [SecondCountableTopology ι] [IsFiniteMeasure
     (hX : IsRealQuasimartingale 𝓕 X μ)
     (hXRC : ∀ t, TendstoInMeasure μ X (𝓝[>] t) (X t)) :
     ∃ Y : ι → Ω → ℝ, (∀ t, Y t =ᵐ[μ] X t) ∧ (∀ t, Integrable (Y t) μ) ∧ ∀ ω, IsCadlag (Y · ω) := by
-  classical
-  obtain ⟨Y, hY_meas, hY, hYLL, hYRL, s, hs, hYCont⟩ := exists_modification_left_right_limit hX
-  set S := ⋃ t ∈ s, {ω | ¬ ContinuousWithinAt (Y · ω) (Set.Ioi t) t} with hSdef
-  have hS : ∀ᵐ ω ∂μ, ω ∉ S := by
-    simp only [ae_iff, not_not, Set.setOf_mem_eq, hSdef, measure_biUnion_null_iff hs]
-    refine fun t ht ↦ ae_iff.1 ?_
-    choose l hl using hYRL t
-    suffices l =ᵐ[μ] X t by
-      have : ∀ᵐ ω ∂μ, Tendsto (fun x ↦ Y x ω) (𝓝[>] t) (𝓝 (X t ω)) := by
-        filter_upwards [this] with ω hω using by simp [← hω, hl _]
-      filter_upwards [this, hY t] with ω hω₁ hω₂ using by rwa [ContinuousWithinAt, hω₂]
-    obtain ⟨_, hseq⟩ := exists_seq_tendsto (𝓝[>] t)
-    exact tendstoInMeasure_ae_unique ((tendstoInMeasure_of_tendsto_ae
-      (fun _ ↦ (hX.integrable _).1.congr (hY _).symm)
-      (ae_of_all _ <| fun ω ↦ (hl ω).comp hseq)).congr (fun _ ↦ hY _) (by rfl))
-      ((hXRC t).comp hseq)
-  set Z := fun t ω ↦ if ω ∈ S then 0 else Y t ω
-  have hZ : ∀ t, Z t =ᵐ[μ] X t :=
-    fun t ↦ EventuallyEq.trans
-      (by filter_upwards [hS] with ω hω using by simp [Z, if_neg hω]) (hY t)
-  refine ⟨Z, hZ, fun t ↦ (hX.integrable t).congr <| (hZ _).symm,
-    fun ω ↦ ⟨?_, fun x ↦ by_cases (p := ω ∈ S)
-      (fun hω ↦ ⟨0, by simp [Z, if_pos hω, tendsto_const_nhds]⟩)
-      (fun hω ↦ by simp [Z, if_neg hω, hYLL x ω])⟩⟩
-  by_cases hω : ω ∈ S
-  · simpa [Z, if_pos hω] using Function.isRightContinuous_const _
-  · simp_rw [Z, if_neg hω]
-    intro t
-    simp only [hSdef, Set.mem_iUnion, Set.mem_setOf_eq, exists_prop, not_exists,
-      not_and, not_not] at hω
-    exact by_cases (p := t ∈ s) (fun ht ↦ hω _ ht) <| fun ht ↦ hYCont t ht ω
+  sorry
 
 end ProbabilityTheory
