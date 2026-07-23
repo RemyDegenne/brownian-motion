@@ -166,17 +166,6 @@ lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → 
       le_antisymm (not_lt.1 hno) (hidx k.le_succ)
     rw [heq, sub_self, mul_zero]
 
--- /-- **Bridge lemma**: a finite collection of `{0,1}`-valued adapted weights along a monotone
--- sequence of times below `t` is realized by an elementary predictable set whose elementary
--- stochastic integral at time `t` is the weighted sum of increments of `X`. -/
--- lemma exists_elementaryPredictableSet_integral_eq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → ι}
---     (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t) {W : ℕ → Ω → ℝ}
---     (hW01 : ∀ k, k < n → ∀ ω, W k ω = 0 ∨ W k ω = 1)
---     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) :
---     ∃ S : ElementaryPredictableSet 𝓕, ∀ ω,
---       (S.indicator (1 : ℝ) ● X) t ω = ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) :=
---   ⟨elemPredSetOfSeq hidx n hWmeas, integral_elementaryPredSetOfSeq n hidx hidxt hW01 hWmeas⟩
-
 end Bridge
 
 /-! ### Upcrossing and alternation bounds along finite time sets -/
@@ -256,11 +245,14 @@ lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ
     _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by gcongr; exact hC S
 
 variable (X) in
-/-- The event that `X` makes `m` alternations from strictly below `a` to strictly above `b` at
-increasing times inside the finite time set `F`. -/
+/-- The event that `X` makes `m` alternations from at most `a` to at least `b` at
+increasing times inside the finite time set `F`. The levels are non-strict (`X ≤ a`, `b ≤ X`) to
+match the `Set.Iic a` / `Set.Ici b` hitting conditions of `MeasureTheory.upcrossingsBefore`; with
+this convention `altSet` coincides with the event of at least `m` upcrossings (see
+`altSet_eq_upcrossingsBefore`). -/
 def altSet (F : Finset ι) (a b : ℝ) (m : ℕ) : Set Ω :=
   {ω | ∃ c : ℕ → ι, (∀ i, i + 1 < 2 * m → c i < c (i + 1)) ∧ (∀ i < 2 * m, c i ∈ F)
-    ∧ (∀ i < m, X (c (2 * i)) ω < a) ∧ (∀ i < m, b < X (c (2 * i + 1)) ω)}
+    ∧ (∀ i < m, X (c (2 * i)) ω ≤ a) ∧ (∀ i < m, b ≤ X (c (2 * i + 1)) ω)}
 
 lemma altSet_mono {F G : Finset ι} (h : F ⊆ G) : altSet X F a b m ⊆ altSet X G a b m :=
   fun _ ⟨c, hc1, hc2, hca, hcb⟩ ↦ ⟨c, hc1, fun i hi ↦ h (hc2 i hi), hca, hcb⟩
@@ -270,7 +262,8 @@ lemma altSet_mono' {a' b' : ℝ} (hab : a ≤ a') (hba : b' ≤ b) :
   fun _ ⟨c, hc1, hc2, hca, hcb⟩ ↦ ⟨c, hc1, hc2, by grind⟩
 
 /-- On the event `altSet X F a b m`, the process `X` has at least `m` upcrossings along the
-enumeration of `F`. -/
+enumeration of `F`. The upper alternation level of `altSet` is non-strict (`b ≤ X`), which matches
+the `Set.Ici b` upper-crossing condition used by `upcrossingsBefore`. -/
 lemma altSet_subset_upcrossingsBefore (hab : a < b) :
     altSet X F a b m
       ⊆ {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} := by
@@ -279,12 +272,37 @@ lemma altSet_subset_upcrossingsBefore (hab : a < b) :
     fun i hi ↦ exists_finIdx_eq (hc2 i hi)
   let c' : ℕ → ℕ := fun i ↦ if hi : i < 2 * m then (hex i hi).choose else 0
   have hc'spec : ∀ i (hi : i < 2 * m), c' i < #F ∧ finIdx F t (c' i) = c i := by grind
-  refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ (by grind) (by grind) (by grind)
-  intro i hi
-  obtain ⟨hlt1, heq1⟩ := hc'spec i (by lia)
-  obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
-  rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
-  exact hc1 i hi
+  refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ (by grind) ?_ ?_
+  · intro i hi
+    obtain ⟨hlt1, heq1⟩ := hc'spec i (by lia)
+    obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
+    rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
+    exact hc1 i hi
+  · intro i hi
+    obtain ⟨_, heq⟩ := hc'spec (2 * i) (by lia)
+    simp only [heq]
+    exact hca i hi
+  · intro i hi
+    obtain ⟨_, heq⟩ := hc'spec (2 * i + 1) (by lia)
+    simp only [heq]
+    exact hcb i hi
+
+/-- Converse of `altSet_subset_upcrossingsBefore`: at least `m` upcrossings of the monotone
+enumeration of `F` yield `m` alternations of `X` at times in `F`. The alternating times are the
+lower/upper crossing times, transported back to `F` through `finIdx`. -/
+lemma upcrossingsBefore_subset_altSet (hab : a < b) :
+    {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} ⊆ altSet X F a b m := by
+  intro ω hω
+  obtain ⟨c, hmono, hcN, ha, hb⟩ := exists_alternating_of_le_upcrossingsBefore hab hω
+  exact ⟨fun i ↦ finIdx F t (c i), fun i hi ↦ finIdx_lt_of_lt (hmono i hi) (hcN (i + 1) hi),
+    fun i hi ↦ finIdx_mem (hcN i hi), fun i hi ↦ ha i hi, fun i hi ↦ hb i hi⟩
+
+/-- **`altSet X F a b m` is exactly the event of at least `m` upcrossings** of `[a, b]` by the
+monotone enumeration `finIdx F t` of `F`. This is the reason for the non-strict inequalities in the
+definition of `altSet`. -/
+lemma altSet_eq_upcrossingsBefore (hab : a < b) :
+    altSet X F a b m = {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} :=
+  Set.Subset.antisymm (altSet_subset_upcrossingsBefore hab) (upcrossingsBefore_subset_altSet hab)
 
 /-- Quantitative alternation bound: the probability of `m` alternations along any finite
 `F ⊆ Iic t` is at most `K / m` with `K` independent of `F` and `m`. -/
@@ -296,14 +314,9 @@ lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
   let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
   have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
-  have hsub : altSet X F a b m
-      ⊆ {ω | (m : ℝ) ≤ (upcrossingsBefore a b f #F ω : ℝ)} :=
-    (altSet_subset_upcrossingsBefore (t := t) hab).trans (fun ω hω ↦ mod_cast hω)
-  have hmono : μ.real (altSet X F a b m)
-      ≤ μ.real {ω | (m : ℝ) ≤ upcrossingsBefore a b f #F ω} := measureReal_mono hsub
-  refine hmono.trans ?_
-  rw [div_div, le_div_iff₀ (by positivity)]
-  calc μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f #F ω : ℝ)} * ((b - a) * m)
+  rw [altSet_eq_upcrossingsBefore (t := t) hab, div_div, le_div_iff₀ (by positivity)]
+  calc μ.real {ω | m ≤ upcrossingsBefore a b f #F ω} * ((b - a) * m)
+  _ = μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f #F ω : ℝ)} * ((b - a) * m) := by norm_cast
   _ = (b - a) * ((m : ℝ) * μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f #F ω : ℝ)}) := by ring
   _ ≤ (b - a) * ∫ ω, (upcrossingsBefore a b f #F ω : ℝ) ∂μ := by
     gcongr
@@ -311,6 +324,28 @@ lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
       (ae_of_all _ fun ω ↦ by positivity) (hadapt.integrable_upcrossingsBefore hab) m
   _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ :=
     mul_integral_upcrossingsBefore_finIdx_le (μ := μ) hX hXint hC hab hF
+
+/-- The set of outcomes where there are infinitely many alternations of `X` from below `a`
+to above `b` at times in a set `T` below `t`. -/
+def infiniteAlt (T : Set ι) (t : ι) (X : ι → Ω → ℝ) (a b : ℝ) : Set Ω :=
+  ⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b m
+
+lemma infiniteAlt_mono' {T : Set ι} {a' b' : ℝ} (h : a ≤ a') (h' : b' ≤ b) :
+    infiniteAlt T t X a b ⊆ infiniteAlt T t X a' b' := by
+  unfold infiniteAlt
+  gcongr
+  exact altSet_mono' h h'
+
+lemma infiniteAlt_mono'' {T : Set ι} {s t : ι} (h : s ≤ t) :
+    infiniteAlt T s X a b ⊆ infiniteAlt T t X a b := by
+  unfold infiniteAlt
+  gcongr with F
+  refine Set.iUnion_mono' ?_
+  intro hF
+  simp only [Set.subset_inter_iff, Set.mem_setOf_eq] at hF
+  simp only [subset_refl, Set.subset_inter_iff, Set.mem_setOf_eq, exists_prop, and_true]
+  refine ⟨hF.1, hF.2.trans ?_⟩
+  grind
 
 end UpcrossingBound
 
@@ -630,30 +665,6 @@ lemma measure_biUnion_altSet_le [IsFiniteMeasure μ]
         (ENNReal.ofReal_toReal (measure_ne_top μ _)).symm
     _ ≤ _ := ENNReal.ofReal_le_ofReal
         (measureReal_altSet_le (μ := μ) hX hXint hC hab hm hF')
-
-/-- The set of outcomes where there are infinitely many alternations of `X` from below `a`
-to above `b` at times in a set `T` below `t`. -/
-def infiniteAlt (T : Set ι) (t : ι) (X : ι → Ω → ℝ) (a b : ℝ) : Set Ω :=
-  ⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b m
-
-omit [OrderBot ι] in
-lemma infiniteAlt_mono' {a' b' : ℝ} (h : a ≤ a') (h' : b' ≤ b) :
-    infiniteAlt T t X a b ⊆ infiniteAlt T t X a' b' := by
-  unfold infiniteAlt
-  gcongr
-  exact altSet_mono' h h'
-
-omit [OrderBot ι] in
-lemma infiniteAlt_mono'' {s t : ι} (h : s ≤ t) :
-    infiniteAlt T s X a b ⊆ infiniteAlt T t X a b := by
-  unfold infiniteAlt
-  gcongr with F
-  refine Set.iUnion_mono' ?_
-  intro hF
-  simp only [Set.subset_inter_iff, Set.mem_setOf_eq] at hF
-  simp only [subset_refl, Set.subset_inter_iff, Set.mem_setOf_eq, exists_prop, and_true]
-  refine ⟨hF.1, hF.2.trans ?_⟩
-  grind
 
 /-- Almost surely, there is no infinite family of alternations of `X` from below `a` to above `b`
 at times in a countable set `T` below `t`. -/
@@ -1142,8 +1153,8 @@ lemma measurableSet_altSet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕
   have hset : altSet X F (q : ℝ) (r : ℝ) m
       = ⋃ g ∈ Fintype.piFinset (fun _ : Fin (2 * m) ↦ F),
           {ω | (∀ (i : Fin (2 * m)) (h : (i : ℕ) + 1 < 2 * m), g i < g ⟨(i : ℕ) + 1, h⟩)
-            ∧ (∀ i : Fin m, X (g ⟨2 * (i : ℕ), by omega⟩) ω < (q : ℝ))
-            ∧ (∀ i : Fin m, (r : ℝ) < X (g ⟨2 * (i : ℕ) + 1, by omega⟩) ω)} := by
+            ∧ (∀ i : Fin m, X (g ⟨2 * (i : ℕ), by omega⟩) ω ≤ (q : ℝ))
+            ∧ (∀ i : Fin m, (r : ℝ) ≤ X (g ⟨2 * (i : ℕ) + 1, by omega⟩) ω)} := by
     ext ω
     simp only [altSet, Set.mem_setOf_eq, Set.mem_iUnion, Fintype.mem_piFinset, exists_prop]
     constructor
@@ -1164,13 +1175,13 @@ lemma measurableSet_altSet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕
   refine Finset.measurableSet_biUnion _ fun g hg ↦ ?_
   have hgF : ∀ i, g i ∈ F := Fintype.mem_piFinset.mp hg
   -- Split off the (measure-space independent) monotonicity condition, then recognise the event
-  -- as a finite intersection of measurable half-lines `{X s < q}` and `{r < X s}`, `s ∈ F`.
+  -- as a finite intersection of measurable half-lines `{X s ≤ q}` and `{r ≤ X s}`, `s ∈ F`.
   rw [Set.setOf_and]
   refine (MeasurableSet.const _).inter ?_
   rw [Set.setOf_and, Set.setOf_forall, Set.setOf_forall]
   refine MeasurableSet.inter (MeasurableSet.iInter fun i ↦ ?_) (MeasurableSet.iInter fun i ↦ ?_)
-  · exact hXmeas _ (hgF ⟨2 * (i : ℕ), by lia⟩) measurableSet_Iio
-  · exact hXmeas _ (hgF ⟨2 * (i : ℕ) + 1, by lia⟩) measurableSet_Ioi
+  · exact hXmeas _ (hgF ⟨2 * (i : ℕ), by lia⟩) measurableSet_Iic
+  · exact hXmeas _ (hgF ⟨2 * (i : ℕ) + 1, by lia⟩) measurableSet_Ici
 
 lemma measurableSet_infiniteAlt [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (d : ι) {q r : ℚ} (hqr : q < r) :
