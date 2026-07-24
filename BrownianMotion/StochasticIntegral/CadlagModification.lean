@@ -112,10 +112,10 @@ lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → 
     (hWmeas : ∀ k, k < n → Measurable[𝓕 (idx k)] (W k)) (ω : Ω) :
     ((elemPredSetOfSeq hidx n hWmeas).indicator (1 : ℝ) ● X) t ω =
       ∑ k ∈ range n, W k ω * (X (idx (k + 1)) ω - X (idx k) ω) := by
-  set K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)} with hK
+  let K : Finset ℕ := {k ∈ range n | idx k < idx (k + 1)}
   have hKmem : ∀ {k}, k ∈ K → k < n ∧ idx k < idx (k + 1) := by
     intro k hk
-    simpa [hK] using hk
+    simpa [K] using hk
   have hinj : Set.InjOn (fun k ↦ (idx k, idx (k + 1))) K := by
     intro k hk l hl hkl
     simp only [Prod.mk.injEq] at hkl
@@ -149,7 +149,7 @@ lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → 
     · simp [h0]
     · simp [h1, hst]
   · -- terms outside K vanish
-    have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [hK, mem_range.1 hk, h])
+    have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [K, mem_range.1 hk, h])
     have heq : idx (k + 1) = idx k :=
       le_antisymm (not_lt.1 hno) (hidx k.le_succ)
     rw [heq, sub_self, mul_zero]
@@ -162,23 +162,6 @@ section UpcrossingBound
 
 variable {a b : ℝ} {t : ι} {F : Finset ι} {m : ℕ}
 
-lemma integrable_integral_elementaryPredictableSet [OrderBot ι] [IsFiniteMeasure μ]
-    (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (c : ℝ) :
-    Integrable (((S.indicator c) ● X) t) μ := by
-  refine integrable_finsetSum _ fun p hp ↦ Integrable.bdd_mul
-    (((hXint _).sub (hXint _))) ?_ (c := ‖c‖) (ae_of_all _ fun ω ↦ ?_)
-  · simp only [ElementaryPredictableSet.value_indicator]
-    split_ifs with hp
-    swap; · fun_prop
-    refine StronglyMeasurable.aestronglyMeasurable ?_
-    refine StronglyMeasurable.indicator (by fun_prop) ?_
-    have hmeas : MeasurableSet[𝓕 p.1] (S.set p) := S.measurableSet_set p hp
-    exact 𝓕.le _ _ hmeas
-  · simp only [ElementaryPredictableSet.value_indicator, Real.norm_eq_abs]
-    split_ifs with hp
-    · by_cases hω : ω ∈ S.set p <;> simp [hω]
-    · simp
-
 noncomputable
 def upcrossingWithinPredSet [OrderBot ι] (a b : ℝ) (F : Finset ι) (hF : ∀ s ∈ F, s ≤ t)
     (hX : StronglyAdapted 𝓕 X) :
@@ -189,48 +172,53 @@ def upcrossingWithinPredSet [OrderBot ι] (a b : ℝ) (F : Finset ι) (hF : ∀ 
   elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F
     fun k _ ↦ (hadapt.upcrossingStrat k).measurable
 
-/-- Expectation bound on the number of upcrossings along a finite set of times `F ⊆ Iic t`,
-from the boundedness of elementary stochastic integrals at time `t`. -/
-lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator 1 ● X) t] ≤ C)
-    (hab : a < b) (hF : ∀ s ∈ F, s ≤ t) :
-    (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω : ℝ) ∂μ
-      ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by
-  set f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω with hf
+lemma mul_upcrossingsBefore_le_integral_add_posPart [OrderBot ι]
+    (hX : StronglyAdapted 𝓕 X) (hab : a < b) (hF : ∀ s ∈ F, s ≤ t) (ω : Ω) :
+    letI f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
+    haveI hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
+      fun j ↦ hX (finIdx F t j)
+    letI S := elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F fun k _ ↦
+      (hadapt.upcrossingStrat k).measurable
+    (b - a) * (upcrossingsBefore a b f #F ω : ℝ)
+      ≤ (S.indicator (1 : ℝ) ● X) t ω + (a - X t ω)⁺ := by
+  let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
   have hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
   let S := elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F fun k hk ↦
     (hadapt.upcrossingStrat k).measurable
-  have hS := integral_elemPredSetOfSeq (𝓕 := 𝓕) (X := X) #F (finIdx_monotone hF) (finIdx_le hF)
+  rw [integral_elemPredSetOfSeq (𝓕 := 𝓕) (X := X) #F (finIdx_monotone hF) (finIdx_le hF)
     (W := upcrossingStrat a b f #F) (fun k _ ω ↦ upcrossingStrat_eq_zero_or_one a b f #F k ω)
-    (fun k _ ↦ (hadapt.upcrossingStrat k).measurable)
-  have hpath ω : (b - a) * (upcrossingsBefore a b f #F ω : ℝ)
-      ≤ (S.indicator (1 : ℝ) ● X) t ω + (a - X t ω)⁺ := by
-    have h1 := mul_upcrossingsBefore_le_sum_add_posPart (f := f) (N := #F) (ω := ω) hab
-    have hfn : f #F ω = X t ω := by
-      change X (finIdx F t #F) ω = X t ω
-      rw [finIdx_eq_of_card_le le_rfl]
-    rw [hfn] at h1
-    have h2 : (S.indicator (1 : ℝ) ● X) t ω
-        = ∑ k ∈ range #F, upcrossingStrat a b f #F k ω * (f (k + 1) - f k) ω := hS ω
-    rwa [← h2] at h1
-  -- integrability of the elementary integral at `t`
-  have hWmeas : ∀ k, Measurable (upcrossingStrat a b f #F k) := fun k ↦
-    ((hadapt.upcrossingStrat k).measurable).mono (𝓕.le _) le_rfl
+    (fun k _ ↦ (hadapt.upcrossingStrat k).measurable) ω]
+  have h1 := mul_upcrossingsBefore_le_sum_add_posPart (f := f) (N := #F) (ω := ω) hab
+  have hfn : f #F ω = X t ω := by unfold f; rw [finIdx_eq_of_card_le le_rfl]
+  rwa [hfn] at h1
+
+/-- Expectation bound on the number of upcrossings along a finite set of times `F ⊆ Iic t`,
+from the boundedness of elementary stochastic integrals at time `t`. -/
+lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ]
+    (hX : Adapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
+    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator 1 ● X) t] ≤ C)
+    (hab : a < b) (hF : ∀ s ∈ F, s ≤ t) :
+    (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω : ℝ) ∂μ
+      ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by
+  let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
+  have hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
+    Adapted.stronglyAdapted <| fun j ↦ hX (finIdx F t j)
+  let S := elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F fun k hk ↦
+    (hadapt.upcrossingStrat k).measurable
   have hintS : Integrable ((S.indicator (1 : ℝ) ● X) t) μ :=
-    integrable_integral_elementaryPredictableSet hXint S 1
+    ElementaryPredictableSet.integrable_integral_real hXint S 1 t
   have hintmax : Integrable (fun ω ↦ (a - X t ω)⁺) μ :=
     (((integrable_const a).sub (hXint t))).pos_part
   have hintcount : Integrable (fun ω ↦ (upcrossingsBefore a b f #F ω : ℝ)) μ :=
     hadapt.integrable_upcrossingsBefore hab
   calc (b - a) * ∫ ω, (upcrossingsBefore a b f #F ω : ℝ) ∂μ
-      = ∫ ω, (b - a) * (upcrossingsBefore a b f #F ω : ℝ) ∂μ := (integral_const_mul _ _).symm
-    _ ≤ ∫ ω, ((S.indicator (1 : ℝ) ● X) t ω + (a - X t ω)⁺) ∂μ :=
-        integral_mono (hintcount.const_mul _) (hintS.add hintmax) hpath
-    _ = μ[(S.indicator (1 : ℝ) ● X) t] + ∫ ω, (a - X t ω)⁺ ∂μ :=
-        integral_add hintS hintmax
-    _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by gcongr; exact hC S
+  _ = ∫ ω, (b - a) * (upcrossingsBefore a b f #F ω : ℝ) ∂μ := (integral_const_mul _ _).symm
+  _ ≤ ∫ ω, ((S.indicator (1 : ℝ) ● X) t ω + (a - X t ω)⁺) ∂μ :=
+    integral_mono (hintcount.const_mul _) (hintS.add hintmax)
+      (mul_upcrossingsBefore_le_integral_add_posPart hX.stronglyAdapted hab hF)
+  _ = μ[(S.indicator (1 : ℝ) ● X) t] + ∫ ω, (a - X t ω)⁺ ∂μ := integral_add hintS hintmax
+  _ ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by gcongr; exact hC S
 
 variable (X) in
 /-- The event that `X` makes `m` alternations from at most `a` to at least `b` at
@@ -249,59 +237,45 @@ lemma altSet_mono' {a' b' : ℝ} (hab : a ≤ a') (hba : b' ≤ b) :
     altSet X F a b m ⊆ altSet X F a' b' m :=
   fun _ ⟨c, hc1, hc2, hca, hcb⟩ ↦ ⟨c, hc1, hc2, by grind⟩
 
-/-- On the event `altSet X F a b m`, the process `X` has at least `m` upcrossings along the
-enumeration of `F`. The upper alternation level of `altSet` is non-strict (`b ≤ X`), which matches
-the `Set.Ici b` upper-crossing condition used by `upcrossingsBefore`. -/
-lemma altSet_subset_upcrossingsBefore (hab : a < b) :
-    altSet X F a b m
-      ⊆ {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} := by
-  rintro ω ⟨c, hc1, hc2, hca, hcb⟩
-  have hex : ∀ i, i < 2 * m → ∃ k, k < #F ∧ finIdx F t k = c i :=
-    fun i hi ↦ exists_finIdx_eq (hc2 i hi)
-  let c' : ℕ → ℕ := fun i ↦ if hi : i < 2 * m then (hex i hi).choose else 0
-  have hc'spec : ∀ i (hi : i < 2 * m), c' i < #F ∧ finIdx F t (c' i) = c i := by grind
-  refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ (by grind) ?_ ?_
-  · intro i hi
-    obtain ⟨hlt1, heq1⟩ := hc'spec i (by lia)
-    obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
-    rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
-    exact hc1 i hi
-  · intro i hi
-    obtain ⟨_, heq⟩ := hc'spec (2 * i) (by lia)
-    simp only [heq]
-    exact hca i hi
-  · intro i hi
-    obtain ⟨_, heq⟩ := hc'spec (2 * i + 1) (by lia)
-    simp only [heq]
-    exact hcb i hi
-
-/-- Converse of `altSet_subset_upcrossingsBefore`: at least `m` upcrossings of the monotone
-enumeration of `F` yield `m` alternations of `X` at times in `F`. The alternating times are the
-lower/upper crossing times, transported back to `F` through `finIdx`. -/
-lemma upcrossingsBefore_subset_altSet (hab : a < b) :
-    {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} ⊆ altSet X F a b m := by
-  intro ω hω
-  obtain ⟨c, hmono, hcN, ha, hb⟩ := exists_alternating_of_le_upcrossingsBefore hab hω
-  exact ⟨fun i ↦ finIdx F t (c i), fun i hi ↦ finIdx_lt_of_lt (hmono i hi) (hcN (i + 1) hi),
-    fun i hi ↦ finIdx_mem (hcN i hi), fun i hi ↦ ha i hi, fun i hi ↦ hb i hi⟩
-
-/-- **`altSet X F a b m` is exactly the event of at least `m` upcrossings** of `[a, b]` by the
-monotone enumeration `finIdx F t` of `F`. This is the reason for the non-strict inequalities in the
-definition of `altSet`. -/
+/-- `altSet X F a b m` is exactly the event of at least `m` upcrossings of `[a, b]` by the
+monotone enumeration `finIdx F t` of `F`. -/
 lemma altSet_eq_upcrossingsBefore (hab : a < b) :
-    altSet X F a b m = {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} :=
-  Set.Subset.antisymm (altSet_subset_upcrossingsBefore hab) (upcrossingsBefore_subset_altSet hab)
+    altSet X F a b m = {ω | m ≤ upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω} := by
+  refine subset_antisymm ?_ ?_
+  · rintro ω ⟨c, hc1, hc2, hca, hcb⟩
+    have hex : ∀ i, i < 2 * m → ∃ k, k < #F ∧ finIdx F t k = c i :=
+      fun i hi ↦ exists_finIdx_eq (hc2 i hi)
+    let c' : ℕ → ℕ := fun i ↦ if hi : i < 2 * m then (hex i hi).choose else 0
+    have hc'spec : ∀ i (hi : i < 2 * m), c' i < #F ∧ finIdx F t (c' i) = c i := by grind
+    refine le_upcrossingsBefore_of_alternating hab (c := c') ?_ (by grind) ?_ ?_
+    · intro i hi
+      obtain ⟨hlt1, heq1⟩ := hc'spec i (by lia)
+      obtain ⟨hlt2, heq2⟩ := hc'spec (i + 1) hi
+      rw [← finIdx_lt_finIdx_iff (t := t) hlt1 hlt2, heq1, heq2]
+      exact hc1 i hi
+    · intro i hi
+      obtain ⟨_, heq⟩ := hc'spec (2 * i) (by lia)
+      simp only [heq]
+      exact hca i hi
+    · intro i hi
+      obtain ⟨_, heq⟩ := hc'spec (2 * i + 1) (by lia)
+      simp only [heq]
+      exact hcb i hi
+  · intro ω hω
+    obtain ⟨c, hmono, hcN, ha, hb⟩ := exists_alternating_of_le_upcrossingsBefore hab hω
+    exact ⟨fun i ↦ finIdx F t (c i), fun i hi ↦ finIdx_lt_of_lt (hmono i hi) (hcN (i + 1) hi),
+      fun i hi ↦ finIdx_mem (hcN i hi), fun i hi ↦ ha i hi, fun i hi ↦ hb i hi⟩
 
 /-- Quantitative alternation bound: the probability of `m` alternations along any finite
 `F ⊆ Iic t` is at most `K / m` with `K` independent of `F` and `m`. -/
 lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
+    (hX : Adapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hab : a < b) (hm : 0 < m) (hF : ∀ s ∈ F, s ≤ t) :
     μ.real (altSet X F a b m) ≤ (C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / m := by
   let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
   have hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
-    fun j ↦ hX (finIdx F t j)
+    Adapted.stronglyAdapted <| fun j ↦ hX (finIdx F t j)
   rw [altSet_eq_upcrossingsBefore (t := t) hab, div_div, le_div_iff₀ (by positivity)]
   calc μ.real {ω | m ≤ upcrossingsBefore a b f #F ω} * ((b - a) * m)
   _ = μ.real {ω | (m : ℝ) ≤ (upcrossingsBefore a b f #F ω : ℝ)} * ((b - a) * m) := by norm_cast
@@ -482,12 +456,11 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
   have htel : ∀ ω, ftau ω = f 0 ω
       + ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω) := by
     intro ω
-    have := sum_indicator_mul_sub_eq_stopped f lam n ω
     rw [hftau, htau]
     have hterm k : W k ω * (g (idx (k + 1)) ω - g (idx k) ω)
         = ({ω' | ∀ j ≤ k, f j ω' ≤ lam}.indicator 1 ω : ℝ) * (f (k + 1) ω - f k ω) := rfl
     simp_rw [hterm]
-    rw [this]
+    rw [sum_indicator_mul_sub_eq_stopped f lam n ω]
     ring
   have hint_sum : Integrable
       (fun ω ↦ ∑ k ∈ range n, W k ω * (g (idx (k + 1)) ω - g (idx k) ω)) μ :=
@@ -632,14 +605,44 @@ lemma countable_setOf_finset_coe_subset (hT : T.Countable) :
 
 variable [OrderBot ι]
 
+-- todo: to be superceded by a more general `IsQuasimartingale`
+structure IsRealQuasimartingale (𝓕 : Filtration ι mΩ) (X : ι → Ω → ℝ) (μ : Measure Ω) : Prop where
+  adapted : Adapted 𝓕 X
+  integrable : ∀ t, Integrable (X t) μ
+  boundedVariation :
+    ∀ t, ∃ C, ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C
+
+noncomputable
+def variationBound (X : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (μ : Measure Ω) (t : ι) : ℝ :=
+  sInf {C : ℝ | ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C}
+
+lemma IsRealQuasimartingale.integral_indicator_le_variationBound (hX : IsRealQuasimartingale 𝓕 X μ)
+    (t : ι) (S : ElementaryPredictableSet 𝓕) :
+    μ[(S.indicator (1 : ℝ) ● X) t] ≤ variationBound X 𝓕 μ t := by
+  unfold variationBound
+  rw [le_csInf_iff]
+  · exact fun C hC ↦ hC S
+  · refine ⟨0, ?_⟩
+    simp only [mem_lowerBounds, Set.mem_setOf_eq]
+    intro C hC
+    specialize hC (.empty 𝓕)
+    simpa using hC
+  · obtain ⟨C, hC⟩ := hX.boundedVariation t
+    exact ⟨C, hC⟩
+
+lemma IsRealQuasimartingale.stronglyAdapted (hX : IsRealQuasimartingale 𝓕 X μ) :
+    StronglyAdapted 𝓕 X := hX.adapted.stronglyAdapted
+
+lemma IsRealQuasimartingale.measurable (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
+    Measurable (X t) := (hX.adapted t).mono (𝓕.le t) le_rfl
+
 /-- The union of the alternation events over all finite subsets of a countable set of times
 below `t` has measure at most `K / ((b - a) * m)`. -/
 lemma measure_biUnion_altSet_le [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
-    (hab : a < b) (hm : 0 < m) (hT : T.Countable) :
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    (hab : a < b) (hm : 0 < m) (hT : T.Countable) (t : ι) :
     μ (⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b m)
-      ≤ ENNReal.ofReal ((C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / m) := by
+      ≤ ENNReal.ofReal ((variationBound X 𝓕 μ t + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / m) := by
   have hcnt : {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}.Countable :=
     countable_setOf_finset_coe_subset (hT.mono Set.inter_subset_left)
   have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ altSet X F a b m)
@@ -649,17 +652,16 @@ lemma measure_biUnion_altSet_le [IsFiniteMeasure μ]
   rw [measure_biUnion_eq_iSup hcnt hdir]
   refine iSup₂_le fun F hF ↦ ?_
   have hF' : ∀ s ∈ F, s ≤ t := fun s hs ↦ (hF hs).2
-  calc μ (altSet X F a b m) = ENNReal.ofReal (μ.real (altSet X F a b m)) :=
-        (ENNReal.ofReal_toReal (measure_ne_top μ _)).symm
-    _ ≤ _ := ENNReal.ofReal_le_ofReal
-        (measureReal_altSet_le (μ := μ) hX hXint hC hab hm hF')
+  calc μ (altSet X F a b m)
+  _ = ENNReal.ofReal (μ.real (altSet X F a b m)) :=
+    (ENNReal.ofReal_toReal (measure_ne_top μ _)).symm
+  _ ≤ _ := ENNReal.ofReal_le_ofReal (measureReal_altSet_le (μ := μ) hX.adapted hX.integrable
+        (hX.integral_indicator_le_variationBound t) hab hm hF')
 
 /-- Almost surely, there is no infinite family of alternations of `X` from below `a` to above `b`
 at times in a countable set `T` below `t`. -/
 lemma measure_infiniteAlt [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
-    (hab : a < b) (hT : T.Countable) :
+    (hX : IsRealQuasimartingale 𝓕 X μ) (hab : a < b) (hT : T.Countable) :
     μ (infiniteAlt T t X a b) = 0 := by
   suffices μ (⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b (m + 1)) = 0 by
     refine measure_mono_null ?_ this
@@ -670,16 +672,17 @@ lemma measure_infiniteAlt [IsFiniteMeasure μ]
   refine le_antisymm ?_ zero_le
   have hbound : ∀ m : ℕ,
       μ (⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b (m + 1))
-        ≤ ENNReal.ofReal ((C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / (m + 1)) := by
+        ≤ ENNReal.ofReal ((variationBound X 𝓕 μ t + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / (m + 1)) := by
     intro m
     refine (measure_mono (Set.iInter_subset _ m)).trans ?_
-    have := measure_biUnion_altSet_le (μ := μ) hX hXint hC hab (Nat.succ_pos m) hT
+    have := measure_biUnion_altSet_le (μ := μ) hX hab (Nat.succ_pos m) hT t
     simpa using this
   have hlim : Tendsto (fun m : ℕ ↦
-      ENNReal.ofReal ((C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / (m + 1))) atTop (𝓝 0) := by
+      ENNReal.ofReal ((variationBound X 𝓕 μ t + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / (m + 1)))
+        atTop (𝓝 0) := by
     rw [← ENNReal.ofReal_zero]
     refine (ENNReal.continuous_ofReal.tendsto 0).comp ?_
-    have h1 : Tendsto (fun n : ℕ ↦ ((C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a)) / n)
+    have h1 : Tendsto (fun n : ℕ ↦ ((variationBound X 𝓕 μ t + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a)) / n)
         atTop (𝓝 0) := tendsto_const_div_atTop_nhds_zero_nat _
     have h2 := h1.comp (tendsto_add_atTop_nat 1)
     refine h2.congr fun m ↦ ?_
@@ -687,9 +690,7 @@ lemma measure_infiniteAlt [IsFiniteMeasure μ]
   exact ge_of_tendsto' hlim hbound
 
 lemma measure_all_infiniteAlt'' [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) (t : ι) {C : ℝ}
-    (hXbdd : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
-    (T : Set ι) (hT : T.Countable) :
+    (hX : IsRealQuasimartingale 𝓕 X μ) (T : Set ι) (hT : T.Countable) :
     ∀ᵐ ω ∂μ, ∀ q r, q < r → ω ∉ infiniteAlt T t X q r := by
   suffices ∀ᵐ ω ∂μ, ∀ (q r : ℚ), q < r → ω ∉ infiniteAlt T t X q r by
     filter_upwards [this] with ω hω q r hqr
@@ -700,28 +701,14 @@ lemma measure_all_infiniteAlt'' [IsFiniteMeasure μ]
     exact fun h_mem ↦ hω q' r' hq'r' (infiniteAlt_mono' hqq'.le hr'r.le h_mem)
   simp_rw [ae_all_iff]
   intro q r hqr
-  exact compl_mem_ae_iff.2 (measure_infiniteAlt hX hXint hXbdd (mod_cast hqr) hT)
-
--- todo: to be superceded by a more general `IsQuasimartingale`
-structure IsRealQuasimartingale (𝓕 : Filtration ι mΩ) (X : ι → Ω → ℝ) (μ : Measure Ω) : Prop where
-  stronglyAdapted : StronglyAdapted 𝓕 X
-  integrable : ∀ t, Integrable (X t) μ
-  boundedVariation :
-    ∀ t, ∃ C, ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C
-
-lemma IsRealQuasimartingale.measurable (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
-    Measurable[𝓕 t] (X t) := (hX.stronglyAdapted t).measurable
-
-lemma IsRealQuasimartingale.measurable' (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
-    Measurable (X t) := (hX.measurable t).mono (𝓕.le t) le_rfl
+  exact compl_mem_ae_iff.2 (measure_infiniteAlt hX (mod_cast hqr) hT)
 
 lemma measure_all_infiniteAlt [IsFiniteMeasure μ]
     (hX : IsRealQuasimartingale 𝓕 X μ)
     {T T' : Set ι} (hT : T.Countable) (hT' : T'.Countable) :
     ∀ᵐ ω ∂μ, ∀ d ∈ T', ∀ q r, q < r → ω ∉ infiniteAlt T d X q r := by
   rw [ae_ball_iff hT']
-  exact fun t _ ↦ measure_all_infiniteAlt'' hX.stronglyAdapted hX.integrable t
-    (hX.boundedVariation t).choose_spec T hT
+  exact fun t _ ↦ measure_all_infiniteAlt'' hX T hT
 
 lemma measure_all_infiniteAlt' [IsFiniteMeasure μ] [(atTop : Filter ι).IsCountablyGenerated]
     (hX : IsRealQuasimartingale 𝓕 X μ)
@@ -734,92 +721,70 @@ lemma measure_all_infiniteAlt' [IsFiniteMeasure μ] [(atTop : Filter ι).IsCount
     specialize hω n q r hqr
     exact fun h_mem ↦ hω (infiniteAlt_mono'' hn h_mem)
   rw [ae_all_iff]
-  exact fun n ↦ measure_all_infiniteAlt'' hX.stronglyAdapted hX.integrable (u n)
-    (hX.boundedVariation (u n)).choose_spec T hT
+  exact fun n ↦ measure_all_infiniteAlt'' hX T hT
 
-/-- The union of the maximal events over all finite subsets of a countable set of times below
-`t` has measure at most `K / lam`. -/
-lemma measure_biUnion_exists_abs_le [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator 1 ● X) t] ≤ C)
-    (hlam : 0 < lam) (hT : T.Countable) :
-    μ (⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, {ω | ∃ s ∈ F, lam < |X s ω|})
-      ≤ ENNReal.ofReal (2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
-          + ∫ ω, |X t ω| ∂μ) / lam) := by
+lemma measure_exists_abs_gt_le [IsFiniteMeasure μ] {ε : ℝ}
+    (hX : IsRealQuasimartingale 𝓕 X μ) (hε : 0 < ε) (hT : T.Countable) :
+    μ ({ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|})
+      ≤ ENNReal.ofReal (2 * (variationBound X 𝓕 μ t + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
+          + ∫ ω, |X t ω| ∂μ) / ε) := by
+  have : {ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|} =
+      ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, {ω | ∃ s ∈ F, ε < |X s ω|} := by
+    ext ω
+    simp only [Set.mem_setOf_eq, Set.subset_inter_iff, Set.mem_iUnion, exists_prop]
+    refine ⟨fun ⟨s, hsT, hs⟩ ↦ ?_, fun ⟨F, hF, ⟨s, hsT, hs⟩⟩ ↦ ?_⟩
+    · exact ⟨{s}, by grind, by grind⟩
+    · exact ⟨s, by grind, by grind⟩
+  rw [this]
   have hcnt : {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}.Countable :=
     countable_setOf_finset_coe_subset (hT.mono Set.inter_subset_left)
-  have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ {ω | ∃ s ∈ F, lam < |X s ω|})
+  have hdir : DirectedOn (Function.onFun (· ⊆ ·) fun F : Finset ι ↦ {ω | ∃ s ∈ F, ε < |X s ω|})
       {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t} :=
     fun F₁ h₁ F₂ h₂ ↦ ⟨F₁ ∪ F₂, by grind, by grind, by grind⟩
   rw [measure_biUnion_eq_iSup hcnt hdir]
   refine iSup₂_le fun F hF ↦ ?_
   have hF' : ∀ s ∈ F, s ≤ t := fun s hs ↦ (hF hs).2
-  calc μ {ω | ∃ s ∈ F, lam < |X s ω|}
-      = ENNReal.ofReal (μ.real {ω | ∃ s ∈ F, lam < |X s ω|}) :=
+  calc μ {ω | ∃ s ∈ F, ε < |X s ω|}
+      = ENNReal.ofReal (μ.real {ω | ∃ s ∈ F, ε < |X s ω|}) :=
         (ENNReal.ofReal_toReal (measure_ne_top μ _)).symm
     _ ≤ _ := ENNReal.ofReal_le_ofReal
-        (measureReal_exists_abs_lt_le (μ := μ) hX hXint hC hlam hF')
+        (measureReal_exists_abs_lt_le (μ := μ) hX.stronglyAdapted hX.integrable
+          (hX.integral_indicator_le_variationBound t) hε hF')
 
-/-- Almost surely, `X` is bounded on any countable set of times below `t`. -/
-lemma measure_iInter_biUnion_exists_abs [IsFiniteMeasure μ]
-    (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
-    (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator 1 ● X) t] ≤ C)
-    (hT : T.Countable) :
-    μ (⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t},
-      {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|}) = 0 := by
+lemma ae_exists_bound'' [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+    (hT : T.Countable) (t : ι) :
+    ∀ᵐ ω ∂μ, ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic t, |X s' ω| ≤ M + 1 := by
+  rw [ae_iff]
+  push Not
+  have : {a | ∀ (M : ℕ), ∃ s' ∈ T ∩ Set.Iic t, ↑M + 1 < |X s' a|}
+      = ⋂ M : ℕ, {a | ∃ s' ∈ T ∩ Set.Iic t, (M + 1 : ℝ) < |X s' a|} := by ext; simp
+  rw [this]
   refine le_antisymm ?_ zero_le
   have hbound (M : ℕ) :
-      μ (⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t},
-          {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|})
-        ≤ ENNReal.ofReal (2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
+      μ (⋂ M : ℕ, {ω | ∃ s ∈ T ∩ Set.Iic t, (M + 1 : ℝ) < |X s ω|})
+        ≤ ENNReal.ofReal (2 * (variationBound X 𝓕 μ t + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
             + ∫ ω, |X t ω| ∂μ) / (M + 1)) := by
     refine (measure_mono (Set.iInter_subset _ M)).trans ?_
-    exact measure_biUnion_exists_abs_le (μ := μ) hX hXint hC (by positivity) hT
+    exact measure_exists_abs_gt_le hX (by positivity) hT
   have hlim : Tendsto (fun M : ℕ ↦
-      ENNReal.ofReal (2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
+      ENNReal.ofReal (2 * (variationBound X 𝓕 μ t + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
         + ∫ ω, |X t ω| ∂μ) / (M + 1))) atTop (𝓝 0) := by
     rw [← ENNReal.ofReal_zero]
     refine (ENNReal.continuous_ofReal.tendsto 0).comp ?_
-    have h1 : Tendsto (fun n : ℕ ↦ (2 * (C + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
-        + ∫ ω, |X t ω| ∂μ)) / n) atTop (𝓝 0) := tendsto_const_div_atTop_nhds_zero_nat _
+    have h1 : Tendsto (fun n : ℕ ↦ (2 * (variationBound X 𝓕 μ t +
+        ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ + ∫ ω, |X t ω| ∂μ)) / n) atTop (𝓝 0) :=
+      tendsto_const_div_atTop_nhds_zero_nat _
     have h2 := h1.comp (tendsto_add_atTop_nat 1)
     refine h2.congr fun M ↦ ?_
     simp
   exact ge_of_tendsto' hlim hbound
-
-lemma ae_exists_bound'' [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
-    (hT : T.Countable) (d : ι) :
-    ∀ᵐ ω ∂μ, ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := by
-  choose C hC using hX.boundedVariation
-  have h2 : ∀ᵐ ω ∂μ, ω ∉ ⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic d},
-      {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|} :=
-    compl_mem_ae_iff.2
-      (measure_iInter_biUnion_exists_abs hX.stronglyAdapted hX.integrable (hC d) hT)
-  filter_upwards [h2] with ω hω2
-  simp only [Set.subset_inter_iff, Set.mem_setOf_eq, Set.mem_iInter, Set.mem_iUnion, exists_prop,
-    not_forall, not_exists, not_and, not_lt, and_imp] at hω2
-  obtain ⟨M, hM⟩ := hω2
-  refine ⟨M, fun s' hs' ↦ ?_⟩
-  specialize hM {s'} (by grind) (by grind)
-  grind
 
 lemma ae_exists_bound [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
     (hT : T.Countable) {T' : Set ι} (hT' : T'.Countable) :
     ∀ᵐ ω ∂μ, ∀ d ∈ T', ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := by
   rw [ae_ball_iff hT']
   intro d hdT
-  choose C hC using hX.boundedVariation
-  have h2 : ∀ᵐ ω ∂μ, ω ∉ ⋂ M : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic d},
-      {ω | ∃ s ∈ F, (M + 1 : ℝ) < |X s ω|} :=
-    compl_mem_ae_iff.2
-      (measure_iInter_biUnion_exists_abs hX.stronglyAdapted hX.integrable (hC d) hT)
-  filter_upwards [h2] with ω hω2
-  simp only [Set.subset_inter_iff, Set.mem_setOf_eq, Set.mem_iInter, Set.mem_iUnion, exists_prop,
-    not_forall, not_exists, not_and, not_lt, and_imp] at hω2
-  obtain ⟨M, hM⟩ := hω2
-  refine ⟨M, fun s' hs' ↦ ?_⟩
-  specialize hM {s'} (by grind) (by grind)
-  grind
+  exact ae_exists_bound'' hX hT d
 
 lemma ae_exists_bound' [IsFiniteMeasure μ] [(atTop : Filter ι).IsCountablyGenerated]
     (hX : IsRealQuasimartingale 𝓕 X μ) (hT : T.Countable) :
@@ -1010,8 +975,8 @@ variable [OrderBot ι]
 lemma ae_mem_regularitySet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (d : ι) (hdT : d ∈ T) :
     ∀ᵐ ω ∂μ, ω ∈ regularitySet T X d := by
-  filter_upwards [measure_all_infiniteAlt hX hT hT, ae_exists_bound hX hT hT] with ω hω1 hω2
-  exact ⟨fun q r hqr ↦ hω1 d hdT q r (mod_cast hqr), hω2 d hdT⟩
+  filter_upwards [measure_all_infiniteAlt hX hT hT, ae_exists_bound'' hX hT d] with ω hω1 hω2
+  exact ⟨fun q r hqr ↦ hω1 d hdT q r (mod_cast hqr), hω2⟩
 
 lemma ae_mem_all_regularitySet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) :
@@ -1032,7 +997,7 @@ lemma measurableSet_altSet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕
     (d : ι) (F : Finset ι) (hF : ∀ i ∈ F, i ≤ d) {q r : ℚ} (_hqr : q < r) (m : ℕ) :
     MeasurableSet[𝓕 d] (altSet X F q r m) := by
   have hXmeas : ∀ s ∈ F, Measurable[𝓕 d] (X s) := fun s hs ↦
-    (hX.measurable s).mono (𝓕.mono (hF s hs)) le_rfl
+    (hX.adapted s).mono (𝓕.mono (hF s hs)) le_rfl
   have hset : altSet X F (q : ℝ) (r : ℝ) m
       = ⋃ g ∈ Fintype.piFinset (fun _ : Fin (2 * m) ↦ F),
           {ω | (∀ (i : Fin (2 * m)) (h : (i : ℕ) + 1 < 2 * m), g i < g ⟨(i : ℕ) + 1, h⟩)
@@ -1654,7 +1619,7 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
       filter_upwards [hae₀] with ω hω
       exact (hRspec T x ω (hω x)).comp hv
     obtain ⟨g, hgmeas, hgae⟩ := measurable_limit_of_tendsto_metrizable_ae
-      (f := fun j ↦ X (v j)) (L := atTop) (fun j ↦ (hX.measurable' (v j)).aemeasurable)
+      (f := fun j ↦ X (v j)) (L := atTop) (fun j ↦ (hX.measurable (v j)).aemeasurable)
       (by filter_upwards [haet] with ω hω using ⟨_, hω⟩)
     refine ⟨g, hgmeas, ?_⟩
     filter_upwards [haet, hgae] with ω h1 h2
@@ -1739,7 +1704,7 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
   have htim : TendstoInMeasure μ (fun k ω ↦ Rm (u k) ω - X (u k) ω) atTop
       (fun _ ↦ (0 : ℝ)) := by
     refine tendstoInMeasure_of_tendsto_ae
-      (fun k ↦ ((hRmMeas (u k)).sub (hX.measurable' (u k))).aestronglyMeasurable) ?_
+      (fun k ↦ ((hRmMeas (u k)).sub (hX.measurable (u k))).aestronglyMeasurable) ?_
     filter_upwards [haediff] with ω hω using hω
   have hcontra := htim (ENNReal.ofReal (1 / (n + 1 : ℝ)))
     (by rw [ENNReal.ofReal_pos]; positivity)

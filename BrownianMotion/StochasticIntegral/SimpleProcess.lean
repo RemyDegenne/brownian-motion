@@ -92,6 +92,16 @@ attribute [measurability] measurableSet_setBot measurableSet_set
 instance : CoeOut (ElementaryPredictableSet 𝓕) (Set (ι × Ω)) where
   coe := toSet
 
+@[simps]
+protected def empty (𝓕 : Filtration ι mΩ) : ElementaryPredictableSet 𝓕 where
+  setBot := ∅
+  I := ∅
+  set := default
+  le_of_mem_I := by simp
+  measurableSet_setBot := by simp
+  measurableSet_set := by simp
+  pairwiseDisjoint := by simp
+
 /-- The set `{⊥} × B₀` as an `ElementaryPredictableSet`. -/
 def singletonBotProd {B₀ : Set Ω} (hB₀ : MeasurableSet[𝓕 ⊥] B₀) :
     ElementaryPredictableSet 𝓕 where
@@ -376,6 +386,7 @@ def integral (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (X : ι 
   fun i ω ↦ V.value.sum fun p v =>
     B (v ω) (stoppedProcess X (fun _ ↦ i) p.2 ω - stoppedProcess X (fun _ ↦ i) p.1 ω)
 
+@[inherit_doc]
 scoped notation:25 V " ●[" B "]" X => integral B V X
 
 /-- The **linear elementary stochastic integral** where the simple process takes values in
@@ -384,8 +395,10 @@ abbrev integralEval [SecondCountableTopology (E →L[ℝ] F)] (V : SimpleProcess
     (X : ι → Ω → E) : ι → Ω → F :=
   V ●[(.id ℝ (E →L[ℝ] F))] X
 
+@[inherit_doc]
 scoped notation:25 V " ●L " X => integralEval V X
 
+@[inherit_doc]
 scoped notation:25 V " ● " X => integral (ContinuousLinearMap.mul ℝ ℝ) V X
 
 variable {B : E →L[ℝ] F →L[ℝ] G}
@@ -723,6 +736,10 @@ def indicator (S : ElementaryPredictableSet 𝓕) (e : E) : SimpleProcess E 𝓕
     simp +contextual
 
 @[simp]
+lemma indicator_empty (e : E) : (ElementaryPredictableSet.empty 𝓕).indicator e = 0 := by
+  ext <;> simp [ElementaryPredictableSet.indicator]
+
+@[simp]
 lemma value_indicator (S : ElementaryPredictableSet 𝓕) (c : E) (p : ι × ι) :
     (S.indicator c).value p = if p ∈ S.I then (S.set p).indicator fun _ ↦ c else 0 := by
   unfold ElementaryPredictableSet.indicator SimpleProcess.value
@@ -742,6 +759,26 @@ lemma integral_indicator_apply (S : ElementaryPredictableSet 𝓕)
     rw [if_pos hp, Set.indicator, Set.indicator]
     split_ifs <;> simp
   simp
+
+open scoped SimpleProcess
+
+lemma integrable_integral_real
+    {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ}
+    (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (c : ℝ) (t : ι) :
+    Integrable (((S.indicator c) ● X) t) μ := by
+  refine integrable_finsetSum _ fun p hp ↦ Integrable.bdd_mul
+    (((hXint _).sub (hXint _))) ?_ (c := ‖c‖) (ae_of_all _ fun ω ↦ ?_)
+  · simp only [ElementaryPredictableSet.value_indicator]
+    split_ifs with hp
+    swap; · fun_prop
+    refine StronglyMeasurable.aestronglyMeasurable ?_
+    refine StronglyMeasurable.indicator (by fun_prop) ?_
+    have hmeas : MeasurableSet[𝓕 p.1] (S.set p) := S.measurableSet_set p hp
+    exact 𝓕.le _ _ hmeas
+  · simp only [ElementaryPredictableSet.value_indicator, Real.norm_eq_abs]
+    split_ifs with hp
+    · by_cases hω : ω ∈ S.set p <;> simp [hω]
+    · simp
 
 end ElementaryPredictableSet
 
