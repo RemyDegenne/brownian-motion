@@ -21,9 +21,11 @@ public import BrownianMotion.Auxiliary.Metric
 public import BrownianMotion.Auxiliary.NNReal
 public import BrownianMotion.Auxiliary.Nat
 public import BrownianMotion.Auxiliary.Real
+public import BrownianMotion.Auxiliary.SeparableSpace
 public import BrownianMotion.Auxiliary.SetAlgebra
 public import BrownianMotion.Auxiliary.StandardBorel
 public import BrownianMotion.Auxiliary.StoppedProcess
+public import BrownianMotion.Auxiliary.StronglyMeasurablePath
 public import BrownianMotion.Auxiliary.Topology
 public import BrownianMotion.Auxiliary.Upcrossing
 public import BrownianMotion.Auxiliary.WithLp

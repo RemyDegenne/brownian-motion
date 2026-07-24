@@ -1,5 +1,6 @@
 module
 
+public import BrownianMotion.Auxiliary.Indistinguishable
 public import Mathlib.Probability.Process.Adapted
 public import Mathlib.Data.Setoid.Partition
 public import BrownianMotion.StochasticIntegral.Cadlag
@@ -233,5 +234,92 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
       have : (fun x => U x a) = (X · a.2) ∘ w := by
         ext; simp [U, w, IndexedPartition.piecewise_apply]
       simpa [this] using tends2.comp tends1
+
+section AEStronglyAdapted
+
+variable {Ω ι E : Type*} {mΩ : MeasurableSpace Ω} [Preorder ι] {𝓕 : Filtration ι mΩ}
+  {X Y : ι → Ω → E} {P : Measure Ω} [TopologicalSpace E]
+
+/-- A stochastic process is a.e. strongly adapted if it is undistinguishable from a
+strongly adapted process. -/
+def AEStronglyAdapted (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop :=
+  ∃ Y, StronglyAdapted 𝓕 Y ∧ X ≡ᵐ[P] Y
+
+lemma AEStronglyAdapted.congr (hX : AEStronglyAdapted X 𝓕 P) (h : X ≡ᵐ[P] Y) :
+    AEStronglyAdapted Y 𝓕 P :=
+  ⟨hX.choose, hX.choose_spec.1, h.symm.trans hX.choose_spec.2⟩
+
+lemma StronglyAdapted.aestronglyAdapted (hX : StronglyAdapted 𝓕 X) :
+    AEStronglyAdapted X 𝓕 P :=
+  ⟨X, hX, .rfl⟩
+
+lemma AEStronglyAdapted.const {c : E} : AEStronglyAdapted (fun _ _ ↦ c) 𝓕 P :=
+  (stronglyAdapted_const 𝓕 c).aestronglyAdapted
+
+/-- Given a `hX : AEStronglyAdapted` process `X`, `hX.mk X` is a strongly adapted process
+that is indistinguishable from `X`. -/
+noncomputable def AEStronglyAdapted.mk (X : ι → Ω → E) (hX : AEStronglyAdapted X 𝓕 P) :
+    ι → Ω → E := hX.choose
+
+lemma AEStronglyAdapted.stronglyAdapted_mk (hX : AEStronglyAdapted X 𝓕 P) :
+    StronglyAdapted 𝓕 (hX.mk X) := hX.choose_spec.1
+
+lemma AEStronglyAdapted.indist_mk (hX : AEStronglyAdapted X 𝓕 P) :
+    X ≡ᵐ[P] hX.mk X := hX.choose_spec.2
+
+lemma Continuous.comp_stronglyAdapted {F : Type*} [TopologicalSpace F] {g : E → F}
+    (hg : Continuous g) (hX : StronglyAdapted 𝓕 X) :
+    StronglyAdapted 𝓕 (fun t ↦ g ∘ (X t)) :=
+  fun t ↦ hg.comp_stronglyMeasurable (hX t)
+
+lemma Continuous.comp_aestronglyAdapted {F : Type*} [TopologicalSpace F] {g : E → F}
+    (hg : Continuous g) (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted (fun t ↦ g ∘ (X t)) 𝓕 P :=
+  ⟨fun t ↦ g ∘ (hX.mk X t), hg.comp_stronglyAdapted hX.stronglyAdapted_mk,
+    hX.indist_mk.fun_comp g⟩
+
+lemma StronglyAdapted.prodMk {F : Type*} [TopologicalSpace F] {Y : ι → Ω → F}
+    (hX : StronglyAdapted 𝓕 X) (hY : StronglyAdapted 𝓕 Y) :
+    StronglyAdapted 𝓕 (fun t ω ↦ (X t ω, Y t ω)) :=
+  fun t ↦ (hX t).prodMk (hY t)
+
+lemma AEStronglyAdapted.prodMk {F : Type*} [TopologicalSpace F] {Y : ι → Ω → F}
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (fun t ω ↦ (X t ω, Y t ω)) 𝓕 P :=
+  ⟨fun t ω ↦ (hX.mk X t ω, hY.mk Y t ω), hX.stronglyAdapted_mk.prodMk hY.stronglyAdapted_mk,
+    hX.indist_mk.prodMk hY.indist_mk⟩
+
+@[to_additive]
+lemma StronglyAdapted.const_smul {R : Type*} [SMul R E] [ContinuousConstSMul R E] {c : R}
+    (hX : StronglyAdapted 𝓕 X) :
+    StronglyAdapted 𝓕 (c • X) :=
+  fun t ↦ (hX t).const_smul c
+
+@[to_additive]
+lemma AEStronglyAdapted.const_smul {R : Type*} [SMul R E] [ContinuousConstSMul R E] {c : R}
+    (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted (c • X) 𝓕 P :=
+  ⟨c • hX.mk X, hX.stronglyAdapted_mk.const_smul, hX.indist_mk.const_smul⟩
+
+@[to_additive]
+lemma AEStronglyAdapted.mul [Mul E] [ContinuousMul E]
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (X * Y) 𝓕 P :=
+  ⟨(hX.mk X) * (hY.mk Y), hX.stronglyAdapted_mk.mul hY.stronglyAdapted_mk,
+    hX.indist_mk.mul hY.indist_mk⟩
+
+@[to_additive]
+lemma AEStronglyAdapted.inv [Group E] [ContinuousInv E] (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted X⁻¹ 𝓕 P :=
+  ⟨(hX.mk X)⁻¹, hX.stronglyAdapted_mk.inv, hX.indist_mk.inv⟩
+
+@[to_additive sub]
+lemma AEStronglyAdapted.div' [Div E] [ContinuousDiv E]
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (X / Y) 𝓕 P :=
+  ⟨(hX.mk X) / (hY.mk Y), hX.stronglyAdapted_mk.div' hY.stronglyAdapted_mk,
+    hX.indist_mk.div hY.indist_mk⟩
+
+end AEStronglyAdapted
 
 end MeasureTheory
