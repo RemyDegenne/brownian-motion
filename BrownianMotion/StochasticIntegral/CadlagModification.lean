@@ -9,8 +9,9 @@ public import BrownianMotion.Auxiliary.LeftLimWithin
 public import BrownianMotion.Auxiliary.Upcrossing
 public import BrownianMotion.Continuity.LimitModification
 public import BrownianMotion.StochasticIntegral.Cadlag
-public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.OptionalSampling
+public import BrownianMotion.StochasticIntegral.Predictable
+public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import Mathlib.Probability.Notation
 
 /-! # Cadlag modification stochastic processes -/
@@ -1401,7 +1402,7 @@ section Accumulation
 omit [OrderBot ι] [NoMaxOrder ι] in
 /-- Any uncountable set in a separable, densely-ordered, first-countable linear order admits a
 strictly decreasing sequence of its elements converging to a point from the right. -/
-lemma exists_seq_strictAnti_tendsto_of_not_countable [TopologicalSpace.SeparableSpace ι]
+lemma exists_seq_gt_tendsto_of_not_countable [TopologicalSpace.SeparableSpace ι]
     {A : Set ι} (hA : ¬ A.Countable) :
     ∃ (p : ι) (u : ℕ → ι), (∀ k, u k ∈ A) ∧ (∀ k, p < u k) ∧
       Tendsto u atTop (𝓝 p) := by
@@ -1424,22 +1425,12 @@ lemma exists_seq_strictAnti_tendsto_of_not_countable [TopologicalSpace.Separable
 
 end Accumulation
 
-noncomputable
-def rightLimWithin (T : Set ι) (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
-  fun t ω ↦ Function.rightLimWithin (X · ω) T t
-
-omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
-lemma tendsto_rightLimWithin {ω : Ω} {T : Set ι} {x : ι}
-    (h : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l)) :
-    Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin T X x ω)) := by
-  unfold rightLimWithin
-  simp_rw [Set.inter_comm T] at h ⊢
-  exact tendsto_rightLimWithin_of_tendsto h
+open Function
 
 omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
 lemma tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight
     {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin T X x ω)) := by
+    Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (rightLimWithin (X · ω) T x)) := by
   have h := right_limit_of_mem_regularitySetRight hmem le_rfl
   rw [Set.inter_comm] at h ⊢
   exact tendsto_rightLimWithin_of_tendsto h
@@ -1447,7 +1438,7 @@ lemma tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight
 omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
 lemma tendsto_nhdsLT_leftLimWithin_of_mem_regularitySetRight
     {T : Set ι} {x : ι} {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 (Function.leftLimWithin (X · ω) T x)) := by
+    Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 (leftLimWithin (X · ω) T x)) := by
   have h := left_limit_of_mem_regularitySetRight hmem le_rfl
   rw [Set.inter_comm] at h ⊢
   exact tendsto_leftLimWithin_of_tendsto h
@@ -1456,7 +1447,7 @@ omit [OrderBot ι] in
 lemma rightContinuous_rightLimWithin_of_mem_regularitySetRight
     {T : Set ι} (hTd : Dense T) {x : ι}
     {ω : Ω} (hmem : ω ∈ regularitySetRight T X x) :
-    ContinuousWithinAt (rightLimWithin T X · ω) (Set.Ici x) x := by
+    ContinuousWithinAt (rightLimWithin (X · ω) T) (Set.Ici x) x := by
   refine continuousWithinAt_rightLimWithin_Ici_of_dense hTd ?_ ?_
   · have h := right_limit_of_mem_regularitySetRight hmem le_rfl
     rw [Set.inter_comm] at h
@@ -1548,12 +1539,11 @@ lemma measurableSet_tendsto_nhdsLT [FirstCountableTopology ι]
 omit [OrderBot ι] [DenselyOrdered ι] [NoMaxOrder ι] in
 lemma measurable_rightLimWithin [FirstCountableTopology ι]
     {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) (t : ι) :
-    Measurable (rightLimWithin T X t) := by
+    Measurable (fun ω ↦ rightLimWithin (X · ω) T t) := by
   rcases (𝓝[T ∩ Set.Ioi t] t).eq_or_neBot with hlbot | hlne
   · -- If the right neighbourhood filter is trivial, the right limit is just `X t`.
-    have heq : rightLimWithin T X t = X t := by
-      funext ω
-      change Function.rightLimWithin (X · ω) T t = X t ω
+    have heq : (fun ω ↦ rightLimWithin (X · ω) T t) = X t := by
+      ext ω
       exact rightLimWithin_eq_of_eq_bot _ (by rw [Set.inter_comm]; exact hlbot)
     rw [heq]
     exact (hX t).mono (𝓕.le _) le_rfl
@@ -1561,10 +1551,8 @@ lemma measurable_rightLimWithin [FirstCountableTopology ι]
     have hAmeas : MeasurableSet {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)} :=
       measurableSet_tendsto_nhdsGT' hT hX t
     -- Off that set, the right limit equals `X t`.
-    have hoffA : ∀ ω, ¬ (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) →
-        rightLimWithin T X t ω = X t ω := by
-      intro ω hω
-      change Function.rightLimWithin (X · ω) T t = X t ω
+    have hoffA ω (hω : ¬ (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l))) :
+        rightLimWithin (X · ω) T t = X t ω := by
       refine rightLimWithin_eq_of_not_tendsto _ ?_
       rw [Set.inter_comm]
       exact hω
@@ -1582,20 +1570,20 @@ lemma measurable_rightLimWithin [FirstCountableTopology ι]
       rw [h, Filter.map_bot] at hmap
       exact hlne.ne' hmap.symm
     -- The measurable candidate.
-    have hf : ∀ s' : ↥S, Measurable (fun ω => X ↑s' ω) :=
-      fun s' => (hX ↑s').mono (𝓕.le _) le_rfl
+    have hf (s' : ↥S) : Measurable (fun ω => X ↑s' ω) :=
+      (hX ↑s').mono (𝓕.le _) le_rfl
     have hgmeas : Measurable (fun ω => limUnder l₀ (fun s' : ↥S => X ↑s' ω)) :=
       @measurable_limUnder ↥S Ω ℝ mΩ _ _ _ _ _ l₀ _ _ _ hf
     -- On the set where the limit exists, the candidate is the right limit.
-    have hgA : ∀ ω, (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) →
-        limUnder l₀ (fun s' : ↥S => X ↑s' ω) = rightLimWithin T X t ω := by
-      intro ω hω
-      have htend := tendsto_rightLimWithin hω
-      rw [← hmap, tendsto_map'_iff] at htend
+    have hgA (ω : Ω) (hω : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) :
+        limUnder l₀ (fun s' : ↥S ↦ X ↑s' ω) = rightLimWithin (X · ω) T t := by
+      rw [Set.inter_comm] at hω
+      have htend := tendsto_rightLimWithin_of_tendsto hω
+      rw [Set.inter_comm, ← hmap, tendsto_map'_iff] at htend
       exact htend.limUnder_eq
     -- Assemble via `piecewise`.
     classical
-    have hpw : rightLimWithin T X t
+    have hpw : (fun ω ↦ rightLimWithin (X · ω) T t)
         = {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)}.piecewise
             (fun ω ↦ limUnder l₀ (fun s' : ↥S => X ↑s' ω)) (X t) := by
       funext ω
@@ -1611,32 +1599,30 @@ lemma measurable_rightLimWithin [FirstCountableTopology ι]
 omit [OrderBot ι] in
 lemma adapted_rightLimWithin [FirstCountableTopology ι] [𝓕.IsRightContinuous]
     {T : Set ι} (hT : T.Countable) (hX : Adapted 𝓕 X) :
-    Adapted 𝓕 (rightLimWithin T X) := by
+    Adapted 𝓕 (fun t ω ↦ rightLimWithin (X · ω) T t) := by
   classical
   intro t
   rcases (𝓝[T ∩ Set.Ioi t] t).eq_or_neBot with hlbot | hlne
   · -- If the right neighbourhood filter is trivial, the right limit is just `X t`.
-    have heq : rightLimWithin T X t = X t := by
-      funext ω
-      change Function.rightLimWithin (X · ω) T t = X t ω
+    have heq : (fun ω ↦ rightLimWithin (X · ω) T t) = X t := by
+      ext ω
       exact rightLimWithin_eq_of_eq_bot _ (by rw [Set.inter_comm]; exact hlbot)
-    rw [heq]
+    simp_rw [heq]
     exact (hX t)
   · -- The set where the right limit exists is `𝓕 t`-measurable.
     have hAmeas : MeasurableSet[𝓕 t] {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)} :=
       measurableSet_tendsto_nhdsGT hT hX t
     -- Off that set, the right limit equals `X t`.
-    have hoffA : ∀ ω, ¬ (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) →
-        rightLimWithin T X t ω = X t ω := by
-      intro ω hω
+    have hoffA ω (hω : ¬ (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l))) :
+        rightLimWithin (X · ω) T t = X t ω := by
       change Function.rightLimWithin (X · ω) T t = X t ω
       refine rightLimWithin_eq_of_not_tendsto _ ?_
       rw [Set.inter_comm]
       exact hω
     -- It suffices to show `𝓕 s`-measurability for every `s > t`.
-    suffices key : ∀ s, t < s → Measurable[𝓕 s] (rightLimWithin T X t) by
+    suffices key : ∀ s, t < s → Measurable[𝓕 s] (fun ω ↦ rightLimWithin (X · ω) T t) by
       intro B hB
-      exact measurableSet_of_forall_gt fun s hts => key s hts hB
+      exact measurableSet_of_forall_gt fun s hts ↦ key s hts hB
     intro s hts
     -- A measurable version of the right limit along the countable index `↥S`, `S ⊆ (t, s)`.
     set S : Set ι := (T ∩ Set.Ioi t) ∩ Set.Iio s with hSdef
@@ -1657,21 +1643,21 @@ lemma adapted_rightLimWithin [FirstCountableTopology ι] [𝓕.IsRightContinuous
       rw [h, Filter.map_bot] at hmap
       exact hlne.ne' hmap.symm
     -- The measurable candidate.
-    have hf : ∀ s' : ↥S, Measurable[𝓕 s] (fun ω => X ↑s' ω) :=
-      fun s' => (hX ↑s').mono (𝓕.mono (hSlt ↑s' s'.2).le) le_rfl
-    have hgmeas : Measurable[𝓕 s] (fun ω => limUnder l₀ (fun s' : ↥S => X ↑s' ω)) :=
+    have hf (s' : ↥S) : Measurable[𝓕 s] (fun ω => X ↑s' ω) :=
+      (hX ↑s').mono (𝓕.mono (hSlt ↑s' s'.2).le) le_rfl
+    have hgmeas : Measurable[𝓕 s] (fun ω ↦ limUnder l₀ (fun s' : ↥S ↦ X ↑s' ω)) :=
       @measurable_limUnder ↥S Ω ℝ (𝓕 s) _ _ _ _ _ l₀ _ _ _ hf
     -- On the set where the limit exists, the candidate is the right limit.
-    have hgA : ∀ ω, (∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) →
-        limUnder l₀ (fun s' : ↥S => X ↑s' ω) = rightLimWithin T X t ω := by
-      intro ω hω
-      have htend := tendsto_rightLimWithin hω
-      rw [← hmap, tendsto_map'_iff] at htend
+    have hgA ω (hω : ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)) :
+        limUnder l₀ (fun s' : ↥S ↦ X ↑s' ω) = rightLimWithin (X · ω) T t := by
+      rw [Set.inter_comm] at hω
+      have htend := tendsto_rightLimWithin_of_tendsto hω
+      rw [Set.inter_comm, ← hmap, tendsto_map'_iff] at htend
       exact htend.limUnder_eq
     -- Assemble via `piecewise`.
-    have hpw : rightLimWithin T X t
+    have hpw : (fun ω ↦ rightLimWithin (X · ω) T t)
         = {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)}.piecewise
-            (fun ω ↦ limUnder l₀ (fun s' : ↥S => X ↑s' ω)) (X t) := by
+            (fun ω ↦ limUnder l₀ (fun s' : ↥S ↦ X ↑s' ω)) (X t) := by
       funext ω
       simp only [Set.piecewise]
       split_ifs with hω
@@ -1682,9 +1668,6 @@ lemma adapted_rightLimWithin [FirstCountableTopology ι] [𝓕.IsRightContinuous
     · exact 𝓕.mono hts.le _ hAmeas
     · exact (hX t).mono (𝓕.mono hts.le) le_rfl
 
-def notContSet (T : Set ι) (X : ι → Ω → ℝ) (μ : Measure Ω) : Set ι :=
-  {t | ¬ rightLimWithin T X t =ᵐ[μ] X t}
-
 omit [OrderBot ι] in
 protected lemma Dense.exists_gt {T : Set ι} (hTd : Dense T) (x : ι) :
     ∃ d ∈ T, x < d := by
@@ -1692,16 +1675,20 @@ protected lemma Dense.exists_gt {T : Set ι} (hTd : Dense T) (x : ι) :
   obtain ⟨d, hdT, hd⟩ := hTd.exists_mem_open isOpen_Ioo (exists_between hy)
   exact ⟨d, hdT, hd.1⟩
 
-lemma countable_notContSet [SecondCountableTopology ι] [IsFiniteMeasure μ]
-    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
-    (hX : IsRealQuasimartingale 𝓕 X μ) :
-    (notContSet T X μ).Countable := by
+/-- The set of points where the right limit along a countable dense set `T` disagrees with `X` is
+countable. -/
+lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    {t | ¬ (fun ω ↦ rightLimWithin (X · ω) T t) =ᵐ[μ] X t}.Countable := by
   -- every dense set is cofinal
   have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := fun T hTd x ↦ hTd.exists_gt x
   -- the right-limit value along `T`, by choice
   let R T' x ω : ℝ := Function.rightLimWithin (X · ω) T' x
   have hRspec T' x ω (h : ∃ l, Tendsto (X · ω) (𝓝[T' ∩ Set.Ioi x] x) (𝓝 l)) :
-      Tendsto (X · ω) (𝓝[T' ∩ Set.Ioi x] x) (𝓝 (R T' x ω)) := tendsto_rightLimWithin h
+      Tendsto (X · ω) (𝓝[T' ∩ Set.Ioi x] x) (𝓝 (R T' x ω)) := by
+    rw [Set.inter_comm] at h ⊢
+    exact tendsto_rightLimWithin_of_tendsto h
   -- Stage 1: a.e. one-sided limits along D₀
   have hae₀ := ae_right_limit hX hTc (hcof T hTd)
   -- Stage 2: measurable versions of `R D₀ x`
@@ -1775,8 +1762,7 @@ lemma countable_notContSet [SecondCountableTopology ι] [IsFiniteMeasure μ]
     by_contra! hcon
     exact hSunc ((Set.countable_iUnion hcon).mono hSsub)
   obtain ⟨n, hSnunc⟩ := hexSn
-  obtain ⟨p, u, huSn, hup, hutend⟩ :=
-    exists_seq_strictAnti_tendsto_of_not_countable hSnunc
+  obtain ⟨p, u, huSn, hup, hutend⟩ := exists_seq_gt_tendsto_of_not_countable hSnunc
   set T' : Set ι := T ∪ (Set.range u ∪ {p}) with hT'
   have hT'c : T'.Countable :=
     hTc.union ((Set.countable_range u).union (Set.countable_singleton p))
@@ -1819,23 +1805,31 @@ lemma countable_notContSet [SecondCountableTopology ι] [IsFiniteMeasure μ]
     exact ENNReal.ofReal_le_ofReal hω.le
   exact lt_irrefl _ ((hmem.trans_le (measure_mono hsub3)).trans hk)
 
+/-! ## Right-continuous modification of a quasimartingale
+
+For a real quasimartingale `X` and a countable dense set `T`, we define a process
+`rightContModif T X` with the following properties:
+* `rightContModif T X` is right-continuous
+* `rightContModif T X` has left limits almost everywhere
+* for all `t` outside a countable set, `rightContModif T X t =ᵐ[μ] X t`
+* if `X` is right-continuous in probability, then `rightContModif T X` is a modification of `X`.
+* if the filtration is right-continuous, then `rightContModif T X` is adapted.
+
+Note that if `X` is not right-continuous in probability, we can still obtain a modification by
+changing the value of `rightContModif T X` on a countable set of times, with the drawback that the
+right-continuity then holds only outside that countable set.
+
+-/
+
+/-- The right-continuous modification of a real quasimartingale along a countable dense set `T`. -/
 noncomputable
 def rightContModif (T : Set ι) (X : ι → Ω → ℝ) (t : ι) (ω : Ω) : ℝ :=
   open Classical in
-  if ω ∈ regularitySetRight T X t then rightLimWithin T X t ω else 0
-
-lemma stronglyAdapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
-    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
-    (hX : IsRealQuasimartingale 𝓕 X μ) :
-    StronglyAdapted 𝓕 (rightContModif T X) := by
-  refine fun i ↦ StronglyMeasurable.ite (measurableSet_regularitySetRight hX hTc hTd i) ?_
-    (by fun_prop)
-  refine Measurable.stronglyMeasurable ?_
-  exact adapted_rightLimWithin hTc hX.stronglyAdapted.adapted i
+  if ω ∈ regularitySetRight T X t then rightLimWithin (X · ω) T t else 0
 
 lemma measurable_rightContModif [SecondCountableTopology ι]
-    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable)
-    (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (t : ι) :
     Measurable (rightContModif T X t) := by
   refine Measurable.ite (measurableSet_regularitySetRight' hX hTc t) ?_ (by fun_prop)
   exact measurable_rightLimWithin hTc hX.stronglyAdapted.adapted t
@@ -1844,13 +1838,13 @@ omit [OrderBot ι] in
 lemma tendsto_rightContModif_rightLimWithin [SecondCountableTopology ι]
     {T : Set ι} (hTd : Dense T) {x : ι} {ω : Ω}
     (hω : ω ∈ regularitySetRight T X x) :
-    Tendsto (rightContModif T X · ω) (𝓝[>] x) (𝓝 (rightLimWithin T X x ω)) := by
+    Tendsto (rightContModif T X · ω) (𝓝[>] x) (𝓝 (rightLimWithin (X · ω) T x)) := by
   have h_mem : ∀ᶠ y in 𝓝[>] x, ω ∈ regularitySetRight T X y :=
     eventually_mem_regularitySetRight_of_mem hω
   classical
-  rw [tendsto_congr' (f₂ := (rightLimWithin T X · ω))]
-  swap; · filter_upwards [h_mem] with s' hs using by grind [notContSet, rightContModif]
-  suffices ContinuousWithinAt (rightLimWithin T X · ω) (Set.Ici x) x by
+  rw [tendsto_congr' (f₂ := rightLimWithin (X · ω) T)]
+  swap; · filter_upwards [h_mem] with s' hs using by grind [rightContModif]
+  suffices ContinuousWithinAt (rightLimWithin (X · ω) T) (Set.Ici x) x by
     rwa [← continuousWithinAt_Ioi_iff_Ici] at this
   exact rightContinuous_rightLimWithin_of_mem_regularitySetRight hTd hω
 
@@ -1859,7 +1853,7 @@ lemma tendsto_rightContModif_leftLimWithin [SecondCountableTopology ι]
     {T : Set ι} (hTd : Dense T) {x : ι} {ω : Ω}
     (hω : ω ∈ regularitySetRight T X x) :
     Tendsto (rightContModif T X · ω) (𝓝[<] x) (𝓝 (Function.leftLimWithin (X · ω) T x)) := by
-  let R := rightLimWithin T X
+  let R := fun t ω ↦ rightLimWithin (X · ω) T t
   have hRspec x ω (hω : ω ∈ regularitySetRight T X x) :
       Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 (R x ω)) :=
     tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hω
@@ -1872,7 +1866,7 @@ lemma tendsto_rightContModif_leftLimWithin [SecondCountableTopology ι]
   have h_mem y (hyx : y ≤ x) : ω ∈ regularitySetRight T X y := regularitySetRight_anti hyx hω
   classical
   rw [tendsto_congr' (f₂ := (R · ω))]
-  swap; · exact eventually_nhdsWithin_of_forall fun y hy ↦ by grind [notContSet, rightContModif]
+  swap; · exact eventually_nhdsWithin_of_forall fun y hy ↦ by grind [rightContModif]
   unfold R
   refine tendsto_rightLim_nhdsLT hTd ?_ (hLspec x ω ?_)
   · refine eventually_nhdsWithin_of_forall fun y hy ↦ ?_
@@ -1894,8 +1888,7 @@ lemma continuousWithinAt_rightContModif [SecondCountableTopology ι]
     {T : Set ι} (hTd : Dense T) (x : ι) (ω : Ω) :
     ContinuousWithinAt (rightContModif T X · ω) (Set.Ioi x) x := by
   by_cases hω : ω ∈ regularitySetRight T X x
-  · have hYx : rightContModif T X x ω =
-        rightLimWithin T X x ω := by
+  · have hYx : rightContModif T X x ω = rightLimWithin (X · ω) T x := by
       simp only [rightContModif, if_pos hω]
     rw [ContinuousWithinAt, hYx]
     exact tendsto_rightContModif_rightLimWithin hTd hω
@@ -1904,37 +1897,42 @@ lemma continuousWithinAt_rightContModif [SecondCountableTopology ι]
     · simp [rightContModif, hω]
 
 omit [DenselyOrdered ι] in
-lemma rightContModif_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
-    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
-    (hX : IsRealQuasimartingale 𝓕 X μ) :
-    ∀ t ∉ notContSet T X μ, rightContModif T X t =ᵐ[μ] X t := by
-  have hGae : ∀ᵐ ω ∂μ, ∀ x, ω ∈ regularitySetRight T X x :=
-    ae_mem_regularitySetRight hX hTc hTd.exists_gt
-  intro t htS
-  have htR : rightLimWithin T X t =ᵐ[μ] X t := not_not.1 htS
-  filter_upwards [hGae, htR] with ω hω hωR
-  simp only [rightContModif, if_pos (hω _)]
-  exact hωR
+lemma rightContModif_ae_eq_of_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) {t : ι}
+    (ht : (fun ω ↦ rightLimWithin (X · ω) T t) =ᵐ[μ] X t) :
+    rightContModif T X t =ᵐ[μ] X t := by
+  filter_upwards [ae_mem_regularitySetRight hX hTc hTd.exists_gt, ht] with ω hω hωR
+  simpa only [rightContModif, if_pos (hω _)]
+
+/-- The set of points where the right modification of a real quasimartingale along
+a countable dense set `T` disagrees with `X` is countable. -/
+lemma countable_not_rightContModif_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    {t | ¬ rightContModif T X t =ᵐ[μ] X t}.Countable := by
+  refine (countable_not_rightLimWithin_ae_eq hX hTc hTd).mono fun t ht ↦ ?_
+  exact fun hcon ↦ ht (rightContModif_ae_eq_of_rightLimWithin_ae_eq hX hTc hTd hcon)
 
 lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsFiniteMeasure μ]
-    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
     (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
     (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
     rightContModif T X t =ᵐ[μ] X t := by
   classical
   -- every dense set is cofinal
   have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := fun T hTd x ↦ hTd.exists_gt x
   let Y := rightContModif T X
-  have hY_meas t : Measurable (Y t) := measurable_rightContModif hTc hX t
+  have hY_meas t : Measurable (Y t) := measurable_rightContModif hX hTc t
   have hYCont x ω: ContinuousWithinAt (Y · ω) (Set.Ioi x) x :=
     continuousWithinAt_rightContModif hTd x ω
   have hX_cont x : ∀ᵐ ω ∂μ, Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (Y x ω)) := by
     have hX_cont' x ω (hω : ω ∈ regularitySetRight T X x) :
-        Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (rightLimWithin T X x ω)) := by
+        Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (rightLimWithin (X · ω) T x)) := by
       rw [nhdsWithin_inf_principal, Set.inter_comm]
       exact tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hω
     have h1 := ae_mem_regularitySetRight hX hTc (hcof T hTd)
-    filter_upwards [h1] with ω hω using by grind [notContSet, rightContModif]
+    filter_upwards [h1] with ω hω using by grind [rightContModif]
   have : (𝓝[Set.Ioi t ∩ T] t).NeBot := by
     rw [Set.inter_comm]; exact nhdsGT_inf_principal_neBot hTd t
   obtain ⟨w, hseq'⟩ := exists_seq_tendsto (𝓝[Set.Ioi t ∩ T] t)
@@ -1963,14 +1961,129 @@ lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsF
   · refine hX_cont.comp ?_
     rwa [nhdsWithin_inf_principal]
 
-/-- If `X` is an adapted integrable stochastic process which is right continuous in probability,
-and is such that the set `{𝔼[(𝟙_A ● X) t] | A elementary predicatable}` is bounded for any t,
-then it admits a cadlag modification. -/
-lemma exists_modification_isCadlag [SecondCountableTopology ι] [IsFiniteMeasure μ]
-    [𝓕.IsRightContinuous]
+lemma adapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
     (hX : IsRealQuasimartingale 𝓕 X μ)
-    (hXRC : ∀ t, TendstoInMeasure μ X (𝓝[>] t) (X t)) :
-    ∃ Y : ι → Ω → ℝ, (∀ t, Y t =ᵐ[μ] X t) ∧ (∀ t, Integrable (Y t) μ) ∧ ∀ ω, IsCadlag (Y · ω) := by
-  sorry
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    Adapted 𝓕 (rightContModif T X) := by
+  refine fun i ↦ Measurable.ite (measurableSet_regularitySetRight hX hTc hTd i) ?_
+    (by fun_prop)
+  exact adapted_rightLimWithin hTc hX.stronglyAdapted.adapted i
+
+lemma stronglyAdapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    StronglyAdapted 𝓕 (rightContModif T X) :=
+  (adapted_rightContModif hX hTc hTd).stronglyAdapted
+
+/-! ## Càdlàg modification of a quasimartingale
+
+For a real quasimartingale `X` and a countable dense set `T`, we define a process `cadlagModif T X`
+with the following properties:
+* `cadlagModif T X` is càdlàg
+* for all `t` outside a countable set, `cadlagModif T X t =ᵐ[μ] X t`
+* if `X` is right-continuous in probability, then `cadlagModif T X` is a modification of `X`.
+* if the filtration is right-continuous and complete, then `cadlagModif T X` is adapted.
+
+TODO: if `t ↦ μ[X t]` is right-continuous (in particular if `X` is a martingale),
+then `cadlagModif T X` is a modification of `X` without the assumption that `X`
+is right-continuous in probability.
+
+-/
+
+/-- The càdlàg modification of a real quasimartingale along a countable dense set `T`. -/
+noncomputable
+def cadlagModif (T : Set ι) (X : ι → Ω → ℝ) (t : ι) (ω : Ω) : ℝ :=
+  open Classical in
+  if ∀ t, ω ∈ regularitySetRight T X t then rightContModif T X t ω else 0
+
+omit [DenselyOrdered ι] in
+lemma cadlagModif_ae_eq_rightContModif [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    ∀ᵐ ω ∂μ, ∀ t, cadlagModif T X t ω = rightContModif T X t ω := by
+  filter_upwards [ae_mem_regularitySetRight hX hTc hTd.exists_gt] with ω hω
+  simp [cadlagModif, if_pos hω]
+
+lemma measurable_cadlagModif [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) (t : ι) :
+    Measurable (cadlagModif T X t) := by
+  refine Measurable.ite ?_ (measurable_rightContModif hX hTc t) (by fun_prop)
+  have : {a | ∀ (t : ι), a ∈ regularitySetRight T X t}
+      = ⋂ t ∈ T, regularitySetRight T X t := by
+    ext a
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    refine ⟨fun h t _ ↦ h t, fun h t ↦ ?_⟩
+    obtain ⟨t', ht'T, htt'⟩ := hTd.exists_gt t
+    specialize h t' ht'T
+    exact regularitySetRight_anti htt'.le h
+  rw [this]
+  exact MeasurableSet.biInter hTc fun t _ ↦ measurableSet_regularitySetRight' hX hTc t
+
+omit [OrderBot ι] in
+lemma continuousWithinAt_cadlagModif [SecondCountableTopology ι]
+    {T : Set ι} (hTd : Dense T) (x : ι) (ω : Ω) :
+    ContinuousWithinAt (cadlagModif T X · ω) (Set.Ioi x) x := by
+  unfold cadlagModif
+  split_ifs with hω
+  · exact continuousWithinAt_rightContModif hTd x ω
+  · fun_prop
+
+omit [OrderBot ι] in
+lemma exists_tendsto_nhdsLT_cadlagModif [SecondCountableTopology ι]
+    {T : Set ι} (hTd : Dense T) (x : ι) (ω : Ω) :
+    ∃ l, Tendsto (cadlagModif T X · ω) (𝓝[<] x) (𝓝 l) := by
+  unfold cadlagModif
+  split_ifs with hω
+  · exact ⟨Function.leftLimWithin (X · ω) T x, tendsto_rightContModif_leftLimWithin hTd (hω x)⟩
+  · exact ⟨0, tendsto_const_nhds⟩
+
+omit [DenselyOrdered ι] in
+lemma cadlagModif_ae_eq_of_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) {t : ι}
+    (ht : (fun ω ↦ rightLimWithin (X · ω) T t) =ᵐ[μ] X t) :
+    cadlagModif T X t =ᵐ[μ] X t := by
+  filter_upwards [ae_mem_regularitySetRight hX hTc hTd.exists_gt, ht] with ω hω hωR
+  simpa only [cadlagModif, if_pos hω, rightContModif, if_pos (hω t)]
+
+/-- The set of points where the cadlag modification of a real quasimartingale along
+a countable dense set `T` disagrees with `X` is countable. -/
+lemma countable_not_cadlagModif_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) :
+    {t | ¬ cadlagModif T X t =ᵐ[μ] X t}.Countable := by
+  refine (countable_not_rightLimWithin_ae_eq hX hTc hTd).mono fun t ht ↦ ?_
+  simp only [Set.mem_setOf_eq] at ht ⊢
+  refine fun h_contra ↦ ht ?_
+  filter_upwards [cadlagModif_ae_eq_rightContModif hX hTc hTd,
+    rightContModif_ae_eq_of_rightLimWithin_ae_eq hX hTc hTd h_contra] with ω hω hωc
+  grind
+
+lemma cadlagModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
+    cadlagModif T X t =ᵐ[μ] X t := by
+  filter_upwards [cadlagModif_ae_eq_rightContModif hX hTc hTd,
+    rightContModif_ae_eq_of_tendstoInMeasure hX hTc hTd t hXRC] with ω hω hωc
+  grind
+
+lemma adapted_cadlagModif [SecondCountableTopology ι] [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (hX : IsRealQuasimartingale 𝓕 X μ) :
+    Adapted 𝓕 (cadlagModif T X) := by
+  refine fun i ↦ Measurable.ite ?_ (adapted_rightContModif hX hTc hTd i)
+    (by fun_prop)
+  rw [← MeasurableSet.compl_iff]
+  refine Filtration.IsComplete.measurableSet_of_null ?_ i (μ := μ)
+  have h := ae_mem_regularitySetRight hX hTc hTd.exists_gt
+  rwa [ae_iff] at h
+
+lemma stronglyAdapted_cadlagModif [SecondCountableTopology ι] [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
+    [IsFiniteMeasure μ] {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (hX : IsRealQuasimartingale 𝓕 X μ) :
+    StronglyAdapted 𝓕 (cadlagModif T X) :=
+  (adapted_cadlagModif hTc hTd hX).stronglyAdapted
 
 end ProbabilityTheory
