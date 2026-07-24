@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2026 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kexing Ying
+Authors: Kexing Ying, Rohit Manokaran, Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.ConvergenceInMeasure
+public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.Auxiliary.LeftLimWithin
 public import BrownianMotion.Auxiliary.Upcrossing
 public import BrownianMotion.Continuity.LimitModification
@@ -27,55 +29,7 @@ variable {ι Ω : Type*} [LinearOrder ι]
   {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω}
   {X : ι → Ω → ℝ} {τ σ : Ω → WithTop ι} {i : ι}
 
-lemma TendstoInMeasure.add {ι E : Type*} [NormedAddCommGroup E] [IsFiniteMeasure μ]
-    {f g : ι → Ω → E} {l₁ l₂ : Ω → E} {u : Filter ι}
-    (hf : TendstoInMeasure μ f u l₁) (hg : TendstoInMeasure μ g u l₂) :
-    TendstoInMeasure μ (fun n ω ↦ f n ω + g n ω) u (fun ω ↦ l₁ ω + l₂ ω) := by
-  unfold TendstoInMeasure at hf hg ⊢
-  intro ε hε
-  have hε' : 0 < ε / 2 := ENNReal.half_pos hε.ne'
-  specialize hf (ε / 2) hε'
-  specialize hg (ε / 2) hε'
-  simp only
-  have h_subset1 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
-      ⊆ {x | ε ≤ edist (f i x) (l₁ x) + edist (g i x) (l₂ x)} := by
-    intro x hx
-    simp only [Set.mem_setOf_eq] at hx ⊢
-    exact hx.trans (edist_add_add_le _ _ _ _)
-  have h_subset2 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
-      ⊆ {x | ε / 2 ≤ edist (f i x) (l₁ x)} ∪ {x | ε / 2 ≤ edist (g i x) (l₂ x)} := by
-    refine (h_subset1 i).trans fun x ↦ ?_
-    simp only [Set.mem_setOf_eq, Set.mem_union]
-    contrapose!
-    intro ⟨h1, h2⟩
-    conv_rhs => rw [← ENNReal.add_halves ε]
-    gcongr
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
-    (h := fun i ↦ μ {x | ε / 2 ≤ edist (f i x) (l₁ x)} + μ {x | ε / 2 ≤ edist (g i x) (l₂ x)})
-    ?_ (by positivity) ?_
-  · rw [← add_zero (0 : ℝ≥0∞)]
-    exact hf.add hg
-  · intro i
-    simp only
-    grw [measure_mono (h_subset2 i)]
-    exact measure_union_le _ _
-
-/-! ### Finite skeletons and the elementary integral bridge
-
-Discrete data along a monotone sequence of times is converted into elementary predictable sets,
-whose elementary stochastic integrals compute weighted sums of increments of `X`. -/
-
 section Bridge
-
-/-- The filtration on `ℕ` obtained by pulling back `𝓕` along a monotone sequence of times. -/
-def pullbackFiltration (𝓕 : Filtration ι mΩ) {idx : ℕ → ι} (hidx : Monotone idx) :
-    Filtration ℕ mΩ where
-  seq k := 𝓕 (idx k)
-  mono' _ _ h := 𝓕.mono (hidx h)
-  le' _ := 𝓕.le _
-
-@[simp] lemma pullbackFiltration_apply {idx : ℕ → ι} (hidx : Monotone idx) (k : ℕ) :
-    pullbackFiltration 𝓕 hidx k = 𝓕 (idx k) := rfl
 
 /-- The monotone enumeration of a finite set of times, extended by the constant `t` at indices
 beyond `#F`. -/
@@ -230,7 +184,7 @@ def upcrossingWithinPredSet [OrderBot ι] (a b : ℝ) (F : Finset ι) (hF : ∀ 
     (hX : StronglyAdapted 𝓕 X) :
     ElementaryPredictableSet 𝓕 :=
   letI f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
-  haveI hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
+  haveI hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
   elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F
     fun k _ ↦ (hadapt.upcrossingStrat k).measurable
@@ -244,7 +198,7 @@ lemma mul_integral_upcrossingsBefore_finIdx_le [OrderBot ι] [IsFiniteMeasure μ
     (b - a) * ∫ ω, (upcrossingsBefore a b (fun k ↦ X (finIdx F t k)) #F ω : ℝ) ∂μ
       ≤ C + ∫ ω, (a - X t ω)⁺ ∂μ := by
   set f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω with hf
-  have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
+  have hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
   let S := elemPredSetOfSeq (W := upcrossingStrat a b f #F) (finIdx_monotone hF) #F fun k hk ↦
     (hadapt.upcrossingStrat k).measurable
@@ -346,7 +300,7 @@ lemma measureReal_altSet_le [OrderBot ι] [IsFiniteMeasure μ]
     (hab : a < b) (hm : 0 < m) (hF : ∀ s ∈ F, s ≤ t) :
     μ.real (altSet X F a b m) ≤ (C + ∫ ω, (a - X t ω)⁺ ∂μ) / (b - a) / m := by
   let f : ℕ → Ω → ℝ := fun k ω ↦ X (finIdx F t k) ω
-  have hadapt : StronglyAdapted (pullbackFiltration 𝓕 (finIdx_monotone hF)) f :=
+  have hadapt : StronglyAdapted (𝓕.indexComap (finIdx_monotone hF)) f :=
     fun j ↦ hX (finIdx F t j)
   rw [altSet_eq_upcrossingsBefore (t := t) hab, div_div, le_div_iff₀ (by positivity)]
   calc μ.real {ω | m ≤ upcrossingsBefore a b f #F ω} * ((b - a) * m)
