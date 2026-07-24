@@ -763,8 +763,7 @@ lemma integral_indicator_apply (S : ElementaryPredictableSet 𝓕)
 
 open scoped SimpleProcess
 
-lemma integrable_integral_real
-    {μ : Measure Ω} [IsFiniteMeasure μ] {X : ι → Ω → ℝ}
+lemma integrable_integral_real {μ : Measure Ω} {X : ι → Ω → ℝ}
     (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (c : ℝ) (t : ι) :
     Integrable (((S.indicator c) ● X) t) μ := by
   refine integrable_finsetSum _ fun p hp ↦ Integrable.bdd_mul

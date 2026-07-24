@@ -111,7 +111,7 @@ lemma ae_mem_regularitySetRight [IsFiniteMeasure μ] (hX : IsRealQuasimartingale
   obtain ⟨s, hs, hsd⟩ := hTcof d
   exact ⟨s, ⟨hs, hsd⟩, hω s hs⟩
 
-lemma measurableSet_altSet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+lemma measurableSet_altSet (hX : IsRealQuasimartingale 𝓕 X μ)
     (d : ι) (F : Finset ι) (hF : ∀ i ∈ F, i ≤ d) {q r : ℚ} (_hqr : q < r) (m : ℕ) :
     MeasurableSet[𝓕 d] (altSet X F q r m) := by
   have hXmeas : ∀ s ∈ F, Measurable[𝓕 d] (X s) := fun s hs ↦
@@ -149,7 +149,7 @@ lemma measurableSet_altSet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕
   · exact hXmeas _ (hgF ⟨2 * (i : ℕ), by lia⟩) measurableSet_Iic
   · exact hXmeas _ (hgF ⟨2 * (i : ℕ) + 1, by lia⟩) measurableSet_Ici
 
-lemma measurableSet_infiniteAlt [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+lemma measurableSet_infiniteAlt (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (d : ι) {q r : ℚ} (hqr : q < r) :
     MeasurableSet[𝓕 d] (infiniteAlt T d X q r) := by
   unfold infiniteAlt
@@ -162,7 +162,7 @@ lemma measurableSet_infiniteAlt [IsFiniteMeasure μ] (hX : IsRealQuasimartingale
     intro i hi
     exact hF.2 hi
 
-lemma measurableSet_regularitySet [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+lemma measurableSet_regularitySet (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (d : ι) :
     MeasurableSet[𝓕 d] (regularitySet T X d) := by
   suffices MeasurableSet[𝓕 d]
@@ -201,7 +201,7 @@ lemma measurableSet_of_forall_gt [DenselyOrdered ι] [NoMaxOrder ι] [𝓕.IsRig
   exact h j
 
 lemma measurableSet_regularitySetRight [TopologicalSpace ι] [OrderClosedTopology ι]
-    [DenselyOrdered ι] [NoMaxOrder ι] [IsFiniteMeasure μ] [𝓕.IsRightContinuous]
+    [DenselyOrdered ι] [NoMaxOrder ι] [𝓕.IsRightContinuous]
     (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (hTd : Dense T) (d : ι) :
     MeasurableSet[𝓕 d] (regularitySetRight T X d) := by
@@ -215,8 +215,7 @@ lemma measurableSet_regularitySetRight [TopologicalSpace ι] [OrderClosedTopolog
   · simp only [Set.mem_inter_iff, Set.mem_Ioc] at ht
     exact 𝓕.mono ht.2.2 _ (measurableSet_regularitySet hX hT t)
 
-lemma measurableSet_regularitySetRight' [TopologicalSpace ι] [OrderClosedTopology ι]
-    [DenselyOrdered ι] [NoMaxOrder ι] [IsFiniteMeasure μ]
+lemma measurableSet_regularitySetRight'
     (hX : IsRealQuasimartingale 𝓕 X μ)
     {T : Set ι} (hT : T.Countable) (d : ι) :
     MeasurableSet (regularitySetRight T X d) := by
@@ -864,7 +863,8 @@ def rightContModif [SecondCountableTopology ι] (X : ι → Ω → ℝ) (t : ι)
   if ω ∈ regularitySetRight (denseCountable ι) X t
     then rightLimWithin (X · ω) (denseCountable ι) t else 0
 
-lemma measurable_rightContModif [SecondCountableTopology ι] [IsFiniteMeasure μ]
+omit [DenselyOrdered ι] [NoMaxOrder ι] in
+lemma measurable_rightContModif [SecondCountableTopology ι]
     (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
     Measurable (rightContModif X t) := by
   refine Measurable.ite (measurableSet_regularitySetRight' hX countable_denseCountable t) ?_
@@ -1001,7 +1001,7 @@ lemma rightContModif_ae_eq_of_integral_tendsto [SecondCountableTopology ι] [IsF
     rightContModif X t =ᵐ[μ] X t := by
   sorry
 
-lemma adapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous] [IsFiniteMeasure μ]
+lemma adapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
     (hX : IsRealQuasimartingale 𝓕 X μ) :
     Adapted 𝓕 (rightContModif X) := by
   refine fun i ↦ Measurable.ite
@@ -1010,7 +1010,6 @@ lemma adapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuou
   exact adapted_rightLimWithin countable_denseCountable hX.stronglyAdapted.adapted i
 
 lemma stronglyAdapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
-    [IsFiniteMeasure μ]
     (hX : IsRealQuasimartingale 𝓕 X μ) :
     StronglyAdapted 𝓕 (rightContModif X) :=
   (adapted_rightContModif hX).stronglyAdapted
@@ -1043,7 +1042,8 @@ lemma cadlagModif_ae_eq_rightContModif [SecondCountableTopology ι] [IsFiniteMea
     dense_denseCountable.exists_gt] with ω hω
   simp [cadlagModif, if_pos hω]
 
-lemma measurable_cadlagModif [SecondCountableTopology ι] [IsFiniteMeasure μ]
+omit [DenselyOrdered ι] in
+lemma measurable_cadlagModif [SecondCountableTopology ι]
     (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
     Measurable (cadlagModif X t) := by
   refine Measurable.ite ?_ (measurable_rightContModif hX t) (by fun_prop)

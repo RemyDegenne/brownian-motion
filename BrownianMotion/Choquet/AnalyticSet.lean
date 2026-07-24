@@ -358,8 +358,7 @@ lemma IsPavingAnalyticFor.union.{u} {𝓚 𝓚' : Type u} {t : Set 𝓧}
       _ = ⋃ i, Set.sumEquiv.symm (B k i ×ˢ K k i, B' k i ×ˢ K' k i) := rfl
     rw [h_eq]
     refine countableSupClosed_countableSupClosure.iSup_mem fun i ↦ ?_
-    simp only [Set.sumEquiv, Set.le_eq_subset, OrderIso.symm_mk, RelIso.coe_fn_mk,
-      Equiv.coe_fn_symm_mk]
+    simp only [Set.sumEquiv, OrderIso.symm_mk, RelIso.coe_fn_mk, Equiv.coe_fn_symm_mk]
     rw [Set.image_union]
     refine supClosed_countableSupClosure
       (subset_countableSupClosure ?_) (subset_countableSupClosure ?_)

@@ -523,7 +523,8 @@ lemma isSquareIntegrable_modif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
   cadlag := isCadlag_modif _
   bounded := by
     refine LE.le.trans_lt (iSup_le fun i ↦ ?_) hX.2
-    grw [eLpNorm_congr_ae (modification_modif (martingale_condExp X 𝓕 P) i), eLpNorm_condExp_le]
+    grw [eLpNorm_congr_ae (modification_modif (martingale_condExp X 𝓕 P) i),
+      eLpNorm_condExp_le_eLpNorm _ (by simp)]
 
 /-- The `LinearIsometryEquiv` between square integrable martingales and
 the type of `L^2` random variables that are strongly measurable with respect to `⨆ t, 𝓕 t`,
@@ -681,7 +682,8 @@ lemma isStable_jump_le {C : ℝ} (hC : 0 ≤ C) :
           simp [ht_bot] at hij
         simp only [hij.le, inf_of_le_right]
         rw [leftLim_congr' (g := fun _ ↦ X i)]
-        · simp [leftLim_eq_of_tendsto (y := X i) ht_ne_bot tendsto_const_nhds]
+        · have : (𝓝[<] j).NeBot := ⟨ht_ne_bot⟩
+          simp [leftLim_eq_of_tendsto (y := X i) tendsto_const_nhds]
         · exact ht_ne_bot
         · rw [eventuallyEq_nhdsWithin_iff]
           filter_upwards [eventually_gt_nhds hij] with s hsτ hst

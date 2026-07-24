@@ -488,7 +488,7 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (h
   -- todo: dissipate_of_antitone?
   convert hC''_nonempty n using 1
   refine le_antisymm (Set.dissipate_subset le_rfl) ?_
-  simp only [Set.dissipate, Set.le_eq_subset, Set.subset_iInter_iff]
+  simp only [Set.dissipate, Set.subset_iInter_iff]
   exact fun i hi ↦ h_anti hi
 
 end MeasureTheory

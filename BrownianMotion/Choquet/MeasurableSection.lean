@@ -122,7 +122,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
   · specialize hB_le a ha
     rwa [I_apply_eq_debut] at hB_le
   · refine debut_anti 0 ?_
-    simp only [Set.le_eq_subset, Set.image_subset_iff]
+    simp only [Set.image_subset_iff]
     convert hB_subset _ _
     rw [Set.image_swap_eq_preimage_swap]
 
@@ -348,7 +348,7 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
     simpa using this
   have h_mono : Monotone fun n ↦ {ω | (sectionSeq μ hs n).1 ω ≠ ⊤} := by
     intro n m hnm
-    simp only [Set.le_eq_subset, Set.setOf_subset_setOf]
+    simp only [Set.setOf_subset_setOf]
     intro ω hω
     refine ne_of_lt (lt_of_le_of_lt ?_ (Ne.lt_top hω))
     exact antitone_sectionSeq hs hnm ω
@@ -373,7 +373,7 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
         · refine MeasurableSet.nullMeasurableSet ?_
           exact (measurableSet_singleton _).preimage (by fun_prop)
       · intro n m hnm
-        simp only [ne_eq, Set.le_eq_subset, Set.setOf_subset_setOf, and_imp]
+        simp only [ne_eq, Set.setOf_subset_setOf, and_imp]
         intro ω hω h_top
         refine ⟨hω, ?_⟩
         refine le_antisymm le_top ?_

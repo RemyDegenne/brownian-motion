@@ -151,7 +151,7 @@ def nat0 {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ 0
     · intro i j hij
-      simp only [Set.le_eq_subset, Set.subset_inter_iff, Set.inter_subset_left, true_and]
+      simp only [Set.subset_inter_iff, Set.inter_subset_left, true_and]
       refine Set.inter_subset_right.trans ?_
       exact hA_mono 0 hij
   have : ∃ n, a < m (s ∩ A 0 n) := by
@@ -177,7 +177,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ (n + 1)
     · intro i j hij
-      simp only [Set.mem_setOf_eq, Set.le_eq_subset, Set.subset_inter_iff]
+      simp only [Set.mem_setOf_eq, Set.subset_inter_iff]
       refine ⟨⟨?_, ?_⟩, ?_⟩
       · exact Set.inter_subset_left.trans Set.inter_subset_left
       · exact Set.inter_subset_left.trans Set.inter_subset_right

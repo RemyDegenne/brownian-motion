@@ -444,7 +444,7 @@ private lemma cauchySeq_toLp_of_eLpNorm_approx {P : Measure Ω}
         rw [← ENNReal.ofReal_add (by positivity) (by positivity),
           show ε / 3 + ε / 3 = 2 * ε / 3 by ring]
 
-theorem komlos_L1 [MeasurableSpace E] [BorelSpace E] {f : ℕ → Ω → E} {P : Measure Ω}
+theorem komlos_L1 {f : ℕ → Ω → E} {P : Measure Ω}
     [IsFiniteMeasure P] (hf : UniformIntegrable f 1 P) :
     ∃ (g : ℕ → Ω → E) (glim : Ω → E), (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
       Tendsto (fun n ↦ eLpNorm (g n - glim) 1 P) atTop (𝓝 0) := by
