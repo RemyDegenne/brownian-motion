@@ -466,8 +466,8 @@ lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ
     (SimpleProcess.ofNat W n hW0 hW hC ●[B] X) =
       fun i ω ↦ ∑ k ∈ range n, B (W (k + 1) ω) (X (min (k + 1) i) ω - X (min k i) ω) := by
   ext i ω
-  simp only [integral, ofNat, ENat.some_eq_coe, map_sub, Finsupp.sum_sub, Finset.mem_map, mem_range,
-    Function.Embedding.coeFn_mk, Pi.ofNat_apply, map_zero, zero_apply, implies_true,
+  simp only [integral, ofNat, ENat.some_eq_natCast, map_sub, Finsupp.sum_sub, Finset.mem_map,
+    mem_range, Function.Embedding.coeFn_mk, Pi.ofNat_apply, map_zero, zero_apply, implies_true,
     Finsupp.sum_onFinset, sum_map, and_true, sum_sub_distrib]
   congr 1
   · refine Finset.sum_congr rfl fun k hk ↦ ?_

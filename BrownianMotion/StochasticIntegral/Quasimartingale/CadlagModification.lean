@@ -57,7 +57,7 @@ def regularitySetRight (T : Set ι) (X : ι → Ω → ℝ) (d : ι) : Set Ω :=
 lemma regularitySet_anti {T : Set ι} {X : ι → Ω → ℝ} {d₁ d₂ : ι} (hd : d₁ ≤ d₂) :
     regularitySet T X d₂ ⊆ regularitySet T X d₁ := by
   intro ω hω
-  simp only [regularitySet, Set.mem_setOf_eq] at hω ⊢
+  simp only [regularitySet, Set.mem_ofPred_eq] at hω ⊢
   constructor
   · intro q r hqr
     have hω' :=  hω.1 q r hqr
@@ -122,7 +122,7 @@ lemma measurableSet_altSet (hX : IsRealQuasimartingale 𝓕 X μ)
             ∧ (∀ i : Fin m, X (g ⟨2 * (i : ℕ), by omega⟩) ω ≤ (q : ℝ))
             ∧ (∀ i : Fin m, (r : ℝ) ≤ X (g ⟨2 * (i : ℕ) + 1, by omega⟩) ω)} := by
     ext ω
-    simp only [altSet, Set.mem_setOf_eq, Set.mem_iUnion, Fintype.mem_piFinset, exists_prop]
+    simp only [altSet, Set.mem_ofPred_eq, Set.mem_iUnion, Fintype.mem_piFinset, exists_prop]
     constructor
     · rintro ⟨c, hc1, hc2, hc3, hc4⟩
       exact ⟨fun i ↦ c (i : ℕ), fun i ↦ hc2 (i : ℕ) i.2,
@@ -142,9 +142,9 @@ lemma measurableSet_altSet (hX : IsRealQuasimartingale 𝓕 X μ)
   have hgF : ∀ i, g i ∈ F := Fintype.mem_piFinset.mp hg
   -- Split off the (measure-space independent) monotonicity condition, then recognise the event
   -- as a finite intersection of measurable half-lines `{X s ≤ q}` and `{r ≤ X s}`, `s ∈ F`.
-  rw [Set.setOf_and]
+  rw [Set.ofPred_and]
   refine (MeasurableSet.const _).inter ?_
-  rw [Set.setOf_and, Set.setOf_forall, Set.setOf_forall]
+  rw [Set.ofPred_and, Set.ofPred_forall, Set.ofPred_forall]
   refine MeasurableSet.inter (MeasurableSet.iInter fun i ↦ ?_) (MeasurableSet.iInter fun i ↦ ?_)
   · exact hXmeas _ (hgF ⟨2 * (i : ℕ), by lia⟩) measurableSet_Iic
   · exact hXmeas _ (hgF ⟨2 * (i : ℕ) + 1, by lia⟩) measurableSet_Ici
@@ -158,7 +158,7 @@ lemma measurableSet_infiniteAlt (hX : IsRealQuasimartingale 𝓕 X μ)
     exact hT.mono (by grind)
   · intro hF
     refine measurableSet_altSet hX d F ?_ hqr m
-    simp only [Set.subset_inter_iff, Set.mem_setOf_eq] at hF
+    simp only [Set.subset_inter_iff, Set.mem_ofPred_eq] at hF
     intro i hi
     exact hF.2 hi
 
@@ -230,7 +230,7 @@ omit [OrderBot ι] in
 lemma right_limit_of_mem_regularitySet {T : Set ι}
     (x d : ι) {ω : Ω} (hxd : x < d) (hω : ω ∈ regularitySet T X d) :
     ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi x] x) (𝓝 l) := by
-  simp only [regularitySet, Set.mem_inter_iff, Set.mem_Iic, and_imp, Set.mem_setOf_eq] at hω
+  simp only [regularitySet, Set.mem_inter_iff, Set.mem_Iic, and_imp, Set.mem_ofPred_eq] at hω
   have h1 : ∀ (q r : ℚ), q < r → ω ∉ infiniteAlt T d X q r := hω.1
   have h2 : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := by
     convert hω.2
@@ -255,7 +255,7 @@ omit [OrderBot ι] in
 lemma left_limit_of_mem_regularitySet {T : Set ι}
     (x d : ι) {ω : Ω} (hxle : x ≤ d) (hω : ω ∈ regularitySet T X d) :
     ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio x] x) (𝓝 l) := by
-  simp only [regularitySet, Set.mem_inter_iff, Set.mem_Iic, and_imp, Set.mem_setOf_eq] at hω
+  simp only [regularitySet, Set.mem_inter_iff, Set.mem_Iic, and_imp, Set.mem_ofPred_eq] at hω
   have h1 : ∀ (q r : ℚ), q < r → ω ∉ infiniteAlt T d X q r := hω.1
   have h2 : ∃ M : ℕ, ∀ s' ∈ T ∩ Set.Iic d, |X s' ω| ≤ M + 1 := by
     convert hω.2
@@ -442,13 +442,13 @@ lemma exists_seq_gt_tendsto_of_not_countable [TopologicalSpace.SeparableSpace ι
     ∃ (p : ι) (u : ℕ → ι), (∀ k, u k ∈ A) ∧ (∀ k, p < u k) ∧
       Tendsto u atTop (𝓝 p) := by
   have : SecondCountableTopology ι := .of_separableSpace_orderTopology _
-  have h := countable_setOf_isolated_right_within (s := A)
+  have h := countable_setOfPred_isolated_right_within (s := A)
   have hsub : ¬ A ⊆ {x | x ∈ A ∧ 𝓝[A ∩ Set.Ioi x] x = ⊥} := by
     intro hcon
     exact hA (h.mono hcon)
   rw [Set.not_subset] at hsub
   obtain ⟨p, hpA, hpiso⟩ := hsub
-  simp only [Set.mem_setOf_eq, not_and] at hpiso
+  simp only [Set.mem_ofPred_eq, not_and] at hpiso
   have : (𝓝[A ∩ Set.Ioi p] p).NeBot := ⟨hpiso hpA⟩
   obtain ⟨u, hu⟩ := exists_seq_tendsto (𝓝[A ∩ Set.Ioi p] p)
   simp only [tendsto_nhdsWithin_iff, Set.mem_inter_iff, Set.mem_Ioi, eventually_atTop] at hu
@@ -515,7 +515,7 @@ lemma measurableSet_tendsto_nhdsGT [FirstCountableTopology ι] [𝓕.IsRightCont
   have hset : {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)}
       = {ω | ∃ c, Tendsto (fun s' : S ↦ X s' ω) l₀ (𝓝 c)} := by
     ext ω
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     refine exists_congr fun c ↦ ?_
     rw [← hmap]
     exact tendsto_map'_iff
@@ -537,7 +537,7 @@ lemma measurableSet_tendsto_nhdsGT' [FirstCountableTopology ι]
   have hset : {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Ioi t] t) (𝓝 l)}
       = {ω | ∃ c, Tendsto (fun s' : S ↦ X s' ω) l₀ (𝓝 c)} := by
     ext ω
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     refine exists_congr fun c ↦ ?_
     rw [← hmap]
     exact tendsto_map'_iff
@@ -563,7 +563,7 @@ lemma measurableSet_tendsto_nhdsLT [FirstCountableTopology ι]
   have hset : {ω | ∃ l, Tendsto (X · ω) (𝓝[T ∩ Set.Iio t] t) (𝓝 l)}
       = {ω | ∃ c, Tendsto (fun s' : S ↦ X s' ω) l₀ (𝓝 c)} := by
     ext ω
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     refine exists_congr fun c ↦ ?_
     rw [← hmap]
     exact tendsto_map'_iff
@@ -754,13 +754,13 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
     have hpos : μ {ω | Rm x ω ≠ X x ω} ≠ 0 := hxm
     have hBmono : Monotone (fun n : ℕ ↦ {ω | 1 / (n + 1 : ℝ) < |Rm x ω - X x ω|}) := by
       intro n n' hnn' ω hω
-      simp only [Set.mem_setOf_eq] at hω ⊢
+      simp only [Set.mem_ofPred_eq] at hω ⊢
       refine lt_of_le_of_lt (one_div_le_one_div_of_le (by positivity) ?_) hω
       have : (n : ℝ) ≤ (n' : ℝ) := mod_cast hnn'
       gcongr
     have hBunion : {ω | Rm x ω ≠ X x ω} = ⋃ n : ℕ, {ω | 1 / (n + 1 : ℝ) < |Rm x ω - X x ω|} := by
       ext ω
-      simp only [Set.mem_setOf_eq, Set.mem_iUnion]
+      simp only [Set.mem_ofPred_eq, Set.mem_iUnion]
       constructor
       · intro hne
         have habs : 0 < |Rm x ω - X x ω| := abs_pos.2 (sub_ne_zero.2 hne)
@@ -832,11 +832,11 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
     positivity
   obtain ⟨k, hk⟩ := hev.exists
   have hmem := huSn k
-  rw [hSn, Set.mem_setOf_eq] at hmem
+  rw [hSn, Set.mem_ofPred_eq] at hmem
   have hsub3 : {ω | 1 / (n + 1 : ℝ) < |Rm (u k) ω - X (u k) ω|}
       ⊆ {ω | ENNReal.ofReal (1 / (n + 1 : ℝ)) ≤ edist (Rm (u k) ω - X (u k) ω) 0} := by
     intro ω hω
-    rw [Set.mem_setOf_eq] at hω ⊢
+    rw [Set.mem_ofPred_eq] at hω ⊢
     rw [edist_dist, dist_zero_right, Real.norm_eq_abs]
     exact ENNReal.ofReal_le_ofReal hω.le
   exact lt_irrefl _ ((hmem.trans_le (measure_mono hsub3)).trans hk)
@@ -1050,7 +1050,7 @@ lemma measurable_cadlagModif [SecondCountableTopology ι]
   have : {a | ∀ (t : ι), a ∈ regularitySetRight (denseCountable ι) X t}
       = ⋂ t ∈ denseCountable ι, regularitySetRight (denseCountable ι) X t := by
     ext a
-    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    simp only [Set.mem_ofPred_eq, Set.mem_iInter]
     refine ⟨fun h t _ ↦ h t, fun h t ↦ ?_⟩
     obtain ⟨t', ht'T, htt'⟩ := dense_denseCountable.exists_gt t
     specialize h t' ht'T
@@ -1099,7 +1099,7 @@ lemma countable_not_cadlagModif_ae_eq [SecondCountableTopology ι] [IsFiniteMeas
     {t | ¬ cadlagModif X t =ᵐ[μ] X t}.Countable := by
   refine (countable_not_rightLimWithin_ae_eq hX countable_denseCountable dense_denseCountable).mono
     fun t ht ↦ ?_
-  simp only [Set.mem_setOf_eq] at ht ⊢
+  simp only [Set.mem_ofPred_eq] at ht ⊢
   refine fun h_contra ↦ ht ?_
   filter_upwards [cadlagModif_ae_eq_rightContModif hX,
     rightContModif_ae_eq_of_rightLimWithin_ae_eq hX h_contra] with ω hω hωc

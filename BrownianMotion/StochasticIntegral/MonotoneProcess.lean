@@ -144,7 +144,7 @@ theorem StieltjesFunction.measurable_measure' {f : Ω → StieltjesFunction ι}
     have hc : univ = botSet ∪ ⋃ n, Ioc (v n) (u n) := by
       ext x
       by_cases! hx : IsBot x
-      <;> simp_all only [IsBot, mem_univ, botSet, mem_union, mem_setOf_eq,
+      <;> simp_all only [IsBot, mem_univ, botSet, mem_union, mem_ofPred_eq,
         implies_true, mem_iUnion, mem_Ioc, and_true, true_or, tendsto_atTop_atTop,
         tendsto_atTop_atBot, not_forall, not_le, true_iff]
       apply Or.inr

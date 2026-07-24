@@ -129,7 +129,7 @@ theorem upcrossingsBefore_lt_of_exists_upcrossing' (hab : a < b) {N₁ N₂ : �
     (hN₁' : f N₁ ω ≤ a) (hN₂ : N₁ ≤ N₂) (hN₂' : b ≤ f N₂ ω) :
     upcrossingsBefore a b f N ω < upcrossingsBefore a b f (N₂ + 1) ω := by
   refine lt_of_lt_of_le (Nat.lt_succ_self _) (le_csSup (upperCrossingTime_lt_bddAbove hab) ?_)
-  rw [Set.mem_setOf_eq, upperCrossingTime_succ_eq, hittingBtwn_lt_iff _ le_rfl]
+  rw [Set.mem_ofPred_eq, upperCrossingTime_succ_eq, hittingBtwn_lt_iff _ le_rfl]
   refine ⟨N₂, ⟨?_, Nat.lt_succ_self _⟩, hN₂'⟩
   rw [lowerCrossingTime, hittingBtwn_le_iff_of_lt _ (Nat.lt_succ_self _)]
   refine ⟨N₁, ⟨le_trans ?_ hN₁, hN₂⟩, hN₁'⟩

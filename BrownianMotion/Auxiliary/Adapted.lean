@@ -70,11 +70,11 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
   let ip := {x : Iic t | 𝓝[>] x = ⊥}
   have tmemip : ⟨t, le_rfl⟩ ∈ ip := by
     simp only [← not_neBot, nhdsWithin_neBot, not_forall,
-      not_nonempty_iff_eq_empty, mem_setOf_eq, ip]
+      not_nonempty_iff_eq_empty, mem_ofPred_eq, ip]
     use univ
     simp
     rfl
-  have ipc : ip.Countable := countable_setOf_isolated_right (α := Iic t)
+  have ipc : ip.Countable := countable_setOfPred_isolated_right (α := Iic t)
   -- d is the set of points dense in (-∞,t]
   obtain ⟨d, dc, dd⟩ := TopologicalSpace.exists_countable_dense (Iic t)
   let s := ip ∪ d
@@ -202,7 +202,7 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
             by_contra!
             have : a.1 ∈ ip := by
               have inter : Ioo a.1 ep = Ioi a.1 ∩ Iio ep := by grind
-              simp only [← empty_mem_iff_bot, ← this, mem_setOf_eq, ip, inter]
+              simp only [← empty_mem_iff_bot, ← this, mem_ofPred_eq, ip, inter]
               apply inter_mem_nhdsWithin (Ioi a.1) (IsOpen.mem_nhds isOpen_Iio (by simp [hep.1]))
             exact has (Or.inl this)
           obtain ⟨e, he⟩ : ((Ioo a.1 ep) ∩ d).Nonempty := Dense.inter_open_nonempty dd (Ioo a.1 ep)

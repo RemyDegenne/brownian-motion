@@ -177,7 +177,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ (n + 1)
     · intro i j hij
-      simp only [Set.mem_setOf_eq, Set.subset_inter_iff]
+      simp only [Set.mem_ofPred_eq, Set.subset_inter_iff]
       refine ⟨⟨?_, ?_⟩, ?_⟩
       · exact Set.inter_subset_left.trans Set.inter_subset_left
       · exact Set.inter_subset_left.trans Set.inter_subset_right
@@ -188,7 +188,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
     rw [this] at hk
     exact lt_iSup_iff.mp hk
   ⟨fun i ↦ if i ≤ n then k.1 i else this.choose, by
-    simp only [qaux, Set.mem_setOf_eq]
+    simp only [qaux, Set.mem_ofPred_eq]
     intro j hj
     rw [Nat.le_succ_iff] at hj
     cases hj with
@@ -210,7 +210,7 @@ def seqAux (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed
     (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
     (n : ℕ) → {seq : ℕ → ℕ | qaux m s A a seq n}
   | 0 => ⟨fun _ ↦ nat0 hA_mono hs_eq a ha, by
-    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_setOf_eq]
+    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_ofPred_eq]
     exact (nat0 hA_mono hs_eq a ha).2⟩
   | n + 1 => succ hA_mono hs_eq
     (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n)
@@ -229,7 +229,7 @@ private lemma seqAux_add_one_apply_of_le (hp_empty : ∅ ∈ p)
     (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1)).1 i =
       (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 i := by
   rw [seqAux_add_one]
-  simp only [Set.mem_setOf_eq, succ, ite_eq_left_iff, not_le]
+  simp only [Set.mem_ofPred_eq, succ, ite_eq_left_iff, not_le]
   intro hni
   grind
 
@@ -260,7 +260,7 @@ private lemma seq_prop (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union
   convert h1 j hj using 3
   refine Set.dissipate_congr fun i hi ↦ ?_
   congr
-  simp only [seq, Set.mem_setOf_eq]
+  simp only [seq, Set.mem_ofPred_eq]
   exact seqAux_of_le hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (hi.trans hj)
 
 end Aux

@@ -300,8 +300,8 @@ lemma infiniteAlt_mono'' {T : Set ι} {s t : ι} (h : s ≤ t) :
   gcongr with F
   refine Set.iUnion_mono' ?_
   intro hF
-  simp only [Set.subset_inter_iff, Set.mem_setOf_eq] at hF
-  simp only [subset_refl, Set.subset_inter_iff, Set.mem_setOf_eq, exists_prop, and_true]
+  simp only [Set.subset_inter_iff, Set.mem_ofPred_eq] at hF
+  simp only [subset_refl, Set.subset_inter_iff, Set.mem_ofPred_eq, exists_prop, and_true]
   refine ⟨hF.1, hF.2.trans ?_⟩
   grind
 
@@ -370,7 +370,7 @@ lemma mem_infiniteAlt_of_frequently_right (hxd : x < d)
     (hfa : ∃ᶠ s in 𝓝[T ∩ Set.Ioi x] x, X s ω < a)
     (hfb : ∃ᶠ s in 𝓝[T ∩ Set.Ioi x] x, b < X s ω) :
     ω ∈ infiniteAlt T d X a b := by
-  simp only [infiniteAlt, Set.mem_iInter, Set.mem_iUnion, Set.mem_setOf_eq]
+  simp only [infiniteAlt, Set.mem_iInter, Set.mem_iUnion, Set.mem_ofPred_eq]
   intro m
   obtain ⟨F, hFmem, hFalt⟩ := exists_finset_altSet_of_frequently_right hxd hfa hfb m
   refine ⟨F, ?_, hFalt⟩
@@ -424,7 +424,7 @@ lemma mem_infiniteAlt_of_frequently_left (hxd : x ≤ d)
     (hfa : ∃ᶠ s in 𝓝[T ∩ Set.Iio x] x, X s ω < a)
     (hfb : ∃ᶠ s in 𝓝[T ∩ Set.Iio x] x, b < X s ω) :
     ω ∈ infiniteAlt T d X a b := by
-  simp only [infiniteAlt, Set.mem_iInter, Set.mem_iUnion, Set.mem_setOf_eq]
+  simp only [infiniteAlt, Set.mem_iInter, Set.mem_iUnion, Set.mem_ofPred_eq]
   intro m
   obtain ⟨F, hFmem, hFalt⟩ := exists_finset_altSet_of_frequently_left hfa hfb m
   refine ⟨F, ?_, hFalt⟩
@@ -455,7 +455,7 @@ lemma sum_indicator_mul_sub_eq_stopped'' (f : ℕ → Ω → ℝ) (s : Set ℝ) 
       obtain ⟨j, hj, hjs⟩ := hhit
       rw [Set.indicator_of_notMem]
       · grind
-      · simp only [Set.mem_setOf_eq, not_forall, not_not]
+      · simp only [Set.mem_ofPred_eq, not_forall, not_not]
         exact ⟨j, hj.2, hjs⟩
     · rw [hittingBtwn, if_neg hhit]
       have h2 : hittingBtwn f s 0 (n + 1) ω = n + 1 := by
@@ -724,7 +724,7 @@ lemma countable_setOf_finset_coe_subset (hT : T.Countable) :
   have h1 : {F : Finset ι | ↑F ⊆ T}
       ⊆ (fun F : Finset ι ↦ (F : Set ι)) ⁻¹' {u : Set ι | u.Finite ∧ u ⊆ T} :=
     fun F hF ↦ ⟨F.finite_toSet, hF⟩
-  exact ((Set.countable_setOf_finite_subset hT).preimage coe_injective).mono h1
+  exact ((Set.countable_ofPred_finite_subset hT).preimage coe_injective).mono h1
 
 variable [OrderBot ι]
 
@@ -758,7 +758,7 @@ lemma measure_infiniteAlt [IsFiniteMeasure μ]
   suffices μ (⋂ m : ℕ, ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, altSet X F a b (m + 1)) = 0 by
     refine measure_mono_null ?_ this
     intro ω
-    simp only [infiniteAlt, Set.subset_inter_iff, Set.mem_setOf_eq, Set.mem_iInter, Set.mem_iUnion,
+    simp only [infiniteAlt, Set.subset_inter_iff, Set.mem_ofPred_eq, Set.mem_iInter, Set.mem_iUnion,
       exists_prop]
     exact fun h i ↦ h (i + 1)
   refine le_antisymm ?_ zero_le
@@ -823,7 +823,7 @@ lemma measure_exists_abs_gt_le [IsFiniteMeasure μ] {ε : ℝ}
   have : {ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|} =
       ⋃ F ∈ {F : Finset ι | ↑F ⊆ T ∩ Set.Iic t}, {ω | ∃ s ∈ F, ε < |X s ω|} := by
     ext ω
-    simp only [Set.mem_setOf_eq, Set.subset_inter_iff, Set.mem_iUnion, exists_prop]
+    simp only [Set.mem_ofPred_eq, Set.subset_inter_iff, Set.mem_iUnion, exists_prop]
     refine ⟨fun ⟨s, hsT, hs⟩ ↦ ?_, fun ⟨F, hF, ⟨s, hsT, hs⟩⟩ ↦ ?_⟩
     · exact ⟨{s}, by grind, by grind⟩
     · exact ⟨s, by grind, by grind⟩

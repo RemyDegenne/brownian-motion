@@ -119,21 +119,21 @@ private lemma lt_coe_iff_le_coe_sub_one {a : ℕ∞} {t : ℕ} :
 private lemma coe_lt_iff_coe_succ_le {a : ℕ∞} {i : ℕ} :
     i < a ↔ (i + 1 : ℕ) ≤ a := by
   rw [Nat.cast_add_one]
-  exact (ENat.add_one_le_iff (ENat.coe_ne_top i)).symm
+  exact (ENat.add_one_le_iff (ENat.natCast_ne_top i)).symm
 
 /-- `]]σ,τ]] = ⋃ᵢ (i, i+1] × {σ ≤ i < τ}` as subsets
 of `ℕ × Ω` — a purely arithmetic identity on `ℕ∞`, valid for any `σ, τ`. -/
 lemma eq_iUnion (σ τ : Ω → ℕ∞) :
     stochIoc σ τ = ⋃ i : ℕ, Set.Ioc i (i + 1) ×ˢ {ω | σ ω ≤ i ∧ i < τ ω} := by
   ext ⟨t, ω⟩
-  simp only [mem_iUnion, Set.mem_prod, Set.mem_Ioc, Set.mem_setOf_eq]
+  simp only [mem_iUnion, Set.mem_prod, Set.mem_Ioc, Set.mem_ofPred_eq]
   constructor
   · rintro ⟨hlt, hle⟩
     obtain ⟨hsub, ht1⟩ := lt_coe_iff_le_coe_sub_one.mp hlt
     refine ⟨t - 1, ⟨by lia, by lia⟩, hsub, ?_⟩
     refine lt_of_lt_of_le ?_ hle
     refine coe_lt_iff_coe_succ_le.mpr ?_
-    simp only [ht1, Nat.sub_add_cancel, ENat.some_eq_coe]
+    simp only [ht1, Nat.sub_add_cancel, ENat.some_eq_natCast]
     norm_cast
   · rintro ⟨i, ⟨hi_lt, hi_le⟩, hσi, hiτ⟩
     have ht : t = i + 1 := by lia
@@ -146,7 +146,7 @@ lemma eq_iUnion (σ τ : Ω → ℕ∞) :
 private lemma slice_eq_empty_of_bound {n : ℕ} (hτn : ∀ ω, τ ω ≤ n) {i : ℕ} (hi : n ≤ i) :
     {ω | σ ω ≤ i ∧ i < τ ω} = ∅ := by
   ext ω
-  simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and]
+  simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and]
   exact fun _ ↦ not_lt.mpr ((hτn ω).trans (mod_cast hi))
 
 -- TODO: turn `ElementaryPredictableSet` into a predicate?
@@ -184,7 +184,7 @@ theorem exists_elementaryPredictableSet (hσ : IsStoppingTime 𝓕 σ) (hτ : Is
     simp only [Set.prod_empty, Set.empty_union]
     rw [Finset.set_biUnion_finset_image, eq_iUnion σ τ]
     ext ⟨t, ω⟩
-    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_prod, Set.mem_Ioc, Set.mem_setOf_eq]
+    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_prod, Set.mem_Ioc, Set.mem_ofPred_eq]
     constructor
     · grind
     · rintro ⟨i, ht, hσi, hiτ⟩

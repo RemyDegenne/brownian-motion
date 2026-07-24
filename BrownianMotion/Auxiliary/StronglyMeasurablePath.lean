@@ -96,7 +96,7 @@ theorem stronglyMeasurable_path_of_isRightContinuous
   -- points that are isolated on the right, at which right-continuity says nothing.
   obtain ⟨d, hd_count, hd_dense⟩ := exists_countable_dense ι
   let D : Set ι := d ∪ {x : ι | 𝓝[>] x = ⊥}
-  have hD_count : D.Countable := hd_count.union countable_setOf_isolated_right
+  have hD_count : D.Countable := hd_count.union countable_setOfPred_isolated_right
   have hD_ne i (hi : i ∉ D) : (𝓝[>] i).NeBot := ⟨fun h ↦ hi (Set.mem_union_right _ h)⟩
   let q : ℕ → ι := enumerateCountable hD_count (Classical.arbitrary ι)
   have hDq : D ⊆ Set.range q := subset_range_enumerate hD_count _
