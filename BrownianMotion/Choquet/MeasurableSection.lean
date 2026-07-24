@@ -38,15 +38,17 @@ lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
       simp only [Set.inf_eq_inter, Set.mem_setOf_eq]
       exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
 
-lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
-    (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
+set_option backward.isDefEq.respectTransparency false in
+lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (a : ℝ≥0∞) (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   let I : Capacity (supClosure
-      (Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t}))) :=
+      (Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t}))) :=
     μ.capacity.comp_fst MeasurableSet.empty (fun _ hs _ ht ↦  MeasurableSet.union hs ht) (by simp)
       (isCompactSystem_insert_empty_Icc ℝ≥0)
   have I_apply (t : Set (Ω × ℝ≥0)) : I t = μ {ω | ∃ u, (ω, u) ∈ t} := by
+    unfold I
     rw [μ.capacity.comp_fst_apply, μ.capacity_apply]; congr; ext; simp
   have I_apply_eq_debut (t : Set (Ω × ℝ≥0)) : I t = μ {ω | debut (Prod.swap '' t) 0 ω ≠ ⊤} := by
     rw [I_apply]
@@ -68,7 +70,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
       · exact fun _ hs _ ht ↦ MeasurableSet.inter hs ht
       · exact infClosed_insert_empty_Icc
     · exact supClosed_supClosure
-    have hs' : IsPavingAnalytic MeasurableSet (Prod.swap '' s) :=
+    have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
       isPavingAnalytic_measurableSet_swap hs
     rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff] at hs'
     exact IsPavingAnalytic.mono subset_supClosure hs'
@@ -158,7 +160,7 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet 
     _ = μ {ω | ω ∉ N ∧ τ ω ≠ ⊤} := by
       symm
       refine Measure.measure_inter_eq_of_ae ?_
-      simp only [imp_false, eventually_mem_set]
+      simp only [imp_false]
       change Nᶜ ∈ ae μ
       rwa [mem_ae_iff, compl_compl]
     _ = μ {ω | ω ∉ N ∧ τ' ω ≠ ⊤} := by
@@ -173,13 +175,13 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet 
       exact hτ_ge ω
 
 lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : Measurable τ) :
-    IsPavingAnalytic MeasurableSet {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} := by
+    IsPavingAnalytic {t | MeasurableSet t} {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} := by
   have : {(t, ω) | τ ω = ⊤} = Prod.swap '' {ω | τ ω = ⊤} ×ˢ (Set.univ : Set ℝ≥0) := by ext; simp
   rw [this]
   refine isPavingAnalytic_measurableSet_swap ?_
   rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
   refine isPavingAnalytic_of_mem_countableSupClosure_of_imp
-    (p' := Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
+    (p' := Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
     fun _ ↦ isPavingAnalytic_of_mem
   have h := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
   rw [mem_countableSupClosure_iff_iSup] at h ⊢

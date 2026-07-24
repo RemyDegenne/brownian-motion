@@ -31,7 +31,7 @@ theorem Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι
   exact ⟨fun ⟨h1, h2⟩ i ↦ ⟨h1 i, h2⟩, fun h ↦ ⟨fun i ↦ (h i).1, (h hι.some).2⟩⟩
 
 lemma MeasurableSet.of_mem_countableInfClosure {m𝓧 : MeasurableSpace 𝓧} {s : Set 𝓧}
-    (hs : s ∈ countableInfClosure MeasurableSet) :
+    (hs : s ∈ countableInfClosure {t | MeasurableSet t}) :
     MeasurableSet s := by
   rw [mem_countableInfClosure_iff_iInf] at hs
   obtain ⟨A, hA, rfl⟩ := hs
@@ -544,7 +544,7 @@ lemma isPavingAnalyticFor_of_mem_countableSupClosure_image2_prod_isPavingAnalyti
     (p' := Set.image2 (· ×ˢ ·) (IsPavingAnalyticFor p 𝓚) r) ht fun s hs ↦ ?_
   exact isPavingAnalyticFor_of_image2_prod_isPavingAnalyticFor_right hs
 
-lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_left {𝓨 : Type*} {r : Set 𝓨 → Prop}
+lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_left {𝓨 : Type*} {r : Set (Set 𝓨)}
     {t : Set 𝓨} (ht : t ∈ countableSupClosure r) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) r p) (Σ _ : ℕ, 𝓚) (t ×ˢ s) := by
   refine isPavingAnalyticFor_of_mem_countableSupClosure_image2_prod_isPavingAnalyticFor_left ?_
@@ -554,7 +554,7 @@ lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_left {𝓨 : Type*} {r : 
   simp only [Set.iSup_eq_iUnion]
   rw [Set.iUnion_prod_const]
 
-lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_right {𝓨 : Type*} {r : Set 𝓨 → Prop}
+lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_right {𝓨 : Type*} {r : Set (Set 𝓨)}
     {t : Set 𝓨} (hs : IsPavingAnalyticFor p 𝓚 s) (ht : t ∈ countableSupClosure r) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) p r) (Σ _ : ℕ, 𝓚) (s ×ˢ t) := by
   refine isPavingAnalyticFor_of_mem_countableSupClosure_image2_prod_isPavingAnalyticFor_right ?_
@@ -565,7 +565,7 @@ lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_right {𝓨 : Type*} {r :
   rw [Set.prod_iUnion]
 
 -- He 1.27
-lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
+lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
     (ht : IsPavingAnalyticFor r 𝓚' t) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) r p) ((Σ _ : ℕ, 𝓚') × (Σ _ : ℕ, 𝓚)) (t ×ˢ s) := by
   obtain ⟨t₁, ht₁, ht₁_subset⟩ := ht.exists_mem_countableSupClosure_superset
@@ -576,7 +576,7 @@ lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set 𝓨 → Prop} {t :
   · exact ht.prod_mem_countableSupClosure_right hs₁
   · exact hs.prod_mem_countableSupClosure_left ht₁
 
-lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set 𝓨 → Prop} {t : Set 𝓨}
+lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
     (ht : IsPavingAnalytic r t) (hs : IsPavingAnalytic p s) :
     IsPavingAnalytic (Set.image2 (· ×ˢ ·) r p) (t ×ˢ s) := by
   obtain ⟨𝓚', h𝓚', ht'⟩ := ht
@@ -831,6 +831,7 @@ lemma aux'_Icc {ι : Type*} [Nonempty ι]
       refine ⟨fun i ↦ Set.univ ×ˢ B i, fun n ↦ ?_, rfl⟩
       exact ⟨Set.univ, .univ, B n, hB n, rfl⟩
 
+set_option backward.isDefEq.respectTransparency false in
 lemma borel_eq_generateFrom_isCompact : borel ℝ = MeasurableSpace.generateFrom IsCompact := by
   refine le_antisymm ?_ ?_
   · rw [borel_eq_generateFrom_Icc]
@@ -977,8 +978,9 @@ lemma isPavingAnalytic_image2_prod_measurableSet_Icc_iff {ι : Type*} {mι : Mea
     [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [BorelSpace ι] [Nonempty ι]
     {s : Set (𝓧 × ι)} [MeasurableSpace 𝓧] :
-    IsPavingAnalytic (Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s ↔
-      IsPavingAnalytic MeasurableSet s := by
+    IsPavingAnalytic (Set.image2 (· ×ˢ ·) {t | MeasurableSet t}
+        (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s ↔
+      IsPavingAnalytic {t | MeasurableSet t} s := by
   refine ⟨fun hs ↦ hs.mono fun s hs ↦ ?_, fun hs ↦ ?_⟩
   · obtain ⟨A, hA, K, hK, rfl⟩ := hs
     cases hK with
@@ -997,9 +999,9 @@ lemma isPavingAnalytic_image2_prod_measurableSet_Icc_iff {ι : Type*} {mι : Mea
 lemma isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc {ι : Type} [LinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι] [Nonempty ι] [MeasurableSpace 𝓧]
     {s : Set (𝓧 × ι)}
-    (hs : IsPavingAnalytic (Set.image2 (· ×ˢ ·) MeasurableSet
+    (hs : IsPavingAnalytic (Set.image2 (· ×ˢ ·) {t | MeasurableSet t}
       (insert ∅ {t | ∃ a b, Set.Icc a b = t})) s) :
-    IsPavingAnalytic MeasurableSet (Prod.fst '' s) :=
+    IsPavingAnalytic {t | MeasurableSet t} (Prod.fst '' s) :=
   hs.fst (by simp : ∅ ∈ insert ∅ {t | ∃ a b, Set.Icc a b = t}) (isCompactSystem_insert_empty_Icc ι)
 
 lemma _root_.MeasurableSet.isPavingAnalytic_fst {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ℝ)}

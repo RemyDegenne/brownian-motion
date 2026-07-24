@@ -126,7 +126,7 @@ of `ℕ × Ω` — a purely arithmetic identity on `ℕ∞`, valid for any `σ, 
 lemma eq_iUnion (σ τ : Ω → ℕ∞) :
     stochIoc σ τ = ⋃ i : ℕ, Set.Ioc i (i + 1) ×ˢ {ω | σ ω ≤ i ∧ i < τ ω} := by
   ext ⟨t, ω⟩
-  simp only [mem_stochIoc, mem_iUnion, Set.mem_prod, Set.mem_Ioc, Set.mem_setOf_eq]
+  simp only [mem_iUnion, Set.mem_prod, Set.mem_Ioc, Set.mem_setOf_eq]
   constructor
   · rintro ⟨hlt, hle⟩
     obtain ⟨hsub, ht1⟩ := lt_coe_iff_le_coe_sub_one.mp hlt
