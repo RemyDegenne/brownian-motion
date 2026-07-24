@@ -725,7 +725,7 @@ lemma measure_all_infiniteAlt' [IsFiniteMeasure μ] [(atTop : Filter ι).IsCount
 
 lemma measure_exists_abs_gt_le [IsFiniteMeasure μ] {ε : ℝ}
     (hX : IsRealQuasimartingale 𝓕 X μ) (hε : 0 < ε) (hT : T.Countable) :
-    μ ({ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|})
+    μ {ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|}
       ≤ ENNReal.ofReal (2 * (variationBound X 𝓕 μ t + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ
           + ∫ ω, |X t ω| ∂μ) / ε) := by
   have : {ω | ∃ s ∈ T ∩ Set.Iic t, ε < |X s ω|} =
@@ -778,6 +778,17 @@ lemma ae_exists_bound'' [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X 
     refine h2.congr fun M ↦ ?_
     simp
   exact ge_of_tendsto' hlim hbound
+
+lemma uniformIntegrable_of_countable [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
+    (hT : T.Countable) :
+    UniformIntegrable (fun s : (T ∩ Set.Iic t : Set ι) ↦ X s) 1 μ := by
+  rw [uniformIntegrable_iff le_rfl (by simp)]
+  refine ⟨fun s ↦ (hX.measurable s).aestronglyMeasurable, fun ε hε ↦ ?_⟩
+  let K : ℝ :=
+    2 * (variationBound X 𝓕 μ t + ∫ ω, |X t ω - X ⊥ ω| ∂μ + ∫ ω, |X ⊥ ω| ∂μ + ∫ ω, |X t ω| ∂μ)
+  have h_le η (hη : 0 < η) : μ {ω | ∃ s ∈ T ∩ Set.Iic t, η < |X s ω|} ≤ ENNReal.ofReal (K / η) :=
+    measure_exists_abs_gt_le hX hη hT
+  sorry
 
 lemma ae_exists_bound [IsFiniteMeasure μ] (hX : IsRealQuasimartingale 𝓕 X μ)
     (hT : T.Countable) {T' : Set ι} (hT' : T'.Countable) :
@@ -1839,8 +1850,6 @@ lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsF
     (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
     rightContModif T X t =ᵐ[μ] X t := by
   classical
-  -- every dense set is cofinal
-  have hcof : ∀ T : Set ι, Dense T → ∀ x : ι, ∃ d ∈ T, x < d := fun T hTd x ↦ hTd.exists_gt x
   let Y := rightContModif T X
   have hY_meas t : Measurable (Y t) := measurable_rightContModif hX hTc t
   have hYCont x ω: ContinuousWithinAt (Y · ω) (Set.Ioi x) x :=
@@ -1850,7 +1859,7 @@ lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsF
         Tendsto (X · ω) (𝓝[>] x ⊓ 𝓟 T) (𝓝 (rightLimWithin (X · ω) T x)) := by
       rw [nhdsWithin_inf_principal, Set.inter_comm]
       exact tendsto_nhdsGT_rightLimWithin_of_mem_regularitySetRight hω
-    have h1 := ae_mem_regularitySetRight hX hTc (hcof T hTd)
+    have h1 := ae_mem_regularitySetRight hX hTc hTd.exists_gt
     filter_upwards [h1] with ω hω using by grind [rightContModif]
   have : (𝓝[Set.Ioi t ∩ T] t).NeBot := by
     rw [Set.inter_comm]; exact nhdsGT_inf_principal_neBot hTd t
@@ -1879,6 +1888,13 @@ lemma rightContModif_ae_eq_of_tendstoInMeasure [SecondCountableTopology ι] [IsF
   · exact (hYCont t ω).tendsto.comp hseq
   · refine hX_cont.comp ?_
     rwa [nhdsWithin_inf_principal]
+
+lemma rightContModif_ae_eq_of_integral_tendsto [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (t : ι) (hXRC : Tendsto (fun t ↦ μ[X t]) (𝓝[>] t) (𝓝 (μ[X t]))) :
+    rightContModif T X t =ᵐ[μ] X t := by
+  sorry
 
 lemma adapted_rightContModif [SecondCountableTopology ι] [𝓕.IsRightContinuous]
     (hX : IsRealQuasimartingale 𝓕 X μ)
@@ -1957,6 +1973,13 @@ lemma exists_tendsto_nhdsLT_cadlagModif [SecondCountableTopology ι]
   · exact ⟨Function.leftLimWithin (X · ω) T x, tendsto_rightContModif_leftLimWithin hTd (hω x)⟩
   · exact ⟨0, tendsto_const_nhds⟩
 
+omit [OrderBot ι] in
+lemma isCadlag_cadlagModif [SecondCountableTopology ι] {T : Set ι} (hTd : Dense T) (ω : Ω) :
+    IsCadlag (cadlagModif T X · ω) := by
+  constructor
+  · exact fun x ↦ continuousWithinAt_cadlagModif hTd x ω
+  · exact fun x ↦ exists_tendsto_nhdsLT_cadlagModif hTd x ω
+
 omit [DenselyOrdered ι] in
 lemma cadlagModif_ae_eq_of_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteMeasure μ]
     (hX : IsRealQuasimartingale 𝓕 X μ)
@@ -2004,5 +2027,37 @@ lemma stronglyAdapted_cadlagModif [SecondCountableTopology ι] [𝓕.IsRightCont
     (hX : IsRealQuasimartingale 𝓕 X μ) :
     StronglyAdapted 𝓕 (cadlagModif T X) :=
   (adapted_cadlagModif hTc hTd hX).stronglyAdapted
+
+lemma cadlagModif_ae_eq_of_continuousWithinAt_integral
+    [SecondCountableTopology ι] [IsFiniteMeasure μ]
+    (hX : IsRealQuasimartingale 𝓕 X μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T)
+    (t : ι) (hXRC : ContinuousWithinAt (fun t ↦ μ[X t]) (Set.Ioi t) t) :
+    cadlagModif T X t =ᵐ[μ] X t := by
+  sorry
+
+lemma _root_.MeasureTheory.Martingale.integral_eq [SigmaFiniteFiltration μ 𝓕]
+    (hX : Martingale X 𝓕 μ) (i j : ι) : ∫ ω, X i ω ∂μ = ∫ ω, X j ω ∂μ := by
+  wlog hij : i ≤ j
+  · exact (this hX j i (by grind)).symm
+  conv_rhs => rw [← integral_condExp (𝓕.le i)]
+  refine integral_congr_ae ?_
+  filter_upwards [hX.2 i j hij] with _ heq using heq.symm
+
+lemma _root_.MeasureTheory.Martingale.isRealQuasimartingale [SigmaFiniteFiltration μ 𝓕]
+    (hX : Martingale X 𝓕 μ) :
+    IsRealQuasimartingale 𝓕 X μ := by
+  refine ⟨hX.stronglyAdapted.adapted, hX.integrable, fun i ↦ ?_⟩
+  sorry
+
+lemma _root_.MeasureTheory.Martingale.cadlagModif_ae_eq
+    [SecondCountableTopology ι] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
+    {T : Set ι} (hTc : T.Countable) (hTd : Dense T) (t : ι) :
+    cadlagModif T X t =ᵐ[μ] X t := by
+  refine cadlagModif_ae_eq_of_continuousWithinAt_integral hX.isRealQuasimartingale hTc hTd t ?_
+    (𝓕 := 𝓕)
+  have : ∀ t, μ[X t] = μ[X ⊥] := fun t ↦ hX.integral_eq t ⊥
+  simp_rw [this]
+  exact tendsto_const_nhds
 
 end ProbabilityTheory
