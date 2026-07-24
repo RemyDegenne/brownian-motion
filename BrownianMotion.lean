@@ -4,6 +4,8 @@ public import BrownianMotion.Auxiliary.Adapted
 public import BrownianMotion.Auxiliary.Algebra
 public import BrownianMotion.Auxiliary.Analysis
 public import BrownianMotion.Auxiliary.ContinuousBilinForm
+public import BrownianMotion.Auxiliary.ConvergenceInMeasure
+public import BrownianMotion.Auxiliary.DenseCountable
 public import BrownianMotion.Auxiliary.ENNReal
 public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.Auxiliary.FiniteInf
@@ -12,6 +14,7 @@ public import BrownianMotion.Auxiliary.HasLaw
 public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.IsStoppingTime
 public import BrownianMotion.Auxiliary.Jensen
+public import BrownianMotion.Auxiliary.LeftLimWithin
 public import BrownianMotion.Auxiliary.LimitProcess
 public import BrownianMotion.Auxiliary.LinearAlgebra
 public import BrownianMotion.Auxiliary.Martingale
@@ -41,6 +44,7 @@ public import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 public import BrownianMotion.Continuity.IsKolmogorovProcess
 public import BrownianMotion.Continuity.KolmogorovChentsov
 public import BrownianMotion.Continuity.KolmogorovChentsovInequality
+public import BrownianMotion.Continuity.LimitModification
 public import BrownianMotion.Gaussian.BrownianMotion
 public import BrownianMotion.Gaussian.CovMatrix
 public import BrownianMotion.Gaussian.Gaussian
@@ -51,7 +55,6 @@ public import BrownianMotion.Gaussian.ProjectiveLimit
 public import BrownianMotion.Gaussian.StochasticProcesses
 public import BrownianMotion.StochasticIntegral.ApproxSeq
 public import BrownianMotion.StochasticIntegral.Cadlag
-public import BrownianMotion.StochasticIntegral.CadlagModification
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.ConvexWeights
 public import BrownianMotion.StochasticIntegral.DoobLp
@@ -69,6 +72,9 @@ public import BrownianMotion.StochasticIntegral.MonotoneProcess
 public import BrownianMotion.StochasticIntegral.OptionalSampling
 public import BrownianMotion.StochasticIntegral.Predictable
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
+public import BrownianMotion.StochasticIntegral.Quasimartingale.Basic
+public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModification
+public import BrownianMotion.StochasticIntegral.Quasimartingale.MaximalInequality
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
 public import BrownianMotion.StochasticIntegral.StochasticInterval
