@@ -92,6 +92,7 @@ attribute [measurability] measurableSet_setBot measurableSet_set
 instance : CoeOut (ElementaryPredictableSet 𝓕) (Set (ι × Ω)) where
   coe := toSet
 
+/-- The empty elementary predictable set. -/
 @[simps]
 protected def empty (𝓕 : Filtration ι mΩ) : ElementaryPredictableSet 𝓕 where
   setBot := ∅
