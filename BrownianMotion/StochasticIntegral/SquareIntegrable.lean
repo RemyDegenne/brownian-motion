@@ -26,12 +26,12 @@ open scoped ENNReal Topology NNReal RealInnerProductSpace
 
 namespace ProbabilityTheory
 
-variable {Ω E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {ι Ω E : Type*} [NormedAddCommGroup E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 section LinearOrder
 
-variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι]
+variable [LinearOrder ι] [TopologicalSpace ι]
   {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 section NormedSpace
@@ -637,11 +637,13 @@ instance SquareIntegrable.completeSpace [OrderTopology ι] :
   toL2Isom.toIsometryEquiv.completeSpace
 
 end Hilbert
+
 end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
 
-variable {ι : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [NormedSpace ℝ E]
   {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
   [Approximable 𝓕 P]
 
