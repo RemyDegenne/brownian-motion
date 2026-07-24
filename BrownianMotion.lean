@@ -1,5 +1,6 @@
 module  -- shake: keep-all --deprecated_module: ignore
 
+public import BrownianMotion.Auxiliary.AEEq
 public import BrownianMotion.Auxiliary.Adapted
 public import BrownianMotion.Auxiliary.Algebra
 public import BrownianMotion.Auxiliary.Analysis
@@ -35,7 +36,6 @@ public import BrownianMotion.Auxiliary.WithLp
 public import BrownianMotion.Choquet.AnalyticSet
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.Choquet.CompactSystem
-public import BrownianMotion.Choquet.CountableClosed
 public import BrownianMotion.Choquet.Debut
 public import BrownianMotion.Choquet.MeasurableSection
 public import BrownianMotion.Continuity.Chaining

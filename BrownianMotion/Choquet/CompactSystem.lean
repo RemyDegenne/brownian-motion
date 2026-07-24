@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.Choquet.CountableClosed
+public import Mathlib.Order.CountableSupClosed
 public import Mathlib.Order.OmegaCompletePartialOrder
 public import Mathlib.Topology.Compactness.CompactSystem
 public import Mathlib.Topology.Metrizable.Uniformity
@@ -308,7 +308,7 @@ lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
       ∃ (A : ℕ → ℕ → Set 𝓧) (_ : ∀ n m, A n m ∈ p) (K : ℕ → ℕ → Set 𝓚) (_ : ∀ n m, K n m ∈ q),
         s = ⋂ n, ⋃ m, A n m ×ˢ K n m := by
   unfold prodSigmaDelta
-  simp only [mem_countableInfClosure_iff, mem_countableSupClosure_iff, Set.mem_image2,
+  simp only [mem_countableInfClosure_iff_iInf, mem_countableSupClosure_iff_iSup, Set.mem_image2,
     Set.iSup_eq_iUnion, Set.iInf_eq_iInter, exists_prop]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
@@ -326,7 +326,7 @@ lemma mem_countableSupClosure_image2_prod_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ countableSupClosure (Set.image2 (· ×ˢ ·) p q) ↔
       ∃ (A : ℕ → Set 𝓧) (_ : ∀ n, A n ∈ p) (K : ℕ → Set 𝓚) (_ : ∀ n, K n ∈ q),
         s = ⋃ n, A n ×ˢ K n := by
-  simp only [mem_countableSupClosure_iff, Set.mem_image2]
+  simp only [mem_countableSupClosure_iff_iSup, Set.mem_image2]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
     choose B hB C hC hA_eq using hA
@@ -353,6 +353,7 @@ lemma prodSigmaDelta.mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p �
 intersections of *antitone* sequences of sets. -/
 lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set 𝓧} :
     s ∈ countableInfClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Antitone A ∧ s = ⋂ n, A n := by
+  rw [mem_countableInfClosure_iff_iInf]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h
   refine ⟨Set.dissipate A, fun n ↦ ?_, Set.antitone_dissipate, ?_⟩
@@ -369,7 +370,7 @@ unions of *monotone* sequences of sets. -/
 protected
 lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
     s ∈ countableSupClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Monotone A ∧ s = ⋃ n, A n := by
-  rw [mem_countableSupClosure_iff]
+  rw [mem_countableSupClosure_iff_iSup]
   simp only [Set.iSup_eq_iUnion]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h

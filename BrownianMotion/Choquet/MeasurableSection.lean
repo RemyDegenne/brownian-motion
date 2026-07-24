@@ -75,6 +75,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
   choose B hB_mem hB_subset hB_le using hs_capa
   have hB_compact a ha ω : IsCompact {t | (ω , t) ∈ B a ha} := by
     specialize hB_mem a ha
+    rw [mem_countableInfClosure_iff_iInf] at hB_mem
     obtain ⟨A, hA, hB_eq⟩ := hB_mem
     simp only [← hB_eq, Set.iInf_eq_iInter, Set.mem_iInter]
     suffices ∀ n, IsCompact {t | (ω, t) ∈ A n} by
@@ -180,7 +181,9 @@ lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : 
   refine isPavingAnalytic_of_mem_countableSupClosure_of_imp
     (p' := Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
     fun _ ↦ isPavingAnalytic_of_mem
-  obtain ⟨B, hB, h_eq⟩ := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
+  have h := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
+  rw [mem_countableSupClosure_iff_iSup] at h ⊢
+  obtain ⟨B, hB, h_eq⟩ := h
   rw [← h_eq, Set.iSup_eq_iUnion, Set.prod_iUnion]
   refine ⟨fun n ↦ {ω | τ ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
   refine ⟨{ω | τ ω = ⊤}, ?_, B n, ?_, rfl⟩
