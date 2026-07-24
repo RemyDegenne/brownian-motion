@@ -19,6 +19,8 @@ Note: \cite{he2019semimartingale} use $\mathcal{W}$ for $\mathcal{M} \cap \mathc
 \section{Jumps of a process}
 
 \begin{definition}[Jumps of a process]\label{def:jump}
+  \leanok
+  \lean{Function.jump}
 The jumps of a process $X : T \to \Omega \to E$ is the process $\Delta X : T \to \Omega \to E$ defined by $(t, \omega) \mapsto X_t(\omega) - X_{t^-}(\omega)$~.
 \end{definition}
 

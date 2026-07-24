@@ -69,45 +69,91 @@ lemma locally_of_ae [𝓕.IsComplete P] {p : (ι → E) → Prop} (hpX : ∀ᵐ 
 
 section TopologicalSpace
 
+lemma Locally.ae (p : (ι → E) → ι → Prop)
+    (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i))
+    (hX : Locally (fun X ↦ ∀ ω i, p (X · ω) i) 𝓕 X P) :
+    ∀ᵐ ω ∂P, ∀ i, p (X · ω) i := by
+  obtain ⟨τ, hτ⟩ := hX
+  filter_upwards [hτ.1.tendsto_top] with ω hω i
+  simp only [tendsto_atTop_nhds] at hω
+  obtain ⟨N, hN⟩ := hω (Set.Ioi i) (by simp) isOpen_Ioi
+  have hNi := hN N (le_refl N)
+  have hτ_ne_bot : τ N ω ≠ ⊥ := by
+    intro h_eq
+    simp [h_eq] at hNi
+  have h := hτ.2 N ω i
+  by_cases hτ_top : τ N ω = ⊤
+  · simpa [stoppedProcess, hτ_top] using h
+  simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_ne_bot, Set.indicator_of_mem] at h
+  refine (hp_congr _ _ i ?_).mp h
+  simp only [Set.mem_Ioi] at hNi
+  have hNi' : i < (τ N ω).untopA := by rwa [WithTop.lt_untopA_iff hτ_top]
+  refine ⟨(τ N ω).untopA, hNi', fun j hj ↦ ?_⟩
+  rw [min_eq_left]
+  · simp
+  · rw [WithTop.lt_untopA_iff hτ_top] at hj
+    exact hj.le
+
+omit [TopologicalSpace ι] [OrderTopology ι] in
+lemma isStable_pathwise (p : (ι → E) → ι → Prop)
+    (hp_zero : ∀ i, p 0 i) (hp_stop : ∀ X a, (∀ i, p X i) → ∀ i, a ≤ i → p (fun x ↦ X (min x a)) i)
+    (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i)) :
+    IsStable 𝓕 (fun X ↦ ∀ ω i, p (X · ω) i) := by
+  intro X hX τ hτ ω i
+  by_cases hτ_bot : τ ω = ⊥
+  · simp only [stoppedProcess, hτ_bot, bot_le, inf_of_le_right, Set.mem_setOf_eq,
+      lt_self_iff_false, not_false_eq_true, Set.indicator_of_notMem]
+    exact hp_zero i
+  simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem]
+  specialize hX ω
+  by_cases hτ_top : τ ω = ⊤
+  · simpa [hτ_top] using hX i
+  rcases lt_or_ge i (τ ω).untopA with hlt | hge
+  · refine (hp_congr _ _ i ?_).mp (hX i)
+    refine ⟨(τ ω).untopA, hlt, fun j hj ↦ ?_⟩
+    rw [min_eq_left]
+    · simp
+    · rw [WithTop.lt_untopA_iff hτ_top] at hj
+      exact hj.le
+  · convert hp_stop (X · ω) (τ ω).untopA hX i hge with j
+    rcases le_total j (τ ω).untopA with h | h
+    · rw [min_eq_left h, min_eq_left]
+      · simp
+      · rwa [WithTop.le_untopA_iff hτ_top] at h
+    · rw [min_eq_right h, min_eq_right]
+      rwa [WithTop.untopA_le_iff hτ_top] at h
+
+lemma locally_iff_ae [𝓕.IsComplete P] (p : (ι → E) → ι → Prop) (hp_zero : ∀ i, p 0 i)
+    (hp_congr : ∀ X Y i, (∃ k, i < k ∧ ∀ j < k, X j = Y j) → (p X i ↔ p Y i)) :
+    Locally (fun X ↦ ∀ ω i, p (X · ω) i) 𝓕 X P ↔ ∀ᵐ ω ∂P, ∀ i, p (X · ω) i :=
+  ⟨fun h ↦ h.ae p hp_congr, fun h ↦ locally_of_ae (p := fun X ↦ ∀ i, p X i) h hp_zero⟩
+
 variable [TopologicalSpace E]
 
 lemma Locally.rightContinuous
     (hX : Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) := by
-  obtain ⟨τ, hτ⟩ := hX
-  filter_upwards [hτ.1.tendsto_top] with ω hω i
-  simp only [tendsto_atTop_nhds] at hω
-  obtain ⟨N, hN⟩ := hω (Set.Ioi i) (by simp) isOpen_Ioi
-  have hNi := hN N (le_refl N)
-  by_cases hNω : τ N ω < ⊤
-  · have hs : Set.Iio (τ N ω).untopA ∈ 𝓝[Set.Ioi i] i := by
-      simp only [mem_nhdsWithin]
-      refine ⟨Set.Iio (τ N ω).untopA, isOpen_Iio, ?_, by grind⟩
-      exact (WithTop.lt_untopA_iff (ne_of_lt hNω)).mpr hNi
-    have (y : ι) (hy : y < τ N ω) : (MeasureTheory.stoppedProcess (fun i => ({ω |
-      ⊥ < τ N ω}.indicator (X i))) (τ N)) y ω = X y ω := by
-      simp [MeasureTheory.stoppedProcess, min_eq_left (hy.le)]; aesop
-    refine (continuousWithinAt_inter' hs).mp (((hτ.2 N ω i).mono (by grind)).congr ?_ ?_)
-    · exact fun y hy => (this y ((WithTop.lt_untopA_iff (ne_of_lt hNω)).mp hy.2)).symm
-    · exact (this i hNi).symm
-  · have := hτ.2 N ω i
-    simp_all [MeasureTheory.stoppedProcess]
+  refine Locally.ae (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun X Y i hXY ↦ ?_) hX
+  refine EventuallyEq.congr_continuousWithinAt ?_ ?_
+  · rw [eventuallyEq_nhdsWithin_iff]
+    obtain ⟨k, hik, hk⟩ := hXY
+    filter_upwards [eventually_lt_nhds hik] with j hjk _
+    exact hk j hjk
+  · obtain ⟨k, hik, hk⟩ := hXY
+    exact hk i hik
 
 lemma Locally.left_limit
     (hX : Locally (fun X ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) 𝓕 X P) :
     ∀ᵐ ω ∂P, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l) := by
-  obtain ⟨τ, hτ⟩ := hX
-  filter_upwards [hτ.1.tendsto_top] with ω hω i
-  simp only [tendsto_atTop_nhds] at hω
-  obtain ⟨N, hN⟩ := hω (Set.Ioi i) (by simp) isOpen_Ioi
-  have hNi := hN N (le_refl N)
-  obtain ⟨l, hl⟩ := hτ.2 N ω i
-  have (y : ι) (hy : y ∈ Set.Iio i) : (MeasureTheory.stoppedProcess (fun i => ({ω |
-    ⊥ < τ N ω}.indicator (X i))) (τ N)) y ω = X y ω := by
-    have : y < τ N ω := lt_trans (by simpa using hy) hNi
-    simp [MeasureTheory.stoppedProcess, min_eq_left this.le]
-    aesop
-  exact ⟨l, tendsto_nhdsWithin_congr this hl⟩
+  refine Locally.ae (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun X Y i hXY ↦ ?_) hX
+  have h_eq : X =ᶠ[𝓝[<] i] Y := by
+    rw [eventuallyEq_nhdsWithin_iff]
+    obtain ⟨k, hik, hk⟩ := hXY
+    filter_upwards [eventually_lt_nhds hik] with j hjk _
+    exact hk j hjk
+  constructor <;> rintro ⟨l, hl⟩ <;> refine ⟨l, hl.congr' ?_⟩
+  · exact h_eq
+  · exact h_eq.symm
 
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
@@ -115,96 +161,72 @@ lemma Locally.isCadlag
   filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
     (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
+lemma Locally.continuous (hX : Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, Continuous (X · ω) := by
+  simp_rw [continuous_iff_continuousAt] at hX ⊢
+  refine Locally.ae (fun X i ↦ ContinuousAt X i) (fun X Y i hXY ↦ ?_) hX
+  rw [continuousAt_congr]
+  obtain ⟨k, hik, hk⟩ := hXY
+  filter_upwards [eventually_lt_nhds hik] with j hjk
+  exact hk j hjk
+
 /-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.IsRightContinuous (X · ω)) := by
-  intro X hX τ hτ ω a
-  dsimp [stoppedProcess]
-  by_cases h_stop : (a : WithTop ι) < τ ω
-  · let S := {x : ι | ↑x < τ ω}
-    have hS_open : IsOpen S := isOpen_Iio.preimage WithTop.continuous_coe
-    have ne_bot : ⊥ < τ ω := by
-      rw [bot_lt_iff_ne_bot]
-      exact ne_bot_of_gt h_stop
-    have hS_mem : S ∈ 𝓝[>] a := mem_nhdsWithin_of_mem_nhds (hS_open.mem_nhds h_stop)
-    apply ContinuousWithinAt.congr_of_eventuallyEq (hX ω a)
-    · filter_upwards [hS_mem] with x hx
-      have h_xle : x < τ ω := by exact hx
-      simp_all only [Set.mem_setOf_eq, Set.indicator_of_mem, S]
-      rw [min_eq_left ]
-      · simp only [WithTop.untopD_coe]
-      exact Std.le_of_lt h_xle
-    · rw [min_eq_left h_stop.le]
-      simp only [WithTop.untopD_coe, Set.indicator_apply_eq_self, Set.mem_setOf_eq, not_lt,
-        le_bot_iff]
-      intro h_bot
-      simp_all only [not_lt_bot]
-  · apply continuousWithinAt_const.congr_of_eventuallyEq
-    · filter_upwards [self_mem_nhdsWithin] with x hx
-      simp only [Set.mem_Ioi] at hx
-      have h_bound : τ ω ≤ ↑x := le_trans (not_lt.mp h_stop) (le_of_lt (WithTop.coe_lt_coe.mpr hx))
-      simp_all only [not_lt, inf_of_le_right]
-      rfl
-    simp only [min_eq_right (not_lt.mp h_stop)]
+  refine isStable_pathwise (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun _ ↦ by fun_prop)
+    ?_ ?_
+  · intro X a hX i hai
+    specialize hX i
+    have h_eq : (fun x ↦ X (min x a)) =ᶠ[𝓝[>] i] fun _ ↦ X a := by
+      rw [eventuallyEq_nhdsWithin_iff]
+      filter_upwards [] with j hji
+      rw [min_eq_right]
+      grind
+    refine (EventuallyEq.congr_continuousWithinAt h_eq ?_).mpr ?_
+    · simp [hai]
+    · fun_prop
+  · intro X Y i hXY
+    refine EventuallyEq.congr_continuousWithinAt ?_ ?_
+    · rw [eventuallyEq_nhdsWithin_iff]
+      obtain ⟨k, hik, hk⟩ := hXY
+      filter_upwards [eventually_lt_nhds hik] with j hjk _
+      exact hk j hjk
+    · obtain ⟨k, hik, hk⟩ := hXY
+      exact hk i hik
 
 /-- The processes with left limits are a stable class. -/
 lemma isStable_left_limit :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, ∀ x, ∃ l, Tendsto (X · ω) (𝓝[<] x) (𝓝 l)) := by
-  intro X hX τ hτ ω x
-  dsimp [stoppedProcess]
-  by_cases h_stop : (x : WithTop ι) < τ ω
-  · obtain ⟨l, hl⟩ := hX ω x
-    use l
-    let S := {y : ι | ↑y < τ ω}
-    have hS_open : IsOpen S := isOpen_Iio.preimage WithTop.continuous_coe
-    have ne_bot : ⊥ < τ ω := by
-      rw [bot_lt_iff_ne_bot]
-      exact ne_bot_of_gt h_stop
-    have hS_mem : S ∈ 𝓝[<] x := mem_nhdsWithin_of_mem_nhds (hS_open.mem_nhds h_stop)
-    apply Filter.Tendsto.congr' _ hl
-    filter_upwards [hS_mem] with y hy
-    have h_ylt : y < τ ω := hy
-    simp_all only [Set.mem_setOf_eq, Set.indicator_of_mem, S]
-    rw [min_eq_left]
-    · simp only [WithTop.untopD_coe]
-    exact Std.le_of_lt h_ylt
-  · by_cases h_eq : (x : WithTop ι) = τ ω
-    · obtain ⟨l, hl⟩ := hX ω x
-      use l
-      apply Filter.Tendsto.congr' _ hl
-      have h_mem : {y : ι | ↑y < τ ω} ∈ 𝓝[<] x := by
-        have : {y : ι | ↑y < τ ω} = {y : ι | y < x} := by
-          ext y
-          simp only [Set.mem_setOf_eq]
-          rw [← h_eq, WithTop.coe_lt_coe]
-        rw [this]
-        exact self_mem_nhdsWithin
-      filter_upwards [h_mem] with y hy
-      have ne_bot : ⊥ < τ ω := by
-        exact bot_lt_of_lt hy
-      rw [min_eq_left (Std.le_of_lt hy)]
-      simp only [WithTop.untopD_coe]
-      simp_all only [lt_self_iff_false, not_false_eq_true, Set.mem_setOf_eq, Set.indicator_of_mem]
-    · have h_gt : τ ω < (x : WithTop ι) := lt_of_le_of_ne (not_lt.mp h_stop) (Ne.symm h_eq)
-      by_cases ne_bot : ⊥ < τ ω
-      · use Set.indicator {ω' | ⊥ < τ ω'} (fun ω' ↦ X ((τ ω').untopD ⊥) ω') ω
-        apply tendsto_const_nhds.congr'
-        obtain ⟨t, ht⟩ := WithTop.ne_top_iff_exists.mp
-            (WithTop.lt_top_iff_ne_top.mp <| lt_of_lt_of_le h_gt le_top)
-        have h_t_lt_x : t < x := by
-          rw [← ht] at h_gt
-          exact WithTop.coe_lt_coe.mp h_gt
-        have h_Ioi_mem : Set.Ioi t ∈ 𝓝[<] x :=
-          mem_nhdsWithin_of_mem_nhds (isOpen_Ioi.mem_nhds h_t_lt_x)
-        filter_upwards [h_Ioi_mem] with y hy
-        simp only [Set.mem_Ioi] at hy
-        simp_all only [not_lt, Set.mem_setOf_eq, Set.indicator_of_mem]
-        rw [← ht, min_eq_right <| WithTop.coe_mono hy.le]
-        simp only [WithTop.untopD_coe]
-      · use 0
-        apply tendsto_const_nhds.congr'
-        filter_upwards [self_mem_nhdsWithin] with y _
-        simp [ne_bot]
+  refine isStable_pathwise (fun X i ↦ ∃ l, Tendsto X (𝓝[<] i) (𝓝 l)) (fun i ↦ ?_) ?_ ?_
+  · exact ⟨0, tendsto_const_nhds⟩
+  · intro X a hX i hai
+    cases lt_or_eq_of_le hai with
+    | inl hai =>
+      refine ⟨X a, ?_⟩
+      have h_eq : (fun x ↦ X (min x a)) =ᶠ[𝓝[<] i] fun _ ↦ X a := by
+        rw [eventuallyEq_nhdsWithin_iff]
+        filter_upwards [eventually_gt_nhds hai] with j haj
+        rw [min_eq_right haj.le]
+        grind
+      rw [tendsto_congr' h_eq]
+      exact tendsto_const_nhds
+    | inr hai =>
+      simp only [hai]
+      obtain ⟨l, hl⟩ := hX i
+      refine ⟨l, hl.congr' ?_⟩
+      rw [eventuallyEq_nhdsWithin_iff]
+      filter_upwards [] with j hji
+      rw [min_eq_left]
+      grind
+  · intro X Y i hXY
+    have h_eq : X =ᶠ[𝓝[<] i] Y := by
+      rw [eventuallyEq_nhdsWithin_iff]
+      obtain ⟨k, hik, hk⟩ := hXY
+      filter_upwards [eventually_lt_nhds hik] with j hjk _
+      exact hk j hjk
+    constructor <;> rintro ⟨l, hl⟩ <;> refine ⟨l, hl.congr' ?_⟩
+    · exact h_eq
+    · exact h_eq.symm
 
 /-- The càdlàg processes are a stable class. -/
 lemma isStable_isCadlag :
@@ -213,11 +235,42 @@ lemma isStable_isCadlag :
     ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
       isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
 
+lemma isStable_continuous :
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Continuous (X · ω)) := by
+  simp_rw [continuous_iff_continuousAt]
+  refine isStable_pathwise (fun X i ↦ ContinuousAt X i) (fun _ ↦ by fun_prop) ?_ ?_
+  · intro X a hX i hai
+    cases lt_or_eq_of_le hai with
+    | inl hai =>
+      have h_eq : (fun x ↦ X (min x a)) =ᶠ[𝓝 i] fun _ ↦ X a := by
+        filter_upwards [eventually_gt_nhds hai] with j haj
+        rw [min_eq_right haj.le]
+      rw [continuousAt_congr h_eq]
+      fun_prop
+    | inr hai =>
+      simp only [hai]
+      specialize hX i
+      rw [continuousAt_iff_continuous_left'_right'] at hX ⊢
+      replace hX := hX.1
+      constructor
+      · refine (continuousWithinAt_congr ?_ (by simp)).mpr hX
+        grind
+      · have h_eq : (fun x ↦ X (min x i)) =ᶠ[𝓝[>] i] fun _ ↦ X i := by
+          rw [eventuallyEq_nhdsWithin_iff]
+          filter_upwards [] with j hij
+          grind
+        exact ContinuousWithinAt.congr_of_eventuallyEq (by fun_prop) h_eq (by simp)
+  · intro X Y i hXY
+    rw [continuousAt_congr]
+    obtain ⟨k, hik, hk⟩ := hXY
+    filter_upwards [eventually_lt_nhds hik] with j hjk
+    exact hk j hjk
+
 variable [𝓕.IsComplete P]
 
 lemma locally_rightContinuous_iff :
-    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P
-    ↔ ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
+    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
   ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
 
 lemma locally_left_limit_iff :
@@ -230,6 +283,12 @@ lemma locally_isCadlag_iff :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, IsCadlag (X · ω) :=
   ⟨fun h ↦ h.isCadlag, fun h ↦ locally_of_ae h
     ⟨fun _ ↦ continuousWithinAt_const, fun _ ↦ ⟨0, tendsto_const_nhds⟩⟩⟩
+
+lemma locally_continuous_iff :
+    Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P ↔ ∀ᵐ ω ∂P, Continuous (X · ω) := by
+  refine ⟨fun h ↦ h.continuous, fun h ↦ ?_⟩
+  simp_rw [continuous_iff_continuousAt] at h ⊢
+  exact locally_of_ae (p := fun f ↦ ∀ i, ContinuousAt f i) h (fun _ ↦ continuousAt_const)
 
 end TopologicalSpace
 

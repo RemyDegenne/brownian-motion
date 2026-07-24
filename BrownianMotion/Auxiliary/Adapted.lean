@@ -257,7 +257,7 @@ lemma AEStronglyAdapted.const {c : E} : AEStronglyAdapted (fun _ _ ↦ c) 𝓕 P
   (stronglyAdapted_const 𝓕 c).aestronglyAdapted
 
 /-- Given a `hX : AEStronglyAdapted` process `X`, `hX.mk X` is a strongly adapted process
-that is indistinguishable from `X`.  -/
+that is indistinguishable from `X`. -/
 noncomputable def AEStronglyAdapted.mk (X : ι → Ω → E) (hX : AEStronglyAdapted X 𝓕 P) :
     ι → Ω → E := hX.choose
 

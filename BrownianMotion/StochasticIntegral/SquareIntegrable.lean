@@ -8,6 +8,7 @@ module
 public import BrownianMotion.Auxiliary.AEEq
 public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.StochasticIntegral.LocalizingLeastGE
 public import BrownianMotion.StochasticIntegral.LocalMartingale
 public import Mathlib.Probability.Notation
 
@@ -22,12 +23,16 @@ import BrownianMotion.Gaussian.StochasticProcesses
 @[expose] public section
 
 open MeasureTheory Filter Function TopologicalSpace AEEqProcess
-open scoped ENNReal Topology RealInnerProductSpace
+open scoped ENNReal NNReal Topology RealInnerProductSpace
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [NormedAddCommGroup E]
+variable {ι Ω E : Type*} [NormedAddCommGroup E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+
+section LinearOrder
+
+variable [LinearOrder ι] [TopologicalSpace ι]
   {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
 section NormedSpace
@@ -95,6 +100,55 @@ lemma IsSquareIntegrable.memLp_two (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
   refine ⟨(hX.martingale.stronglyMeasurable i).aestronglyMeasurable.mono (𝓕.le i), ?_⟩
   grw [le_iSup (fun t ↦ eLpNorm (X t) 2 P)]
   exact hX.bounded
+
+omit [TopologicalSpace ι] [NormedSpace ℝ E] in
+@[simp, nontriviality]
+lemma stronglyAdapted_of_subsingleton_dom [Subsingleton Ω] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) :
+    StronglyAdapted 𝓕 X := by
+  intro i
+  exact .of_subsingleton_dom
+
+omit [TopologicalSpace ι] [NormedSpace ℝ E] in
+@[simp, nontriviality]
+lemma stronglyAdapted_of_subsingleton_cod [Subsingleton E] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) :
+    StronglyAdapted 𝓕 X := by
+  intro i
+  exact .of_subsingleton_cod
+
+omit [TopologicalSpace ι] in
+@[simp]
+lemma martingale_of_isEmpty [IsEmpty Ω] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    Martingale X 𝓕 P := by
+  refine ⟨?_, ?_⟩
+  · exact stronglyAdapted_of_subsingleton_dom _ _
+  · intro i j hij
+    have : P = 0 := Subsingleton.elim _ _
+    simp [this, Filter.EventuallyEq, Filter.eventually_bot]
+
+@[simp]
+lemma isSquareIntegrable_of_isEmpty [IsEmpty Ω]
+    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    IsSquareIntegrable X 𝓕 P := by
+  refine ⟨?_, ?_, ?_⟩
+  · exact martingale_of_isEmpty _ _ _
+  · intro ω
+    exfalso
+    exact isEmptyElim ω
+  · simp
+
+@[simp]
+lemma isLocallySquareIntegrable_of_isEmpty [OrderBot ι] [OrderTopology ι] [IsEmpty Ω]
+    (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  refine IsSquareIntegrable.isLocallySquareIntegrable ?_
+  exact isSquareIntegrable_of_isEmpty _ _ _
+
+lemma isSquareIntegrable_of_le_const (h_mart : Martingale X 𝓕 P) (h_cadlag : ∀ ω, IsCadlag (X · ω))
+    {C : ℝ≥0} (h_bound : ∀ i, eLpNorm (X i) 2 P ≤ C) :
+    IsSquareIntegrable X 𝓕 P := by
+  refine ⟨h_mart, h_cadlag, ?_⟩
+  rw [iSup_lt_iff]
+  exact ⟨C, by simp, h_bound⟩
 
 lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     Integrable (fun ω ↦ ‖X i ω‖ ^ 2) P := by
@@ -525,5 +579,167 @@ instance SquareIntegrable.completeSpace [OrderTopology ι] :
   toL2Isom.toIsometryEquiv.completeSpace
 
 end Hilbert
+
+end LinearOrder
+
+section ConditionallyCompleteLinearOrderBot
+
+variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+  [NormedSpace ℝ E]
+  {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P]
+  [Approximable 𝓕 P]
+
+lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E]
+    (hX : Martingale X 𝓕 P) (h_cadlag : ∀ ω, IsCadlag (X · ω))
+    {C : ℝ} (h_jump : ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  rcases isEmpty_or_nonempty Ω with hΩ | hΩ
+  · exact isLocallySquareIntegrable_of_isEmpty _ _ _
+  let τ : ℕ → Ω → WithTop ι := fun n ↦ leastGE (fun i ω ↦ ‖X i ω‖) n
+  refine ⟨τ, isLocalizingSequence_leastGE 𝓕 hX.stronglyAdapted.norm (fun ω ↦ (h_cadlag ω).norm),
+    fun n ↦ ?_⟩
+  let Y := (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n))
+  have hX_lt {t : ι} {ω : Ω} (ht : t < τ n ω) : ‖X t ω‖ < n := by
+    unfold τ leastGE at ht -- todo: missing lemma about lt_leastGE?
+    have := notMem_of_lt_hittingAfter ht (by simp)
+    grind
+  have hY_le t ω : ‖Y t ω‖ ≤ (n : ℝ) + ‖Δ (X · ω) (τ n ω).untopA‖ :=
+    stoppedAtNorm_le_add_jump h_cadlag t ω (by simp)
+  borelize ι E
+  have h_stop : IsStoppingTime 𝓕 (τ n) := by
+    refine isStoppingTime_leastGE P (IsStronglyProgressive.norm ?_) (n : ℝ) (𝓕 := 𝓕)
+    exact StronglyAdapted.isStronglyProgressive_of_rightContinuous hX.stronglyAdapted
+      fun ω ↦ (h_cadlag ω).right_continuous
+  refine isSquareIntegrable_of_le_const (C := NNReal.mk (P.real .univ ^ (2 : ℝ)⁻¹ * (n +  C)) ?_)
+    ?_ ?_ fun i ↦ ?_
+  · exact hX.stoppedProcess_indicator (fun ω ↦ (h_cadlag ω).right_continuous) h_stop
+  · exact isStable_isCadlag (𝓕 := 𝓕) X h_cadlag (τ n) h_stop
+  · suffices 0 ≤ C by positivity
+    let ω₀ := hΩ.some
+    specialize h_jump ⊥ ω₀
+    exact (norm_nonneg _).trans h_jump
+  · rw [ENNReal.coe_nnreal_eq, NNReal.coe_mk, ENNReal.ofReal_mul (by positivity),
+      ← ENNReal.ofReal_rpow_of_nonneg (by positivity) (by positivity),
+      Measure.real_def, ENNReal.ofReal_toReal (by simp)]
+    refine eLpNorm_le_of_ae_bound (ae_of_all _ fun ω ↦ ?_)
+    grw [hY_le _ ω]
+    gcongr
+    exact h_jump _ _
+
+lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_continuous
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι]
+    (hX : Martingale X 𝓕 P) (h_cont : ∀ ω, Continuous (X · ω)) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  refine hX.isLocallySquareIntegrable_of_jump_le (fun ω ↦ (h_cont ω).isCadlag) (fun t ω ↦ ?_)
+    (C := 0)
+  by_cases hτ_bot : t = ⊥
+  · simp [hτ_bot]
+  rw [(h_cont ω).continuousAt.jump_eq_zero]
+  · simp
+  · suffices (𝓝[<] t).NeBot from this.ne
+    refine nhdsLT_neBot_of_exists_lt ?_
+    exact ⟨⊥, by grind⟩
+
+lemma isStable_isSquareIntegrable
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι] :
+    IsStable 𝓕 fun X : ι → Ω → E ↦ IsSquareIntegrable X 𝓕 P := by
+  borelize ι E
+  have h_iff (X : ι → Ω → E) : IsSquareIntegrable X 𝓕 P ↔
+      ((Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) ∧ ⨆ i, eLpNorm (X i) 2 P < ∞) :=
+    ⟨fun h ↦ ⟨⟨h.martingale, h.cadlag⟩, h.bounded⟩, fun h ↦ ⟨h.1.1, h.1.2, h.2⟩⟩
+  simp_rw [h_iff]
+  refine IsStable.and isStable_martingale ?_
+  intro X hX τ hτ
+  -- 6.11.1 in He et al., using 6.8.1
+  sorry
+
+omit [NormedSpace ℝ E] [𝓕.IsRightContinuous] in
+lemma isStable_jump_le {C : ℝ} (hC : 0 ≤ C) :
+    IsStable 𝓕 fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C := by
+  suffices IsStable 𝓕 fun X ↦ ∀ ω i, ‖Δ (X · ω) i‖ ≤ C by
+    convert this
+    exact ⟨fun h i ω ↦ h ω i, fun h ω i ↦ h i ω⟩
+  refine isStable_pathwise (fun (X : ι → E) i ↦ ‖Δ X i‖ ≤ C) (𝓕 := 𝓕) (fun i ↦ ?_) ?_ ?_
+  · simp [hC]
+  · intro X i hX j hij
+    cases lt_or_eq_of_le hij with
+    | inl hij =>
+      suffices Δ (fun x ↦ X (min x i)) j = 0 by simp [this, hC]
+      unfold jump
+      split_ifs with h
+      · simp only [hij.le, inf_of_le_right]
+        rw [min_eq_right]
+        · simp
+        · by_contra! h_lt
+          have h_covBy := h.choose_spec.2 h_lt
+          grind
+      · have ht_ne_bot : 𝓝[<] j ≠ ⊥ := by
+          rw [ne_eq, nhdsLT_eq_bot_iff]
+          simp only [isBot_iff_eq_bot, h, or_false]
+          intro ht_bot
+          simp [ht_bot] at hij
+        simp only [hij.le, inf_of_le_right]
+        rw [leftLim_congr' (g := fun _ ↦ X i)]
+        · simp [leftLim_eq_of_tendsto (y := X i) ht_ne_bot tendsto_const_nhds]
+        · exact ht_ne_bot
+        · rw [eventuallyEq_nhdsWithin_iff]
+          filter_upwards [eventually_gt_nhds hij] with s hsτ hst
+          rw [min_eq_right]
+          exact hsτ.le
+        · rw [min_eq_right hij.le]
+    | inr h =>
+      convert hX j using 2
+      rw [jump_congr]
+      grind
+  · intro X Y i ⟨k, hik, hk⟩
+    rw [jump_congr]
+    intro s hsi
+    exact hk s (hsi.trans_lt hik)
+
+omit [NormedSpace ℝ E] [𝓕.IsRightContinuous] [IsFiniteMeasure P] [Approximable 𝓕 P] in
+lemma locally_jump_le_iff {C : ℝ} (hC : 0 ≤ C) {X : ι → Ω → E} :
+    Locally (fun X ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) 𝓕 X P ↔ ∀ᵐ ω ∂P, ∀ t, ‖Δ (X · ω) t‖ ≤ C := by
+  have h := locally_iff_ae (fun (X : ι → E) t ↦ ‖Δ X t‖ ≤ C) ?_ ?_ (𝓕 := 𝓕) (P := P) (X := X)
+  rotate_left
+  · simp [hC]
+  · intro X Y i ⟨k, hik, hk⟩
+    rw [jump_congr]
+    intro s hsi
+    exact hk s (hsi.trans_lt hik)
+  rw [← h]
+  congr!
+  exact ⟨fun h ω t ↦ h t ω, fun h t ω ↦ h ω t⟩
+
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le [DenselyOrdered ι]
+    [NoMaxOrder ι] [PolishSpace ι]
+    [SecondCountableTopology E] [CompleteSpace E]
+    (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C)
+    (h_jump : ∀ᵐ ω ∂P, ∀ t, ‖Δ (X · ω) t‖ ≤ C) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  borelize ι E
+  rw [← locally_jump_le_iff (𝓕 := 𝓕) hC] at h_jump
+  refine IsStable.locally_induction₂
+    (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
+    (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) ?_ isStable_martingale
+    (isStable_jump_le hC) isStable_isSquareIntegrable hX h_jump
+  intro X hX hX_jump
+  exact hX.1.isLocallySquareIntegrable_of_jump_le hX.2 hX_jump
+
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_continuous [DenselyOrdered ι]
+    [NoMaxOrder ι] [PolishSpace ι]
+    [SecondCountableTopology E] [CompleteSpace E]
+    (hX : IsLocalMartingale X 𝓕 P) (h_cont : ∀ᵐ ω ∂P, Continuous (X · ω)) :
+    IsLocallySquareIntegrable X 𝓕 P := by
+  borelize ι E
+  rw [← locally_continuous_iff (𝓕 := 𝓕)] at h_cont
+  refine IsStable.locally_induction₂
+    (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
+    (p := fun X : ι → Ω → E ↦ ∀ ω, Continuous (X · ω)) ?_ isStable_martingale
+    isStable_continuous isStable_isSquareIntegrable hX h_cont
+  intro X hX hX_cont
+  exact hX.1.isLocallySquareIntegrable_of_continuous hX_cont
+
+end ConditionallyCompleteLinearOrderBot
 
 end ProbabilityTheory

@@ -100,8 +100,6 @@ lemma isLocalizingSequence_localizingSequenceOfProp [IsComplete 𝓕 P] {p : (ι
     filter_upwards [hpX] with ω hω
     simp [LocalizingSequenceOfProp, if_pos hω]
 
-variable [Zero E]
-
 end LinearOrder
 
 end cadlag

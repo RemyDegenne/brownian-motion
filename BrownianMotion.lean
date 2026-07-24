@@ -59,10 +59,12 @@ public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.ConvexWeights
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.Jump
 public import BrownianMotion.StochasticIntegral.Komlos
 public import BrownianMotion.StochasticIntegral.L2M
 public import BrownianMotion.StochasticIntegral.LocalMartingale
 public import BrownianMotion.StochasticIntegral.LocalMonad
+public import BrownianMotion.StochasticIntegral.LocalizingLeastGE
 public import BrownianMotion.StochasticIntegral.LocalizingSequence
 public import BrownianMotion.StochasticIntegral.Locally
 public import BrownianMotion.StochasticIntegral.MathlibImports
