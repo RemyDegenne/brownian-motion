@@ -9,8 +9,10 @@ public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.Auxiliary.FiniteInf
 public import BrownianMotion.Auxiliary.HasGaussianLaw
 public import BrownianMotion.Auxiliary.HasLaw
+public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.IsStoppingTime
 public import BrownianMotion.Auxiliary.Jensen
+public import BrownianMotion.Auxiliary.LimitProcess
 public import BrownianMotion.Auxiliary.LinearAlgebra
 public import BrownianMotion.Auxiliary.Martingale
 public import BrownianMotion.Auxiliary.MeanInequalities
@@ -23,6 +25,7 @@ public import BrownianMotion.Auxiliary.SetAlgebra
 public import BrownianMotion.Auxiliary.StandardBorel
 public import BrownianMotion.Auxiliary.StoppedProcess
 public import BrownianMotion.Auxiliary.Topology
+public import BrownianMotion.Auxiliary.Upcrossing
 public import BrownianMotion.Auxiliary.WithLp
 public import BrownianMotion.Choquet.AnalyticSet
 public import BrownianMotion.Choquet.Capacity

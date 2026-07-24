@@ -255,6 +255,19 @@ TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tends
 \end{proof}
 
 
+\begin{lemma}\label{lem:IsSquareIntegrable.limitProcess_add}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.limitProcess_add}
+For $M$ and $N$ two square integrable martingales, $(M + N)_\infty$ and $M_\infty + N_\infty$ are a.e. equal.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.tendsto_limitProcess}
+Lemma~\ref{lem:limitProcess_ae_eq} with $g := M_\infty + N_\infty$.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
 For $M$ a square integrable martingale,
@@ -270,26 +283,55 @@ For $M$ a square integrable martingale,
 
 \end{proof}
 
+\begin{lemma}\label{lem:tendsto_ae_condExp}
+  \leanok
+  \lean{ProbabilityTheory.tendsto_ae_condExp'}
+  For $f : \Omega \to E$, we have almost surely that
+  \begin{equation*}
+    \lim_{t \to +\infty} P[f | \mathcal{F}_t] = P\left[f | \bigsqcup_t \mathcal{F}_t\right].
+  \end{equation*}
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
+\begin{lemma}\label{lem:condExp_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.condExp_limitProcess_ae_eq}
+  For $M$ a square integrable martingale and $t \in T$, we have that $P[X_\infty | \mathcal{F}_t]$ is a.e. equal to $X_t$.
+\end{lemma}
+
+\begin{proof}
+
+\end{proof}
+
 
 \begin{definition}\label{def:L2Martingales}
   \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable}
 We denote by $\mathcal{M}^2(E)$ or simply $\mathcal{M}^2$ the space of equivalence classes with respect to indistinguishability of square integrable martingales $T \to \Omega \to E$~.
 \end{definition}
 
 
 \begin{lemma}\label{lem:L2Martingales.module}
   \uses{def:L2Martingales}
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable}
 The space $\mathcal{M}^2(E)$ is a real vector space.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:IsSquareIntegrable.module}
-
+  \uses{lem:IsSquareIntegrable.module, lem:limitProcess_congr, lem:limitProcess_add, lem:limitProcess_smul}
 \end{proof}
 
 
 \begin{definition}\label{def:L2Martingales.norm}
   \uses{def:L2Martingales, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable.normedAddCommGroup}
 We define a norm on $\mathcal{M}^2$ by
 \begin{align*}
   \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
@@ -300,17 +342,21 @@ We define a norm on $\mathcal{M}^2$ by
 
 \begin{lemma}\label{lem:L2Martingales.norm_eq_zero}
   \uses{def:L2Martingales.norm}
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable.injective_toL2}
 For $M \in \mathcal{M}^2(E)$, $\Vert M \Vert = 0$ if and only if $M = 0$.
 \end{lemma}
 
 \begin{proof}
   \uses{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
-By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Vert M \Vert = 0$ if and only if for all $t \in T$, $\Vert M_t \Vert_{L^2} = 0$~.
+By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Vert M \Vert = 0$ if and only if for all $t \in T$, $\Vert M_t \Vert_{L^2} = 0$~. Because $M$ is càdlàg, this implies that $M$ is indistinguishable from $0$.
 \end{proof}
 
 
 \begin{definition}\label{def:L2Martingales.inner}
   \uses{def:L2Martingales.norm}
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable.innerProductSpace}
 We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle_{\mathcal{M}^2} = \mathbb{E}[M_\infty N_\infty]
@@ -321,20 +367,23 @@ We define an inner product on $\mathcal{M}^2$ by
 
 \begin{theorem}\label{thm:hilbertSpace_L2Martingales}
   \uses{def:L2Martingales.inner, lem:L2Martingales.norm_eq_zero}
-The space $\mathcal{M}^2$ is a Hilbert space.
+  \leanok
+  \lean{ProbabilityTheory.SquareIntegrable.completeSpace}
+If $T$ is separable then the space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm, lem:L2Martingales.module}
-We already know that $\mathcal{M}^2$ is an inner product space.
-We need to show that it is complete.
+  \uses{lem:L2Martingales.module, lem:exists_cadlag_mod_of_local_mg}
+  We show that the map
+  \begin{align*}
+    \phi : \mathcal{M}^2 & \to \left\{f \in L^2(E, P) | f \text{ is } \left(\bigsqcup_t, \mathcal{F}_t\right)\text{-strongly measurable}\right\} \\
+    M & \mapsto M_\infty
+  \end{align*}
+  is a bijective isometry. It is an isometry by Definition~\ref{def:L2Martingales.norm}. We define the inverse $\psi$ as the map which to $f$ associates a càdlàg martingale that is a modification of $t \mapsto P[f | \mathcal{F}_t]$, given by Lemma~\ref{lem:exists_cadlag_mod_of_local_mg}.
 
-It suffices to show that every Cauchy sequence with a distance bound converges to a limit in $\mathcal{M}^2$.
-Namely, we can consider sequences $(M^n)_{n \in \mathbb{N}}$ in $\mathcal{M}^2$ such that for $n, m \ge N$, $\Vert M^n - M^m \Vert < 2^{-N}$ (See \texttt{Metric.complete\_of\_convergent\_controlled\_sequences}, or the \texttt{EMetric} version).
+  Let $M$ be a square integrable martingale. Then for any $t$, $M_t$ is a.e. equal to $P[M_\infty | \mathcal{F}_t]$ by Lemma~\ref{lem:condExp_limitProcess}, thus $M$ is a càdlàg modification of $t \mapsto P[f | \mathcal{F}_t]$, thus it is indistinguishable from $\psi(M_\infty)$.
 
-Let then $(M^n)_{n \in \mathbb{N}}$ be such a Cauchy sequence.
-
-TODO
+  Let $f \in L^2(E, P)$ be a.e. strongly measurable with respect to $\bigsqcup_t \mathcal{F}_t$. Then by Lemma~\ref{lem:tendsto_ae_condExp} we know that almost surely $P[f | \mathcal{F}_t]$ converges to $f$. Because $T$ is separable we can consider $(t_n)$ a sequence of points that tends to infinity. Because $\psi(f)$ and $P[f | \mathcal{F}_t]$ are modifications of each other, we have that almost surely, for all $n \in \mathcal{N}$, $\psi(f)_{t_n} = P[f | \mathcal{F}_{t_n}]$. But we also know that $\psi(f)_{t_n}$ converges to $\psi(f)_\infty$ so we conclude that $\psi(f)_\infty$ is a.e. equal to f.
 \end{proof}
 
 
