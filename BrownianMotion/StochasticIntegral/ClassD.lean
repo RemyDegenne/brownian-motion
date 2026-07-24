@@ -401,7 +401,7 @@ private lemma stoppedValue_stoppedProcess_dominated_le (X : ι → Ω → E) (h�
     fun ω ↦ ne_of_lt (lt_of_le_of_lt inf_le_left (lt_top_iff_ne_top.mpr (σ.2.2 ω)))
   refine ⟨⟨ρ_val, h_ρ_stop, h_ρ_finite⟩, fun ω ↦ inf_le_left, ?_⟩
   filter_upwards with ω
-  simp only [stoppedValue, stoppedProcess, Set.indicator, Set.mem_setOf_eq, ρ_val]
+  simp only [stoppedValue, stoppedProcess, Set.indicator, Set.mem_ofPred_eq, ρ_val]
   split_ifs with h_bot
   · apply le_of_eq
     congr
@@ -431,7 +431,7 @@ lemma _root_.MeasureTheory.IsStronglyProgressive.hasStronglyMeasurableSupProcess
     _ = {tω | ∃ s < tω.1, a < ‖X s tω.2‖ₑ} ∪ {tω | a < ‖X tω.1 tω.2‖ₑ} := by ext; simp; grind
     _ = {tω | τ a.toReal tω.2 < tω.1} ∪ {tω | a < ‖X tω.1 tω.2‖ₑ} := by
       ext ⟨t, ω⟩
-      simp only [Set.mem_union, Set.mem_setOf_eq, τ]
+      simp only [Set.mem_union, Set.mem_ofPred_eq, τ]
       rw [leastGT_lt_iff]
       simp_rw [← toReal_enorm, ENNReal.toReal_lt_toReal ha_top enorm_ne_top]
   rw [this]
@@ -454,7 +454,7 @@ lemma isStable_hasStronglyMeasurableSupProcess [SecondCountableTopology ι] :
   have key_eq : (fun p : ι × Ω ↦ ⨆ s ≤ p.1, ‖stoppedProcess
           (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ s p.2‖ₑ) =
       {p | ⊥ < τ p.2}.indicator (fun p ↦ ⨆ s ≤ (M p).1, ‖X s (M p).2‖ₑ) := by
-    ext ⟨t, ω⟩; simp only [M, stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
+    ext ⟨t, ω⟩; simp only [M, stoppedProcess, Set.indicator_apply, Set.mem_ofPred_eq]
     split_ifs with h
     swap; · simp
     apply le_antisymm
@@ -486,7 +486,7 @@ lemma isStable_hasIntegrableSup [SecondCountableTopology ι] :
   refine lt_of_le_of_lt (lintegral_mono fun ω ↦ ?_) h_bound
   apply iSup₂_le
   intro s hs
-  simp only [stoppedProcess, Set.indicator_apply, Set.mem_setOf_eq]
+  simp only [stoppedProcess, Set.indicator_apply, Set.mem_ofPred_eq]
   split_ifs with h_bot
   · refine le_iSup₂_of_le (min ↑s (τ ω)).untopA ?_ le_rfl
     · rw [WithTop.untopA_le_iff]
@@ -598,14 +598,14 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
       rw [this]
       exact UniformIntegrable.comp (hX.2 (v n)) f
     · by_cases hb : ⊥ < (v n : WithTop ι)
-      · simp only [hb, Set.setOf_true, Set.indicator_univ, ne_eq, Set.mem_setOf_eq]
+      · simp only [hb, Set.ofPred_true, Set.indicator_univ, ne_eq, Set.mem_ofPred_eq]
         refine AEStronglyMeasurable.congr ?_ (stoppedValue_stoppedProcess_ae_eq ?_).symm
         · refine (StronglyMeasurable.mono ?_ (𝓕.le' (v n))).aestronglyMeasurable
           refine stronglyMeasurable_stoppedValue_of_le hX.1 ((T.2.1).min_const _) (fun ω => ?_)
           grind
         · exact ae_of_all P T.2.2
       · unfold stoppedValue
-        simp only [hb, Set.setOf_false, Set.indicator_empty, ne_eq, Set.mem_setOf_eq,
+        simp only [hb, Set.ofPred_false, Set.indicator_empty, ne_eq, Set.mem_ofPred_eq,
           stoppedProcess_const]
         fun_prop
     · by_cases hb : ⊥ < (v n : WithTop ι)
@@ -779,7 +779,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
         simp only [rhs, dom, add_le_add_iff_left]
         rw [Set.indicator]
         split_ifs with h
-        · simp only [Set.mem_setOf_eq] at h
+        · simp only [Set.mem_ofPred_eq] at h
           simp only [stoppedValue, Pi.inf_apply]
           rw [min_eq_left h]
         · simp only [norm_nonneg]
@@ -787,7 +787,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
         ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n) s ω‖ₑ
       _ ≤ ⨆ s, ⨆ (_ : s ≤ t), ‖stoppedProcess X (τ n) s ω‖ₑ := by
         gcongr with s hs
-        simp only [stoppedProcess, Set.indicator, Set.mem_setOf_eq]
+        simp only [stoppedProcess, Set.indicator, Set.mem_ofPred_eq]
         split_ifs <;> simp
       _ ≤ ENNReal.ofReal (rhs t ω) := by
         rw [iSup_subtype']
@@ -856,7 +856,7 @@ lemma IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] 
     · exact ⟨hX, .of_prop hX_nonneg⟩
     · intro X hX τ hτ i ω
       -- todo: stoppedProcess_nonneg
-      simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_setOf_eq]
+      simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_ofPred_eq]
       split_ifs with h
       · exact hX _ _
       · rfl

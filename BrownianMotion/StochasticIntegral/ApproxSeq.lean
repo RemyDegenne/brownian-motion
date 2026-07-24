@@ -96,7 +96,7 @@ lemma nnrealApproxSeq_isStoppingTime (𝓕 : Filtration ℝ≥0 mΩ)
   suffices MeasurableSet[𝓕 t] {ω | τ ω ≤ s} by
     convert this using 1
     ext ω
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     exact nnrealApproxSeq_le_iff τ n ω t
   exact 𝓕.mono' (div_le_of_le_mul₀ h2.le (by positivity) (Nat.floor_le (by positivity))) _ (hτ s)
 
@@ -205,7 +205,7 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
         τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
       have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
-        simp only [ne_eq, mem_atTop_sets, Set.mem_setOf_eq]
+        simp only [ne_eq, mem_atTop_sets, Set.mem_ofPred_eq]
         by_contra!
         have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
           simp only [tendsto_atTop_nhds]

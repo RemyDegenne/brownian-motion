@@ -481,7 +481,7 @@ lemma tauMesh_lt_top_subset_of_lt {ι Ω : Type*} [TopologicalSpace ι] [SecondC
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
     (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) {a b : ℝ} (hab : a ≤ b) :
     {ω | tauMesh S 𝓕 P n b ω < (⊤ : mesh ι n)} ⊆ {ω | tauMesh S 𝓕 P n a ω < (⊤ : mesh ι n)} := by
-  simp_all only [tauMesh, WithTop.coe_lt_coe, Set.setOf_subset_setOf]
+  simp_all only [tauMesh, WithTop.coe_lt_coe, Set.ofPred_subset_ofPred]
   exact fun ω hω => (hittingBtwn_anti ((fun t ω ↦ _root_.predictablePart (S ∘ Subtype.val)
     (meshFiltration 𝓕 n) P (succ t) ω)) ⊥ ⊤ (antitone_Ioi hab) ω).trans_lt hω
 
@@ -517,7 +517,8 @@ lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
       refine setIntegral_mono_on_ae ?_ ?_ ?_ ?_
       · exact (hs.integrableOn_const_tauMesh_lt_top n hc).div_const 2
       · exact (hpred_int.sub hstopped_pred_int).integrableOn
-      · refine (((isStoppingTime_tauMesh S 𝓕 P n c).measurableSet _).1 ?_).1
+      · refine (iSup_le (meshFiltration 𝓕 n).le) _
+          (((isStoppingTime_tauMesh S 𝓕 P n c).measurableSet _).1 ?_).1
         exact (isStoppingTime_tauMesh S 𝓕 P n c).measurableSet_lt' ⊤
       · filter_upwards [hs.tauMesh_lt_top_eq_lt_predictableSeqTop n hc] with ω hτ hω
         have : c < predictableSeqTop S 𝓕 P n ω := hτ.mp hω
@@ -553,7 +554,8 @@ lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     _ = _ := by
       rw [← integral_sub integrable_condExp.restrict hstopped_pred_int.integrableOn, ← integral_neg]
       · refine setIntegral_congr_ae ?_ ?_
-        · refine (((isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet _).1 ?_).1
+        · refine (iSup_le (meshFiltration 𝓕 n).le) _
+            (((isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet _).1 ?_).1
           exact (isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet_lt' ⊤
         · filter_upwards [equation4 hstop (tauMesh_le_top S 𝓕 P n (c / 2))
             (isStoppingTime_tauMesh S 𝓕 P n (c / 2))] with ω hω _

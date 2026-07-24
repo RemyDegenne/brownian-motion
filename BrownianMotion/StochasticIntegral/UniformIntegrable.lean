@@ -106,7 +106,7 @@ lemma eLpNorm_indicator_tail_eq_setIntegral_of_nonneg {f : Ω → ℝ}
   _ = ∫ (ω : Ω) in {ω | c < f ω}, ‖f ω‖ ∂μ := by
     apply setIntegral_congr_set
     filter_upwards [hnonneg] with ω hω
-    simp [setOf, abs_of_nonneg hω]
+    simp [Set.ofPred, abs_of_nonneg hω]
   _ = _ := by
     refine setIntegral_congr_fun₀
       (aestronglyMeasurable_const.nullMeasurableSet_lt hf.aestronglyMeasurable) fun ω hω => ?_

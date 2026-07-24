@@ -84,7 +84,7 @@ lemma Locally.ae (p : (ι → E) → ι → Prop)
   have h := hτ.2 N ω i
   by_cases hτ_top : τ N ω = ⊤
   · simpa [stoppedProcess, hτ_top] using h
-  simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_ne_bot, Set.indicator_of_mem] at h
+  simp only [stoppedProcess, Set.mem_ofPred_eq, Ne.bot_lt hτ_ne_bot, Set.indicator_of_mem] at h
   refine (hp_congr _ _ i ?_).mp h
   simp only [Set.mem_Ioi] at hNi
   have hNi' : i < (τ N ω).untopA := by rwa [WithTop.lt_untopA_iff hτ_top]
@@ -101,10 +101,10 @@ lemma isStable_pathwise (p : (ι → E) → ι → Prop)
     IsStable 𝓕 (fun X ↦ ∀ ω i, p (X · ω) i) := by
   intro X hX τ hτ ω i
   by_cases hτ_bot : τ ω = ⊥
-  · simp only [stoppedProcess, hτ_bot, bot_le, inf_of_le_right, Set.mem_setOf_eq,
+  · simp only [stoppedProcess, hτ_bot, bot_le, inf_of_le_right, Set.mem_ofPred_eq,
       lt_self_iff_false, not_false_eq_true, Set.indicator_of_notMem]
     exact hp_zero i
-  simp only [stoppedProcess, Set.mem_setOf_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem]
+  simp only [stoppedProcess, Set.mem_ofPred_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem]
   specialize hX ω
   by_cases hτ_top : τ ω = ⊤
   · simpa [hτ_top] using hX i

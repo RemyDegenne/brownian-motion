@@ -161,7 +161,7 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
       ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
   classical
   intro C hC hC_empty
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
     forall_const] at hC
   choose s f hf hCfs using hC
   simp_rw [Set.dissipate, ← hCfs]
@@ -236,7 +236,7 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
     (IsCompactSystem.sigma_ofFintype hQ)
   convert h_equiv using 1
   ext t
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
   constructor
   · rintro ⟨hl, hr⟩
     exact ⟨fun | true => Sum.inr ⁻¹' t | false => Sum.inl ⁻¹' t,

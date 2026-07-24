@@ -89,7 +89,7 @@ lemma stoppedAtNorm_of_nonpos {ι : Type*} [ConditionallyCompleteLinearOrderBot 
   refine le_antisymm ?_ bot_le
   rw [csInf_le_iff (by simp) ⟨⊥, by simpa⟩]
   refine fun i hi ↦ ?_
-  simp only [mem_lowerBounds, Set.mem_setOf_eq] at hi
+  simp only [mem_lowerBounds, Set.mem_ofPred_eq] at hi
   exact hi ⊥ h_le
 
 @[to_dual]
@@ -120,7 +120,7 @@ lemma stoppedAtNorm_le_add_jump
     simp [hτ_bot, this, stoppedProcess, hn]
   by_cases hτ_top : τ n ω = ⊤
   · rw [stoppedProcess_eq_of_le (by simp [hτ_top])]
-    simp only [Set.mem_setOf_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem]
+    simp only [Set.mem_ofPred_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem]
     grw [hX_lt (by simp [hτ_top])]
     simp
   rcases lt_or_ge t (τ n ω).untopA with hlt | hge
@@ -131,7 +131,7 @@ lemma stoppedAtNorm_le_add_jump
     simp
   · have hge' : τ n ω ≤ t := by rwa [WithTop.untopA_le_iff hτ_top] at hge
     rw [stoppedProcess_eq_of_ge hge']
-    simp only [Set.mem_setOf_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem, ge_iff_le]
+    simp only [Set.mem_ofPred_eq, Ne.bot_lt hτ_bot, Set.indicator_of_mem, ge_iff_le]
     by_cases! h_covBy : ∃ s, s ⋖ (τ n ω).untopA
     · obtain ⟨s, hs_covBy⟩ := h_covBy
       rw [jump_of_covBy hs_covBy]

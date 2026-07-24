@@ -458,7 +458,7 @@ lemma IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable
     · suffices m3 ≤ (.comap (fun ω (t : Set.Iic ε) ↦ X t ω) MeasurableSpace.pi) from this A hA
       apply iInf₂_le_of_le ε hε1
       rw [natural_eq_comap]
-    simp only [Set.setOf_subset_setOf, ← measurableSpace_le_iff]
+    simp only [Set.ofPred_subset_ofPred, ← measurableSpace_le_iff]
     apply comap_le_comap (fun x t ↦ x (t.1 - ε)) (by fun_prop)
     ext ω t
     simp only [Function.comp_apply, sub_left_inj]
@@ -720,7 +720,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
   -- To show measurability it is therefore enough to show the measurability of each term.
   apply MeasurableSet.sUnion
   · let f : Set (Set Y) → Set C(X, Y) := fun I ↦ {f : C(X, Y) | Set.MapsTo (⇑f) K (⋃₀ I)}
-    refine ((Set.countable_setOf_finite_subset cW).image f).mono ?_
+    refine ((Set.countable_ofPred_finite_subset cW).image f).mono ?_
     rintro - ⟨I, hI1, hI2, rfl⟩
     exact ⟨I, ⟨hI1, hI2⟩, rfl⟩
   -- Consider now `I` a finite subset of `W`.

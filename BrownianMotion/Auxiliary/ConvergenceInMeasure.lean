@@ -30,12 +30,12 @@ lemma TendstoInMeasure.add {ι E : Type*} [NormedAddCommGroup E]
   have h_subset1 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
       ⊆ {x | ε ≤ edist (f i x) (l₁ x) + edist (g i x) (l₂ x)} := by
     intro x hx
-    simp only [Set.mem_setOf_eq] at hx ⊢
+    simp only [Set.mem_ofPred_eq] at hx ⊢
     exact hx.trans (edist_add_add_le _ _ _ _)
   have h_subset2 i : {x | ε ≤ edist (f i x + g i x) (l₁ x + l₂ x)}
       ⊆ {x | ε / 2 ≤ edist (f i x) (l₁ x)} ∪ {x | ε / 2 ≤ edist (g i x) (l₂ x)} := by
     refine (h_subset1 i).trans fun x ↦ ?_
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     contrapose!
     intro ⟨h1, h2⟩
     conv_rhs => rw [← ENNReal.add_halves ε]

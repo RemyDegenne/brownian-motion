@@ -406,7 +406,7 @@ private lemma komlosTrunc_tail_eLpNorm {P : Measure Ω} {f : ℕ → Ω → E}
     refine iSup_mono fun m ↦ eLpNorm_mono fun ω ↦ ?_
     rw [htail i m, htail j m]
     refine norm_indicator_le_of_subset (Set.compl_subset_compl.mpr fun ω hω ↦ ?_) (f m) ω
-    exact (Set.mem_setOf_eq ▸ hω).trans (by exact_mod_cast hij)
+    exact (Set.mem_ofPred_eq ▸ hω).trans (by exact_mod_cast hij)
   · obtain ⟨r, -, hr0, hrε⟩ := ENNReal.lt_iff_exists_real_btwn.mp hε
     obtain ⟨C, hC⟩ := hf.spec one_ne_zero ENNReal.one_ne_top (ENNReal.ofReal_pos.mp hr0)
     refine ⟨⌈(C : ℝ)⌉₊, (iSup_le fun m ↦ le_trans (eLpNorm_mono fun ω ↦ ?_) (hC m)).trans hrε.le⟩
