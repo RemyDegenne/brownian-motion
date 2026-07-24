@@ -228,6 +228,7 @@ lemma integrable_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
     Integrable (predictableSeqTop S 𝓕 P n) P :=
   integrable_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the predictable parts of a martingale vanish on every mesh. -/
 lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -255,6 +256,7 @@ lemma martingaleSeqTop_add {ι Ω E : Type*} [TopologicalSpace ι] [SecondCounta
       martingaleSeqTop S₁ 𝓕 P n + martingaleSeqTop S₂ 𝓕 P n :=
   martingalePart_add (fun t : mesh ι n ↦ hS₁ t) (fun t ↦ hS₂ t) ⊤
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the martingale parts of a martingale are its terminal value on every
 mesh. -/
 lemma martingaleSeqTop_eq_self_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
@@ -393,6 +395,7 @@ lemma stoppedValue_le_neg_condExp_predictableSeqTop_add_const {ι Ω : Type*} [T
   rw [heqω]
   exact add_le_add_right (stoppedValue_predictablePart_tauMesh_le S 𝓕 P n hc ω) _
 
+set_option backward.isDefEq.respectTransparency false in
 /-- `{τₙ(c) < 1} = {c < Aⁿ₁}`. -/
 lemma MeasureTheory.Submartingale.tauMesh_lt_top_eq_lt_predictableSeqTop {ι Ω : Type*}
     [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -431,6 +434,7 @@ lemma MeasureTheory.Submartingale.integrableOn_const_tauMesh_lt_top {ι Ω : Typ
     rw [measure_congr (hs.tauMesh_lt_top_eq_lt_predictableSeqTop n hc)]
     exact (integrable_predictableSeqTop S 𝓕 P n).measure_gt_lt_top (lt_of_le_of_ne hc hc0.symm)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Stopping `S` at the bounded mesh time `τₙ(c)` preserves integrability. -/
 lemma MeasureTheory.Submartingale.integrable_stoppedValue_tauMesh {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
@@ -492,6 +496,7 @@ lemma integrable_stoppedValue_predictablePart_tauMesh {ι Ω : Type*} [Topologic
     (integrable_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
     (tauMesh_le_top S 𝓕 P n c)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The second estimate before equation 5. -/
 lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -637,6 +642,7 @@ lemma integral_predictableSeqTop_eq_neg_integral_bot {ι Ω : Type*} [Topologica
       (bot_le (a := ⊤)) MeasurableSet.univ]
     simp [_root_.martingalePart]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Estimate for the hitting event `{τₙ(c) < 1}`. -/
 lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -661,6 +667,7 @@ lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι]
   _ = ENNReal.ofReal (- ∫ ω, S ⊥ ω ∂P) / ENNReal.ofReal c := by
     rw [integral_predictableSeqTop_eq_neg_integral_bot hstop n]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the predictable parts are uniformly integrable. -/
 lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -1052,6 +1059,7 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
   · exact absurd (lt_of_le_of_lt ht.2 (lt_of_le_of_lt
       (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv.1)) (lt_irrefl t)
 
+set_option backward.isDefEq.respectTransparency false in
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}

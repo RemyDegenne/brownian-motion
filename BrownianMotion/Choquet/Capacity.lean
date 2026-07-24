@@ -67,7 +67,7 @@ lemma capacity_iInter (hf : Antitone f) (hp : ∀ n, f n ∈ p) :
 
 /-- The capacity defined by a finite measure. -/
 def Measure.capacity {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ] :
-    Capacity (MeasurableSet (α := 𝓧)) where
+    Capacity {s : Set 𝓧 | MeasurableSet s} where
   capacityOf s := μ s
   mono' s t hst := μ.mono hst
   capacityOf_iUnion f hf := hf.measure_iUnion
@@ -418,10 +418,11 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
 /-- An analytic set is universally measurable: it is null-measurable with respect to any
 finite measure. -/
 lemma IsPavingAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet s μ := by
   rw [← isCapacitable_measure_iff μ]
-  refine IsPavingAnalytic.isCapacitable (p := MeasurableSet (α := 𝓧)) MeasurableSet.empty ?_ ?_ hs
+  refine IsPavingAnalytic.isCapacitable (p := {t : Set 𝓧 | MeasurableSet t}) MeasurableSet.empty
+    ?_ ?_ hs
   · exact fun s hs t ht ↦ hs.inter ht
   · exact fun s hs t ht ↦ hs.union ht
 
@@ -436,7 +437,7 @@ theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [Den
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   refine IsPavingAnalytic.nullMeasurableSet ?_ μ
   refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
@@ -463,8 +464,8 @@ lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
 
 lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω}
     {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
-    (hs : IsPavingAnalytic MeasurableSet s) :
-    IsPavingAnalytic MeasurableSet (Prod.swap '' s) := by
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
+    IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := by
   convert isPavingAnalytic_swap hs
   ext s
   simp only [Set.mem_image]
@@ -480,7 +481,7 @@ lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [Dense
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
   convert IsPavingAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧) ?_ μ
   · ext; simp

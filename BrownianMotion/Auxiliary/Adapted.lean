@@ -92,7 +92,7 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
   have hav (a : Iic t × Ω) (n : ℕ) : a.1 ≤ v n ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩ := by
     have l : v n ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩ = ⟨t, le_rfl⟩ := by
       simp only [Finset.orderEmbOfFin_last (rfl : (r n).card = (r n).card) (by simp [r]),
-        Finset.max'_eq_iff, Subtype.forall, mem_Iic, Subtype.mk_le_mk, v, r,
+        Finset.max'_eq_iff, Subtype.forall, mem_Iic, v, r,
         Finset.mem_image, Finset.mem_range, comp_apply]
       exact ⟨⟨k, by linarith, by simp [hk]⟩, fun a ha _ => ha⟩
     simp only [l, ge_iff_le]

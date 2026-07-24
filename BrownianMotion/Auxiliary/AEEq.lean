@@ -287,7 +287,7 @@ theorem comp_toGerm (g : β → γ) (hg : Continuous g) (f : α →ₚ[μ, 𝓕]
 theorem comp₂_toGerm (g : β → γ → δ) (hg : Continuous (uncurry g)) (f₁ : α →ₚ[μ, 𝓕] β)
     (f₂ : α →ₚ[μ, 𝓕] γ) :
     (comp₂ g hg f₁ f₂).toGerm = f₁.toGerm.map₂ (fun f h t ↦ g (f t) (h t)) f₂.toGerm :=
-  induction_on₂ f₁ f₂ fun f₁ _ f₂ _ => by simp
+  induction_on₂ f₁ f₂ fun f₁ _ f₂ _ => by simp; rfl
 
 /-- Given a predicate `p` and an equivalence class `[f]`, return true if `p` holds of `f a`
 for almost all `a` -/

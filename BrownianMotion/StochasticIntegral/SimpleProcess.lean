@@ -177,6 +177,7 @@ namespace SimpleProcess
 attribute [fun_prop] measurable_valueBot
 
 -- todo: replace the condition on W by IsPredictable
+set_option backward.isDefEq.respectTransparency false in
 def ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
     (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
     {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C) :
@@ -457,6 +458,7 @@ theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F)
   conv_rhs => rw [stoppedProcess_stoppedProcess]
   simp [stoppedProcess, WithTop.untopA_eq_untop]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
     (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
     {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
