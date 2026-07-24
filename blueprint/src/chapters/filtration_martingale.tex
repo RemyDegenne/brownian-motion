@@ -1142,11 +1142,66 @@ Then there exists a limit process $X_\infty$ measurable with respect to $\mathca
 Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 \end{theorem}
 
-\begin{proof}
+\begin{lemma}\label{lem:limitProcess_ae_eq}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_ae_eq}
+Let $X : T \to \Omega \to E$ be a process such that there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$. Then $X_\infty$ and $g$ are a.e. equal.
+\end{lemma}
 
+\begin{proof}
+  Because there exist a function that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and towards which $X$ converges almost surely, $X_\infty$ is such a function by definition. Because $X$ converges almost surely towards $g$, $g$ and $X_\infty$ are equal on the set where $X$ converges to $X_\infty$ and $X$ converges to $g$ by uniqueness of the limit.
 \end{proof}
 
+\begin{lemma}\label{lem:limitProcess_congr}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_congr}
+  Let $X$ and $Y$ be two indistinguishable processes. Then $X_\infty$ and $Y_\infty$ are a.e. equal.
+\end{lemma}
 
+\begin{proof}
+  \uses{lem:limitProcess_ae_eq}
+  If there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then it is enough to show that $Y$ converges almost surely to $g$ by Lemma~\ref{lem:limitProcess_ae_eq}. This follows from indistinguishability.
+
+  Otherwise, $X_\infty = 0$, and by indistinguishability there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $Y$ converges almost surely to $g$, so $Y_\infty = 0$ as well.
+\end{proof}
+
+\begin{lemma}\label{lem:limitProcess_const}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_congr}
+  Let $c \in E$ and $X$ be the constant process equal to $c$. Then $X_\infty$ is a.e. equal to $c$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:limitProcess_ae_eq}
+  This follows from Lemma~\ref{lem:limitProcess_ae_eq} as a constant function converges to a constant, and a constant function is a.e. strongly measurable with respect to any sigma-algebra.
+\end{proof}
+
+\begin{lemma}\label{lem:limitProcess_smul}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_smul}
+  If $X$ is a stochastic process and $c \in \mathbb{R}$, then $(c \cdot X)_\infty$ is a.e. equal to $c \cdot X_\infty$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:limitProcess_ae_eq, lem:limitProcess_const}
+  If $c = 0$ we can conclude by Lemma~\ref{lem:limitProcess_const}. Otherwise, if there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then $c \cdot X$ converges almost surely to $c \cdot g$ and we can conclude by Lemma~\ref{lem:limitProcess_ae_eq}. Otherwise there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $c \cdot X$ converges almost surely to $g$, because if it did it would also be the case for $X$, so $X_\infty$ and $(c \cdot X)_\infty$ are both a.e. equal to $0$.
+\end{proof}
+
+\begin{lemma}\label{lem:limitProcess_neg}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_neg}
+  If $X$ is a stochastic process, then $(-X)_\infty$ is a.e. equal to $-X_\infty$.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:limitProcess_ae_eq, lem:limitProcess_const}
+  If there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then $-X$ converges almost surely to $-g$ and we can conclude by Lemma~\ref{lem:limitProcess_ae_eq}. Otherwise there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $-X$ converges almost surely to $g$, because if it did it would also be the case for $X$, so $X_\infty$ and $(-X)_\infty$ are both a.e. equal to $0$.
+\end{proof}
 
 
 
