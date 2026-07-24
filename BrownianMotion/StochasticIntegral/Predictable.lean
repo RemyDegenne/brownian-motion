@@ -60,7 +60,7 @@ section IsStronglyPredictable
 
 variable {ι Ω E : Type*} [Preorder ι] [OrderBot ι] [TopologicalSpace E]
 
-lemma IsStronglyPredictable.const {ι E : Type*} [Preorder ι] [OrderBot ι] [MeasurableSpace ι]
+lemma IsStronglyPredictable.const {ι E : Type*} [Preorder ι] [OrderBot ι]
     [TopologicalSpace E] {c : E} {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} :
     IsStronglyPredictable 𝓕 (fun _ _ ↦ c : ι → Ω → E) := by
   unfold IsStronglyPredictable

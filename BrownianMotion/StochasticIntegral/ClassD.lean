@@ -284,6 +284,7 @@ lemma _root_.MeasureTheory.Submartingale.classDL
     rw [← abs_of_nonneg p1, ← p2] at hω
     exact norm_le_norm_of_abs_le_abs hω
 
+omit [IsFiniteMeasure P] in
 lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X)
     (hX4 : UniformIntegrable X 1 P) :
@@ -311,6 +312,7 @@ lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
       abs_of_nonneg (p1.trans hω)
     rwa [← abs_of_nonneg p1, ← p2] at hω
 
+omit [IsFiniteMeasure P] in
 /-- A nonnegative right-continuous submartingale is of class D iff it is uniformly integrable. -/
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :

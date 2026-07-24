@@ -68,28 +68,31 @@ lemma jump_zero [T2Space E] : Δ (fun _ : T ↦ (0 : E)) t = 0 := by
     · rw [leftLim_eq_of_eq_bot]
       rw [nhdsLT_eq_bot_iff]
       exact Or.inl h_bot
-    · rw [leftLim_eq_of_tendsto]
-      · rw [ne_eq, nhdsLT_eq_bot_iff]
+    · have : (𝓝[<] t).NeBot := by
+        constructor
+        rw [ne_eq, nhdsLT_eq_bot_iff]
         simp [h_bot, h]
-      · exact tendsto_const_nhds
+      rw [leftLim_eq_of_tendsto]
+      exact tendsto_const_nhds
 
 @[simp]
 lemma jump_zero' [T2Space E] : Δ (0 : T → E) t = 0 := jump_zero
 
-lemma leftLim_congr' {E : Type*} [AddGroup E] [TopologicalSpace E] [T2Space E] {f g : T → E}
+lemma leftLim_congr' {E : Type*} [TopologicalSpace E] [T2Space E] {f g : T → E}
     (h_ne_bot : 𝓝[<] t ≠ ⊥) (h : f =ᶠ[𝓝[<] t] g) (ht : f t = g t) :
     Function.leftLim f t = Function.leftLim g t := by
   by_cases h_tendsto : ∃ y, Tendsto f (𝓝[<] t) (𝓝 y)
   · obtain ⟨y, hy⟩ := h_tendsto
     have hy' : Tendsto g (𝓝[<] t) (𝓝 y) := by
       refine hy.congr' h
-    rw [leftLim_eq_of_tendsto h_ne_bot hy, leftLim_eq_of_tendsto h_ne_bot hy']
+    have : (𝓝[<] t).NeBot := ⟨h_ne_bot⟩
+    rw [leftLim_eq_of_tendsto hy, leftLim_eq_of_tendsto hy']
   have hg_tendsto : ¬ ∃ y, Tendsto g (𝓝[<] t) (𝓝 y) := by
     rintro ⟨y, hy⟩
     refine h_tendsto ⟨y, hy.congr' h.symm⟩
   rw [leftLim_eq_of_not_tendsto _ h_tendsto, leftLim_eq_of_not_tendsto _ hg_tendsto, ht]
 
-lemma leftLim_congr {E : Type*} [AddGroup E] [TopologicalSpace E] [T2Space E] {f g : T → E}
+lemma leftLim_congr {E : Type*} [TopologicalSpace E] [T2Space E] {f g : T → E}
     (h : ∀ s ≤ t, f s = g s) :
     Function.leftLim f t = Function.leftLim g t := by
   by_cases h_bot : 𝓝[<] t = ⊥
@@ -143,7 +146,8 @@ lemma jump_nat {f : ℕ → E} (n : ℕ) : Δ f n = f n - f (n - 1) := by
 
 lemma jump_eq_zero_of_tendsto [T2Space E] (h : 𝓝[<] t ≠ ⊥) (h' : Tendsto f (𝓝[<] t) (𝓝 (f t))) :
     Δ f t = 0 := by
-  rw [jump_of_nhdsLT_ne_bot h, leftLim_eq_of_tendsto h h', sub_self]
+  have : (𝓝[<] t).NeBot := ⟨h⟩
+  rw [jump_of_nhdsLT_ne_bot h, leftLim_eq_of_tendsto h', sub_self]
 
 lemma ContinuousWithinAt.jump_eq_zero [T2Space E]
     (h' : 𝓝[<] t ≠ ⊥) (h : ContinuousWithinAt f (Set.Iic t) t) :

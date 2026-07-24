@@ -151,7 +151,7 @@ def nat0 {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ 0
     · intro i j hij
-      simp only [Set.le_eq_subset, Set.subset_inter_iff, Set.inter_subset_left, true_and]
+      simp only [Set.subset_inter_iff, Set.inter_subset_left, true_and]
       refine Set.inter_subset_right.trans ?_
       exact hA_mono 0 hij
   have : ∃ n, a < m (s ∩ A 0 n) := by
@@ -177,7 +177,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ (n + 1)
     · intro i j hij
-      simp only [Set.mem_setOf_eq, Set.le_eq_subset, Set.subset_inter_iff]
+      simp only [Set.mem_setOf_eq, Set.subset_inter_iff]
       refine ⟨⟨?_, ?_⟩, ?_⟩
       · exact Set.inter_subset_left.trans Set.inter_subset_left
       · exact Set.inter_subset_left.trans Set.inter_subset_right
@@ -270,6 +270,7 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
     (hs : s ∈ countableInfClosure (countableSupClosure p)) :
     IsCapacitable m s := by
+  rw [mem_countableInfClosure_iff_iInf] at hs
   obtain ⟨A, hA, hs_eq⟩ := hs
   simp_rw [hp_union.mem_countableSupClosure_iff] at hA
   choose A hpA hA_mono h_eq using hA
@@ -287,6 +288,7 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     | succ n hn =>
       rw [Set.dissipate_succ]
       exact hp_inter hn (hpA _ _)
+  simp_rw [mem_countableInfClosure_iff_iInf]
   refine ⟨⋂ n, B n, ⟨B, hB_mem, rfl⟩, ?_, ?_⟩
   · rw [← hs_eq, Set.iInf_eq_iInter]
     gcongr with n
@@ -306,6 +308,7 @@ lemma mem_countableInfClosure_fst {s : Set (𝓧 × 𝓚)}
     at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
   rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hA_anti hA]
+  rw [mem_countableInfClosure_iff_iInf]
   refine ⟨fun n ↦ Prod.fst '' A n, fun n ↦ ?_, rfl⟩
   simp only
   simp_rw [mem_supClosure_set_iff'] at hA
@@ -354,8 +357,11 @@ theorem IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : Inf
   · exact subset_supClosure ⟨∅, hp_empty, ∅, hq'_empty, by simp⟩
   · exact InfClosed.supClosure (hp_inter.image2_prod infClosed_infClosure)
   · exact fun s hs t ht ↦ supClosed_supClosure hs ht
-  · obtain ⟨B, hB, rfl⟩ := hA
+  · unfold prodSigmaDelta at hA
+    rw [mem_countableInfClosure_iff_iInf] at hA ⊢
+    obtain ⟨B, hB, rfl⟩ := hA
     refine ⟨B, fun n ↦ ?_, rfl⟩
+    simp_rw [mem_countableSupClosure_iff_iSup] at hB ⊢
     obtain ⟨C, hC, hB_eq⟩ := hB n
     simp_rw [← hB_eq]
     refine ⟨C, fun m ↦ ?_, rfl⟩

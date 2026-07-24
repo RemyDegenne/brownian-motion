@@ -75,6 +75,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
   choose B hB_mem hB_subset hB_le using hs_capa
   have hB_compact a ha ω : IsCompact {t | (ω , t) ∈ B a ha} := by
     specialize hB_mem a ha
+    rw [mem_countableInfClosure_iff_iInf] at hB_mem
     obtain ⟨A, hA, hB_eq⟩ := hB_mem
     simp only [← hB_eq, Set.iInf_eq_iInter, Set.mem_iInter]
     suffices ∀ n, IsCompact {t | (ω, t) ∈ A n} by
@@ -122,7 +123,7 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic Measurable
   · specialize hB_le a ha
     rwa [I_apply_eq_debut] at hB_le
   · refine debut_anti 0 ?_
-    simp only [Set.le_eq_subset, Set.image_subset_iff]
+    simp only [Set.image_subset_iff]
     convert hB_subset _ _
     rw [Set.image_swap_eq_preimage_swap]
 
@@ -180,7 +181,9 @@ lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : 
   refine isPavingAnalytic_of_mem_countableSupClosure_of_imp
     (p' := Set.image2 (· ×ˢ ·) MeasurableSet (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
     fun _ ↦ isPavingAnalytic_of_mem
-  obtain ⟨B, hB, h_eq⟩ := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
+  have h := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
+  rw [mem_countableSupClosure_iff_iSup] at h ⊢
+  obtain ⟨B, hB, h_eq⟩ := h
   rw [← h_eq, Set.iSup_eq_iUnion, Set.prod_iUnion]
   refine ⟨fun n ↦ {ω | τ ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
   refine ⟨{ω | τ ω = ⊤}, ?_, B n, ?_, rfl⟩
@@ -348,7 +351,7 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
     simpa using this
   have h_mono : Monotone fun n ↦ {ω | (sectionSeq μ hs n).1 ω ≠ ⊤} := by
     intro n m hnm
-    simp only [Set.le_eq_subset, Set.setOf_subset_setOf]
+    simp only [Set.setOf_subset_setOf]
     intro ω hω
     refine ne_of_lt (lt_of_le_of_lt ?_ (Ne.lt_top hω))
     exact antitone_sectionSeq hs hnm ω
@@ -373,7 +376,7 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
         · refine MeasurableSet.nullMeasurableSet ?_
           exact (measurableSet_singleton _).preimage (by fun_prop)
       · intro n m hnm
-        simp only [ne_eq, Set.le_eq_subset, Set.setOf_subset_setOf, and_imp]
+        simp only [ne_eq, Set.setOf_subset_setOf, and_imp]
         intro ω hω h_top
         refine ⟨hω, ?_⟩
         refine le_antisymm le_top ?_

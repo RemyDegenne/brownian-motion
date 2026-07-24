@@ -294,25 +294,23 @@ variable [NormedAddCommGroup E] [CompleteSpace E] [MeasurableSpace E] [BorelSpac
 lemma measurable_vectorMeasure_of_stronglyMeasurable
     (hY : ∀ i, StronglyMeasurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :
     Measurable fun ω => (hvar ω).vectorMeasure := by
-  refine VectorMeasure.measurable_of_measurable_coe fun s hs => ?_
-  have hsm : StronglyMeasurable fun ω => (hvar ω).vectorMeasure s := by
-    induction s, hs using MeasurableSpace.induction_on_inter
-        (‹BorelSpace ι›.measurable_eq.trans (borel_eq_generateFrom_Ioc ι))
-        (isPiSystem_Ioc id id) with
-    | empty => simpa using stronglyMeasurable_const
-    | basic s hs =>
-        obtain ⟨a, b, hlt, rfl⟩ := hs
-        simpa using stronglyMeasurable_vectorMeasure_Ioc hY hvar hlt.le
-    | compl s hs ihs =>
-        simpa [fun ω => (hvar ω).vectorMeasure.of_compl hs] using
-          continuous_sub.comp_stronglyMeasurable
-            ((stronglyMeasurable_vectorMeasure_univ hY hvar).prodMk ihs)
-    | iUnion f hfd hfm ihf =>
-        refine stronglyMeasurable_of_tendsto atTop
-          (fun n => (Finset.range n).stronglyMeasurable_sum fun i hi => ihf i) ?_
-        simpa [tendsto_pi_nhds] using fun ω =>
-          ((hvar ω).vectorMeasure.m_iUnion' hfm hfd).tendsto_sum_nat
-  exact hsm.measurable
+  refine VectorMeasure.measurable_of_measurable_coe fun s hs ↦ StronglyMeasurable.measurable ?_
+  induction s, hs using MeasurableSpace.induction_on_inter
+      (‹BorelSpace ι›.measurable_eq.trans (borel_eq_generateFrom_Ioc ι))
+      (isPiSystem_Ioc id id) with
+  | empty => simpa using stronglyMeasurable_const
+  | basic s hs =>
+      obtain ⟨a, b, hlt, rfl⟩ := hs
+      simpa using stronglyMeasurable_vectorMeasure_Ioc hY hvar hlt.le
+  | compl s hs ihs =>
+      simpa [fun ω => (hvar ω).vectorMeasure.of_compl hs] using
+        continuous_sub.comp_stronglyMeasurable
+          ((stronglyMeasurable_vectorMeasure_univ hY hvar).prodMk ihs)
+  | iUnion f hfd hfm ihf =>
+      refine stronglyMeasurable_of_tendsto atTop
+        (fun n => (Finset.range n).stronglyMeasurable_sum fun i hi => ihf i) ?_
+      simp only [tendsto_pi_nhds, Finset.sum_apply]
+      exact fun ω ↦ ((hvar ω).vectorMeasure.m_iUnion' hfm hfd).tendsto_sum_nat
 
 lemma measurable_vectorMeasure_of_measurable [SecondCountableTopology E]
     (hY : ∀ i, Measurable (Y i)) (hvar : ∀ ω, BoundedVariationOn (Y · ω) univ) :

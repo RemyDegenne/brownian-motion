@@ -486,7 +486,7 @@ lemma integrable_sum_weight_increments {g : ι → Ω → ℝ} (hgint : ∀ s, I
 /-- Two-sided expectation bound for adapted `{0,1}`-weighted increment sums of `X`, from the
 boundedness of elementary stochastic integrals at time `t`. The lower bound uses the
 complementary weights `1 - W`. -/
-lemma integral_sum_weight_increments_mem_Icc [OrderBot ι] [IsFiniteMeasure μ]
+lemma integral_sum_weight_increments_mem_Icc [OrderBot ι]
     (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     {n : ℕ} {idx : ℕ → ι} (hidx : Monotone idx) (hidxt : ∀ k, idx k ≤ t)

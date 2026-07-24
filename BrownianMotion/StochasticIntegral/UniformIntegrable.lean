@@ -228,13 +228,13 @@ lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X :
   exact norm_le_toReal_of_enorm_le hfin.ne hbound
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
+    [CompleteSpace E] (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun (p : ι × κ) ↦ μ[X p.1 | 𝓕 p.2]) 1 μ := by
   have hX' := hX
   obtain ⟨hX1, hX2, ⟨C, hC⟩⟩ := hX
   refine ⟨fun p ↦ (stronglyMeasurable_condExp.mono (h𝓕 p.2)).aestronglyMeasurable, ?_,
-    ⟨C, fun p ↦ (eLpNorm_condExp_le_eLpNorm le_rfl (X p.1)).trans (hC p.1)⟩⟩
+    ⟨C, fun p ↦ (eLpNorm_condExp_le_eLpNorm (X p.1) le_rfl).trans (hC p.1)⟩⟩
   refine unifIntegrable_of le_rfl (by simp)
     (fun p ↦ (stronglyMeasurable_condExp.mono (h𝓕 p.2)).aestronglyMeasurable) fun ε hε ↦ ?_
   obtain ⟨δ, δ_pos, hδ⟩ := hX2 hε
@@ -247,7 +247,7 @@ lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [N
   rotate_left
   · exact memLp_one_iff_integrable.1 (hX'.memLp p.1)
   · exact stronglyMeasurable_const.measurableSet_le stronglyMeasurable_condExp.nnnorm
-  grw [eLpNorm_condExp_le_eLpNorm le_rfl, hδ]
+  grw [eLpNorm_condExp_le_eLpNorm _ le_rfl, hδ]
   · exact stronglyMeasurable_const.measurableSet_le <|
       stronglyMeasurable_condExp.mono (h𝓕 p.2) |>.nnnorm
   calc
@@ -263,7 +263,7 @@ lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [N
   _ = eLpNorm μ[X p.1 | 𝓕 p.2] 1 μ / (⨆ i, eLpNorm (X i) 1 μ) * δ := by
     rw [← ENNReal.div_mul _ (Or.inr <| ENNReal.coe_ne_zero.2 hδ') (by simp)]
   _ ≤ 1 * δ := by
-    grw [eLpNorm_condExp_le_eLpNorm le_rfl]
+    grw [eLpNorm_condExp_le_eLpNorm _ le_rfl]
     gcongr
     exact ENNReal.div_le_one_of_le <| le_iSup (α := ℝ≥0∞) _ p.1
   _ = _ := by simp
@@ -282,7 +282,7 @@ lemma UniformIntegrable.comp {κ : Type*} [NormedAddCommGroup E]
   exact ⟨fun _ ↦ hX1 _, hX2.comp f, ⟨C, fun i ↦ hC (f i)⟩⟩
 
 lemma UniformIntegrable.condExp {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ) {𝓕 : ι → MeasurableSpace Ω}
+    [CompleteSpace E] (hX : UniformIntegrable X 1 μ) {𝓕 : ι → MeasurableSpace Ω}
     (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun i ↦ μ[X i | 𝓕 i]) 1 μ :=
   (hX.condExp' h𝓕).comp (fun i ↦ (i, i))
@@ -299,7 +299,7 @@ lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → E}
     (fun _ ↦ le_rfl)
 
 lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-    [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -320,7 +320,7 @@ omit [Countable ι]
 variable [FirstCountableTopology ι]
 
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -331,7 +331,7 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
       (hτ_countable _)).symm).comp (fun i ↦ ((), i))
 
 lemma Martingale.integrable_stoppedValue_of_countable_range
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
     {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
     Integrable (stoppedValue X τ) μ := by

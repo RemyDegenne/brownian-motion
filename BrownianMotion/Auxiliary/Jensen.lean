@@ -9,6 +9,7 @@ public import BrownianMotion.Auxiliary.Analysis
 public import BrownianMotion.Auxiliary.ENNReal
 public import Mathlib.MeasureTheory.Function.ConditionalExpectation.CondJensen
 public import Mathlib.MeasureTheory.Function.UniformIntegrable
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
 
 /-!
 # Jensen's inequality for conditional expectations
@@ -77,43 +78,10 @@ lemma ofReal_condExp_norm_ae_le_eLpNormEssSup (hf : AEStronglyMeasurable f μ) :
     (integrable_const _) this] with ω hω
   exact ofReal_le_of_le_toReal (by simpa [condExp_const hm] using hω)
 
-theorem eLpNorm_condExp_le_eLpNorm {p : ℝ≥0∞} (hp : 1 ≤ p) (f : Ω → E) :
-    eLpNorm (μ[f|m]) p μ ≤ eLpNorm f p μ := by
-  by_cases hf : Integrable f μ
-  swap; · simp [condExp_of_not_integrable hf]
-  by_cases hm : m ≤ mΩ
-  swap; · simp [condExp_of_not_le hm]
-  by_cases hsig : SigmaFinite (μ.trim hm)
-  swap; · simp [condExp_of_not_sigmaFinite hm hsig, eLpNorm_zero]
-  obtain h | h := eq_or_ne (eLpNorm f p μ) ∞
-  · simp [h]
-  obtain rfl | hp' := eq_or_ne p ∞
-  · simp_rw [eLpNorm_exponent_top] at h ⊢
-    apply eLpNormEssSup_le_of_ae_enorm_bound
-    filter_upwards [enorm_condExp_le f,
-      ofReal_condExp_norm_ae_le_eLpNormEssSup hf.aestronglyMeasurable] with ω hω1 hω2 using
-      hω1.trans hω2
-  have hff : MemLp f p μ := ⟨hf.aestronglyMeasurable, h.lt_top⟩
-  simp_rw [eLpNorm_eq_lintegral_rpow_enorm_toReal ((show (0 : ℝ≥0∞) < 1 by simp).trans_le hp |>.ne')
-    hp']
-  calc
-  _ ≤ (∫⁻ ω, (.ofReal (μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] ω)) ∂μ) ^ (1 / p.toReal) := by
-    gcongr 1
-    exact lintegral_mono_ae (enorm_rpow_condExp_le hp hp' hff)
-  _ = (.ofReal (∫ ω, μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] ω ∂μ)) ^ (1 / p.toReal) := by
-    congr
-    rw [ofReal_integral_eq_lintegral_ofReal integrable_condExp]
-    exact condExp_nonneg <| ae_of_all _ fun _ ↦ by positivity
-  _ = (.ofReal (∫ ω, ‖f ω‖ ^ p.toReal ∂μ)) ^ (1 / p.toReal) := by rw [integral_condExp]
-  _ = (∫⁻ ω, ‖f ω‖ₑ ^ p.toReal ∂μ) ^ (1 / p.toReal) := by
-    rw [ofReal_integral_eq_lintegral_ofReal hff.integrable_norm_rpow'
-      (ae_of_all _ fun _ ↦ by positivity)]
-    congr with
-    rw [← ofReal_rpow_of_nonneg (by simp) (by simp), ofReal_norm]
-
+omit [IsFiniteMeasure μ] in
 theorem MemLp.condExp' {p : ℝ≥0∞} (hp : 1 ≤ p) (hf : MemLp f p μ) :
     MemLp μ[f|m] p μ :=
-  ⟨integrable_condExp.aestronglyMeasurable, (eLpNorm_condExp_le_eLpNorm hp f).trans_lt hf.2⟩
+  ⟨integrable_condExp.aestronglyMeasurable, (eLpNorm_condExp_le_eLpNorm f hp).trans_lt hf.2⟩
 
 /-- If a function `f` is bounded almost everywhere by `R`, then so is its conditional
 expectation. -/
@@ -173,17 +141,16 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
         (Or.inl ENNReal.coe_lt_top.ne),
       hC, Nonneg.inv_mk, ENNReal.coe_mul, ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne, ← mul_assoc,
       ENNReal.coe_nnreal_eq, ← ENNReal.ofReal_mul hδ.le, rpow_one]
-    convert eLpNorm_condExp_le_eLpNorm le_rfl _
+    convert eLpNorm_condExp_le_eLpNorm _ le_rfl
     · convert one_mul _
       simp only [ofReal_eq_one]
       exact mul_inv_cancel₀ hδ.ne'
-    · infer_instance
     · infer_instance
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=
     @StronglyMeasurable.measurableSet_le _ _ (ℱ n) _ _ _ _ _ _ stronglyMeasurable_const
       stronglyMeasurable_condExp.nnnorm
   rw [← eLpNorm_congr_ae (condExp_indicator hint hmeasℱ)]
-  exact eLpNorm_condExp_le_eLpNorm le_rfl _
+  exact eLpNorm_condExp_le_eLpNorm _ le_rfl
 
 end MeasureTheory
