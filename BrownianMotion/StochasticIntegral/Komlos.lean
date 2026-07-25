@@ -146,37 +146,8 @@ lemma exists_stdSimplex_of_mem_convexHull {M ι : Type*} [AddCommGroup E] [Field
     simp [aux, hw₁, hw₂]
   exact hx
 
-section
-variable [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-
-lemma convex_combination_bounded {x : ℕ → E}
-    {w : ℕ → StdSimplex ℝ ℕ} {M : ℝ} (hx : ∀ n, ‖x n‖ ≤ M) (n : ℕ) :
-    ‖(w n).weights.sum (fun i wi ↦ wi • x i)‖ ≤ M := by
-  have h_sum : ‖(w n).weights.sum (fun i wi => wi • x i)‖ ≤
-    ∑ i ∈ (w n).weights.support, ((w n).weights i) * ‖x i‖ := by
-    convert norm_sum_le _ _
-    · rfl
-    · rfl
-    simp [norm_smul, abs_of_nonneg ((w _).nonneg _)]
-  refine le_trans h_sum (le_trans (Finset.sum_le_sum fun i hi =>
-    mul_le_mul_of_nonneg_left (hx i) ((w n).nonneg i)) ?_)
-  rw [← Finset.sum_mul _ _ _]
-  have bound : (∑ i ∈ (w n).weights.support, (w n).weights i) ≤ 1 := by
-    rw [← (w n).total, Finsupp.sum]
-  refine mul_le_of_le_one_left ?_ bound
-  exact le_trans (norm_nonneg (x 0)) (hx 0)
-
-/-- `komlosFormula x cw k n` is the convex combination of the stage-`k` vectors `x k m`,
-weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
-established at each stage of the Komlós construction. -/
-noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) : E :=
-  (StdSimplex.iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
-
-lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
-  {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
-  komlosFormula x cw1 k = komlosFormula x cw2 k := by
-  unfold komlosFormula; rw [StdSimplex.iteratedBind_congr]
-  exact h
+section Module
+variable [AddCommGroup E] [Module ℝ E]
 
 /--
 We define the `convexTail` of a sequence `x` to be the set of sequences `y` with the property that
@@ -209,6 +180,40 @@ lemma exists_stdSimplex_of_mem_convexTail_reindexed {x g : ℕ → E} (hg : g �
   refine ⟨?_, zero_lt⟩
   rw [Finsupp.sum_embDomain]
   simpa
+
+end Module
+
+section
+variable [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+lemma convex_combination_bounded {x : ℕ → E}
+    {w : ℕ → StdSimplex ℝ ℕ} {M : ℝ} (hx : ∀ n, ‖x n‖ ≤ M) (n : ℕ) :
+    ‖(w n).weights.sum (fun i wi ↦ wi • x i)‖ ≤ M := by
+  have h_sum : ‖(w n).weights.sum (fun i wi => wi • x i)‖ ≤
+    ∑ i ∈ (w n).weights.support, ((w n).weights i) * ‖x i‖ := by
+    convert norm_sum_le _ _
+    · rfl
+    · rfl
+    simp [norm_smul, abs_of_nonneg ((w _).nonneg _)]
+  refine le_trans h_sum (le_trans (Finset.sum_le_sum fun i hi =>
+    mul_le_mul_of_nonneg_left (hx i) ((w n).nonneg i)) ?_)
+  rw [← Finset.sum_mul _ _ _]
+  have bound : (∑ i ∈ (w n).weights.support, (w n).weights i) ≤ 1 := by
+    rw [← (w n).total, Finsupp.sum]
+  refine mul_le_of_le_one_left ?_ bound
+  exact le_trans (norm_nonneg (x 0)) (hx 0)
+
+/-- `komlosFormula x cw k n` is the convex combination of the stage-`k` vectors `x k m`,
+weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
+established at each stage of the Komlós construction. -/
+noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) : E :=
+  (StdSimplex.iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
+
+lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
+  {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
+  komlosFormula x cw1 k = komlosFormula x cw2 k := by
+  unfold komlosFormula; rw [StdSimplex.iteratedBind_congr]
+  exact h
 
 variable [CompleteSpace E]
 
@@ -344,6 +349,18 @@ lemma Tendsto_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 
   intro y hy
   exact TendstoUniformly.tendsto_at (TendstoUniformly_convexTail hx) ⟨y, hy⟩
 
+omit [CompleteSpace E] in
+/-- Convex combinations of a convergent sequence, given at step `n` by weights supported on
+indices at least `n`, converge to the same limit. -/
+lemma tendsto_weights_sum_of_forall_lt_eq_zero {x : ℕ → E} {xlim : E}
+    (hx : Tendsto x atTop (𝓝 xlim)) {w : ℕ → StdSimplex ℝ ℕ}
+    (hw : ∀ n, ∀ m < n, (w n).weights m = 0) :
+    Tendsto (fun n ↦ (w n).weights.sum fun m r ↦ r • x m) atTop (𝓝 xlim) := by
+  refine Tendsto_convexTail hx _ fun n ↦ ?_
+  refine Convex.sum_mem (convex_convexHull ℝ _) (fun m _ ↦ (w n).nonneg m) (w n).total
+    fun m hm ↦ subset_convexHull ℝ _ ⟨m - n, ?_⟩
+  simp [Nat.add_sub_cancel' (not_lt.1 fun h ↦ Finsupp.mem_support_iff.1 hm (hw n m h))]
+
 lemma komlos_uniform_convergence
     {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
     (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
@@ -446,7 +463,8 @@ private lemma cauchySeq_toLp_of_eLpNorm_approx {P : Measure Ω}
 
 theorem komlos_L1 {f : ℕ → Ω → E} {P : Measure Ω}
     [IsFiniteMeasure P] (hf : UniformIntegrable f 1 P) :
-    ∃ (g : ℕ → Ω → E) (glim : Ω → E), (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
+    ∃ (g : ℕ → Ω → E) (glim : Ω → E), MemLp glim 1 P ∧
+      (∀ n, g n ∈ convexHull ℝ (Set.range fun m ↦ f (n + m))) ∧
       Tendsto (fun n ↦ eLpNorm (g n - glim) 1 P) atTop (𝓝 0) := by
   have hbdd i : ∃ M, ∀ m, ‖(komlosTrunc_memLp i (hf.1 m)).toLp (komlosTrunc (f m) i)‖ ≤ M :=
     ⟨_, fun m ↦ komlosTrunc_norm_toLp_le i (komlosTrunc_memLp i (hf.1 m))⟩
@@ -497,7 +515,7 @@ theorem komlos_L1 {f : ℕ → Ω → E} {P : Measure Ω}
             rw [← ENNReal.ofReal_add (by positivity) (by positivity),
               show ε / 2 + ε / 2 = ε by ring]
   obtain ⟨L, hL⟩ := cauchySeq_tendsto_of_complete hcau
-  exact ⟨g, ⇑L, h_convex, ((Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ L).mp hL).congr fun n ↦
+  exact ⟨g, ⇑L, Lp.memLp L, h_convex, ((Lp.tendsto_Lp_iff_tendsto_eLpNorm' _ L).mp hL).congr fun n ↦
     eLpNorm_congr_ae ((hgmem1 n).coeFn_toLp.sub EventuallyEq.rfl)⟩
 
 -- todo: check measurability hypothesis/conclusion
