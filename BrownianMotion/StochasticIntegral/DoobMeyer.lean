@@ -319,10 +319,12 @@ lemma integral_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondC
     [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
     (𝓕 : Filtration ι mΩ) [SigmaFiniteFiltration P 𝓕] (n : ℕ) :
     ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P = ∫ ω, S ⊥ ω ∂P := by
-  rw [martingaleSeqTop, ← setIntegral_univ,
-    ← (martingale_martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P).setIntegral_eq
-    (bot_le (a := ⊤)) MeasurableSet.univ]
-  simp [_root_.martingalePart]
+  calc ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P
+      = ∫ ω, (P[martingaleSeqTop S 𝓕 P n|meshFiltration 𝓕 n ⊥]) ω ∂P :=
+        (integral_condExp ((meshFiltration 𝓕 n).le ⊥)).symm
+    _ = ∫ ω, martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊥ ω ∂P :=
+        integral_congr_ae ((martingale_martingalePart _ _ _).condExp_ae_eq bot_le)
+    _ = ∫ ω, S ⊥ ω ∂P := by simp [_root_.martingalePart]
 
 /-- Apply the optional stopping theorem to get equation 4. Note that `T1 Space` is needed to make
 sure that `mesh ι n` has order topology. -/
