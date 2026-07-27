@@ -67,7 +67,7 @@ lemma capacity_iInter (hf : Antitone f) (hp : ∀ n, f n ∈ p) :
 
 /-- The capacity defined by a finite measure. -/
 def Measure.capacity {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ] :
-    Capacity (MeasurableSet (α := 𝓧)) where
+    Capacity {s : Set 𝓧 | MeasurableSet s} where
   capacityOf s := μ s
   mono' s t hst := μ.mono hst
   capacityOf_iUnion f hf := hf.measure_iUnion
@@ -151,7 +151,7 @@ def nat0 {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ 0
     · intro i j hij
-      simp only [Set.le_eq_subset, Set.subset_inter_iff, Set.inter_subset_left, true_and]
+      simp only [Set.subset_inter_iff, Set.inter_subset_left, true_and]
       refine Set.inter_subset_right.trans ?_
       exact hA_mono 0 hij
   have : ∃ n, a < m (s ∩ A 0 n) := by
@@ -177,7 +177,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
       simp only [Set.subset_inter_iff, subset_refl, true_and]
       exact Set.iInter_subset _ (n + 1)
     · intro i j hij
-      simp only [Set.mem_setOf_eq, Set.le_eq_subset, Set.subset_inter_iff]
+      simp only [Set.mem_ofPred_eq, Set.subset_inter_iff]
       refine ⟨⟨?_, ?_⟩, ?_⟩
       · exact Set.inter_subset_left.trans Set.inter_subset_left
       · exact Set.inter_subset_left.trans Set.inter_subset_right
@@ -188,7 +188,7 @@ def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n)
     rw [this] at hk
     exact lt_iSup_iff.mp hk
   ⟨fun i ↦ if i ≤ n then k.1 i else this.choose, by
-    simp only [qaux, Set.mem_setOf_eq]
+    simp only [qaux, Set.mem_ofPred_eq]
     intro j hj
     rw [Nat.le_succ_iff] at hj
     cases hj with
@@ -210,7 +210,7 @@ def seqAux (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed
     (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
     (n : ℕ) → {seq : ℕ → ℕ | qaux m s A a seq n}
   | 0 => ⟨fun _ ↦ nat0 hA_mono hs_eq a ha, by
-    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_setOf_eq]
+    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_ofPred_eq]
     exact (nat0 hA_mono hs_eq a ha).2⟩
   | n + 1 => succ hA_mono hs_eq
     (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n)
@@ -229,7 +229,7 @@ private lemma seqAux_add_one_apply_of_le (hp_empty : ∅ ∈ p)
     (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1)).1 i =
       (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 i := by
   rw [seqAux_add_one]
-  simp only [Set.mem_setOf_eq, succ, ite_eq_left_iff, not_le]
+  simp only [Set.mem_ofPred_eq, succ, ite_eq_left_iff, not_le]
   intro hni
   grind
 
@@ -260,7 +260,7 @@ private lemma seq_prop (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union
   convert h1 j hj using 3
   refine Set.dissipate_congr fun i hi ↦ ?_
   congr
-  simp only [seq, Set.mem_setOf_eq]
+  simp only [seq, Set.mem_ofPred_eq]
   exact seqAux_of_le hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (hi.trans hj)
 
 end Aux
@@ -270,6 +270,7 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
     (hs : s ∈ countableInfClosure (countableSupClosure p)) :
     IsCapacitable m s := by
+  rw [mem_countableInfClosure_iff_iInf] at hs
   obtain ⟨A, hA, hs_eq⟩ := hs
   simp_rw [hp_union.mem_countableSupClosure_iff] at hA
   choose A hpA hA_mono h_eq using hA
@@ -287,6 +288,7 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     | succ n hn =>
       rw [Set.dissipate_succ]
       exact hp_inter hn (hpA _ _)
+  simp_rw [mem_countableInfClosure_iff_iInf]
   refine ⟨⋂ n, B n, ⟨B, hB_mem, rfl⟩, ?_, ?_⟩
   · rw [← hs_eq, Set.iInf_eq_iInter]
     gcongr with n
@@ -306,6 +308,7 @@ lemma mem_countableInfClosure_fst {s : Set (𝓧 × 𝓚)}
     at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
   rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hA_anti hA]
+  rw [mem_countableInfClosure_iff_iInf]
   refine ⟨fun n ↦ Prod.fst '' A n, fun n ↦ ?_, rfl⟩
   simp only
   simp_rw [mem_supClosure_set_iff'] at hA
@@ -354,8 +357,11 @@ theorem IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : Inf
   · exact subset_supClosure ⟨∅, hp_empty, ∅, hq'_empty, by simp⟩
   · exact InfClosed.supClosure (hp_inter.image2_prod infClosed_infClosure)
   · exact fun s hs t ht ↦ supClosed_supClosure hs ht
-  · obtain ⟨B, hB, rfl⟩ := hA
+  · unfold prodSigmaDelta at hA
+    rw [mem_countableInfClosure_iff_iInf] at hA ⊢
+    obtain ⟨B, hB, rfl⟩ := hA
     refine ⟨B, fun n ↦ ?_, rfl⟩
+    simp_rw [mem_countableSupClosure_iff_iSup] at hB ⊢
     obtain ⟨C, hC, hB_eq⟩ := hB n
     simp_rw [← hB_eq]
     refine ⟨C, fun m ↦ ?_, rfl⟩
@@ -412,10 +418,11 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
 /-- An analytic set is universally measurable: it is null-measurable with respect to any
 finite measure. -/
 lemma IsPavingAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet s μ := by
   rw [← isCapacitable_measure_iff μ]
-  refine IsPavingAnalytic.isCapacitable (p := MeasurableSet (α := 𝓧)) MeasurableSet.empty ?_ ?_ hs
+  refine IsPavingAnalytic.isCapacitable (p := {t : Set 𝓧 | MeasurableSet t}) MeasurableSet.empty
+    ?_ ?_ hs
   · exact fun s hs t ht ↦ hs.inter ht
   · exact fun s hs t ht ↦ hs.union ht
 
@@ -430,7 +437,7 @@ theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [Den
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   refine IsPavingAnalytic.nullMeasurableSet ?_ μ
   refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
@@ -457,8 +464,8 @@ lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
 
 lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω}
     {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
-    (hs : IsPavingAnalytic MeasurableSet s) :
-    IsPavingAnalytic MeasurableSet (Prod.swap '' s) := by
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
+    IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := by
   convert isPavingAnalytic_swap hs
   ext s
   simp only [Set.mem_image]
@@ -474,7 +481,7 @@ lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [Dense
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
-    (hs : IsPavingAnalytic MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
   convert IsPavingAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧) ?_ μ
   · ext; simp

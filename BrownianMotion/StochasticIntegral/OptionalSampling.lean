@@ -73,7 +73,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_countable_range
       rw [Filter.EventuallyEq, ae_restrict_iff'] at this
       swap; · exact hτ.measurableSpace_le _ (hτ.measurableSet_le_stopping_time hσ)
       filter_upwards [this] with x hx hx_mem
-      simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_le] at hx_mem
+      simp only [Set.mem_compl_iff, Set.mem_ofPred_eq, not_le] at hx_mem
       exact hx hx_mem.le
     apply Filter.EventuallyEq.trans _ ((condExp_min_stopping_time_ae_eq_restrict_le hτ hσ).trans _)
     · exact stoppedValue X τ

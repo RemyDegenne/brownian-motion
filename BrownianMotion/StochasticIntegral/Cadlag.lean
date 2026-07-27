@@ -42,6 +42,14 @@ structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop wher
   right_continuous : Function.IsRightContinuous f
   left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
 
+@[simp]
+lemma isCadlag_const [TopologicalSpace E] [Preorder ι] (c : E) : IsCadlag (fun _ ↦ c : ι → E) :=
+  ⟨Function.isRightContinuous_const c, fun _ ↦ ⟨c, tendsto_const_nhds⟩⟩
+
+lemma Continuous.isCadlag [TopologicalSpace E] [Preorder ι] {f : ι → E} (hf : Continuous f) :
+    IsCadlag f :=
+  ⟨fun _ ↦ hf.continuousWithinAt, fun x ↦ ⟨f x, hf.continuousAt.continuousWithinAt⟩⟩
+
 section Jump
 
 /-- The set of left jump times of a function. -/
@@ -130,20 +138,39 @@ theorem IsCadlag.finite_largeLeftJumpSet [LinearOrder ι] [OrderTopology ι] [Co
 
 end Jump
 
-lemma IsCadlag.add {E : Type*} [Add E] [TopologicalSpace E] [ContinuousAdd E] [Preorder ι]
-    {f g : ι → E} (hf : IsCadlag f)
-    (hg : IsCadlag g) : IsCadlag (f + g) := by
-  refine ⟨fun i ↦ ContinuousWithinAt.add (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
-  obtain ⟨r, hr⟩ := hf.2 i
-  obtain ⟨s, hs⟩ := hg.2 i
-  exact ⟨r + s, hr.add hs⟩
+@[to_additive (attr := to_fun)]
+lemma IsCadlag.mul {E : Type*} [Mul E] [TopologicalSpace E] [ContinuousMul E] [Preorder ι]
+    {f g : ι → E} (hf : IsCadlag f) (hg : IsCadlag g) :
+    IsCadlag (f * g) := by
+  refine ⟨fun i ↦ ContinuousWithinAt.mul (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.2 i
+  obtain ⟨m, hm⟩ := hg.2 i
+  exact ⟨l * m, hl.mul hm⟩
 
+@[to_fun]
 lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [ContinuousSMul ℝ E]
     [Preorder ι] {f : ι → E} (hf : IsCadlag f) (r : ℝ) :
-    IsCadlag (fun i ↦ r • f i) := by
+    IsCadlag (r • f) := by
   refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
   obtain ⟨l, hl⟩ := hf.2 i
   exact ⟨r • l, hl.const_smul r⟩
+
+@[to_additive (attr := to_fun)]
+lemma IsCadlag.inv {E : Type*} [Group E] [TopologicalSpace E] [ContinuousInv E] [Preorder ι]
+    {f : ι → E} (hf : IsCadlag f) :
+    IsCadlag (f⁻¹) := by
+  refine ⟨fun i ↦ ContinuousWithinAt.inv (hf.1 i), fun i ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.2 i
+  exact ⟨l⁻¹, hl.inv⟩
+
+@[to_fun]
+lemma IsCadlag.sub {E : Type*} [Sub E] [TopologicalSpace E] [ContinuousSub E]
+    [Preorder ι] {f g : ι → E} (hf : IsCadlag f) (hg : IsCadlag g) :
+    IsCadlag (f - g) := by
+  refine ⟨fun i ↦ ContinuousWithinAt.sub (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
+  obtain ⟨l, hl⟩ := hf.2 i
+  obtain ⟨m, hm⟩ := hg.2 i
+  exact ⟨l - m, hl.sub hm⟩
 
 lemma IsCadlag.continuous_comp {κ E F : Type*} [TopologicalSpace κ] [TopologicalSpace E]
     [TopologicalSpace F] [Preorder κ] {g : E → F} {f : κ → E}
@@ -153,10 +180,13 @@ lemma IsCadlag.continuous_comp {κ E F : Type*} [TopologicalSpace κ] [Topologic
     obtain ⟨l, hl⟩ := hf.left_limit i
     exact ⟨g l, (hg.tendsto l).comp hl⟩
 
+lemma IsCadlag.norm {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] [Preorder κ]
+    {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖) :=
+  hf.continuous_comp continuous_norm
+
 lemma IsCadlag.norm_sq {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] [Preorder κ]
-    {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖ ^ 2) := by
-  change IsCadlag ((fun x : F ↦ ‖x‖ ^ 2) ∘ f)
-  exact IsCadlag.continuous_comp ((continuous_pow 2).comp continuous_norm) hf
+    {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖ ^ 2) :=
+  hf.norm.continuous_comp (continuous_pow 2)
 
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]

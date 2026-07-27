@@ -50,7 +50,7 @@ lemma measure_add_ge_le_add_measure_ge {Ω : Type*} {_ : MeasurableSpace Ω} {P 
     exact (add_tsub_cancel_of_le hu).symm
   _ ≤ P ({ω | u ≤ f ω} ∪ {ω | (x - u) ≤ g ω}) := by
     refine measure_mono fun ω ↦ ?_
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     contrapose!
     rintro ⟨h₁, h₂⟩
     gcongr

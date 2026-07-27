@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.Choquet.CountableClosed
+public import Mathlib.Order.CountableSupClosed
 public import Mathlib.Order.OmegaCompletePartialOrder
 public import Mathlib.Topology.Compactness.CompactSystem
 public import Mathlib.Topology.Metrizable.Uniformity
@@ -161,7 +161,7 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
       ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
   classical
   intro C hC hC_empty
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
     forall_const] at hC
   choose s f hf hCfs using hC
   simp_rw [Set.dissipate, ← hCfs]
@@ -236,12 +236,12 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
     (IsCompactSystem.sigma_ofFintype hQ)
   convert h_equiv using 1
   ext t
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
   constructor
   · rintro ⟨hl, hr⟩
     exact ⟨fun | true => Sum.inr ⁻¹' t | false => Sum.inl ⁻¹' t,
       fun | true => hr | false => hl,
-      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]; rfl⟩
+      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]⟩
   · rintro ⟨f, hf, hfC⟩
     have slice : ∀ b x, x ∈ f b ↔ (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm ⟨b, x⟩ ∈ t :=
       fun b x => by simpa using Set.ext_iff.mp hfC ⟨b, x⟩
@@ -249,15 +249,13 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
     · specialize hf false
       simp only [cond_false] at hf
       convert hf using 1
-      · rfl
-      · ext x
-        exact (slice false x).symm
+      ext x
+      exact (slice false x).symm
     · specialize hf true
       simp only [cond_true] at hf
       convert hf using 1
-      · rfl
-      · ext x
-        exact (slice true x).symm
+      ext x
+      exact (slice true x).symm
 
 -- check if we need to insert univ or not
 -- PP: we don't need to insert univ in order for the lemma to be true. We proved that we can insert
@@ -308,7 +306,7 @@ lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
       ∃ (A : ℕ → ℕ → Set 𝓧) (_ : ∀ n m, A n m ∈ p) (K : ℕ → ℕ → Set 𝓚) (_ : ∀ n m, K n m ∈ q),
         s = ⋂ n, ⋃ m, A n m ×ˢ K n m := by
   unfold prodSigmaDelta
-  simp only [mem_countableInfClosure_iff, mem_countableSupClosure_iff, Set.mem_image2,
+  simp only [mem_countableInfClosure_iff_iInf, mem_countableSupClosure_iff_iSup, Set.mem_image2,
     Set.iSup_eq_iUnion, Set.iInf_eq_iInter, exists_prop]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
@@ -326,7 +324,7 @@ lemma mem_countableSupClosure_image2_prod_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ countableSupClosure (Set.image2 (· ×ˢ ·) p q) ↔
       ∃ (A : ℕ → Set 𝓧) (_ : ∀ n, A n ∈ p) (K : ℕ → Set 𝓚) (_ : ∀ n, K n ∈ q),
         s = ⋃ n, A n ×ˢ K n := by
-  simp only [mem_countableSupClosure_iff, Set.mem_image2]
+  simp only [mem_countableSupClosure_iff_iSup, Set.mem_image2]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
     choose B hB C hC hA_eq using hA
@@ -353,6 +351,7 @@ lemma prodSigmaDelta.mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p �
 intersections of *antitone* sequences of sets. -/
 lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set 𝓧} :
     s ∈ countableInfClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Antitone A ∧ s = ⋂ n, A n := by
+  rw [mem_countableInfClosure_iff_iInf]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h
   refine ⟨Set.dissipate A, fun n ↦ ?_, Set.antitone_dissipate, ?_⟩
@@ -369,7 +368,7 @@ unions of *monotone* sequences of sets. -/
 protected
 lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
     s ∈ countableSupClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Monotone A ∧ s = ⋃ n, A n := by
-  rw [mem_countableSupClosure_iff]
+  rw [mem_countableSupClosure_iff_iSup]
   simp only [Set.iSup_eq_iUnion]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h
@@ -488,7 +487,7 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (h
   -- todo: dissipate_of_antitone?
   convert hC''_nonempty n using 1
   refine le_antisymm (Set.dissipate_subset le_rfl) ?_
-  simp only [Set.dissipate, Set.le_eq_subset, Set.subset_iInter_iff]
+  simp only [Set.dissipate, Set.subset_iInter_iff]
   exact fun i hi ↦ h_anti hi
 
 end MeasureTheory

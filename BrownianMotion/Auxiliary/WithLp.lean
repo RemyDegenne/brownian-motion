@@ -7,7 +7,7 @@ public import Mathlib.Analysis.InnerProductSpace.PiL2
 open WithLp ENNReal
 
 lemma PiLp.coe_proj (p : ENNReal) {ι : Type*} (𝕜 : Type*) {E : ι → Type*} [Semiring 𝕜]
-    [∀ i, SeminormedAddCommGroup (E i)] [∀ i, Module 𝕜 (E i)] {i : ι} :
+    [∀ i, NormedAddCommGroup (E i)] [∀ i, Module 𝕜 (E i)] {i : ι} :
     ⇑(proj p (𝕜 := 𝕜) E i) = fun x ↦ x i := rfl
 
 @[simp]

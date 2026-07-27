@@ -14,7 +14,7 @@ instance BorelSpace.sum [TopologicalSpace α] [TopologicalSpace β] [BorelSpace 
   refine le_antisymm ?_ ?_
   · sorry
   · refine MeasurableSpace.generateFrom_le fun t ht ↦ ?_
-    simp only [isOpen_sum_iff, Set.mem_setOf_eq] at ht
+    simp only [isOpen_sum_iff, Set.mem_ofPred_eq] at ht
     rw [measurableSet_sum_iff]
     exact ⟨ht.1.measurableSet, ht.2.measurableSet⟩
 

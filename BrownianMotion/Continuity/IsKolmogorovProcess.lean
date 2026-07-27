@@ -164,7 +164,7 @@ lemma lintegral_sup_rpow_edist_cover_of_dist_le
     suffices 1 ≤ Nat.log2 #C by omega
     rw [Nat.le_log2] <;> omega
   refine (lintegral_sup_rpow_edist_le_card_mul_rpow_of_dist_le hX h₀').trans ?_
-  simp only [← hC_card, ENat.toNat_coe, ENat.toENNReal_coe]
+  simp only [← hC_card, ENat.toNat_natCast, ENat.toENNReal_coe]
   calc 2 ^ p * 2 * #C * M * (c * rbar) ^ q = 2 ^ (p + 1) * M * (c * rbar) ^ q * #C := ?_
     _ ≤ 2 ^ (p + 1) * M * (2 * c * Nat.log2 #C) ^ q * #C := ?_
   · rw [ENNReal.rpow_add _ _ (by norm_num) (by norm_num), ENNReal.rpow_one]
@@ -573,7 +573,7 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Set T} {ε : ℝ≥0}
   have hC_zero : IsCover 0 J C := by
     intro s hs
     obtain ⟨t, ht, hst⟩ := hC hs
-    simp only [ENNReal.coe_zero, nonpos_iff_eq_zero, Set.mem_setOf_eq] at hst ⊢
+    simp only [ENNReal.coe_zero, nonpos_iff_eq_zero, Set.mem_ofPred_eq] at hst ⊢
     rw [h_le_iff hs (hC_subset ht)] at hst
     exact ⟨t, ht, hst⟩
   apply le_antisymm
@@ -581,7 +581,7 @@ lemma lintegral_sup_cover_eq_of_lt_iInf_dist {C : Set T} {ε : ℝ≥0}
     refine iSup_le fun s ↦ iSup_le fun t ↦ ?_
     exact le_iSup_of_le ⟨s.1, hC_subset s.2⟩ <| le_iSup_of_le ⟨⟨t.1, hC_subset t.1.2⟩, t.2⟩ le_rfl
   · choose f' hf'C hf'_edist using hC_zero
-    simp only [ENNReal.coe_zero, nonpos_iff_eq_zero, Set.mem_setOf_eq] at hf'_edist
+    simp only [ENNReal.coe_zero, nonpos_iff_eq_zero, Set.mem_ofPred_eq] at hf'_edist
     let f : J → C := fun s ↦ ⟨f' s.2, hf'C s.2⟩
     have hf_edist (s : J) : edist s.1 (f s).1 = 0 := hf'_edist s.2
     have hfX_edist (s : J) : ∀ᵐ ω ∂P, edist (X s ω) (X (f s) ω) = 0 := hX.edist_eq_zero (hf_edist s)
