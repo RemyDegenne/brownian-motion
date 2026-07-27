@@ -774,7 +774,7 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
 set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the predictable parts are uniformly integrable. -/
 lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦
@@ -830,7 +830,7 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
 /-- As the terminal values of predictable parts are uniformly integrable, the terminal values of the
 martingale parts are uniformly integrable. -/
 lemma uniformIntegrable_martingaleSeqTopAux {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦
@@ -841,7 +841,7 @@ lemma uniformIntegrable_martingaleSeqTopAux {ι Ω : Type*} [TopologicalSpace ι
 
 /-- Prove uniform integrability without the assumption `S ⊤ =ᵐ[P] 0` and `∀ t, S t ≤ᵐ[P] 0`. -/
 lemma uniformIntegrable_martingaleSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ}
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≠ ⊤}) ↦
