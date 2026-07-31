@@ -553,8 +553,10 @@ Our goal is to define a process with Gaussian finite-dimensional distributions.
 Prior to our work, \mathlib contained the definition of the one-dimensional normal distribution \mllink{Probability/Distributions/Gaussian/Real}{L198-L201}{ProbabilityTheory.gaussianReal}, but not more general Gaussian measures.
 We will denote by $N(m, \sigma^2)$ the normal distribution on $\mathbb{R}$ with mean $m$ and variance $\sigma^2$.
 In order to define the law of a Brownian motion on $\mathbb{R}_+$, we need definitions and properties of multivariate Gaussian distributions.
-We did not however define Gaussian measures only for that setting, but first introduced a general definition for Banach spaces, and then specialized it to Hilbert and finally finite dimensional spaces.
+We did not however define Gaussian measures only for that setting, but first introduced a general definition which makes sense in an arbitrary module equipped with a topology. Then we proved several results for general Banach spaces, and specialized some of them to Hilbert spaces and finally finite dimensional spaces.
 Our formalization uses many results from \mathlib and we relied on characteristic functions \mllink{MeasureTheory/Measure/CharacteristicFunction}{L322-L325}{MeasureTheory.charFunDual}, as well as the fact that they uniquely determine a probability measure \mllink{MeasureTheory/Measure/CharacteristicFunction}{L435-L439}{MeasureTheory.Measure.ext_of_charFunDual}.
+
+Note that some results could be generalized on more general spaces, namely locally convex vector spaces. One could in particular aim for a formalization of the Bochner-Minlos Theorem, which is not yet available in \mathlib. (Note that this result was recently auto-formalized for the development of Quantum Field Theory in \cite{douglas2026qft}, although it would require a lot of work to upstream it to \mathlib.)
 
 Note that Gaussian distributions could be defined on more general spaces (locally convex vector spaces). The construction requires a formalization of  the Bochner-Minlos Theorem, which is not yet available in \mathlib. (However, note that this result was recently formalized for the development of Quantum Field Theory in \cite{douglas2026qft}.)
 
