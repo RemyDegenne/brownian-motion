@@ -1076,7 +1076,7 @@ Consider $B$ a Brownian motion. Then:
 Let us focus on the first three statements, the fourth one being an easy consequence of the third. Computing the expectation and the variance is quite easy. On paper, proving that these are Gaussian processes is also straightforward, because a linear combination of marginals of any of theses processes is also clearly a linear combination of marginals of the process $B$, and thus has Gaussian law. This is not as obvious to formalize, because the notion of "being a linear combination of marginals" is a bit messy to work with. What we were able to formalize nicely however is the following lemma.
 
 \begin{lemma}[\bmlink{Gaussian/GaussianProcess}{L217-L223}{ProbabilityTheory.IsGaussianProcess.of_isGaussianProcess}]\label{lem:isGaussOfIsGauss}
-Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be an $F$-valued stochastic process. If for all $s \in S$, there exists $I$ a finite subset of $T$ and $L : E^I \to F$ a continuous linear map such that $Y_s = L((X_t)_{t \in I})$ {\color{blue} xxx Is this equality supposed to hold everywhere or almost everywhere? (I guess almost everywhere would be enough, but in practice it will be everywhere in all applications?)}, then $Y$ is a Gaussian process.
+Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be an $F$-valued stochastic process. If for all $s \in S$, there exists $I$ a finite subset of $T$ and $L : E^I \to F$ a continuous linear map such that $Y_s = L((X_t)_{t \in I})$, then $Y$ is a Gaussian process.
 \end{lemma}
 
 This statement makes proving Gaussianity in (1), (2) and (3) straightforward, especially because proving linearity is easy thanks to the different automation tactics available in \mathlib.
