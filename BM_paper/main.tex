@@ -1080,7 +1080,7 @@ Let $(X_t)_{t \in T}$ be an $E$-valued Gaussian process and $(Y_s)_{s \in S}$ be
 \end{lemma}
 
 This statement makes proving Gaussianity in (1), (2) and (3) straightforward, especially because proving linearity is easy thanks to the different automation tactics available in \mathlib.
-It is even more impressive in the case of (2). To prove independence, we rely on Lemma~\ref{lem:indepGaussProc}, which requires to prove that the joint process is Gaussian. Talking about linear combinations in the setting of the joint process would have been hard, but the phrasing of Lemma~\ref{lem:isGaussOfIsGauss} trivializes the formalization.
+It is even more impressive in the case of (2). To prove independence, we rely on Lemma~\ref{lem:indepGaussProc}, which requires to prove that the joint process is Gaussian. Talking about linear combinations in the setting of the joint process would have been hard, but the phrasing of Lemma~\ref{lem:isGaussOfIsGauss} trivializes the formalization. Note that Lemma~\ref{lem:isGaussOfIsGauss} would still be true if we only required $Y_s = L((X_t)_{t \in I})$ to be an almost sure equality. We wrote it with a true equality in the formalization since it is nicer to work with and it covered our use cases.
 
 It remains to discuss the continuity. It is immediate in (1) and (2), and in (3) it is also obvious on $(0, +\infty)$, but the continuity at $0$ is more involved. Because we proved that the process has the law of the Brownian motion, we can apply Theorem~\ref{thm:kolmogorov_chentsov} to obtain a Brownian motion which is a modification of $t B_{1/t}$. Then we can exploit continuity to conclude. To formalize this argument, we took inspiration in the way measurable functions are formalized in \Lean.
 
