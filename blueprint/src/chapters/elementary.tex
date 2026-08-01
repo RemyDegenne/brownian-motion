@@ -139,11 +139,13 @@ The class of \emph{predictable rectangles} on $T \times \Omega$ is
 
 \begin{lemma}\label{lem:predictableRectangles_isSetSemiring}
   \uses{def:predictableRectangles}
+  \leanok
+  \lean{MeasureTheory.Filtration.isSetSemiring_predictableRectangles}
 The class $\mathcal{R}_T$ of predictable rectangles
  is a semi-ring of sets.
 \end{lemma}
 
-\begin{proof}
+\begin{proof} \leanok
   Take two elements $A, B \in \mathcal{R}_T$~.
   If only one of $A, B$ is of the form $\{0\} \times F$,
   they are disjoint, so both the intersection and the difference
@@ -160,15 +162,23 @@ The class $\mathcal{R}_T$ of predictable rectangles
   =
   (s \vee s', t \wedge t'] \times (F \cap F').
   \]
-  Finally, the difference $A \setminus B$
-  is a disjoint union of at most three predictable rectangles:
+  Finally, let $I=(s,t]$ and $J=(s',t']$. Then
   \[
-  (s, s \vee s'] \times F,
-  \qquad
-  (s \vee s', t \wedge t'] \times (F \setminus F'),
-  \qquad
-  (t \wedge t', t] \times F.
+    (I\times F)\setminus(J\times F')
+    =
+    ((I\setminus J)\times F)
+    \cup
+    ((I\cap J)\times(F\setminus F')).
   \]
+  The union is disjoint, and
+  \[
+    I\setminus J
+    =
+    (s,t\wedge s']\cup(s\vee t',t].
+  \]
+  Hence $A\setminus B$ is a disjoint union of at most three predictable
+  rectangles. Indeed, $F\in\mathcal{F}_{s\vee t'}$ by monotonicity of the
+  filtration, and $F\setminus F'\in\mathcal{F}_{s\vee s'}$ as noted earlier.
 \end{proof}
 
 \begin{definition}[Elementary predictable set]\label{def:elementaryPredictableSet}
