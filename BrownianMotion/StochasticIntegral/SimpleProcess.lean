@@ -1,14 +1,14 @@
 /-
 Copyright (c) 2025 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne, Thomas Zhu
+Authors: Rémy Degenne, Thomas Zhu, Shehzad Hathi
 -/
 module
 
 public import BrownianMotion.Auxiliary.StoppedProcess
+public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.MeasureTheory.Constructions.BorelSpace.ContinuousLinearMap
 public import Mathlib.Order.CompletePartialOrder
-public import Mathlib.Probability.Process.Predictable
 
 /-! # Simple processes and elementary stochastic integral
 
@@ -141,6 +141,229 @@ def IocProd (i j : ι) {B : Set Ω} (hB : MeasurableSet[𝓕 i] B) :
   split_ifs with h
   · simp [toSet]
   · simp [toSet, Set.Ioc_eq_empty_of_le (not_le.1 h).le]
+
+/-- The set underlying an elementary predictable set is a finite union of predictable rectangles. -/
+lemma mem_supClosure_predictableRectangles (S : ElementaryPredictableSet 𝓕) :
+    (S : Set (ι × Ω)) ∈ supClosure 𝓕.predictableRectangles := by
+  rw [toSet]
+  apply (𝓕.isSetSemiring_predictableRectangles.isSetRing_supClosure).union_mem
+  · exact subset_supClosure (𝓕.singletonBot_prod_mem_predictableRectangles
+      S.measurableSet_setBot)
+  · apply (𝓕.isSetSemiring_predictableRectangles.isSetRing_supClosure).biUnion_mem
+    intro p hp
+    exact subset_supClosure (𝓕.Ioc_prod_mem_predictableRectangles p.1 p.2
+      (S.measurableSet_set p hp))
+
+/-- An elementary predictable set has a finite partition into predictable rectangles. -/
+lemma exists_finpartition_predictableRectangles (S : ElementaryPredictableSet 𝓕) :
+    ∃ P : Finpartition (S : Set (ι × Ω)), ↑P.parts ⊆ 𝓕.predictableRectangles :=
+  𝓕.isSetSemiring_predictableRectangles.mem_supClosure_iff.mp
+    S.mem_supClosure_predictableRectangles
+
+/-- A representation that exposes the data hidden by membership in `predictableRectangles`. -/
+private inductive RectangleRep (𝓕 : Filtration ι mΩ) where
+  | singletonBot (A : Set Ω) (hA : MeasurableSet[𝓕 ⊥] A)
+  | ioc (i j : ι) (hij : i < j) (A : Set Ω) (hA : MeasurableSet[𝓕 i] A)
+
+private def rectangleRepToSet (R : RectangleRep 𝓕) : Set (ι × Ω) :=
+  match R with
+  | .singletonBot A _ => {⊥} ×ˢ A
+  | .ioc i j _ A _ => Set.Ioc i j ×ˢ A
+
+private def rectangleRepIsBot (R : RectangleRep 𝓕) : Prop :=
+  match R with
+  | .singletonBot .. => true
+  | .ioc .. => false
+
+private def rectangleRepEndpoints (R : RectangleRep 𝓕) : ι × ι :=
+  match R with
+  | .singletonBot .. => (⊥, ⊥)
+  | .ioc i j .. => (i, j)
+
+private def rectangleRepEvent (R : RectangleRep 𝓕) : Set Ω :=
+  match R with
+  | .singletonBot A _ => A
+  | .ioc _ _ _ A _ => A
+
+private lemma measurableSet_rectangleRepEvent_bot {R : RectangleRep 𝓕}
+    (hR : rectangleRepIsBot R) : MeasurableSet[𝓕 ⊥] (rectangleRepEvent R) := by
+  cases R <;> simp_all [rectangleRepIsBot, rectangleRepEvent]
+
+private lemma measurableSet_rectangleRepEvent_ioc {R : RectangleRep 𝓕}
+    (hR : ¬ rectangleRepIsBot R) :
+    MeasurableSet[𝓕 (rectangleRepEndpoints R).1] (rectangleRepEvent R) := by
+  cases R with
+  | singletonBot => simp [rectangleRepIsBot] at hR
+  | ioc _ _ _ _ hA => exact hA
+
+private lemma rectangleRepEndpoints_le {R : RectangleRep 𝓕} (hR : ¬ rectangleRepIsBot R) :
+    (rectangleRepEndpoints R).1 ≤ (rectangleRepEndpoints R).2 := by
+  cases R with
+  | singletonBot => simp [rectangleRepIsBot] at hR
+  | ioc _ _ hij => exact hij.le
+
+private lemma rectangleRepToSet_eq_bot {R : RectangleRep 𝓕} (hR : rectangleRepIsBot R) :
+    rectangleRepToSet R = {⊥} ×ˢ rectangleRepEvent R := by
+  cases R <;> simp_all [rectangleRepIsBot, rectangleRepToSet, rectangleRepEvent]
+
+private lemma rectangleRepToSet_eq_ioc {R : RectangleRep 𝓕} (hR : ¬ rectangleRepIsBot R) :
+    rectangleRepToSet R = Set.Ioc (rectangleRepEndpoints R).1 (rectangleRepEndpoints R).2 ×ˢ
+      rectangleRepEvent R := by
+  cases R <;> simp_all [rectangleRepIsBot, rectangleRepToSet, rectangleRepEndpoints,
+    rectangleRepEvent]
+
+private lemma exists_rectangleRep {R : Set (ι × Ω)} (hR : R ∈ 𝓕.predictableRectangles) :
+    ∃ r : RectangleRep 𝓕, rectangleRepToSet r = R := by
+  rcases hR with ⟨A, hA, rfl⟩ | ⟨i, j, hij, A, hA, rfl⟩
+  · exact ⟨.singletonBot A hA, rfl⟩
+  · exact ⟨.ioc i j hij A hA, rfl⟩
+
+private noncomputable def rectangleRep {R : Set (ι × Ω)}
+    (hR : R ∈ 𝓕.predictableRectangles) : RectangleRep 𝓕 :=
+  (exists_rectangleRep hR).choose
+
+private lemma rectangleRep_toSet {R : Set (ι × Ω)}
+    (hR : R ∈ 𝓕.predictableRectangles) : rectangleRepToSet (rectangleRep hR) = R :=
+  (exists_rectangleRep hR).choose_spec
+
+private lemma pairwiseDisjoint_biUnion_filter {α β γ : Type*} [DecidableEq γ]
+    (s : Finset α) (f : α → Set β) (g : α → γ) (hs : (s : Set α).PairwiseDisjoint f) :
+    (s.image g : Set γ).PairwiseDisjoint fun y ↦ ⋃ x ∈ s.filter (g · = y), f x := by
+  classical
+  intro y _ z _ hyz
+  change Disjoint (⋃ x ∈ s.filter (g · = y), f x) (⋃ x ∈ s.filter (g · = z), f x)
+  rw [Set.disjoint_iUnion₂_left]
+  intro a ha
+  rw [Set.disjoint_iUnion₂_right]
+  intro b hb
+  apply hs (Finset.mem_filter.mp ha).1 (Finset.mem_filter.mp hb).1
+  rintro rfl
+  exact hyz ((Finset.mem_filter.mp ha).2.symm.trans (Finset.mem_filter.mp hb).2)
+
+private lemma exists_of_finpartition (A : Set (ι × Ω)) (P : Finpartition A)
+    (hP : ↑P.parts ⊆ 𝓕.predictableRectangles) :
+    ∃ S : ElementaryPredictableSet 𝓕, (S : Set (ι × Ω)) = A := by
+  classical
+  -- Choose explicit data for each rectangle in the partition.
+  let rep (R : P.parts) : RectangleRep 𝓕 := rectangleRep (hP R.property)
+  -- Separate the time-zero rectangles from the interval rectangles.
+  let botParts := P.parts.attach.filter fun R ↦ rectangleRepIsBot (rep R)
+  let iocParts := P.parts.attach.filter fun R ↦ ¬ rectangleRepIsBot (rep R)
+  -- There can be several partition parts with the same endpoints, while
+  -- `ElementaryPredictableSet` stores only one event for each pair of endpoints.
+  let groupedEvent (p : ι × ι) :=
+    ⋃ R ∈ iocParts.filter (fun R ↦ rectangleRepEndpoints (rep R) = p),
+      rectangleRepEvent (rep R)
+  let groupedRectangle (p : ι × ι) :=
+    ⋃ R ∈ iocParts.filter (fun R ↦ rectangleRepEndpoints (rep R) = p),
+      rectangleRepToSet (rep R)
+  have hgroupedRectangle (p : ι × ι) :
+      groupedRectangle p = Set.Ioc p.1 p.2 ×ˢ groupedEvent p := by
+    ext ⟨t, ω⟩
+    simp only [groupedRectangle, groupedEvent, Set.mem_iUnion, Set.mem_prod, Set.mem_Ioc]
+    constructor
+    · rintro ⟨R, hR, hxR⟩
+      have hR_ioc : ¬ rectangleRepIsBot (rep R) :=
+        (Finset.mem_filter.mp (Finset.mem_filter.mp hR).1).2
+      rw [rectangleRepToSet_eq_ioc hR_ioc] at hxR
+      exact ⟨(Finset.mem_filter.mp hR).2 ▸ hxR.1, R, hR, hxR.2⟩
+    · rintro ⟨ht, R, hR, hωR⟩
+      refine ⟨R, hR, ?_⟩
+      have hR_ioc : ¬ rectangleRepIsBot (rep R) :=
+        (Finset.mem_filter.mp (Finset.mem_filter.mp hR).1).2
+      rw [rectangleRepToSet_eq_ioc hR_ioc]
+      exact ⟨(Finset.mem_filter.mp hR).2 ▸ ht, hωR⟩
+  have hrep_disjoint :
+      (iocParts : Set P.parts).PairwiseDisjoint fun R ↦ rectangleRepToSet (rep R) := by
+    intro R _ Q _ hRQ
+    change Disjoint (rectangleRepToSet (rep R)) (rectangleRepToSet (rep Q))
+    dsimp only [rep]
+    rw [rectangleRep_toSet (hP R.property), rectangleRep_toSet (hP Q.property)]
+    exact P.disjoint R.property Q.property (Subtype.coe_ne_coe.mpr hRQ)
+  let S : ElementaryPredictableSet 𝓕 :=
+    { setBot := ⋃ R ∈ botParts, rectangleRepEvent (rep R)
+      I := iocParts.image fun R ↦ rectangleRepEndpoints (rep R)
+      set := groupedEvent
+      le_of_mem_I := by
+        rintro p hp
+        obtain ⟨R, hR, rfl⟩ := Finset.mem_image.mp hp
+        exact rectangleRepEndpoints_le (Finset.mem_filter.mp hR).2
+      measurableSet_setBot := by
+        apply MeasurableSet.biUnion (Finset.countable_toSet _)
+        intro R hR
+        exact measurableSet_rectangleRepEvent_bot (Finset.mem_filter.mp hR).2
+      measurableSet_set := by
+        rintro p hp
+        apply MeasurableSet.biUnion (Finset.countable_toSet _)
+        intro R hR
+        have hR_ioc : ¬ rectangleRepIsBot (rep R) :=
+          (Finset.mem_filter.mp (Finset.mem_filter.mp hR).1).2
+        have hp_eq : rectangleRepEndpoints (rep R) = p := (Finset.mem_filter.mp hR).2
+        rw [← hp_eq]
+        exact measurableSet_rectangleRepEvent_ioc hR_ioc
+      pairwiseDisjoint := by
+        intro p hp q hq hpq
+        change Disjoint (Set.Ioc p.1 p.2 ×ˢ groupedEvent p)
+          (Set.Ioc q.1 q.2 ×ˢ groupedEvent q)
+        rw [← hgroupedRectangle p, ← hgroupedRectangle q]
+        exact pairwiseDisjoint_biUnion_filter iocParts
+          (fun R ↦ rectangleRepToSet (rep R)) (fun R ↦ rectangleRepEndpoints (rep R))
+          hrep_disjoint hp hq hpq }
+  -- Regrouping by endpoint pairs does not change the union of the partition parts.
+  refine ⟨S, ?_⟩
+  rw [← P.sup_parts, Finset.sup_id_set_eq_sUnion]
+  calc
+    (S : Set (ι × Ω)) =
+        (⋃ R ∈ botParts, rectangleRepToSet (rep R)) ∪
+          ⋃ p ∈ iocParts.image (fun R ↦ rectangleRepEndpoints (rep R)), groupedRectangle p := by
+      rw [toSet]
+      dsimp only [S]
+      rw [Set.prod_iUnion₂]
+      congr 1
+      · apply Set.iUnion₂_congr
+        intro R hR
+        exact (rectangleRepToSet_eq_bot (Finset.mem_filter.mp hR).2).symm
+      · apply Set.iUnion₂_congr
+        exact fun p _ ↦ (hgroupedRectangle p).symm
+    _ = (⋃ R ∈ botParts, rectangleRepToSet (rep R)) ∪
+          ⋃ R ∈ iocParts, rectangleRepToSet (rep R) := by
+      simp_rw [groupedRectangle]
+      rw [← Finset.set_biUnion_biUnion, Finset.image_biUnion_filter_eq]
+    _ = ⋃ R ∈ botParts ∪ iocParts, rectangleRepToSet (rep R) := by
+      rw [Finset.set_biUnion_union]
+    _ = ⋃ R ∈ P.parts.attach, rectangleRepToSet (rep R) := by
+      rw [show botParts ∪ iocParts = P.parts.attach by
+        ext R
+        by_cases hR : rectangleRepIsBot (rep R) <;> simp [botParts, iocParts, hR]]
+    _ = ⋃₀ ↑P.parts := by
+      ext x
+      simp [rep, rectangleRep_toSet]
+
+/-- Every finite union of predictable rectangles is represented by an
+`ElementaryPredictableSet`. -/
+lemma exists_of_mem_supClosure_predictableRectangles {A : Set (ι × Ω)}
+    (hA : A ∈ supClosure 𝓕.predictableRectangles) :
+    ∃ S : ElementaryPredictableSet 𝓕, (S : Set (ι × Ω)) = A := by
+  obtain ⟨P, hP⟩ := 𝓕.isSetSemiring_predictableRectangles.mem_supClosure_iff.mp hA
+  exact exists_of_finpartition A P hP
+
+/-- The sets represented by `ElementaryPredictableSet` are exactly the finite unions of
+predictable rectangles. -/
+lemma range_coe_eq_supClosure_predictableRectangles :
+    Set.range (fun S : ElementaryPredictableSet 𝓕 ↦ (S : Set (ι × Ω))) =
+      supClosure 𝓕.predictableRectangles := by
+  ext A
+  constructor
+  · rintro ⟨S, rfl⟩
+    exact S.mem_supClosure_predictableRectangles
+  · exact exists_of_mem_supClosure_predictableRectangles
+
+/-- The sets represented by `ElementaryPredictableSet` form the ring of sets generated by the
+predictable rectangles. -/
+lemma isSetRing_range_coe :
+    IsSetRing (Set.range fun S : ElementaryPredictableSet 𝓕 ↦ (S : Set (ι × Ω))) := by
+  rw [range_coe_eq_supClosure_predictableRectangles]
+  exact 𝓕.isSetSemiring_predictableRectangles.isSetRing_supClosure
 
 end ElementaryPredictableSet
 
