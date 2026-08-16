@@ -226,10 +226,11 @@ private lemma rectangleRep_toSet {R : Set (ι × Ω)}
     (hR : R ∈ 𝓕.predictableRectangles) : rectangleRepToSet (rectangleRep hR) = R :=
   (exists_rectangleRep hR).choose_spec
 
+/-- Grouping a finite pairwise-disjoint family `f` according to the values of `g`
+preserves pairwise disjointness of the grouped unions. -/
 private lemma pairwiseDisjoint_biUnion_filter {α β γ : Type*} [DecidableEq γ]
     (s : Finset α) (f : α → Set β) (g : α → γ) (hs : (s : Set α).PairwiseDisjoint f) :
     (s.image g : Set γ).PairwiseDisjoint fun y ↦ ⋃ x ∈ s.filter (g · = y), f x := by
-  classical
   intro y _ z _ hyz
   change Disjoint (⋃ x ∈ s.filter (g · = y), f x) (⋃ x ∈ s.filter (g · = z), f x)
   rw [Set.disjoint_iUnion₂_left]
