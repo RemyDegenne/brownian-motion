@@ -558,9 +558,6 @@ Our formalization uses many results from \mathlib and we relied on characteristi
 
 Note that some results could be generalized on more general spaces, namely locally convex vector spaces. One could in particular aim for a formalization of the Bochner-Minlos Theorem, which is not yet available in \mathlib. (Note that this result was recently auto-formalized for the development of Quantum Field Theory in \cite{douglas2026qft}, although it would require a lot of work to upstream it to \mathlib.)
 
-Note that Gaussian distributions could be defined on more general spaces (locally convex vector spaces). The construction requires a formalization of  the Bochner-Minlos Theorem, which is not yet available in \mathlib. (However, note that this result was recently formalized for the development of Quantum Field Theory in \cite{douglas2026qft}.)
-
-
 \subsubsection{Gaussian distributions}
 
 We start by recalling the definition of the characteristic function of a general measure. Fix $E$ a real Banach space, and denote by $E'$ its topological dual, i.e. the set of continuous linear forms on $E$. Consider $\mu$ a measure over $E$, and denote by $\mathbf E_\mu$ and $\mathrm{var}_\mu$ the associated expectation and variance operators.
@@ -1027,7 +1024,7 @@ All the results presented so far can be used together to construct a Brownian mo
 We build a stochastic process $(B_t)_{t \in \mathbb{R}_+}$ such that
 \begin{itemize}
   \item $B$ has continuous paths,
-  \item $B_0 = 0$ almost surely, {\color{blue} Can't you even guarantee that $B_0 = 0$ everywhere, by taking $x_0 = 0$ in the construction of $Y_t$ on Page 32?}
+  \item $B_0 = 0$ almost surely,
   \item for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(B_{t_1}, \ldots, B_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(B_{t_i}, B_{t_j}) = t_i \wedge t_j$.
 \end{itemize}
 
