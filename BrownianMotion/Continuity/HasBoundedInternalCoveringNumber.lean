@@ -45,6 +45,26 @@ lemma HasBoundedInternalCoveringNumber.diam_lt_top
     exists_prop, exists_eq_right_right, Finset.coe_empty, isCover_empty_iff, Set.empty_subset] at h
   simp [h] at this
 
+lemma HasBoundedInternalCoveringNumber.diam_le
+    (h : HasBoundedInternalCoveringNumber A c d) (hd : 0 < d) :
+    EMetric.diam A ≤ c ^ d⁻¹ := by
+  rcases eq_or_ne (EMetric.diam A) 0 with h0 | h0
+  · simp [h0]
+  · have hA : A.Nonempty := by
+      rw [Set.nonempty_iff_ne_empty]
+      rintro rfl
+      exact h0 EMetric.diam_empty
+    have h1 : 1 ≤ c * (EMetric.diam A)⁻¹ ^ d := by
+      refine le_trans ?_ (h _ le_rfl)
+      exact_mod_cast hA.one_le_internalCoveringNumber _
+    have h2 : EMetric.diam A ^ d ≤ c := by
+      have := mul_le_mul_right' h1 (EMetric.diam A ^ d)
+      rwa [one_mul, mul_assoc, ← ENNReal.mul_rpow_of_ne_top (by simp [h0]) (h.diam_lt_top hd).ne,
+        ENNReal.inv_mul_cancel h0 ((h.diam_lt_top hd).ne), ENNReal.one_rpow, mul_one] at this
+    calc EMetric.diam A = (EMetric.diam A ^ d) ^ d⁻¹ := by
+          rw [← ENNReal.rpow_mul, mul_inv_cancel₀ hd.ne', ENNReal.rpow_one]
+      _ ≤ c ^ d⁻¹ := ENNReal.rpow_le_rpow h2 (by positivity)
+
 lemma HasBoundedInternalCoveringNumber.subset {B : Set T}
     (h : HasBoundedInternalCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
     HasBoundedInternalCoveringNumber B (2 ^ d * c) d := by

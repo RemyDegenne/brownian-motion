@@ -157,7 +157,7 @@ Before making the project public, we thus spent time detailing every step of the
 We started by implementing in \Lean several key definitions and statements (without proofs): there are always several ways to turn a mathematical concept into a \Lean definition, and in order to collaborate on a project it is important to decide early on a unique way to talk about any concept to ensure compatibility of the code produced, even if the definition chosen can then be refined.
 Different parts of the blueprint had different levels of details: we wrote a precise description of the technical Kolmogorov-Chentsov proof, but omitted many proofs for more standard results on Gaussian distributions.
 
-The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L. and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress. (The full list of contributors -- excluding authors of the present manuscript -- with more than five commits is:  Eugenio Cainelli, Markus Himmel, Nikolas Kuhn, Yongxi (Aaron) Lin,   Lorenzo Luccioli, Jack McCarthy, Pietro Monticone, Jérémy Scanvic, Kexing Ying, Thomas Zhu.)
+The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L. and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress. (The full list of contributors is in the acknowledgements.)
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
 The blueprint continued to evolve during the formalization, as new lemmas were added (once because a small gap was identified in the blueprint proof), definitions were changed to better fit the needs of writing in \Lean, and small mistakes were corrected (particularly in the exact value of constants used in the Kolmogorov-Chentsov proof).
 
@@ -698,20 +698,17 @@ Therefore, we introduce a definition \lstinline|IsAEKolmogorovProcess| for the p
 \subsubsection{The main theorem}
 
 We formalize a recent and general version of the Kolmogorov-Chentsov theorem \cite[Theorem 1]{kratschmer2023kolmogorov}, which applies to extended pseudo-metric spaces under a covering assumption on the index set $T$.
-We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d \ge 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below). Note that such a space is totally bounded by construction.
-
-{\color{blue} xxx Maybe add "Note also that this condition implies $diam(T) < \infty$, even if $T$ is an extended metric space to start with".}
+We say that $T$ has bounded covering number with constant $c > 0$ and exponent $d \ge 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below). Note that such a space is totally bounded with finite diameter by construction.
 
 \begin{theorem}[Kolmogorov-Chentsov]\label{thm:kolmogorov_chentsov}
 Suppose that the index set $T$ has bounded covering number with constant $c>0$ and exponent $d > 0$.
 Let $(X_t)_{t \in T}$ be a stochastic process that satisfies the Kolmogorov condition for exponents $(p,q)$ with constant $M$, with $q > d$ and $p > 0$.
-Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(T, c, d, p, q, \beta)$ such that for every countable subset $T' \subseteq T$,
+Then for all $\beta \in(0, (q - d)/p)$ there exists a finite constant $L(c, d, p, q, \beta)$ such that for every countable subset $T' \subseteq T$,
 \begin{align*}
   \mathbf{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \le M L(T, c, d, p, q, \beta)
+  \le M L(c, d, p, q, \beta)
   \: .
 \end{align*}
-{\color{blue}xxx If L is supposed to be a universal constant, I don't see how it could depend on $T$. Does it really? (Note that if it only depends on $T$ through its diameter, then in fact it doesn't depend on $T$ since the diameter can be bounded in terms of $c$ and $d$: for epsilon with $c \epsilon^{-d} < 1$, the covering condition would say that $T$ is bounded by $0$ balls, which is a contradiction; so this epsilon is $> diam T$, which gives you the claimed bound on the diameter)}
 If furthermore $E$ is complete and $T$ is second-countable, then the process $X$ has a modification with Hölder continuous paths of exponent $\beta$ for all $\beta \in (0, (q - d)/p)$.
 \end{theorem}
 
@@ -721,6 +718,8 @@ Indeed, if $d_T(s, t) = 0$, then the Kolmogorov condition implies that $d_E(X_s,
 
 
 Note that $T$ is said to be an \emph{extended} pseudo-metric space, but the bounded covering number condition implies that $T$ has finite diameter, hence is a pseudo-metric space.
+Indeed, since a nonempty set cannot be covered by fewer than one ball, applying the covering condition at $\varepsilon = \mathrm{diam}(T)$ shows that $\mathrm{diam}(T) \le c^{1/d}$.
+This is also the reason why the constant $L(c, d, p, q, \beta)$ does not depend on $T$: the proof produces a constant involving $\mathrm{diam}(T)$, which we bound by $c^{1/d}$.
 The \Lean code is nonetheless written for a distance with values in $[0,+\infty]$, for two reasons: first the distance on $E$ has that type and using the same types for both is easier, and second it allows us to work with \mathlib's Lebesgue integral (which expect that co-domain for the functions we integrate).
 Working with the Lebesgue integral is easier than using \mathlib's Bochner integral since manipulating the latter often requires proving integrability of the functions we consider.
 Therefore, from the beginning of the project we made the design choice to consider any non-negative function as taking values in $[0,+\infty]$, and to use the Lebesgue integral whenever possible.
@@ -774,7 +773,7 @@ Part of the reason for choosing to formalize the Kolmogorov-Chentsov theorem as 
 \paragraph{Covers}
 
 An (internal) $\varepsilon$-cover of $T$ is a subset $S \subseteq T$ such that for all $t \in T$, there exists $s \in S$ such that $d_T(s, t) \le \varepsilon$.
-If $T$ has bounded diameter we can find an $\varepsilon$-cover which is finite {\color{blue} xxx Not true in general (the unit ball in an infinite-dimensional Hilbert space is a counterexample). You need total boundedness here.}, and the covering number of $T$ for $\varepsilon > 0$ is the minimal cardinality of an $\varepsilon$-cover of $T$, denoted by $N_\varepsilon(T)$.
+The covering number of $T$ for $\varepsilon > 0$, denoted by $N_\varepsilon(T)$, is the minimal cardinality of a finite $\varepsilon$-cover of $T$, or $+\infty$ if no finite $\varepsilon$-cover exists; it is finite for every $\varepsilon > 0$ if and only if $T$ is totally bounded. Accordingly, in our formalization the covering number takes values in $\mathbb{N} \cup \{+\infty\}$.
 We call a cover with that cardinality a minimal $\varepsilon$-cover.
 Our formalization also includes definitions of external covers and covering numbers, packing numbers and inequalities between these numbers and the volume of balls. We don't detail those here, but the relations between those quantities are helpful to prove properties of covering numbers.
 
@@ -831,7 +830,7 @@ Let $T$ be a pseudo-metric space, $c \ge 0$, $J$ a finite subset of $T$, $a \ge 
 Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space $E$ and any map $f: T \to E$~,
 \begin{enumerate}
   \item $\lvert K \rvert \le a \lvert J \rvert$~,
-  \item for all $(s, t) \in J^2$, $d_T(s, t) \le cn$~,
+  \item for all $(s, t) \in K$, $d_T(s, t) \le cn$~,
   \item $\sup_{s, t \in J, \: d_T(s, t) \le c} d_E(f(s), f(t)) \le 2 \sup_{(s, t) \in K} d_E(f(s), f(t))$~.
 \end{enumerate}
 \end{lemma}
@@ -923,7 +922,7 @@ We apply the inequality~\eqref{eq:kolmogorov_condition_finite_set} for $K = \{(s
 \end{align*}
 Since $\varepsilon_m \le \delta \le 4 \varepsilon_m$, we obtain a bound of order $\delta^{q - 2d}$, which is not sufficient to conclude the proof with the right exponent $\delta^{q - d}$.
 The issue is the square on the cardinal of the cover $C_m$, and this is where the pair reduction lemma (Lemma~\ref{lem:pair_reduction}) comes into play.
-With that lemma applied to $a = 2$, $n = \lceil \log_2 J \rceil$ {\color{blue}xxx Should $J$ it be $C_m$?} and $c = 8 \varepsilon_m$, we obtain a set $K \subseteq C_m^2$ with $\lvert K \rvert \le 2 \lvert C_m \rvert$ and $\sup_{(s, t) \in K} d_T(s, t) \le 8 n \varepsilon_m$, such that an application of \eqref{eq:kolmogorov_condition_finite_set} gives
+With that lemma applied to $J = C_m$, $a = 2$, $n = \lceil \log_2 \lvert C_m \rvert \rceil$ and $c = 8 \varepsilon_m$, we obtain a set $K \subseteq C_m^2$ with $\lvert K \rvert \le 2 \lvert C_m \rvert$ and $\sup_{(s, t) \in K} d_T(s, t) \le 8 n \varepsilon_m$, such that an application of \eqref{eq:kolmogorov_condition_finite_set} gives
 \begin{align*}
   \mathbf{E}\left[ \sup_{\substack{s, t \in C_m \\ d_T(s, t) \le 8 \varepsilon_m}} d_E(X_s, X_t)^p \right]
   &\le 2^p \mathbf{E}\left[ \sup_{s, t \in K} d_E(X_s, X_t)^p \right]
