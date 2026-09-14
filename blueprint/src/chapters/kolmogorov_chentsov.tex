@@ -331,6 +331,20 @@ If $A$ has bounded internal covering number with constant $c>0$ and exponent $d>
 \end{proof}
 
 
+\begin{lemma}\label{lem:hasBoundedInternalCoveringNumber_diam_le}
+  \uses{def:HasBoundedInternalCoveringNumber}
+  \leanok
+  \lean{HasBoundedInternalCoveringNumber.diam_le}
+If $A$ has bounded internal covering number with constant $c>0$ and exponent $d>0$, then $\mathrm{diam}(A) \le c^{1/d}$.
+\end{lemma}
+
+\begin{proof}\leanok
+If $\mathrm{diam}(A) = 0$ there is nothing to prove.
+Otherwise $A$ is nonempty, so any cover of $A$ has at least one element, and applying the covering condition with $\varepsilon = \mathrm{diam}(A)$ gives
+$1 \le N^{int}_{\mathrm{diam}(A)}(A) \le c \, \mathrm{diam}(A)^{-d}$, hence $\mathrm{diam}(A)^d \le c$.
+\end{proof}
+
+
 \section{Chaining}
 
 \subsection{Chaining sequence}
@@ -1577,8 +1591,8 @@ Note that $\eta_k \ge 2^{-k}$.
   \lean{ProbabilityTheory.constL}
 We introduce the constant
 \begin{align*}
-  L(T, c_1, d, p, q, \beta)
-  &= 2^{2p+5q+1} c_1 (\mathrm{diam}(T)+1)^{q-d}
+  L(c_1, d, p, q, \beta)
+  &= 2^{2p+5q+1} c_1 (c_1^{1/d}+1)^{q-d}
   \\&\quad \times \sum_{k=0}^\infty 2^{k (\beta p - (q-d))}\left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q
     + C_p\right)
   \: .
@@ -1590,14 +1604,14 @@ We introduce the constant
   \uses{def:L}
   \leanok
   \lean{ProbabilityTheory.constL_lt_top}
-For $\mathrm{diam}(T) < \infty$, $p> 0$, $q > d > 0$ and $\beta \in (0, (q-d)/p)$, the constant $L(T, c_1, d, p, q, \beta)$ is finite.
+For $c_1 < \infty$, $p> 0$, $q > d > 0$ and $\beta \in (0, (q-d)/p)$, the constant $L(c_1, d, p, q, \beta)$ is finite.
 \end{lemma}
 
 \begin{proof}
 \leanok
-Let $a_k = 2^{2p+5q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{k (\beta p - (q-d))} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q
+Let $a_k = 2^{2p+5q+1} M c_1 (c_1^{1/d}+1)^{q-d} 2^{k (\beta p - (q-d))} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\}\right)^q
     + C_p\right)$.
-Then $L(T, c_1, d, p, q, \beta) = \sum_{k=0}^\infty a_k$.
+Then $L(c_1, d, p, q, \beta) = \sum_{k=0}^\infty a_k$.
 To show that the sum is finite, we can use the ratio test.
 \begin{align*}
   \frac{\vert a_{k+1} \vert}{\vert a_k \vert}
@@ -1619,14 +1633,14 @@ Let $\beta \in(0, (q - d)/p)$.
 Then
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in J;\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \le M L(T, c_1, d, p, q, \beta)
+  \le M L(c_1, d, p, q, \beta)
   \: .
 \end{align*}
 \end{lemma}
 
 \begin{proof}
   \leanok
-  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:hasBoundedInternalCoveringNumber_subset}
+  \uses{cor:finite_set_bound_of_dist_le, lem:integral_div_dist_le_sum_integral_dist_le, lem:hasBoundedInternalCoveringNumber_subset, lem:hasBoundedInternalCoveringNumber_diam_le}
 
 Since $J \subseteq T$, $J$ has bounded internal covering number with constant $2^d c_1$ and exponent $d$ (Lemma~\ref{lem:hasBoundedInternalCoveringNumber_subset}).
 
@@ -1649,9 +1663,13 @@ We apply Corollary~\ref{cor:finite_set_bound_of_dist_le} to bound each expectati
   \\
   &= 2^{2p+5q+1} M c_1 (\mathrm{diam}(T)+1)^{q-d} 2^{-k(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\} \right)^q
     + C_p\right)
-  \: .
+  \\
+  &\le 2^{2p+5q+1} M c_1 (c_1^{1/d}+1)^{q-d} 2^{-k(q-d)} \left(4^d \left(\max\left\{0, \log_2(c_1) + (k + 2)d \right\} \right)^q
+    + C_p\right)
+  \: ,
 \end{align*}
-The sum is then less than $M$ times $L(T, c_1, d, p, q, \beta)$.
+where the last inequality uses $\mathrm{diam}(T) \le c_1^{1/d}$ (Lemma~\ref{lem:hasBoundedInternalCoveringNumber_diam_le}).
+The sum is then less than $M$ times $L(c_1, d, p, q, \beta)$.
 \end{proof}
 
 
@@ -1665,7 +1683,7 @@ Let $\beta \in(0, (q - d)/p)$.
 Then for every countable subset $T' \subseteq T$ with positive diameter,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T';\: s \ne t} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \le M L(T, c_1, d, p, q, \beta)
+  \le M L(c_1, d, p, q, \beta)
   \: .
 \end{align*}
 \end{theorem}
@@ -1677,10 +1695,10 @@ Build a monotone sequence of finite sets $T_n \subseteq T'$, use Lemma~\ref{lem:
 
 
 \begin{corollary}\label{cor:countable_set_bound_of_le}
-Under the same assumptions as in Theorem~\ref{thm:countable_set_bound}, for every countable subset $T' \subseteq T$ with positive diameter, for $L(T, c_1, d, p, q, \beta) < \infty$ the same constant,
+Under the same assumptions as in Theorem~\ref{thm:countable_set_bound}, for every countable subset $T' \subseteq T$ with positive diameter, for $L(c_1, d, p, q, \beta) < \infty$ the same constant,
 \begin{align*}
   \mathbb{E}\left[ \sup_{s, t \in T';\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
-  \le M L(T, c_1, d, p, q, \beta) \delta^{\beta p}
+  \le M L(c_1, d, p, q, \beta) \delta^{\beta p}
   \: .
 \end{align*}
 \end{corollary}
