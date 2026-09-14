@@ -17,6 +17,7 @@ The typos and small changes you suggested were carried out without further menti
 \begin{itemize}
   \item Lemma 4.3 and footnote: \\{\color{blue}done}
   \item Thm 4.7: \\{\color{blue}You are right, $\sigma$-finiteness is not needed here, it is now deleted. }
+  \item Before Thm 4.13: \\{\color{blue}We added more details to explain how we get to Kolmogorov extension theorem from what preceeds.}
   \item Before Thm 4.20: \\{\color{blue}You are right, a finite diameter follows from the definitions, which we added.}
   \item In Thm 4.20, dependence $L(T,...)$: \\{\color{blue}You are right, the constant does not need to depend on $T$. It depended on $T$ only through $\mathrm{diam}(T)$, which, as you point out, is bounded by $c^{1/d}$ due to the covering condition. We have changed the statement to $L(c, d, p, q, \beta)$, added a remark explaining the bound on the diameter after the theorem, and adapted the formalization accordingly (the Lean constant \texttt{constL} now takes only $c, d, p, q, \beta$ as arguments, using a new lemma \texttt{HasBoundedInternalCoveringNumber.diam\_le}).}
   \item Section 4.4.3: \\{\color{blue}You are right, bounded diameter is not sufficient for the existence of finite $\varepsilon$-covers. We rephrased the definition, which matches the formalization (where it takes values in $\mathbb{N} \cup \{+\infty\}$), and we remark that it is finite for every $\varepsilon > 0$ if and only if $T$ is totally bounded.}
