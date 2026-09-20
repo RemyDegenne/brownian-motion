@@ -2316,12 +2316,7 @@ lemma isStronglyPredictable_limsup_predictableConvexStep {ι Ω : Type*} [Topolo
   IsStronglyPredictable.limsup fun n => isStronglyPredictable_predictableConvexStep hd hs n
 
 /-- For each random time `τ`, almost everywhere,
-`limsup (fun n => stoppedValue 𝒜^n τ ω) atTop ≤ stoppedValue A τ ω`.
-
-The proof uses the almost sure convergence of `𝒜^n` to `A` on the dense set
-(`predictableConvexStep_ae_tendsto`), the monotonicity of `𝒜^n` and the right-continuity of `A`,
-which holds since `S` is càdlàg and the martingale part is a càdlàg modification
-(`isRightContinuous_predictablePartLim_ae`). -/
+`limsup (fun n => stoppedValue 𝒜^n τ ω) atTop ≤ stoppedValue A τ ω`. -/
 lemma limsup_stoppedValue_predictableConvexStep_ae_le_stoppedValue_predictablePartLim {ι Ω : Type*}
     [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
     [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
@@ -2337,11 +2332,7 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_le_stoppedValue_predictablePa
     (denseSet_dense ι) (top_mem_denseSet ι) (bot_mem_denseSet ι) (hrcω _) hconvω
 
 /-- For each finite stopping time `τ`, `∫ ω, stoppedValue 𝒜^n τ ω ∂P` converges to
-`∫ ω, stoppedValue A τ ω ∂P`.
-
-The expectation of the stopped martingale part is computed by optional sampling, which applies
-since under the usual conditions `martingalePartLim hd hs` is a martingale with right-continuous
-paths. -/
+`∫ ω, stoppedValue A τ ω ∂P`. -/
 lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictablePartLim
     {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι]
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι]
@@ -2673,18 +2664,17 @@ lemma integrable_stoppedValue_predictablePartLim [DenselyOrdered ι] [𝓕.IsRig
 
 end StoppedValueIntegrable
 
-/-- For each finite stopping time `τ`, almost everywhere,
-`limsup (fun n => stoppedValue 𝒜^n τ ω) atTop = stoppedValue A τ ω`.
+variable {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
+  [MeasurableSpace ι]
+  [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
+  {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
 
-The inequality `≤` is
-`limsup_stoppedValue_predictableConvexStep_ae_le_stoppedValue_predictablePartLim`, and the two
-sides have the same expectation by the reverse Fatou lemma and
-`integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictablePartLim`. -/
-lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePartLim {ι Ω : Type*}
-    [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
-    {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-    [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
+/-- For each finite stopping time `τ`, almost everywhere,
+`limsup (fun n => stoppedValue 𝒜^n τ ω) atTop = stoppedValue A τ ω`. -/
+lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePartLim
+    [DenselyOrdered ι] [𝓕.IsComplete P]
+    (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     (fun ω ↦ limsup (fun n ↦ stoppedValue (predictableConvexStep hd hs n) τ ω) atTop) =ᵐ[P]
@@ -2763,11 +2753,8 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePa
 
 /-- Under the usual conditions, the predictable part of the decomposition is strongly
 progressive. -/
-lemma isStronglyProgressive_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
-    {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-    [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
+lemma isStronglyProgressive_predictablePartLim [OpensMeasurableSpace ι]
+    [𝓕.IsComplete P] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     IsStronglyProgressive 𝓕 (predictablePartLim hd hs) :=
   hd.isStronglyProgressive.sub
     ((stronglyAdapted_martingalePartLim hd hs).isStronglyProgressive_of_rightContinuous
@@ -2775,10 +2762,7 @@ lemma isStronglyProgressive_predictablePartLim {ι Ω : Type*} [TopologicalSpace
 
 /-- Almost surely, `limsup (predictableConvexStep hd hs · t ω) atTop ≤ predictablePartLim hd hs t ω`
 for all times `t`. -/
-lemma limsup_predictableConvexStep_le_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι]
-    [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι]
-    [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
+lemma limsup_predictableConvexStep_le_predictablePartLim_ae [DenselyOrdered ι]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, limsup (predictableConvexStep hd hs · t ω) atTop ≤
       predictablePartLim hd hs t ω := by
@@ -2790,10 +2774,7 @@ lemma limsup_predictableConvexStep_le_predictablePartLim_ae {ι Ω : Type*} [Top
 
 /-- Almost surely, the left limit of `predictablePartLim hd hs` at `t` is at most
 `limsup (predictableConvexStep hd hs · t ω) atTop`, for all times `t`. -/
-lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae {ι Ω : Type*}
-    [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
-    {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
+lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae [DenselyOrdered ι]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, (predictablePartLim hd hs · ω).leftLim t ≤
       limsup (predictableConvexStep hd hs · t ω) atTop := by
@@ -2812,11 +2793,8 @@ lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae {ι Ω : Typ
 `limsup (predictableConvexStep hd hs · t ω) atTop` is smaller than `predictablePartLim hd hs t ω`
 by more than `ε`: these are times of jumps of size at least `ε` of the càdlàg path of
 `predictablePartLim hd hs`. -/
-lemma finite_setOf_lt_predictablePartLim_sub_limsup_predictableConvexStep_ae {ι Ω : Type*}
-    [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] [CompactSpace ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
+lemma finite_setOf_lt_predictablePartLim_sub_limsup_predictableConvexStep_ae
+    [DenselyOrdered ι] [CompactSpace ι] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ ε > 0, {t | ε < predictablePartLim hd hs t ω -
       limsup (predictableConvexStep hd hs · t ω) atTop}.Finite := by
@@ -2833,9 +2811,9 @@ lemma finite_setOf_lt_predictablePartLim_sub_limsup_predictableConvexStep_ae {ι
 
 /-- The processes `fun t ω ↦ limsup (predictableConvexStep hd hs · t ω) atTop` and
 `predictablePartLim hd hs` are indistinguishable. -/
-lemma limsup_predictableConvexStep_eq_predictablePartLim {ι Ω : Type*} [CompleteLinearOrder ι]
+lemma limsup_predictableConvexStep_eq_predictablePartLim {ι : Type*} [CompleteLinearOrder ι]
     [DenselyOrdered ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι]
-    [BorelSpace ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [BorelSpace ι] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, limsup (predictableConvexStep hd hs · t ω) atTop =
@@ -2877,20 +2855,12 @@ end PredictablePartIsStronglyPredictable
 
 section DoobMeyer
 
-/-- A strongly adapted modification of a martingale is a martingale. -/
-lemma MeasureTheory.Martingale.of_modification {ι Ω E : Type*} [Preorder ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] {𝓕 : Filtration ι mΩ} {M N : ι → Ω → E} (hM : Martingale M 𝓕 P)
-    (hN : StronglyAdapted 𝓕 N) (h : ∀ t, N t =ᵐ[P] M t) :
-    Martingale N 𝓕 P :=
-  ⟨hN, fun i j hij ↦ (condExp_congr_ae (h j)).trans ((hM.condExp_ae_eq hij).trans (h i).symm)⟩
-
 /-- **Doob–Meyer decomposition** of a càdlàg submartingale of class D. -/
 theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder ι]
     [DenselyOrdered ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι]
     [BorelSpace ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P)
-    (hs : Submartingale S 𝓕 P) (hc : ∀ ω, IsCadlag (S · ω)) :
+    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P]
+    (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ ω, IsCadlag (S · ω)) :
     ∃ (M A : ι → Ω → ℝ), S = M + A ∧ Martingale M 𝓕 P ∧ (∀ ω, IsCadlag (M · ω)) ∧
       IsStronglyPredictable 𝓕 A ∧ (∀ ω, IsCadlag (A · ω)) ∧ (∀ ω, Monotone (A · ω)) := by
   have hc' : ∀ᵐ ω ∂P, IsCadlag (S · ω) := .of_forall hc
@@ -2920,9 +2890,10 @@ theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder
   have hM_mem {ω : Ω} (hω : ω ∈ G) (t : ι) : (S - A) t ω = martingalePartLim hd hs t ω := by
     simp only [Pi.sub_apply, hA_mem hω t, predictablePartLim, sub_sub_cancel]
   refine ⟨S - A, A, (sub_add_cancel S A).symm, ?_, fun ω ↦ ?_, hA_pred, fun ω ↦ ?_, fun ω ↦ ?_⟩
-  · refine (martingale_martingalePartLim hd hs).of_modification
-      (fun t ↦ (hs.stronglyAdapted t).sub (hA_pred.stronglyAdapted t)) fun t ↦ ?_
-    filter_upwards [hG_ae] with ω hω using hM_mem hω t
+  · refine (martingale_martingalePartLim hd hs).congr ?_ ?_
+    · exact fun t ↦ (hs.stronglyAdapted t).sub (hA_pred.stronglyAdapted t)
+    · intro t
+      filter_upwards [hG_ae] with ω hω using (hM_mem hω t).symm
   · by_cases hω : ω ∈ G
     · simpa only [hM_mem hω] using isCadlag_martingalePartLim hd hs ω
     · simpa only [Pi.sub_apply, hA_notMem hω, sub_zero] using hc ω
