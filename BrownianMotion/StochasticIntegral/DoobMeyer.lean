@@ -487,7 +487,7 @@ lemma stronglyMeasurable_predictable_indicator_Ioi {ι Ω E : Type*} [LinearOrde
 /-- The predictable part is predictable. -/
 lemma isPredictable_predictablePart {ι Ω E : Type*} [LinearOrder ι] [LocallyFiniteOrder ι]
     [OrderBot ι] [SuccOrder ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
+    (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) :
     IsStronglyPredictable 𝓕 (predictablePart S 𝓕 P) := by
   classical
   have : Countable ι :=
@@ -1456,7 +1456,7 @@ lemma ae_tendsto_weight_sum_predictableSeqStep (hd : ClassD S 𝓕 P) (hs : Subm
 
 section
 
-variable [OrderTopology ι] [DenselyOrdered ι]
+variable [OrderTopology ι]
 
 /-- The martingale part of the decomposition is a modification of the martingale
 `t ↦ P[martingaleLim hd hs | 𝓕 t]`. -/
@@ -1535,7 +1535,7 @@ noncomputable def martingaleConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1
 /-- `L¹` norm convergence of `martingaleConvexStep`, proved by using conditional Jensen. -/
 lemma martingaleConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (t : ι) :
     Tendsto (fun n ↦ eLpNorm
@@ -1570,7 +1570,7 @@ noncomputable def predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
 /-- The predictable part of the decomposition is integrable at each time. -/
 lemma integrable_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (t : ι) :
     Integrable (predictablePartLim hd hs t) P :=
@@ -1580,7 +1580,7 @@ lemma integrable_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Spa
 the decomposition. -/
 lemma isCadlag_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, IsCadlag (predictablePartLim hd hs · ω) := by
@@ -1591,7 +1591,7 @@ lemma isCadlag_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
 decomposition are almost surely right-continuous. -/
 lemma isRightContinuous_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, IsRightContinuous (predictablePartLim hd hs · ω) :=
@@ -1895,7 +1895,7 @@ lemma predictableConvexStep_ae_eq_sub_martingaleConvexStep {ι Ω : Type*} [Topo
 /-- `L¹` norm convergence of `predictableConvexStep` for `t` in `denseSet ι`. -/
 lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) {t : ι} (ht : t ∈ denseSet ι) :
     Tendsto (fun n ↦ eLpNorm
@@ -1910,7 +1910,7 @@ all points of the countable dense set. This holds for the whole sequence since t
 chosen along a suitable subsequence in `exists_martingalPart_lim`. -/
 lemma predictableConvexStep_ae_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     ∀ᵐ ω ∂P, ∀ t ∈ denseSet ι, Tendsto (fun n ↦ predictableConvexStep hd hs n t ω) atTop
@@ -2196,7 +2196,7 @@ lemma MeasureTheory.TendstoInMeasure.ae_le {α ι E : Type*} {m : MeasurableSpac
 /-- The predictable part `A` is almost surely monotone on the countable dense set. -/
 lemma predictablePartLim_monotoneOn_denseSet_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     ∀ᵐ ω ∂P, MonotoneOn (fun t ↦ predictablePartLim hd hs t ω) (denseSet ι) := by
@@ -2765,7 +2765,7 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePa
 progressive. -/
 lemma isStronglyProgressive_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [OpensMeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
+    [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     IsStronglyProgressive 𝓕 (predictablePartLim hd hs) :=

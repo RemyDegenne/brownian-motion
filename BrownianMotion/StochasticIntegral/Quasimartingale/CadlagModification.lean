@@ -664,7 +664,7 @@ lemma measurableSet_tendsto_nhdsGT [FirstCountableTopology ι] [𝓕.IsRightCont
   rcases (𝓝[>] t).eq_or_neBot with ht | ht
   · simp [eq_bot_mono (nhdsWithin_mono _ Set.inter_subset_right) ht]
   -- It suffices to prove `𝓕 s`-measurability for every `s > t`.
-  refine measurableSet_of_forall_gt ht fun s hts ↦ ?_
+  refine measurableSet_of_forall_gt fun s hts ↦ ?_
   -- Along the countable set `S = (T ∩ Ioi t) ∩ Iio s` (all of whose points are `< s`), the limit
   -- along `𝓝[T ∩ Ioi t] t` is a limit along the countable index `↥S`.
   let S : Set ι := (T ∩ Set.Ioi t) ∩ Set.Iio s
@@ -823,7 +823,7 @@ lemma adapted_rightLimWithin [FirstCountableTopology ι] [𝓕.IsRightContinuous
       -- `t` is not isolated on the right
       have ht : (𝓝[>] t).NeBot := hlne.mono (nhdsWithin_mono _ Set.inter_subset_right)
       intro B hB
-      exact measurableSet_of_forall_gt ht fun s hts ↦ key s hts hB
+      exact measurableSet_of_forall_gt fun s hts ↦ key s hts hB
     intro s hts
     -- A measurable version of the right limit along the countable index `↥S`, `S ⊆ (t, s)`.
     set S : Set ι := (T ∩ Set.Ioi t) ∩ Set.Iio s with hSdef
