@@ -62,6 +62,7 @@ public import BrownianMotion.StochasticIntegral.ContinuousSquareIntegrable
 public import BrownianMotion.StochasticIntegral.ConvexWeights
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.DoobMeyerUniqueness
 public import BrownianMotion.StochasticIntegral.Jump
 public import BrownianMotion.StochasticIntegral.Komlos
 public import BrownianMotion.StochasticIntegral.L2M
