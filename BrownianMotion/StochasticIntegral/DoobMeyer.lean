@@ -14,6 +14,7 @@ public import Mathlib.Topology.Order.LiminfLimsup
 
 import Mathlib.Order.CompleteLattice.Group
 import Mathlib.Topology.Algebra.Order.LiminfLimsup
+import Mathlib.Topology.Metrizable.Urysohn
 
 /-! # Doob-Meyer decomposition theorem
 
@@ -30,6 +31,20 @@ lemma WithTop.le_coe_top {α : Type*} [Preorder α] [OrderTop α] {x : WithTop �
   lift x to α using hx
   exact mod_cast le_top
 
+/-- A compact Hausdorff second-countable space is Polish: it is metrizable by Urysohn's
+metrization theorem, and a compact metric space is complete. -/
+lemma PolishSpace.of_compactSpace_of_secondCountableTopology {X : Type*} [TopologicalSpace X]
+    [CompactSpace X] [T2Space X] [SecondCountableTopology X] : PolishSpace X := by
+  letI := TopologicalSpace.metrizableSpaceMetric X
+  infer_instance
+
+/-- A linear order in which all the intervals `Iio t` are finite is countable. -/
+lemma countable_of_linearOrder_of_locallyFiniteOrderBot (ι : Type*) [LinearOrder ι]
+    [LocallyFiniteOrderBot ι] :
+    Countable ι :=
+  Function.Injective.countable (f := fun t : ι ↦ (Finset.Iio t).card)
+    (StrictMono.injective fun _ _ h ↦ Finset.card_lt_card (Finset.Iio_ssubset_Iio h))
+
 /-- If the section `{t | n ≤ t ∧ (t, ω) ∈ E}` of a set `E` is finite and nonempty, then the début
 of `E` after `n` at `ω` belongs to that section. -/
 lemma MeasureTheory.debut_mem_set_of_finite {ι Ω : Type*} [ConditionallyCompleteLinearOrder ι]
@@ -41,37 +56,103 @@ lemma MeasureTheory.debut_mem_set_of_finite {ι Ω : Type*} [ConditionallyComple
   simp only [debut_eq_ite, ge_iff_le, if_pos h, WithTop.untopD_coe]
   exact hmem.2
 
+/-- Optional sampling for a stopping time with countable range bounded by `n`. This is
+`Martingale.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range` without any topological
+assumption on the index set. -/
+lemma MeasureTheory.Martingale.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range'
+    {ι Ω E : Type*} [LinearOrder ι] [Nonempty ι] {m : MeasurableSpace Ω} {μ : Measure Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {ℱ : Filtration ι m}
+    [SigmaFiniteFiltration μ ℱ] {τ : Ω → WithTop ι} {f : ι → Ω → E} {n : ι}
+    (h : Martingale f ℱ μ) (hτ : IsStoppingTime ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
+    (h_countable_range : (Set.range τ).Countable)
+    [SigmaFinite (μ.trim (hτ.measurableSpace_le_of_le hτ_le))] :
+    stoppedValue f τ =ᵐ[μ] μ[f n | hτ.measurableSpace] := by
+  have h_univ : Set.univ = ⋃ i ∈ Set.range τ, {x | τ x = i} := by
+    ext1 x
+    simp
+  nth_rw 1 [← @Measure.restrict_univ Ω _ μ]
+  rw [h_univ, ae_eq_restrict_biUnion_iff _ h_countable_range]
+  intro i hi
+  obtain ⟨ω, rfl⟩ := hi
+  have h_top : τ ω ≠ ⊤ := fun h_eq ↦ by simpa [h_eq] using hτ_le ω
+  obtain ⟨i, hi⟩ := WithTop.ne_top_iff_exists.1 h_top
+  rw [← hi]
+  have hin : i ≤ n := by
+    have := hτ_le ω
+    rw [← hi] at this
+    exact mod_cast this
+  have h_cond : μ[f n | hτ.measurableSpace] =ᵐ[μ.restrict {x | τ x = i}] f i := by
+    refine Filter.EventuallyEq.trans ?_ (ae_restrict_of_ae (h.condExp_ae_eq hin))
+    refine condExp_ae_eq_restrict_of_measurableSpace_eq_on (hτ.measurableSpace_le_of_le hτ_le)
+      (ℱ.le i) (hτ.measurableSet_eq_of_countable_range' h_countable_range i) fun t ↦ ?_
+    rw [Set.inter_comm _ t, IsStoppingTime.measurableSet_inter_eq_iff]
+  refine Filter.EventuallyEq.trans ?_ h_cond.symm
+  rw [Filter.EventuallyEq, ae_restrict_iff'
+    (ℱ.le _ _ (hτ.measurableSet_eq_of_countable_range h_countable_range i))]
+  refine Filter.Eventually.of_forall fun x hx ↦ ?_
+  rw [Set.mem_ofPred_eq] at hx
+  simp [stoppedValue, hx]
+
 section DenseMesh
 
-/-- The fixed countable dense set used instead of dyadics, with both endpoints adjoined. -/
-noncomputable def denseSet (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+/-- The fixed countable dense set used instead of dyadics, with both endpoints adjoined, as well as
+the points that are isolated from the right or from the left. Those points are not limits of other
+points from the corresponding side, hence the values of a process at these times are not controlled
+by its values on a set which is merely dense. If `ι` is densely ordered, the only such points are
+`⊥` and `⊤`. -/
+noncomputable def denseSet (ι : Type*) [Preorder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] : Set ι :=
   (TopologicalSpace.exists_countable_dense ι).choose ∪ ({⊥, ⊤} : Set ι)
+    ∪ {t | 𝓝[>] t = ⊥} ∪ {t | 𝓝[<] t = ⊥}
 
-lemma denseSet_countable (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] : (denseSet ι).Countable := by
-  have h_dense_countable := (TopologicalSpace.exists_countable_dense ι).choose_spec.1
-  simpa [denseSet] using h_dense_countable.union (by simp : ({⊥, ⊤} : Set ι).Countable)
+lemma denseSet_countable (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] :
+    (denseSet ι).Countable :=
+  (((TopologicalSpace.exists_countable_dense ι).choose_spec.1.union (by simp)).union
+    countable_setOfPred_isolated_right).union countable_setOfPred_isolated_left
 
-lemma denseSet_dense (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+lemma denseSet_dense (ι : Type*) [Preorder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] : Dense (denseSet ι) :=
-  (TopologicalSpace.exists_countable_dense ι).choose_spec.2.mono (Set.subset_union_left)
+  (TopologicalSpace.exists_countable_dense ι).choose_spec.2.mono fun _ h ↦ .inl (.inl (.inl h))
 
-lemma bot_mem_denseSet (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+lemma bot_mem_denseSet (ι : Type*) [Preorder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] : ⊥ ∈ denseSet ι := by simp [denseSet]
 
-lemma top_mem_denseSet (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+lemma top_mem_denseSet (ι : Type*) [Preorder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] : ⊤ ∈ denseSet ι := by simp [denseSet]
 
+/-- The points that are isolated from the right belong to the dense set. -/
+lemma mem_denseSet_of_nhdsGT_eq_bot {ι : Type*} [Preorder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] {t : ι} (ht : 𝓝[>] t = ⊥) :
+    t ∈ denseSet ι := .inl (.inr ht)
+
+/-- The points that are isolated from the left belong to the dense set. -/
+lemma mem_denseSet_of_nhdsLT_eq_bot {ι : Type*} [Preorder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] {t : ι} (ht : 𝓝[<] t = ⊥) :
+    t ∈ denseSet ι := .inr ht
+
+/-- Between two times `a < b` there is a point `d` of the dense set with `a ≤ d < b`: a point of
+the open interval `(a, b)` if that interval is nonempty, and `a` itself otherwise since `a` is
+then isolated from the right. -/
+lemma exists_mem_denseSet_Ico {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] {a b : ι} (hab : a < b) :
+    ∃ d ∈ denseSet ι, a ≤ d ∧ d < b := by
+  by_cases h : (Set.Ioo a b).Nonempty
+  · obtain ⟨d, hd_mem, hd⟩ := (denseSet_dense ι).exists_mem_open isOpen_Ioo h
+    exact ⟨d, hd_mem, hd.1.le, hd.2⟩
+  · have hcov : a ⋖ b := ⟨hab, fun c hac hcb ↦ h ⟨c, hac, hcb⟩⟩
+    exact ⟨a, mem_denseSet_of_nhdsGT_eq_bot hcov.nhdsGT, le_rfl, hab⟩
+
 /-- A choice of enumeration of the countable dense set used to construct finite meshes. -/
-noncomputable def denseEnum (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] : ℕ → ι :=
+noncomputable def denseEnum (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] : ℕ → ι :=
   have : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
   Subtype.val ∘ (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose
 
 /-- Every element of the dense set is attained by the enumeration. -/
-lemma exists_denseEnum_eq (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] {d : ι} (hd : d ∈ denseSet ι) :
+lemma exists_denseEnum_eq (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] {d : ι}
+    (hd : d ∈ denseSet ι) :
     ∃ k, denseEnum ι k = d := by
   have : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
   obtain ⟨k, hk⟩ :=
@@ -80,54 +161,64 @@ lemma exists_denseEnum_eq (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
 
 /-- The `n`-th finite mesh: the first `n` points of the dense enumeration, plus endpoints. -/
 noncomputable def mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : Finset ι :=
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : Finset ι :=
   insert ⊥ <| insert ⊤ <| (Finset.range n).image (denseEnum ι)
 
 /-- The `k`-th point of the dense enumeration belongs to all meshes past `k`. -/
 lemma denseEnum_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] {k n : ℕ} (hkn : k < n) :
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] {k n : ℕ} (hkn : k < n) :
     denseEnum ι k ∈ mesh ι n := by
   simp only [mesh, Finset.mem_insert, Finset.mem_image]
   exact .inr <| .inr ⟨k, Finset.mem_range.2 hkn, rfl⟩
 
 lemma bot_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊥ : ι) ∈ mesh ι n := by simp [mesh]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) :
+    (⊥ : ι) ∈ mesh ι n := by simp [mesh]
 
 lemma top_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊤ : ι) ∈ mesh ι n := by simp [mesh]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) :
+    (⊤ : ι) ∈ mesh ι n := by simp [mesh]
 
 instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : OrderBot (mesh ι n) where
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : OrderBot
+    (mesh ι n) where
   bot := ⟨⊥, bot_mem_mesh ι n⟩
   bot_le _ := bot_le
 
 instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : OrderTop (mesh ι n) where
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : OrderTop
+    (mesh ι n) where
   top := ⟨⊤, top_mem_mesh ι n⟩
   le_top _ := le_top
 
 @[simp]
 lemma top_eq_top (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊤ : mesh ι n) = (⊤ : ι) := by rfl
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : (⊤ : mesh ι n) =
+    (⊤ : ι) := by rfl
 
 @[simp]
 lemma bot_eq_bot (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊥ : mesh ι n) = (⊥ : ι) := by rfl
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : (⊥ : mesh ι n) =
+    (⊥ : ι) := by rfl
 
 noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : LocallyFiniteOrder (mesh ι n) :=
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : LocallyFiniteOrder
+    (mesh ι n) :=
   Fintype.toLocallyFiniteOrder
 
 noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : SuccOrder (mesh ι n) :=
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : SuccOrder
+    (mesh ι n) :=
   LinearLocallyFiniteOrder.succOrder (mesh ι n)
 
 noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : PredOrder (mesh ι n) :=
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : PredOrder
+    (mesh ι n) :=
   LinearLocallyFiniteOrder.predOrder (mesh ι n)
 
 noncomputable instance (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : CompleteLinearOrder (mesh ι n) :=
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) : CompleteLinearOrder
+    (mesh ι n) :=
   Fintype.toCompleteLinearOrder (mesh ι n)
 
 end DenseMesh
@@ -136,12 +227,13 @@ section Estimate
 
 /-- The filtration obtained by restricting `𝓕` to a finite dense mesh. -/
 def meshFiltration {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (𝓕 : Filtration ι mΩ) (n : ℕ) :
+    [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} (𝓕 : Filtration ι mΩ)
+    (n : ℕ) :
     Filtration (mesh ι n) mΩ :=
   𝓕.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
 
 instance sigmaFiniteFiltration_meshFiltration {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
     (n : ℕ) : SigmaFiniteFiltration P (meshFiltration 𝓕 n) := by
   unfold meshFiltration
@@ -193,21 +285,22 @@ lemma integrable_predictablePart {ι Ω E : Type*} [Preorder ι] [LocallyFiniteO
   simp only [_root_.predictablePart]
   exact integrable_finsetSum' (Finset.Iio t) fun _ _ => integrable_condExp
 
-/-- For a submartingale indexed by a countable type, the predictable part is monotone a.e. -/
+/-- The predictable part of a discrete submartingale is monotone a.e. -/
 lemma MeasureTheory.Submartingale.monotone_predictablePart_ae {ι Ω E : Type*} [LinearOrder ι]
-    [LocallyFiniteOrderBot ι] [SuccOrder ι] [Countable ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [LocallyFiniteOrderBot ι] [SuccOrder ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [PartialOrder E]
     [IsOrderedAddMonoid E] {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) :
     ∀ᵐ ω ∂P, Monotone (_root_.predictablePart S 𝓕 P · ω) := by
+  have : Countable ι := countable_of_linearOrder_of_locallyFiniteOrderBot ι
   have hnonneg : ∀ᵐ ω ∂P, ∀ i : ι, 0 ≤ P[S (succ i) - S i | 𝓕 i] ω :=
     ae_all_iff.2 fun i ↦ hs.condExp_sub_nonneg (le_succ i)
   filter_upwards [hnonneg] with ω hω a b hab
   simp only [_root_.predictablePart, Finset.sum_apply]
   exact Finset.sum_le_sum_of_subset_of_nonneg (Finset.Iio_subset_Iio hab) fun i _ _ ↦ hω i
 
-/-- For a submartingale indexed by a countable type, the predictable part is nonnegative a.e. -/
+/-- The predictable part of a discrete submartingale is nonnegative a.e. -/
 lemma MeasureTheory.Submartingale.predictablePart_nonneg' {ι Ω E : Type*} [LinearOrder ι]
-    [LocallyFiniteOrder ι] [OrderBot ι] [SuccOrder ι] [Countable ι] {mΩ : MeasurableSpace Ω}
+    [LocallyFiniteOrder ι] [OrderBot ι] [SuccOrder ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [PartialOrder E]
     [IsOrderedAddMonoid E] {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) :
     ∀ᵐ ω ∂P, ∀ n, 0 ≤ _root_.predictablePart S 𝓕 P n ω := by
@@ -297,14 +390,14 @@ lemma martingalePart_add_predictablePart {ι Ω E : Type*} [Preorder ι] [Locall
 
 /-- Sequence of terminal values of the predictable part. -/
 noncomputable def predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
-    [NormedSpace ℝ E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
     (n : ℕ) : Ω → E :=
   predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
 /-- The terminal values of the predictable parts on each mesh are integrable. -/
 lemma integrable_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) :
     Integrable (predictableSeqTop S 𝓕 P n) P :=
@@ -312,7 +405,7 @@ lemma integrable_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
 
 /-- The terminal values of the predictable parts of a martingale vanish on every mesh. -/
 lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {P : Measure Ω} {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hS : Martingale S 𝓕 P)
     (n : ℕ) :
@@ -323,13 +416,14 @@ lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpac
 
 /-- Sequence of terminal values of the martingale part. -/
 noncomputable def martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    [NormedAddCommGroup E]
     [NormedSpace ℝ E] (S : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) : Ω → E :=
   martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
 /-- The terminal values of the discrete martingale parts are additive. -/
 lemma martingaleSeqTop_add {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {P : Measure Ω}
     {S₁ S₂ : ι → Ω → E} (𝓕 : Filtration ι mΩ) (hS₁ : ∀ t, Integrable (S₁ t) P)
     (hS₂ : ∀ t, Integrable (S₂ t) P) (n : ℕ) :
@@ -340,7 +434,7 @@ lemma martingaleSeqTop_add {ι Ω E : Type*} [TopologicalSpace ι] [SecondCounta
 /-- The terminal values of the martingale parts of a martingale are its terminal value on every
 mesh. -/
 lemma martingaleSeqTop_eq_self_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     {P : Measure Ω} {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} (hS : Martingale S 𝓕 P)
     (n : ℕ) :
@@ -352,7 +446,7 @@ lemma martingaleSeqTop_eq_self_of_martingale {ι Ω E : Type*} [TopologicalSpace
 /-- If `S = 0` a.e., then the martingale part’s terminal value equals the negative of the
 predictable part’s terminal value. -/
 lemma martingaleSeqTop_eq_neg_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {S : ι → Ω → E} (𝓕 : Filtration ι mΩ) (hstop : S ⊤ =ᶠ[ae P] 0)
     (n : ℕ) :
@@ -363,7 +457,7 @@ lemma martingaleSeqTop_eq_neg_predictableSeqTop {ι Ω E : Type*} [TopologicalSp
 
 /-- The terminal values of the martingale parts on each mesh are integrable. -/
 lemma integrable_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] {S : ι → Ω → E} (𝓕 : Filtration ι mΩ) (hS : Integrable (S ⊤) P) (n : ℕ) :
     Integrable (martingaleSeqTop S 𝓕 P n) P := by
@@ -373,7 +467,7 @@ lemma integrable_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
 /-- The discrete martingale part of an adapted integrable process on the `n`-th mesh is a
 martingale. -/
 lemma martingale_martingalePart_mesh {ι Ω E : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] {S : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
     (hS_adapted : StronglyAdapted 𝓕 S) (hS_int : ∀ t, Integrable (S t) P) (n : ℕ) :
@@ -383,8 +477,8 @@ lemma martingale_martingalePart_mesh {ι Ω E : Type*} [TopologicalSpace ι]
 /-- On each mesh, the terminal value of the martingale part has the same expectation as the
 initial value of the process. -/
 lemma integral_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
     (𝓕 : Filtration ι mΩ) [SigmaFiniteFiltration P 𝓕] (hS_adapted : StronglyAdapted 𝓕 S)
     (hS_int : ∀ t, Integrable (S t) P) (n : ℕ) :
     ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P = ∫ ω, S ⊥ ω ∂P := by
@@ -396,10 +490,9 @@ lemma integral_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondC
           ((martingale_martingalePart_mesh hS_adapted hS_int n).condExp_ae_eq bot_le)
     _ = ∫ ω, S ⊥ ω ∂P := by simp [_root_.martingalePart]
 
-/-- Apply the optional stopping theorem to get equation 4. Note that `T1 Space` is needed to make
-sure that `mesh ι n` has order topology. -/
-lemma equation4 {ι Ω E : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+/-- Apply the optional stopping theorem to get equation 4. -/
+lemma equation4 {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
     {𝓕 : Filtration ι mΩ} {n : ℕ} [SigmaFiniteFiltration P 𝓕] (hS_adapted : StronglyAdapted 𝓕 S)
     (hS_int : ∀ t, Integrable (S t) P) (hstop : S ⊤ =ᶠ[ae P] 0)
@@ -411,30 +504,31 @@ lemma equation4 {ι Ω E : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCoun
   grw [← condExp_neg, ← martingaleSeqTop_eq_neg_predictableSeqTop 𝓕 hstop]
   simp only [martingaleSeqTop]
   grw [← (martingale_martingalePart_mesh hS_adapted hS_int
-    n).stoppedValue_ae_eq_condExp_of_le_const hτs hτ,
+    n).stoppedValue_ae_eq_condExp_of_le_const_of_countable_range' hτs hτ (Set.to_countable _),
     ← stoppedValue.add, _root_.martingalePart_add_predictablePart]
 
 section equation5
 
 /-- The mesh stopping time `τₙ(c)` associated with the predictable part on the `n`-th mesh. -/
 noncomputable def tauMesh {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     Ω → WithTop (mesh ι n) :=
   fun ω ↦ (((hittingBtwn (fun (t : mesh ι n) ω ↦
     (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P) (succ t) ω) (Set.Ioi c)
     ⊥ ⊤ ω) : mesh ι n) : WithTop (mesh ι n))
 
 lemma tauMesh_le_top {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
     tauMesh S 𝓕 P n c ω ≤ (⊤ : mesh ι n) :=
   WithTop.coe_le_coe.2 (hittingBtwn_le ω)
 
 /-- The stopped valued of the predictable part with respect to `τₙ(c)` is less than or equal to
 `c`. -/
 lemma stoppedValue_predictablePart_tauMesh_le {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+    {mΩ : MeasurableSpace Ω}
     (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) {c : ℝ} (hc : 0 ≤ c) :
     stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
       (tauMesh S 𝓕 P n c) ≤ fun _ ↦ c := by
@@ -541,16 +635,17 @@ lemma stronglyAdapted_predictablePart' {ι Ω E : Type*} [LinearOrder ι] [Local
 
 /-- `τₙ(c)` is indeed a stopping time. -/
 lemma isStoppingTime_tauMesh {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     IsStoppingTime (meshFiltration 𝓕 n) (tauMesh S 𝓕 P n c) :=
   (stronglyAdapted_predictablePart'
     (S ∘ Subtype.val) (meshFiltration 𝓕 n) P).adapted.isStoppingTime_hittingBtwn measurableSet_Ioi
 
 /-- Combine equation 4 and `stoppedValue_predictablePart_tauMesh_le` to get this inequality. -/
 lemma stoppedValue_le_neg_condExp_predictableSeqTop_add_const {ι Ω : Type*} [TopologicalSpace ι]
-    [T1Space ι] [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι]
-    [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} (hstop : S ⊤ =ᶠ[ae P] 0)
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι]
+    [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
+    (hstop : S ⊤ =ᶠ[ae P] 0)
     (𝓕 : Filtration ι mΩ) (n : ℕ) [SigmaFiniteFiltration P 𝓕] (hS_adapted : StronglyAdapted 𝓕 S)
     (hS_int : ∀ t, Integrable (S t) P) {c : ℝ} (hc : 0 ≤ c) :
     stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c) ≤ᵐ[P]
@@ -564,7 +659,7 @@ lemma stoppedValue_le_neg_condExp_predictableSeqTop_add_const {ι Ω : Type*} [T
 /-- `{τₙ(c) < 1} = {c < Aⁿ₁}`. -/
 lemma MeasureTheory.Submartingale.tauMesh_lt_top_eq_lt_predictableSeqTop {ι Ω : Type*}
     [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     (hs : Submartingale S 𝓕 P) (n : ℕ) {c : ℝ} (hc : 0 ≤ c) :
     {ω | tauMesh S 𝓕 P n c ω < (⊤ : mesh ι n)} =ᵐ[P] {ω | c < predictableSeqTop S 𝓕 P n ω} := by
   refine eventuallyEq_set.2 ?_
@@ -590,7 +685,7 @@ lemma MeasureTheory.Submartingale.tauMesh_lt_top_eq_lt_predictableSeqTop {ι Ω 
 /-- The constant `c` is integrable on the event where `τₙ(c)` hits before the top element. -/
 lemma MeasureTheory.Submartingale.integrableOn_const_tauMesh_lt_top {ι Ω : Type*}
     [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     (hs : Submartingale S 𝓕 P) (n : ℕ) {c : ℝ} (hc : 0 ≤ c) :
     IntegrableOn (fun _ : Ω => c) {ω | tauMesh S 𝓕 P n c ω < (⊤ : mesh ι n)} P := by
   by_cases! hc0 : c = 0
@@ -601,7 +696,8 @@ lemma MeasureTheory.Submartingale.integrableOn_const_tauMesh_lt_top {ι Ω : Typ
 
 /-- Stopping `S` at the bounded mesh time `τₙ(c)` preserves integrability. -/
 lemma MeasureTheory.Submartingale.integrable_stoppedValue_tauMesh {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+    {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ)
     (c : ℝ) :
     Integrable (stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c)) P :=
@@ -610,8 +706,8 @@ lemma MeasureTheory.Submartingale.integrable_stoppedValue_tauMesh {ι Ω : Type*
     (tauMesh_le_top S 𝓕 P n c)
 
 /-- The first estimate before equation 5. -/
-lemma first_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+lemma first_estimate {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} {S : ι → Ω → ℝ} (hstop : S ⊤ =ᶠ[ae P] 0) (𝓕 : Filtration ι mΩ) (n : ℕ)
     [SigmaFiniteFiltration P 𝓕] {c : ℝ} (hc : 0 ≤ c) (hs : Submartingale S 𝓕 P) :
     ∫ ω in {ω | c < predictableSeqTop S 𝓕 P n ω}, predictableSeqTop S 𝓕 P n ω ∂P ≤
@@ -625,7 +721,7 @@ lemma first_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondC
       rw [setIntegral_condExp,
         setIntegral_congr_set (hs.tauMesh_lt_top_eq_lt_predictableSeqTop n hc)]
       · exact integrable_predictableSeqTop S 𝓕 P n
-      · exact (isStoppingTime_tauMesh S 𝓕 P n c).measurableSet_lt' ⊤
+      · exact (isStoppingTime_tauMesh S 𝓕 P n c).measurableSet_lt_of_countable' ⊤
     _ ≤ ∫ ω in {ω | tauMesh S 𝓕 P n c ω < (⊤ : mesh ι n)},
         (c - stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c) ω) ∂P := by
       refine setIntegral_mono_ae integrable_condExp.integrableOn
@@ -642,8 +738,8 @@ lemma first_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondC
 
 /-- If `a ≤ b`, then `{τₙ(b) < 1} ⊆ {τₙ(a) < 1}`. -/
 lemma tauMesh_lt_top_subset_of_lt {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) {a b : ℝ} (hab : a ≤ b) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) {a b : ℝ} (hab : a ≤ b) :
     {ω | tauMesh S 𝓕 P n b ω < (⊤ : mesh ι n)} ⊆ {ω | tauMesh S 𝓕 P n a ω < (⊤ : mesh ι n)} := by
   simp_all only [tauMesh, WithTop.coe_lt_coe, Set.ofPred_subset_ofPred]
   exact fun ω hω => (hittingBtwn_anti ((fun t ω ↦ _root_.predictablePart (S ∘ Subtype.val)
@@ -651,7 +747,7 @@ lemma tauMesh_lt_top_subset_of_lt {ι Ω : Type*} [TopologicalSpace ι] [SecondC
 
 /-- Stopping the predictable part at the bounded mesh time `τₙ(c)` preserves integrability. -/
 lemma integrable_stoppedValue_predictablePart_tauMesh {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ)
     (P : Measure Ω) (n : ℕ) (c : ℝ) :
     Integrable (stoppedValue (predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
@@ -661,8 +757,8 @@ lemma integrable_stoppedValue_predictablePart_tauMesh {ι Ω : Type*} [Topologic
     (tauMesh_le_top S 𝓕 P n c)
 
 /-- The second estimate before equation 5. -/
-lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} (hstop : S ⊤ =ᶠ[ae P] 0)
     (𝓕 : Filtration ι mΩ) (n : ℕ) [SigmaFiniteFiltration P 𝓕] {c : ℝ} (hc : 0 ≤ c)
     (hs : Submartingale S 𝓕 P) :
@@ -682,7 +778,7 @@ lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
       · exact (hpred_int.sub hstopped_pred_int).integrableOn
       · refine (iSup_le (meshFiltration 𝓕 n).le) _
           (((isStoppingTime_tauMesh S 𝓕 P n c).measurableSet _).1 ?_).1
-        exact (isStoppingTime_tauMesh S 𝓕 P n c).measurableSet_lt' ⊤
+        exact (isStoppingTime_tauMesh S 𝓕 P n c).measurableSet_lt_of_countable' ⊤
       · filter_upwards [hs.tauMesh_lt_top_eq_lt_predictableSeqTop n hc] with ω hτ hω
         have : c < predictableSeqTop S 𝓕 P n ω := hτ.mp hω
         have := stoppedValue_predictablePart_tauMesh_le S 𝓕 P n (by linarith : 0 ≤ c / 2) ω
@@ -713,20 +809,20 @@ lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
                   (tauMesh S 𝓕 P n (c / 2)) ω ∂P := by
       rw [setIntegral_condExp]
       · exact hpred_int
-      · exact (isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet_lt' ⊤
+      · exact (isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet_lt_of_countable' ⊤
     _ = _ := by
       rw [← integral_sub integrable_condExp.restrict hstopped_pred_int.integrableOn, ← integral_neg]
       · refine setIntegral_congr_ae ?_ ?_
         · refine (iSup_le (meshFiltration 𝓕 n).le) _
             (((isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet _).1 ?_).1
-          exact (isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet_lt' ⊤
+          exact (isStoppingTime_tauMesh S 𝓕 P n (c / 2)).measurableSet_lt_of_countable' ⊤
         · filter_upwards [equation4 hs.stronglyAdapted hs.integrable hstop
             (tauMesh_le_top S 𝓕 P n (c / 2)) (isStoppingTime_tauMesh S 𝓕 P n (c / 2))] with ω hω _
           simp at hω
           linarith [hω]
 
-lemma equation5 {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+lemma equation5 {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} {S : ι → Ω → ℝ} (hstop : S ⊤ =ᶠ[ae P] 0)
     (𝓕 : Filtration ι mΩ) (n : ℕ) [SigmaFiniteFiltration P 𝓕] {c : ℝ} (hc : 0 ≤ c)
     (hs : Submartingale S 𝓕 P) :
@@ -738,8 +834,8 @@ lemma equation5 {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCounta
   grw [first_estimate hstop 𝓕 n hc hs]
   linear_combination 2 * (second_estimate hstop 𝓕 n hc hs)
 
-lemma equation5' {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+lemma equation5' {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} {S : ι → Ω → ℝ} (hstop : S ⊤ =ᶠ[ae P] 0)
     (𝓕 : Filtration ι mΩ) (n : ℕ) [SigmaFiniteFiltration P 𝓕] {c : ℝ} (hc : 0 ≤ c)
     (hs : Submartingale S 𝓕 P) :
@@ -760,35 +856,35 @@ section UniformIntegrability
 
 /-- Lift the mesh stopping time `τₙ(c)` to a stopping time on the original index set. -/
 noncomputable def tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) : Ω → WithTop ι :=
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) : Ω → WithTop ι :=
   fun ω => ((tauMesh S 𝓕 P n c ω).untopA : mesh ι n)
 
 @[simp]
 lemma tauMesh_ne_top {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
     tauMesh S 𝓕 P n c ω ≠ ⊤ := by
   simp [tauMesh]
 
 @[simp]
 lemma tauMeshLift_ne_top {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) (ω : Ω) :
     tauMeshLift S 𝓕 P n c ω ≠ ⊤ := by
   simp [tauMeshLift]
 
 lemma stoppedValue_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     stoppedValue S (tauMeshLift S 𝓕 P n c) =
       stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c) := by
   ext; simp [stoppedValue, tauMeshLift]
 
 /-- The lifted mesh stopping time takes values in the finite mesh, hence has countable range. -/
 lemma countable_range_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     (Set.range (tauMeshLift S 𝓕 P n c)).Countable := by
   refine (Set.countable_range (fun u : mesh ι n ↦ ((u : ι) : WithTop ι))).mono ?_
   rintro _ ⟨ω, rfl⟩
@@ -796,8 +892,8 @@ lemma countable_range_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondC
 
 /-- We still get a stopping time after the lifting. -/
 lemma isStoppingTime_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (S : ι → Ω → ℝ)
-    (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (P : Measure Ω) (n : ℕ) (c : ℝ) :
     IsStoppingTime 𝓕 (tauMeshLift S 𝓕 P n c) := by
   intro s
   set T : Finset (mesh ι n) := Finset.univ.filter (fun u ↦ u ≤ s)
@@ -817,7 +913,8 @@ lemma isStoppingTime_tauMeshLift {ι Ω : Type*} [TopologicalSpace ι] [SecondCo
 /-- Used in estimating the size of the set `{τₙ(b) < 1}`. -/
 lemma integral_predictableSeqTop_eq_neg_integral_bot {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
+    [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕] (hS_adapted : StronglyAdapted 𝓕 S)
     (hS_int : ∀ t, Integrable (S t) P) (hstop : S ⊤ =ᵐ[P] 0) (n : ℕ) :
     ∫ ω, predictableSeqTop S 𝓕 P n ω ∂P = - ∫ ω, S ⊥ ω ∂P := calc
@@ -832,7 +929,7 @@ lemma integral_predictableSeqTop_eq_neg_integral_bot {ι Ω : Type*} [Topologica
 
 /-- Estimate for the hitting event `{τₙ(c) < 1}`. -/
 lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration P 𝓕] (hs : Submartingale S 𝓕 P) (hstop : S ⊤ =ᵐ[P] 0) (n : ℕ) {c : ℝ}
     (hc : 0 < c) :
@@ -873,17 +970,25 @@ lemma UniformIntegrable.eLpNorm_tendsto_zero_of_iSup_measure_tendsto_zero
   refine iSup_le fun i ↦ (hUI (F k i) (A k i) (hA_meas k i)
     ((le_iSup (fun i ↦ μ (A k i)) i).trans hk)).trans_eq (ENNReal.ofReal_toReal hεtop)
 
+/-- A submartingale whose terminal value vanishes is nonpositive. -/
+lemma MeasureTheory.Submartingale.ae_le_zero_of_top_ae_eq_zero {ι Ω : Type*} [Preorder ι]
+    [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+    (hs : Submartingale S 𝓕 P) (hstop : S ⊤ =ᵐ[P] 0) (t : ι) :
+    S t ≤ᵐ[P] 0 := by
+  have h0 : P[S ⊤ | 𝓕 t] =ᵐ[P] 0 := (condExp_congr_ae hstop).trans (by rw [condExp_zero])
+  filter_upwards [hs.ae_le_condExp (i := t) le_top, h0] with ω h1 h2
+  simpa [h2] using h1
+
 /-- For a non-positive constant `a` and a level `b c → ∞`, the supremum over the meshes of the
 integral of `a • (stopped value)` over the hitting set `{τₙ(b c) < ⊤}` tends to `0`. The hitting
 sets have measure `≤ (-∫ S ⊥) / (b c) → 0` uniformly in the mesh (`measure_tauMesh_lt_top_le`),
 and `hd` provides uniform integrability of the stopped values along the lifted stopping times. -/
-private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration P 𝓕] (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ (∀ ω, T ω ≠ ⊤) ∧
       (Set.range T).Countable}) ↦ stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0)
-    (ht : ∀ t, S t ≤ᵐ[P] 0)
     (a : ℝ) (ha : a ≤ 0) (b : ℝ≥0 → ℝ) (hb : Tendsto b atTop atTop) :
     Tendsto (fun c : ℝ≥0 ↦ ⨆ k, ENNReal.ofReal
       (∫ ω in {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)},
@@ -891,7 +996,7 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
   have hA_meas (c : ℝ≥0) (k : ℕ) :
       MeasurableSet {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)} :=
     (isStoppingTime_tauMesh S 𝓕 P k (b c)).measurableSpace_le _
-      ((isStoppingTime_tauMesh S 𝓕 P k (b c)).measurableSet_lt' ⊤)
+      ((isStoppingTime_tauMesh S 𝓕 P k (b c)).measurableSet_lt_of_countable' ⊤)
   have hmem (c : ℝ≥0) (k : ℕ) : tauMeshLift S 𝓕 P k (b c) ∈
       {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ (∀ ω, T ω ≠ ⊤) ∧ (Set.range T).Countable} :=
     ⟨isStoppingTime_tauMeshLift S 𝓕 P k (b c), tauMeshLift_ne_top S 𝓕 P k (b c),
@@ -905,7 +1010,8 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     rw [stoppedValue_tauMeshLift]
     set g : Ω → ℝ := stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k (b c))
     have hg_nonpos : g ≤ᵐ[P] 0 := by
-      filter_upwards [ae_all_iff.2 fun t : mesh ι k ↦ ht t] with ω hω
+      filter_upwards [ae_all_iff.2 fun t : mesh ι k ↦
+        hs.ae_le_zero_of_top_ae_eq_zero hstop t] with ω hω
       simpa only [g, stoppedValue, Function.comp_apply] using
         hω (tauMesh S 𝓕 P k (b c) ω).untopA
     have heLpNorm : eLpNorm ({ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)}.indicator g) 1 P
@@ -946,13 +1052,12 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     (F := fun c k ↦ ⟨tauMeshLift S 𝓕 P k (b c), hmem c k⟩) hA_meas hmeas
 
 /-- The terminal values of the predictable parts are uniformly integrable. -/
-lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ (∀ ω, T ω ≠ ⊤) ∧
-      (Set.range T).Countable}) ↦ stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0)
-    (ht : ∀ t, S t ≤ᵐ[P] 0) :
+      (Set.range T).Countable}) ↦ stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0) :
     UniformIntegrable (predictableSeqTop S 𝓕 P) 1 P := by
   refine (uniformIntegrable_iff_tendsto_nnReal_iSup_setIntegral_of_nonneg (fun n => ?_)
     (fun n => ?_) (fun n => ?_)).2 ?_
@@ -969,9 +1074,9 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
             -stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k c) ω ∂P)) tendsto_const_nhds ?_ ?_ ?_
     · rw [← zero_add (0 : ℝ≥0∞)]
       apply Tendsto.add
-      · exact tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop ht (-2) (by norm_num)
+      · exact tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop (-2) (by norm_num)
           (fun c => c / 2) ((NNReal.tendsto_coe_atTop.mpr tendsto_id).atTop_div_const (by norm_num))
-      · simpa using tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop ht (-1) (by norm_num)
+      · simpa using tendsto_iSup_setIntegral_tauMesh_zero hs hd hstop (-1) (by norm_num)
           (fun c => c) (NNReal.tendsto_coe_atTop.mpr tendsto_id)
     · filter_upwards with c using by positivity
     · filter_upwards with c
@@ -990,7 +1095,8 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
                 ENNReal.ofReal (∫ ω in {ω | tauMesh S 𝓕 P k c ω < (⊤ : mesh ι k)},
                   -stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P k c) ω ∂P) := by
           congr with k
-          have hmesh : ∀ᵐ ω ∂P, ∀ t : mesh ι k, S t ω ≤ 0 := ae_all_iff.2 fun t => ht t
+          have hmesh : ∀ᵐ ω ∂P, ∀ t : mesh ι k, S t ω ≤ 0 :=
+            ae_all_iff.2 fun t => hs.ae_le_zero_of_top_ae_eq_zero hstop t
           apply ENNReal.ofReal_add
           all_goals
             apply integral_nonneg_of_ae
@@ -1000,43 +1106,6 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
           · filter_upwards [ae_restrict_of_ae hmesh] with ω hω
             exact neg_nonneg.2 (hω ((tauMesh S 𝓕 P k c ω).untopA))
         _ ≤ _ := iSup_add_le _ _
-
-/-- Optional sampling for a stopping time with countable range bounded by `n`. This is
-`Martingale.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range` without any topological
-assumption on the index set. -/
-lemma MeasureTheory.Martingale.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range'
-    {ι Ω E : Type*} [LinearOrder ι] [Nonempty ι] {m : MeasurableSpace Ω} {μ : Measure Ω}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {ℱ : Filtration ι m}
-    [SigmaFiniteFiltration μ ℱ] {τ : Ω → WithTop ι} {f : ι → Ω → E} {n : ι}
-    (h : Martingale f ℱ μ) (hτ : IsStoppingTime ℱ τ) (hτ_le : ∀ x, τ x ≤ n)
-    (h_countable_range : (Set.range τ).Countable)
-    [SigmaFinite (μ.trim (hτ.measurableSpace_le_of_le hτ_le))] :
-    stoppedValue f τ =ᵐ[μ] μ[f n | hτ.measurableSpace] := by
-  have h_univ : Set.univ = ⋃ i ∈ Set.range τ, {x | τ x = i} := by
-    ext1 x
-    simp
-  nth_rw 1 [← @Measure.restrict_univ Ω _ μ]
-  rw [h_univ, ae_eq_restrict_biUnion_iff _ h_countable_range]
-  intro i hi
-  obtain ⟨ω, rfl⟩ := hi
-  have h_top : τ ω ≠ ⊤ := fun h_eq ↦ by simpa [h_eq] using hτ_le ω
-  obtain ⟨i, hi⟩ := WithTop.ne_top_iff_exists.1 h_top
-  rw [← hi]
-  have hin : i ≤ n := by
-    have := hτ_le ω
-    rw [← hi] at this
-    exact mod_cast this
-  have h_cond : μ[f n | hτ.measurableSpace] =ᵐ[μ.restrict {x | τ x = i}] f i := by
-    refine Filter.EventuallyEq.trans ?_ (ae_restrict_of_ae (h.condExp_ae_eq hin))
-    refine condExp_ae_eq_restrict_of_measurableSpace_eq_on (hτ.measurableSpace_le_of_le hτ_le)
-      (ℱ.le i) (hτ.measurableSet_eq_of_countable_range' h_countable_range i) fun t ↦ ?_
-    rw [Set.inter_comm _ t, IsStoppingTime.measurableSet_inter_eq_iff]
-  refine Filter.EventuallyEq.trans ?_ h_cond.symm
-  rw [Filter.EventuallyEq, ae_restrict_iff'
-    (ℱ.le _ _ (hτ.measurableSet_eq_of_countable_range h_countable_range i))]
-  refine Filter.Eventually.of_forall fun x hx ↦ ?_
-  rw [Set.mem_ofPred_eq] at hx
-  simp [stoppedValue, hx]
 
 /-- The stopped values of a closed martingale `t ↦ P[ξ | 𝓕 t]` at finite stopping times with
 countable range are uniformly integrable. -/
@@ -1074,20 +1143,19 @@ lemma ProbabilityTheory.ClassD.uniformIntegrable_of_countable_range {ι Ω : Typ
 
 /-- As the terminal values of predictable parts are uniformly integrable, the terminal values of the
 martingale parts are uniformly integrable. -/
-lemma uniformIntegrable_martingaleSeqTopAux {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+lemma uniformIntegrable_martingaleSeqTopAux {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P)
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ (∀ ω, T ω ≠ ⊤) ∧
-      (Set.range T).Countable}) ↦ stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0)
-    (ht : ∀ t, S t ≤ᵐ[P] 0) :
+      (Set.range T).Countable}) ↦ stoppedValue S τ.1) 1 P) (hstop : S ⊤ =ᵐ[P] 0) :
     UniformIntegrable (martingaleSeqTop S 𝓕 P) 1 P := by
   rw [uniformIntegrable_congr_ae (martingaleSeqTop_eq_neg_predictableSeqTop 𝓕 hstop)]
-  exact (uniformIntegrable_predictableSeqTop hs hd hstop ht).neg
+  exact (uniformIntegrable_predictableSeqTop hs hd hstop).neg
 
-/-- Prove uniform integrability without the assumption `S ⊤ =ᵐ[P] 0` and `∀ t, S t ≤ᵐ[P] 0`. -/
-lemma uniformIntegrable_martingaleSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+/-- Prove uniform integrability without the assumption `S ⊤ =ᵐ[P] 0`. -/
+lemma uniformIntegrable_martingaleSeqTop {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ}
     (hd : UniformIntegrable (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ (∀ ω, T ω ≠ ⊤) ∧
@@ -1098,12 +1166,10 @@ lemma uniformIntegrable_martingaleSeqTop {ι Ω : Type*} [TopologicalSpace ι] [
     (hs.integrable i).sub integrable_condExp
   rw [h0, uniformIntegrable_congr_ae (martingaleSeqTop_add 𝓕 h1 (fun i => integrable_condExp))]
   refine UniformIntegrable.add (refl 1) ?_ ?_
-  · refine uniformIntegrable_martingaleSeqTopAux ?_ ?_ ?_ fun i => ?_
+  · refine uniformIntegrable_martingaleSeqTopAux ?_ ?_ ?_
     · exact hs.sub_martingale (martingale_condExp _ _ _)
     · exact uniformIntegrable_stoppedValue_sub_condExp_of_countable_range hd
     · simp [condExp_of_stronglyMeasurable _ (hs.stronglyMeasurable ⊤) (hs.integrable ⊤)]
-    · filter_upwards [hs.ae_le_condExp (i := i) le_top] with ω
-      simp
   · rw [uniformIntegrable_congr_ae
       (martingaleSeqTop_eq_self_of_martingale (martingale_condExp (S ⊤) 𝓕 P))]
     exact Integrable.uniformIntegrable_condExp (hs.integrable ⊤) (fun _ => 𝓕.le' ⊤)
@@ -1115,27 +1181,27 @@ section StepProcesses
 
 /-- The extension of the discrete martingale part `M^n`. -/
 noncomputable def martingaleSeqStep {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (P : Measure Ω)
-    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (i : ι) :=
   P[martingaleSeqTop S 𝓕 P n | 𝓕 i]
 
 /-- The half-open mesh interval ending at `t`, with left endpoint the predecessor of `t` in the
 finite mesh. -/
 def meshPredIoc {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι] [TopologicalSpace ι]
-    [SecondCountableTopology ι] (n : ℕ) (t : mesh ι n) : Set ι :=
+    [OrderTopology ι] [SecondCountableTopology ι] (n : ℕ) (t : mesh ι n) : Set ι :=
   Set.Ioc ((pred t : mesh ι n) : ι) (t : ι)
 
 /-- The mesh step-extension of the discrete predictable part `A^n`. -/
 noncomputable def predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
-    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+    {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
     ι → Ω → ℝ :=
   fun t ↦ ∑ u : mesh ι n, (meshPredIoc n u).indicator
     (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u) t
 
 /-- The mesh step-extension of the discrete predictable part is strongly adapted. -/
 lemma stronglyAdapted_predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ)
     (𝓕 : Filtration ι mΩ) (n : ℕ) :
     StronglyAdapted 𝓕 (predictableSeqStep P S 𝓕 n) := by
@@ -1149,7 +1215,7 @@ lemma stronglyAdapted_predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
 /-- Finite linear combinations of the mesh step-extensions of the discrete predictable parts are
 strongly adapted. -/
 lemma stronglyAdapted_weights_sum_predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ)
     (𝓕 : Filtration ι mΩ) (w : ℕ →₀ ℝ) :
     StronglyAdapted 𝓕 (w.sum fun m r ↦ r • predictableSeqStep P S 𝓕 m) := by
@@ -1160,7 +1226,7 @@ lemma stronglyAdapted_weights_sum_predictableSeqStep {ι Ω : Type*} [Topologica
 /-- On the half-open mesh interval `(pred u, u]`, the step extension of the discrete predictable
 part takes the value of the discrete predictable part at `u`. -/
 lemma predictableSeqStep_apply_of_mem {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {n : ℕ} {t : ι}
     {u : mesh ι n} (ht : t ∈ meshPredIoc n u) :
     predictableSeqStep P S 𝓕 n t
@@ -1177,7 +1243,7 @@ lemma predictableSeqStep_apply_of_mem {ι Ω : Type*} [TopologicalSpace ι]
 equal to the process minus the conditional expectation of the terminal value of the discrete
 martingale part. -/
 lemma predictableSeqStep_ae_eq_sub_martingaleSeqStep {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration P 𝓕] (hS_adapted : StronglyAdapted 𝓕 S)
     (hS_int : ∀ t, Integrable (S t) P) {n : ℕ} {t : ι} (ht : t ∈ mesh ι n) :
@@ -1251,8 +1317,8 @@ lemma exists_strictMono_forall_ae_tendsto_of_tendstoInMeasure {κ Ω E : Type*} 
   simpa [s] using le_of_not_ge hn'
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
-  [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
-  {𝓕 : Filtration ι mΩ} {a : ℕ → StdSimplex ℝ ℕ} {M : Ω → ℝ}
+  [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+  {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {a : ℕ → StdSimplex ℝ ℕ} {M : Ω → ℝ}
 
 /-- If convex combinations of the terminal values `M^m_⊤` of the discrete martingale parts converge
 in `L¹` to `M`, then at each time `t` the same convex combinations of the processes
@@ -1372,9 +1438,9 @@ The convex combination at step `n` only involves meshes of index at least `n`, a
 `komlos_L1`. The weights are moreover chosen along a subsequence for which the corresponding convex
 combinations of the step extensions of the discrete predictable parts converge almost surely,
 simultaneously at all points of the countable dense set. -/
-lemma exists_martingalPart_lim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma exists_martingalPart_lim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     ∃ M : Ω → ℝ, ∃ a : ℕ → StdSimplex ℝ ℕ, Integrable M P ∧
       (∀ n, ∀ m < n, (a n).weights m = 0) ∧
@@ -1398,9 +1464,9 @@ lemma exists_martingalPart_lim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι
 
 /-- The `L¹` limit of the convex combinations of the terminal values of the discrete martingale
 parts, given by `exists_martingalPart_lim`. -/
-noncomputable def martingaleLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def martingaleLim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : Ω → ℝ :=
   (exists_martingalPart_lim hd hs).choose
 
@@ -1410,24 +1476,24 @@ càdlàg modification of the martingale `t ↦ P[martingaleLim hd hs | 𝓕 t]`.
 All its paths are càdlàg (`isCadlag_martingalePartLim`) and it is a modification of
 `t ↦ P[martingaleLim hd hs | 𝓕 t]` (`martingalePartLim_ae_eq`). Under the usual conditions on the
 filtration it is adapted, hence a martingale (`martingale_martingalePartLim`). -/
-noncomputable def martingalePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def martingalePartLim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ι → Ω → ℝ :=
   cadlagModif fun i ↦ P[martingaleLim hd hs | 𝓕 i]
 
 /-- This is the weight associated with the martingale part. -/
-noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ℕ → StdSimplex ℝ ℕ :=
   (exists_martingalPart_lim hd hs).choose_spec.choose
 
 section
 
-variable {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
-  [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
-  {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+  [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
 
 /-- The limit of the convex combinations of the terminal martingale parts is integrable. -/
 lemma integrable_martingaleLim (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
@@ -1453,10 +1519,6 @@ lemma ae_tendsto_weight_sum_predictableSeqStep (hd : ClassD S 𝓕 P) (hs : Subm
       fun m r ↦ r • predictableSeqStep P S 𝓕 m) t ω) atTop
       (𝓝 (S t ω - P[martingaleLim hd hs | 𝓕 t] ω)) :=
   (exists_martingalPart_lim hd hs).choose_spec.choose_spec.2.2.2
-
-section
-
-variable [OrderTopology ι]
 
 /-- The martingale part of the decomposition is a modification of the martingale
 `t ↦ P[martingaleLim hd hs | 𝓕 t]`. -/
@@ -1523,17 +1585,15 @@ lemma integral_martingalePartLim [𝓕.IsRightContinuous]
 
 end
 
-end
-
 /-- The convexly averaged mesh step-extension `ℳ^n` of the martingale parts. -/
-noncomputable def martingaleConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def martingaleConvexStep {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) : ι → Ω → ℝ :=
   (weight hd hs n).weights.sum fun m r ↦ r • martingaleSeqStep P S 𝓕 m
 
 /-- `L¹` norm convergence of `martingaleConvexStep`, proved by using conditional Jensen. -/
-lemma martingaleConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma martingaleConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
@@ -1551,9 +1611,9 @@ end MartingalePartLimDef
 section PredictablePartLimDef
 
 /-- The convexly averaged mesh step-extension `𝒜^n` of the predictable parts. -/
-noncomputable def predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) : ι → Ω → ℝ :=
   (weight hd hs n).weights.sum fun m r ↦ r • predictableSeqStep P S 𝓕 m
 
@@ -1561,14 +1621,14 @@ noncomputable def predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T
 martingale part `M = martingalePartLim hd hs` is the càdlàg modification of the martingale
 `t ↦ P[martingaleLim hd hs | 𝓕 t]`. In particular `A` is càdlàg as soon as `S` is
 (`isCadlag_predictablePartLim_ae`). -/
-noncomputable def predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+noncomputable def predictablePartLim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ι → Ω → ℝ :=
   S - martingalePartLim hd hs
 
 /-- The predictable part of the decomposition is integrable at each time. -/
-lemma integrable_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma integrable_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
@@ -1578,7 +1638,7 @@ lemma integrable_predictablePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Spa
 
 /-- If the paths of `S` are almost surely càdlàg, then so are the paths of the predictable part of
 the decomposition. -/
-lemma isCadlag_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma isCadlag_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
@@ -1589,7 +1649,7 @@ lemma isCadlag_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Sp
 
 /-- If the paths of `S` are almost surely càdlàg, then the paths of the predictable part of the
 decomposition are almost surely right-continuous. -/
-lemma isRightContinuous_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma isRightContinuous_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
@@ -1598,9 +1658,9 @@ lemma isRightContinuous_predictablePartLim_ae {ι Ω : Type*} [TopologicalSpace 
   (isCadlag_predictablePartLim_ae hd hs hc).mono fun _ hω ↦ hω.right_continuous
 
 /-- The convexly averaged mesh step-extension of the predictable parts is strongly adapted. -/
-lemma stronglyAdapted_predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma stronglyAdapted_predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) :
     StronglyAdapted 𝓕 (predictableConvexStep hd hs n) :=
   stronglyAdapted_weights_sum_predictableSeqStep P S 𝓕 (weight hd hs n).weights
@@ -1611,8 +1671,8 @@ end PredictablePartLimDef
 section MeshCeil
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
-  [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
-  {𝓕 : Filtration ι mΩ} {τ : Ω → WithTop ι}
+  [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+  {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {τ : Ω → WithTop ι}
 
 /-- The discretization `σₙ` of a stopping time `τ` from the right along the `n`-th mesh: the
 smallest mesh point greater than or equal to `τ`, or `⊤` if `τ = ⊤`. -/
@@ -1679,7 +1739,7 @@ lemma isStoppingTime_meshCeil (hτ : IsStoppingTime 𝓕 τ) (n : ℕ) :
     𝓕.mono (Finset.mem_filter.1 hu).2 _ (hτ u)
 
 /-- The mesh discretizations of `τ` converge to `τ` from the right. -/
-lemma tendsto_untopA_meshCeil [OrderTopology ι] [DenselyOrdered ι] {ω : Ω} (hτ : τ ω ≠ ⊤) :
+lemma tendsto_untopA_meshCeil {ω : Ω} (hτ : τ ω ≠ ⊤) :
     Tendsto (fun n ↦ (meshCeil n τ ω).untopA) atTop (𝓝[≥] (τ ω).untopA) := by
   obtain ⟨t₀, ht₀⟩ := WithTop.ne_top_iff_exists.1 hτ
   have hle (n : ℕ) : t₀ ≤ (meshCeil n τ ω).untopA :=
@@ -1687,14 +1747,11 @@ lemma tendsto_untopA_meshCeil [OrderTopology ι] [DenselyOrdered ι] {ω : Ω} (
   rw [← ht₀, WithTop.untopA_coe, tendsto_nhdsWithin_iff]
   refine ⟨tendsto_order.2 ⟨fun a ha ↦ Eventually.of_forall fun n ↦ ha.trans_le (hle n),
     fun b hb ↦ ?_⟩, Eventually.of_forall fun n ↦ hle n⟩
-  obtain ⟨d, hd_mem, hd₁, hd₂⟩ : ∃ d ∈ denseSet ι, t₀ < d ∧ d < b := by
-    obtain ⟨c, hc₁, hc₂⟩ := exists_between hb
-    obtain ⟨d, hd_mem, hd⟩ := (denseSet_dense ι).exists_mem_open isOpen_Ioo ⟨c, hc₁, hc₂⟩
-    exact ⟨d, hd_mem, hd.1, hd.2⟩
+  obtain ⟨d, hd_mem, hd₁, hd₂⟩ := exists_mem_denseSet_Ico hb
   obtain ⟨k, hk⟩ := exists_denseEnum_eq ι hd_mem
   filter_upwards [eventually_gt_atTop k] with n hn
   have hceil : meshCeil n τ ω ≤ (d : WithTop ι) :=
-    meshCeil_le (hk ▸ denseEnum_mem_mesh ι hn) (ht₀ ▸ WithTop.coe_le_coe.2 hd₁.le)
+    meshCeil_le (hk ▸ denseEnum_mem_mesh ι hn) (ht₀ ▸ WithTop.coe_le_coe.2 hd₁)
   exact ((WithTop.untopA_le_iff (meshCeil_ne_top n hτ)).2 hceil).trans_lt hd₂
 
 /-- Sampling the step extension of the discrete predictable part at `τ` is the same as sampling
@@ -1753,7 +1810,7 @@ lemma stoppedValue_predictableSeqStep_ae_eq [SigmaFiniteFiltration P 𝓕] {n : 
     _ = S u ω - martingaleSeqStep P S 𝓕 n u ω := by rw [hω ⟨u, humesh⟩]
 
 /-- The expectation of the stopped step extension of the discrete predictable part. -/
-lemma integral_stoppedValue_predictableSeqStep [OrderTopology ι] [MeasurableSpace ι]
+lemma integral_stoppedValue_predictableSeqStep [MeasurableSpace ι]
     [IsFiniteMeasure P]
     (hd : ClassD S 𝓕 P) (hS_adapted : StronglyAdapted 𝓕 S) (hS_int : ∀ t, Integrable (S t) P)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) (n : ℕ) :
@@ -1782,7 +1839,7 @@ lemma integral_stoppedValue_predictableSeqStep [OrderTopology ι] [MeasurableSpa
 
 /-- Expectations of the process sampled at the mesh discretizations of `τ` converge to the
 expectation of the process sampled at `τ`. -/
-lemma tendsto_integral_stoppedValue_meshCeil [OrderTopology ι] [DenselyOrdered ι]
+lemma tendsto_integral_stoppedValue_meshCeil
     [MeasurableSpace ι] [IsFiniteMeasure P]
     (hd : ClassD S 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
@@ -1810,11 +1867,11 @@ end MeshCeil
 section MeshApprox
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
-  [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ}
+  [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ}
 
 /-- The meshes are increasing. -/
 lemma mesh_mono (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [TopologicalSpace ι] [SecondCountableTopology ι] : Monotone (mesh ι) := by
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] : Monotone (mesh ι) := by
   intro m n hmn
   unfold mesh
   gcongr
@@ -1824,7 +1881,7 @@ lemma meshCeil_anti (τ : Ω → WithTop ι) : Antitone (fun n ↦ meshCeil n τ
   fun _ _ hmn _ ↦ Finset.min_mono (Finset.filter_subset_filter _ (mesh_mono ι hmn))
 
 /-- The mesh discretizations of a random time converge to it in `WithTop ι`. -/
-lemma tendsto_meshCeil [OrderTopology ι] [DenselyOrdered ι] (τ : Ω → WithTop ι) (ω : Ω) :
+lemma tendsto_meshCeil (τ : Ω → WithTop ι) (ω : Ω) :
     Tendsto (fun n ↦ meshCeil n τ ω) atTop (𝓝 (τ ω)) := by
   rcases eq_or_ne (τ ω) ⊤ with hτ | hτ
   · have h_top (n : ℕ) : meshCeil n τ ω = ⊤ := top_le_iff.1 (hτ ▸ le_meshCeil n ω)
@@ -1835,8 +1892,6 @@ lemma tendsto_meshCeil [OrderTopology ι] [DenselyOrdered ι] (τ : Ω → WithT
     rw [WithTop.coe_untopA hτ] at h_tendsto
     refine h_tendsto.congr fun n ↦ ?_
     simp [WithTop.coe_untopA (meshCeil_ne_top n hτ)]
-
-variable [OrderTopology ι] [DenselyOrdered ι]
 
 /-- The mesh discretizations of a stopping time form a discrete approximation sequence. -/
 noncomputable def MeasureTheory.IsStoppingTime.meshCeilApproxSequence {τ : Ω → WithTop ι}
@@ -1849,11 +1904,11 @@ noncomputable def MeasureTheory.IsStoppingTime.meshCeilApproxSequence {τ : Ω �
   le n ω := le_meshCeil n ω
   tendsto := ae_of_all _ (tendsto_meshCeil τ)
 
-/-- A densely ordered second-countable time index with a bottom and a top element is
-approximable: every stopping time is the limit of its mesh discretizations. -/
+/-- A second-countable time index with a bottom and a top element is approximable: every stopping
+time is the limit of its mesh discretizations. -/
 noncomputable instance approximable_of_mesh {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
-    [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} :
+    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} :
     Approximable 𝓕 μ :=
   ⟨fun _ hτ ↦ hτ.meshCeilApproxSequence μ⟩
 
@@ -1863,7 +1918,7 @@ end MeshApprox
 bounded time set. -/
 lemma MeasureTheory.Martingale.stoppedValue_ae_eq_condExp_top {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
-    [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} (hX : Martingale X 𝓕 P)
     (hRC : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) :
     stoppedValue X τ =ᵐ[P] P[X ⊤ | hτ.measurableSpace] :=
@@ -1873,7 +1928,7 @@ lemma MeasureTheory.Martingale.stoppedValue_ae_eq_condExp_top {ι Ω : Type*} [T
 time is integrable. -/
 lemma MeasureTheory.Martingale.integrable_stoppedValue_top {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
-    [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι} (hX : Martingale X 𝓕 P)
     (hRC : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) :
     Integrable (stoppedValue X τ) P :=
@@ -1885,15 +1940,16 @@ section PredictablePartLimConv
 /-- Past the index at which `t` enters the meshes, `predictableConvexStep` at `t` is a.e. equal
 to the process minus `martingaleConvexStep`. -/
 lemma predictableConvexStep_ae_eq_sub_martingaleConvexStep {ι Ω : Type*} [TopologicalSpace ι]
-    [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι]
-    [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι]
+    [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
+    {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) {t : ι} {k n : ℕ}
     (hk : denseEnum ι k = t) (hkn : k < n) :
     predictableConvexStep hd hs n t =ᵐ[P] S t - martingaleConvexStep hd hs n t :=
   weights_sum_predictableSeqStep_ae_eq hs (fun _ _ ↦ weight_apply_eq_zero_of_lt hd hs) hk hkn
 
 /-- `L¹` norm convergence of `predictableConvexStep` for `t` in `denseSet ι`. -/
-lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
@@ -1908,7 +1964,7 @@ lemma predictableConvexStep_eLpNorm_tendsto {ι Ω : Type*} [TopologicalSpace ι
 /-- Almost sure convergence of `predictableConvexStep` to `predictablePartLim`, simultaneously at
 all points of the countable dense set. This holds for the whole sequence since the weights were
 chosen along a suitable subsequence in `exists_martingalPart_lim`. -/
-lemma predictableConvexStep_ae_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma predictableConvexStep_ae_tendsto {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
@@ -1955,56 +2011,57 @@ lemma antitone_of_antitone_of_tendsto {ι α β : Type*} [Preorder α] [Topologi
     Antitone f :=
   monotone_of_monotone_of_tendsto (β := βᵒᵈ) hF hlim
 
-/-- This is an auxillary lemma used to prove `Dense.monotone_of_isRightContinuous`. It is saying
-that if `D` is a dense set and `a, b` are two points such that `a < b`, then the comap of
-`𝓝[Set.Ioi a] a` under the inclusion `D → α` is nontrivial. Note that `a < b` is necessary as
-this is clearly not true if `a` is a top element. -/
+/-- If `D` is a dense set and `a` is not isolated from the right, then the comap of `𝓝[>] a`
+under the inclusion `D → α` is nontrivial. -/
 lemma Dense.comap_val_nhdsWithin_Ioi_neBot {α : Type*} [TopologicalSpace α] [LinearOrder α]
-    [OrderTopology α] [DenselyOrdered α] {D : Set α} (hD : Dense D) {a b : α} (hab : a < b) :
-    ((𝓝[Set.Ioi a] a).comap ((↑) : D → α)).NeBot := by
+    [OrderTopology α] {D : Set α} (hD : Dense D) {a : α} (ha : (𝓝[>] a).NeBot) :
+    ((𝓝[>] a).comap ((↑) : D → α)).NeBot := by
   refine comap_neBot_iff.2 fun t ht => ?_
-  obtain ⟨c, hc⟩ := (mem_nhdsGT_iff_exists_mem_Ioc_Ioo_subset hab).1 ht
-  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (Set.Ioo a c) isOpen_Ioo (Set.nonempty_Ioo.2 hc.1.1)
-  exact ⟨⟨d, hd.2⟩, hc.2 hd.1⟩
+  obtain ⟨u, hu, hau, hut⟩ := mem_nhdsWithin.1 ht
+  have hmem : u ∩ Set.Ioi a ∈ 𝓝[>] a :=
+    inter_mem (mem_nhdsWithin_of_mem_nhds (hu.mem_nhds hau)) self_mem_nhdsWithin
+  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (u ∩ Set.Ioi a) (hu.inter isOpen_Ioi)
+    (ha.nonempty_of_mem hmem)
+  exact ⟨⟨d, hd.2⟩, hut hd.1⟩
 
 /-- This is the dual of `Dense.comap_val_nhdsWithin_Ioi_neBot`. -/
 lemma Dense.comap_val_nhdsWithin_Iio_neBot {α : Type*} [TopologicalSpace α] [LinearOrder α]
-    [OrderTopology α] [DenselyOrdered α] {D : Set α} (hD : Dense D) {a b : α} (hab : b < a) :
-    ((𝓝[Set.Iio a] a).comap ((↑) : D → α)).NeBot := by
+    [OrderTopology α] {D : Set α} (hD : Dense D) {a : α} (ha : (𝓝[<] a).NeBot) :
+    ((𝓝[<] a).comap ((↑) : D → α)).NeBot := by
   refine comap_neBot_iff.2 fun t ht => ?_
-  obtain ⟨c, hc⟩ := (mem_nhdsLT_iff_exists_mem_Ico_Ioo_subset hab).1 ht
-  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (Set.Ioo c a) isOpen_Ioo (Set.nonempty_Ioo.2 hc.1.2)
-  exact ⟨⟨d, hd.2⟩, hc.2 hd.1⟩
+  obtain ⟨u, hu, hau, hut⟩ := mem_nhdsWithin.1 ht
+  have hmem : u ∩ Set.Iio a ∈ 𝓝[<] a :=
+    inter_mem (mem_nhdsWithin_of_mem_nhds (hu.mem_nhds hau)) self_mem_nhdsWithin
+  obtain ⟨d, hd⟩ := hD.inter_open_nonempty (u ∩ Set.Iio a) (hu.inter isOpen_Iio)
+    (ha.nonempty_of_mem hmem)
+  exact ⟨⟨d, hd.2⟩, hut hd.1⟩
 
-/-- If `f` is monotone on a dense set `D` and is right continuous, then `f` is monotone. We prove
-under the assumption that `α` has a top element `⊤` and `⊤ ∈ D`, which is a necessary assumption
-because otherwise it is possible that `⊤` is an isolated point. This theorem should be also true
-when `α` satisfies `NoTopOrder α`. -/
-lemma Dense.monotone_of_isRightContinuous {α β : Type*} [LinearOrder α] [OrderTop α]
-    [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] [TopologicalSpace β]
-    [Preorder β] [t : OrderClosedTopology β] {f : α → β} {D : Set α} (hD : Dense D) (htop : ⊤ ∈ D)
+/-- If `f` is right continuous and is monotone on a dense set `D` which contains the points that
+are isolated from the right, then `f` is monotone. The assumption on `D` is necessary since
+right-continuity gives no information at the points that are isolated from the right, for example
+at a top element. -/
+lemma Dense.monotone_of_isRightContinuous {α β : Type*} [LinearOrder α] [TopologicalSpace α]
+    [OrderTopology α] [TopologicalSpace β] [Preorder β] [OrderClosedTopology β] {f : α → β}
+    {D : Set α} (hD : Dense D) (hiso : ∀ t, 𝓝[>] t = ⊥ → t ∈ D)
     (hm : Monotone (f ∘ (↑) : D → β)) (hf : IsRightContinuous f) :
     Monotone f := by
+  -- we first compare `f a` to the values of `f` at the points of `D` after `a`
+  have key {a d : α} (hd : d ∈ D) (had : a < d) : f a ≤ f d := by
+    by_cases ha : 𝓝[>] a = ⊥
+    · exact hm (a := ⟨a, hiso a ha⟩) (b := ⟨d, hd⟩) had.le
+    · have := hD.comap_val_nhdsWithin_Ioi_neBot ⟨ha⟩
+      refine le_of_tendsto (Tendsto.comp (hf a) (tendsto_comap (f := ((↑) : D → α)))) ?_
+      rw [eventually_comap]
+      filter_upwards [Ioo_mem_nhdsGT had] with z hz x rfl
+      exact hm (a := x) (b := ⟨d, hd⟩) hz.2.le
   refine monotone_iff_forall_lt.2 fun a b hab => ?_
-  by_cases! hbtop : b = ⊤
-  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot hab
-    rw [hbtop]
-    refine (isClosed_Iic (a := f ⊤)).mem_of_tendsto (Tendsto.comp (hf a)
-      (tendsto_comap (f := ((↑) : D → α)))) ?_
-    rw [eventually_comap, eventually_nhdsWithin_iff]
-    filter_upwards with z hz d rfl using hm (Subtype.mk_le_mk.2 le_top : d ≤ ⟨⊤, htop⟩)
-  · -- This part should work when `α` satisfies `NoTopOrder α`.
-    let I : D × D → α × α := Prod.map Subtype.val Subtype.val
-    have : ((𝓝[Set.Ioi a ×ˢ Set.Ioi b] ⟨a, b⟩).comap I).NeBot := by
-      simp only [nhdsWithin_prod_eq, comap_prodMap_prod, I]
-      exact (hD.comap_val_nhdsWithin_Ioi_neBot hab).prod
-        (hD.comap_val_nhdsWithin_Ioi_neBot hbtop.lt_top)
-    have : ∀ᶠ (p : D × D) in (𝓝[Set.Ioi a ×ˢ Set.Ioi b] ⟨a, b⟩).comap I, p.1 ≤ p.2 := by
-      rw [eventually_comap, eventually_nhdsWithin_iff]
-      have := isOpen_lt_prod.mem_nhds_iff.2 (by simp [hab] : ⟨a, b⟩ ∈ {p : α × α | p.1 < p.2})
-      filter_upwards [this] with p hlt _ a rfl using hlt.le
-    exact t.isClosed_le'.mem_of_tendsto (Tendsto.comp ((hf a).prodMap (hf b)) tendsto_comap)
-      (this.mono fun d hd => hm hd)
+  by_cases hb : 𝓝[>] b = ⊥
+  · exact key (hiso b hb) hab
+  · have := hD.comap_val_nhdsWithin_Ioi_neBot ⟨hb⟩
+    refine ge_of_tendsto (Tendsto.comp (hf b) (tendsto_comap (f := ((↑) : D → α)))) ?_
+    rw [eventually_comap]
+    filter_upwards [self_mem_nhdsWithin] with z hz x rfl
+    exact key x.2 (hab.trans hz)
 
 /-- A helper lemma. -/
 lemma Filter.IsCoboundedUnder.trans {ι α : Type*} {r : α → α → Prop} {l : Filter ι}
@@ -2016,19 +2073,20 @@ lemma Filter.IsCoboundedUnder.trans {ι α : Type*} {r : α → α → Prop} {l 
   filter_upwards [ha, hle] with i hi huv using Trans.trans huv hi
 
 /-- Convergence on a dense set of a collection of monotone function controls the `limsup` at a point
-if `f` is right continuous at `a`. We prove this under the assumption that `α` has both a bottom
-element and a top element. The bottom element is needed because otherwise `limsup` evaluated at the
-bottome element may give a junk value to break the inequality. -/
+if `f` is right continuous at `a`. The dense set has to contain the points that are isolated from
+the right, at which right-continuity gives no information. We prove this under the assumption that
+`α` has a bottom element which belongs to the dense set, because otherwise `limsup` may have a junk
+value which breaks the inequality. -/
 lemma limsup_le_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
-    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [OrderBot α] [TopologicalSpace α] [OrderTopology α]
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
-    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Ioi a) a)
-    (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
+    (hD : Dense D) (hiso : ∀ t, 𝓝[>] t = ⊥ → t ∈ D) (hbot : ⊥ ∈ D) {a : α}
+    (hfa : ContinuousWithinAt f (Set.Ioi a) a) (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     limsup (F · a) l ≤ f a := by
-  by_cases! ha : a = ⊤
-  · rw [ha, (hlim ⊤ htop).limsup_eq]
-  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot ha.lt_top
+  by_cases ha : 𝓝[>] a = ⊥
+  · rw [(hlim a (hiso a ha)).limsup_eq]
+  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot ⟨ha⟩
     refine (isClosed_Ici (a := limsup (F · a) l)).mem_of_tendsto (Tendsto.comp hfa
       (tendsto_comap (f := ((↑) : D → α)))) ?_
     rw [eventually_comap, eventually_nhdsWithin_iff]
@@ -2041,15 +2099,15 @@ lemma limsup_le_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [L
 
 /-- This is the dual of `limsup_le_of_eventually_monotone_of_tendsto_on_dense`. -/
 lemma le_liminf_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
-    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [OrderTop α] [TopologicalSpace α] [OrderTopology α]
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
-    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α} (hfa : ContinuousWithinAt f (Set.Iio a) a)
-    (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
+    (hD : Dense D) (hiso : ∀ t, 𝓝[<] t = ⊥ → t ∈ D) (htop : ⊤ ∈ D) {a : α}
+    (hfa : ContinuousWithinAt f (Set.Iio a) a) (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     f a ≤ liminf (F · a) l := by
-  by_cases! ha : a = ⊥
-  · rw [ha, (hlim ⊥ hbot).liminf_eq]
-  · have : (comap ((↑) : D → α) (𝓝[<] a)).NeBot := hD.comap_val_nhdsWithin_Iio_neBot ha.bot_lt
+  by_cases ha : 𝓝[<] a = ⊥
+  · rw [(hlim a (hiso a ha)).liminf_eq]
+  · have : (comap ((↑) : D → α) (𝓝[<] a)).NeBot := hD.comap_val_nhdsWithin_Iio_neBot ⟨ha⟩
     refine (isClosed_Iic (a := liminf (F · a) l)).mem_of_tendsto (Tendsto.comp hfa
       (tendsto_comap (f := ((↑) : D → α)))) ?_
     rw [eventually_comap, eventually_nhdsWithin_iff]
@@ -2064,16 +2122,17 @@ lemma le_liminf_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [L
 `le_liminf_of_eventually_monotone_of_tendsto_on_dense` to prove that `F · a` converges to `f a`
 if `f` is continuous at `a`. -/
 lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
-    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α]
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
-    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) (a : α) (hfa : ContinuousAt f a)
+    (hD : Dense D) (hiso_right : ∀ t, 𝓝[>] t = ⊥ → t ∈ D) (hiso_left : ∀ t, 𝓝[<] t = ⊥ → t ∈ D)
+    (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) (a : α) (hfa : ContinuousAt f a)
     (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     Tendsto (F · a) l (𝓝 (f a)) := by
   refine tendsto_of_le_liminf_of_limsup_le ?_ ?_ ?_ ?_
-  · exact le_liminf_of_eventually_monotone_of_tendsto_on_dense hF hD htop hbot
+  · exact le_liminf_of_eventually_monotone_of_tendsto_on_dense hF hD hiso_left htop
       hfa.continuousWithinAt hlim
-  · exact limsup_le_of_eventually_monotone_of_tendsto_on_dense hF hD htop hbot
+  · exact limsup_le_of_eventually_monotone_of_tendsto_on_dense hF hD hiso_right hbot
       hfa.continuousWithinAt hlim
   · -- create an analogue of `Filter.IsCoboundedUnder.trans` for `IsBoundedUnder` to replace
     -- `isBoundedUnder_le.mono_le`
@@ -2083,17 +2142,19 @@ lemma tendsto_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [Lin
     filter_upwards [hF] with i hi using hi bot_le
 
 /-- A variant of `le_liminf_of_eventually_monotone_of_tendsto_on_dense` in which `f` is only assumed
-to have a left limit at `a`: that left limit is at most the `liminf` of `F · a`. -/
+to have a left limit at `a`: that left limit is at most the `liminf` of `F · a`. At a point `a`
+which is isolated from the left, `f.leftLim a = f a` and the inequality follows from the convergence
+at `a`, which belongs to `D`. -/
 lemma leftLim_le_liminf_of_eventually_monotone_of_tendsto_on_dense {ι α β : Type*} [LinearOrder α]
-    [BoundedOrder α] [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α]
+    [OrderTop α] [TopologicalSpace α] [OrderTopology α]
     [ConditionallyCompleteLinearOrder β] [TopologicalSpace β] [OrderTopology β] {l : Filter ι}
     [l.NeBot] {D : Set α} {F : ι → α → β} {f : α → β} (hF : ∀ᶠ i in l, Monotone (F i))
-    (hD : Dense D) (htop : ⊤ ∈ D) (hbot : ⊥ ∈ D) {a : α}
+    (hD : Dense D) (hiso : ∀ t, 𝓝[<] t = ⊥ → t ∈ D) (htop : ⊤ ∈ D) {a : α}
     (hfa : ∃ c, Tendsto f (𝓝[<] a) (𝓝 c)) (hlim : ∀ t ∈ D, Tendsto (F · t) l (𝓝 (f t))) :
     f.leftLim a ≤ liminf (F · a) l := by
-  by_cases! ha : a = ⊥
-  · rw [ha, (hlim ⊥ hbot).liminf_eq, leftLim_eq_of_eq_bot f (nhdsLT_eq_bot_iff.2 (.inl isBot_bot))]
-  · have : (comap ((↑) : D → α) (𝓝[<] a)).NeBot := hD.comap_val_nhdsWithin_Iio_neBot ha.bot_lt
+  by_cases ha : 𝓝[<] a = ⊥
+  · rw [(hlim a (hiso a ha)).liminf_eq, leftLim_eq_of_eq_bot f ha]
+  · have : (comap ((↑) : D → α) (𝓝[<] a)).NeBot := hD.comap_val_nhdsWithin_Iio_neBot ⟨ha⟩
     refine (isClosed_Iic (a := liminf (F · a) l)).mem_of_tendsto
       (Tendsto.comp (tendsto_leftLim_of_tendsto hfa) (tendsto_comap (f := ((↑) : D → α)))) ?_
     rw [eventually_comap, eventually_nhdsWithin_iff]
@@ -2109,7 +2170,8 @@ end MonotoneLim
 section PredictablePartLimMono
 
 lemma predictableSeqStep_eq_sum_indicator {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+    {mΩ : MeasurableSpace Ω}
     (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) (t : ι) :
     predictableSeqStep P S 𝓕 n t ω = ∑ v : mesh ι n, (meshPredIoc n v).indicator
       (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P v ω) t := by
@@ -2119,8 +2181,8 @@ lemma predictableSeqStep_eq_sum_indicator {ι Ω : Type*} [TopologicalSpace ι]
 /-- On the mesh cell `Ioc (pred u) u` containing `t`, the step process `predictableSeqStep` is
 constant, equal to the discrete predictable part at the cell's right endpoint `u`. -/
 lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (P : Measure Ω)
-    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) {t : ι} {u : mesh ι n}
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) (ω : Ω) {t : ι} {u : mesh ι n}
     (ht : t ∈ meshPredIoc n u) :
     predictableSeqStep P S 𝓕 n t ω
       = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω := by
@@ -2135,7 +2197,7 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
       (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv.1)) (lt_irrefl t)
 
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableSeqStep P S 𝓕 n t ω := by
@@ -2168,9 +2230,9 @@ lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
   simp only [hval s₁, hval s₂]
   exact hmono (hle s₁ (ceil s₂) (hs12.trans (hmem s₂)))
 
-lemma predictableConvexStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma predictableConvexStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableConvexStep hd hs n t ω := by
   have key : ∀ᵐ ω ∂P, ∀ m : ℕ, Monotone fun s ↦ predictableSeqStep P S 𝓕 m s ω :=
@@ -2194,7 +2256,7 @@ lemma MeasureTheory.TendstoInMeasure.ae_le {α ι E : Type*} {m : MeasurableSpac
   exact le_of_tendsto_of_tendsto' (hfx.comp hφ.tendsto_atTop) hgx hle
 
 /-- The predictable part `A` is almost surely monotone on the countable dense set. -/
-lemma predictablePartLim_monotoneOn_denseSet_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma predictablePartLim_monotoneOn_denseSet_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
@@ -2218,78 +2280,66 @@ lemma predictablePartLim_monotoneOn_denseSet_ae {ι Ω : Type*} [TopologicalSpac
 
 /-- If the paths of `S` are almost surely càdlàg, then the predictable part `A` is almost surely
 monotone: it is monotone on the countable dense set and right-continuous. -/
-lemma predictablePartLim_monotone_ae {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma predictablePartLim_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictablePartLim hd hs t ω := by
   filter_upwards [predictablePartLim_monotoneOn_denseSet_ae hd hs,
     isRightContinuous_predictablePartLim_ae hd hs hc] with ω hmono hrcω
-  exact (denseSet_dense ι).monotone_of_isRightContinuous (top_mem_denseSet ι)
+  exact (denseSet_dense ι).monotone_of_isRightContinuous (fun _ ↦ mem_denseSet_of_nhdsGT_eq_bot)
     (fun s t hst ↦ hmono s.2 t.2 hst) hrcω
 
 end PredictablePartLimMono
 
 section PredictableConvexStepPredictable
 
-/-- The indicator of a half-open interval `Ioc a b` with constant value `c` is left-continuous:
-when approached from the left it is eventually constant, so it is continuous within `Iio t` at `t`
-for every `t`. -/
-lemma continuousWithinAt_Iio_indicator_Ioc {α M : Type*} [LinearOrder α] [TopologicalSpace α]
-    [ClosedIicTopology α] [Zero M] [TopologicalSpace M] (a b : α) (c : M) (t : α) :
-    ContinuousWithinAt ((Set.Ioc a b).indicator (fun _ ↦ c)) (Set.Iio t) t := by
-  refine continuousWithinAt_const.congr_of_eventuallyEq ?_ rfl
-  rcases le_or_gt t a with hta | hat
-  · filter_upwards [self_mem_nhdsWithin] with x hx
-    simp_all [hx.le.trans hta]
-  · rcases le_or_gt t b with htb | hbt
-    · filter_upwards [self_mem_nhdsWithin, mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hat)]
-        with x hx_lt hx_gt
-      simp_all [hx_lt.le.trans htb]
-    · filter_upwards [mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hbt)] with x hx_gt
-      simp_all
-
-/-- The mesh step-extension of the discrete predictable part is left-continuous in time. -/
-lemma predictableSeqStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι]
-    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [ClosedIicTopology ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (n : ℕ) (ω : Ω) (t : ι) :
-    ContinuousWithinAt (fun s ↦ predictableSeqStep P S 𝓕 n s ω) (Set.Iio t) t := by
-  have hrw : (fun s ↦ predictableSeqStep P S 𝓕 n s ω)
-      = fun s ↦ ∑ u : mesh ι n, (meshPredIoc n u).indicator
-          (fun _ : ι ↦ predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω) s := by
-    funext s
-    simp only [predictableSeqStep, Finset.sum_apply]
-    exact Finset.sum_congr rfl fun u _ ↦ Set.indicator_apply_apply _ _ s ω
-  rw [hrw]
-  exact tendsto_finsetSum _ fun u _ ↦ continuousWithinAt_Iio_indicator_Ioc _ _ _ t
-
-/-- `predictableConvexStep` is left-continuous in time. -/
-lemma predictableConvexStep_leftContinuous {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
-    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [ClosedIicTopology ι]
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (n : ℕ) (ω : Ω) (t : ι) :
-    ContinuousWithinAt (fun s ↦ predictableConvexStep hd hs n s ω) (Set.Iio t) t := by
-  have hrw : (fun s ↦ predictableConvexStep hd hs n s ω)
-      = fun s ↦ ∑ m ∈ (weight hd hs n).weights.support,
-          (weight hd hs n).weights m • predictableSeqStep P S 𝓕 m s ω := by
-    funext s
-    simp only [predictableConvexStep, Finsupp.sum, Finset.sum_apply, Pi.smul_apply]
-  rw [hrw]
-  exact tendsto_finsetSum _ fun m _ ↦ (predictableSeqStep_leftContinuous m ω t).fun_const_smul _
+/-- The mesh step-extension of the discrete predictable part is strongly predictable: it is a
+finite sum of processes of the form `1_{(pred u, u]} Aⁿ_u`, where `Aⁿ_u` is measurable with respect
+to the σ-algebra at time `pred u`. -/
+lemma isStronglyPredictable_predictableSeqStep {ι Ω : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
+    {mΩ : MeasurableSpace Ω} (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
+    IsStronglyPredictable 𝓕 (predictableSeqStep P S 𝓕 n) := by
+  let A := predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P
+  -- we write the indicator of `(pred u, u]` as a difference of indicators of `(pred u, ∞)` and
+  -- `(u, ∞)`
+  have h_eq : Function.uncurry (predictableSeqStep P S 𝓕 n) = fun p : ι × Ω ↦
+      ∑ u : mesh ι n, ((Set.Ioi ((pred u : mesh ι n) : ι) ×ˢ Set.univ).indicator
+          (fun q : ι × Ω ↦ A u q.2) p
+        - (Set.Ioi (u : ι) ×ˢ Set.univ).indicator (fun q : ι × Ω ↦ A u q.2) p) := by
+    ext ⟨t, ω⟩
+    simp only [Function.uncurry_apply_pair, predictableSeqStep_eq_sum_indicator, meshPredIoc]
+    refine Finset.sum_congr rfl fun u _ ↦ ?_
+    have hpu : ((pred u : mesh ι n) : ι) ≤ u := Subtype.coe_le_coe.2 (pred_le u)
+    by_cases h1 : ((pred u : mesh ι n) : ι) < t <;> by_cases h2 : (u : ι) < t
+    · simp [h1, h2, not_le.2 h2, A]
+    · simp [h1, h2, not_lt.1 h2, A]
+    · exact absurd (hpu.trans_lt h2) h1
+    · simp [h1, h2]
+  rw [IsStronglyPredictable, h_eq]
+  refine Finset.stronglyMeasurable_fun_sum _ fun u _ ↦ StronglyMeasurable.sub ?_ ?_
+  · exact stronglyMeasurable_predictable_indicator_Ioi
+      (stronglyMeasurable_pred_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u)
+  · exact stronglyMeasurable_predictable_indicator_Ioi
+      (stronglyMeasurable_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u)
 
 /-- The convexly averaged mesh step-extension of the predictable parts is strongly predictable. -/
-lemma isStronglyPredictable_predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+lemma isStronglyPredictable_predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
-    [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) (n : ℕ) :
-    IsStronglyPredictable 𝓕 (predictableConvexStep hd hs n) :=
-  (stronglyAdapted_predictableConvexStep hd hs n).isStronglyPredictable_of_leftContinuous
-    (predictableConvexStep_leftContinuous hd hs n)
+    IsStronglyPredictable 𝓕 (predictableConvexStep hd hs n) := by
+  have h_eq : Function.uncurry (predictableConvexStep hd hs n) = fun p : ι × Ω ↦
+      ∑ m ∈ (weight hd hs n).weights.support,
+        (weight hd hs n).weights m • Function.uncurry (predictableSeqStep P S 𝓕 m) p := by
+    ext ⟨t, ω⟩
+    simp [predictableConvexStep, Finsupp.sum, Finset.sum_apply]
+  rw [IsStronglyPredictable, h_eq]
+  exact Finset.stronglyMeasurable_fun_sum _ fun m _ ↦
+    (isStronglyPredictable_predictableSeqStep P S 𝓕 m).const_smul _
 
 end PredictableConvexStepPredictable
 
@@ -2308,8 +2358,8 @@ lemma IsStronglyPredictable.limsup {ι Ω E : Type*} [Preorder ι] [OrderBot ι]
 /-- The limsup of convexly averaged mesh step-extension of the predictable parts is strongly
 predictable. -/
 lemma isStronglyPredictable_limsup_predictableConvexStep {ι Ω : Type*} [TopologicalSpace ι]
-    [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι]
-    [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι]
+    [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
     [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) :
     IsStronglyPredictable 𝓕 (fun t ω => limsup (predictableConvexStep hd hs · t ω) atTop) :=
@@ -2318,8 +2368,8 @@ lemma isStronglyPredictable_limsup_predictableConvexStep {ι Ω : Type*} [Topolo
 /-- For each random time `τ`, almost everywhere,
 `limsup (fun n => stoppedValue 𝒜^n τ ω) atTop ≤ stoppedValue A τ ω`. -/
 lemma limsup_stoppedValue_predictableConvexStep_ae_le_stoppedValue_predictablePartLim {ι Ω : Type*}
-    [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
-    [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
+    [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι]
+    [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) (τ : Ω → WithTop ι) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
@@ -2329,13 +2379,13 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_le_stoppedValue_predictablePa
     isRightContinuous_predictablePartLim_ae hd hs hc,
     ae_all_iff.2 (predictableConvexStep_monotone_ae hd hs)] with ω hconvω hrcω hmonoω
   exact limsup_le_of_eventually_monotone_of_tendsto_on_dense (.of_forall hmonoω)
-    (denseSet_dense ι) (top_mem_denseSet ι) (bot_mem_denseSet ι) (hrcω _) hconvω
+    (denseSet_dense ι) (fun _ ↦ mem_denseSet_of_nhdsGT_eq_bot) (bot_mem_denseSet ι) (hrcω _) hconvω
 
 /-- For each finite stopping time `τ`, `∫ ω, stoppedValue 𝒜^n τ ω ∂P` converges to
 `∫ ω, stoppedValue A τ ω ∂P`. -/
 lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictablePartLim
-    {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι] [MeasurableSpace ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι]
+    {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
@@ -2597,8 +2647,8 @@ section StoppedValueIntegrable
 
 /-- The step extension of the discrete predictable part vanishes at `⊥`. -/
 lemma predictableSeqStep_bot {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (P : Measure Ω)
-    (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] {mΩ : MeasurableSpace Ω}
+    (P : Measure Ω) (S : ι → Ω → ℝ) (𝓕 : Filtration ι mΩ) (n : ℕ) :
     predictableSeqStep P S 𝓕 n ⊥ = 0 := by
   funext ω
   rw [predictableSeqStep_eq_sum_indicator]
@@ -2606,7 +2656,7 @@ lemma predictableSeqStep_bot {ι Ω : Type*} [TopologicalSpace ι] [SecondCounta
     Set.indicator_of_notMem (fun h ↦ absurd h.1 (not_lt.2 bot_le)) _
 
 variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
-  [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [T1Space ι]
+  [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
   {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} {τ : Ω → WithTop ι}
 
@@ -2616,9 +2666,6 @@ lemma predictableConvexStep_bot (hd : ClassD S 𝓕 P) (hs : Submartingale S �
   funext ω
   simp [predictableConvexStep, Finsupp.sum, Finset.sum_apply, predictableSeqStep_bot]
 
-variable [OrderTopology ι]
-
-omit [T1Space ι] in
 /-- The stopped step extension of the discrete predictable part is integrable. -/
 lemma integrable_stoppedValue_predictableSeqStep (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
     (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) (m : ℕ) :
@@ -2650,7 +2697,7 @@ lemma integrable_stoppedValue_predictableConvexStep (hd : ClassD S 𝓕 P)
 
 /-- The predictable part of the Doob-Meyer decomposition stopped at a finite stopping time is
 integrable. -/
-lemma integrable_stoppedValue_predictablePartLim [DenselyOrdered ι] [𝓕.IsRightContinuous]
+lemma integrable_stoppedValue_predictablePartLim [𝓕.IsRightContinuous]
     [𝓕.IsComplete P] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hτ : IsStoppingTime 𝓕 τ)
     (hτ_ne : ∀ ω, τ ω ≠ ⊤) :
     Integrable (stoppedValue (predictablePartLim hd hs) τ) P := by
@@ -2664,7 +2711,7 @@ lemma integrable_stoppedValue_predictablePartLim [DenselyOrdered ι] [𝓕.IsRig
 
 end StoppedValueIntegrable
 
-variable {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
+variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
   [MeasurableSpace ι]
   [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
@@ -2673,7 +2720,7 @@ variable {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopo
 /-- For each finite stopping time `τ`, almost everywhere,
 `limsup (fun n => stoppedValue 𝒜^n τ ω) atTop = stoppedValue A τ ω`. -/
 lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePartLim
-    [DenselyOrdered ι] [𝓕.IsComplete P]
+    [𝓕.IsComplete P]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
     {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
@@ -2762,7 +2809,7 @@ lemma isStronglyProgressive_predictablePartLim [OpensMeasurableSpace ι]
 
 /-- Almost surely, `limsup (predictableConvexStep hd hs · t ω) atTop ≤ predictablePartLim hd hs t ω`
 for all times `t`. -/
-lemma limsup_predictableConvexStep_le_predictablePartLim_ae [DenselyOrdered ι]
+lemma limsup_predictableConvexStep_le_predictablePartLim_ae
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, limsup (predictableConvexStep hd hs · t ω) atTop ≤
       predictablePartLim hd hs t ω := by
@@ -2770,11 +2817,11 @@ lemma limsup_predictableConvexStep_le_predictablePartLim_ae [DenselyOrdered ι]
     isRightContinuous_predictablePartLim_ae hd hs hc,
     ae_all_iff.2 (predictableConvexStep_monotone_ae hd hs)] with ω hconvω hrcω hmonoω t
   exact limsup_le_of_eventually_monotone_of_tendsto_on_dense (.of_forall hmonoω)
-    (denseSet_dense ι) (top_mem_denseSet ι) (bot_mem_denseSet ι) (hrcω t) hconvω
+    (denseSet_dense ι) (fun _ ↦ mem_denseSet_of_nhdsGT_eq_bot) (bot_mem_denseSet ι) (hrcω t) hconvω
 
 /-- Almost surely, the left limit of `predictablePartLim hd hs` at `t` is at most
 `limsup (predictableConvexStep hd hs · t ω) atTop`, for all times `t`. -/
-lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae [DenselyOrdered ι]
+lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, (predictablePartLim hd hs · ω).leftLim t ≤
       limsup (predictableConvexStep hd hs · t ω) atTop := by
@@ -2782,7 +2829,8 @@ lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae [DenselyOrde
     isCadlag_predictablePartLim_ae hd hs hc,
     ae_all_iff.2 (predictableConvexStep_monotone_ae hd hs)] with ω hconvω hcadlagω hmonoω t
   refine (leftLim_le_liminf_of_eventually_monotone_of_tendsto_on_dense (.of_forall hmonoω)
-    (denseSet_dense ι) (top_mem_denseSet ι) (bot_mem_denseSet ι) (hcadlagω.left_limit t)
+    (denseSet_dense ι) (fun _ ↦ mem_denseSet_of_nhdsLT_eq_bot) (top_mem_denseSet ι)
+    (hcadlagω.left_limit t)
     hconvω).trans (liminf_le_limsup ?_ ?_)
   · exact (hconvω ⊤ (top_mem_denseSet ι)).isBoundedUnder_le.mono_le
       (.of_forall fun n ↦ hmonoω n le_top)
@@ -2794,7 +2842,7 @@ lemma leftLim_predictablePartLim_le_limsup_predictableConvexStep_ae [DenselyOrde
 by more than `ε`: these are times of jumps of size at least `ε` of the càdlàg path of
 `predictablePartLim hd hs`. -/
 lemma finite_setOf_lt_predictablePartLim_sub_limsup_predictableConvexStep_ae
-    [DenselyOrdered ι] [CompactSpace ι] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
+    [CompactSpace ι] (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ ε > 0, {t | ε < predictablePartLim hd hs t ω -
       limsup (predictableConvexStep hd hs · t ω) atTop}.Finite := by
@@ -2812,12 +2860,13 @@ lemma finite_setOf_lt_predictablePartLim_sub_limsup_predictableConvexStep_ae
 /-- The processes `fun t ω ↦ limsup (predictableConvexStep hd hs · t ω) atTop` and
 `predictablePartLim hd hs` are indistinguishable. -/
 lemma limsup_predictableConvexStep_eq_predictablePartLim {ι : Type*} [CompleteLinearOrder ι]
-    [DenselyOrdered ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι]
-    [BorelSpace ι] {S : ι → Ω → ℝ}
-    {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P] (hd : ClassD S 𝓕 P)
-    (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [BorelSpace ι] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P]
+    (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     ∀ᵐ ω ∂P, ∀ t, limsup (predictableConvexStep hd hs · t ω) atTop =
       predictablePartLim hd hs t ω := by
+  -- the début theorem below is stated for Polish spaces
+  have : PolishSpace ι := .of_compactSpace_of_secondCountableTopology
   set L : ι → Ω → ℝ := fun t ω ↦ limsup (predictableConvexStep hd hs · t ω) atTop
   set A : ι → Ω → ℝ := predictablePartLim hd hs
   -- the set `B k` of times at which `A - L > 1 / (k + 1)` is progressively measurable
@@ -2857,7 +2906,7 @@ section DoobMeyer
 
 /-- **Doob–Meyer decomposition** of a càdlàg submartingale of class D. -/
 theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder ι]
-    [DenselyOrdered ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
     [BorelSpace ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ ω, IsCadlag (S · ω)) :

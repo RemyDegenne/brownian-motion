@@ -165,7 +165,7 @@ end Telescoping
 section MeshCell
 
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι] [TopologicalSpace ι]
-  [SecondCountableTopology ι] {n : ℕ} {s : ι}
+  [SecondCountableTopology ι] [OrderTopology ι] {n : ℕ} {s : ι}
 
 /-- The telescoping identity for `g ∘ f` along the `n`-th mesh, for an arbitrary function `f`. -/
 lemma g_top_sub_g_bot (n : ℕ) (f : ι → ℝ) :
@@ -236,7 +236,7 @@ end MeshCell
 section StepInt
 
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] [OrderTop ι] [TopologicalSpace ι]
-  [SecondCountableTopology ι] {n : ℕ} {s : ι} {f : ι → ℝ}
+  [SecondCountableTopology ι] [OrderTopology ι] {n : ℕ} {s : ι} {f : ι → ℝ}
 
 /-- The step integrand associated to `f` along the `n`-th mesh: on the cell `(pred u, u]` it takes
 the value `φ (f (pred u)) (f u)`. It vanishes at `⊥`. -/
@@ -615,7 +615,8 @@ lemma Dense.eq_of_isRightContinuous {α β : Type*} [LinearOrder α] [OrderTop �
   by_cases! ha : a = ⊤
   · rw [ha]
     exact h ⊤ htop
-  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot ha.lt_top
+  · have : (comap ((↑) : D → α) (𝓝[>] a)).NeBot := hD.comap_val_nhdsWithin_Ioi_neBot
+      (nhdsGT_neBot_of_exists_gt ⟨⊤, ha.lt_top⟩)
     have hf' := (hf a).tendsto.comp (tendsto_comap (f := ((↑) : D → α)))
     have hg' := (hg a).tendsto.comp (tendsto_comap (f := ((↑) : D → α)))
     exact tendsto_nhds_unique hf' (hg'.congr fun d ↦ (h d d.2).symm)

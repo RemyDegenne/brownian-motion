@@ -61,6 +61,7 @@ public import BrownianMotion.StochasticIntegral.Cadlag
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.ContinuousSquareIntegrable
 public import BrownianMotion.StochasticIntegral.ConvexWeights
+public import BrownianMotion.StochasticIntegral.DoleansMeasure
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
 public import BrownianMotion.StochasticIntegral.DoobMeyerUniqueness
@@ -80,6 +81,7 @@ public import BrownianMotion.StochasticIntegral.PredictableTime
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
 public import BrownianMotion.StochasticIntegral.Quasimartingale.Basic
 public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModification
+public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModificationBanach
 public import BrownianMotion.StochasticIntegral.Quasimartingale.MaximalInequality
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
