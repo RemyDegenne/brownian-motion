@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@a811f12834a45345026c26b89eea877e0ddad406 # 2026-01-15
+        uses: leanprover/lean-action@96e06131c0e9943c780388fd166f55d1e2fa0433 # 2026-01-15
         with:
           build: true
           lint: true
