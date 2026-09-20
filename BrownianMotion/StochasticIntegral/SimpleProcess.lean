@@ -782,6 +782,27 @@ lemma integrable_integral_real {μ : Measure Ω} {X : ι → Ω → ℝ}
     · by_cases hω : ω ∈ S.set p <;> simp [hω]
     · simp
 
+lemma integral_integral_indicator {μ : Measure Ω} {X : ι → Ω → ℝ}
+    (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (c : ℝ) (t : ι) :
+    ∫ ω, (S.indicator c ● X) t ω ∂μ
+      = ∑ p ∈ S.I, ∫ ω in S.set p, c * (X (min p.2 t) ω - X (min p.1 t) ω) ∂μ := by
+  have h_eq : (S.indicator c ● X) t = fun ω ↦ ∑ p ∈ S.I,
+      (S.set p).indicator (fun ω ↦ c * (X (min p.2 t) ω - X (min p.1 t) ω)) ω := by
+    ext ω
+    rw [ElementaryPredictableSet.integral_indicator_apply]
+    simp
+  rw [h_eq, integral_finsetSum]
+  · refine Finset.sum_congr rfl fun p hp ↦ ?_
+    rw [integral_indicator (𝓕.le _ _ (S.measurableSet_set p hp))]
+  · intro p hp
+    exact (((hXint _).sub (hXint _)).const_mul _).indicator (𝓕.le _ _ (S.measurableSet_set p hp))
+
+lemma integral_integral_indicator_one {μ : Measure Ω} {X : ι → Ω → ℝ}
+    (hXint : ∀ s, Integrable (X s) μ) (S : ElementaryPredictableSet 𝓕) (t : ι) :
+    ∫ ω, (S.indicator (1 : ℝ) ● X) t ω ∂μ
+      = ∑ p ∈ S.I, ∫ ω in S.set p, (X (min p.2 t) ω - X (min p.1 t) ω) ∂μ := by
+  simp [integral_integral_indicator hXint S 1 t]
+
 end ElementaryPredictableSet
 
 end Indicator

@@ -16,8 +16,9 @@ import Mathlib.Probability.BorelCantelli
 This file proves the **law of the iterated logarithm** for Brownian motion, which provides sharp
 asymptotics for the limsup of B_t as t tends to infinity.
 
-The main theorem is `IsBrownian.ae_limsup_div_sqrt_log_log_eq_one`, which proves that if $B_t$ is a
-Brownian motion, it holds almost surely that $\limsup_{t → ∞} \frac{B_t}{\sqrt{2 \log \log t}} = 1$.
+The main theorem is `IsBrownianReal.ae_limsup_div_sqrt_log_log_eq_one`, which proves that if $B_t$
+is a Brownian motion, it holds almost surely that
+$\limsup_{t → ∞} \frac{B_t}{\sqrt{2 \log \log t}} = 1$.
 -/
 
 @[expose] public section
@@ -30,7 +31,8 @@ namespace ProbabilityTheory
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 variable {X}
 
-lemma IsBrownian.reflection (hX : IsBrownian X P) {t : ℝ≥0} {c : ℝ} (ht : 0 < t) (hc : 0 ≤ c) :
+lemma IsBrownianReal.reflection (hX : IsBrownianReal X P) {t : ℝ≥0} {c : ℝ}
+    (ht : 0 < t) (hc : 0 ≤ c) :
     P.real {ω | c ≤ ⨆ s ≤ t, (X s ω).toEReal} = 2 * P.real {ω | c ≤ X t ω} :=
   sorry -- needs strong Markov property
 
@@ -39,7 +41,7 @@ lemma IsStandardGaussian.tail (hX : HasLaw X (gaussianReal 0 1) P) :
     (fun x ↦ 1 / x * exp (-1/2 * x ^ 2)) :=
   sorry -- exponential asymptotics of standard Gaussian CDF
 
-private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P) :
+private lemma IsBrownianReal.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownianReal X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ ((X t ω) / √(2 * t * log (log t))).toEReal) atTop ≤ 1 := by
   -- Introduce notation
   have := (hX.hasLaw ∅).isProbabilityMeasure
@@ -91,7 +93,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
     rw [max_eq_right ht1] at htn1 htn2
     exact_mod_cast calc
       X t ω ≤ M (c ^ (n t + 1)) ω := le_iSup_of_le t <| le_iSup_of_le (by bound) (by rfl)
-      _ < (c * f (c ^ (n t))) := by simpa using ht
+      _ < (c * f (c ^ (n t))) := lt_of_not_ge ht
       _ ≤ (c : ℝ) * (f t) := by
         apply mul_le_mul_of_nonneg_left _ <| le_of_lt <| by positivity
         apply EReal.coe_le_coe <| fmono htn3 (le_trans htn3 htn1) htn1
@@ -118,8 +120,8 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
       convert gaussianReal_const_mul (hX.hasLaw_eval _) _
       · norm_num
       · aesop
-    convert h.measure_mem_eq (s := {x | _ ≤ (x : ℝ)}) _
-    · simp_rw [Set.preimage_setOf_eq]
+    convert h.measure_mem_eq (s := {x | c * f (c ^ n) ≤ (x : ℝ)}) _
+    · simp_rw [Set.preimage_ofPred_eq]
       congr! 2
       rw [← mul_le_mul_iff_of_pos_left (by positivity : 0 < √(c ^ (n + 1)))]
       congr! 1
@@ -128,6 +130,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
       rw [sqrt_sq (by positivity), pow_add]
       push_cast
       field_simp
+    · rfl
     · measurability
   apply summable_of_isBigO_nat <| summable_nat_rpow_inv.2 hc
   -- apply Gaussian tail estimate
@@ -155,7 +158,7 @@ private lemma IsBrownian.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownian X P)
     field_simp
     rfl
 
-private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
+private lemma IsBrownianReal.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownianReal X P)
     (h_meas : ∀ t, Measurable (X t)) :
     ∀ᵐ ω ∂P, 1 ≤ limsup (fun t ↦ X t ω / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop := by
   have := (hX.hasLaw ∅).isProbabilityMeasure
@@ -193,7 +196,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     have h2 : ∀ᵐ ω ∂P,
         limsup (fun t ↦ (-X (t / c) ω / f (t)).toEReal) atTop
           ≤ (1 / √c).toEReal := by
-      convert IsBrownian.ae_limsup_div_sqrt_log_log_le_one
+      convert IsBrownianReal.ae_limsup_div_sqrt_log_log_le_one
         (X := fun t ω ↦ √c * (-X (t / c) ω)) _ using 1
       · funext ω
         simp_rw [← mul_div, EReal.coe_mul]
@@ -201,8 +204,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
         rw [mul_comm, ← EReal.le_div_iff_mul_le (by positivity) (by aesop)]
         rfl
       · convert hX.neg.smul (c := (1 / c)) (by positivity) using 3 with t
-        simp
-        field_simp
+        simp [div_eq_inv_mul]
     filter_upwards [h1, h2] with ω hω hω'
     simp_rw [neg_div, EReal.coe_neg, ← Pi.neg_def, EReal.limsup_neg, EReal.neg_le] at hω'
     grw [sub_eq_add_neg, (add_le_add hω hω'), EReal.le_limsup_add]
@@ -233,7 +235,7 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     simp_rw [log_pow, pow_add] at *
     push_cast at *
     rw [EReal.coe_le_coe_iff, le_div_iff₀ <| sqrt_pos_of_pos <| by bound]
-    convert hn using 1
+    refine (le_of_eq ?_).trans (hn.trans (le_of_eq ?_))
     · rw [← sqrt_mul (by bound), ← sqrt_mul' _ (by bound)]
       field_simp
     · field_simp
@@ -256,29 +258,24 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
   -- rewrite in terms of standard Gaussian
   suffices h : ¬(Summable (fun n ↦ P.real {ω | g n ≤ X 1 ω})) by
     rw [← summable_nat_add_iff 1 (G := ℝ)] at h
-    convert h using 3 with n
-    -- remove .real and max
+    refine fun h' ↦ h (h'.congr fun n ↦ ?_)
+    -- remove .real
     simp_rw [Measure.real_def]
     rw [ENNReal.toReal_eq_toReal_iff' (by finiteness) (by finiteness)]
     have h_idd : IdentDistrib
         (fun ω ↦ X (c ^ (n + 1)) ω - X (c ^ n) ω)
         (fun ω ↦ sqrt (c ^ (n + 1) - c ^ n) * X 1 ω) P P := by
       apply (hX.hasLaw_sub _ _).identDistrib
-      rw [max_eq_left]; swap
-      · convert zero_le (α := ℝ≥0)
-        rw [NNReal.sub_def, toNNReal_eq_zero, sub_nonpos]
-        push_cast
-        bound
       convert gaussianReal_const_mul (hX.hasLaw_eval 1) _ using 2
       · norm_num
       rw [NNReal.eq_iff]
-      rify
-      rw [sq_sqrt (by bound), NNReal.coe_sub (by bound)]
-      push_cast
-      field_simp
+      have h_le : (c : ℝ) ^ n ≤ c ^ (n + 1) := by bound
+      simp [Real.dist_eq, abs_of_nonneg (sub_nonneg.2 h_le), sq_sqrt (sub_nonneg.2 h_le)]
     -- use identical distribution to show probabilites are equal
-    convert h_idd.measure_mem_eq (s := {x | _ ≤ (x : ℝ)}) _
-    · simp_rw [Set.preimage_setOf_eq]
+    convert h_idd.measure_mem_eq
+      (s := {x | sqrt (c ^ (n + 1) - c ^ n) * g (n + 1) ≤ (x : ℝ)}) _
+    · rfl
+    · simp_rw [Set.preimage_ofPred_eq]
       congr! 2
       rw [← mul_le_mul_iff_of_pos_left _]
       rw [sqrt_pos, sub_pos, pow_add]
@@ -348,11 +345,12 @@ private lemma IsBrownian.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownian X P)
     positivity
 
 /-- **Law of the iterated logarithm** for Brownian motion. -/
-theorem IsBrownian.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownian X P) :
+theorem IsBrownianReal.ae_limsup_div_sqrt_log_log_eq_one (hX : IsBrownianReal X P) :
     ∀ᵐ ω ∂P, limsup (fun t ↦ (X t ω) / √(2 * t * log (log t)) : ℝ≥0 → EReal) atTop = 1 := by
   have := (hX.hasLaw ∅).isProbabilityMeasure
-  have h_up := IsBrownian.ae_limsup_div_sqrt_log_log_le_one hX.isBrownian_mk
-  have h_low := IsBrownian.ae_one_le_limsup_div_sqrt_log_log hX.isBrownian_mk hX.measurable_mk
+  have h_up := IsBrownianReal.ae_limsup_div_sqrt_log_log_le_one hX.isBrownianReal_mk
+  have h_low := IsBrownianReal.ae_one_le_limsup_div_sqrt_log_log hX.isBrownianReal_mk
+    hX.measurable_mk
   have h_ae := hX.mk_ae_forall_eq
   filter_upwards [h_up, h_low, h_ae] with ω hω_up hω_low hω_ae
   convert eq_of_le_of_ge hω_up hω_low
