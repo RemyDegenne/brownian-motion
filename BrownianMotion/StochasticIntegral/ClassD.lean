@@ -613,12 +613,12 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
       · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
 lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
-    [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
     [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) [𝓕.IsRightContinuous] :
     Locally (ClassD · 𝓕 P) 𝓕 X P :=
-  isStable_classD.locally_induction (fun _ ↦ ClassDL.locally_classD) hX
+  isStable_classD.locally_induction' (fun _ ↦ ClassDL.locally_classD) hX
 
 end ClassDClassDL
 
@@ -813,13 +813,13 @@ end LinearOrder
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι] [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
+  [MeasurableSpace ι] [PolishSpace ι] [NoMaxOrder ι] [BorelSpace ι]
   [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
 lemma hasLocallyIntegrableSup_of_locally_classDL [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  IsStable.locally_induction₂ (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL)
+  IsStable.locally_induction₂' (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL)
     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
 lemma locally_classDL_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRightContinuous]
@@ -856,7 +856,7 @@ theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E
     [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  refine isStable_classD.locally_induction ?_ ?_
+  refine isStable_classD.locally_induction' ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
     exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
@@ -874,7 +874,7 @@ section Real
 
 variable {X : ι → Ω → ℝ} [𝓕.IsComplete P] [𝓕.IsRightContinuous] [Approximable 𝓕 P]
 
-omit [DenselyOrdered ι] [NoMaxOrder ι] in
+omit [NoMaxOrder ι] in
 /-- A càdlàg real submartingale has locally integrable supremum. -/
 lemma _root_.MeasureTheory.Submartingale.hasLocallyIntegrableSup
     (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) : HasLocallyIntegrableSup X 𝓕 P :=
@@ -886,7 +886,7 @@ lemma _root_.MeasureTheory.Submartingale.hasLocallyIntegrableSup
 /-- A real local submartingale has locally integrable supremum. -/
 theorem IsLocalSubmartingale.hasLocallyIntegrableSup (hX : IsLocalSubmartingale X 𝓕 P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  isStable_hasIntegrableSup.locally_induction (fun _ ⟨hY, hC⟩ ↦ hY.hasLocallyIntegrableSup hC) hX
+  isStable_hasIntegrableSup.locally_induction' (fun _ ⟨hY, hC⟩ ↦ hY.hasLocallyIntegrableSup hC) hX
 
 /-- A real local submartingale is locally of class D. -/
 theorem IsLocalSubmartingale.locally_classD_real (hX : IsLocalSubmartingale X 𝓕 P) :

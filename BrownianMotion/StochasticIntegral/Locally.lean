@@ -37,7 +37,7 @@ end LinearOrder
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [DenselyOrdered ι] [FirstCountableTopology ι] [NoMaxOrder ι]
+  [FirstCountableTopology ι] [NoMaxOrder ι]
   {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} {p q : (ι → Ω → E) → Prop}
 
 end ConditionallyCompleteLinearOrderBot
@@ -297,7 +297,7 @@ end LinearOrder
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [SecondCountableTopology ι] [DenselyOrdered ι] [NoMaxOrder ι] [NormedAddCommGroup E]
+  [SecondCountableTopology ι] [NoMaxOrder ι] [NormedAddCommGroup E]
   [IsFiniteMeasure P]
   {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
   {X : ι → Ω → E} {p : (ι → Ω → E) → Prop}
@@ -305,7 +305,7 @@ variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTo
 lemma locally_isCadlag_iff_locally_ae :
     Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P
     ↔ Locally (fun X ↦ ∀ᵐ ω ∂P, IsCadlag (X · ω)) 𝓕 X P := by
-  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P), isStable_isCadlag.locally_locally_iff]
+  simp_rw [← locally_isCadlag_iff (𝓕 := 𝓕) (P := P), isStable_isCadlag.locally_locally_iff']
 
 end ConditionallyCompleteLinearOrderBot
 

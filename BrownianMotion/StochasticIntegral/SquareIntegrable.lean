@@ -948,7 +948,7 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_continuous
     exact ⟨⊥, by grind⟩
 
 lemma isStable_isSquareIntegrable
-    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι] :
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] :
     IsStable 𝓕 fun X : ι → Ω → E ↦ IsSquareIntegrable X 𝓕 P := by
   borelize ι E
   have h_iff (X : ι → Ω → E) : IsSquareIntegrable X 𝓕 P ↔
@@ -1018,7 +1018,7 @@ lemma locally_jump_le_iff {C : ℝ} (hC : 0 ≤ C) {X : ι → Ω → E} :
   congr!
   exact ⟨fun h ω t ↦ h t ω, fun h t ω ↦ h ω t⟩
 
-lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le [DenselyOrdered ι]
+lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le
     [NoMaxOrder ι] [PolishSpace ι]
     [SecondCountableTopology E] [CompleteSpace E]
     (hX : IsLocalMartingale X 𝓕 P) {C : ℝ} (hC : 0 ≤ C)
@@ -1026,7 +1026,7 @@ lemma IsLocalMartingale.isLocallySquareIntegrable_of_jump_le [DenselyOrdered ι]
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
   rw [← locally_jump_le_iff (𝓕 := 𝓕) hC] at h_jump
-  refine IsStable.locally_induction₂
+  refine IsStable.locally_induction₂'
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
     (p := fun X : ι → Ω → E ↦ ∀ t ω, ‖Δ (X · ω) t‖ ≤ C) ?_ isStable_martingale
     (isStable_jump_le hC) isStable_isSquareIntegrable hX h_jump
@@ -1040,7 +1040,7 @@ lemma IsLocalMartingale.isLocallySquareIntegrable_of_continuous [DenselyOrdered 
     IsLocallySquareIntegrable X 𝓕 P := by
   borelize ι E
   rw [← locally_continuous_iff (𝓕 := 𝓕)] at h_cont
-  refine IsStable.locally_induction₂
+  refine IsStable.locally_induction₂'
     (r := fun X : ι → Ω → E ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω))
     (p := fun X : ι → Ω → E ↦ ∀ ω, Continuous (X · ω)) ?_ isStable_martingale
     isStable_continuous isStable_isSquareIntegrable hX h_cont

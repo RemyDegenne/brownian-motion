@@ -44,14 +44,14 @@ def LocalFunctor (P : Measure Ω) : StableCat E 𝓕 ⥤ StableCat E 𝓕 where
   map_id _ := rfl
   map_comp _ _ := rfl
 
-variable [IsFiniteMeasure P] [DenselyOrdered ι] [NoMaxOrder ι] [SecondCountableTopology ι]
+variable [IsFiniteMeasure P] [NoMaxOrder ι] [SecondCountableTopology ι]
 
 /-- The Stable properties form a monad with the local functor. -/
 def StableMonad [𝓕.IsRightContinuous] : Monad (StableCat E 𝓕) where
   toFunctor := LocalFunctor P
   η := { app _ := ObjectProperty.homMk fun _ ↦ homOfLE Locally.of_prop
          naturality _ _ _ := rfl }
-  μ := { app p := ObjectProperty.homMk fun _ ↦ homOfLE p.2.locally_locally_iff.1
+  μ := { app p := ObjectProperty.homMk fun _ ↦ homOfLE p.2.locally_locally_iff'.1
          naturality _ _ _ := rfl }
 
 end ProbabilityTheory

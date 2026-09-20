@@ -19,18 +19,19 @@ open scoped ENNReal
 
 namespace ProbabilityTheory
 
-variable {ι Ω E : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-  {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
+variable {ι Ω E : Type*} [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι]
+  [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι] [PolishSpace ι] [DenselyOrdered ι]
+  [NoMaxOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P]
+  {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P] [Approximable 𝓕 P]
   {X Y : ι → Ω → E}
 
 open Classical in
 /-- The predictable quadratic variation of a locally square-integrable martingale,
 defined as the predictable part of the Doob-Meyer decomposition of its squared norm. -/
 noncomputable
-def predQuadVariation (X : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtration ι mΩ)
-    [SigmaFiniteFiltration P 𝓕] :
+def predQuadVariation (X : ι → Ω → E) (P : Measure Ω) [IsFiniteMeasure P]
+    (𝓕 : Filtration ι mΩ) [𝓕.IsRightContinuous] [𝓕.IsComplete P] [Approximable 𝓕 P] :
     ι → Ω → ℝ :=
   if hX : IsLocallySquareIntegrable X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω) then
     hX.1.isLocalSubmartingale_sq_norm.predictablePart (fun t ω ↦ ‖X t ω‖ ^ 2)
@@ -101,8 +102,8 @@ lemma monotone_predQuadVariation (ω : Ω) : Monotone (⟨X; P, 𝓕⟩ₘ · ω
 
 /-- Predictable quadratic covariation of two processes. -/
 noncomputable
-def predQuadCovariation (X Y : ι → Ω → E) (P : Measure Ω) (𝓕 : Filtration ι mΩ)
-    [SigmaFiniteFiltration P 𝓕] :
+def predQuadCovariation (X Y : ι → Ω → E) (P : Measure Ω) [IsFiniteMeasure P]
+    (𝓕 : Filtration ι mΩ) [𝓕.IsRightContinuous] [𝓕.IsComplete P] [Approximable 𝓕 P] :
     ι → Ω → ℝ :=
   (⟨X + Y; P, 𝓕⟩ₘ - ⟨X; P, 𝓕⟩ₘ - ⟨Y; P, 𝓕⟩ₘ) / 2
 
