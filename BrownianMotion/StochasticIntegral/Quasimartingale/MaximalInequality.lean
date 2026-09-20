@@ -142,7 +142,7 @@ lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → 
     simp only [hchoose]
     rcases hW01 k (hKmem hk).1 ω with h0 | h1
     · simp [h0]
-    · simp [h1, hst]
+    · simp [h1, hst, -stoppedProcess_of_eq_coe]
   · -- terms outside K vanish
     have hno : ¬ idx k < idx (k + 1) := fun h ↦ hkK (by simp [K, mem_range.1 hk, h])
     have heq : idx (k + 1) = idx k :=
@@ -650,7 +650,7 @@ lemma mul_measureReal_exists_lt_le [IsFiniteMeasure μ]
 
 /-- **Maximal inequality**: the probability that `|X|` exceeds `lam` somewhere on a finite set
 `F ⊆ Iic t` is at most `K / lam`, with `K` independent of `F`. -/
-lemma measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
+theorem measureReal_exists_abs_lt_le [OrderBot ι] [IsFiniteMeasure μ]
     (hX : StronglyAdapted 𝓕 X) (hXint : ∀ s, Integrable (X s) μ) {C : ℝ}
     (hC : ∀ S : ElementaryPredictableSet 𝓕, μ[(S.indicator (1 : ℝ) ● X) t] ≤ C)
     (hlam : 0 < lam) (hF : ∀ s ∈ F, s ≤ t) :

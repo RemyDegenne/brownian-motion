@@ -93,7 +93,7 @@ lemma stoppedAtNorm_of_nonpos {ι : Type*} [ConditionallyCompleteLinearOrderBot 
   exact hi ⊥ h_le
 
 @[to_dual]
-theorem _root_.WithBot.unbotA_inj {α : Type*} [Nonempty α] {a b : WithBot α}
+lemma _root_.WithBot.unbotA_inj {α : Type*} [Nonempty α] {a b : WithBot α}
     (ha : a ≠ ⊥) (hb : b ≠ ⊥) :
     a.unbotA = b.unbotA ↔ a = b := by
   rw [WithBot.unbotA_eq_unbot ha, WithBot.unbotA_eq_unbot hb]

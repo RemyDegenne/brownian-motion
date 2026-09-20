@@ -21,7 +21,7 @@ open scoped ENNReal NNReal Topology
 
 section aux
 
-theorem measurable_limUnder_of_exists_tendsto {ι X E : Type*}
+lemma measurable_limUnder_of_exists_tendsto {ι X E : Type*}
     {mX : MeasurableSpace X} [TopologicalSpace E] [TopologicalSpace.PseudoMetrizableSpace E]
     [MeasurableSpace E] [BorelSpace E] {l : Filter ι}
     [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E]
@@ -32,7 +32,7 @@ theorem measurable_limUnder_of_exists_tendsto {ι X E : Type*}
   refine measurable_of_tendsto_metrizable' l hf (tendsto_pi_nhds.mpr fun x ↦ ?_)
   exact tendsto_nhds_limUnder (h_conv x)
 
-theorem measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
+lemma measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
     [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
     [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
     Measurable (fun x ↦ limUnder l (f · x)) := by

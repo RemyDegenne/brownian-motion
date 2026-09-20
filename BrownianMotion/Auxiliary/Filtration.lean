@@ -32,7 +32,7 @@ instance {μ : Measure Ω} [SigmaFiniteFiltration μ 𝓕] :
 
 variable {E : Type*} [TopologicalSpace E] {X : ι → Ω → E}
 
-theorem StronglyAdapted.indexComap (hX : StronglyAdapted 𝓕 X) (hf : Monotone f) :
+lemma StronglyAdapted.indexComap (hX : StronglyAdapted 𝓕 X) (hf : Monotone f) :
     StronglyAdapted (𝓕.indexComap hf) (X ∘ f) := fun i ↦ hX (f i)
 
 end Comp

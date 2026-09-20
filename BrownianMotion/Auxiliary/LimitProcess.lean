@@ -30,8 +30,13 @@ lemma limitProcess_ae_eq {X : ι → Ω → E} {g : Ω → E}
   rw [Filtration.limitProcess, dif_pos this]
   filter_upwards [hg, this.choose_spec.2] with ω h1 h2 using tendsto_nhds_unique h2 h1
 
+omit [Nonempty ι] in
+@[gcongr]
 lemma limitProcess_congr {X Y : ι → Ω → E} (hXY : X ≡ᵐ[P] Y) :
     𝓕.limitProcess X P =ᵐ[P] 𝓕.limitProcess Y P := by
+  obtain h | _ := isEmpty_or_nonempty ι
+  · have : X = Y := by ext i; exact h.elim' i
+    rw [this]
   rw [Filtration.limitProcess]
   split_ifs with h
   · symm

@@ -36,7 +36,7 @@ lemma nullMeasurable_generateFrom {α β : Type*} {_ : MeasurableSpace α} {μ :
   simp only [Set.preimage_iUnion]
   exact fun t _ hft ↦ NullMeasurableSet.iUnion hft
 
-theorem nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
+lemma nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
     [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
     {mδ : MeasurableSpace δ} {μ : Measure δ}
     {f : δ → α} (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) : NullMeasurable f μ := by
@@ -441,7 +441,6 @@ lemma debut_eq_iff_of_nhdsGT_eq_bot
     refine csInf_le ?_ ⟨hnt, h_mem⟩
     exact ⟨n, by simp [mem_lowerBounds]; grind⟩
 
-set_option backward.isDefEq.respectTransparency false in
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
@@ -511,8 +510,7 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
       obtain ⟨m, hm⟩ := h_exists_lt i hti
       exact (iInf_le _ m).trans (𝓕.mono hm.le)
   rw [h𝓕_eq_iInf]
-  simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
-    forall_apply_eq_imp_iff]
+  simp only [MeasurableSpace.measurableSet_iInf]
   intro k
   have h_eq_k : ⋂ m, {ω | debut E n ω < s m} =
       ⋂ (m) (hm : s m ≤ s k), {ω | debut E n ω < s m} := by

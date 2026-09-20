@@ -125,7 +125,7 @@ lemma mul_upcrossingsBefore_le_sum_add_posPart (hab : a < b) :
 lower crossing hits `Set.Iic a` and the upper crossing hits `Set.Ici b`, it suffices that the
 levels are *reached* (`f N₁ ω ≤ a` and `b ≤ f N₂ ω`) rather than strictly crossed. The Mathlib
 proof already only uses the non-strict forms internally. -/
-theorem upcrossingsBefore_lt_of_exists_upcrossing' (hab : a < b) {N₁ N₂ : ℕ} (hN₁ : N ≤ N₁)
+lemma upcrossingsBefore_lt_of_exists_upcrossing' (hab : a < b) {N₁ N₂ : ℕ} (hN₁ : N ≤ N₁)
     (hN₁' : f N₁ ω ≤ a) (hN₂ : N₁ ≤ N₂) (hN₂' : b ≤ f N₂ ω) :
     upcrossingsBefore a b f N ω < upcrossingsBefore a b f (N₂ + 1) ω := by
   refine lt_of_lt_of_le (Nat.lt_succ_self _) (le_csSup (upperCrossingTime_lt_bddAbove hab) ?_)

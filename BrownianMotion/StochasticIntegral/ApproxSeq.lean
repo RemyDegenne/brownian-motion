@@ -46,7 +46,7 @@ instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) w
   coe_injective s t h := by cases s; cases t; congr
 
 -- Should replace `isStoppingTime_const`
-theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
+lemma isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
     IsStoppingTime f fun _ => i := fun j => by simp only [MeasurableSet.const]
 
 /-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
@@ -341,7 +341,7 @@ lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
     (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 hτ_le τn) hRC)
 
-theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+lemma stoppedValue_ae_eq_condExp_discreteApproxSequence_of
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) (m : ℕ) :
     stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m)
     =ᵐ[μ] μ[X i|((discreteApproxSequence_of 𝓕 hτ_le τn).isStoppingTime m).measurableSpace] :=

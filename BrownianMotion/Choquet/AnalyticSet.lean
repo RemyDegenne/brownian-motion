@@ -24,7 +24,7 @@ open scoped ENNReal NNReal
 
 variable {𝓧 𝓨 𝓚 𝓚' ι : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
-theorem Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι : Nonempty ι] :
+lemma Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι : Nonempty ι] :
     (⋂ i, t i) ×ˢ s = ⋂ i, t i ×ˢ s := by
   ext x
   simp only [Set.mem_prod, Set.mem_iInter]
@@ -831,8 +831,8 @@ lemma aux'_Icc {ι : Type*} [Nonempty ι]
       refine ⟨fun i ↦ Set.univ ×ˢ B i, fun n ↦ ?_, rfl⟩
       exact ⟨Set.univ, .univ, B n, hB n, rfl⟩
 
-set_option backward.isDefEq.respectTransparency false in
-lemma borel_eq_generateFrom_isCompact : borel ℝ = MeasurableSpace.generateFrom IsCompact := by
+lemma borel_eq_generateFrom_isCompact :
+    borel ℝ = MeasurableSpace.generateFrom {s : Set ℝ | IsCompact s} := by
   refine le_antisymm ?_ ?_
   · rw [borel_eq_generateFrom_Icc]
     refine MeasurableSpace.generateFrom_mono fun s hs ↦ ?_
@@ -841,7 +841,7 @@ lemma borel_eq_generateFrom_isCompact : borel ℝ = MeasurableSpace.generateFrom
   · rw [MeasurableSpace.generateFrom_le_iff]
     exact fun _ hs ↦ hs.measurableSet
 
-theorem borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
+lemma borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
     [LinearOrder α] [OrderTopology α] :
     borel α = .generateFrom { S : Set α | ∃ (l u : α), Set.Icc l u = S } := by
   rw [borel_eq_generateFrom_Icc]
@@ -853,7 +853,7 @@ theorem borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCou
     · exact MeasurableSpace.measurableSet_generateFrom ⟨a, b, hab, rfl⟩
     · simp [hab]
 
-theorem borel_eq_generateFrom_Icc'' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
+lemma borel_eq_generateFrom_Icc'' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
     [LinearOrder α] [OrderTopology α] :
     borel α = .generateFrom (insert ∅ { S : Set α | ∃ (l u : α), Set.Icc l u = S }) := by
   rw [MeasurableSpace.generateFrom_insert_empty]

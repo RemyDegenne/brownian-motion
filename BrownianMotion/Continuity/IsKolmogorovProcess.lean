@@ -26,7 +26,7 @@ open scoped ENNReal NNReal Finset
 
 section Aux
 
-theorem Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
+lemma Finset.iSup_sum_le {α ι : Type*} {β : Sort*} [CompleteLattice α] [AddCommMonoid α]
     [IsOrderedAddMonoid α] {I : Finset ι} (f : ι → β → α) :
     ⨆ (b), ∑ i ∈ I, f i b ≤ ∑ i ∈ I, ⨆ (b), f i b := by
   classical
@@ -1005,7 +1005,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedCoveringNumber J 
       · simp [hδ_ne_top, hδ]
   · exact le_of_eq (by ring)
 
-lemma finite_set_bound_of_edist_le (hJ : HasBoundedCoveringNumber J c d)
+theorem finite_set_bound_of_edist_le (hJ : HasBoundedCoveringNumber J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M) (hc : c ≠ ∞)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P

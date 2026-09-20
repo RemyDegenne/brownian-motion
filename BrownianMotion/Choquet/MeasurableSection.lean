@@ -23,6 +23,9 @@ namespace MeasureTheory
 
 instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
 
+lemma supClosed_measurableSet {α : Type*} [MeasurableSpace α] :
+    SupClosed {t : Set α | MeasurableSet t} := fun _ hs _ ht ↦ hs.union ht
+
 lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
     InfClosed (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
   intro s hs t ht
@@ -38,14 +41,13 @@ lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
       simp only [Set.inf_eq_inter, Set.mem_ofPred_eq]
       exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
 
-set_option backward.isDefEq.respectTransparency false in
 lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     (a : ℝ≥0∞) (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   let I : Capacity (supClosure
       (Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t}))) :=
-    μ.capacity.comp_fst MeasurableSet.empty (fun _ hs _ ht ↦  MeasurableSet.union hs ht) (by simp)
+    μ.capacity.comp_fst MeasurableSet.empty supClosed_measurableSet (by simp)
       (isCompactSystem_insert_empty_Icc ℝ≥0)
   have I_apply (t : Set (Ω × ℝ≥0)) : I t = μ {ω | ∃ u, (ω, u) ∈ t} := by
     unfold I

@@ -872,7 +872,7 @@ lemma exists_modification_holder'' (hT : HasBoundedCoveringNumber U c d)
     exact hC
   · exact IsLimitOfIndicator.indicatorProcess (hZ_isLimit 0) A hA hA_ae
 
-lemma exists_modification_holder (hT : HasBoundedCoveringNumber U c d)
+theorem exists_modification_holder (hT : HasBoundedCoveringNumber U c d)
     (hU : IsOpen U)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q) :
@@ -1080,7 +1080,7 @@ lemma exists_modification_holder_iSup' {C : ℕ → Set T} {c : ℕ → ℝ≥0�
     refine hC.congr_edist fun s t hs ht ↦ ?_
     rw [edist_congr_right (hω n s), edist_congr_left (hω n t)]
 
-lemma exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
+theorem exists_modification_holder_iSup {C : ℕ → Set T} {c : ℕ → ℝ≥0∞} {p q : ℕ → ℝ} {M : ℕ → ℝ≥0}
     (hC : IsCoverWithBoundedCoveringNumber C (Set.univ : Set T) c (fun _ ↦ d))
     (hX : ∀ n, IsAEKolmogorovProcess X P (p n) (q n) (M n)) (hc : ∀ n, c n ≠ ∞)
     (hd_pos : 0 < d) (hdq_lt : ∀ n, d < q n) :

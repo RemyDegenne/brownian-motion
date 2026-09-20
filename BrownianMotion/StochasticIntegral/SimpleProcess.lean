@@ -177,13 +177,13 @@ namespace SimpleProcess
 attribute [fun_prop] measurable_valueBot
 
 -- todo: replace the condition on W by IsPredictable
-set_option backward.isDefEq.respectTransparency false in
 def ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
     (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
     {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C) :
     SimpleProcess E 𝓕 where
   valueBot := W 0
-  value := Finsupp.onFinset ((Finset.range n).map ⟨fun k ↦ (k, k + 1), fun _ ↦ by grind⟩)
+  value := Finsupp.onFinset ((Finset.range n).map
+      ⟨fun k ↦ (k, k + 1), Function.LeftInverse.injective (g := Prod.fst) fun _ ↦ rfl⟩)
       (fun p ↦ if p.1 < n ∧ p.2 = p.1 + 1 then W p.2 else 0)
       (fun p ↦ by simp; grind)
   le_of_mem_support_value p hp := by simp at hp; grind
@@ -450,7 +450,7 @@ variable {B : E →L[ℝ] F →L[ℝ] G}
 -- @[simp] lemma integral_top (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (ω : Ω) :
 --     integral B V X ⊤ ω = V.value.sum fun p v ↦ B (v ω) (X p.2 ω - X p.1 ω) := by simp [integral]
 
-theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (τ : Ω → WithTop ι) :
+lemma stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F) (τ : Ω → WithTop ι) :
     stoppedProcess (V ●[B] X) τ = (V ●[B] stoppedProcess X τ) := by
   ext i ω
   rw [stoppedProcess]
@@ -458,7 +458,6 @@ theorem stoppedProcess_integral (V : SimpleProcess E 𝓕) (X : ι → Ω → F)
   conv_rhs => rw [stoppedProcess_stoppedProcess]
   simp [stoppedProcess, WithTop.untopA_eq_untop]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma integral_ofNat {𝓕 : Filtration ℕ mΩ} (W : ℕ → Ω → E) (n : ℕ)
     (hW0 : Measurable[𝓕 0] (W 0)) (hW : ∀ k < n, Measurable[𝓕 k] (W (k + 1)))
     {C : ℝ} (hC : ∀ k ≤ n, ∀ ω, ‖W k ω‖ ≤ C)
@@ -585,7 +584,7 @@ lemma map₂_swap (B : E →L[ℝ] F →L[ℝ] G) (V : SimpleProcess E 𝓕) (W 
 
 -- Analogous to LinearMap.finsupp_sum_apply and AddMonoidHom.finsuppSum_apply:
 @[simp]
-theorem _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semiring R₁] [Semiring R₂]
+lemma _root_.ContinuousLinearMap.finsuppSum_apply {R₁ R₂ : Type*} [Semiring R₁] [Semiring R₂]
     {σ₁₂ : R₁ →+* R₂} {M₁ : Type*} [TopologicalSpace M₁] [AddCommMonoid M₁] {M₂ : Type*}
     [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R₁ M₁] [Module R₂ M₂] [ContinuousAdd M₂]
     {ι A : Type*} [Zero A] (g : ι →₀ A) (f : ι → A → M₁ →SL[σ₁₂] M₂) (b : M₁) :
@@ -643,7 +642,8 @@ theorem integral_assoc {B₁ : E →L[ℝ] H →L[ℝ] I} {B₂ : F →L[ℝ] G 
         ((Xi (p.2 ⊓ q.2) ω - Xi (p.2 ⊓ q.1) ω) - (Xi (p.1 ⊓ q.2) ω - Xi (p.1 ⊓ q.1) ω)) := by
       simp only [integral, stoppedProcess_integral,
         stoppedProcess_stoppedProcess, map_sub, Finsupp.sum_sub, map_finsuppSum]
-      congr! 6 with p v q w <;> simp [Xi, hB, stoppedProcess, min_left_comm, min_assoc]
+      congr! 6 with p v q w <;> simp [Xi, hB, stoppedProcess, min_left_comm, min_assoc,
+        -stoppedProcess_of_eq_coe]
     _ = V.value.sum fun p v ↦ W.value.sum fun q w ↦ if q.1 ≤ p.2 ∧ p.1 ≤ q.2 then
         B₄ (B₃ (v ω) (w ω)) (Xi (p.2 ⊓ q.2) ω - Xi (p.1 ⊔ q.1) ω) else 0 := by
       refine Finsupp.sum_congr fun p hp ↦ ?_
@@ -682,7 +682,7 @@ omit mE [SecondCountableTopology E]
    ⇑(V.comp W) = fun i ω ↦ ⇑V i ω ∘L ⇑W i ω := by
   simp [comp]
 
-theorem integralEval_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)
+lemma integralEval_assoc (X : ι → Ω → E) (V : SimpleProcess (F →L[ℝ] G) 𝓕)
     (W : SimpleProcess (E →L[ℝ] F) 𝓕) :
     integralEval V (integralEval W X) = integralEval (comp V W) X := by
   apply integral_assoc
@@ -791,7 +791,7 @@ section Predictable
 namespace ElementaryPredictableSet
 
 @[measurability]
-theorem measurableSet_predictable (S : ElementaryPredictableSet 𝓕) :
+lemma measurableSet_predictable (S : ElementaryPredictableSet 𝓕) :
     MeasurableSet[𝓕.predictable] ↑S := by
   apply MeasurableSet.union
   · measurability
@@ -802,7 +802,7 @@ variable (ι Ω) in
 /-- The elementary predictable sets generate the predictable σ-algebra. Note that we require the
 time domain to have countably generated `atTop` so that each `(t, ∞]` can be written as a countable
 union of intervals `(t, s]`. -/
-theorem generateFrom_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated] :
+lemma generateFrom_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated] :
     MeasurableSpace.generateFrom {↑S | S : ElementaryPredictableSet 𝓕} = 𝓕.predictable := by
   apply le_antisymm
   · apply MeasurableSpace.generateFrom_le
@@ -828,7 +828,7 @@ end ElementaryPredictableSet
 
 namespace SimpleProcess
 
-theorem isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable 𝓕 V := by
+lemma isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable 𝓕 V := by
   apply Measurable.stronglyMeasurable
   apply Measurable.add
   · apply Measurable.indicator
@@ -859,7 +859,7 @@ theorem isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable
     · measurability
 
 variable (E 𝓕) in
-theorem iSup_comap_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated]
+lemma iSup_comap_eq_predictable [(Filter.atTop : Filter ι).IsCountablyGenerated]
     [MeasurableSingletonClass E] [Nontrivial E] :
     (⨆ V : SimpleProcess E 𝓕, mE.comap (Function.uncurry ⇑V)) = 𝓕.predictable := by
   apply le_antisymm

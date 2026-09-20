@@ -14,7 +14,7 @@ public import BrownianMotion.StochasticIntegral.LocalizingSequence
 
 @[expose] public section
 
-open MeasureTheory Filter Filtration
+open MeasureTheory Filter
 open scoped ENNReal Topology
 
 namespace ProbabilityTheory
@@ -131,8 +131,8 @@ lemma locally_iff_ae [𝓕.IsComplete P] (p : (ι → E) → ι → Prop) (hp_ze
 variable [TopologicalSpace E]
 
 lemma Locally.rightContinuous
-    (hX : Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P) :
-    ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) := by
+    (hX : Locally (fun X ↦ ∀ ω, IsRightContinuous (X · ω)) 𝓕 X P) :
+    ∀ᵐ ω ∂P, IsRightContinuous (X · ω) := by
   refine Locally.ae (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun X Y i hXY ↦ ?_) hX
   refine EventuallyEq.congr_continuousWithinAt ?_ ?_
   · rw [eventuallyEq_nhdsWithin_iff]
@@ -172,7 +172,7 @@ lemma Locally.continuous (hX : Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 
 
 /-- The processes with right-continuous paths are a stable class. -/
 lemma isStable_rightContinuous :
-    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Function.IsRightContinuous (X · ω)) := by
+    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsRightContinuous (X · ω)) := by
   refine isStable_pathwise (fun X i ↦ ContinuousWithinAt X (Set.Ioi i) i) (fun _ ↦ by fun_prop)
     ?_ ?_
   · intro X a hX i hai
@@ -269,8 +269,8 @@ lemma isStable_continuous :
 variable [𝓕.IsComplete P]
 
 lemma locally_rightContinuous_iff :
-    Locally (fun X ↦ ∀ ω, Function.IsRightContinuous (X · ω)) 𝓕 X P ↔
-      ∀ᵐ ω ∂P, Function.IsRightContinuous (X · ω) :=
+    Locally (fun X ↦ ∀ ω, IsRightContinuous (X · ω)) 𝓕 X P ↔
+      ∀ᵐ ω ∂P, IsRightContinuous (X · ω) :=
   ⟨fun h ↦ h.rightContinuous, fun h ↦ locally_of_ae h <| fun _ ↦ continuousWithinAt_const⟩
 
 lemma locally_left_limit_iff :
@@ -322,7 +322,7 @@ lemma rightContinuous_indicator [TopologicalSpace ι]
     IsRightContinuous fun t ↦ s.indicator (X t) ω := by
   by_cases hω : ω ∈ s
   · simpa [Set.indicator_of_mem hω] using hC ω
-  · simp [Set.indicator_of_notMem hω, Function.IsRightContinuous, isRightContinuous_const]
+  · simp [Set.indicator_of_notMem hω, IsRightContinuous, isRightContinuous_const]
 
 lemma stronglyAdapted_indicator [OrderBot ι]
     (hX : StronglyAdapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :

@@ -12,6 +12,7 @@ public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Topology.Order.LiminfLimsup
 
 import Mathlib.Order.CompleteLattice.Group
+import Mathlib.Topology.Algebra.Order.LiminfLimsup
 
 /-! # Doob-Meyer decomposition theorem
 
@@ -21,6 +22,12 @@ import Mathlib.Order.CompleteLattice.Group
 
 open MeasureTheory Filter Order ProbabilityTheory Convexity
 open scoped NNReal ENNReal Topology
+
+/-- An element of `WithTop α` other than `⊤` is at most the coercion of `⊤ : α`. -/
+lemma WithTop.le_coe_top {α : Type*} [Preorder α] [OrderTop α] {x : WithTop α} (hx : x ≠ ⊤) :
+    x ≤ ((⊤ : α) : WithTop α) := by
+  lift x to α using hx
+  exact mod_cast le_top
 
 section DenseMesh
 
@@ -44,10 +51,26 @@ noncomputable def denseEnum (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
   have : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
   Subtype.val ∘ (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose
 
+/-- Every element of the dense set is attained by the enumeration. -/
+lemma exists_denseEnum_eq (ι : Type*) [LE ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] {d : ι} (hd : d ∈ denseSet ι) :
+    ∃ k, denseEnum ι k = d := by
+  have : Nonempty (denseSet ι) := ⟨⟨⊥, by simp [denseSet]⟩⟩
+  obtain ⟨k, hk⟩ :=
+    (countable_iff_exists_surjective.mp (denseSet_countable ι)).choose_spec ⟨d, hd⟩
+  exact ⟨k, congrArg Subtype.val hk⟩
+
 /-- The `n`-th finite mesh: the first `n` points of the dense enumeration, plus endpoints. -/
 noncomputable def mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : Finset ι :=
   insert ⊥ <| insert ⊤ <| (Finset.range n).image (denseEnum ι)
+
+/-- The `k`-th point of the dense enumeration belongs to all meshes past `k`. -/
+lemma denseEnum_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    [TopologicalSpace ι] [SecondCountableTopology ι] {k n : ℕ} (hkn : k < n) :
+    denseEnum ι k ∈ mesh ι n := by
+  simp only [mesh, Finset.mem_insert, Finset.mem_image]
+  exact .inr <| .inr ⟨k, Finset.mem_range.2 hkn, rfl⟩
 
 lemma bot_mem_mesh (ι : Type*) [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] (n : ℕ) : (⊥ : ι) ∈ mesh ι n := by simp [mesh]
@@ -97,7 +120,7 @@ section Estimate
 def meshFiltration {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
     [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} (𝓕 : Filtration ι mΩ) (n : ℕ) :
     Filtration (mesh ι n) mΩ :=
-  𝓕.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+  𝓕.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
 
 instance sigmaFiniteFiltration_meshFiltration {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -228,7 +251,6 @@ lemma integrable_predictableSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
     Integrable (predictableSeqTop S 𝓕 P n) P :=
   integrable_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊤
 
-set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the predictable parts of a martingale vanish on every mesh. -/
 lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -238,7 +260,7 @@ lemma predictableSeqTop_eq_zero_of_martingale {ι Ω E : Type*} [TopologicalSpac
     predictableSeqTop S 𝓕 P n =ᵐ[P] 0 := by
   simp only [predictableSeqTop, meshFiltration]
   apply predictablePart_eq_zero_of_martingale _ ⊤
-  exact (hS.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n))))
+  exact (hS.indexComap (Subtype.mono_coe (· ∈ (mesh ι n))))
 
 /-- Sequence of terminal values of the martingale part. -/
 noncomputable def martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
@@ -256,7 +278,6 @@ lemma martingaleSeqTop_add {ι Ω E : Type*} [TopologicalSpace ι] [SecondCounta
       martingaleSeqTop S₁ 𝓕 P n + martingaleSeqTop S₂ 𝓕 P n :=
   martingalePart_add (fun t : mesh ι n ↦ hS₁ t) (fun t ↦ hS₂ t) ⊤
 
-set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the martingale parts of a martingale are its terminal value on every
 mesh. -/
 lemma martingaleSeqTop_eq_self_of_martingale {ι Ω E : Type*} [TopologicalSpace ι]
@@ -267,7 +288,7 @@ lemma martingaleSeqTop_eq_self_of_martingale {ι Ω E : Type*} [TopologicalSpace
     martingaleSeqTop S 𝓕 P n =ᵐ[P] S ⊤ := by
   simp only [martingaleSeqTop, meshFiltration]
   apply martingalePart_eq_self_of_martingale _ ⊤
-  exact (hS.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n))))
+  exact (hS.indexComap (Subtype.mono_coe (· ∈ (mesh ι n))))
 
 /-- If `S = 0` a.e., then the martingale part’s terminal value equals the negative of the
 predictable part’s terminal value. -/
@@ -280,6 +301,29 @@ lemma martingaleSeqTop_eq_neg_predictableSeqTop {ι Ω E : Type*} [TopologicalSp
   simp only [martingaleSeqTop, _root_.martingalePart, Pi.sub_apply, Function.comp_apply, top_eq_top,
     predictableSeqTop]
   grw [neg_eq_zero_sub, hstop]
+
+/-- The terminal values of the martingale parts on each mesh are integrable. -/
+lemma integrable_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι]
+    [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [CompleteSpace E] {S : ι → Ω → E} (𝓕 : Filtration ι mΩ) (hS : Integrable (S ⊤) P) (n : ℕ) :
+    Integrable (martingaleSeqTop S 𝓕 P n) P := by
+  simpa [martingaleSeqTop, _root_.martingalePart, predictableSeqTop] using
+    hS.sub (integrable_predictableSeqTop S 𝓕 P n)
+
+/-- On each mesh, the terminal value of the martingale part has the same expectation as the
+initial value of the process. -/
+lemma integral_martingaleSeqTop {ι Ω E : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {S : ι → Ω → E}
+    (𝓕 : Filtration ι mΩ) [SigmaFiniteFiltration P 𝓕] (n : ℕ) :
+    ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P = ∫ ω, S ⊥ ω ∂P := by
+  calc ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P
+      = ∫ ω, (P[martingaleSeqTop S 𝓕 P n|meshFiltration 𝓕 n ⊥]) ω ∂P :=
+        (integral_condExp ((meshFiltration 𝓕 n).le ⊥)).symm
+    _ = ∫ ω, martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⊥ ω ∂P :=
+        integral_congr_ae ((martingale_martingalePart _ _ _).condExp_ae_eq bot_le)
+    _ = ∫ ω, S ⊥ ω ∂P := by simp [_root_.martingalePart]
 
 /-- Apply the optional stopping theorem to get equation 4. Note that `T1 Space` is needed to make
 sure that `mesh ι n` has order topology. -/
@@ -395,7 +439,6 @@ lemma stoppedValue_le_neg_condExp_predictableSeqTop_add_const {ι Ω : Type*} [T
   rw [heqω]
   exact add_le_add_right (stoppedValue_predictablePart_tauMesh_le S 𝓕 P n hc ω) _
 
-set_option backward.isDefEq.respectTransparency false in
 /-- `{τₙ(c) < 1} = {c < Aⁿ₁}`. -/
 lemma MeasureTheory.Submartingale.tauMesh_lt_top_eq_lt_predictableSeqTop {ι Ω : Type*}
     [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -404,7 +447,7 @@ lemma MeasureTheory.Submartingale.tauMesh_lt_top_eq_lt_predictableSeqTop {ι Ω 
     {ω | tauMesh S 𝓕 P n c ω < (⊤ : mesh ι n)} =ᵐ[P] {ω | c < predictableSeqTop S 𝓕 P n ω} := by
   refine eventuallyEq_set.2 ?_
   have hs_mesh : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
-    hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+    hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
   filter_upwards [hs_mesh.monotone_predictablePart_ae] with ω hmono
   let A : mesh ι n → Ω → ℝ := _root_.predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P
   by_cases htop_bot : (⊤ : mesh ι n) = ⊥
@@ -434,7 +477,6 @@ lemma MeasureTheory.Submartingale.integrableOn_const_tauMesh_lt_top {ι Ω : Typ
     rw [measure_congr (hs.tauMesh_lt_top_eq_lt_predictableSeqTop n hc)]
     exact (integrable_predictableSeqTop S 𝓕 P n).measure_gt_lt_top (lt_of_le_of_ne hc hc0.symm)
 
-set_option backward.isDefEq.respectTransparency false in
 /-- Stopping `S` at the bounded mesh time `τₙ(c)` preserves integrability. -/
 lemma MeasureTheory.Submartingale.integrable_stoppedValue_tauMesh {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
@@ -442,7 +484,7 @@ lemma MeasureTheory.Submartingale.integrable_stoppedValue_tauMesh {ι Ω : Type*
     (c : ℝ) :
     Integrable (stoppedValue (S ∘ Subtype.val) (tauMesh S 𝓕 P n c)) P :=
   integrable_stoppedValue (mesh ι n) (isStoppingTime_tauMesh S 𝓕 P n c)
-    (hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))).integrable
+    (hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))).integrable
     (tauMesh_le_top S 𝓕 P n c)
 
 /-- The first estimate before equation 5. -/
@@ -496,7 +538,6 @@ lemma integrable_stoppedValue_predictablePart_tauMesh {ι Ω : Type*} [Topologic
     (integrable_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P)
     (tauMesh_le_top S 𝓕 P n c)
 
-set_option backward.isDefEq.respectTransparency false in
 /-- The second estimate before equation 5. -/
 lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -531,7 +572,7 @@ lemma second_estimate {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
       refine setIntegral_mono_set ?_ ?_ ?_
       · exact (hpred_int.sub hstopped_pred_int).integrableOn
       · have hs_mesh : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
-          hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+          hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
         filter_upwards [ae_restrict_le hs_mesh.monotone_predictablePart_ae] with ω hmono
         simpa [predictableSeqTop, stoppedValue] using hmono le_top
       · exact (tauMesh_lt_top_subset_of_lt S 𝓕 P n (by linarith)).eventuallyLE
@@ -657,7 +698,6 @@ lemma integral_predictableSeqTop_eq_neg_integral_bot {ι Ω : Type*} [Topologica
       (bot_le (a := ⊤)) MeasurableSet.univ]
     simp [_root_.martingalePart]
 
-set_option backward.isDefEq.respectTransparency false in
 /-- Estimate for the hitting event `{τₙ(c) < 1}`. -/
 lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -677,7 +717,7 @@ lemma measure_tauMesh_lt_top_le {ι Ω : Type*} [TopologicalSpace ι]
   _ = ENNReal.ofReal (∫ ω, predictableSeqTop S 𝓕 P n ω ∂P) / ENNReal.ofReal c := by
     rw [ofReal_integral_eq_lintegral_ofReal (integrable_predictableSeqTop S 𝓕 P n)]
     have hs_mesh : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
-      hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+      hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
     filter_upwards [hs_mesh.predictablePart_nonneg'] with ω hω using hω ⊤
   _ = ENNReal.ofReal (- ∫ ω, S ⊥ ω ∂P) / ENNReal.ofReal c := by
     rw [integral_predictableSeqTop_eq_neg_integral_bot hstop n]
@@ -771,7 +811,6 @@ private lemma tendsto_iSup_setIntegral_tauMesh_zero {ι Ω : Type*} [Topological
     (A := fun c k ↦ {ω | tauMesh S 𝓕 P k (b c) ω < (⊤ : mesh ι k)})
     (F := fun c k ↦ ⟨tauMeshLift S 𝓕 P k (b c), hmem c k⟩) hA_meas hmeas
 
-set_option backward.isDefEq.respectTransparency false in
 /-- The terminal values of the predictable parts are uniformly integrable. -/
 lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
@@ -785,7 +824,7 @@ lemma uniformIntegrable_predictableSeqTop {ι Ω : Type*} [TopologicalSpace ι] 
   · exact (stronglyAdapted_predictablePart
       (S ∘ Subtype.val) (meshFiltration 𝓕 n) P).stronglyMeasurable.aestronglyMeasurable
   · have hs_mesh : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
-      hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+      hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
     filter_upwards [hs_mesh.predictablePart_nonneg'] with ω hω using hω ⊤
   · exact integrable_predictableSeqTop S 𝓕 P n
   · refine tendsto_of_tendsto_of_tendsto_of_le_of_le' (a := 0) (h := fun c : ℝ≥0 ↦
@@ -867,29 +906,44 @@ end UniformIntegrability
 -- We define the martingale part in the doob-meyer decomposition.
 section MartingalePartLimDef
 
-/-- Show that the terminals values of some convex combinations of the martingale parts converge. -/
+/-- Show that the terminals values of some convex combinations of the martingale parts converge.
+The convex combination at step `n` only involves meshes of index at least `n`, as provided by
+`komlos_L1`. -/
 lemma exists_martingalPart_lim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
-    ∃ M : Ω → ℝ, ∃ a : ℕ → StdSimplex ℝ ℕ,
+    ∃ M : Ω → ℝ, ∃ a : ℕ → StdSimplex ℝ ℕ, Integrable M P ∧
+      (∀ n, ∀ m < n, (a n).weights m = 0) ∧
       Tendsto (fun n ↦ eLpNorm ((a n).weights.sum (fun m r ↦ r • martingaleSeqTop S 𝓕 P m) - M) 1 P)
       atTop (𝓝 0) := by
-  sorry
+  obtain ⟨g, M, hM, h_convex, h_tendsto⟩ :=
+    komlos_L1 (uniformIntegrable_martingaleSeqTop hd.uniformIntegrable hs)
+  choose a ha h0 using fun n ↦
+    exists_stdSimplex_of_mem_convexTail_reindexed (x := martingaleSeqTop S 𝓕 P) h_convex n
+  exact ⟨M, a, memLp_one_iff_integrable.1 hM, h0, h_tendsto.congr fun n ↦ by rw [ha n]⟩
+
+/-- The `L¹` limit of the convex combinations of the terminal values of the discrete martingale
+parts, given by `exists_martingalPart_lim`. -/
+noncomputable def martingaleLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
+    [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
+    {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : Ω → ℝ :=
+  (exists_martingalPart_lim hd hs).choose
 
 /-- This is the martingalePart in the doob-meyer decomposition of a submartingale. -/
 noncomputable def martingalePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (i : ι) :=
-  P[(exists_martingalPart_lim hd hs).choose | 𝓕 i]
+  P[martingaleLim hd hs | 𝓕 i]
 
 lemma martingale_martingalePartLim {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     Martingale (martingalePartLim hd hs) 𝓕 P :=
-  martingale_condExp (exists_martingalPart_lim hd hs).choose 𝓕 P
+  martingale_condExp (martingaleLim hd hs) 𝓕 P
 
 /-- This is the weight associated with the martingale part. -/
 noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
@@ -897,6 +951,56 @@ noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ℕ → StdSimplex ℝ ℕ :=
   (exists_martingalPart_lim hd hs).choose_spec.choose
+
+section
+
+variable {ι Ω : Type*} [TopologicalSpace ι] [T1Space ι] [SecondCountableTopology ι]
+  [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω}
+  {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
+
+/-- The limit of the convex combinations of the terminal martingale parts is integrable. -/
+lemma integrable_martingaleLim (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
+    Integrable (martingaleLim hd hs) P :=
+  (exists_martingalPart_lim hd hs).choose_spec.choose_spec.1
+
+/-- The Komlós weights at step `n` vanish on meshes of index below `n`. -/
+lemma weight_apply_eq_zero_of_lt (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) {m n : ℕ}
+    (hmn : m < n) : (weight hd hs n).weights m = 0 :=
+  (exists_martingalPart_lim hd hs).choose_spec.choose_spec.2.1 n m hmn
+
+/-- `L¹` convergence of the convex combinations of the terminal martingale parts to
+`martingaleLim`. -/
+lemma tendsto_eLpNorm_weight_sum_martingaleSeqTop (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
+    Tendsto (fun n ↦ eLpNorm ((weight hd hs n).weights.sum
+      (fun m r ↦ r • martingaleSeqTop S 𝓕 P m) - martingaleLim hd hs) 1 P) atTop (𝓝 0) :=
+  (exists_martingalPart_lim hd hs).choose_spec.choose_spec.2.2
+
+/-- Each conditional expectation defining the martingale part of the decomposition has the same
+expectation as the initial value of the process. -/
+lemma integral_martingalePartLim (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (i : ι) :
+    ∫ ω, martingalePartLim hd hs i ω ∂P = ∫ ω, S ⊥ ω ∂P := by
+  have hint (m : ℕ) : Integrable (martingaleSeqTop S 𝓕 P m) P :=
+    integrable_martingaleSeqTop 𝓕 (hs.integrable ⊤) m
+  have hg (n : ℕ) : ∫ ω, ((weight hd hs n).weights.sum
+      fun m r ↦ r • martingaleSeqTop S 𝓕 P m) ω ∂P = ∫ ω, S ⊥ ω ∂P := by
+    have htotal : ∑ m ∈ (weight hd hs n).weights.support, (weight hd hs n).weights m = 1 := by
+      simpa [Finsupp.sum] using (weight hd hs n).total
+    simp only [Finsupp.sum, Finset.sum_apply]
+    rw [integral_finsetSum _ fun m _ ↦ (hint m).smul _]
+    simp_rw [Pi.smul_apply, integral_smul, integral_martingaleSeqTop]
+    rw [← Finset.sum_smul, htotal, one_smul]
+  have hlim : Tendsto (fun n ↦ ∫ ω, ((weight hd hs n).weights.sum
+      fun m r ↦ r • martingaleSeqTop S 𝓕 P m) ω ∂P) atTop
+      (𝓝 (∫ ω, martingaleLim hd hs ω ∂P)) :=
+    tendsto_integral_of_L1' _ (integrable_martingaleLim hd hs).aestronglyMeasurable
+      (.of_forall fun n ↦ integrable_finsetSum' _ fun m _ ↦ (hint m).smul _)
+      (tendsto_eLpNorm_weight_sum_martingaleSeqTop hd hs)
+  rw [martingalePartLim, integral_condExp (𝓕.le i)]
+  refine tendsto_nhds_unique hlim ?_
+  simp_rw [hg]
+  exact tendsto_const_nhds
+
+end
 
 /-- The extension of the discrete martingale part `M^n`. -/
 noncomputable def martingaleSeqStep {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι]
@@ -976,6 +1080,215 @@ lemma predictableConvexStep_ae_tendsto {ι Ω : Type*} [TopologicalSpace ι] [T1
 
 end PredictablePartLimDef
 
+-- We discretize a stopping time from the right along the meshes.
+section MeshCeil
+
+variable {ι Ω : Type*} [TopologicalSpace ι] [SecondCountableTopology ι] [LinearOrder ι]
+  [OrderBot ι] [OrderTop ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
+  {𝓕 : Filtration ι mΩ} {τ : Ω → WithTop ι}
+
+/-- The discretization `σₙ` of a stopping time `τ` from the right along the `n`-th mesh: the
+smallest mesh point greater than or equal to `τ`, or `⊤` if `τ = ⊤`. -/
+noncomputable def meshCeil (n : ℕ) (τ : Ω → WithTop ι) : Ω → WithTop ι :=
+  fun ω ↦ ((mesh ι n).filter fun u : ι ↦ τ ω ≤ (u : WithTop ι)).min
+
+lemma le_meshCeil (n : ℕ) (ω : Ω) : τ ω ≤ meshCeil n τ ω :=
+  Finset.le_min fun _ hu ↦ (Finset.mem_filter.1 hu).2
+
+lemma meshCeil_le {n : ℕ} {ω : Ω} {u : ι} (hu : u ∈ mesh ι n) (hτu : τ ω ≤ (u : WithTop ι)) :
+    meshCeil n τ ω ≤ (u : WithTop ι) :=
+  Finset.min_le (Finset.mem_filter.2 ⟨hu, hτu⟩)
+
+lemma meshCeil_ne_top (n : ℕ) {ω : Ω} (hτ : τ ω ≠ ⊤) : meshCeil n τ ω ≠ ⊤ := by
+  intro h
+  simp only [meshCeil, Finset.min_eq_top, Finset.filter_eq_empty_iff] at h
+  exact h (top_mem_mesh ι n) (WithTop.le_coe_top hτ)
+
+lemma mesh_mem_of_meshCeil_eq_coe {n : ℕ} {ω : Ω} {u : ι}
+    (h : meshCeil n τ ω = (u : WithTop ι)) :
+    u ∈ mesh ι n ∧ τ ω ≤ (u : WithTop ι) :=
+  Finset.mem_filter.1 <| Finset.mem_of_min h
+
+lemma exists_meshCeil_eq_coe (n : ℕ) {ω : Ω} (hτ : τ ω ≠ ⊤) :
+    ∃ u ∈ mesh ι n, meshCeil n τ ω = (u : WithTop ι) ∧ τ ω ≤ (u : WithTop ι) := by
+  obtain ⟨u, hu⟩ := WithTop.ne_top_iff_exists.1 (meshCeil_ne_top n hτ)
+  obtain ⟨h1, h2⟩ := mesh_mem_of_meshCeil_eq_coe hu.symm
+  exact ⟨u, h1, hu.symm, h2⟩
+
+lemma meshCeil_eq_bot {n : ℕ} {ω : Ω} (h : τ ω = ((⊥ : ι) : WithTop ι)) :
+    meshCeil n τ ω = ((⊥ : ι) : WithTop ι) :=
+  le_antisymm (meshCeil_le (bot_mem_mesh ι n) h.le) (h ▸ le_meshCeil n ω)
+
+lemma countable_range_meshCeil (n : ℕ) (τ : Ω → WithTop ι) :
+    (Set.range (meshCeil n τ)).Countable := by
+  refine ((((mesh ι n).image fun u : ι ↦ (u : WithTop ι)).countable_toSet).insert ⊤).mono ?_
+  rintro x ⟨ω, rfl⟩
+  rcases eq_or_ne (meshCeil n τ ω) ⊤ with h | h
+  · exact h ▸ Set.mem_insert _ _
+  · obtain ⟨u, hu⟩ := WithTop.ne_top_iff_exists.1 h
+    exact hu ▸ Set.mem_insert_of_mem _
+      (Finset.mem_coe.2 (Finset.mem_image_of_mem _ (mesh_mem_of_meshCeil_eq_coe hu.symm).1))
+
+/-- The mesh discretization of a stopping time is a stopping time. -/
+lemma isStoppingTime_meshCeil (hτ : IsStoppingTime 𝓕 τ) (n : ℕ) :
+    IsStoppingTime 𝓕 (meshCeil n τ) := by
+  intro t
+  have h_eq : {ω | meshCeil n τ ω ≤ t}
+      = ⋃ u ∈ {u ∈ mesh ι n | u ≤ t}, {ω | τ ω ≤ (u : WithTop ι)} := by
+    ext ω
+    simp only [Set.mem_ofPred_eq, Set.mem_iUnion, Finset.mem_filter, exists_prop]
+    constructor
+    · intro h
+      rcases eq_or_ne (meshCeil n τ ω) ⊤ with htop | htop
+      · rw [htop] at h
+        exact absurd (top_le_iff.1 h) WithTop.coe_ne_top
+      · obtain ⟨u, hu⟩ := WithTop.ne_top_iff_exists.1 htop
+        obtain ⟨h1, h2⟩ := mesh_mem_of_meshCeil_eq_coe hu.symm
+        exact ⟨u, ⟨h1, WithTop.coe_le_coe.1 (hu.le.trans h)⟩, h2⟩
+    · rintro ⟨u, ⟨hu_mesh, hut⟩, hτu⟩
+      exact (meshCeil_le hu_mesh hτu).trans (WithTop.coe_le_coe.2 hut)
+  rw [h_eq]
+  exact Finset.measurableSet_biUnion _ fun u hu ↦
+    𝓕.mono (Finset.mem_filter.1 hu).2 _ (hτ u)
+
+/-- The mesh discretizations of `τ` converge to `τ` from the right. -/
+lemma tendsto_untopA_meshCeil [OrderTopology ι] [DenselyOrdered ι] {ω : Ω} (hτ : τ ω ≠ ⊤) :
+    Tendsto (fun n ↦ (meshCeil n τ ω).untopA) atTop (𝓝[≥] (τ ω).untopA) := by
+  obtain ⟨t₀, ht₀⟩ := WithTop.ne_top_iff_exists.1 hτ
+  have hle (n : ℕ) : t₀ ≤ (meshCeil n τ ω).untopA :=
+    (WithTop.le_untopA_iff (meshCeil_ne_top n hτ)).2 (ht₀.le.trans (le_meshCeil n ω))
+  rw [← ht₀, WithTop.untopA_coe, tendsto_nhdsWithin_iff]
+  refine ⟨tendsto_order.2 ⟨fun a ha ↦ Eventually.of_forall fun n ↦ ha.trans_le (hle n),
+    fun b hb ↦ ?_⟩, Eventually.of_forall fun n ↦ hle n⟩
+  obtain ⟨d, hd_mem, hd₁, hd₂⟩ : ∃ d ∈ denseSet ι, t₀ < d ∧ d < b := by
+    obtain ⟨c, hc₁, hc₂⟩ := exists_between hb
+    obtain ⟨d, hd_mem, hd⟩ := (denseSet_dense ι).exists_mem_open isOpen_Ioo ⟨c, hc₁, hc₂⟩
+    exact ⟨d, hd_mem, hd.1, hd.2⟩
+  obtain ⟨k, hk⟩ := exists_denseEnum_eq ι hd_mem
+  filter_upwards [eventually_gt_atTop k] with n hn
+  have hceil : meshCeil n τ ω ≤ (d : WithTop ι) :=
+    meshCeil_le (hk ▸ denseEnum_mem_mesh ι hn) (ht₀ ▸ WithTop.coe_le_coe.2 hd₁.le)
+  exact ((WithTop.untopA_le_iff (meshCeil_ne_top n hτ)).2 hceil).trans_lt hd₂
+
+/-- On the half-open mesh interval `(pred u, u]`, the step extension of the discrete predictable
+part takes the value of the discrete predictable part at `u`. -/
+lemma predictableSeqStep_apply_of_mem {n : ℕ} {t : ι} {u : mesh ι n} (ht : t ∈ meshPredIoc n u) :
+    predictableSeqStep P S 𝓕 n t
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u := by
+  rw [predictableSeqStep, Finset.sum_eq_single u]
+  · rw [Set.indicator_of_mem ht]
+  · refine fun v _ hvu ↦ Set.indicator_of_notMem (fun htv ↦ ?_) _
+    rcases lt_or_gt_of_ne hvu with h | h
+    · exact absurd (htv.2.trans (Subtype.coe_le_coe.2 (le_pred_of_lt h))) (not_le.2 ht.1)
+    · exact absurd (ht.2.trans (Subtype.coe_le_coe.2 (le_pred_of_lt h))) (not_le.2 htv.1)
+  · exact fun hu ↦ absurd (Finset.mem_univ u) hu
+
+/-- Sampling the step extension of the discrete predictable part at `τ` is the same as sampling
+it at the mesh discretization `σₙ` of `τ`. -/
+lemma stoppedValue_predictableSeqStep_meshCeil {n : ℕ} (hτ_ne : ∀ ω, τ ω ≠ ⊤) :
+    stoppedValue (predictableSeqStep P S 𝓕 n) τ
+      = stoppedValue (predictableSeqStep P S 𝓕 n) (meshCeil n τ) := by
+  funext ω
+  obtain ⟨t, ht⟩ := WithTop.ne_top_iff_exists.1 (hτ_ne ω)
+  obtain ⟨u, humesh, hcoe, hle⟩ := exists_meshCeil_eq_coe n (hτ_ne ω)
+  simp only [stoppedValue, hcoe, ← ht, WithTop.untopA_coe]
+  rcases eq_or_ne t ⊥ with rfl | ht_bot
+  · rw [WithTop.coe_injective (hcoe.symm.trans (meshCeil_eq_bot ht.symm))]
+  · have htu : t ≤ u := WithTop.coe_le_coe.1 (ht.trans_le hle)
+    have hu_bot : (⟨u, humesh⟩ : mesh ι n) ≠ ⊥ :=
+      fun h ↦ ht_bot (le_bot_iff.1 (htu.trans_eq (congrArg Subtype.val h)))
+    have hpred : ((pred (⟨u, humesh⟩ : mesh ι n) : mesh ι n) : ι) < t := by
+      by_contra hcon
+      rw [not_lt] at hcon
+      have h2 := meshCeil_le (pred (⟨u, humesh⟩ : mesh ι n)).2
+        (le_trans (le_of_eq ht.symm) (by exact_mod_cast hcon))
+      rw [hcoe, WithTop.coe_le_coe] at h2
+      exact absurd (Subtype.coe_le_coe.1 h2) (not_le.2 (pred_lt_iff_ne_bot.2 hu_bot))
+    rw [predictableSeqStep_apply_of_mem (u := ⟨u, humesh⟩) ⟨hpred, htu⟩,
+      predictableSeqStep_apply_of_mem (u := ⟨u, humesh⟩)
+        ⟨Subtype.coe_lt_coe.2 (pred_lt_iff_ne_bot.2 hu_bot), le_rfl⟩]
+
+/-- Sampled at the mesh discretization `σₙ`, the step extension of the discrete predictable part
+decomposes as the sampled process minus the sampled conditional expectations of the terminal
+value of the discrete martingale part. -/
+lemma stoppedValue_predictableSeqStep_ae_eq {n : ℕ} (hτ_ne : ∀ ω, τ ω ≠ ⊤) :
+    stoppedValue (predictableSeqStep P S 𝓕 n) (meshCeil n τ) =ᵐ[P]
+      stoppedValue S (meshCeil n τ)
+        - stoppedValue (martingaleSeqStep P S 𝓕 n) (meshCeil n τ) := by
+  have hkey : ∀ᵐ ω ∂P, ∀ u : mesh ι n,
+      martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P u ω
+        = martingaleSeqStep P S 𝓕 n ↑u ω :=
+    ae_all_iff.2 fun u ↦
+      ((martingale_martingalePart _ _ _).condExp_ae_eq (le_top (a := u))).symm
+  filter_upwards [hkey] with ω hω
+  obtain ⟨u, humesh, hcoe, hle⟩ := exists_meshCeil_eq_coe n (hτ_ne ω)
+  simp only [stoppedValue, hcoe, WithTop.untopA_coe, Pi.sub_apply]
+  calc predictableSeqStep P S 𝓕 n u ω
+      = predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⟨u, humesh⟩ ω := by
+        rcases eq_or_ne (⟨u, humesh⟩ : mesh ι n) ⊥ with h | h
+        · have hu : u = ⊥ := by simpa using congrArg Subtype.val h
+          rw [h, hu]
+          simp [predictableSeqStep, meshPredIoc]
+        · rw [predictableSeqStep_apply_of_mem
+            ⟨Subtype.coe_lt_coe.2 (pred_lt_iff_ne_bot.2 h), le_rfl⟩]
+    _ = S u ω - martingalePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P ⟨u, humesh⟩ ω :=
+        eq_sub_of_add_eq' (congrFun (congrFun
+          (martingalePart_add_predictablePart (S ∘ Subtype.val) (meshFiltration 𝓕 n) P) _) ω)
+    _ = S u ω - martingaleSeqStep P S 𝓕 n u ω := by rw [hω ⟨u, humesh⟩]
+
+/-- The expectation of the stopped step extension of the discrete predictable part. -/
+lemma integral_stoppedValue_predictableSeqStep [OrderTopology ι] [MeasurableSpace ι]
+    [IsFiniteMeasure P]
+    (hd : ClassD S 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) (n : ℕ) :
+    ∫ ω, stoppedValue (predictableSeqStep P S 𝓕 n) τ ω ∂P
+      = ∫ ω, stoppedValue S (meshCeil n τ) ω ∂P - ∫ ω, S ⊥ ω ∂P := by
+  have hσ : IsStoppingTime 𝓕 (meshCeil n τ) := isStoppingTime_meshCeil hτ n
+  have hσ_ne (ω) : meshCeil n τ ω ≠ ⊤ := meshCeil_ne_top n (hτ_ne ω)
+  have hσ_le (ω) : meshCeil n τ ω ≤ ((⊤ : ι) : WithTop ι) := WithTop.le_coe_top (hσ_ne ω)
+  have hN : Martingale (martingaleSeqStep P S 𝓕 n) 𝓕 P := martingale_condExp _ _ _
+  have hint_S : Integrable (stoppedValue S (meshCeil n τ)) P :=
+    memLp_one_iff_integrable.1 (hd.uniformIntegrable.memLp ⟨_, hσ, hσ_ne⟩)
+  have hint_N : Integrable (stoppedValue (martingaleSeqStep P S 𝓕 n) (meshCeil n τ)) P :=
+    hN.integrable_stoppedValue_of_countable_range _ hσ hσ_le (countable_range_meshCeil n τ)
+  rw [stoppedValue_predictableSeqStep_meshCeil hτ_ne,
+    integral_congr_ae (stoppedValue_predictableSeqStep_ae_eq hτ_ne)]
+  simp only [Pi.sub_apply]
+  rw [integral_sub hint_S hint_N]
+  congr 1
+  calc ∫ ω, stoppedValue (martingaleSeqStep P S 𝓕 n) (meshCeil n τ) ω ∂P
+      = ∫ ω, (P[martingaleSeqStep P S 𝓕 n ⊤|hσ.measurableSpace]) ω ∂P := integral_congr_ae <|
+        hN.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range hσ hσ_le
+          (countable_range_meshCeil n τ)
+    _ = ∫ ω, P[martingaleSeqTop S 𝓕 P n|𝓕 ⊤] ω ∂P := integral_condExp _
+    _ = ∫ ω, martingaleSeqTop S 𝓕 P n ω ∂P := integral_condExp (𝓕.le ⊤)
+    _ = ∫ ω, S ⊥ ω ∂P := integral_martingaleSeqTop 𝓕 n
+
+/-- Expectations of the process sampled at the mesh discretizations of `τ` converge to the
+expectation of the process sampled at `τ`. -/
+lemma tendsto_integral_stoppedValue_meshCeil [OrderTopology ι] [DenselyOrdered ι]
+    [MeasurableSpace ι] [IsFiniteMeasure P]
+    (hd : ClassD S 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤)
+    (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
+    Tendsto (fun n ↦ ∫ ω, stoppedValue S (meshCeil n τ) ω ∂P) atTop
+      (𝓝 (∫ ω, stoppedValue S τ ω ∂P)) := by
+  have hUI : UniformIntegrable (fun n ↦ stoppedValue S (meshCeil n τ)) 1 P :=
+    hd.uniformIntegrable.comp fun n ↦ ⟨meshCeil n τ, isStoppingTime_meshCeil hτ n,
+      fun ω ↦ meshCeil_ne_top n (hτ_ne ω)⟩
+  have hmem : MemLp (stoppedValue S τ) 1 P := hd.uniformIntegrable.memLp ⟨τ, hτ, hτ_ne⟩
+  have hae : ∀ᵐ ω ∂P, Tendsto (fun n ↦ stoppedValue S (meshCeil n τ) ω) atTop
+      (𝓝 (stoppedValue S τ ω)) := by
+    filter_upwards [hc] with ω hcad
+    exact Tendsto.comp (continuousWithinAt_Ioi_iff_Ici.1 (hcad.right_continuous ((τ ω).untopA)))
+      (tendsto_untopA_meshCeil (hτ_ne ω))
+  have hL1 : Tendsto (fun n ↦ eLpNorm (stoppedValue S (meshCeil n τ) - stoppedValue S τ) 1 P)
+      atTop (𝓝 0) :=
+    tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top hUI.1 hmem hUI.2.1
+      (tendstoInMeasure_of_tendsto_ae hUI.1 hae)
+  exact tendsto_integral_of_L1' _ hmem.aestronglyMeasurable
+    (.of_forall fun n ↦ memLp_one_iff_integrable.1 (hUI.memLp n)) hL1
+
+end MeshCeil
+
 -- Helper lemmas about limits of monotone functions.
 section MonotoneLim
 
@@ -1035,7 +1348,7 @@ when `α` satisfies `NoTopOrder α`. -/
 lemma Dense.monotone_of_isRightContinuous {α β : Type*} [LinearOrder α] [OrderTop α]
     [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] [TopologicalSpace β]
     [Preorder β] [t : OrderClosedTopology β] {f : α → β} {D : Set α} (hD : Dense D) (htop : ⊤ ∈ D)
-    (hm : Monotone (f ∘ (↑) : D → β)) (hf : f.IsRightContinuous) :
+    (hm : Monotone (f ∘ (↑) : D → β)) (hf : IsRightContinuous f) :
     Monotone f := by
   refine monotone_iff_forall_lt.2 fun a b hab => ?_
   by_cases! hbtop : b = ⊤
@@ -1164,14 +1477,13 @@ lemma predictableSeqStep_apply {ι Ω : Type*} [TopologicalSpace ι] [SecondCoun
   · exact absurd (lt_of_le_of_lt ht.2 (lt_of_le_of_lt
       (Subtype.coe_le_coe.2 (Order.le_pred_of_lt h')) hv.1)) (lt_irrefl t)
 
-set_option backward.isDefEq.respectTransparency false in
 lemma predictableSeqStep_monotone_ae {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hs : Submartingale S 𝓕 P) (n : ℕ) :
     ∀ᵐ ω ∂P, Monotone fun t ↦ predictableSeqStep P S 𝓕 n t ω := by
   have hsub : Submartingale (S ∘ Subtype.val) (meshFiltration 𝓕 n) P :=
-    hs.indexComap (Subtype.mono_coe (SetLike.coe (mesh ι n)))
+    hs.indexComap (Subtype.mono_coe (· ∈ (mesh ι n)))
   have hne (s : ι) : (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).Nonempty := ⟨⊤, by simp⟩
   set ceil : ι → mesh ι n :=
     fun s ↦ (Finset.univ.filter fun u : mesh ι n ↦ s ≤ (u : ι)).min' (hne s)
@@ -1346,18 +1658,257 @@ lemma integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictab
     [LinearOrder ι] [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι]
     {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) {τ : Ω → WithTop ι}
-    (hτ : IsStoppingTime 𝓕 τ) :
-    Tendsto (fun n => ∫ ω, stoppedValue (predictableConvexStep hd hs n) τ ω ∂P) atTop
+    (hτ : IsStoppingTime 𝓕 τ) (hτ_ne : ∀ ω, τ ω ≠ ⊤) (hτ_count : (Set.range τ).Countable)
+    (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
+    Tendsto (fun n ↦ ∫ ω, stoppedValue (predictableConvexStep hd hs n) τ ω ∂P) atTop
       (𝓝 <| ∫ ω, stoppedValue (predictablePartLim hd hs) τ ω ∂P) := by
-  sorry
+  have hint (m : ℕ) : Integrable (stoppedValue (predictableSeqStep P S 𝓕 m) τ) P := by
+    have hσ : IsStoppingTime 𝓕 (meshCeil m τ) := isStoppingTime_meshCeil hτ m
+    have hσ_ne (ω) : meshCeil m τ ω ≠ ⊤ := meshCeil_ne_top m (hτ_ne ω)
+    have hS : Integrable (stoppedValue S (meshCeil m τ)) P :=
+      memLp_one_iff_integrable.1 (hd.uniformIntegrable.memLp ⟨_, hσ, hσ_ne⟩)
+    have hN : Integrable (stoppedValue (martingaleSeqStep P S 𝓕 m) (meshCeil m τ)) P :=
+      (martingale_condExp _ _ _).integrable_stoppedValue_of_countable_range _ hσ
+        (fun ω ↦ WithTop.le_coe_top (hσ_ne ω)) (countable_range_meshCeil m τ)
+    rw [stoppedValue_predictableSeqStep_meshCeil hτ_ne]
+    exact (integrable_congr (stoppedValue_predictableSeqStep_ae_eq hτ_ne).symm).1 (hS.sub hN)
+  have h1 (n : ℕ) : ∫ ω, stoppedValue (predictableConvexStep hd hs n) τ ω ∂P
+      = ((weight hd hs n).weights.sum
+          fun m r ↦ r • ∫ ω, stoppedValue S (meshCeil m τ) ω ∂P) - ∫ ω, S ⊥ ω ∂P := by
+    have hstop : stoppedValue (predictableConvexStep hd hs n) τ
+        = ∑ m ∈ (weight hd hs n).weights.support,
+            (weight hd hs n).weights m • stoppedValue (predictableSeqStep P S 𝓕 m) τ := by
+      funext ω
+      simp [predictableConvexStep, stoppedValue, Finsupp.sum, Finset.sum_apply]
+    rw [hstop]
+    simp only [Finset.sum_apply]
+    rw [integral_finsetSum _ fun m _ ↦ (hint m).smul _]
+    simp_rw [Pi.smul_apply, integral_smul,
+      integral_stoppedValue_predictableSeqStep hd hτ hτ_ne, smul_sub]
+    have htotal : ∑ m ∈ (weight hd hs n).weights.support, (weight hd hs n).weights m = 1 := by
+      simpa [Finsupp.sum] using (weight hd hs n).total
+    rw [Finset.sum_sub_distrib, ← Finset.sum_smul, htotal, one_smul, Finsupp.sum]
+  have hMPL : Martingale (martingalePartLim hd hs) 𝓕 P := martingale_martingalePartLim hd hs
+  have h2 : ∫ ω, stoppedValue (predictablePartLim hd hs) τ ω ∂P
+      = ∫ ω, stoppedValue S τ ω ∂P - ∫ ω, S ⊥ ω ∂P := by
+    have hτ_le (ω) : τ ω ≤ ((⊤ : ι) : WithTop ι) := WithTop.le_coe_top (hτ_ne ω)
+    have hint_S : Integrable (stoppedValue S τ) P :=
+      memLp_one_iff_integrable.1 (hd.uniformIntegrable.memLp ⟨τ, hτ, hτ_ne⟩)
+    have hint_M : Integrable (stoppedValue (martingalePartLim hd hs) τ) P :=
+      hMPL.integrable_stoppedValue_of_countable_range _ hτ hτ_le hτ_count
+    rw [predictablePartLim, stoppedValue.sub]
+    simp only [Pi.sub_apply]
+    rw [integral_sub hint_S hint_M,
+      integral_congr_ae (hMPL.stoppedValue_ae_eq_condExp_of_le_const_of_countable_range hτ
+        hτ_le hτ_count), integral_condExp _, integral_martingalePartLim hd hs]
+  simp_rw [h1, h2]
+  exact (tendsto_weights_sum_of_forall_lt_eq_zero
+    (tendsto_integral_stoppedValue_meshCeil hd hτ hτ_ne hc)
+    fun n m hmn ↦ weight_apply_eq_zero_of_lt hd hs hmn).sub_const _
 
-/-- Reverse Fatou's lemma. See also `limsup_lintegral_le`. -/
-lemma limsup_integral_le_integral_limsup_of_tendsto_integral_posPart_sub {Ω : Type*}
-    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ℕ → Ω → ℝ} {Y : Ω → ℝ}
-    (hX_nonneg : ∀ n, 0 ≤ᵐ[P] X n) (hY : Integrable Y P) (hY_nonneg : 0 ≤ᵐ[P] Y)
-    (h_tendsto : Tendsto (fun n => ∫ ω, max (X n ω - Y ω) 0 ∂P) atTop (𝓝 0)) :
-    limsup (fun n => ∫ ω, X n ω ∂P) atTop ≤ ∫ ω, limsup (fun n => X n ω) atTop ∂P := by
-  sorry
+private theorem limsup_lintegral_le_nat' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {f : ℕ → Ω → ℝ≥0∞} (g : Ω → ℝ≥0∞) (hf_meas : ∀ n, AEMeasurable (f n) P)
+    (h_bound : ∀ n, f n ≤ᵐ[P] g) (h_fin : ∫⁻ ω, g ω ∂P ≠ ∞) :
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂P) atTop ≤ ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂P :=
+  calc
+    limsup (fun n ↦ ∫⁻ ω, f n ω ∂P) atTop = ⨅ n : ℕ, ⨆ i ≥ n, ∫⁻ ω, f i ω ∂P :=
+      limsup_eq_iInf_iSup_of_nat
+    _ ≤ ⨅ n : ℕ, ∫⁻ ω, ⨆ i ≥ n, f i ω ∂P := iInf_mono fun _ ↦ iSup₂_lintegral_le _
+    _ = ∫⁻ ω, ⨅ n : ℕ, ⨆ i ≥ n, f i ω ∂P := by
+      refine (lintegral_iInf' ?_ ?_ ?_).symm
+      · exact fun n ↦ .biSup _ (Set.to_countable _) fun i _ ↦ hf_meas i
+      · exact .of_forall fun ω n m hnm ↦ iSup_le_iSup_of_subset fun i hi ↦ le_trans hnm hi
+      · refine ne_top_of_le_ne_top h_fin (lintegral_mono_ae ?_)
+        exact (ae_all_iff.2 h_bound).mono fun ω hω ↦ iSup_le fun i ↦ iSup_le fun _ ↦ hω i
+    _ = ∫⁻ ω, limsup (fun n ↦ f n ω) atTop ∂P := by simp only [limsup_eq_iInf_iSup_of_nat]
+
+/-- Reverse Fatou's lemma for the lower Lebesgue integral along a countably generated filter,
+`AEMeasurable` version. -/
+theorem limsup_lintegral_le' {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*}
+    {L : Filter ι} [L.IsCountablyGenerated] {f : ι → Ω → ℝ≥0∞} (g : Ω → ℝ≥0∞)
+    (hf_meas : ∀ i, AEMeasurable (f i) P) (h_bound : ∀ i, f i ≤ᵐ[P] g)
+    (h_fin : ∫⁻ ω, g ω ∂P ≠ ∞) :
+    limsup (fun i ↦ ∫⁻ ω, f i ω ∂P) L ≤ ∫⁻ ω, limsup (fun i ↦ f i ω) L ∂P := by
+  by_cases! hL : ¬ L.NeBot
+  · simp_all
+  · obtain ⟨x, hx⟩ := exists_seq_tendsto_limsup (u := fun i ↦ ∫⁻ ω, f i ω ∂P) (f := L)
+    calc limsup (fun i ↦ ∫⁻ ω, f i ω ∂P) L = limsup (fun n ↦ ∫⁻ ω, f (x n) ω ∂P) atTop :=
+          hx.1.limsup_eq.symm
+      _ ≤ ∫⁻ ω, limsup (fun n ↦ f (x n) ω) atTop ∂P :=
+          limsup_lintegral_le_nat' g (fun n ↦ hf_meas (x n)) (fun n ↦ h_bound (x n)) h_fin
+      _ ≤ ∫⁻ ω, limsup (fun i ↦ f i ω) L ∂P := lintegral_mono fun ω ↦
+          hx.2.limsup_comp_le_limsup (u := fun i ↦ f i ω) isCobounded_le_of_bot isBounded_le_of_top
+
+private lemma aemeasurable_limsup {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+    {ι : Type*} [Countable ι] {L : Filter ι} [L.IsCountablyGenerated] {X : ι → Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) :
+    AEMeasurable (fun ω ↦ limsup (fun i ↦ X i ω) L) P := by
+  obtain ⟨b, hb⟩ := L.exists_antitone_basis
+  exact ⟨_, Measurable.limsup' (fun i ↦ (hX_meas i).measurable_mk)
+      ⟨hb.toHasBasis, Set.countable_univ⟩ fun n ↦ (b n).to_countable,
+    (ae_all_iff.2 fun i ↦ (hX_meas i).ae_eq_mk).mono fun ω hω ↦
+      congrArg (limsup · L) (funext hω)⟩
+
+private lemma limsup_integral_le_integral_limsup_of_le' {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {Y : Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hX_nonneg : ∀ i, 0 ≤ᵐ[P] X i) (hY : Integrable Y P)
+    (hXY : ∀ i, X i ≤ᵐ[P] Y) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hint : ∀ {f : Ω → ℝ}, AEMeasurable f P → 0 ≤ᵐ[P] f → f ≤ᵐ[P] Y → Integrable f P :=
+    fun hf h0 h1 ↦ hY.mono' hf.aestronglyMeasurable <|
+      (h0.and h1).mono fun ω ⟨ha, hb⟩ ↦ by rwa [Real.norm_eq_abs, abs_of_nonneg ha]
+  have hXi : ∀ i, Integrable (X i) P := fun i ↦ hint (hX_meas i) (hX_nonneg i) (hXY i)
+  have ⟨i₀⟩ := L.nonempty_of_neBot
+  have hY_nonneg : 0 ≤ᵐ[P] Y := (hX_nonneg i₀).trans (hXY i₀)
+  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L (fun i ↦ X i ω) ∧
+      IsCoboundedUnder (· ≤ ·) L (fun i ↦ X i ω) := by
+    filter_upwards [ae_all_iff.2 hXY, ae_all_iff.2 hX_nonneg] with ω hub hlb
+    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le L hlb⟩
+  have hL_nonneg : 0 ≤ᵐ[P] fun ω ↦ limsup (fun i ↦ X i ω) L := by
+    filter_upwards [ae_all_iff.2 hX_nonneg, hae] with ω hlb hbdd
+    refine le_limsup_of_le hbdd.1 fun b hb ↦ ?_
+    obtain ⟨i, hi⟩ := (hb.and (Eventually.of_forall hlb)).exists
+    exact hi.2.trans hi.1
+  have hLi : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P :=
+    hint (aemeasurable_limsup hX_meas) hL_nonneg <| by
+      filter_upwards [ae_all_iff.2 hXY, hae] with ω hub hbdd
+      exact limsup_le_of_le hbdd.2 (Eventually.of_forall hub)
+  rw [← ENNReal.ofReal_le_ofReal_iff (integral_nonneg_of_ae hL_nonneg),
+    ofReal_integral_eq_lintegral_ofReal hLi hL_nonneg,
+    ENNReal.ofReal_limsup
+      (isCoboundedUnder_le_of_le L fun i ↦ integral_nonneg_of_ae (hX_nonneg i))
+      (isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hXi i) hY (hXY i)⟩)]
+  simp_rw [ofReal_integral_eq_lintegral_ofReal (hXi _) (hX_nonneg _)]
+  refine (limsup_lintegral_le' _ (fun i ↦ (hX_meas i).ennreal_ofReal)
+      (fun i ↦ (hXY i).mono fun ω h ↦ ENNReal.ofReal_le_ofReal h)
+      (by rw [← ofReal_integral_eq_lintegral_ofReal hY hY_nonneg]
+          exact ENNReal.ofReal_ne_top)).trans
+    (le_of_eq (lintegral_congr_ae
+      (hae.mono fun ω hbdd ↦ (ENNReal.ofReal_limsup hbdd.2 hbdd.1).symm)))
+
+private lemma limsup_integral_le_integral_limsup_of_le_of_le' {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {W Y : Ω → ℝ}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hW : Integrable W P) (hY : Integrable Y P)
+    (hWX : ∀ i, W ≤ᵐ[P] X i) (hXY : ∀ i, X i ≤ᵐ[P] Y) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hXi : ∀ i, Integrable (X i) P := fun i ↦
+    integrable_of_le_of_le (hX_meas i).aestronglyMeasurable (hWX i) (hXY i) hW hY
+  have hae : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L (fun i ↦ X i ω) ∧
+      IsCoboundedUnder (· ≤ ·) L (fun i ↦ X i ω) := by
+    filter_upwards [ae_all_iff.2 hXY, ae_all_iff.2 hWX] with ω hub hlb
+    exact ⟨isBoundedUnder_of ⟨Y ω, hub⟩, isCoboundedUnder_le_of_le L hlb⟩
+  have hZ : limsup (fun i ↦ ∫ ω, X i ω - W ω ∂P) L
+      ≤ ∫ ω, limsup (fun i ↦ X i ω - W ω) L ∂P :=
+    limsup_integral_le_integral_limsup_of_le' (fun i ↦ (hX_meas i).sub hW.aemeasurable)
+      (fun i ↦ (hWX i).mono fun ω h ↦ sub_nonneg.2 h) (hY.sub hW)
+      (fun i ↦ (hXY i).mono fun ω h ↦ by simpa using sub_le_sub_right h (W ω))
+  have hLW : ∀ᵐ ω ∂P, limsup (fun i ↦ X i ω - W ω) L = limsup (fun i ↦ X i ω) L - W ω := by
+    filter_upwards [hae] with ω hbdd
+    simpa [sub_eq_add_neg] using limsup_add_const L (fun i ↦ X i ω) (-W ω) hbdd.1 hbdd.2
+  have hL_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P := by
+    refine integrable_of_le_of_le (aemeasurable_limsup hX_meas).aestronglyMeasurable ?_ ?_ hW hY
+    · filter_upwards [ae_all_iff.2 hWX, hae] with ω hlb hbdd
+      refine le_limsup_of_le hbdd.1 fun b hb ↦ ?_
+      obtain ⟨i, hi⟩ := (hb.and (Eventually.of_forall hlb)).exists
+      exact hi.2.trans hi.1
+    · filter_upwards [ae_all_iff.2 hXY, hae] with ω hub hbdd
+      exact limsup_le_of_le hbdd.2 (Eventually.of_forall hub)
+  have h_bdd : IsBoundedUnder (· ≤ ·) L (fun i ↦ ∫ ω, X i ω ∂P) :=
+    isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hXi i) hY (hXY i)⟩
+  have h_cobdd : IsCoboundedUnder (· ≤ ·) L (fun i ↦ ∫ ω, X i ω ∂P) :=
+    isCoboundedUnder_le_of_le L fun i ↦ integral_mono_ae hW (hXi i) (hWX i)
+  have hZ_eq : (fun i ↦ ∫ ω, X i ω - W ω ∂P) = fun i ↦ (∫ ω, X i ω ∂P) + -∫ ω, W ω ∂P := by
+    funext i
+    rw [integral_sub (hXi i) hW, sub_eq_add_neg]
+  rw [hZ_eq, limsup_add_const L _ (-∫ ω, W ω ∂P) h_bdd h_cobdd, integral_congr_ae hLW,
+    integral_sub hL_int hW, sub_eq_add_neg] at hZ
+  exact le_of_add_le_add_right hZ
+
+/-- Reverse Fatou's lemma along a countably generated filter for a family uniformly bounded
+below by an integrable function `W`. -/
+theorem limsup_integral_le_integral_limsup_of_le_of_tendsto_integral_posPart_sub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} [Countable ι] {L : Filter ι} [L.NeBot]
+    [L.IsCountablyGenerated] {X : ι → Ω → ℝ} {W Y : Ω → ℝ}
+    (hX_int : ∀ i, Integrable (X i) P) (hW : Integrable W P) (hWX : ∀ i, W ≤ᵐ[P] X i)
+    (hY : Integrable Y P)
+    (hX_bdd : ∀ᵐ ω ∂P, IsBoundedUnder (· ≤ ·) L fun i ↦ X i ω)
+    (h_tendsto : Tendsto (fun i ↦ ∫ ω, max (X i ω - Y ω) 0 ∂P) L (𝓝 0))
+    (hL_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω) L) P) :
+    limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ ∫ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hmin_int : ∀ i, Integrable (fun ω ↦ X i ω ⊓ Y ω) P := fun i ↦ (hX_int i).inf hY
+  have hpos_int : ∀ i, Integrable (fun ω ↦ max (X i ω - Y ω) 0) P :=
+    fun i ↦ ((hX_int i).sub hY).pos_part
+  have hWY_int : Integrable (fun ω ↦ W ω ⊓ Y ω) P := hW.inf hY
+  have hmin_lb : ∀ i, (fun ω ↦ W ω ⊓ Y ω) ≤ᵐ[P] fun ω ↦ X i ω ⊓ Y ω := fun i ↦
+    (hWX i).mono fun ω h ↦ inf_le_inf_right _ h
+  have hmin_ub : ∀ i, (fun ω ↦ X i ω ⊓ Y ω) ≤ᵐ[P] Y := fun i ↦ .of_forall fun ω ↦ inf_le_right
+  set u : ι → ℝ := fun i ↦ ∫ ω, X i ω ⊓ Y ω ∂P with hu_def
+  set v : ι → ℝ := fun i ↦ ∫ ω, max (X i ω - Y ω) 0 ∂P with hv_def
+  have h_pt : ∀ i ω, X i ω = X i ω ⊓ Y ω + max (X i ω - Y ω) 0 := by
+    intro i ω
+    rcases le_total (X i ω) (Y ω) with h | h
+    · rw [inf_of_le_left h, max_eq_right (by linarith), add_zero]
+    · rw [inf_of_le_right h, max_eq_left (by linarith)]
+      ring
+  have hsum : (fun i ↦ ∫ ω, X i ω ∂P) = u + v := by
+    funext i
+    rw [hu_def, hv_def, Pi.add_apply, ← integral_add (hmin_int i) (hpos_int i)]
+    exact integral_congr_ae (.of_forall (h_pt i))
+  have h_bdd_u : IsBoundedUnder (· ≤ ·) L u :=
+    isBoundedUnder_of ⟨∫ ω, Y ω ∂P, fun i ↦ integral_mono_ae (hmin_int i) hY (hmin_ub i)⟩
+  have h_cobdd_u : IsBoundedUnder (· ≥ ·) L u :=
+    isBoundedUnder_of ⟨∫ ω, W ω ⊓ Y ω ∂P, fun i ↦ integral_mono_ae hWY_int (hmin_int i) (hmin_lb i)⟩
+  have h_le : limsup (fun i ↦ ∫ ω, X i ω ∂P) L ≤ limsup u L :=
+    calc limsup (fun i ↦ ∫ ω, X i ω ∂P) L = limsup (u + v) L := by rw [hsum]
+      _ ≤ limsup u L + limsup v L :=
+        limsup_add_le h_cobdd_u h_bdd_u
+          (isCoboundedUnder_le_of_le L fun i ↦ integral_nonneg_of_ae
+            (.of_forall fun ω ↦ le_max_right _ _)) h_tendsto.isBoundedUnder_le
+      _ = limsup u L := by rw [show limsup v L = 0 from h_tendsto.limsup_eq, add_zero]
+  have hL_min_int : Integrable (fun ω ↦ limsup (fun i ↦ X i ω ⊓ Y ω) L) P := by
+    refine integrable_of_le_of_le
+      (aemeasurable_limsup fun i ↦ (hmin_int i).aemeasurable).aestronglyMeasurable ?_ ?_ hWY_int hY
+    · filter_upwards [hX_bdd, ae_all_iff.2 hmin_lb] with ω hbdd hlb
+      refine le_limsup_of_le (hbdd.mono_le (.of_forall fun i ↦ inf_le_left)) fun c hc ↦ ?_
+      obtain ⟨i, hi⟩ := (hc.and (Eventually.of_forall hlb)).exists
+      exact hi.2.trans hi.1
+    · filter_upwards [ae_all_iff.2 hmin_lb] with ω hlb
+      exact limsup_le_of_le (isCoboundedUnder_le_of_le L hlb)
+        (Eventually.of_forall fun i ↦ inf_le_right)
+  refine h_le.trans ((limsup_integral_le_integral_limsup_of_le_of_le'
+    (fun i ↦ (hmin_int i).aemeasurable) hWY_int hY hmin_lb hmin_ub).trans ?_)
+  refine integral_mono_ae hL_min_int hL_int ?_
+  filter_upwards [hX_bdd, ae_all_iff.2 hmin_lb] with ω hbdd hlb
+  exact limsup_le_limsup (.of_forall fun i ↦ inf_le_left)
+    (isCoboundedUnder_le_of_le L hlb) hbdd
+
+/-- Reverse Fatou's lemma for the lower Lebesgue integral along a countably generated filter,
+when the integral of the truncated difference `X i - g` tends to `0`. -/
+theorem limsup_lintegral_le_of_tendsto_lintegral_sub {Ω : Type*}
+    {mΩ : MeasurableSpace Ω} {P : Measure Ω} {ι : Type*} {L : Filter ι} [L.IsCountablyGenerated]
+    {X : ι → Ω → ℝ≥0∞} {g : Ω → ℝ≥0∞}
+    (hX_meas : ∀ i, AEMeasurable (X i) P) (hg_meas : AEMeasurable g P)
+    (hg_fin : ∫⁻ ω, g ω ∂P ≠ ∞)
+    (h_tendsto : Tendsto (fun i ↦ ∫⁻ ω, X i ω - g ω ∂P) L (𝓝 0)) :
+    limsup (fun i ↦ ∫⁻ ω, X i ω ∂P) L ≤ ∫⁻ ω, limsup (fun i ↦ X i ω) L ∂P := by
+  have hmin_meas : ∀ i, AEMeasurable (fun ω ↦ X i ω ⊓ g ω) P :=
+    fun i ↦ (hX_meas i).inf hg_meas
+  set u : ι → ℝ≥0∞ := fun i ↦ ∫⁻ ω, X i ω ⊓ g ω ∂P with hu_def
+  set v : ι → ℝ≥0∞ := fun i ↦ ∫⁻ ω, X i ω - g ω ∂P with hv_def
+  have hsum : (fun i ↦ ∫⁻ ω, X i ω ∂P) = u + v := by
+    funext i
+    rw [hu_def, hv_def, Pi.add_apply, ← lintegral_add_left' (hmin_meas i)]
+    refine lintegral_congr fun ω ↦ ?_
+    rw [add_comm, tsub_add_min]
+  have h_limsup : limsup (fun i ↦ ∫⁻ ω, X i ω ∂P) L = limsup u L := by
+    rw [hsum, ENNReal.limsup_add_of_right_tendsto_zero h_tendsto]
+  rw [h_limsup]
+  refine (limsup_lintegral_le' g hmin_meas (fun i ↦ .of_forall fun ω ↦ inf_le_right)
+    hg_fin).trans ?_
+  exact lintegral_mono fun ω ↦ limsup_le_limsup (.of_forall fun i ↦ inf_le_left)
+    isCobounded_le_of_bot isBounded_le_of_top
 
 /-- For each stopping time `τ`, `limsup (fun n => stoppedValue 𝒜^n τ) atTop = stoppedValue A τ`
 almost everywhere. -/
@@ -1366,6 +1917,7 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePa
     [OrderBot ι] [OrderTop ι] [OrderTopology ι] [DenselyOrdered ι] {mΩ : MeasurableSpace Ω}
     {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P)
     (hs : Submartingale S 𝓕 P) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ)
+    (hτ_ne : ∀ ω, τ ω ≠ ⊤) (hτ_count : (Set.range τ).Countable)
     (hc : ∀ᵐ ω ∂P, IsCadlag (S · ω)) :
     limsup (fun n => stoppedValue (predictableConvexStep hd hs n) τ) atTop =ᵐ[P]
       stoppedValue (predictablePartLim hd hs) τ := by
@@ -1386,7 +1938,7 @@ lemma limsup_stoppedValue_predictableConvexStep_ae_eq_stoppedValue_predictablePa
       ∫ ω, stoppedValue (predictablePartLim hd hs) τ ω ∂P =
         limsup (fun n => ∫ ω, stoppedValue (predictableConvexStep hd hs n) τ ω ∂P) atTop :=
         ((integral_stoppedValue_predictableConvexStep_tendsto_stoppedValue_predictablePartLim
-          hd hs hτ).limsup_eq).symm
+          hd hs hτ hτ_ne hτ_count hc).limsup_eq).symm
         -- Use Fatou's lemma for the following sorry
         -- We use integral instead of lintegral because
         -- 1. `ae_eq_of_ae_le_of_lintegral_le` is the analogue of `ae_eq_of_ae_le_of_lintegral_le`,

@@ -41,6 +41,29 @@ lemma HasBoundedCoveringNumber.coveringNumber_lt_top
     _ ≤ 1 := coveringNumber_le_one_of_ediam_le (not_le.mp hε_le).le
     _ < ⊤ := by simp
 
+/-- The covering condition at scale `diam A` bounds the diameter of `A` by `c ^ (1/d)`. -/
+lemma HasBoundedCoveringNumber.ediam_le
+    (h : HasBoundedCoveringNumber A c d) (hd : 0 < d) :
+    Metric.ediam A ≤ c ^ d⁻¹ := by
+  rcases eq_or_ne (Metric.ediam A) 0 with h0 | h0
+  · simp [h0]
+  have hA : A.Nonempty := by
+    rw [Set.nonempty_iff_ne_empty]
+    rintro rfl
+    simp at h0
+  have hε : ((Metric.ediam A).toNNReal : ℝ≥0∞) = Metric.ediam A :=
+    ENNReal.coe_toNNReal h.ediam_lt_top.ne
+  have h1 : 1 ≤ c * (Metric.ediam A)⁻¹ ^ d := by
+    refine le_trans ?_ (hε ▸ h.coveringNumber_le (Metric.ediam A).toNNReal hε.le)
+    exact_mod_cast Order.one_le_iff_pos.mpr (coveringNumber_pos_iff.mpr hA)
+  have h2 : Metric.ediam A ^ d ≤ c := by
+    have := mul_le_mul' h1 (le_refl (Metric.ediam A ^ d))
+    rwa [one_mul, mul_assoc, ← ENNReal.mul_rpow_of_ne_top (by simp [h0]) h.ediam_lt_top.ne,
+      ENNReal.inv_mul_cancel h0 h.ediam_lt_top.ne, ENNReal.one_rpow, mul_one] at this
+  calc Metric.ediam A = (Metric.ediam A ^ d) ^ d⁻¹ := by
+        rw [← ENNReal.rpow_mul, mul_inv_cancel₀ hd.ne', ENNReal.rpow_one]
+    _ ≤ c ^ d⁻¹ := ENNReal.rpow_le_rpow h2 (by positivity)
+
 lemma HasBoundedCoveringNumber.subset {B : Set T}
     (h : HasBoundedCoveringNumber A c d) (hBA : B ⊆ A) (hd : 0 ≤ d) :
     HasBoundedCoveringNumber B (2 ^ d * c) d := by
@@ -81,7 +104,6 @@ structure IsCoverWithBoundedCoveringNumber (C : ℕ → Set T) (A : Set T) (c : 
   mono : ∀ n m, n ≤ m → C n ⊆ C m
   subset_iUnion : A ⊆ ⋃ i, C i
 
-set_option backward.isDefEq.respectTransparency false in
 open scoped Pointwise in
 lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
     IsCoverWithBoundedCoveringNumber (fun n ↦ Set.Ico (0 : ℝ≥0) (n + 1)) Set.univ

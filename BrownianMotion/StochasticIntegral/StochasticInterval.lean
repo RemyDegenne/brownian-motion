@@ -155,7 +155,7 @@ private lemma slice_eq_empty_of_bound {n : ℕ} (hτn : ∀ ω, τ ω ≤ n) {i 
 `ℕ` (blueprint `lem:elementaryPredictableSet_stochasticInterval`). With `τ ≤ n`,
 `]]σ,τ]] = ⋃_{i < n} (i, i+1] × {σ ≤ i < τ}` is a finite disjoint union of
 predictable rectangles, which is exactly the data of an `ElementaryPredictableSet`. -/
-theorem exists_elementaryPredictableSet (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ)
+lemma exists_elementaryPredictableSet (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ)
     {n : ℕ} (hτn : ∀ ω, τ ω ≤ n) :
     ∃ S : ElementaryPredictableSet 𝓕, (S : Set (ℕ × Ω)) = stochIoc σ τ := by
   refine ⟨{

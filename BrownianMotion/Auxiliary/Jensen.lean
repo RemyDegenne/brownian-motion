@@ -28,7 +28,7 @@ variable {Ω E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpac
 
 variable [IsFiniteMeasure μ]
 
-theorem norm_condExp_le (f : Ω → E) :
+lemma norm_condExp_le (f : Ω → E) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ ≤ μ[fun ω ↦ ‖f ω‖|m] ω := by
   by_cases hm : m ≤ mΩ
   swap; · simp [condExp_of_not_le, hm]
@@ -38,14 +38,14 @@ theorem norm_condExp_le (f : Ω → E) :
   swap; · filter_upwards [this]; simp [condExp_of_not_integrable, hf]
   exact convexOn_univ_norm.map_condExp_le_univ hm continuous_norm.lowerSemicontinuous hf hf.norm
 
-theorem enorm_condExp_le (f : Ω → E) :
+lemma enorm_condExp_le (f : Ω → E) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ₑ ≤ .ofReal (μ[fun ω ↦ ‖f ω‖|m] ω) := by
   have : 0 ≤ᵐ[μ] μ[fun ω ↦ ‖f ω‖|m] :=
     condExp_nonneg (ae_of_all _ fun _ ↦ by positivity)
   filter_upwards [norm_condExp_le f, this] with ω hω1 hω2
   rwa [le_ofReal_iff_toReal_le (by simp) hω2, toReal_enorm]
 
-theorem norm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p ≠ ∞) (hf : MemLp f p μ) :
+lemma norm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p ≠ ∞) (hf : MemLp f p μ) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ ^ p.toReal ≤ μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] ω := by
   by_cases hm : m ≤ mΩ
   swap; · simp [condExp_of_not_le, hm, (toReal_pos_of_one_le one_le_p p_ne_top).ne']
@@ -56,7 +56,7 @@ theorem norm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p
     (convexOn_rpow_norm (one_le_toReal one_le_p p_ne_top))
     hc.lowerSemicontinuous (hf.integrable one_le_p) hf'] with _ h using h
 
-theorem enorm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p ≠ ∞) (hf : MemLp f p μ) :
+lemma enorm_rpow_condExp_le {p : ℝ≥0∞} (one_le_p : 1 ≤ p) (p_ne_top : p ≠ ∞) (hf : MemLp f p μ) :
     ∀ᵐ ω ∂μ, ‖μ[f|m] ω‖ₑ ^ p.toReal ≤ .ofReal (μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] ω) := by
   have : 0 ≤ᵐ[μ] μ[fun ω ↦ ‖f ω‖ ^ p.toReal|m] :=
     condExp_nonneg (ae_of_all _ fun _ ↦ by positivity)
@@ -79,13 +79,13 @@ lemma ofReal_condExp_norm_ae_le_eLpNormEssSup (hf : AEStronglyMeasurable f μ) :
   exact ofReal_le_of_le_toReal (by simpa [condExp_const hm] using hω)
 
 omit [IsFiniteMeasure μ] in
-theorem MemLp.condExp' {p : ℝ≥0∞} (hp : 1 ≤ p) (hf : MemLp f p μ) :
+lemma MemLp.condExp' {p : ℝ≥0∞} (hp : 1 ≤ p) (hf : MemLp f p μ) :
     MemLp μ[f|m] p μ :=
   ⟨integrable_condExp.aestronglyMeasurable, (eLpNorm_condExp_le_eLpNorm f hp).trans_lt hf.2⟩
 
 /-- If a function `f` is bounded almost everywhere by `R`, then so is its conditional
 expectation. -/
-theorem ae_bdd_condExp_of_ae_bdd' {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ R) :
+lemma ae_bdd_condExp_of_ae_bdd' {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂μ, ‖f ω‖ ≤ R) :
     ∀ᵐ x ∂μ, ‖(μ[f|m]) x‖ ≤ R := by
   obtain rfl | hμ := eq_or_ne μ 0
   · simp
@@ -101,10 +101,9 @@ theorem ae_bdd_condExp_of_ae_bdd' {R : ℝ} {f : Ω → E} (hbdd : ∀ᵐ ω ∂
     (integrable_const _) hbdd] with ω hω1 hω2
   grw [hω1, hω2, condExp_const hm]
 
-set_option backward.isDefEq.respectTransparency false in
 /-- Given an integrable function `g`, the conditional expectations of `g` with respect to
 a sequence of sub-σ-algebras is uniformly integrable. -/
-theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
+lemma Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     (hint : Integrable g μ) {ℱ : ι → MeasurableSpace Ω} (hℱ : ∀ i, ℱ i ≤ mΩ) :
     UniformIntegrable (fun i => μ[g|ℱ i]) 1 μ := by
   let A : MeasurableSpace Ω := mΩ
@@ -121,8 +120,12 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     filter_upwards [condExp_congr_ae (m := ℱ n) hne] with x hx
     simp only [zero_le, Set.ofPred_true, Set.indicator_univ, Pi.zero_apply, hx, condExp_zero]
   obtain ⟨δ, hδ, h⟩ := hg.eLpNorm_indicator_le le_rfl ENNReal.one_ne_top hε
-  set C : ℝ≥0 := ⟨δ, hδ.le⟩⁻¹ * (eLpNorm g 1 μ).toNNReal with hC
-  have hCpos : 0 < C := mul_pos (inv_pos.2 hδ) (ENNReal.toNNReal_pos hne hg.eLpNorm_lt_top.ne)
+  set C : ℝ≥0 := δ.toNNReal⁻¹ * (eLpNorm g 1 μ).toNNReal with hC
+  have hCpos : 0 < C := mul_pos (inv_pos.2 (Real.toNNReal_pos.2 hδ))
+    (ENNReal.toNNReal_pos hne hg.eLpNorm_lt_top.ne)
+  have hδC : ENNReal.ofReal δ * (C : ℝ≥0∞) = eLpNorm g 1 μ := by
+    rw [← Real.coe_toNNReal δ hδ.le, ← ENNReal.coe_nnreal_eq, ← ENNReal.coe_mul, hC,
+      mul_inv_cancel_left₀ (Real.toNNReal_pos.2 hδ).ne', ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne]
   have : ∀ n, μ {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} ≤ ENNReal.ofReal δ := by
     intro n
     have : C ^ ENNReal.toReal 1 * μ {x | ENNReal.ofNNReal C ≤ ‖μ[g|ℱ n] x‖₊} ≤
@@ -138,14 +141,8 @@ theorem Integrable.uniformIntegrable_condExp' {ι : Type*} {g : Ω → E}
     simp_rw [ENNReal.coe_le_coe] at this
     refine this.trans ?_
     rw [ENNReal.div_le_iff_le_mul (Or.inl (ENNReal.coe_ne_zero.2 hCpos.ne'))
-        (Or.inl ENNReal.coe_lt_top.ne),
-      hC, Nonneg.inv_mk, ENNReal.coe_mul, ENNReal.coe_toNNReal hg.eLpNorm_lt_top.ne, ← mul_assoc,
-      ENNReal.coe_nnreal_eq, ← ENNReal.ofReal_mul hδ.le, rpow_one]
-    convert eLpNorm_condExp_le_eLpNorm _ le_rfl
-    · convert one_mul _
-      simp only [ofReal_eq_one]
-      exact mul_inv_cancel₀ hδ.ne'
-    · infer_instance
+        (Or.inl ENNReal.coe_lt_top.ne), hδC, rpow_one]
+    exact eLpNorm_condExp_le_eLpNorm _ le_rfl
   refine ⟨C, fun n => le_trans ?_ (h {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} (hmeas n C) (this n))⟩
   have hmeasℱ : MeasurableSet[ℱ n] {x : Ω | C ≤ ‖(μ[g|ℱ n]) x‖₊} :=
     @StronglyMeasurable.measurableSet_le _ _ (ℱ n) _ _ _ _ _ _ stronglyMeasurable_const

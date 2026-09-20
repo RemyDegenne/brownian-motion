@@ -190,6 +190,20 @@ We say that a martingale $M : T \to \Omega \to E$ is square integrable if it is 
 \end{definition}
 
 
+\begin{lemma}\label{lem:IsSquareIntegrable.uniformIntegrable}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.uniformIntegrable}
+  A square integrable martingale is uniformly integrable.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:uniformIntegrable_of_bounded}
+Apply Lemma~\ref{lem:uniformIntegrable_of_bounded}.
+\end{proof}
+
+
 \subsection{The Hilbert space of square integrable martingales}
 
 
@@ -258,7 +272,7 @@ TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tends
 \begin{lemma}\label{lem:IsSquareIntegrable.limitProcess_add}
   \uses{def:IsSquareIntegrable, def:limitProcess}
   \leanok
-  \lean{ProbabilityTheory.IsSquareIntegrable.limitProcess_add}
+  \lean{ProbabilityTheory.IsAESquareIntegrable.limitProcess_add}
 For $M$ and $N$ two square integrable martingales, $(M + N)_\infty$ and $M_\infty + N_\infty$ are a.e. equal.
 \end{lemma}
 
@@ -268,8 +282,101 @@ Lemma~\ref{lem:limitProcess_ae_eq} with $g := M_\infty + N_\infty$.
 \end{proof}
 
 
+\begin{lemma}\label{lem:IsSquareIntegrable.limitProcess_sub}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsAESquareIntegrable.limitProcess_sub}
+For $M$ and $N$ two square integrable martingales, $(M - N)_\infty$ and $M_\infty - N_\infty$ are a.e. equal.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:IsSquareIntegrable.tendsto_limitProcess}
+Lemma~\ref{lem:limitProcess_ae_eq} with $g := M_\infty - N_\infty$.
+\end{proof}
+
+
+\begin{lemma}\label{lem:condExp_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.condExp_limitProcess_ae_eq}
+  For $M$ a square integrable martingale and $t \in T$, we have that $P[X_\infty | \mathcal{F}_t]$ is a.e. equal to $X_t$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:condExp_limitProcess, lem:IsSquareIntegrable.uniformIntegrable}
+  Apply Theorem~\ref{thm:condExp_limitProcess}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:condExp_limitProcess_stopped}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.condExp_limitProcess_ae_eq'}
+  For $M$ a square integrable martingale and $\tau$ a stopping time, we have that $P[X_\infty | \mathcal{F}_\tau]$ is a.e. equal to $X_\tau$.
+\end{lemma}
+
+\begin{proof}\leanok
+  \uses{thm:condExp_limitProcess_stopped, lem:IsSquareIntegrable.uniformIntegrable}
+  Apply Theorem~\ref{thm:condExp_limitProcess_stopped}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:iSup_eLpNorm_le_eLpNorm_limitProcess}
+  \uses{def:limitProcess}
+  \leanok
+  \lean{MeasureTheory.iSup_eLpNorm_le_eLpNorm_limitProcess}
+For $M$ a càdlàg and uniformly integrable martingale,
+$$\sup_{t \in T} \Vert M_t \Vert_2 \le \Vert M_\infty \Vert_2.$$
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:condExp_limitProcess}
+By Lemma~\ref{lem:condExp_limitProcess}, We have that $P[M_\infty | \mathcal{F}_t] = M t$ almost surely, thus
+$$\|M_t\|_2 = \|P[M_\infty | \mathcal{F}_t]\|_2 \le \|M_\infty\|_2,$$
+where the last inequality is \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Function/ConditionalExpectation/Real.html#MeasureTheory.eLpNorm_condExp_le_eLpNorm}{eLpNorm\_condExp\_le\_eLpNorm}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isSquareIntegrable_of_limitProcess}
+  \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.isSquareIntegrable_of_limitProcess}
+A càdlàg and uniformly integrable martingale $M$ is square integrable if and only if $M_\infty$ is in $\mathrm L^2$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:IsSquareIntegrable.iSup_eLpNorm_le_eLpNorm_limitProcess}
+It is a càdlàg martingale by hypothesis, and the bound follows from Lemma~\ref{lem:IsSquareIntegrable.iSup_eLpNorm_le_eLpNorm_limitProcess}.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsSquareIntegrable.stoppedProcess}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.stoppedProcess}
+If $M$ is a square integrable martingale and $\tau$ is a stopping time, then $M^\tau$ is a square integrable martingale.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:isSquareIntegrable_of_limitProcess, lem:Martingale.classD_iff_uniformIntegrable, cor:doob_lp_norm_top, lem:IsSquareIntegrable.uniformIntegrable, lem:limitProcess_stoppedProcess}
+We apply Lemma~\ref{lem:isSquareIntegrable_of_limitProcess}. First, $M^\tau$ is a martingale. Moreover, $M$ is uniformly integrable by Lemma~\ref{lem:IsSquareIntegrable.uniformIntegrable}, thus it is of class D by Lemma~\ref{lem:Martingale.classD_iff_uniformIntegrable}, thus $M^\tau$ is uniformly integrable. Finally, we have
+\begin{align*}
+  \|M^\tau_\infty\|_2^2 & = \|M_\tau\|^2 \\
+  & \le \int (\sup_t \|M_t(\omega)\|)^2 P(\mathrm d\omega) \\
+  & \le 4 \|M_\infty\|^2_2 \\
+  & < \infty.
+\end{align*}
+The first equality follows from Lemma~\ref{lem:limitProcess_stoppedProcess}. The first inequality is obtained as follows: if $\tau(\omega) = \infty$, then $M_\tau = M_\infty$ and $M_t \longrightarrow M_\infty$ almost surely so $\|M_\infty(\omega)\| \le \sup_t \|M_t(\omega)\|$. Otherwise the inequality is obvious. The second inequality is Corollary~\ref{cor:doob_lp_norm_top}.
+\end{proof}
+
+
 \begin{lemma}\label{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
+  \leanok
+  \lean{ProbabilityTheory.IsSquareIntegrable.iSup_eLpNorm_eq_eLpNorm_limitProcess}
 For $M$ a square integrable martingale,
 \begin{align*}
   \sup_{t \in T} \Vert M_t \Vert_{L^2}
@@ -296,16 +403,43 @@ For $M$ a square integrable martingale,
 
 \end{proof}
 
-\begin{lemma}\label{lem:condExp_limitProcess}
+
+\begin{lemma}\label{lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
   \leanok
-  \lean{ProbabilityTheory.IsSquareIntegrable.condExp_limitProcess_ae_eq}
-  For $M$ a square integrable martingale and $t \in T$, we have that $P[X_\infty | \mathcal{F}_t]$ is a.e. equal to $X_t$.
+  \lean{ProbabilityTheory.IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}
+If $M$ is a square integrable random variable, then
+$$\left(\int (\sup_t \|X_t(\omega)\|)^2\right)^{1/2} \mathrm d\omega \le 2 \|X_\infty\|_2.$$
 \end{lemma}
 
 \begin{proof}
-
+  \leanok
+  \uses{cor:doob_lp_norm_top, lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}
+Combine Corollary~\ref{cor:doob_lp_norm_top}, the fact that suprema commute with power, and Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}.
 \end{proof}
+
+
+\begin{lemma}\label{lem:memLp_two_stoppedValue}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsAESquareIntegrable.memLp_two_stoppedValue'}
+If $M$ is a square integrable martingale and $\tau$ is a stopping time, then $M_\tau$ is in $\mathrm L^2$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:limitProcess_stoppedProcess, lem:IsSquareIntegrable.stoppedProcess}
+This follows from the fact that $M_\tau = M^\tau_\infty$ by Lemma~\ref{lem:limitProcess_stoppedProcess}, $M^\tau$ is square integrable by Lemma~\ref{lem:IsSquareIntegrable.stoppedProcess} and the stopped process of a square integrable martingale is in $\mathrm L^2$.
+\end{proof}
+
+
+\begin{definition}\label{def:IsPurelyDiscontinuous}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.IsPurelyDiscontinuous}
+A stochastic process $X$ is purely discontinuous if it is a square integrable martingale such that for any continuous square integrable martingale $Y$,
+$$P[\langle X_\infty, Y_\infty\rangle] = 0.$$
+\end{definition}
 
 
 \begin{definition}\label{def:L2Martingales}
@@ -324,14 +458,14 @@ The space $\mathcal{M}^2(E)$ is a real vector space.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:IsSquareIntegrable.module, lem:limitProcess_congr, lem:limitProcess_add, lem:limitProcess_smul}
+  \uses{lem:IsSquareIntegrable.module, lem:limitProcess_congr, lem:IsSquareIntegrable.limitProcess_add, lem:limitProcess_smul}
 \end{proof}
 
 
 \begin{definition}\label{def:L2Martingales.norm}
   \uses{def:L2Martingales, def:limitProcess}
   \leanok
-  \lean{ProbabilityTheory.SquareIntegrable.normedAddCommGroup}
+  \lean{ProbabilityTheory.instNormedAddCommGroupSquareIntegrable}
 We define a norm on $\mathcal{M}^2$ by
 \begin{align*}
   \Vert M \Vert = \Vert M_\infty \Vert_{L^2}
@@ -356,7 +490,7 @@ By Lemma~\ref{lem:IsSquareIntegrable.sup_eLpNorm_eq_eLpNorm_limitProcess}, $\Ver
 \begin{definition}\label{def:L2Martingales.inner}
   \uses{def:L2Martingales.norm}
   \leanok
-  \lean{ProbabilityTheory.SquareIntegrable.innerProductSpace}
+  \lean{ProbabilityTheory.instInnerProductSpaceRealSquareIntegrable}
 We define an inner product on $\mathcal{M}^2$ by
 \begin{align*}
   \langle M, N \rangle_{\mathcal{M}^2} = \mathbb{E}[M_\infty N_\infty]
@@ -368,7 +502,7 @@ We define an inner product on $\mathcal{M}^2$ by
 \begin{theorem}\label{thm:hilbertSpace_L2Martingales}
   \uses{def:L2Martingales.inner, lem:L2Martingales.norm_eq_zero}
   \leanok
-  \lean{ProbabilityTheory.SquareIntegrable.completeSpace}
+  \lean{ProbabilityTheory.instCompleteSpaceSquareIntegrableOfOrderTopology}
 If $T$ is separable then the space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
@@ -385,6 +519,9 @@ If $T$ is separable then the space $\mathcal{M}^2$ is a Hilbert space.
 
   Let $f \in L^2(E, P)$ be a.e. strongly measurable with respect to $\bigsqcup_t \mathcal{F}_t$. Then by Lemma~\ref{lem:tendsto_ae_condExp} we know that almost surely $P[f | \mathcal{F}_t]$ converges to $f$. Because $T$ is separable we can consider $(t_n)$ a sequence of points that tends to infinity. Because $\psi(f)$ and $P[f | \mathcal{F}_t]$ are modifications of each other, we have that almost surely, for all $n \in \mathcal{N}$, $\psi(f)_{t_n} = P[f | \mathcal{F}_{t_n}]$. But we also know that $\psi(f)_{t_n}$ converges to $\psi(f)_\infty$ so we conclude that $\psi(f)_\infty$ is a.e. equal to f.
 \end{proof}
+
+
+
 
 
 \subsection{Elementary stochastic integrals}
@@ -440,6 +577,190 @@ By Lemma~\ref{lem:eLpNorm_elemStochIntegralBilin_le}, this supremum is bounded b
 \end{proof}
 
 
+\begin{definition}\label{def:continuousSquareIntegrable}
+  \uses{def:L2Martingales}
+  \leanok
+  \lean{ProbabilityTheory.continuousSquareIntegrable}
+We denote by $\mathcal{M}^{2,c}$ the submodule of $\mathcal{M}^2$ made of continuous square integrable martingales.
+\end{definition}
+
+
+\begin{lemma}\label{lem:exists_subsequence_ae_tendsto_uniformly}
+  \uses{def:IsSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.exists_subsequence_ae_tendsto_uniformly}
+Let $(M^{(n)})$ be a sequence of square integrable martingales and $N$ be a square integrable martingale such that $\|M^{(n)}_\infty - N_\infty\|_2 \longrightarrow_{n \to +\infty} 0$. Then there exists $\phi : \mathbb{N} \to \mathbb{N}$ increasing such that, almost surely, $M^{(\phi(n))}_\cdot(\omega)$ converges uniformly to $N_\cdot(\omega)$ as $n$ goes to infinity.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}
+We can find $\phi$ increasing such that $\|M^{(\phi(n))}_\infty - N_\infty\|_2 \le 1/2^n$. Then,
+\begin{align*}
+  P[\sum_n \sup_t \|M^{(\phi(n))}_t -  N_t\|] & = \sum_n P[\sup_t \|M^{(\phi(n))}_t -  N_t\|] \\
+  & \le \sqrt{P(\Omega)} \sum_n P[(\sup_t \|M^{(\phi(n))}_t -  N_t\|)^2]^{1/2} \\
+  & \le 2 \sqrt{P(\Omega)} \|M^{(\phi(n))}_\infty - N_\infty\|_2 < \infty,
+\end{align*}
+Where the second inequality is Lemma~\ref{lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}. In particular, almost surely, $\sum_n \sup_t \|M^{(\phi(n))}_t -  N_t\| < \infty$ and thus $\sup_t \|M^{(\phi(n))}_t -  N_t\| \longrightarrow_{n \to +\infty} 0$, which concludes the proof.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isClosed_continuousSquareIntegrable}
+  \uses{def:continuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.instIsClosedSquareIntegrableCoeSubmoduleRealContinuousSquareIntegrableOfIsCompleteOfOrderTopology}
+The submodule $\mathcal{M}^{2,c}$ is closed in the Hilbert space $\mathcal{M}^2$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:exists_subsequence_ae_tendsto_uniformly}
+Take $M^{(n)}$ a sequence of continuous square integrable martingales that converges to $N$ in $\mathcal{M}^2$. This means that $\|M^{(n)}_\infty - N_\infty\|$ goes to zero as $n$ goes to infinity, which means that there exists $\phi$ increasing such that, almost surely, $M^{(\phi(n))}_\cdot(\omega)$ converges uniformly to $N_\cdot(\omega)$ as $n$ goes to infinity (Lemma~\ref{lem:exists_subsequence_ae_tendsto_uniformly}). As each $M^{(\phi(n))}(\omega)$ is continuous, $N(\omega)$ is also continuous.
+\end{proof}
+
+
+\begin{definition}\label{def:continuousPartSquareIntegrable}
+  \uses{def:continuousSquareIntegrable, lem:isClosed_continuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.continuousPart}
+If $M$ is a square integrable martingale, we define its \emph{continuous part} as the orthogonal projection of $M$ onto the closed subspace $\mathcal{M}^{2,c}$. We denote it by $M^c$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:continuous_continuousPart}
+  \uses{def:continuousPartSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.continuous_continuousPart}
+The continuous part of a square integrable martingale is continuous.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{def:continuousPartSquareIntegrable}
+By definition of the orthogonal projection.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isSquareIntegrable_continuousPart}
+  \uses{def:continuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.isSquareIntegrable_continuousPart}
+The continuous part of a square integrable martingale is a square integrable martingale.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{def:continuousPartSquareIntegrable}
+By definition of the orthogonal projection.
+\end{proof}
+
+
+\begin{definition}\label{def:discontinuousPart}
+  \uses{def:continuousPartSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.discontinuousPart}
+If $M$ is a square integrable martingale, we define its \emph{discontinuous part} by $M^d := M - M^c$.
+\end{definition}
+
+
+\begin{lemma}\label{lem:isSquareIntegrable_discontinuousPart}
+  \uses{def:continuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.isSquareIntegrable_continuousPart}
+The discontinuous part of a square integrable martingale is a square integrable martingale.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{def:discontinuousPart, lem:isSquareIntegrable_continuousPart}
+By definition.
+\end{proof}
+
+
+\begin{definition}\label{def:discontinuousSquareIntegrable}
+  \uses{def:continuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.discontinuousSquareIntegrable}
+We denote by $\mathcal{M}^{2,d}$ the orthogonal of $\mathcal{M}^{2,c}$ and call its elements purely discontinuous square integrable martingales.
+\end{definition}
+
+
+\begin{lemma}\label{lem:mem_discontinuousSquareIntegrable}
+  \uses{def:IsPurelyDiscontinuous, def:discontinuousSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.mem_discontinuousSquareIntegrable}
+If $M$ is a purely discontinuous martingale in the sense of Definition~\ref{def:IsPurelyDiscontinuous}, then it belongs to $\mathcal{M}^{2,d}$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+By definition of the orthogonal projection.
+\end{proof}
+
+
+\begin{lemma}\label{lem:isPurelyDiscontinuous_discontinuousPart}
+  \uses{def:IsPurelyDiscontinuous, def:discontinuousPart}
+  \leanok
+  \lean{ProbabilityTheory.isPurelyDiscontinuous_discontinuousPart}
+The discontinuous part of square integrable martingale is purely discontinuous.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+By definition of the orthogonal projection.
+\end{proof}
+
+
+\begin{lemma}\label{lem:unique_continuousPart}
+  \uses{def:continuousPartSquareIntegrable, def:discontinuousPart}
+  \leanok
+  \lean{ProbabilityTheory.indist_continuousPart, ProbabilityTheory.indist_discontinuousPart}
+If $M$ is a square integrable martingale, then the decomposition $M = M^c + M^d$ as the sum of a continuous and a purely discontinuous square integrable martingales is unique up to indistinguishability.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+A closed subspace is the complement of its orthogonal subspace.
+\end{proof}
+
+
+\begin{lemma}\label{lem:IsPurelyDiscontinuous.stoppedProcess}
+  \uses{def:IsPurelyDiscontinuous}
+  \leanok
+  \lean{ProbabilityTheory.IsPurelyDiscontinuous.stoppedProcess}
+If $M$ is a purely discontinuous martingale and $\tau$ is a stopping time, then $M^\tau$ is a purely discontinuous martingale.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:IsSquareIntegrable.stoppedProcess, lem:limitProcess_stoppedProcess, lem:condExp_limitProcess_stopped}
+By Lemma~\ref{lem:IsSquareIntegrable.stoppedProcess} $M^\tau$ is a square integrable martingale. Let $N$ be a continuous square integrable martingale. Then again by Lemma~\ref{lem:IsSquareIntegrable.stoppedProcess}, $N^\tau$ is a continuous square integrable martingale. We thus have
+\begin{align*}
+  P[\langle M^\tau_\infty, N_\infty\rangle] & = P[\langle M_\tau, N_\infty\rangle] \\
+  & = P[\langle M_\tau, P[M_\infty | \mathcal{F}_\tau]\rangle] \\
+  & = P[\langle M_\tau, N_\tau\rangle] \\
+  & = P[\langle M_\infty, N_\tau\rangle] \\
+  & = 0.
+\end{align*}
+The first equality is Lemma~\ref{lem:limitProcess_stoppedProcess}, the second is the pull-out property of the conditional expectation, the third one is Lemma~\ref{lem:condExp_limitProcess_stopped}, the fourth one is the same as before and the last one is the fact that $M$ is purely discontinuous while $N^\tau$ is continuous.
+\end{proof}
+
+
+\begin{lemma}\label{lem:continuousPart_stoppedProcess}
+  \uses{def:continuousPartSquareIntegrable}
+  \leanok
+  \lean{ProbabilityTheory.continuousPart_stoppedProcess, ProbabilityTheory.discontinuousPart_stoppedProcess}
+If $M$ is a square integrable martingale and $\tau$ is a stopping time, then $(M^\tau)^c = (M^c)^\tau$ and $(M^\tau)^d = (M^d)^\tau$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:unique_continuousPart, lem:IsPurelyDiscontinuous.stoppedProcess}
+We can write $M^\tau = (M^c + M^d)^\tau = (M^c)^\tau + (M^d)^\tau$. We conclude by Lemma~\ref{lem:unique_continuousPart} thanks to Lemma~\ref{lem:IsPurelyDiscontinuous.stoppedProcess}.
+\end{proof}
+
+
+
 \begin{lemma}\label{lem:inner_elemStochIntegral}
   \uses{def:IsSquareIntegrable, def:elemStochIntegralBilin, lem:isSquareIntegrable_elemStochIntegralBilin}
 For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
@@ -453,8 +774,6 @@ For $V \in \mathcal{E}_{T, \mathbb{R}}$ and $M, N \in \mathcal{M}^2$, we have
 \begin{proof}
 
 \end{proof}
-
-
 
 
 

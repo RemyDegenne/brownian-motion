@@ -22,7 +22,7 @@ lemma Monotone.const_smul_of_nonneg {ι α M : Type*} [Preorder ι] [Preorder α
     Monotone fun i ↦ c • f i :=
   fun _ _ hab ↦ smul_le_smul_of_nonneg_left (hf hab) hc
 
-theorem div_left_injective₀ {G₀ : Type*} [CommGroupWithZero G₀] {c : G₀} (hc : c ≠ 0) :
+lemma div_left_injective₀ {G₀ : Type*} [CommGroupWithZero G₀] {c : G₀} (hc : c ≠ 0) :
     Function.Injective fun x ↦ x / c := by
   intro x y hxy
   apply mul_eq_mul_of_div_eq_div x y hc hc at hxy

@@ -238,14 +238,11 @@ lemma isPosSemidef_iff_bilinForm :
 
 variable {f} [Fintype n] [DecidableEq n]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
     (b : Basis n ℝ E) :
     f.IsPosSemidef ↔ (LinearMap.BilinForm.toMatrix b f).PosSemidef := by
-  classical
-  rw [LinearMap.BilinForm.isPosSemidef_iff, LinearMap.BilinForm.toMatrix]
-  rw [LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
-  rfl
+  rw [LinearMap.BilinForm.isPosSemidef_iff, LinearMap.BilinForm.toMatrix,
+    LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
 
 lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
   rw [isPosSemidef_iff, Matrix.posSemidef_iff_dotProduct_mulVec]

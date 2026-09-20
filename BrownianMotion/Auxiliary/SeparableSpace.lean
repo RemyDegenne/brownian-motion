@@ -29,7 +29,7 @@ open scoped Topology
 variable {α : Type*} [LinearOrder α] [TopologicalSpace α] [OrderTopology α]
 
 /-- A dense set contains every point whose singleton is open, that is, every isolated point. -/
-theorem Dense.mem_of_isOpen_singleton {X : Type*} [TopologicalSpace X] {s : Set X} {x : X}
+lemma Dense.mem_of_isOpen_singleton {X : Type*} [TopologicalSpace X] {s : Set X} {x : X}
     (hs : Dense s) (hx : IsOpen {x}) : x ∈ s := by
   obtain ⟨y, hys, hy⟩ := hs.exists_mem_open hx ⟨x, rfl⟩
   grind
@@ -38,7 +38,7 @@ section OrdConnected
 
 /-- Every point `x` of an open set `U` has an open order connected neighbourhood contained in `U`.
 -/
-theorem exists_isOpen_ordConnected_mem_subset {U : Set α} (hU : IsOpen U) {x : α} (hx : x ∈ U) :
+lemma exists_isOpen_ordConnected_mem_subset {U : Set α} (hU : IsOpen U) {x : α} (hx : x ∈ U) :
     ∃ V, IsOpen V ∧ V.OrdConnected ∧ x ∈ V ∧ V ⊆ U := by
   refine ⟨interior (ordConnectedComponent U x), isOpen_interior, ⟨fun y hy z hz w hw ↦ ?_⟩,
     mem_interior_iff_mem_nhds.2 (ordConnectedComponent_mem_nhds.2 (hU.mem_nhds hx)),
@@ -52,14 +52,14 @@ theorem exists_isOpen_ordConnected_mem_subset {U : Set α} (hU : IsOpen U) {x : 
 
 /-- The open order connected sets form a topological basis of a linearly ordered topological
 space. -/
-theorem isTopologicalBasis_isOpen_ordConnected :
+lemma isTopologicalBasis_isOpen_ordConnected :
     IsTopologicalBasis {V : Set α | IsOpen V ∧ V.OrdConnected} :=
   isTopologicalBasis_of_isOpen_of_nhds (fun _ hu ↦ hu.1) fun _ _ ha hu ↦
     let ⟨V, hVo, hVc, haV, hVu⟩ := exists_isOpen_ordConnected_mem_subset hu ha
     ⟨V, ⟨hVo, hVc⟩, haV, hVu⟩
 
 /-- The open order connected sets containing a point form a basis of its neighbourhood filter. -/
-theorem nhds_basis_isOpen_ordConnected (x : α) :
+lemma nhds_basis_isOpen_ordConnected (x : α) :
     (𝓝 x).HasBasis (fun V : Set α ↦ (IsOpen V ∧ V.OrdConnected) ∧ x ∈ V) id :=
   isTopologicalBasis_isOpen_ordConnected.nhds_hasBasis
 
@@ -81,7 +81,7 @@ private lemma countable_isolated_inter_Ioi_aux [SeparableSpace α] {s : Set α} 
 
 /-- In a separable linearly ordered topological space, the points of a subset `s` that are
 isolated in the subspace `s` form a countable set. -/
-theorem countable_setOf_isolated_subtype [SeparableSpace α] (s : Set α) :
+lemma countable_setOf_isolated_subtype [SeparableSpace α] (s : Set α) :
     {x : s | IsOpen {x}}.Countable := by
   obtain ⟨D, hDc, hDd⟩ := exists_countable_dense α
   -- Each such point `x` has an open order connected neighbourhood `W x` meeting `s` only in `x`.

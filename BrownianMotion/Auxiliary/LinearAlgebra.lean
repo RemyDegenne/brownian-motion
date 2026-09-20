@@ -58,18 +58,17 @@ lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLi
     · simp
   · simp [h]
 
-theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
+lemma OrthonormalBasis.norm_sq_eq_sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
     ‖x‖ ^ 2 = ∑ i, ⟪b i, x⟫_ℝ ^ 2 := by
   rw [← b.sum_sq_norm_inner_right]
   simp
 
-theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
+lemma OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
     ‖x‖ ^ 2 = ∑ i, ⟪x, b i⟫_ℝ ^ 2 := by
   simp_rw [b.norm_sq_eq_sum_sq_inner_right, real_inner_comm]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpace ℝ ι) :
     ⟪x, y⟫_ℝ = ∑ i, x i * y i := by
   nth_rw 1 [← (EuclideanSpace.basisFun ι ℝ).sum_repr' x, sum_inner]

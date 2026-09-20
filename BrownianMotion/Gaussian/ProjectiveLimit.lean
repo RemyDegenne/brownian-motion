@@ -29,7 +29,7 @@ variable {ι : Type*} [Finite ι]
 variable {α : Type*} {mα : MeasurableSpace α} {μ : Measure α}
 
 /- In an `L2` space, the matrix of intersections of pairs of sets is positive semi-definite. -/
-theorem posSemidef_interMatrix {μ : Measure α} {v : ι → (Set α)}
+lemma posSemidef_interMatrix {μ : Measure α} {v : ι → (Set α)}
     (hv₁ : ∀ j, MeasurableSet (v j)) (hv₂ : ∀ j, μ (v j) ≠ ∞ := by finiteness) :
     Matrix.PosSemidef (Matrix.of fun i j : ι ↦ μ.real (v i ∩ v j)) := by
   simp only [hv₁, ne_eq, hv₂, not_false_eq_true,

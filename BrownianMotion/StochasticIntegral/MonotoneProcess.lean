@@ -214,13 +214,13 @@ variable [AddCommMonoid E] [TopologicalSpace E] [MeasurableSpace E] [BorelSpace 
 instance : MeasurableSpace (VectorMeasure ι E) :=
   ⨆ (s : Set ι) (_ : MeasurableSet s), (borel E).comap fun μ => μ s
 
-theorem measurable_coe {s : Set ι} (hs : MeasurableSet s) :
+lemma measurable_coe {s : Set ι} (hs : MeasurableSet s) :
     Measurable fun μ : VectorMeasure ι E => μ s := by
   borelize E
   apply Measurable.of_comap_le <| _
   apply le_biSup _ hs
 
-theorem measurable_of_measurable_coe {f : Ω → VectorMeasure ι E}
+lemma measurable_of_measurable_coe {f : Ω → VectorMeasure ι E}
     (h : ∀ (s : Set ι), MeasurableSet s → Measurable fun ω => f ω s) :
     Measurable f := by
   refine Measurable.of_le_map <| iSup₂_le fun s hs => MeasurableSpace.comap_le_iff_le_map.2 ?_

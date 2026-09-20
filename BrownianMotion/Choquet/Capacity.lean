@@ -53,7 +53,7 @@ instance : FunLike (Capacity p) (Set 𝓧) ℝ≥0∞ where
   coe m := m.capacityOf
   coe_injective | ⟨_, _, _, _⟩, ⟨_, _, _, _⟩, rfl => rfl
 
-@[simp] theorem capacityOf_eq_coe (m : Capacity p) : m.capacityOf = m := rfl
+@[simp] lemma capacityOf_eq_coe (m : Capacity p) : m.capacityOf = m := rfl
 
 lemma mono (m : Capacity p) {s t : Set 𝓧} (hst : s ⊆ t) : m s ≤ m t := m.mono' s t hst
 
@@ -346,7 +346,7 @@ lemma IsCapacitable.fst (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_unio
     Set.image_mono ht_subset, ht_le⟩
 
 /-- **Choquet's capacitability theorem**. -/
-theorem IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p)
+lemma IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p)
     (hp_union : SupClosed p) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsCapacitable m s := by
   obtain ⟨q, hq_empty, hq, A, hA, rfl⟩ := hs

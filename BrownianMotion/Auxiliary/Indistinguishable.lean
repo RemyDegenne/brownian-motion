@@ -83,6 +83,10 @@ protected lemma ae_eq (h : X ≡ᵐ[P] Y) : (fun ω t ↦ X t ω) =ᵐ[P] (fun �
   ext
   rw [h]
 
+lemma ae_eq_eval (h : X ≡ᵐ[P] Y) (t : ι) : X t =ᵐ[P] Y t := by
+  filter_upwards [h] with ω h
+  rw [h]
+
 lemma _root_.Filter.EventuallyEq.indist (h : (fun ω t ↦ X t ω) =ᵐ[P] (fun ω t ↦ Y t ω)) :
     X ≡ᵐ[P] Y := by
   filter_upwards [h] with ω h

@@ -1077,7 +1077,7 @@ lemma exists_tendsto_nhdsLT_cadlagModif [SecondCountableTopology ι] (x : ι) (�
   · exact ⟨0, tendsto_const_nhds⟩
 
 omit [OrderBot ι] in
-lemma isCadlag_cadlagModif [SecondCountableTopology ι] (ω : Ω) :
+theorem isCadlag_cadlagModif [SecondCountableTopology ι] (ω : Ω) :
     IsCadlag (cadlagModif X · ω) := by
   constructor
   · exact fun x ↦ continuousWithinAt_cadlagModif x ω
@@ -1151,7 +1151,7 @@ lemma _root_.MeasureTheory.Martingale.isRealQuasimartingale [SigmaFiniteFiltrati
   refine ⟨hX.stronglyAdapted.adapted, hX.integrable, fun i ↦ ?_⟩
   sorry
 
-lemma _root_.MeasureTheory.Martingale.cadlagModif_ae_eq
+theorem _root_.MeasureTheory.Martingale.cadlagModif_ae_eq
     [SecondCountableTopology ι] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (t : ι) :
     cadlagModif X t =ᵐ[μ] X t := by
   refine cadlagModif_ae_eq_of_continuousWithinAt_integral hX.isRealQuasimartingale t ?_ (𝓕 := 𝓕)

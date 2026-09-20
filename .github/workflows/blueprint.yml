@@ -16,9 +16,52 @@ concurrency:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read # Read access to repository contents
+  contents: write # Push the referee provenance ledger back to its own branch
   pages: write # Write access to GitHub Pages
   id-token: write # Write access to ID tokens
+  actions: read # Read the previous run's artifact, for the referee revision diff
+
+env:
+  # The referee site generator (https://github.com/LeanMachineLearning/exposition).
+  #
+  # A *release* rather than a run artifact on purpose: release assets of a public repository need no
+  # authentication and never expire, while a cross-repository artifact download needs a PAT with
+  # `actions:read` and is deleted after 90 days.
+  REFEREE_REPO: LeanMachineLearning/exposition
+  REFEREE_VERSION: ""
+  REFEREE_SITE_URL: https://remydegenne.github.io/brownian-motion/referee
+
+  # Workers for the highlighting phase. Set explicitly rather than inheriting the CPU-count default:
+  # each worker imports Mathlib into its own multi-gigabyte process, so the default fans out one of
+  # those per core and can exhaust a runner's memory. Size against RAM, not cores.
+  REFEREE_JOBS: 2
+
+  # Generated data, deliberately *outside* the working tree. `provenance` records whether the tree
+  # was clean when it folded, via `git status --porcelain`, which counts untracked files — so
+  # leaving these where they land would permanently stamp the ledger as built from a dirty tree and
+  # make the site disclaim its own blame.
+  REFEREE_DATA: /tmp/referee-data/referee-data.json
+  REFEREE_HASHES: /tmp/referee-data/hashes.jsonl
+
+  # The provenance ledger, kept in *this* repository rather than as an artifact: it is append-only
+  # and its whole value is that it remembers years of history, which a 90-day artifact cannot. Each
+  # run folds the current commit into it, so its resolution is this workflow's cadence.
+  #
+  # It lives on a branch of its own, checked out under /tmp like the generated data above. Both
+  # halves matter. A default branch that requires pull requests leaves GITHUB_TOKEN unable to push,
+  # and classic branch protection has no bypass list an app can be added to; a branch of its own
+  # needs no repository settings changed at all. And the ledger must not sit in the working tree, or
+  # `git status --porcelain` reports it and stamps every fold as built from a revision nobody can
+  # check out.
+  REFEREE_PROVENANCE: /tmp/referee-data/provenance.json
+  REFEREE_LEDGER_BRANCH: referee-ledger
+  REFEREE_LEDGER_DIR: /tmp/referee-ledger
+
+  # `semantic_hash` supplies the rename-invariant hashes the ledger and the revision diff are keyed
+  # on. Leave the ref empty for the default branch; pin a tag or branch once the ledger matters,
+  # since a change in how it hashes reads as every declaration changing meaning at once.
+  SEMANTIC_HASH_REPO: https://github.com/mathlib-initiative/semantic_hash
+  SEMANTIC_HASH_REF: ""
 
 jobs:
   build_project:
@@ -43,14 +86,256 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          # Load-bearing for the referee provenance ledger, not just a convenience: the ledger's
+          # edit half is `git blame`, and at the default `fetch-depth: 1` blame attributes the
+          # entire library to the single fetched commit.
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@6fe4ae6a449c9758f51250ee249ebbc7ec37ee48 # 2026-01-15
+        uses: leanprover/lean-action@a811f12834a45345026c26b89eea877e0ddad406 # 2026-01-15
         with:
           build: true
           lint: true
           mk_all-check: false
+
+      # Everything referee-related is guarded on `push`, so pull requests still build and lint the
+      # project without paying for a site nobody will read, and without a PR folding a revision into
+      # the ledger that may never be merged.
+      - name: Download referee binary
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/referee "$(dirname "$REFEREE_DATA")"
+          gh release download ${REFEREE_VERSION:+"$REFEREE_VERSION"} \
+            -R "$REFEREE_REPO" \
+            --pattern 'referee-linux-x86_64-*.tar.gz' \
+            --dir /tmp/referee --clobber
+          tar -xzf /tmp/referee/referee-linux-x86_64-*.tar.gz -C /tmp/referee
+          referee_bin=$(echo /tmp/referee/referee-linux-x86_64-*/referee)
+          chmod +x "$referee_bin"
+          echo "REFEREE_BIN=$referee_bin" >> "$GITHUB_ENV"
+
+          # `referee` is a Lean executable built with `supportInterpreter := true`, so it loads the
+          # shared library of the toolchain it was compiled against and has to match this project's.
+          # Checked here because the alternative is a link-time failure four steps later that says
+          # nothing about the cause.
+          want=$(tr -d '[:space:]' < lean-toolchain)
+          got=$(jq -r .lean_toolchain "$(dirname "$referee_bin")/metadata.json" | tr -d '[:space:]')
+          if [ "$want" != "$got" ]; then
+            echo "::error::referee was built for $got but this project uses $want. Publish a \
+              referee release from a matching toolchain, or point REFEREE_VERSION at one."
+            exit 1
+          fi
+
+      # Built here rather than taken as a Lake dependency, for the same reason referee is downloaded
+      # rather than built: it loads this project's environment and refuses to run unless its own
+      # sysroot matches, so it has to be compiled against *this* toolchain, not the one it pins.
+      # Overwriting the pin is the whole patch. No dependencies beyond core, so this is ~1-2 min and
+      # the toolchain is already on the runner from the build step.
+      - name: Build semantic_hash
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          git clone --depth 1 ${SEMANTIC_HASH_REF:+--branch "$SEMANTIC_HASH_REF"} \
+            "$SEMANTIC_HASH_REPO" /tmp/semantic_hash
+          cp lean-toolchain /tmp/semantic_hash/lean-toolchain
+          cd /tmp/semantic_hash
+          lake build semantic_hash
+
+      # No `lake env`: it reads this project's LEAN_PATH itself from `--dir`. `--imports` takes the
+      # same roots `collect` exposes; it hashes the whole upstream cone, which is what makes the
+      # hashes deep enough to notice a Mathlib bump changing a statement underneath us, and
+      # `collect` keeps only the exposed declarations' entries.
+      - name: Export semantic hashes
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          /tmp/semantic_hash/.lake/build/bin/semantic_hash export \
+            --dir . --imports BrownianMotion --output "$REFEREE_HASHES"
+
+      # The phase split: everything needing a Lean environment produces data, and everything after
+      # is a pure function of that data. Collection is its own step because `provenance` has to run
+      # between it and the rendering.
+      - name: Collect referee data
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          lake env "$REFEREE_BIN" collect \
+            --root BrownianMotion \
+            --hashes "$REFEREE_HASHES" \
+            --data "$REFEREE_DATA"
+
+      # The ledger from its own branch, into a clone of its own. A separate clone rather than a
+      # fetch into the project's repository: an orphan branch fetched at `--depth 1` leaves a
+      # shallow boundary behind, and `git blame` over the whole history is the other half of what
+      # `provenance` does a step later.
+      #
+      # A missing branch is the ordinary first run and not an error — the publish step below starts
+      # one.
+      - name: Fetch the provenance ledger
+        if: github.event_name == 'push'
+        env:
+          LEDGER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$REFEREE_PROVENANCE")"
+          rm -rf "$REFEREE_LEDGER_DIR"
+          remote="https://x-access-token:${LEDGER_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          if git clone --quiet --depth 1 --branch "$REFEREE_LEDGER_BRANCH" \
+               "$remote" "$REFEREE_LEDGER_DIR" 2>/dev/null &&
+             [ -f "$REFEREE_LEDGER_DIR/provenance.json" ]; then
+            cp "$REFEREE_LEDGER_DIR/provenance.json" "$REFEREE_PROVENANCE"
+            echo "ledger fetched from $REFEREE_LEDGER_BRANCH"
+          else
+            echo "no ledger on $REFEREE_LEDGER_BRANCH yet; this run starts one"
+          fi
+
+      # Needs a git working tree and no Lean environment at all, so it is a phase of its own. Runs
+      # before `extract`/`highlight`, the Verso manual and docgen write into the tree, so that the
+      # cleanliness it records is the repository's and not this job's leftovers.
+      #
+      # Hard-fails rather than degrading, by design: it refuses to run on data collected without
+      # `--hashes`, because the ledger is append-only and a text-keyed one would record the mass
+      # false change of a toolchain upgrade permanently. A failure here means the hash export missed
+      # declarations `collect` exposes, which is worth stopping for.
+      #
+      # `--ref` is left off, so each revision is named by `git describe --tags --always` — a tag
+      # where there is one, else a short sha.
+      - name: Fold this revision into the provenance ledger
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          # Dumped so that the tool's "working tree has uncommitted changes" warning, if it fires,
+          # comes with the reason attached rather than sending someone hunting for it.
+          echo "working tree at fold time:"; git status --porcelain
+          "$REFEREE_BIN" provenance \
+            --data "$REFEREE_DATA" \
+            --provenance "$REFEREE_PROVENANCE"
+
+      # The ledger is only worth keeping if it survives the run that wrote it. Pushed with
+      # GITHUB_TOKEN, which by design does not trigger another workflow run, so this cannot loop
+      # back into itself — and pushed to the ledger's own branch, so a protected default branch
+      # never enters into it.
+      - name: Publish the provenance ledger
+        if: github.event_name == 'push'
+        env:
+          LEDGER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          remote="https://x-access-token:${LEDGER_TOKEN}@github.com/${GITHUB_REPOSITORY}"
+          if [ ! -d "$REFEREE_LEDGER_DIR/.git" ]; then
+            mkdir -p "$REFEREE_LEDGER_DIR"
+            git -C "$REFEREE_LEDGER_DIR" init --quiet -b "$REFEREE_LEDGER_BRANCH"
+            git -C "$REFEREE_LEDGER_DIR" remote add origin "$remote"
+          fi
+          cd "$REFEREE_LEDGER_DIR"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The tip as fetched, remembered before committing on top of it: the shallow clone above
+          # has no parent to ask for afterwards, and this is what tells a lost race apart from a
+          # rejected push further down.
+          base=$(git rev-parse HEAD 2>/dev/null || echo none)
+          cp "$REFEREE_PROVENANCE" provenance.json
+          git add provenance.json
+          if [ "$base" != none ] && git diff --cached --quiet; then
+            echo "ledger unchanged (already folded at this commit); nothing to push"
+            exit 0
+          fi
+          git commit --quiet -m "fold ${GITHUB_SHA:0:7} into the provenance ledger"
+          if git push --quiet origin "HEAD:$REFEREE_LEDGER_BRANCH"; then
+            exit 0
+          fi
+          # Two very different failures, which one warning used to cover alike. A concurrent run
+          # that got there first is transient: the fold is idempotent per commit, so the next run
+          # folds this revision together with the following one and nothing is lost but resolution.
+          # Anything else — a protected ledger branch, a missing `contents: write` — will never fix
+          # itself, and warning about it every run is how a ledger silently stays one revision long
+          # forever.
+          if git fetch --quiet origin "$REFEREE_LEDGER_BRANCH" 2>/dev/null &&
+             [ "$base" != "$(git rev-parse FETCH_HEAD)" ]; then
+            echo "::warning::the ledger branch moved under this run; the next run folds this \
+              revision together with the following one"
+          else
+            echo "::error::could not push the provenance ledger to $REFEREE_LEDGER_BRANCH. Check \
+              that the branch is not protected and that this job has contents: write."
+            exit 1
+          fi
+
+      # The previous run's collected data, so the site can say what changed since it. Optional in
+      # every direction: the first run has nothing to download, a failed lookup is swallowed, and
+      # `build-site` simply omits the Changes page when no baseline reaches it. Complementary to the
+      # ledger rather than replaced by it — the ledger says *when* a declaration last changed, the
+      # baseline shows the two statements side by side.
+      - name: Fetch previous referee data for the revision diff
+        if: github.event_name == 'push'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          run_id=$(gh run list -R "$GITHUB_REPOSITORY" \
+            --workflow "${{ github.workflow }}" --branch "${{ github.ref_name }}" \
+            --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          [ -n "$run_id" ] || { echo "no earlier successful run; skipping the baseline"; exit 0; }
+          gh run download "$run_id" -R "$GITHUB_REPOSITORY" \
+            -n referee-data -D /tmp/referee-baseline
+          # Located rather than assumed: the artifact's internal layout follows whatever path was
+          # uploaded, and a wrong guess here would silently cost the Changes page on every run.
+          found=$(find /tmp/referee-baseline -name '*.json' | head -1)
+          [ -n "$found" ] || { echo "artifact holds no JSON; skipping the baseline"; exit 0; }
+          echo "REFEREE_BASELINE=$found" >> "$GITHUB_ENV"
+
+      - name: Build the referee site
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          # A baseline written by an older `collect` is rejected outright — the data file carries a
+          # format version and `build-site` treats a mismatch as fatal, not as something to degrade
+          # around. Dropped here instead: one run without a Changes page, and the next has one
+          # again, which beats failing the deployment over a stale artifact.
+          baseline="${REFEREE_BASELINE:-}"
+          if [ -n "$baseline" ] &&
+             [ "$(jq -r .version "$baseline")" != "$(jq -r .version "$REFEREE_DATA")" ]; then
+            echo "::notice::baseline is collected-data version $(jq -r .version "$baseline") but \
+              this build writes $(jq -r .version "$REFEREE_DATA"); skipping the revision diff"
+            baseline=""
+          fi
+
+          # `highlight-extracted` is deliberately skipped — it re-elaborates every extracted file
+          # and costs more than the rest of this job combined; without it the standalone files are
+          # still written and linked, just not rendered inline.
+          lake env "$REFEREE_BIN" extract --data "$REFEREE_DATA" --output ./referee-site
+          lake env "$REFEREE_BIN" highlight --data "$REFEREE_DATA" --output ./referee-site \
+            --jobs "$REFEREE_JOBS"
+          # `--trust` is an editorial claim, not a derived fact: it says whoever publishes this site
+          # vouches for Mathlib and everything under it, which leaves the intermediate packages
+          # (kolmogorov_extension4) as the ones the trust page reports as unaudited. Drop it and
+          # every upstream package counts as unaudited; name more packages to vouch for more.
+          #
+          # `--provenance` is read-only here: `build-site` never folds. It adds the "meaning
+          # unchanged since" line, the Browse column, the revision selector on the Changes page, and
+          # pins every source link to the commit the ledger was folded at instead of to `master`.
+          "$REFEREE_BIN" build-site \
+            --data "$REFEREE_DATA" \
+            --output ./referee-site \
+            --repo-url "https://github.com/$GITHUB_REPOSITORY" \
+            --site-url "$REFEREE_SITE_URL" \
+            --trust mathlib \
+            --provenance "$REFEREE_PROVENANCE" \
+            ${baseline:+--baseline "$baseline"} \
+            ${baseline:+--baseline-label "the previous build"}
+
+      # Kept as an artifact so the *next* run can diff against it. Also the thing to download when
+      # you want to re-render the site locally without re-importing the project.
+      - name: Upload referee data
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: referee-data
+          path: ${{ env.REFEREE_DATA }}
+          retention-days: 90
 
       - name: Build Verso Documentation
         run: |
@@ -66,8 +351,31 @@ jobs:
           search-root: BrownianMotion.Auxiliary
           include-drafts: true
 
+      # `deploy: false` because the referee site has to be added to the built home page first; the
+      # upload and deployment that this action would have done are the last two steps of this job.
       - name: Compile blueprint and documentation
         uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
         with:
           blueprint: true
           homepage: home_page
+          deploy: false
+
+      # Into Jekyll's output rather than its input, so that thousands of generated HTML files are
+      # not walked by a site build that would only copy them verbatim anyway.
+      - name: Add the referee site to the home page
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          mkdir -p home_page/_site/referee
+          cp -r referee-site/html-multi/. home_page/_site/referee/
+
+      - name: "Upload website (API documentation, blueprint and any home page)"
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: home_page/_site
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

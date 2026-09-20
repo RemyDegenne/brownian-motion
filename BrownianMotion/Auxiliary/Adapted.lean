@@ -16,7 +16,7 @@ local infixr:25 " →ₛ " => SimpleFunc
 
 variable {ι Ω β : Type*} {s : ι → Set Ω} (hs : IndexedPartition s)
 
-theorem _root_.Set.indexedPartition_piecewise_preimage (f : ι → Ω → β) (t : Set β) :
+lemma _root_.Set.indexedPartition_piecewise_preimage (f : ι → Ω → β) (t : Set β) :
     (hs.piecewise f) ⁻¹' t = ⋃ i, s i ∩ ((f i)⁻¹' t) := by
   refine ext fun x => ⟨fun hx => ?_, fun ⟨a, ⟨i, hi⟩, ha⟩ => ?_⟩
   · rw [mem_preimage, IndexedPartition.piecewise_apply, ← mem_preimage] at hx
@@ -25,13 +25,13 @@ theorem _root_.Set.indexedPartition_piecewise_preimage (f : ι → Ω → β) (t
   · rw [← hi, ← (IndexedPartition.mem_iff_index_eq hs).mp ha.1] at ha
     simp_all [IndexedPartition.piecewise_apply]
 
-theorem _root_.Set.range_indexedPartition_subset (f : ι → Ω → β) :
+lemma _root_.Set.range_indexedPartition_subset (f : ι → Ω → β) :
     range (hs.piecewise f) ⊆ ⋃ i, range (f i) :=
   fun x ⟨y, hy⟩ => by simpa [IndexedPartition.piecewise_apply] using ⟨hs.index y, y, hy⟩
 
 variable {mΩ : MeasurableSpace Ω} {mβ : MeasurableSpace β}
 
-theorem Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (s i))
+lemma Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (s i))
     {f : ι → Ω → β} (hmf : ∀ i, Measurable (f i)) : Measurable (hs.piecewise f) := by
   refine fun t ht => ?_
   rw [indexedPartition_piecewise_preimage]

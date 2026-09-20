@@ -30,7 +30,7 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 
 \begin{definition}[Right continuous function]\label{def:RightContinuous}
   \leanok
-  \lean{Function.IsRightContinuous}
+  \lean{IsRightContinuous}
   Let $T$ be equipped with a partial order and $f : T \to E$ be a function. Then $f$ is right
   continuous if for all $t \in T$, $\lim_{s \downarrow t} f(s) = f(t)$.
 \end{definition}
@@ -738,6 +738,21 @@ An adapted process with left-continuous paths is predictable.
 \end{proof}
 
 
+\begin{lemma}\label{lem:uniformIntegrable_of_bounded}
+  \leanok
+  \lean{MeasureTheory.uniformIntegrable_of_eLpNorm_le}
+Let $(X_i)_{i \in \iota}$ be a family of random variables that is bounded in $\mathrm L^p$, for $p > q \ge 1$. Then $(X_i)_{i \in \iota}$ is uniformly integrable in $\mathrm L^q$.
+\end{lemma}
+
+\begin{proof}\leanok
+  For any measurable set $s$ we have by Hölder inequality that
+  $$\|X_t \mathbb{I}_s\|_q \le \|X_t\|_p P(s)^{1/q - 1/p},$$
+  which goes to $0$ as $P(s)$ goes to zero. Moreover,
+  $$\|X_t\|_q \le P(\Omega)^{1/q - 1/p} \|X_t\|_p,$$
+  so $(X_i)_{i \in \iota}$ is bounded in $\mathrm L^q$.
+\end{proof}
+
+
 \begin{lemma}\label{lem:uniformIntegrable_stoppedValue_martingale}
   \uses{def:Martingale, def:IsStoppingTime}
   \leanok
@@ -1136,7 +1151,8 @@ In Mathlib, we have results about convergence of martingales to their limit in d
 
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
   \uses{def:Martingale, def:limitProcess, def:IsCadlag}
-  \notready
+  \leanok
+  \lean{MeasureTheory.Martingale.ae_tendsto_limitProcess}
 Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
 Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
 Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
@@ -1201,6 +1217,42 @@ Let $X : T \to \Omega \to E$ be a process such that there exists $g : \Omega \to
 \begin{proof}
   \uses{lem:limitProcess_ae_eq, lem:limitProcess_const}
   If there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then $-X$ converges almost surely to $-g$ and we can conclude by Lemma~\ref{lem:limitProcess_ae_eq}. Otherwise there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $-X$ converges almost surely to $g$, because if it did it would also be the case for $X$, so $X_\infty$ and $(-X)_\infty$ are both a.e. equal to $0$.
+\end{proof}
+
+
+\begin{theorem}\label{thm:condExp_limitProcess}
+  \uses{def:limitProcess, def:Martingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.condExp_limitProcess_ae_eq}
+  If $X$ is a càdlàg and uniformly integrable martingale, then for any $t$, almost surely,
+  $$P[X_\infty | \mathcal{F}_t] = X_t.$$
+\end{theorem}
+
+
+\begin{theorem}\label{thm:condExp_limitProcess_stopped}
+  \uses{def:limitProcess, def:Martingale}
+  \leanok
+  \lean{MeasureTheory.Martingale.condExp_limitProcess_ae_eq'}
+  If $X$ is a càdlàg and uniformly integrable martingale, then for any stopping time $\tau$, almost surely,
+  $$P[X_\infty | \mathcal{F}_\tau] = X_\tau.$$
+\end{theorem}
+
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{lem:limitProcess_stoppedProcess}
+  \uses{def:limitProcess, def:Martingale}
+  \leanok
+  \lean{MeasureTheory.Filtration.limitProcess_stoppedProcess}
+Let $M$ be a càdlàg uniformly integrable martingale and $\tau$ be a stopping time. Then almost surely, $X^\tau_\infty = X_\tau$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:Adapted.isStronglyProgressive_of_rightContinuous}
+We apply Lemma~\ref{lem:limitProcess_ae_eq}. Because $M$ is right-continuous and adapted, it is progressively measurable by Lemma~\ref{lem:Adapted.isStronglyProgressive_of_rightContinuous}. Therefore $X_\tau$ is $\mathcal{F}_\tau$-measurable. Convergence is obvious.
 \end{proof}
 
 
@@ -1383,23 +1435,40 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 
 \begin{corollary}[Doob's Lp inequality for normed spaces]\label{cor:doob_lp_norm}
   \uses{def:Martingale, def:RightContinuous}
+  \leanok
+  \lean{ProbabilityTheory.integral_iSup_le_norm_rpow_le}
   Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
-  For every $T, \lambda>0$ and $p>1$ we have
+  For every $T$ and $p>1$ we have
   \begin{align*}
     \mathbb{E}\left[ \sup_{t\in[0,T]} \lVert X_t \rVert ^ p \right]
     \leq \left(\frac{p}{p-1}\right)^p\mathbb{E}[\lVert X_T \rVert ^p]
     \: .
   \end{align*}
-  That is, for $\Vert \cdot \Vert_p$ the $L^p$ norm,
-  $\left\Vert \sup_{t\in[0,T]}  X_t  \right\Vert_p
-    \leq \frac{p}{p-1} \left\Vert X_T \right\Vert_p
-    \: .$
 \end{corollary}
 
 \begin{proof}
   \uses{cor:Martingale.submartingale_norm, thm:doob_lp}
   By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
   Then apply Theorem~\ref{thm:doob_lp}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:doob_lp_norm_top}
+  \uses{def:Martingale, def:RightContinuous}
+  \leanok
+  \lean{ProbabilityTheory.integral_iSup_norm_rpow_le}
+  Let $X : \mathbb{R} \rightarrow \Omega\rightarrow E$ be a right-continuous martingale with values in a normed space $E$.
+  For every $T$ and $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_t \lVert X_t \rVert ^ p \right]
+    \leq \left(\frac{p}{p-1}\right)^p \sup_t \mathbb{E}[\lVert X_t \rVert ^p]
+    \: .
+  \end{align*}
+\end{corollary}
+
+\begin{proof}
+  \uses{cor:doob_lp_norm}
+  Take limits on both sides in Corollary~\ref{cor:doob_lp_norm}.
 \end{proof}
 
 

@@ -141,7 +141,7 @@ lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R :
 
 /-- A stochastic process `X` with independent increments and such that `X t` is gaussian for
 all `t` is a Gaussian process. -/
-lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
+theorem HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] [CompleteSpace E]
     {X : T → Ω → E} (law : ∀ t, HasGaussianLaw (X t) P) (h_bot : ∀ᵐ ω ∂P, X ⊥ ω = 0)
@@ -346,7 +346,7 @@ lemma IsBrownianReal.aemeasurable (h : IsBrownianReal X P) :
   exact h.mk_ae_forall_eq.mono <| fun _ ↦ by aesop
 
 /-- If `X` is a Brownian motion then so is `fun t ω ↦ t * (B (1 / t) ω)`. -/
-lemma IsBrownianReal.inv (h : IsBrownianReal X P) :
+theorem IsBrownianReal.inv (h : IsBrownianReal X P) :
     IsBrownianReal (fun t ω ↦ t * (X (1 / t) ω)) P where
   toIsPreBrownianReal := h.toIsPreBrownianReal.inv
   cont := by
@@ -392,7 +392,7 @@ lemma IsBrownianReal.tendsto_div_id_atTop (h : IsBrownianReal X P) :
 
 /-- **Blumenthal's zero-one law**: Let `𝓕` be the canonical filtration associated to a Brownian
 motion. Then the `σ`-algebra `⨅ s > 0, 𝓕 s` is trivial. -/
-lemma IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable (X t))
+theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
     (hA : MeasurableSet[⨅ s > 0, natural X (fun t ↦ (hX t).stronglyMeasurable) s] A) :
     P A = 0 ∨ P A = 1 := by
@@ -577,7 +577,7 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (h�
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :=
   isPreBrownianReal_preBrownian.continuous_mk ω
 
-lemma isBrownianReal_brownian : IsBrownianReal brownian gaussianLimit :=
+theorem isBrownianReal_brownian : IsBrownianReal brownian gaussianLimit :=
   isPreBrownianReal_preBrownian.isBrownianReal_mk
 
 -- for blueprint
@@ -638,7 +638,7 @@ lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X
   exact h1.isClosed_biUnion h2
 
 open TopologicalSpace in
-lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
+theorem ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
     borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
   -- https://math.stackexchange.com/questions/4789531/when-does-the-borel-sigma-algebra-of-compact-convergence-coincide-with-the-pr
