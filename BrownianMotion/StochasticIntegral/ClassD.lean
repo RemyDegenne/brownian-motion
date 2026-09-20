@@ -107,6 +107,22 @@ lemma hasIntegrableSup_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
   intro t
   sorry
 
+/-- A jointly measurable, nonnegative real process with monotone paths and integrable values has
+integrable supremum. -/
+lemma hasIntegrableSup_of_monotone [LinearOrder ι] [MeasurableSpace ι] {X : ι → Ω → ℝ}
+    (hX_meas : StronglyMeasurable (Function.uncurry X)) (hX_mono : ∀ ω, Monotone (X · ω))
+    (hX_nonneg : 0 ≤ X) (hX_int : ∀ t, Integrable (X t) P) :
+    HasIntegrableSup X P := by
+  have h_sup (t : ι) (ω : Ω) : ⨆ s ≤ t, ‖X s ω‖ₑ = ‖X t ω‖ₑ := by
+    refine le_antisymm (iSup₂_le fun s hs ↦ ?_) (le_iSup₂ (f := fun s _ ↦ ‖X s ω‖ₑ) t le_rfl)
+    rw [Real.enorm_of_nonneg (hX_nonneg s ω), Real.enorm_of_nonneg (hX_nonneg t ω)]
+    exact ENNReal.ofReal_le_ofReal (hX_mono ω hs)
+  refine ⟨?_, fun t ↦ ?_⟩
+  · simp only [HasStronglyMeasurableSupProcess, h_sup]
+    exact hX_meas.enorm.stronglyMeasurable
+  · simp only [h_sup]
+    exact (hX_int t).enorm
+
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
 for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrable. -/
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]

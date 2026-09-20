@@ -343,6 +343,11 @@ variable [TopologicalSpace ι] [SecondCountableTopology ι] [TopologicalSpace.Ps
 lemma isStable_isStronglyProgressive : IsStable 𝓕 (IsStronglyProgressive 𝓕 (β := E) ·) :=
   fun _ hX _ hτ ↦ (isStronglyProgressive_indicator hX hτ).stoppedProcess hτ
 
+/-- The class of strongly predictable processes is stable. -/
+lemma isStable_isStronglyPredictable [DenselyOrdered ι] :
+    IsStable 𝓕 (IsStronglyPredictable 𝓕 (E := E) ·) :=
+  fun _ hX _ hτ ↦ (hX.indicator_of_bot (hτ.measurableSet_gt ⊥)).stoppedProcess hτ
+
 end ProgMeasurable
 
 end ProbabilityTheory

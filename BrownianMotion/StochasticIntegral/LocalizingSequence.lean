@@ -6,6 +6,7 @@ Authors: Rémy Degenne, Kexing Ying
 module
 
 public import BrownianMotion.Auxiliary.IsStoppingTime
+public import BrownianMotion.Auxiliary.StoppedProcess
 public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Probability.Process.Stopping
 public import Mathlib.Probability.Process.LocalProperty
@@ -75,6 +76,19 @@ lemma IsStable.locally_of_isPreLocalizingSequence'
   rw [stoppedProcess_indicator_comm', Set.indicator_indicator]
   congr with ω
   exact ⟨fun h ↦ ⟨h, lt_of_lt_of_le h <| (iInf_le _ n).trans (iInf_le _ le_rfl)⟩, fun h ↦ h.1⟩
+
+/-- A stable property which holds locally holds along a localizing sequence which is monotone
+everywhere, and not only almost surely. -/
+lemma IsStable.exists_monotone_localSeq [Zero E] [FirstCountableTopology ι]
+    [IsRightContinuous 𝓕] (hp : IsStable 𝓕 p) (hX : Locally p 𝓕 X P) :
+    ∃ τ : ℕ → Ω → WithTop ι, IsLocalizingSequence 𝓕 τ P ∧ (∀ ω, Monotone (τ · ω)) ∧
+      ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n)) := by
+  obtain ⟨τ, hτ, hpτ⟩ := hX
+  have hτ' := hτ.toIsPreLocalizingSequence.isLocalizingSequence_biInf'
+  refine ⟨_, hτ', fun ω n m hnm ↦ iInf_le_iInf_of_subset fun k hk ↦ hnm.trans hk, fun n ↦ ?_⟩
+  have h_le : (fun ω ↦ ⨅ j ≥ n, τ j ω) ≤ τ n := fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl
+  rw [← stoppedProcess_indicator_stoppedProcess_indicator_of_le h_le]
+  exact hp _ (hpτ n) _ (hτ'.isStoppingTime n)
 
 section
 
