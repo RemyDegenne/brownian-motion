@@ -1,4 +1,5 @@
-[["defsWithUnderscore", "MeasureTheory.discreteApproxSequence_const"],
+[["defsWithUnderscore", "approximable_of_mesh"],
+ ["defsWithUnderscore", "MeasureTheory.discreteApproxSequence_const"],
  ["defsWithUnderscore", "MeasureTheory.discreteApproxSequence_of"],
  ["defsWithUnderscore",
   "ProbabilityTheory.instBoundedOrderOfOrderTopOfOrderBot_brownianMotion"],
