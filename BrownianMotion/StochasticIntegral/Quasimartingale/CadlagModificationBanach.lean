@@ -20,9 +20,9 @@ in a Banach space `E`, which is not assumed to be separable.
 * `vectorRegularitySet T X d`: an event on which the path of `X` along the set of times `T` has
   left and right limits at all times before `d`. It is the analogue of `regularitySet` for a
   process with values in a Banach space.
-* `vectorRightContModif X`: the right-continuous modification of `X`. It is strongly adapted if
+* `rightContModif X`: the right-continuous modification of `X`. It is strongly adapted if
   the filtration is right-continuous.
-* `vectorCadlagModif X`: the càdlàg modification of `X`. It is strongly adapted if the filtration
+* `cadlagModif X`: the càdlàg modification of `X`. It is strongly adapted if the filtration
   is right-continuous and complete.
 
 Those two processes are `rightContModifOf R X` and `cadlagModifOf R X` for the regularity family
@@ -32,8 +32,8 @@ are proved in the file `CadlagModification`.
 
 ## Main statements
 
-* `isCadlag_vectorCadlagModif`: the paths of `vectorCadlagModif X` are càdlàg.
-* `Martingale.vectorRightContModif_ae_eq`, `Martingale.vectorCadlagModif_ae_eq`: for a martingale
+* `isCadlag_cadlagModif`: the paths of `cadlagModif X` are càdlàg.
+* `Martingale.rightContModif_ae_eq`, `Martingale.cadlagModif_ae_eq`: for a martingale
   `X` with respect to a right-continuous filtration, these processes are modifications of `X`.
 * `Martingale.exists_isCadlag_modification`: a martingale with values in a Banach space, with
   respect to a right-continuous and complete filtration, has a modification which is a martingale
@@ -388,11 +388,11 @@ end RegularitySet
 
 The modifications are the processes `rightContModifOf` and `cadlagModifOf` for the regularity family
 `vectorRegularitySet (regularityTimes ι) X`. For a martingale `X` with values in a Banach space,
-* `vectorRightContModif X` is right-continuous, and has left limits almost everywhere
-* `vectorCadlagModif X` is càdlàg
-* if the filtration is right-continuous, then `vectorRightContModif X` is strongly adapted and both
+* `rightContModif X` is right-continuous, and has left limits almost everywhere
+* `cadlagModif X` is càdlàg
+* if the filtration is right-continuous, then `rightContModif X` is strongly adapted and both
   processes are modifications of `X`
-* if the filtration is right-continuous and complete, then `vectorCadlagModif X` is strongly
+* if the filtration is right-continuous and complete, then `cadlagModif X` is strongly
   adapted, hence a martingale.
 
 -/
@@ -404,24 +404,24 @@ variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
 /-- The right-continuous modification of a martingale with values in a Banach space, defined from
 the right limits along the countable dense set `regularityTimes ι`. -/
 noncomputable
-def vectorRightContModif (X : ι → Ω → E) : ι → Ω → E :=
+def rightContModif (X : ι → Ω → E) : ι → Ω → E :=
   rightContModifOf (vectorRegularitySet (regularityTimes ι) X) X
 
 /-- The càdlàg modification of a martingale with values in a Banach space, defined from the right
 limits along the countable dense set `regularityTimes ι`. -/
 noncomputable
-def vectorCadlagModif (X : ι → Ω → E) : ι → Ω → E :=
+def cadlagModif (X : ι → Ω → E) : ι → Ω → E :=
   cadlagModifOf (vectorRegularitySet (regularityTimes ι) X) X
 
 variable [CompleteSpace E]
 
-/-- The paths of `vectorRightContModif X` are right-continuous. -/
-lemma continuousWithinAt_vectorRightContModif (x : ι) (ω : Ω) :
-    ContinuousWithinAt (vectorRightContModif X · ω) (Set.Ioi x) x :=
+/-- The paths of `rightContModif X` are right-continuous. -/
+lemma continuousWithinAt_rightContModif (x : ι) (ω : Ω) :
+    ContinuousWithinAt (rightContModif X · ω) (Set.Ioi x) x :=
   continuousWithinAt_rightContModifOf isRegularityFamily_vectorRegularitySet x ω
 
-/-- The paths of `vectorCadlagModif X` are càdlàg. -/
-theorem isCadlag_vectorCadlagModif (ω : Ω) : IsCadlag (vectorCadlagModif X · ω) :=
+/-- The paths of `cadlagModif X` are càdlàg. -/
+theorem isCadlag_cadlagModif (ω : Ω) : IsCadlag (cadlagModif X · ω) :=
   isCadlag_cadlagModifOf isRegularityFamily_vectorRegularitySet ω
 
 variable [NormedSpace ℝ E] [OrderBot ι] [IsFiniteMeasure μ]
@@ -437,63 +437,63 @@ lemma _root_.MeasureTheory.Martingale.ae_mem_regularitySetRight_vectorRegularity
       (countable_regularityTimes.union countable_setOfPred_isolated_right))
     fun _ ↦ dense_regularityTimes.exists_gt_of_not_isMax
 
-lemma stronglyMeasurable_vectorRightContModif (hX : Martingale X 𝓕 μ) (t : ι) :
-    StronglyMeasurable (vectorRightContModif X t) :=
+lemma stronglyMeasurable_rightContModif (hX : Martingale X 𝓕 μ) (t : ι) :
+    StronglyMeasurable (rightContModif X t) :=
   stronglyMeasurable_rightContModifOf isRegularityFamily_vectorRegularitySet hX.stronglyAdapted
     (measurableSet_vectorRegularitySet hX countable_regularityTimes) t
 
-lemma stronglyAdapted_vectorRightContModif [𝓕.IsRightContinuous] (hX : Martingale X 𝓕 μ) :
-    StronglyAdapted 𝓕 (vectorRightContModif X) :=
+lemma stronglyAdapted_rightContModif [𝓕.IsRightContinuous] (hX : Martingale X 𝓕 μ) :
+    StronglyAdapted 𝓕 (rightContModif X) :=
   stronglyAdapted_rightContModifOf isRegularityFamily_vectorRegularitySet hX.stronglyAdapted
     (measurableSet_vectorRegularitySet hX countable_regularityTimes)
 
 /-- The right-continuous modification of a martingale with values in a Banach space, with respect
 to a right-continuous filtration, is a modification. -/
-theorem _root_.MeasureTheory.Martingale.vectorRightContModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Martingale.rightContModif_ae_eq [𝓕.IsRightContinuous]
     (hX : Martingale X 𝓕 μ) (t : ι) :
-    vectorRightContModif X t =ᵐ[μ] X t :=
+    rightContModif X t =ᵐ[μ] X t :=
   hX.rightContModifOf_ae_eq hX.ae_mem_regularitySetRight_vectorRegularitySet
     isRegularityFamily_vectorRegularitySet
     (measurableSet_vectorRegularitySet hX countable_regularityTimes) t
 
-lemma vectorCadlagModif_ae_eq_vectorRightContModif (hX : Martingale X 𝓕 μ) :
-    ∀ᵐ ω ∂μ, ∀ t, vectorCadlagModif X t ω = vectorRightContModif X t ω :=
+lemma cadlagModif_ae_eq_rightContModif (hX : Martingale X 𝓕 μ) :
+    ∀ᵐ ω ∂μ, ∀ t, cadlagModif X t ω = rightContModif X t ω :=
   cadlagModifOf_ae_eq_rightContModifOf hX.ae_mem_regularitySetRight_vectorRegularitySet
 
-lemma stronglyMeasurable_vectorCadlagModif (hX : Martingale X 𝓕 μ) (t : ι) :
-    StronglyMeasurable (vectorCadlagModif X t) :=
+lemma stronglyMeasurable_cadlagModif (hX : Martingale X 𝓕 μ) (t : ι) :
+    StronglyMeasurable (cadlagModif X t) :=
   stronglyMeasurable_cadlagModifOf isRegularityFamily_vectorRegularitySet hX.stronglyAdapted
     (measurableSet_vectorRegularitySet hX countable_regularityTimes) t
 
-lemma stronglyAdapted_vectorCadlagModif [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
+lemma stronglyAdapted_cadlagModif [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
     (hX : Martingale X 𝓕 μ) :
-    StronglyAdapted 𝓕 (vectorCadlagModif X) :=
+    StronglyAdapted 𝓕 (cadlagModif X) :=
   stronglyAdapted_cadlagModifOf isRegularityFamily_vectorRegularitySet hX.stronglyAdapted
     (measurableSet_vectorRegularitySet hX countable_regularityTimes)
     hX.ae_mem_regularitySetRight_vectorRegularitySet
 
 /-- The càdlàg modification of a martingale with values in a Banach space, with respect to a
 right-continuous filtration, is a modification. -/
-theorem _root_.MeasureTheory.Martingale.vectorCadlagModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Martingale.cadlagModif_ae_eq [𝓕.IsRightContinuous]
     (hX : Martingale X 𝓕 μ) (t : ι) :
-    vectorCadlagModif X t =ᵐ[μ] X t :=
+    cadlagModif X t =ᵐ[μ] X t :=
   cadlagModifOf_ae_eq_of_rightContModifOf_ae_eq hX.ae_mem_regularitySetRight_vectorRegularitySet
-    (hX.vectorRightContModif_ae_eq t)
+    (hX.rightContModif_ae_eq t)
 
 /-- The càdlàg modification of a martingale with values in a Banach space, with respect to a
 right-continuous and complete filtration, is a martingale. -/
-theorem _root_.MeasureTheory.Martingale.martingale_vectorCadlagModif [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Martingale.martingale_cadlagModif [𝓕.IsRightContinuous]
     [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
-    Martingale (vectorCadlagModif X) 𝓕 μ :=
-  hX.congr (stronglyAdapted_vectorCadlagModif hX) fun t ↦ (hX.vectorCadlagModif_ae_eq t).symm
+    Martingale (cadlagModif X) 𝓕 μ :=
+  hX.congr (stronglyAdapted_cadlagModif hX) fun t ↦ (hX.cadlagModif_ae_eq t).symm
 
 /-- A martingale with values in a Banach space, with respect to a right-continuous and complete
 filtration, has a modification which is a martingale with càdlàg paths. -/
 theorem _root_.MeasureTheory.Martingale.exists_isCadlag_modification [𝓕.IsRightContinuous]
     [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
     ∃ Y : ι → Ω → E, Martingale Y 𝓕 μ ∧ (∀ ω, IsCadlag (Y · ω)) ∧ ∀ t, Y t =ᵐ[μ] X t :=
-  ⟨vectorCadlagModif X, hX.martingale_vectorCadlagModif, isCadlag_vectorCadlagModif,
-    hX.vectorCadlagModif_ae_eq⟩
+  ⟨cadlagModif X, hX.martingale_cadlagModif, isCadlag_cadlagModif,
+    hX.cadlagModif_ae_eq⟩
 
 end Modification
 

@@ -25,7 +25,7 @@ before `d` (`IsRegularityFamily`), we define processes `rightContModifOf R X` an
 `cadlagModifOf R X` from the right limits of `X`, and we prove their regularity and measurability
 properties. That part applies to processes with values in a normed group.
 Then, for a real quasimartingale `X`, the events `regularitySet T X d`, defined with the upcrossings
-of `X`, are almost sure and give the modifications `rightContModif X` and `cadlagModif X`.
+of `X`, are almost sure and give the modifications `rightContModifReal X` and `cadlagModifReal X`.
 
 See the file `CadlagModificationBanach` for martingales with values in a Banach space. -/
 
@@ -1226,17 +1226,18 @@ end CadlagModifOf
 
 /-! ## Right-continuous modification of a quasimartingale
 
-For a real quasimartingale `X` we define a process `rightContModif X` with the following properties:
-* `rightContModif X` is right-continuous
-* `rightContModif X` has left limits almost everywhere
-* for all `t` outside a countable set, `rightContModif X t =ᵐ[μ] X t`
+For a real quasimartingale `X` we define a process `rightContModifReal X` with the following
+properties:
+* `rightContModifReal X` is right-continuous
+* `rightContModifReal X` has left limits almost everywhere
+* for all `t` outside a countable set, `rightContModifReal X t =ᵐ[μ] X t`
 * if `t` is isolated on the right (for example if `t` is a maximal element of `ι` or has a
-  successor), then `rightContModif X t =ᵐ[μ] X t`
-* if `X` is right-continuous in probability, then `rightContModif X` is a modification of `X`.
-* if the filtration is right-continuous, then `rightContModif X` is adapted.
+  successor), then `rightContModifReal X t =ᵐ[μ] X t`
+* if `X` is right-continuous in probability, then `rightContModifReal X` is a modification of `X`.
+* if the filtration is right-continuous, then `rightContModifReal X` is adapted.
 
 Note that if `X` is not right-continuous in probability, we can still obtain a modification by
-changing the value of `rightContModif X` on a countable set of times, with the drawback that the
+changing the value of `rightContModifReal X` on a countable set of times, with the drawback that the
 right-continuity then holds only outside that countable set.
 
 -/
@@ -1248,28 +1249,28 @@ variable [SecondCountableTopology ι] {X : ι → Ω → ℝ}
 /-- The right-continuous modification of a real quasimartingale, defined from the right limits
 along the countable dense set `regularityTimes ι`. -/
 noncomputable
-def rightContModif (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
+def rightContModifReal (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
   rightContModifOf (regularitySet (regularityTimes ι) X) X
 
-lemma continuousWithinAt_rightContModif (x : ι) (ω : Ω) :
-    ContinuousWithinAt (rightContModif X · ω) (Set.Ioi x) x :=
+lemma continuousWithinAt_rightContModifReal (x : ι) (ω : Ω) :
+    ContinuousWithinAt (rightContModifReal X · ω) (Set.Ioi x) x :=
   continuousWithinAt_rightContModifOf isRegularityFamily_regularitySet x ω
 
 variable [OrderBot ι]
 
-lemma measurable_rightContModif (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
-    Measurable (rightContModif X t) :=
+lemma measurable_rightContModifReal (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
+    Measurable (rightContModifReal X t) :=
   (stronglyMeasurable_rightContModifOf isRegularityFamily_regularitySet hX.stronglyAdapted
     (measurableSet_regularitySet hX countable_regularityTimes) t).measurable
 
-lemma stronglyAdapted_rightContModif [𝓕.IsRightContinuous] (hX : IsRealQuasimartingale 𝓕 X μ) :
-    StronglyAdapted 𝓕 (rightContModif X) :=
+lemma stronglyAdapted_rightContModifReal [𝓕.IsRightContinuous] (hX : IsRealQuasimartingale 𝓕 X μ) :
+    StronglyAdapted 𝓕 (rightContModifReal X) :=
   stronglyAdapted_rightContModifOf isRegularityFamily_regularitySet hX.stronglyAdapted
     (measurableSet_regularitySet hX countable_regularityTimes)
 
-lemma adapted_rightContModif [𝓕.IsRightContinuous] (hX : IsRealQuasimartingale 𝓕 X μ) :
-    Adapted 𝓕 (rightContModif X) :=
-  fun t ↦ (stronglyAdapted_rightContModif hX t).measurable
+lemma adapted_rightContModifReal [𝓕.IsRightContinuous] (hX : IsRealQuasimartingale 𝓕 X μ) :
+    Adapted 𝓕 (rightContModifReal X) :=
+  fun t ↦ (stronglyAdapted_rightContModifReal hX t).measurable
 
 variable [IsFiniteMeasure μ]
 
@@ -1282,34 +1283,34 @@ lemma IsRealQuasimartingale.ae_mem_regularitySetRight_regularityTimes
   hX.ae_mem_regularitySetRight countable_regularityTimes
     fun _ ↦ dense_regularityTimes.exists_gt_of_not_isMax
 
-lemma rightContModif_ae_eq_of_rightLimWithin_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
+lemma rightContModifReal_ae_eq_of_rightLimWithin_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
     (ht : (fun ω ↦ rightLimWithin (X · ω) (regularityTimes ι) t) =ᵐ[μ] X t) :
-    rightContModif X t =ᵐ[μ] X t :=
+    rightContModifReal X t =ᵐ[μ] X t :=
   rightContModifOf_ae_eq_of_rightLimWithin_ae_eq hX.ae_mem_regularitySetRight_regularityTimes ht
 
 /-- At a time `t` which is isolated on the right, the right-continuous modification is a.e. equal
 to `X t`. -/
-lemma rightContModif_ae_eq_of_nhdsGT_eq_bot (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
+lemma rightContModifReal_ae_eq_of_nhdsGT_eq_bot (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
     (ht : 𝓝[>] t = ⊥) :
-    rightContModif X t =ᵐ[μ] X t :=
+    rightContModifReal X t =ᵐ[μ] X t :=
   rightContModifOf_ae_eq_of_nhdsGT_eq_bot hX.ae_mem_regularitySetRight_regularityTimes ht
 
 /-- At a maximal time `t`, the right-continuous modification is a.e. equal to `X t`. -/
-lemma rightContModif_ae_eq_of_isMax (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι} (ht : IsMax t) :
-    rightContModif X t =ᵐ[μ] X t :=
-  rightContModif_ae_eq_of_nhdsGT_eq_bot hX ht.nhdsGT_eq_bot
+lemma rightContModifReal_ae_eq_of_isMax (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι} (ht : IsMax t) :
+    rightContModifReal X t =ᵐ[μ] X t :=
+  rightContModifReal_ae_eq_of_nhdsGT_eq_bot hX ht.nhdsGT_eq_bot
 
 /-- The set of points where the right modification of a real quasimartingale along
 a countable dense set `T` disagrees with `X` is countable. -/
-lemma countable_not_rightContModif_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) :
-    {t | ¬ rightContModif X t =ᵐ[μ] X t}.Countable := by
+lemma countable_not_rightContModifReal_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) :
+    {t | ¬ rightContModifReal X t =ᵐ[μ] X t}.Countable := by
   refine (countable_not_rightLimWithin_ae_eq hX countable_regularityTimes
     dense_regularityTimes).mono fun t ht ↦ ?_
-  exact fun hcon ↦ ht (rightContModif_ae_eq_of_rightLimWithin_ae_eq hX hcon)
+  exact fun hcon ↦ ht (rightContModifReal_ae_eq_of_rightLimWithin_ae_eq hX hcon)
 
-lemma rightContModif_ae_eq_of_tendstoInMeasure (hX : IsRealQuasimartingale 𝓕 X μ)
+lemma rightContModifReal_ae_eq_of_tendstoInMeasure (hX : IsRealQuasimartingale 𝓕 X μ)
     (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
-    rightContModif X t =ᵐ[μ] X t :=
+    rightContModifReal X t =ᵐ[μ] X t :=
   rightContModifOf_ae_eq_of_tendstoInMeasure hX.ae_mem_regularitySetRight_regularityTimes
     isRegularityFamily_regularitySet hX.stronglyAdapted t hXRC
 
@@ -1317,16 +1318,17 @@ end RightContModif
 
 /-! ## Càdlàg modification of a quasimartingale
 
-For a real quasimartingale `X` we define a process `cadlagModif X` with the following properties:
-* `cadlagModif X` is càdlàg
-* for all `t` outside a countable set, `cadlagModif X t =ᵐ[μ] X t`
+For a real quasimartingale `X` we define a process `cadlagModifReal X` with the following
+properties:
+* `cadlagModifReal X` is càdlàg
+* for all `t` outside a countable set, `cadlagModifReal X t =ᵐ[μ] X t`
 * if `t` is isolated on the right (for example if `t` is a maximal element of `ι` or has a
-  successor), then `cadlagModif X t =ᵐ[μ] X t`
-* if `X` is right-continuous in probability, then `cadlagModif X` is a modification of `X`.
-* if the filtration is right-continuous and complete, then `cadlagModif X` is adapted.
+  successor), then `cadlagModifReal X t =ᵐ[μ] X t`
+* if `X` is right-continuous in probability, then `cadlagModifReal X` is a modification of `X`.
+* if the filtration is right-continuous and complete, then `cadlagModifReal X` is adapted.
 
 TODO: if `t ↦ μ[X t]` is right-continuous (in particular if `X` is a martingale),
-then `cadlagModif X` is a modification of `X` without the assumption that `X`
+then `cadlagModifReal X` is a modification of `X` without the assumption that `X`
 is right-continuous in probability.
 
 -/
@@ -1338,80 +1340,81 @@ variable [SecondCountableTopology ι] {X : ι → Ω → ℝ}
 /-- The càdlàg modification of a real quasimartingale, defined from the right limits
 along the countable dense set `regularityTimes ι`. -/
 noncomputable
-def cadlagModif (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
+def cadlagModifReal (X : ι → Ω → ℝ) : ι → Ω → ℝ :=
   cadlagModifOf (regularitySet (regularityTimes ι) X) X
 
-lemma continuousWithinAt_cadlagModif (x : ι) (ω : Ω) :
-    ContinuousWithinAt (cadlagModif X · ω) (Set.Ioi x) x :=
+lemma continuousWithinAt_cadlagModifReal (x : ι) (ω : Ω) :
+    ContinuousWithinAt (cadlagModifReal X · ω) (Set.Ioi x) x :=
   continuousWithinAt_cadlagModifOf isRegularityFamily_regularitySet x ω
 
-lemma exists_tendsto_nhdsLT_cadlagModif (x : ι) (ω : Ω) :
-    ∃ l, Tendsto (cadlagModif X · ω) (𝓝[<] x) (𝓝 l) :=
+lemma exists_tendsto_nhdsLT_cadlagModifReal (x : ι) (ω : Ω) :
+    ∃ l, Tendsto (cadlagModifReal X · ω) (𝓝[<] x) (𝓝 l) :=
   exists_tendsto_nhdsLT_cadlagModifOf isRegularityFamily_regularitySet x ω
 
-theorem isCadlag_cadlagModif (ω : Ω) : IsCadlag (cadlagModif X · ω) :=
+theorem isCadlag_cadlagModifReal (ω : Ω) : IsCadlag (cadlagModifReal X · ω) :=
   isCadlag_cadlagModifOf isRegularityFamily_regularitySet ω
 
 variable [OrderBot ι]
 
-lemma measurable_cadlagModif (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
-    Measurable (cadlagModif X t) :=
+lemma measurable_cadlagModifReal (hX : IsRealQuasimartingale 𝓕 X μ) (t : ι) :
+    Measurable (cadlagModifReal X t) :=
   (stronglyMeasurable_cadlagModifOf isRegularityFamily_regularitySet hX.stronglyAdapted
     (measurableSet_regularitySet hX countable_regularityTimes) t).measurable
 
 variable [IsFiniteMeasure μ]
 
-lemma cadlagModif_ae_eq_rightContModif (hX : IsRealQuasimartingale 𝓕 X μ) :
-    ∀ᵐ ω ∂μ, ∀ t, cadlagModif X t ω = rightContModif X t ω :=
+lemma cadlagModifReal_ae_eq_rightContModifReal (hX : IsRealQuasimartingale 𝓕 X μ) :
+    ∀ᵐ ω ∂μ, ∀ t, cadlagModifReal X t ω = rightContModifReal X t ω :=
   cadlagModifOf_ae_eq_rightContModifOf hX.ae_mem_regularitySetRight_regularityTimes
 
-lemma cadlagModif_ae_eq_of_rightContModif_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
-    (ht : rightContModif X t =ᵐ[μ] X t) :
-    cadlagModif X t =ᵐ[μ] X t :=
+lemma cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
+    (ht : rightContModifReal X t =ᵐ[μ] X t) :
+    cadlagModifReal X t =ᵐ[μ] X t :=
   cadlagModifOf_ae_eq_of_rightContModifOf_ae_eq hX.ae_mem_regularitySetRight_regularityTimes ht
 
-lemma cadlagModif_ae_eq_of_rightLimWithin_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
+lemma cadlagModifReal_ae_eq_of_rightLimWithin_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
     (ht : (fun ω ↦ rightLimWithin (X · ω) (regularityTimes ι) t) =ᵐ[μ] X t) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_rightContModif_ae_eq hX
-    (rightContModif_ae_eq_of_rightLimWithin_ae_eq hX ht)
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX
+    (rightContModifReal_ae_eq_of_rightLimWithin_ae_eq hX ht)
 
 /-- At a time `t` which is isolated on the right, the càdlàg modification is a.e. equal to
 `X t`. -/
-lemma cadlagModif_ae_eq_of_nhdsGT_eq_bot (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
+lemma cadlagModifReal_ae_eq_of_nhdsGT_eq_bot (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι}
     (ht : 𝓝[>] t = ⊥) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_rightContModif_ae_eq hX (rightContModif_ae_eq_of_nhdsGT_eq_bot hX ht)
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX
+    (rightContModifReal_ae_eq_of_nhdsGT_eq_bot hX ht)
 
 /-- At a maximal time `t`, the càdlàg modification is a.e. equal to `X t`. -/
-lemma cadlagModif_ae_eq_of_isMax (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι} (ht : IsMax t) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_nhdsGT_eq_bot hX ht.nhdsGT_eq_bot
+lemma cadlagModifReal_ae_eq_of_isMax (hX : IsRealQuasimartingale 𝓕 X μ) {t : ι} (ht : IsMax t) :
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_nhdsGT_eq_bot hX ht.nhdsGT_eq_bot
 
 /-- The set of points where the cadlag modification of a real quasimartingale along
 a countable dense set `T` disagrees with `X` is countable. -/
-lemma countable_not_cadlagModif_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) :
-    {t | ¬ cadlagModif X t =ᵐ[μ] X t}.Countable :=
-  (countable_not_rightContModif_ae_eq hX).mono fun _ ht hcon ↦
-    ht (cadlagModif_ae_eq_of_rightContModif_ae_eq hX hcon)
+lemma countable_not_cadlagModifReal_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) :
+    {t | ¬ cadlagModifReal X t =ᵐ[μ] X t}.Countable :=
+  (countable_not_rightContModifReal_ae_eq hX).mono fun _ ht hcon ↦
+    ht (cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX hcon)
 
-lemma cadlagModif_ae_eq_of_tendstoInMeasure (hX : IsRealQuasimartingale 𝓕 X μ)
+lemma cadlagModifReal_ae_eq_of_tendstoInMeasure (hX : IsRealQuasimartingale 𝓕 X μ)
     (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_rightContModif_ae_eq hX
-    (rightContModif_ae_eq_of_tendstoInMeasure hX t hXRC)
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX
+    (rightContModifReal_ae_eq_of_tendstoInMeasure hX t hXRC)
 
-lemma stronglyAdapted_cadlagModif [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
+lemma stronglyAdapted_cadlagModifReal [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
     (hX : IsRealQuasimartingale 𝓕 X μ) :
-    StronglyAdapted 𝓕 (cadlagModif X) :=
+    StronglyAdapted 𝓕 (cadlagModifReal X) :=
   stronglyAdapted_cadlagModifOf isRegularityFamily_regularitySet hX.stronglyAdapted
     (measurableSet_regularitySet hX countable_regularityTimes)
     hX.ae_mem_regularitySetRight_regularityTimes
 
-lemma adapted_cadlagModif [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
+lemma adapted_cadlagModifReal [𝓕.IsRightContinuous] [𝓕.IsComplete μ]
     (hX : IsRealQuasimartingale 𝓕 X μ) :
-    Adapted 𝓕 (cadlagModif X) :=
-  fun t ↦ (stronglyAdapted_cadlagModif hX t).measurable
+    Adapted 𝓕 (cadlagModifReal X) :=
+  fun t ↦ (stronglyAdapted_cadlagModifReal hX t).measurable
 
 end CadlagModif
 
@@ -1428,47 +1431,49 @@ section Modification
 variable [SecondCountableTopology ι] [OrderBot ι] [IsFiniteMeasure μ] {X : ι → Ω → ℝ}
 
 /-- If `t` is not isolated on the right, there is a sequence of times `w n ∈ (t, u]` tending to `t`
-along which a quasimartingale `X` converges almost surely to `rightContModif X t`. -/
-lemma exists_seq_tendsto_rightContModif (hX : IsRealQuasimartingale 𝓕 X μ) {t u : ι}
+along which a quasimartingale `X` converges almost surely to `rightContModifReal X t`. -/
+lemma exists_seq_tendsto_rightContModifReal (hX : IsRealQuasimartingale 𝓕 X μ) {t u : ι}
     [(𝓝[>] t).NeBot] (htu : t < u) :
     ∃ w : ℕ → ι, (∀ n, t < w n) ∧ (∀ n, w n ≤ u) ∧ Tendsto w atTop (𝓝[>] t) ∧
-      ∀ᵐ ω ∂μ, Tendsto (fun n ↦ X (w n) ω) atTop (𝓝 (rightContModif X t ω)) :=
+      ∀ᵐ ω ∂μ, Tendsto (fun n ↦ X (w n) ω) atTop (𝓝 (rightContModifReal X t ω)) :=
   exists_seq_tendsto_rightContModifOf hX.ae_mem_regularitySetRight_regularityTimes
     isRegularityFamily_regularitySet htu
 
 /-- The right-continuous modification of a martingale with respect to a right-continuous
 filtration is a modification. -/
-theorem _root_.MeasureTheory.Martingale.rightContModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Martingale.rightContModifReal_ae_eq [𝓕.IsRightContinuous]
     (hX : Martingale X 𝓕 μ) (t : ι) :
-    rightContModif X t =ᵐ[μ] X t :=
+    rightContModifReal X t =ᵐ[μ] X t :=
   hX.rightContModifOf_ae_eq hX.isRealQuasimartingale.ae_mem_regularitySetRight_regularityTimes
     isRegularityFamily_regularitySet
     (measurableSet_regularitySet hX.isRealQuasimartingale countable_regularityTimes) t
 
 /-- The càdlàg modification of a martingale with respect to a right-continuous filtration is a
 modification. -/
-theorem _root_.MeasureTheory.Martingale.cadlagModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Martingale.cadlagModifReal_ae_eq [𝓕.IsRightContinuous]
     (hX : Martingale X 𝓕 μ) (t : ι) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_rightContModif_ae_eq hX.isRealQuasimartingale (hX.rightContModif_ae_eq t)
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX.isRealQuasimartingale
+    (hX.rightContModifReal_ae_eq t)
 
 /-- The right-continuous modification of a submartingale with respect to a right-continuous
 filtration is a modification at the times where the expectation is right-continuous. -/
-theorem _root_.MeasureTheory.Submartingale.rightContModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Submartingale.rightContModifReal_ae_eq [𝓕.IsRightContinuous]
     (hX : Submartingale X 𝓕 μ) (t : ι)
     (hXRC : Tendsto (fun s ↦ μ[X s]) (𝓝[>] t) (𝓝 (μ[X t]))) :
-    rightContModif X t =ᵐ[μ] X t := by
+    rightContModifReal X t =ᵐ[μ] X t := by
   have hXq : IsRealQuasimartingale 𝓕 X μ := hX.isRealQuasimartingale
   -- if `t` is isolated on the right, the right limit is `X t`
   rcases (𝓝[>] t).eq_or_neBot with ht | ht
-  · exact rightContModif_ae_eq_of_nhdsGT_eq_bot hXq ht
-  -- a sequence `w n ∈ (t, u]` which tends to `t`, with `X (w n) → Y := rightContModif X t` a.e.
+  · exact rightContModifReal_ae_eq_of_nhdsGT_eq_bot hXq ht
+  -- a sequence `w n ∈ (t, u]` which tends to `t`, with `X (w n) → Y := rightContModifReal X t` a.e.
   obtain ⟨u, htu⟩ := not_isMax_iff.1 (not_isMax_of_nhdsGT_neBot (a := t))
-  obtain ⟨w, htw, hwu, hw, h_tendsto⟩ := exists_seq_tendsto_rightContModif hXq htu
-  set Y := rightContModif X t
+  obtain ⟨w, htw, hwu, hw, h_tendsto⟩ := exists_seq_tendsto_rightContModifReal hXq htu
+  set Y := rightContModifReal X t
   -- `Y` is integrable, by Fatou's lemma
   have hY_int : Integrable Y μ := by
-    refine memLp_one_iff_integrable.1 ⟨(measurable_rightContModif hXq t).aestronglyMeasurable, ?_⟩
+    refine memLp_one_iff_integrable.1
+      ⟨(measurable_rightContModifReal hXq t).aestronglyMeasurable, ?_⟩
     refine (Lp.eLpNorm_lim_le_liminf_eLpNorm
       (fun n ↦ (hX.integrable (w n)).aestronglyMeasurable) Y h_tendsto).trans_lt ?_
     have h_le n : eLpNorm (X (w n)) 1 μ
@@ -1513,7 +1518,7 @@ theorem _root_.MeasureTheory.Submartingale.rightContModif_ae_eq [𝓕.IsRightCon
   refine ae_eq_of_forall_setIntegral_eq_of_sigmaFinite' (𝓕.le t)
     (fun _ _ _ ↦ hY_int.integrableOn) (fun _ _ _ ↦ (hX.integrable t).integrableOn)
     (fun A hA _ ↦ le_antisymm ?_ (h_le A hA))
-    (adapted_rightContModif hXq t).stronglyMeasurable.aestronglyMeasurable
+    (adapted_rightContModifReal hXq t).stronglyMeasurable.aestronglyMeasurable
     (hX.stronglyAdapted t).aestronglyMeasurable
   have h1 := integral_add_compl (𝓕.le t A hA) hY_int
   have h2 := integral_add_compl (𝓕.le t A hA) (hX.integrable t)
@@ -1522,12 +1527,12 @@ theorem _root_.MeasureTheory.Submartingale.rightContModif_ae_eq [𝓕.IsRightCon
 
 /-- The càdlàg modification of a submartingale with respect to a right-continuous filtration is a
 modification at the times where the expectation is right-continuous. -/
-theorem _root_.MeasureTheory.Submartingale.cadlagModif_ae_eq [𝓕.IsRightContinuous]
+theorem _root_.MeasureTheory.Submartingale.cadlagModifReal_ae_eq [𝓕.IsRightContinuous]
     (hX : Submartingale X 𝓕 μ) (t : ι)
     (hXRC : Tendsto (fun s ↦ μ[X s]) (𝓝[>] t) (𝓝 (μ[X t]))) :
-    cadlagModif X t =ᵐ[μ] X t :=
-  cadlagModif_ae_eq_of_rightContModif_ae_eq hX.isRealQuasimartingale
-    (hX.rightContModif_ae_eq t hXRC)
+    cadlagModifReal X t =ᵐ[μ] X t :=
+  cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX.isRealQuasimartingale
+    (hX.rightContModifReal_ae_eq t hXRC)
 
 end Modification
 

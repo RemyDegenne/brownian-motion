@@ -1480,7 +1480,7 @@ noncomputable def martingalePartLim {ι Ω : Type*} [TopologicalSpace ι]
     [SecondCountableTopology ι] [MeasurableSpace ι] [LinearOrder ι] [OrderBot ι] [OrderTop ι]
     [OrderTopology ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {S : ι → Ω → ℝ}
     {𝓕 : Filtration ι mΩ} (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) : ι → Ω → ℝ :=
-  cadlagModif fun i ↦ P[martingaleLim hd hs | 𝓕 i]
+  cadlagModifReal fun i ↦ P[martingaleLim hd hs | 𝓕 i]
 
 /-- This is the weight associated with the martingale part. -/
 noncomputable def weight {ι Ω : Type*} [TopologicalSpace ι]
@@ -1525,12 +1525,12 @@ lemma ae_tendsto_weight_sum_predictableSeqStep (hd : ClassD S 𝓕 P) (hs : Subm
 lemma martingalePartLim_ae_eq [𝓕.IsRightContinuous]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (t : ι) :
     martingalePartLim hd hs t =ᵐ[P] P[martingaleLim hd hs | 𝓕 t] :=
-  (martingale_condExp (martingaleLim hd hs) 𝓕 P).cadlagModif_ae_eq t
+  (martingale_condExp (martingaleLim hd hs) 𝓕 P).cadlagModifReal_ae_eq t
 
 /-- The paths of the martingale part of the decomposition are càdlàg. -/
 lemma isCadlag_martingalePartLim (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (ω : Ω) :
     IsCadlag (martingalePartLim hd hs · ω) :=
-  isCadlag_cadlagModif ω
+  isCadlag_cadlagModifReal ω
 
 /-- The martingale part of the decomposition is integrable at each time. -/
 lemma integrable_martingalePartLim [𝓕.IsRightContinuous]
@@ -1542,7 +1542,8 @@ lemma integrable_martingalePartLim [𝓕.IsRightContinuous]
 lemma stronglyAdapted_martingalePartLim [𝓕.IsRightContinuous] [𝓕.IsComplete P]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) :
     StronglyAdapted 𝓕 (martingalePartLim hd hs) :=
-  stronglyAdapted_cadlagModif (martingale_condExp (martingaleLim hd hs) 𝓕 P).isRealQuasimartingale
+  stronglyAdapted_cadlagModifReal
+    (martingale_condExp (martingaleLim hd hs) 𝓕 P).isRealQuasimartingale
 
 /-- Under the usual conditions, the martingale part of the decomposition is a martingale. -/
 lemma martingale_martingalePartLim [𝓕.IsRightContinuous] [𝓕.IsComplete P]
