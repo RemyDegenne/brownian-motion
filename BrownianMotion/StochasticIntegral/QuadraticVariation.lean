@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.DoobMeyerLocal
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
 
 /-! # Quadratic variation of locally square-integrable martingales

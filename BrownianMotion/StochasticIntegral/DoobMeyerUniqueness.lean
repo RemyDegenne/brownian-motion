@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.StochasticIntegral.DoleansMeasure
-public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.DoobMeyerClassDL
 
 /-! # Uniqueness of the Doob-Meyer decomposition
 
@@ -33,10 +33,14 @@ property and right-continuity.
 * `MeasureTheory.ae_eq_top_of_martingale_sub`: if `A` and `B` are predictable, integrable, with
   monotone right-continuous paths, equal at `⊥`, and `A - B` is a martingale, then `A ⊤ = B ⊤`
   almost surely.
-* `MeasureTheory.indistinguishable_of_martingale_sub`: under the same hypotheses, `A` and `B` are
-  indistinguishable.
+* `MeasureTheory.indistinguishable_of_martingale_sub_of_orderTop`: under the same hypotheses, `A`
+  and `B` are indistinguishable.
+* `MeasureTheory.indistinguishable_of_martingale_sub`: the same result for an index set which does
+  not necessarily have a top element (for example `ℝ≥0`), obtained by restriction to the intervals
+  `Set.Icc ⊥ b`.
 * `MeasureTheory.doob_meyer_unique`, `MeasureTheory.doob_meyer_unique_of_integrable`: uniqueness
-  of the Doob-Meyer decomposition.
+  of the Doob-Meyer decomposition, in the generality of the existence theorem
+  `ProbabilityTheory.ClassDL.doob_meyer`.
 -/
 
 @[expose] public section
@@ -804,8 +808,10 @@ theorem ae_eq_top_of_martingale_sub
   exact sub_eq_zero.1 (g_eq_zero_iff.1 hω)
 
 /-- If `A` and `B` are predictable, integrable processes with monotone right-continuous paths, equal
-at `⊥`, and such that `A - B` is a martingale, then `A` and `B` are indistinguishable. -/
-theorem indistinguishable_of_martingale_sub
+at `⊥`, and such that `A - B` is a martingale, then `A` and `B` are indistinguishable. This is the
+version for an index set with a top element: see `indistinguishable_of_martingale_sub` for the
+general statement. -/
+theorem indistinguishable_of_martingale_sub_of_orderTop
     (hA : IsStronglyPredictable 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
     (hA_mono : ∀ ω, Monotone (A · ω)) (hA_int : ∀ t, Integrable (A t) P)
     (hB : IsStronglyPredictable 𝓕 B) (hB_rc : ∀ ω, IsRightContinuous (B · ω))
@@ -826,6 +832,47 @@ theorem indistinguishable_of_martingale_sub
   filter_upwards [h_dense] with ω hω t
   exact congr_fun ((denseSet_dense ι).eq_of_isRightContinuous (top_mem_denseSet ι) hω
     (hA_rc ω) (hB_rc ω)) t
+
+end DoobMeyerUnique
+
+section DoobMeyerUniqueGeneral
+
+/-! The index set does not need to have a top element: we restrict the processes to the intervals
+`Set.Icc ⊥ b`, which have one. These are the uniqueness statements that correspond to the
+Doob-Meyer decomposition `ProbabilityTheory.ClassDL.doob_meyer`. -/
+
+variable {ι Ω : Type*} [ConditionallyCompleteLinearOrderBot ι] [DenselyOrdered ι]
+  [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
+  {A B : ι → Ω → ℝ}
+
+/-- If `A` and `B` are predictable, integrable processes with monotone right-continuous paths, equal
+at `⊥`, and such that `A - B` is a martingale, then `A` and `B` are indistinguishable. -/
+theorem indistinguishable_of_martingale_sub
+    (hA : IsStronglyPredictable 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
+    (hA_mono : ∀ ω, Monotone (A · ω)) (hA_int : ∀ t, Integrable (A t) P)
+    (hB : IsStronglyPredictable 𝓕 B) (hB_rc : ∀ ω, IsRightContinuous (B · ω))
+    (hB_mono : ∀ ω, Monotone (B · ω)) (hB_int : ∀ t, Integrable (B t) P)
+    (h_bot : A ⊥ =ᵐ[P] B ⊥) (hAB : Martingale (A - B) 𝓕 P) :
+    ∀ᵐ ω ∂P, ∀ t, A t ω = B t ω := by
+  obtain ⟨T, -, hT⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  -- `A` and `B` are indistinguishable on `Set.Icc ⊥ (T n)`, which has a top element
+  have h_Icc (n : ℕ) : ∀ᵐ ω ∂P, ∀ t ≤ T n, A t ω = B t ω := by
+    haveI : Fact ((⊥ : ι) ≤ T n) := ⟨bot_le⟩
+    haveI : PolishSpace (Set.Icc (⊥ : ι) (T n)) := isClosed_Icc.polishSpace
+    have h_mono : Monotone (Subtype.val : Set.Icc (⊥ : ι) (T n) → ι) := Subtype.mono_coe _
+    have h_bot' : A ((⊥ : Set.Icc (⊥ : ι) (T n)) : ι)
+        =ᵐ[P] B ((⊥ : Set.Icc (⊥ : ι) (T n)) : ι) := by
+      rwa [Set.Icc.coe_bot]
+    have h := indistinguishable_of_martingale_sub_of_orderTop (hA.restrictIcc (T n))
+      (fun ω ↦ (hA_rc ω).comp_of_monotone_of_continuous h_mono continuous_subtype_val)
+      (fun ω ↦ (hA_mono ω).comp h_mono) (fun t ↦ hA_int t) (hB.restrictIcc (T n))
+      (fun ω ↦ (hB_rc ω).comp_of_monotone_of_continuous h_mono continuous_subtype_val)
+      (fun ω ↦ (hB_mono ω).comp h_mono) (fun t ↦ hB_int t) h_bot' (hAB.indexComap h_mono)
+    filter_upwards [h] with ω hω t ht using hω ⟨t, bot_le, ht⟩
+  filter_upwards [ae_all_iff.2 h_Icc] with ω hω t
+  obtain ⟨n, hn⟩ := (hT.eventually_ge_atTop t).exists
+  exact hω n t hn
 
 /-- **Uniqueness of the Doob-Meyer decomposition.** If `M + A = M' + A'` for two martingales `M`,
 `M'` and two predictable, integrable processes `A`, `A'` with monotone right-continuous paths which
@@ -874,6 +921,6 @@ theorem doob_meyer_unique_of_integrable {S M M' A A' : ι → Ω → ℝ}
   exact doob_meyer_unique (hS.symm.trans hS') hM hM' hA hA_rc hA_mono hA_int hA' hA'_rc hA'_mono
     hA'_int h_bot
 
-end DoobMeyerUnique
+end DoobMeyerUniqueGeneral
 
 end MeasureTheory

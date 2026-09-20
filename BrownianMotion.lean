@@ -64,6 +64,8 @@ public import BrownianMotion.StochasticIntegral.ConvexWeights
 public import BrownianMotion.StochasticIntegral.DoleansMeasure
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
+public import BrownianMotion.StochasticIntegral.DoobMeyerClassDL
+public import BrownianMotion.StochasticIntegral.DoobMeyerLocal
 public import BrownianMotion.StochasticIntegral.DoobMeyerUniqueness
 public import BrownianMotion.StochasticIntegral.Jump
 public import BrownianMotion.StochasticIntegral.Komlos

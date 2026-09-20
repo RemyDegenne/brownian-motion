@@ -2912,7 +2912,8 @@ theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder
     {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] [𝓕.IsComplete P]
     (hd : ClassD S 𝓕 P) (hs : Submartingale S 𝓕 P) (hc : ∀ ω, IsCadlag (S · ω)) :
     ∃ (M A : ι → Ω → ℝ), S = M + A ∧ Martingale M 𝓕 P ∧ (∀ ω, IsCadlag (M · ω)) ∧
-      IsStronglyPredictable 𝓕 A ∧ (∀ ω, IsCadlag (A · ω)) ∧ (∀ ω, Monotone (A · ω)) := by
+      IsStronglyPredictable 𝓕 A ∧ (∀ ω, IsCadlag (A · ω)) ∧ (∀ ω, Monotone (A · ω)) ∧
+      A ⊥ = 0 := by
   have hc' : ∀ᵐ ω ∂P, IsCadlag (S · ω) := .of_forall hc
   -- the limsup process `L` and the good set `G`, whose complement is a null set
   let L : ι → Ω → ℝ := fun t ω ↦ limsup (predictableConvexStep hd hs · t ω) atTop
@@ -2939,7 +2940,13 @@ theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder
     exact StronglyMeasurable.indicator hL (measurableSet_predictable_univ_prod (hG_meas ⊥))
   have hM_mem {ω : Ω} (hω : ω ∈ G) (t : ι) : (S - A) t ω = martingalePartLim hd hs t ω := by
     simp only [Pi.sub_apply, hA_mem hω t, predictablePartLim, sub_sub_cancel]
-  refine ⟨S - A, A, (sub_add_cancel S A).symm, ?_, fun ω ↦ ?_, hA_pred, fun ω ↦ ?_, fun ω ↦ ?_⟩
+  have hA_bot : A ⊥ = 0 := by
+    have hL_bot : L ⊥ = 0 := by
+      funext ω
+      simp [L, predictableConvexStep_bot]
+    simp [A, hL_bot]
+  refine ⟨S - A, A, (sub_add_cancel S A).symm, ?_, fun ω ↦ ?_, hA_pred, fun ω ↦ ?_, fun ω ↦ ?_,
+    hA_bot⟩
   · refine (martingale_martingalePartLim hd hs).congr ?_ ?_
     · exact fun t ↦ (hs.stronglyAdapted t).sub (hA_pred.stronglyAdapted t)
     · intro t
@@ -2955,68 +2962,3 @@ theorem ProbabilityTheory.ClassD.doob_meyer {ι Ω : Type*} [CompleteLinearOrder
     · simpa only [hA_notMem hω] using monotone_const (α := ι) (c := (0 : ℝ))
 
 end DoobMeyer
-
-variable {ι Ω : Type*} [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → ℝ} {𝓕 : Filtration ι mΩ}
-  [MeasurableSpace ι]
-
-namespace ProbabilityTheory
-
-namespace IsLocalSubmartingale
-
-theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ∃ (M A : ι → Ω → ℝ), X = M + A ∧ IsLocalMartingale M 𝓕 P ∧ (∀ ω, IsCadlag (M · ω)) ∧
-      IsStronglyPredictable 𝓕 A ∧ (∀ ω, IsCadlag (A · ω)) ∧ (HasLocallyIntegrableSup A 𝓕 P)
-      ∧ (∀ ω, Monotone (A · ω)) := by
-  sorry
-
-/-- The local martingale part of the Doob-Meyer decomposition of the local submartingale. -/
-noncomputable
-def martingalePart (X : ι → Ω → ℝ)
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ι → Ω → ℝ :=
-  (hX.doob_meyer hX_cadlag).choose
-
-/-- The predictable part of the Doob-Meyer decomposition of the local submartingale. -/
-noncomputable
-def predictablePart (X : ι → Ω → ℝ)
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ι → Ω → ℝ :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose
-
-lemma martingalePart_add_predictablePart
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    X = hX.martingalePart X hX_cadlag + hX.predictablePart X hX_cadlag :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.1
-
-lemma isLocalMartingale_martingalePart
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    IsLocalMartingale (hX.martingalePart X hX_cadlag) 𝓕 P :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.1
-
-lemma cadlag_martingalePart (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ∀ ω, IsCadlag (hX.martingalePart X hX_cadlag · ω) :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.1
-
-lemma isStronglyPredictable_predictablePart
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    IsStronglyPredictable 𝓕 (hX.predictablePart X hX_cadlag) :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.2.1
-
-lemma cadlag_predictablePart (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ∀ ω, IsCadlag (hX.predictablePart X hX_cadlag · ω) :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.2.2.1
-
-lemma hasLocallyIntegrableSup_predictablePart
-    (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    HasLocallyIntegrableSup (hX.predictablePart X hX_cadlag) 𝓕 P :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.2.2.2.1
-
-lemma monotone_predictablePart (hX : IsLocalSubmartingale X 𝓕 P)
-    (hX_cadlag : ∀ ω, IsCadlag (X · ω)) :
-    ∀ ω, Monotone (hX.predictablePart X hX_cadlag · ω) :=
-  (hX.doob_meyer hX_cadlag).choose_spec.choose_spec.2.2.2.2.2.2
-
-end IsLocalSubmartingale
-
-end ProbabilityTheory
