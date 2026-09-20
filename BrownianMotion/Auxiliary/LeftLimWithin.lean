@@ -232,39 +232,57 @@ lemma continuousWithinAt_rightLimWithin_Ici [TopologicalSpace α] [OrderTopology
     ContinuousWithinAt (rightLimWithin f s) (Ici a ∩ s) a :=
   continuousWithinAt_leftLimWithin_Iic (α := αᵒᵈ) h
 
+/-- If `s` is dense and `a` is not a minimum, then `a` is a right-accumulation point of `s`.
+Version of `nhdsWithin_Iio_inter_neBot` for an order which may have a maximal element. -/
+lemma nhdsWithin_Iio_inter_neBot_of_exists_lt
+    [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] {s : Set α} (hs : Dense s) {a : α}
+    (ha : ∃ b, b < a) :
+    (𝓝[Set.Iio a ∩ s] a).NeBot :=
+  have := nhdsLT_neBot_of_exists_lt ha
+  nhdsWithin_Iio_inter_neBot_of_nhdsLT_neBot hs a
+
+/-- If `s` is dense and `a` is not a maximum, then `a` is a right-accumulation point of `s`.
+Version of `nhdsWithin_Iio_inter_neBot` for an order which may have a maximal element. -/
+lemma nhdsWithin_Ioi_inter_neBot_of_exists_gt
+    [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] {s : Set α} (hs : Dense s) {a : α}
+    (ha : ∃ b, a < b) :
+    (𝓝[Set.Ioi a ∩ s] a).NeBot :=
+  have := nhdsGT_neBot_of_exists_gt ha
+  nhdsWithin_Ioi_inter_neBot_of_nhdsGT_neBot hs a
+
 /-- Dense version of `continuousWithinAt_leftLimWithin_Iic` with the stronger conclusion that the
 regularisation is continuous along the *full* left neighbourhood `Iic a`. This needs `s` dense (so
 that the within-neighbourhood is `NeBot`), the single-point hypothesis `h` that `f` has a within
 left limit at `a`, and that `f` has a within left limit at every point eventually to the left of
 `a`. -/
 lemma continuousWithinAt_leftLimWithin_Iic_of_dense [TopologicalSpace α] [OrderTopology α]
-    [DenselyOrdered α] [NoMinOrder α] [T3Space β] {f : α → β} {s : Set α} {a : α} (hs : Dense s)
+    [DenselyOrdered α] [T3Space β] {f : α → β} {s : Set α} {a : α} (hs : Dense s)
     (h : Tendsto f (𝓝[Iio a ∩ s] a) (𝓝 (leftLimWithin f s a)))
     (hlim : ∀ᶠ c in 𝓝[<] a, Tendsto f (𝓝[Iio c ∩ s] c) (𝓝 (leftLimWithin f s c))) :
     ContinuousWithinAt (leftLimWithin f s) (Iic a) a := by
-  have hsplit : 𝓝[≤] a = 𝓝[<] a ⊔ pure a := by
-    rw [← Iio_union_Icc_eq_Iic le_rfl, nhdsWithin_union]
-    simp
-  rw [ContinuousWithinAt, hsplit, tendsto_sup]
-  simp only [tendsto_pure_nhds, and_true]
-  apply (closed_nhds_basis (leftLimWithin f s a)).tendsto_right_iff.2
+  rw [← continuousWithinAt_Iio_iff_Iic]
+  by_cases ha : ∃ b, b < a
+  swap
+  · have hempty : Set.Iio a = ∅ := Set.eq_empty_iff_forall_notMem.2 fun u hu ↦ ha ⟨u, hu⟩
+    simp [ContinuousWithinAt, hempty]
+  apply (closed_nhds_basis (Function.leftLimWithin f s a)).tendsto_right_iff.2
   rintro V ⟨V_mem, V_closed⟩
   have hev : ∀ᶠ x in 𝓝[<] a ⊓ 𝓟 s, f x ∈ V := by
     rw [nhdsWithin_inf_principal]; exact h.eventually V_mem
-  obtain ⟨u, hua, hu⟩ := (nhdsLT_basis_of_exists_lt (exists_lt a)).eventually_iff.1
+  obtain ⟨u, hua, hu⟩ := (nhdsLT_basis_of_exists_lt ha).eventually_iff.1
     (Filter.eventually_inf_principal.1 hev)
   filter_upwards [Ioo_mem_nhdsLT hua, hlim] with c hc hlimc
-  have hne := nhdsWithin_Iio_inter_neBot hs c
+  have hne := nhdsWithin_Iio_inter_neBot_of_exists_lt hs ⟨u, hc.1⟩
   refine V_closed.mem_of_tendsto hlimc ?_
   rw [← nhdsWithin_inf_principal]
   refine Filter.eventually_inf_principal.2 ?_
   filter_upwards [Ioo_mem_nhdsLT hc.1] with x hx hxs
-  exact hu ⟨hx.1, hx.2.trans hc.2⟩ hxs
+  grind
 
 /-- Dense version of `continuousWithinAt_rightLimWithin_Ici` with
 the stronger conclusion `Ici a`. -/
 lemma continuousWithinAt_rightLimWithin_Ici_of_dense [TopologicalSpace α] [OrderTopology α]
-    [DenselyOrdered α] [NoMaxOrder α] [T3Space β] {f : α → β} {s : Set α} {a : α} (hs : Dense s)
+    [DenselyOrdered α] [T3Space β] {f : α → β} {s : Set α} {a : α} (hs : Dense s)
     (h : Tendsto f (𝓝[Ioi a ∩ s] a) (𝓝 (rightLimWithin f s a)))
     (hlim : ∀ᶠ c in 𝓝[>] a, Tendsto f (𝓝[Ioi c ∩ s] c) (𝓝 (rightLimWithin f s c))) :
     ContinuousWithinAt (rightLimWithin f s) (Ici a) a :=
