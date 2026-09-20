@@ -22,8 +22,8 @@ open MeasureTheory Finset Filter
 open scoped ENNReal Topology MeasureTheory ProbabilityTheory.SimpleProcess
 
 /-- A dense set contains points above any point which is not maximal. -/
-lemma Dense.exists_gt_of_not_isMax {α β : Type*} [LinearOrder α] [TopologicalSpace α]
-    [OrderTopology α] [DenselyOrdered α] [TopologicalSpace β]
+lemma Dense.exists_gt_of_not_isMax {α : Type*} [LinearOrder α] [TopologicalSpace α]
+    [OrderTopology α] [DenselyOrdered α]
     {s : Set α} (hs : Dense s) {a : α} (ha : ¬ IsMax a) :
     ∃ b ∈ s, a < b := by
   obtain ⟨y, hy⟩ := not_isMax_iff.1 ha
