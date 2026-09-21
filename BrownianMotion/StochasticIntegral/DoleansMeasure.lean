@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.StochasticIntegral.L2M
+public import BrownianMotion.StochasticIntegral.Predictable
 public import BrownianMotion.StochasticIntegral.MonotoneProcess
 public import Mathlib.MeasureTheory.Function.Floor
 public import Mathlib.Order.CompletePartialOrder
@@ -14,6 +14,24 @@ public import Mathlib.Probability.Martingale.Basic
 
 /-! # Doléans measure
 
+For an adapted process `A` with monotone right-continuous paths, the Doléans measure of `A` is the
+measure `s ↦ E[∫ 1_s(t, ω) dA_t(ω)]` on `ι × Ω`.
+
+## Main definitions
+
+* `MeasureTheory.doleansMeasure`: the Doléans measure of `A`, defined for an index set `ι` which
+  does not necessarily have a top element (for example `ℝ≥0`).
+
+## Main statements
+
+* `MeasureTheory.doleansMeasure_Ioc_prod`: the Doléans measure of `(a, b] × F` is
+  `E[1_F (A b - A a)]`.
+* `MeasureTheory.lintegral_doleansMeasure`: the integral with respect to the Doléans measure is
+  the iterated integral `E[∫ f(s, ω) dA_s(ω)]`.
+* `MeasureTheory.isFiniteMeasure_doleansMeasure_of_integral_le`: the Doléans measure is finite if
+  `E[A t - A ⊥]` is bounded in `t`.
+* `MeasureTheory.doleansMeasure_eq_of_martingale`: if the index set has a top element and `A - B`
+  is a martingale, then the Doléans measures of `A` and `B` agree on predictable sets.
 -/
 
 @[expose] public section
@@ -47,6 +65,27 @@ lemma ProbabilityTheory.Kernel.isSFiniteKernel_of_isFiniteMeasure (κ : Kernel �
     · simp [Kernel.piecewise_apply', s]
     · intro n hn
       simp [Kernel.piecewise_apply', s, hn.symm]
+
+/-- A kernel whose measures are finite on each set of a countable measurable cover is s-finite. -/
+lemma ProbabilityTheory.Kernel.isSFiniteKernel_of_measure_lt_top (κ : Kernel α β) {s : ℕ → Set β}
+    (hs : ∀ n, MeasurableSet (s n)) (hs_univ : ⋃ n, s n = Set.univ)
+    (h_fin : ∀ a n, κ a (s n) < ∞) : IsSFiniteKernel κ := by
+  have hd n : MeasurableSet (disjointed s n) := MeasurableSet.disjointed hs n
+  have h_eq : κ = Kernel.sum fun n ↦ κ.restrict (hd n) := by
+    ext a t ht
+    rw [Kernel.sum_apply, Measure.sum_apply _ ht]
+    simp_rw [Kernel.restrict_apply' _ _ _ ht]
+    rw [← measure_iUnion, ← Set.inter_iUnion, iUnion_disjointed, hs_univ, Set.inter_univ]
+    · exact fun i j hij ↦ (disjoint_disjointed s hij).mono Set.inter_subset_right
+        Set.inter_subset_right
+    · exact fun n ↦ ht.inter (hd n)
+  rw [h_eq]
+  have h_sfin n : IsSFiniteKernel (κ.restrict (hd n)) := by
+    have : ∀ a, IsFiniteMeasure (κ.restrict (hd n) a) := fun a ↦ ⟨by
+      rw [Kernel.restrict_apply, Measure.restrict_apply_univ]
+      exact (measure_mono (disjointed_subset s n)).trans_lt (h_fin a n)⟩
+    exact Kernel.isSFiniteKernel_of_isFiniteMeasure _
+  infer_instance
 
 end Kernel
 
@@ -86,17 +125,16 @@ lemma Martingale.setIntegral_sub_top_eq {ι Ω : Type*} [Preorder ι] [OrderTop 
 
 end MeasureTheory
 
-variable {ι Ω : Type*} [CompleteLinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι]
-  [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
-  {A B : ι → Ω → ℝ}
+section General
+
+/-! ### Index set which does not necessarily have a top element -/
+
+variable {ι Ω : Type*} [ConditionallyCompleteLinearOrderBot ι] [DenselyOrdered ι]
+  [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {𝓕 : Filtration ι mΩ} {A : ι → Ω → ℝ}
+  (hA : Adapted 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω)) (hA_mono : ∀ ω, Monotone (A · ω))
 
 namespace StieltjesFunction
-
-section Basic
-
-variable (hA : Adapted 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
-  (hA_mono : ∀ ω, Monotone (A · ω))
 
 /-- The Stieltjes kernel of `A` at `ω` is the Stieltjes measure of the path `A · ω`. -/
 lemma kernelOfRightContAdaptedMono_apply (ω : Ω) :
@@ -121,37 +159,37 @@ lemma kernelOfRightContAdaptedMono_singleton_bot (ω : Ω) :
   rw [kernelOfRightContAdaptedMono_apply, ← botSet_eq_singleton_of_isBot isBot_bot,
     measure_botSet]
 
-/-- The Stieltjes kernel of `A` gives mass `A ⊤ ω - A a ω` to `(a, ⊤]`. -/
-lemma kernelOfRightContAdaptedMono_Ioi (ω : Ω) (a : ι) :
-    kernelOfRightContAdaptedMono hA hA_rc hA_mono ω (Set.Ioi a)
-      = ENNReal.ofReal (A ⊤ ω - A a ω) := by
-  rw [← Set.Ioc_top, kernelOfRightContAdaptedMono_Ioc]
-
-/-- The total mass of the Stieltjes kernel of `A` is `A ⊤ ω - A ⊥ ω`. -/
-lemma kernelOfRightContAdaptedMono_univ (ω : Ω) :
-    kernelOfRightContAdaptedMono hA hA_rc hA_mono ω Set.univ
-      = ENNReal.ofReal (A ⊤ ω - A ⊥ ω) := by
-  have h_univ : (Set.univ : Set ι) = {⊥} ∪ Set.Ioi ⊥ := by
+/-- The Stieltjes kernel of `A` gives mass `A b ω - A ⊥ ω` to `[⊥, b]`. -/
+lemma kernelOfRightContAdaptedMono_Iic (ω : Ω) (b : ι) :
+    kernelOfRightContAdaptedMono hA hA_rc hA_mono ω (Set.Iic b)
+      = ENNReal.ofReal (A b ω - A ⊥ ω) := by
+  have h_eq : Set.Iic b = {⊥} ∪ Set.Ioc ⊥ b := by
     ext x
-    simp
+    simp only [Set.mem_Iic, Set.mem_union, Set.mem_singleton_iff, Set.mem_Ioc]
+    refine ⟨fun h ↦ ?_, ?_⟩
+    · by_cases hx : x = ⊥
+      · exact Or.inl hx
+      · exact Or.inr ⟨bot_lt_iff_ne_bot.2 hx, h⟩
+    · rintro (rfl | h)
+      exacts [bot_le, h.2]
   refine le_antisymm ?_ ?_
-  · rw [h_univ]
+  · rw [h_eq]
     refine (measure_union_le _ _).trans ?_
-    simp [kernelOfRightContAdaptedMono_Ioi]
-  · rw [← kernelOfRightContAdaptedMono_Ioi hA hA_rc hA_mono]
-    exact measure_mono (Set.subset_univ _)
+    simp [kernelOfRightContAdaptedMono_Ioc]
+  · rw [← kernelOfRightContAdaptedMono_Ioc hA hA_rc hA_mono]
+    exact measure_mono Set.Ioc_subset_Iic_self
 
-/-- The Stieltjes kernel of `A` consists of finite measures (since `ι` has a bottom and a top). -/
-instance isFiniteMeasure_kernelOfRightContAdaptedMono (ω : Ω) :
-    IsFiniteMeasure (kernelOfRightContAdaptedMono hA hA_rc hA_mono ω) :=
-  ⟨by simp [kernelOfRightContAdaptedMono_univ]⟩
-
-/-- The Stieltjes kernel of `A` is s-finite. -/
+/-- The Stieltjes kernel of `A` is s-finite: its measures are finite on the intervals `[⊥, b]`. -/
 instance isSFiniteKernel_kernelOfRightContAdaptedMono :
-    IsSFiniteKernel (kernelOfRightContAdaptedMono hA hA_rc hA_mono) :=
-  Kernel.isSFiniteKernel_of_isFiniteMeasure _
-
-end Basic
+    IsSFiniteKernel (kernelOfRightContAdaptedMono hA hA_rc hA_mono) := by
+  obtain ⟨u, -, hu⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  refine Kernel.isSFiniteKernel_of_measure_lt_top _ (s := fun n ↦ Set.Iic (u n))
+    (fun n ↦ measurableSet_Iic) ?_ fun ω n ↦ ?_
+  · ext x
+    simp only [Set.mem_iUnion, Set.mem_Iic, Set.mem_univ, iff_true]
+    exact (hu.eventually_ge_atTop x).exists
+  · rw [kernelOfRightContAdaptedMono_Iic]
+    exact ENNReal.ofReal_lt_top
 
 end StieltjesFunction
 
@@ -159,17 +197,14 @@ namespace MeasureTheory
 
 open StieltjesFunction
 
-section DoleansMeasure
-
-variable (hA : Adapted 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
-  (hA_mono : ∀ ω, Monotone (A · ω))
-
 /-- The Doléans measure on `ι × Ω` of a right-continuous, monotone, adapted process `A`:
 the measure `s ↦ E[∫ 1_s(t, ω) dA_t(ω)]`. -/
 noncomputable def doleansMeasure (P : Measure Ω) (hA : Adapted 𝓕 A)
     (hA_rc : ∀ ω, IsRightContinuous (A · ω)) (hA_mono : ∀ ω, Monotone (A · ω)) :
     Measure (ι × Ω) :=
   (P ⊗ₘ kernelOfRightContAdaptedMono hA hA_rc hA_mono).map Prod.swap
+
+variable [SFinite P]
 
 /-- The Doléans measure of a measurable rectangle. -/
 lemma doleansMeasure_prod {s : Set ι} {F : Set Ω} (hs : MeasurableSet s) (hF : MeasurableSet F) :
@@ -185,6 +220,107 @@ lemma doleansMeasure_singleton_bot_prod (F : Set Ω) :
   refine measure_mono_null (Set.prod_mono subset_rfl (Set.subset_univ F)) ?_
   rw [doleansMeasure_prod hA hA_rc hA_mono (measurableSet_singleton ⊥) MeasurableSet.univ]
   simp
+
+/-- The Doléans measure of `(a, b] × F` is `E[1_F (A b - A a)]`. -/
+lemma doleansMeasure_Ioc_prod (hA_int : ∀ t, Integrable (A t) P) {a b : ι} (hab : a ≤ b)
+    {F : Set Ω} (hF : MeasurableSet F) :
+    doleansMeasure P hA hA_rc hA_mono (Set.Ioc a b ×ˢ F)
+      = ENNReal.ofReal (∫ ω in F, (A b ω - A a ω) ∂P) := by
+  have h_int : Integrable (fun ω ↦ A b ω - A a ω) P := (hA_int b).sub (hA_int a)
+  rw [doleansMeasure_prod hA hA_rc hA_mono measurableSet_Ioc hF,
+    ofReal_integral_eq_lintegral_ofReal h_int.integrableOn
+      (ae_of_all _ fun ω ↦ sub_nonneg.2 (hA_mono ω hab))]
+  simp_rw [kernelOfRightContAdaptedMono_Ioc]
+
+/-- The Doléans measure of `[⊥, b] × F` is `E[1_F (A b - A ⊥)]`. -/
+lemma doleansMeasure_Iic_prod (hA_int : ∀ t, Integrable (A t) P) (b : ι) {F : Set Ω}
+    (hF : MeasurableSet F) :
+    doleansMeasure P hA hA_rc hA_mono (Set.Iic b ×ˢ F)
+      = ENNReal.ofReal (∫ ω in F, (A b ω - A ⊥ ω) ∂P) := by
+  have h_int : Integrable (fun ω ↦ A b ω - A ⊥ ω) P := (hA_int b).sub (hA_int ⊥)
+  rw [doleansMeasure_prod hA hA_rc hA_mono measurableSet_Iic hF,
+    ofReal_integral_eq_lintegral_ofReal h_int.integrableOn
+      (ae_of_all _ fun ω ↦ sub_nonneg.2 (hA_mono ω bot_le))]
+  simp_rw [kernelOfRightContAdaptedMono_Iic]
+
+/-- The integral with respect to the Doléans measure is the iterated integral
+`E[∫ f(s, ω) dA_s(ω)]`. -/
+lemma lintegral_doleansMeasure {f : ι × Ω → ℝ≥0∞} (hf : Measurable f) :
+    ∫⁻ p, f p ∂(doleansMeasure P hA hA_rc hA_mono)
+      = ∫⁻ ω, ∫⁻ s, f (s, ω) ∂(kernelOfRightContAdaptedMono hA hA_rc hA_mono ω) ∂P := by
+  rw [doleansMeasure, lintegral_map hf measurable_swap]
+  exact Measure.lintegral_compProd (hf.comp measurable_swap)
+
+/-- If `E[A t - A ⊥]` is bounded by `C` for all `t`, then the total mass of the Doléans measure is
+at most `C`. -/
+lemma doleansMeasure_univ_le (hA_int : ∀ t, Integrable (A t) P) {C : ℝ}
+    (hC : ∀ t, ∫ ω, (A t ω - A ⊥ ω) ∂P ≤ C) :
+    doleansMeasure P hA hA_rc hA_mono Set.univ ≤ ENNReal.ofReal C := by
+  obtain ⟨u, hu_mono, hu⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  have h_univ : (Set.univ : Set (ι × Ω)) = ⋃ n, Set.Iic (u n) ×ˢ Set.univ := by
+    ext p
+    simp only [Set.mem_univ, Set.mem_iUnion, Set.mem_prod, Set.mem_Iic, and_true, true_iff]
+    exact (hu.eventually_ge_atTop p.1).exists
+  have h_mono : Monotone fun n ↦ Set.Iic (u n) ×ˢ (Set.univ : Set Ω) :=
+    fun n m hnm ↦ Set.prod_mono (Set.Iic_subset_Iic.2 (hu_mono hnm)) subset_rfl
+  rw [h_univ, h_mono.measure_iUnion]
+  refine iSup_le fun n ↦ ?_
+  rw [doleansMeasure_Iic_prod hA hA_rc hA_mono hA_int (u n) .univ, Measure.restrict_univ]
+  exact ENNReal.ofReal_le_ofReal (hC (u n))
+
+/-- The Doléans measure is finite if `E[A t - A ⊥]` is bounded in `t`. -/
+lemma isFiniteMeasure_doleansMeasure_of_integral_le (hA_int : ∀ t, Integrable (A t) P) {C : ℝ}
+    (hC : ∀ t, ∫ ω, (A t ω - A ⊥ ω) ∂P ≤ C) :
+    IsFiniteMeasure (doleansMeasure P hA hA_rc hA_mono) :=
+  ⟨(doleansMeasure_univ_le hA hA_rc hA_mono hA_int hC).trans_lt ENNReal.ofReal_lt_top⟩
+
+end MeasureTheory
+
+end General
+
+/-! ### Index set with a top element -/
+
+variable {ι Ω : Type*} [CompleteLinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι]
+  [OrderTopology ι] [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
+  {A B : ι → Ω → ℝ}
+
+namespace StieltjesFunction
+
+section Basic
+
+variable (hA : Adapted 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
+  (hA_mono : ∀ ω, Monotone (A · ω))
+
+/-- The Stieltjes kernel of `A` gives mass `A ⊤ ω - A a ω` to `(a, ⊤]`. -/
+lemma kernelOfRightContAdaptedMono_Ioi (ω : Ω) (a : ι) :
+    kernelOfRightContAdaptedMono hA hA_rc hA_mono ω (Set.Ioi a)
+      = ENNReal.ofReal (A ⊤ ω - A a ω) := by
+  rw [← Set.Ioc_top, kernelOfRightContAdaptedMono_Ioc]
+
+/-- The total mass of the Stieltjes kernel of `A` is `A ⊤ ω - A ⊥ ω`. -/
+lemma kernelOfRightContAdaptedMono_univ (ω : Ω) :
+    kernelOfRightContAdaptedMono hA hA_rc hA_mono ω Set.univ
+      = ENNReal.ofReal (A ⊤ ω - A ⊥ ω) := by
+  rw [← Set.Iic_top, kernelOfRightContAdaptedMono_Iic]
+
+/-- The Stieltjes kernel of `A` consists of finite measures (since `ι` has a bottom and a top). -/
+instance isFiniteMeasure_kernelOfRightContAdaptedMono (ω : Ω) :
+    IsFiniteMeasure (kernelOfRightContAdaptedMono hA hA_rc hA_mono ω) :=
+  ⟨by simp [kernelOfRightContAdaptedMono_univ]⟩
+
+end Basic
+
+end StieltjesFunction
+
+namespace MeasureTheory
+
+open StieltjesFunction
+
+section DoleansMeasure
+
+variable (hA : Adapted 𝓕 A) (hA_rc : ∀ ω, IsRightContinuous (A · ω))
+  (hA_mono : ∀ ω, Monotone (A · ω))
 
 /-- The Doléans measure of `(i, ⊤] × F` is `E[1_F (A ⊤ - A i)]`. -/
 lemma doleansMeasure_Ioi_prod (hA_int : ∀ t, Integrable (A t) P) (i : ι) {F : Set Ω}

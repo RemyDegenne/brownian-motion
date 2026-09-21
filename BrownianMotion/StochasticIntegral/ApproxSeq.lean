@@ -176,6 +176,14 @@ noncomputable instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ
     nnrealApproxSeq_countable τ, nnrealApproxSeq_antitone τ,
     nnrealApproxSeq_le τ, ae_of_all _ <| nnrealApproxSeq_tendsto τ⟩⟩
 
+/-- `NNReal.approximable`, stated with the `LinearOrder` instance which comes from
+`ConditionallyCompleteLinearOrderBot ℝ≥0`. Instance search does not unify the two, and without
+this instance the results which assume `[ConditionallyCompleteLinearOrderBot ι]` and
+`[Approximable 𝓕 μ]` can not be applied to `ι = ℝ≥0`. -/
+noncomputable instance _root_.NNReal.approximable' {𝓕 : Filtration ℝ≥0 mΩ} :
+    @Approximable ℝ≥0 Ω mΩ _ ConditionallyCompleteLinearOrder.toLinearOrder _ 𝓕 μ :=
+  NNReal.approximable
+
 end NNRealApprox
 
 /-- The constant discrete approximation sequence. -/

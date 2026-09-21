@@ -442,4 +442,14 @@ lemma isSetSemiring_predictableRectangles (𝓕 : Filtration ι m) :
         simp only [Set.mem_sdiff, Set.mem_prod, Set.mem_Ioc, Set.mem_union, R₁, R₂, R₃]
         grind
 
+/-- The predictable σ-algebra is a sub-σ-algebra of the product σ-algebra. -/
+lemma predictable_le_prod {T : Type*} [LinearOrder T] [TopologicalSpace T] [OrderBot T]
+    [OrderTopology T] [MeasurableSpace T] [BorelSpace T] (𝓕 : Filtration T m) :
+    𝓕.predictable ≤ Prod.instMeasurableSpace := by
+  unfold Filtration.predictable
+  apply MeasurableSpace.generateFrom_le
+  rintro s (⟨A, hA, rfl⟩ | ⟨i, A, hA, rfl⟩)
+  · exact (measurableSet_singleton _).prod (𝓕.le _ _ hA)
+  · exact measurableSet_Ioi.prod (𝓕.le _ _ hA)
+
 end MeasureTheory.Filtration
