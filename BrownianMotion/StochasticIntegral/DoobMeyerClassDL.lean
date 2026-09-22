@@ -37,24 +37,24 @@ section MinIcc
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] {b c : ι}
 
 /-- The map `t ↦ min t c` for `c ≤ b`, seen as a map to `Set.Icc ⊥ b`. -/
-def minIcc (hcb : c ≤ b) (t : ι) : Icc (⊥ : ι) b :=
+private def minIcc (hcb : c ≤ b) (t : ι) : Icc (⊥ : ι) b :=
   ⟨min t c, bot_le, (min_le_right t c).trans hcb⟩
 
 @[simp]
-lemma coe_minIcc (hcb : c ≤ b) (t : ι) : (minIcc hcb t : ι) = min t c := rfl
+private lemma coe_minIcc (hcb : c ≤ b) (t : ι) : (minIcc hcb t : ι) = min t c := rfl
 
-lemma monotone_minIcc (hcb : c ≤ b) : Monotone (minIcc hcb) :=
+private lemma monotone_minIcc (hcb : c ≤ b) : Monotone (minIcc hcb) :=
   fun _ _ hst ↦ Subtype.mk_le_mk.2 (min_le_min_right c hst)
 
-lemma continuous_minIcc [TopologicalSpace ι] [OrderTopology ι] (hcb : c ≤ b) :
+private lemma continuous_minIcc [TopologicalSpace ι] [OrderTopology ι] (hcb : c ≤ b) :
     Continuous (minIcc hcb) :=
   Continuous.subtype_mk (by fun_prop) _
 
-lemma minIcc_of_le (hcb : c ≤ b) {t : ι} (htc : t ≤ c) :
+private lemma minIcc_of_le (hcb : c ≤ b) {t : ι} (htc : t ≤ c) :
     minIcc hcb t = ⟨t, bot_le, htc.trans hcb⟩ :=
   Subtype.ext (min_eq_left htc)
 
-lemma minIcc_of_ge (hcb : c ≤ b) {t : ι} (hct : c ≤ t) :
+private lemma minIcc_of_ge (hcb : c ≤ b) {t : ι} (hct : c ≤ t) :
     minIcc hcb t = ⟨c, bot_le, hcb⟩ :=
   Subtype.ext (min_eq_right hct)
 
@@ -65,15 +65,15 @@ section RestrictIcc
 variable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 /-- The restriction of a filtration to the interval `Set.Icc ⊥ b`. -/
-abbrev Filtration.restrictIcc [Preorder ι] [OrderBot ι] (𝓕 : Filtration ι mΩ) (b : ι) :
+private abbrev Filtration.restrictIcc [Preorder ι] [OrderBot ι] (𝓕 : Filtration ι mΩ) (b : ι) :
     Filtration (Icc (⊥ : ι) b) mΩ :=
   𝓕.indexComap (Subtype.mono_coe (· ∈ Icc (⊥ : ι) b))
 
-instance [PartialOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] (b : ι) :
+private instance [PartialOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] (b : ι) :
     (𝓕.restrictIcc b).IsComplete P :=
   ⟨fun _ hs t ↦ Filtration.IsComplete.measurableSet_of_null (𝓕 := 𝓕) hs (t : ι)⟩
 
-instance [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+private instance [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     {𝓕 : Filtration ι mΩ} [𝓕.IsRightContinuous] (b : ι) :
     (𝓕.restrictIcc b).IsRightContinuous := by
   refine ⟨fun t ↦ ?_⟩
@@ -103,7 +103,7 @@ instance [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
 
 /-- If `M` is a martingale on `Set.Icc ⊥ b` with respect to the restricted filtration, then
 `t ↦ M (min t c)` is a martingale on `ι`. -/
-lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+private lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration P 𝓕] {b c : ι} {M : Icc (⊥ : ι) b → Ω → E}
     (hM : Martingale M (𝓕.restrictIcc b) P) (hcb : c ≤ b) :
@@ -121,7 +121,7 @@ lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
 
 /-- If `A` is a predictable process on `Set.Icc ⊥ b` with respect to the restricted filtration,
 then `t ↦ A (min t c)` is a predictable process on `ι`. -/
-lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
+private lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
     [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ} {b c : ι}
     {A : Icc (⊥ : ι) b → Ω → E}
     (hA : haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩; IsStronglyPredictable (𝓕.restrictIcc b) A)
@@ -165,7 +165,7 @@ lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
 
 /-- The restriction of a predictable process to `Set.Icc ⊥ b` is predictable with respect to the
 restricted filtration. -/
-lemma IsStronglyPredictable.restrictIcc {E : Type*} [TopologicalSpace E]
+private lemma IsStronglyPredictable.restrictIcc {E : Type*} [TopologicalSpace E]
     [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ} {A : ι → Ω → E}
     (hA : IsStronglyPredictable 𝓕 A) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
@@ -210,7 +210,7 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E]
 
 /-- The restriction of a process of class DL to `Set.Icc ⊥ b` is of class D. -/
-lemma ClassDL.classD_restrictIcc [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι]
+private lemma ClassDL.classD_restrictIcc [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι]
     {𝓕 : Filtration ι mΩ} {S : ι → Ω → E} (hd : ClassDL S 𝓕 P) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
     ClassD (fun t : Icc (⊥ : ι) b ↦ S t) (𝓕.restrictIcc b) P := by
