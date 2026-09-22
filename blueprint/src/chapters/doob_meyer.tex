@@ -94,7 +94,7 @@ By convex weights on $\mathbb{N}$, we mean a sequence of non-negative real numbe
 
 \begin{definition}\label{def:convex_weights_product}
   \leanok
-  \lean{Convexity.StdSimplex.bind}
+  \lean{Convexity.iConvexComb}
 If $(a_m)_{m \in \mathbb{N}}$ are convex weights and $(b^n_m)_{n,m \in \mathbb{N}}$ is such that for all $n$, the $(b^n_m)$ are convex weights, then we denote by $(a_\cdot) * (b^\cdot_\cdot)$ the convex weights defined by $((a_\cdot) * (b^\cdot_\cdot))_m = \sum_{k} a_k b^k_m$.
 \end{definition}
 
@@ -158,6 +158,7 @@ Then there exists a sequence of convex weights $(\eta^n_\cdot)_{n \in \mathbb{N}
 
 \begin{proof}
   \uses{lem:komlos_convex_weights, lem:komlos_convex_weights_tendsto}
+  \leanok
 Let $(\lambda^{k,n}_\cdot)_{k, n \in \mathbb{N}}$ be convex weights satisfying the conclusion of Lemma~\ref{lem:komlos_convex_weights}, and let $(g^i)_{i\in \mathbb{N}}$ be the sequence of limits of the sums.
 Let $\eta^n_m = (\lambda^{n,n}_\cdot * \ldots * \lambda^{1,\cdot}_\cdot)_m$.
 We show that for all $i \in \mathbb{N}$, the sequence $\left(\sum_{m \ge n} \eta^n_m x_m^{(i)}\right)_{n \in \mathbb{N}}$ converges to $g^i$.

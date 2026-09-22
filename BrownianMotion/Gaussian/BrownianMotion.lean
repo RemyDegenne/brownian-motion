@@ -638,7 +638,8 @@ lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X
   exact h1.isClosed_biUnion h2
 
 open TopologicalSpace in
-theorem ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
+theorem ContinuousMap.borel_eq_iSup_comap_eval
+    [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
     borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
   -- https://math.stackexchange.com/questions/4789531/when-does-the-borel-sigma-algebra-of-compact-convergence-coincide-with-the-pr
