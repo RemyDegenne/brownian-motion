@@ -37,6 +37,17 @@ lemma IsRightContinuous.continuous_comp {F : Type*} [TopologicalSpace E]
     {f : ι → E} (hg : Continuous g) (hf : IsRightContinuous f) : IsRightContinuous (g ∘ f) :=
   fun x ↦ (hg.tendsto (f x)).comp (hf x)
 
+/-- The composition of a right-continuous function with a monotone continuous function is
+right-continuous. -/
+lemma IsRightContinuous.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder ι]
+    [PartialOrder κ] [TopologicalSpace κ] [TopologicalSpace E]
+    {f : κ → E} (hf : IsRightContinuous f) {ψ : ι → κ} (hψ : Monotone ψ) (hψc : Continuous ψ) :
+    IsRightContinuous (f ∘ ψ) := by
+  intro x
+  rw [continuousWithinAt_Ioi_iff_Ici]
+  refine ContinuousWithinAt.comp (t := Set.Ici (ψ x)) ?_ hψc.continuousWithinAt fun y hy ↦ hψ hy
+  exact continuousWithinAt_Ioi_iff_Ici.1 (hf (ψ x))
+
 @[simp]
 lemma isRightContinuous_const [TopologicalSpace E] [Preorder ι] (c : E) :
     IsRightContinuous (fun _ ↦ c : ι → E) :=
@@ -212,6 +223,29 @@ lemma IsCadlag.norm {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] 
 lemma IsCadlag.norm_sq {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] [Preorder κ]
     {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖ ^ 2) :=
   hf.norm.continuous_comp (continuous_pow 2)
+
+/-- The composition of a càdlàg function with a monotone continuous function is càdlàg. -/
+lemma IsCadlag.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder ι] [OrderTopology ι]
+    [PartialOrder κ] [TopologicalSpace κ] [TopologicalSpace E]
+    {f : κ → E} (hf : IsCadlag f) {ψ : ι → κ} (hψ : Monotone ψ) (hψc : Continuous ψ) :
+    IsCadlag (f ∘ ψ) where
+  right_continuous := hf.right_continuous.comp_of_monotone_of_continuous hψ hψc
+  left_limit x := by
+    by_cases h : ∃ y < x, ψ y = ψ x
+    · obtain ⟨y, hyx, hy⟩ := h
+      refine ⟨f (ψ x), ?_⟩
+      have h_eq : ∀ᶠ z in 𝓝[<] x, f (ψ x) = (f ∘ ψ) z := by
+        filter_upwards [Ico_mem_nhdsLT hyx] with z hz
+        simp only [Function.comp_apply]
+        rw [le_antisymm (hψ hz.2.le) (hy ▸ hψ hz.1)]
+      exact tendsto_const_nhds.congr' h_eq
+    · push Not at h
+      obtain ⟨l, hl⟩ := hf.left_limit (ψ x)
+      refine ⟨l, hl.comp ?_⟩
+      refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _
+        (hψc.continuousAt.mono_left nhdsWithin_le_nhds) ?_
+      filter_upwards [self_mem_nhdsWithin] with y hy
+      exact lt_of_le_of_ne (hψ hy.le) (h y hy)
 
 /-- A càdlàg function is locally bounded. -/
 lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
