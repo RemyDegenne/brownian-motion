@@ -834,7 +834,7 @@ noncomputable def SquareIntegrable.toL2Isom :
     apply Tendsto.congr h1 (h2.comp hu)
   norm_map' X := rfl
 
-instance : CompleteSpace (SquareIntegrable E P 𝓕) :=
+instance instCompleteSpaceSquareIntegrable : CompleteSpace (SquareIntegrable E P 𝓕) :=
   haveI : Fact (⨆ t, 𝓕 t ≤ mΩ) := ⟨iSup_le 𝓕.le⟩
   SquareIntegrable.toL2Isom.toIsometryEquiv.completeSpace
 
