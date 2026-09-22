@@ -79,6 +79,7 @@ public import BrownianMotion.StochasticIntegral.PredictableTime
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
 public import BrownianMotion.StochasticIntegral.Quasimartingale.Basic
 public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModification
+public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModificationBanach
 public import BrownianMotion.StochasticIntegral.Quasimartingale.MaximalInequality
 public import BrownianMotion.StochasticIntegral.SimpleProcess
 public import BrownianMotion.StochasticIntegral.SquareIntegrable
