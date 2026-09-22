@@ -16,6 +16,7 @@ public import BrownianMotion.Auxiliary.HasLaw
 public import BrownianMotion.Auxiliary.Indistinguishable
 public import BrownianMotion.Auxiliary.IsStoppingTime
 public import BrownianMotion.Auxiliary.Jensen
+public import BrownianMotion.Auxiliary.Kernel
 public import BrownianMotion.Auxiliary.LeftLimWithin
 public import BrownianMotion.Auxiliary.LimitProcess
 public import BrownianMotion.Auxiliary.LinearAlgebra
@@ -61,7 +62,7 @@ public import BrownianMotion.StochasticIntegral.Cadlag
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.ContinuousSquareIntegrable
 public import BrownianMotion.StochasticIntegral.ConvexWeights
-public import BrownianMotion.StochasticIntegral.DoleansMeasure
+public import BrownianMotion.StochasticIntegral.DoleansMeasureOfMono
 public import BrownianMotion.StochasticIntegral.DoobLp
 public import BrownianMotion.StochasticIntegral.DoobMeyer
 public import BrownianMotion.StochasticIntegral.DoobMeyerClassDL

@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.StochasticIntegral.DoleansMeasure
+public import BrownianMotion.StochasticIntegral.DoleansMeasureOfMono
 public import BrownianMotion.StochasticIntegral.QuadraticVariation
 
 /-! # L2 spaces of predictable processes
@@ -125,7 +125,7 @@ lemma predQuadVariationKernel_Ioc (ω : Ω) (a b : ι) :
 noncomputable def predQuadVariationMeasure (X : ι → Ω → E) (P : Measure Ω) [IsFiniteMeasure P]
     (𝓕 : Filtration ι mΩ) [𝓕.IsRightContinuous] [𝓕.IsComplete P] [Approximable 𝓕 P] :
     Measure (ι × Ω) :=
-  doleansMeasure P (adapted_predQuadVariation X P 𝓕)
+  doleansMeasureOfMono P ⟨X; P, 𝓕⟩ₘ (adapted_predQuadVariation X P 𝓕)
     (isRightContinuous_predQuadVariation X P 𝓕) monotone_predQuadVariation
 
 lemma predQuadVariationMeasure_eq_map :
@@ -136,21 +136,21 @@ lemma predQuadVariationMeasure_Ioc_prod (hX_int : ∀ t, Integrable (⟨X; P, �
     (hab : a ≤ b) {s : Set Ω} (hs : MeasurableSet s) :
     predQuadVariationMeasure X P 𝓕 (Set.Ioc a b ×ˢ s)
       = ENNReal.ofReal (∫ ω in s, (⟨X; P, 𝓕⟩ₘ b ω - ⟨X; P, 𝓕⟩ₘ a ω) ∂P) :=
-  doleansMeasure_Ioc_prod _ _ _ hX_int hab hs
+  doleansMeasureOfMono_Ioc_prod _ _ _ hX_int hab hs
 
 /-- The integral with respect to `predQuadVariationMeasure X P 𝓕` is the iterated integral
 `E[∫ f(t, ω) d⟨X⟩_t(ω)]`. -/
 lemma lintegral_predQuadVariationMeasure {f : ι × Ω → ℝ≥0∞} (hf : Measurable f) :
     ∫⁻ p, f p ∂(predQuadVariationMeasure X P 𝓕)
       = ∫⁻ ω, ∫⁻ t, f (t, ω) ∂(predQuadVariationKernel X P 𝓕 ω) ∂P :=
-  lintegral_doleansMeasure _ _ _ hf
+  lintegral_doleansMeasureOfMono _ _ _ hf
 
 /-- The measure `predQuadVariationMeasure X P 𝓕` is finite if `E[⟨X⟩ t - ⟨X⟩ ⊥]` is bounded
 in `t`. -/
 lemma isFiniteMeasure_predQuadVariationMeasure (hX_int : ∀ t, Integrable (⟨X; P, 𝓕⟩ₘ t) P)
     {C : ℝ} (hC : ∀ t, ∫ ω, (⟨X; P, 𝓕⟩ₘ t ω - ⟨X; P, 𝓕⟩ₘ ⊥ ω) ∂P ≤ C) :
     IsFiniteMeasure (predQuadVariationMeasure X P 𝓕) :=
-  isFiniteMeasure_doleansMeasure_of_integral_le _ _ _ hX_int hC
+  isFiniteMeasure_doleansMeasureOfMono_of_integral_le _ _ _ hX_int hC
 
 /-- The space `L2(M)` of predictable processes with values in `F` which are square integrable with
 respect to the Doléans measure of the predictable quadratic variation of `X`. -/

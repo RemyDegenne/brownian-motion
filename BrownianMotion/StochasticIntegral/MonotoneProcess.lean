@@ -6,6 +6,7 @@ Authors: Yongxi Lin
 module
 
 public import BrownianMotion.Auxiliary.Filtration
+public import BrownianMotion.Auxiliary.Kernel
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.MeasureTheory.Measure.GiryMonad
 public import Mathlib.MeasureTheory.Measure.Stieltjes
@@ -197,11 +198,103 @@ noncomputable def StieltjesFunction.kernel {f : Ω → StieltjesFunction ι}
 kernel that maps each `ω` to `(X · ω).measure`. -/
 noncomputable def StieltjesFunction.kernelOfRightContAdaptedMono
     (ha : Adapted ℱ X) (hcont : ∀ ω, IsRightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω)) :
-    Kernel Ω ι where
-  toFun ω := (rightContMono hcont hmono ω).measure
-  measurable' := by
-    apply measurable_measure'
-    simp_all [rightContMono, fun i => ha.measurable (i := i)]
+    Kernel Ω ι :=
+  kernel (f := rightContMono hcont hmono) fun i ↦ ha.measurable (i := i)
+
+namespace StieltjesFunction
+
+omit [OrderTopology ι] [DenselyOrdered ι] [MeasurableSpace ι] [BorelSpace ι] [CompactIccSpace ι]
+  [SecondCountableTopology ι] in
+/-- The Stieltjes function `rightContMono hcont hmono ω` is the path `X · ω`. -/
+@[simp]
+lemma rightContMono_apply (hcont : ∀ ω, IsRightContinuous (X · ω)) (hmono : ∀ ω, Monotone (X · ω))
+    (ω : Ω) (i : ι) : rightContMono hcont hmono ω i = X i ω := rfl
+
+variable (ha : Adapted ℱ X) (hcont : ∀ ω, IsRightContinuous (X · ω))
+  (hmono : ∀ ω, Monotone (X · ω))
+
+/-- The Stieltjes kernel of `X` at `ω` is the Stieltjes measure of the path `X · ω`. -/
+lemma kernelOfRightContAdaptedMono_apply (ω : Ω) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω = (rightContMono hcont hmono ω).measure :=
+  rfl
+
+/-- The Stieltjes kernel of `X` gives mass `X b ω - X a ω` to `(a, b]`. -/
+lemma kernelOfRightContAdaptedMono_Ioc (ω : Ω) (a b : ι) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω (Set.Ioc a b)
+      = ENNReal.ofReal (X b ω - X a ω) := by
+  simp [kernelOfRightContAdaptedMono_apply, measure_Ioc]
+
+section OrderBot
+
+variable [OrderBot ι]
+
+/-- The Stieltjes kernel of `X` gives mass zero to `{⊥}`. -/
+@[simp]
+lemma kernelOfRightContAdaptedMono_singleton_bot (ω : Ω) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω {⊥} = 0 := by
+  rw [kernelOfRightContAdaptedMono_apply, ← botSet_eq_singleton_of_isBot isBot_bot,
+    measure_botSet]
+
+/-- The Stieltjes kernel of `X` gives mass `X b ω - X ⊥ ω` to `[⊥, b]`. -/
+lemma kernelOfRightContAdaptedMono_Iic (ω : Ω) (b : ι) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω (Set.Iic b)
+      = ENNReal.ofReal (X b ω - X ⊥ ω) := by
+  have h_eq : Set.Iic b = {⊥} ∪ Set.Ioc ⊥ b := by
+    ext x
+    simp only [Set.mem_Iic, Set.mem_union, Set.mem_singleton_iff, Set.mem_Ioc]
+    refine ⟨fun h ↦ ?_, ?_⟩
+    · by_cases hx : x = ⊥
+      · exact Or.inl hx
+      · exact Or.inr ⟨bot_lt_iff_ne_bot.2 hx, h⟩
+    · rintro (rfl | h)
+      exacts [bot_le, h.2]
+  refine le_antisymm ?_ ?_
+  · rw [h_eq]
+    refine (measure_union_le _ _).trans ?_
+    simp [kernelOfRightContAdaptedMono_Ioc]
+  · rw [← kernelOfRightContAdaptedMono_Ioc ha hcont hmono]
+    exact measure_mono Set.Ioc_subset_Iic_self
+
+/-- The Stieltjes kernel of `X` is s-finite: its measures are finite on the intervals `[⊥, b]`. -/
+instance isSFiniteKernel_kernelOfRightContAdaptedMono :
+    IsSFiniteKernel (kernelOfRightContAdaptedMono ha hcont hmono) := by
+  obtain ⟨u, -, hu⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  refine Kernel.isSFiniteKernel_of_measure_lt_top _ (s := fun n ↦ Set.Iic (u n))
+    (fun n ↦ measurableSet_Iic) ?_ fun ω n ↦ ?_
+  · ext x
+    simp only [Set.mem_iUnion, Set.mem_Iic, Set.mem_univ, iff_true]
+    exact (hu.eventually_ge_atTop x).exists
+  · rw [kernelOfRightContAdaptedMono_Iic]
+    exact ENNReal.ofReal_lt_top
+
+end OrderBot
+
+section OrderTop
+
+variable [OrderTop ι]
+
+/-- The Stieltjes kernel of `X` gives mass `X ⊤ ω - X a ω` to `(a, ⊤]`. -/
+lemma kernelOfRightContAdaptedMono_Ioi (ω : Ω) (a : ι) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω (Set.Ioi a)
+      = ENNReal.ofReal (X ⊤ ω - X a ω) := by
+  rw [← Set.Ioc_top, kernelOfRightContAdaptedMono_Ioc]
+
+variable [OrderBot ι]
+
+/-- The total mass of the Stieltjes kernel of `X` is `X ⊤ ω - X ⊥ ω`. -/
+lemma kernelOfRightContAdaptedMono_univ (ω : Ω) :
+    kernelOfRightContAdaptedMono ha hcont hmono ω Set.univ
+      = ENNReal.ofReal (X ⊤ ω - X ⊥ ω) := by
+  rw [← Set.Iic_top, kernelOfRightContAdaptedMono_Iic]
+
+/-- The Stieltjes kernel of `X` consists of finite measures (since `ι` has a bottom and a top). -/
+instance isFiniteMeasure_kernelOfRightContAdaptedMono (ω : Ω) :
+    IsFiniteMeasure (kernelOfRightContAdaptedMono ha hcont hmono ω) :=
+  ⟨by simp [kernelOfRightContAdaptedMono_univ]⟩
+
+end OrderTop
+
+end StieltjesFunction
 
 end StieltjesKernel
 

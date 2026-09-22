@@ -40,6 +40,20 @@ lemma Submartingale.indexComap {ι' : Type*} [Preorder ι'] [LE E] (hX : Submart
   ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij),
     fun _ ↦ hX.integrable _⟩
 
+/-- If `A - B` is a martingale, the increments of `A` and `B` up to `⊤` have the same integral on
+every `𝓕 i`-measurable set. -/
+lemma Martingale.setIntegral_sub_top_eq [OrderTop ι] [SigmaFiniteFiltration P 𝓕]
+    {A B : ι → Ω → ℝ} (hA_int : ∀ t, Integrable (A t) P) (hB_int : ∀ t, Integrable (B t) P)
+    (hAB : Martingale (A - B) 𝓕 P) (i : ι) {F : Set Ω} (hF : MeasurableSet[𝓕 i] F) :
+    ∫ ω in F, (A ⊤ ω - A i ω) ∂P = ∫ ω in F, (B ⊤ ω - B i ω) ∂P := by
+  have h := hAB.setIntegral_eq (le_top : i ≤ ⊤) hF
+  simp only [Pi.sub_apply] at h
+  rw [integral_sub (hA_int i).integrableOn (hB_int i).integrableOn,
+    integral_sub (hA_int ⊤).integrableOn (hB_int ⊤).integrableOn] at h
+  rw [integral_sub (hA_int ⊤).integrableOn (hA_int i).integrableOn,
+    integral_sub (hB_int ⊤).integrableOn (hB_int i).integrableOn]
+  linarith
+
 end
 
 variable {ι Ω E : Type*} [PartialOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]

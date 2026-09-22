@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.StochasticIntegral.DoleansMeasure
+public import BrownianMotion.StochasticIntegral.DoleansMeasureOfMono
 public import BrownianMotion.StochasticIntegral.DoobMeyerClassDL
 
 /-! # Uniqueness of the Doob-Meyer decomposition

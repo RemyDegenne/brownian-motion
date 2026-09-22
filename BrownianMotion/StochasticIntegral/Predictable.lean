@@ -442,6 +442,22 @@ lemma isSetSemiring_predictableRectangles (𝓕 : Filtration ι m) :
         simp only [Set.mem_sdiff, Set.mem_prod, Set.mem_Ioc, Set.mem_union, R₁, R₂, R₃]
         grind
 
+/-- The generators of the predictable σ-algebra form a π-system. -/
+lemma isPiSystem_predictable_generators (𝓕 : Filtration ι m) :
+    IsPiSystem ({s | ∃ A, MeasurableSet[𝓕 ⊥] A ∧ s = {⊥} ×ˢ A} ∪
+      {s | ∃ i A, MeasurableSet[𝓕 i] A ∧ s = Set.Ioi i ×ˢ A}) := by
+  rintro _ (⟨F, hF, rfl⟩ | ⟨i, F, hF, rfl⟩) _ (⟨G, hG, rfl⟩ | ⟨j, G, hG, rfl⟩) hne
+  · exact Or.inl ⟨F ∩ G, hF.inter hG, by rw [Set.prod_inter_prod, Set.inter_self]⟩
+  · obtain ⟨p, hp1, hp2⟩ := hne
+    simp only [Set.mem_prod, Set.mem_singleton_iff, Set.mem_Ioi] at hp1 hp2
+    exact absurd (hp1.1 ▸ hp2.1) not_lt_bot
+  · obtain ⟨p, hp1, hp2⟩ := hne
+    simp only [Set.mem_prod, Set.mem_singleton_iff, Set.mem_Ioi] at hp1 hp2
+    exact absurd (hp2.1 ▸ hp1.1) not_lt_bot
+  · exact Or.inr ⟨i ⊔ j, F ∩ G,
+      (𝓕.mono le_sup_left _ hF).inter (𝓕.mono le_sup_right _ hG),
+      by rw [Set.prod_inter_prod, Set.Ioi_inter_Ioi]⟩
+
 /-- The predictable σ-algebra is a sub-σ-algebra of the product σ-algebra. -/
 lemma predictable_le_prod {T : Type*} [LinearOrder T] [TopologicalSpace T] [OrderBot T]
     [OrderTopology T] [MeasurableSpace T] [BorelSpace T] (𝓕 : Filtration T m) :
