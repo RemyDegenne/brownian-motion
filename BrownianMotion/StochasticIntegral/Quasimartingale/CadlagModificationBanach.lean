@@ -201,7 +201,7 @@ end TotallyBounded
 
 /-- The distance of a martingale to a fixed vector is a submartingale. -/
 lemma _root_.MeasureTheory.Martingale.submartingale_norm_sub [NormedSpace ℝ E]
-    [CompleteSpace E] [OrderBot ι] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (e : E) :
+    [CompleteSpace E] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (e : E) :
     Submartingale (fun t ω ↦ ‖X t ω - e‖) 𝓕 μ :=
   (hX.sub (martingale_const 𝓕 μ e)).submartingale_norm
 
