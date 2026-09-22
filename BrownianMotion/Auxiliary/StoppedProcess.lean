@@ -33,6 +33,47 @@ lemma stoppedProcess_congr (h : X ≡ᵐ[P] Y) :
   filter_upwards [h] with ω h t
   simp [stoppedProcess, h]
 
+lemma stoppedProcess_indicator_add [AddZeroClass E] {s : Set Ω} :
+    stoppedProcess (fun i ↦ s.indicator ((X + Y) i)) τ
+      = stoppedProcess (fun i ↦ s.indicator (X i)) τ
+        + stoppedProcess (fun i ↦ s.indicator (Y i)) τ := by
+  ext t ω
+  by_cases hω : ω ∈ s <;> simp [stoppedProcess, hω]
+
+lemma stoppedProcess_indicator_sub [AddGroup E] {s : Set Ω} :
+    stoppedProcess (fun i ↦ s.indicator ((X - Y) i)) τ
+      = stoppedProcess (fun i ↦ s.indicator (X i)) τ
+        - stoppedProcess (fun i ↦ s.indicator (Y i)) τ := by
+  ext t ω
+  by_cases hω : ω ∈ s <;> simp [stoppedProcess, hω]
+
+/-- Stopping at `τ` and then at a smaller time `σ` is the same as stopping at `σ`, for the
+stopped processes used in the definition of local properties. -/
+lemma stoppedProcess_indicator_stoppedProcess_indicator_of_le [OrderBot ι] [Zero E]
+    {σ : Ω → WithTop ι} (h : σ ≤ τ) :
+    stoppedProcess (fun i ↦ {ω | ⊥ < σ ω}.indicator
+        (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ i)) σ
+      = stoppedProcess (fun i ↦ {ω | ⊥ < σ ω}.indicator (X i)) σ := by
+  simp_rw [stoppedProcess_indicator_comm', stoppedProcess_stoppedProcess_of_le_right h]
+  ext t ω
+  by_cases hω : ⊥ < σ ω
+  · have hω' : ⊥ < τ ω := hω.trans_le (h ω)
+    simp [hω, hω']
+  · simp [hω]
+
+/-- If a trajectory of a process is monotone, then the corresponding trajectory of the stopped
+process is also monotone. -/
+lemma _root_.Monotone.stoppedProcess_indicator [Preorder E] [Zero E] (hX : Monotone (X · ω))
+    (s : Set Ω) (τ : Ω → WithTop ι) :
+    Monotone (stoppedProcess (fun i ↦ s.indicator (X i)) τ · ω) := by
+  intro a b hab
+  simp only [stoppedProcess_indicator_comm]
+  by_cases hω : ω ∈ s
+  · simp only [Set.indicator_of_mem hω, stoppedProcess]
+    refine hX (WithTop.untopA_mono ?_ (min_le_min_right _ (WithTop.coe_le_coe.2 hab)))
+    exact ne_top_of_le_ne_top WithTop.coe_ne_top (min_le_left _ _)
+  · simp [hω]
+
 section Topology
 
 variable [TopologicalSpace ι] [OrderTopology ι] [TopologicalSpace E]

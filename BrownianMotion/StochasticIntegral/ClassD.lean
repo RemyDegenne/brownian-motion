@@ -107,6 +107,22 @@ lemma hasIntegrableSup_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
   intro t
   sorry
 
+/-- A jointly measurable, nonnegative real process with monotone paths and integrable values has
+integrable supremum. -/
+lemma hasIntegrableSup_of_monotone [LinearOrder ι] [MeasurableSpace ι] {X : ι → Ω → ℝ}
+    (hX_meas : StronglyMeasurable (Function.uncurry X)) (hX_mono : ∀ ω, Monotone (X · ω))
+    (hX_nonneg : 0 ≤ X) (hX_int : ∀ t, Integrable (X t) P) :
+    HasIntegrableSup X P := by
+  have h_sup (t : ι) (ω : Ω) : ⨆ s ≤ t, ‖X s ω‖ₑ = ‖X t ω‖ₑ := by
+    refine le_antisymm (iSup₂_le fun s hs ↦ ?_) (le_iSup₂ (f := fun s _ ↦ ‖X s ω‖ₑ) t le_rfl)
+    rw [Real.enorm_of_nonneg (hX_nonneg s ω), Real.enorm_of_nonneg (hX_nonneg t ω)]
+    exact ENNReal.ofReal_le_ofReal (hX_mono ω hs)
+  refine ⟨?_, fun t ↦ ?_⟩
+  · simp only [HasStronglyMeasurableSupProcess, h_sup]
+    exact hX_meas.enorm.stronglyMeasurable
+  · simp only [h_sup]
+    exact (hX_int t).enorm
+
 /-- A stochastic process has locally integrable supremum if it satisfies locally the property that
 for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖` is integrable. -/
 def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
@@ -613,12 +629,12 @@ lemma ClassDL.locally_classD [SecondCountableTopology ι] [PseudoMetrizableSpace
       · simpa [hb, Y, stoppedValue] using ⟨T.1, T.2⟩
 
 lemma locally_classD_of_locally_classDL {ι : Type*} [ConditionallyCompleteLinearOrderBot ι]
-    [TopologicalSpace ι] [OrderTopology ι] [DenselyOrdered ι] [SecondCountableTopology ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
     [NoMaxOrder ι] [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} [IsFiniteMeasure P]
     (hX : Locally (ClassDL · 𝓕 P) 𝓕 X P) [𝓕.IsRightContinuous] :
     Locally (ClassD · 𝓕 P) 𝓕 X P :=
-  isStable_classD.locally_induction (fun _ ↦ ClassDL.locally_classD) hX
+  isStable_classD.locally_induction' (fun _ ↦ ClassDL.locally_classD) hX
 
 end ClassDClassDL
 
@@ -684,14 +700,16 @@ lemma sup_stoppedProcess_leastGE_le
     _ = K + Set.indicator {ω | τ ω ≤ t} (fun ω ↦ ‖stoppedValue X τ ω‖) ω := by
       simp [stoppedValue, ht]
 
-lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
+/-- A càdlàg strongly progressive process whose values at bounded stopping times are integrable has
+locally integrable supremum. -/
+lemma hasLocallyIntegrableSup_of_integrable_stoppedValue {ι : Type*} [Nonempty ι]
     [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
     [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
     {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) [𝓕.IsComplete P] [𝓕.IsRightContinuous]
-    [IsFiniteMeasure P] :
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : IsStronglyProgressive 𝓕 X)
+    (hX3 : ∀ (σ : Ω → WithTop ι) (t : ι), IsStoppingTime 𝓕 σ → (∀ ω, σ ω ≤ t) →
+      Integrable (stoppedValue X σ) P) [𝓕.IsComplete P] [𝓕.IsRightContinuous] [IsFiniteMeasure P] :
     HasLocallyIntegrableSup X 𝓕 P := by
-  rcases hX2 with ⟨hX2, hX3⟩
   let Y : ι → Ω → ℝ := fun t ω ↦ ‖X t ω‖
   have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
   have hY2 : ∀ (ω : Ω), IsCadlag (Y · ω) := by
@@ -719,11 +737,7 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
     have hσ_le : σ ≤ (fun _ ↦ t : Ω → WithTop ι) := inf_le_right
     refine Integrable.mono_enorm (g := dom) ?_ ?_ ?_
     · change Integrable ((fun ω : Ω ↦ (n : ℝ)) + (fun ω ↦ ‖stoppedValue X (τ n ⊓ fun x ↦ ↑t) ω‖)) P
-      refine Integrable.add (integrable_const (n : ℝ)) ( ?_)
-      rcases hX3 t with ⟨h_meas, _, ⟨C, h_bound⟩⟩
-      refine ⟨(h_meas ⟨σ, ⟨hσ, hσ_le⟩ ⟩).norm , ?_⟩
-      · simp_rw [HasFiniteIntegral, enorm_norm, ← eLpNorm_one_eq_lintegral_enorm]
-        exact lt_of_le_of_lt (h_bound ⟨σ, ⟨hσ, hσ_le⟩⟩) ENNReal.coe_lt_top
+      exact (integrable_const (n : ℝ)).add (hX3 σ t hσ hσ_le).norm
     · apply StronglyMeasurable.aestronglyMeasurable
       have h_stopped := isStable_hasStronglyMeasurableSupProcess X hX6 (τ n) (hτ.isStoppingTime n)
       exact h_stopped.comp_measurable (measurable_const.prodMk measurable_id)
@@ -799,18 +813,29 @@ lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
       _ ≤ ENNReal.ofReal (dom ω) := ENNReal.ofReal_le_ofReal h_rhs_le_dom
       _ ≤ ‖dom ω‖ₑ := by rw [← Real.enorm_of_nonneg <| h_LE ω]
 
+/-- A càdlàg process of class DL has locally integrable supremum. -/
+lemma ClassDL.hasLocallyIntegrableSup {ι : Type*} [Nonempty ι]
+    [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [MeasurableSpace ι] [BorelSpace ι]
+    {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
+    (hX1 : ∀ ω, IsCadlag (X · ω)) (hX2 : ClassDL X 𝓕 P) [𝓕.IsComplete P] [𝓕.IsRightContinuous]
+    [IsFiniteMeasure P] :
+    HasLocallyIntegrableSup X 𝓕 P :=
+  hasLocallyIntegrableSup_of_integrable_stoppedValue hX1 hX2.1 fun σ t hσ hσt ↦
+    memLp_one_iff_integrable.mp ((hX2.2 t).memLp ⟨σ, hσ, hσt⟩)
+
 end LinearOrder
 
 section ConditionallyCompleteLinearOrderBot
 
 variable [ConditionallyCompleteLinearOrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
-  [MeasurableSpace ι] [PolishSpace ι] [DenselyOrdered ι] [NoMaxOrder ι] [BorelSpace ι]
+  [MeasurableSpace ι] [PolishSpace ι] [NoMaxOrder ι] [BorelSpace ι]
   [IsFiniteMeasure P] {𝓕 : Filtration ι mΩ}
 
 lemma hasLocallyIntegrableSup_of_locally_classDL [𝓕.IsComplete P] [𝓕.IsRightContinuous]
     (hX1 : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) (hX2 : Locally (ClassDL · 𝓕 P) 𝓕 X P) :
     HasLocallyIntegrableSup X 𝓕 P :=
-  IsStable.locally_induction₂ (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL)
+  IsStable.locally_induction₂' (fun _ hCad hDL ↦ ClassDL.hasLocallyIntegrableSup hCad hDL)
     isStable_isCadlag isStable_classDL isStable_hasIntegrableSup hX1 hX2
 
 lemma locally_classDL_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRightContinuous]
@@ -847,7 +872,7 @@ theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E
     [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
-  refine isStable_classD.locally_induction ?_ ?_
+  refine isStable_classD.locally_induction' ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
     exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg

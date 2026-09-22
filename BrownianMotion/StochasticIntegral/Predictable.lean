@@ -9,6 +9,7 @@ public import Mathlib.MeasureTheory.SetSemiring
 public import Mathlib.Probability.Process.Adapted
 public import Mathlib.Probability.Process.Filtration
 public import Mathlib.Probability.Process.Predictable
+public import Mathlib.Probability.Process.Stopping
 
 /-!
 # Progressively Measurable σ-algebra
@@ -138,6 +139,17 @@ lemma measurableSet_predictable_Iic_prod {s : Set Ω} (hs : MeasurableSet[𝓕 �
   · exact measurableSet_predictable_singleton_bot_prod hs
   · exact measurableSet_predictable_Ioc_prod ⊥ i hs
 
+/-- The product of a strongly predictable process with the indicator of a `𝓕 ⊥`-measurable set is
+strongly predictable. -/
+lemma IsStronglyPredictable.indicator_of_bot {E : Type*} [TopologicalSpace E] [Zero E]
+    {X : ι → Ω → E} (hX : IsStronglyPredictable 𝓕 X) {s : Set Ω} (hs : MeasurableSet[𝓕 ⊥] s) :
+    IsStronglyPredictable 𝓕 (fun i ↦ s.indicator (X i)) := by
+  have h_eq : uncurry (fun i ↦ s.indicator (X i)) = (univ ×ˢ s).indicator (uncurry X) := by
+    ext ⟨t, ω⟩
+    by_cases hp : ω ∈ s <;> simp [hp]
+  rw [IsStronglyPredictable, h_eq]
+  exact StronglyMeasurable.indicator hX (measurableSet_predictable_univ_prod hs)
+
 variable {β : Type*} {mβ : MeasurableSpace β} [TopologicalSpace β] [PseudoMetrizableSpace β]
 variable {X : ι → Ω → β}
 
@@ -222,6 +234,88 @@ lemma StronglyAdapted.isStronglyPredictable_of_leftContinuous (h_adap : Strongly
       · exact le_of_lt (by aesop)
       · apply Finset.le_max' _ _ (by aesop)
     · apply hj _ (by aesop)
+
+section StoppedProcess
+
+omit [OrderBot ι] [SecondCountableTopology ι] [DenselyOrdered ι] in
+/-- The indicator of `{t | t ≤ c}` is left-continuous. -/
+lemma continuousWithinAt_indicator_coe_le {E : Type*} [TopologicalSpace E] [Zero E]
+    (c : WithTop ι) (x : E) (a : ι) :
+    ContinuousWithinAt ({t : ι | (t : WithTop ι) ≤ c}.indicator fun _ ↦ x) (Iio a) a := by
+  by_cases ha : (a : WithTop ι) ≤ c
+  · refine (continuousWithinAt_const (b := x)).congr (fun t ht ↦ ?_) ?_
+    · have ht' : (t : WithTop ι) ≤ c := (WithTop.coe_le_coe.2 (mem_Iio.1 ht).le).trans ha
+      simp [ht']
+    · simp [ha]
+  · refine ContinuousAt.continuousWithinAt ?_
+    have h_open : IsOpen {t : ι | c < (t : WithTop ι)} :=
+      isOpen_lt continuous_const WithTop.continuous_coe
+    refine (continuousAt_const (y := (0 : E))).congr ?_
+    filter_upwards [h_open.mem_nhds (show c < (a : WithTop ι) from not_le.1 ha)] with t ht
+    simp [not_le.2 ht]
+
+omit [OrderBot ι] [SecondCountableTopology ι] [DenselyOrdered ι] in
+/-- The indicator of `{t | c < t}` is left-continuous. -/
+lemma continuousWithinAt_indicator_lt_coe {E : Type*} [TopologicalSpace E] [Zero E]
+    (c : WithTop ι) (x : E) (a : ι) :
+    ContinuousWithinAt ({t : ι | c < (t : WithTop ι)}.indicator fun _ ↦ x) (Iio a) a := by
+  by_cases ha : c < (a : WithTop ι)
+  · refine ContinuousAt.continuousWithinAt ?_
+    have h_open : IsOpen {t : ι | c < (t : WithTop ι)} :=
+      isOpen_lt continuous_const WithTop.continuous_coe
+    refine (continuousAt_const (y := x)).congr ?_
+    filter_upwards [h_open.mem_nhds ha] with t ht
+    simp [ht]
+  · refine (continuousWithinAt_const (b := (0 : E))).congr (fun t ht ↦ ?_) ?_
+    · have ht' : ¬ c < (t : WithTop ι) :=
+        fun h ↦ ha (h.trans (WithTop.coe_lt_coe.2 (mem_Iio.1 ht)))
+      simp [ht']
+    · simp [ha]
+
+variable [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι] [AddMonoid β]
+  [ContinuousAdd β] {τ : Ω → WithTop ι}
+
+/-- A strongly predictable process stopped at a stopping time is strongly predictable. -/
+lemma IsStronglyPredictable.stoppedProcess (hX : IsStronglyPredictable 𝓕 X)
+    (hτ : IsStoppingTime 𝓕 τ) :
+    IsStronglyPredictable 𝓕 (stoppedProcess X τ) := by
+  -- the set `{(t, ω) | t ≤ τ ω}` is predictable, since its indicator is adapted and left-continuous
+  have h_set : MeasurableSet[𝓕.predictable] {p : ι × Ω | (p.1 : WithTop ι) ≤ τ p.2} := by
+    let f : ι → Ω → ℝ := fun t ↦ {ω | (t : WithTop ι) ≤ τ ω}.indicator fun _ ↦ 1
+    have hf : IsStronglyPredictable 𝓕 f := by
+      refine StronglyAdapted.isStronglyPredictable_of_leftContinuous (fun t ↦ ?_) fun ω a ↦ ?_
+      · exact stronglyMeasurable_const.indicator (hτ.measurableSet_ge t)
+      · exact continuousWithinAt_indicator_coe_le (τ ω) (1 : ℝ) a
+    have h_eq : {p : ι × Ω | (p.1 : WithTop ι) ≤ τ p.2} = uncurry f ⁻¹' {1} := by
+      ext ⟨t, ω⟩
+      by_cases hp : (t : WithTop ι) ≤ τ ω <;> simp [f, hp]
+    rw [h_eq]
+    exact hf.measurable (measurableSet_singleton 1)
+  -- the process `1_{τ < t} X_τ` is adapted and left-continuous
+  let Z : ι → Ω → β := fun t ↦
+    {ω | τ ω < (t : WithTop ι)}.indicator (MeasureTheory.stoppedProcess X τ t)
+  have hZ : IsStronglyPredictable 𝓕 Z := by
+    refine StronglyAdapted.isStronglyPredictable_of_leftContinuous (fun t ↦ ?_) fun ω a ↦ ?_
+    · exact ((hX.isStronglyProgressive.stoppedProcess hτ).stronglyAdapted t).indicator
+        (hτ.measurableSet_lt t)
+    · refine (continuousWithinAt_indicator_lt_coe (τ ω) (X (τ ω).untopA ω) a).congr
+        (fun t _ ↦ ?_) ?_
+      · by_cases ht : τ ω < (t : WithTop ι)
+        · simp [Z, ht, stoppedProcess_eq_of_ge ht.le]
+        · simp [Z, ht]
+      · by_cases ht : τ ω < (a : WithTop ι)
+        · simp [Z, ht, stoppedProcess_eq_of_ge ht.le]
+        · simp [Z, ht]
+  have h_eq : uncurry (MeasureTheory.stoppedProcess X τ)
+      = {p : ι × Ω | (p.1 : WithTop ι) ≤ τ p.2}.indicator (uncurry X) + uncurry Z := by
+    ext ⟨t, ω⟩
+    by_cases hp : (t : WithTop ι) ≤ τ ω
+    · simp [Z, hp, not_lt.2 hp, stoppedProcess_eq_of_le hp]
+    · simp [Z, hp, not_le.1 hp]
+  rw [IsStronglyPredictable, h_eq]
+  exact (StronglyMeasurable.indicator hX h_set).add hZ
+
+end StoppedProcess
 
 end MeasureTheory
 
@@ -347,5 +441,15 @@ lemma isSetSemiring_predictableRectangles (𝓕 : Filtration ι m) :
         ext ⟨t, ω⟩
         simp only [Set.mem_sdiff, Set.mem_prod, Set.mem_Ioc, Set.mem_union, R₁, R₂, R₃]
         grind
+
+/-- The predictable σ-algebra is a sub-σ-algebra of the product σ-algebra. -/
+lemma predictable_le_prod {T : Type*} [LinearOrder T] [TopologicalSpace T] [OrderBot T]
+    [OrderTopology T] [MeasurableSpace T] [BorelSpace T] (𝓕 : Filtration T m) :
+    𝓕.predictable ≤ Prod.instMeasurableSpace := by
+  unfold Filtration.predictable
+  apply MeasurableSpace.generateFrom_le
+  rintro s (⟨A, hA, rfl⟩ | ⟨i, A, hA, rfl⟩)
+  · exact (measurableSet_singleton _).prod (𝓕.le _ _ hA)
+  · exact measurableSet_Ioi.prod (𝓕.le _ _ hA)
 
 end MeasureTheory.Filtration
