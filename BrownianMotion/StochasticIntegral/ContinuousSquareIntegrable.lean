@@ -191,13 +191,14 @@ end NormedSpace
 
 section InnerProductSpace
 
-variable [InnerProductSpace ℝ E] [Nonempty ι] [OrderTopology ι] [SecondCountableTopology ι]
+variable [InnerProductSpace ℝ E] [OrderBot ι] [OrderTopology ι] [SecondCountableTopology ι]
+  [𝓕.IsRightContinuous]
 
 open scoped Classical in
 /-- The continuous martingale part of a square-integrable martingale `X`. This is defined as the
 projection of `X` onto the closed subspace of continuous square-integrable martingales. -/
 noncomputable def continuousPart (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
-    [IsFiniteMeasure P] [𝓕.IsComplete P] : ι → Ω → E :=
+    [IsFiniteMeasure P] [𝓕.IsComplete P] [𝓕.IsRightContinuous] : ι → Ω → E :=
   if hX : IsAESquareIntegrable X 𝓕 P
     then (continuousSquareIntegrable E P 𝓕).starProjection (SquareIntegrable.mk X hX)
     else 0
@@ -239,7 +240,7 @@ lemma IsAESquareIntegrable.mk_continuousPart (hX : IsAESquareIntegrable X 𝓕 P
 martingales are the orthogonal submodule of continuous square integrable martingales
 in the Hilbert space of square integrable martingales. -/
 noncomputable def discontinuousPart (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω)
-    [IsFiniteMeasure P] [𝓕.IsComplete P] : ι → Ω → E :=
+    [IsFiniteMeasure P] [𝓕.IsComplete P] [𝓕.IsRightContinuous] : ι → Ω → E :=
   X - continuousPart X 𝓕 P
 
 lemma discontinuousPart_def (X : ι → Ω → E) :
@@ -262,7 +263,7 @@ in the Hilbert space of square integrable martingales. -/
 noncomputable def discontinuousSquareIntegrable : Submodule ℝ (SquareIntegrable E P 𝓕) :=
   (continuousSquareIntegrable E P 𝓕).orthogonal
 
-omit [OrderTopology ι] in
+omit [OrderTopology ι] [𝓕.IsRightContinuous] in
 /-- A purely discontinuous square integrable martingale is in the submodule of purely discontinuous
 square integrable martingales. This statements links the predicate `IsPurelyDiscontinuous`
 with the submodule `discontinuousSquareIntegrable`. -/
@@ -274,7 +275,7 @@ lemma mem_discontinuousSquareIntegrable {Y : SquareIntegrable E P 𝓕}
   · exact X.isAESquareIntegrable_coe
   · exact ae_of_all _ <| continuous_coe hX
 
-omit [OrderTopology ι] in
+omit [OrderTopology ι] [𝓕.IsRightContinuous] in
 /-- A purely discontinuous square integrable martingale is in the submodule of purely discontinuous
 square integrable martingales. This statements links the predicate `IsPurelyDiscontinuous`
 with the submodule `discontinuousSquareIntegrable`. -/
@@ -326,11 +327,11 @@ lemma indist_discontinuousPart {X Y Z : ι → Ω → E} (hX1 : IsAESquareIntegr
   grw [discontinuousPart, ← indist_continuousPart hX1 hX2 hY2 hZ1 hZ2, hZ2]
   simp
 
-omit [𝓕.IsComplete P] in
+omit [𝓕.IsComplete P] [𝓕.IsRightContinuous] in
 /-- The stopped process of a purely discontinuous square integrable martingale is again
 a purely discontinuous square integrable martingale. -/
 nonrec
-lemma IsPurelyDiscontinuous.stoppedProcess [OrderBot ι] [Approximable 𝓕 P]
+lemma IsPurelyDiscontinuous.stoppedProcess [Approximable 𝓕 P]
     (hX : IsPurelyDiscontinuous X 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) :
     IsPurelyDiscontinuous (stoppedProcess X τ) 𝓕 P := by
   borelize ι
@@ -355,7 +356,7 @@ lemma IsPurelyDiscontinuous.stoppedProcess [OrderBot ι] [Approximable 𝓕 P]
   · filter_upwards [hY2] with ω h using h.stoppedProcess τ
 
 /-- The continuous part of the stopped process is the stopped process of the continuous part. -/
-lemma continuousPart_stoppedProcess [OrderBot ι] [Approximable 𝓕 P]
+lemma continuousPart_stoppedProcess [Approximable 𝓕 P]
     {X : ι → Ω → E} (hX : IsAESquareIntegrable X 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) :
     continuousPart (stoppedProcess X τ) 𝓕 P ≡ᵐ[P] stoppedProcess (continuousPart X 𝓕 P) τ := by
   have : stoppedProcess X τ =
@@ -373,7 +374,7 @@ attribute [to_fun] stoppedProcess_sub
 
 /-- The discontinuous part of the stopped process is
 the stopped process of the discontinuous part. -/
-lemma discontinuousPart_stoppedProcess [OrderBot ι] [Approximable 𝓕 P]
+lemma discontinuousPart_stoppedProcess [Approximable 𝓕 P]
     {X : ι → Ω → E} (hX : IsAESquareIntegrable X 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) :
     discontinuousPart (stoppedProcess X τ) 𝓕 P ≡ᵐ[P]
       stoppedProcess (discontinuousPart X 𝓕 P) τ := by
