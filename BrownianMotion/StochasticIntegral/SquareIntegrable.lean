@@ -10,6 +10,7 @@ public import BrownianMotion.Auxiliary.MeanInequalities
 public import BrownianMotion.Auxiliary.MeasureTheory
 public import BrownianMotion.StochasticIntegral.ClassD
 public import BrownianMotion.StochasticIntegral.DoobLp
+public import BrownianMotion.StochasticIntegral.Quasimartingale.CadlagModificationBanach
 
 /-! # Square integrable martingales
 
@@ -777,39 +778,31 @@ lemma IsAESquareIntegrable.inner_limitProcess_eq (hX : IsAESquareIntegrable X �
     𝓕.limitProcess_congr (SquareIntegrable.mk_indist hY)] with ω h1 h2
   simp_all
 
-/-- Given a martingale `X`, this is a càdlàg martingale that is a modification of `X`. -/
-def _root_.MeasureTheory.modif (X : ι → Ω → E) :
-    ι → Ω → E := sorry
-
-lemma _root_.MeasureTheory.isCadlag_modif (X : ι → Ω → E) (ω : Ω) :
-    IsCadlag (modif X · ω) := sorry
-
-lemma _root_.MeasureTheory.modification_modif (hX : Martingale X 𝓕 P) (t : ι) :
-    modif X t =ᵐ[P] X t := sorry
-
-lemma _root_.MeasureTheory.martingale_modif : Martingale (modif X) 𝓕 P := sorry
+variable [OrderTopology ι] [SecondCountableTopology ι] [OrderBot ι] [𝓕.IsRightContinuous]
+  [𝓕.IsComplete P]
 
 variable (𝓕) in
-lemma isSquareIntegrable_modif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
-    IsSquareIntegrable (modif (fun t ↦ P[X | 𝓕 t])) 𝓕 P where
-  martingale := martingale_modif
-  cadlag := isCadlag_modif _
+omit [Nonempty ι] [SeparableSpace ι] in
+lemma isSquareIntegrable_cadlagModif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
+    IsSquareIntegrable (cadlagModif (fun t ↦ P[X | 𝓕 t])) 𝓕 P where
+  martingale := (martingale_condExp X 𝓕 P).martingale_cadlagModif
+  cadlag := isCadlag_cadlagModif
   bounded := by
     refine (iSup_le fun i ↦ ?_).trans_lt hX.2
-    grw [eLpNorm_congr_ae (modification_modif (martingale_condExp X 𝓕 P) i),
+    grw [eLpNorm_congr_ae ((martingale_condExp X 𝓕 P).cadlagModif_ae_eq i),
       eLpNorm_condExp_le_eLpNorm _ (by simp)]
 
 /-- The `LinearIsometryEquiv` between square integrable martingales and
 the type of `L^2` random variables that are strongly measurable with respect to `⨆ t, 𝓕 t`,
 given by `X ↦ X ∞`. -/
-noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
+noncomputable def SquareIntegrable.toL2Isom :
     SquareIntegrable E P 𝓕 ≃ₗᵢ[ℝ] lpMeas E ℝ (⨆ t, 𝓕 t) 2 P where
   toFun X := ⟨toL2 E P 𝓕 X, by
     rw [mem_lpMeas_iff_aestronglyMeasurable, aestronglyMeasurable_congr (toL2_ae_eq X)]
     exact 𝓕.stronglyMeasurable_limitProcess.aestronglyMeasurable
   ⟩
-  invFun X := mk (modif (fun t ↦ P[X.1 | 𝓕 t]))
-    (isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp X.1)).isAESquareIntegrable
+  invFun X := mk (cadlagModif (fun t ↦ P[X.1 | 𝓕 t]))
+    (isSquareIntegrable_cadlagModif_condExp 𝓕 (Lp.memLp X.1)).isAESquareIntegrable
   map_add' := by simp
   map_smul' := by simp
   left_inv X := by
@@ -818,20 +811,21 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     · exact ae_of_all _ (isSquareIntegrable_coe _).isRightContinuous
     · exact ae_of_all _ (isSquareIntegrable_coe _).isRightContinuous
     simp only
-    grw [(mk_indist ?_).ae_eq_eval, modification_modif, toL2_def, MemLp.coeFn_toLp,
+    grw [(mk_indist ?_).ae_eq_eval, (martingale_condExp _ 𝓕 P).cadlagModif_ae_eq,
+      toL2_def, MemLp.coeFn_toLp,
       X.isSquareIntegrable_coe.condExp_limitProcess_ae_eq]
-    · exact martingale_condExp _ _ _
-    · exact isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp _) |>.isAESquareIntegrable
+    exact isSquareIntegrable_cadlagModif_condExp 𝓕 (Lp.memLp _) |>.isAESquareIntegrable
   right_inv X := by
     ext
     simp only
     grw [toL2_def, MemLp.coeFn_toLp, 𝓕.limitProcess_congr (mk_indist _)]
     obtain ⟨u, hu⟩ := (atTop : Filter ι).exists_seq_tendsto
-    have h1 : ∀ᵐ ω ∂P, ∀ n, modif (fun t ↦ P[X.1 | 𝓕 t]) (u n) ω = P[X.1 | 𝓕 (u n)] ω := by
+    have h1 : ∀ᵐ ω ∂P, ∀ n,
+        cadlagModif (fun t ↦ P[X.1 | 𝓕 t]) (u n) ω = P[X.1 | 𝓕 (u n)] ω := by
       rw [ae_all_iff]
-      exact fun _ ↦ modification_modif (martingale_condExp X.1 𝓕 P) _
+      exact fun _ ↦ (martingale_condExp X.1 𝓕 P).cadlagModif_ae_eq _
     filter_upwards [h1,
-      (isSquareIntegrable_modif_condExp 𝓕 (Lp.memLp X.1)).ae_tendsto_limitProcess,
+      (isSquareIntegrable_cadlagModif_condExp 𝓕 (Lp.memLp X.1)).ae_tendsto_limitProcess,
       tendsto_ae_condExp' 𝓕 X.1,
       condExp_of_aestronglyMeasurable' (iSup_le 𝓕.le) X.2
         ((Lp.memLp X.1).integrable (by simp))] with ω h1 h2 h3 h4
@@ -840,7 +834,7 @@ noncomputable def SquareIntegrable.toL2Isom [OrderTopology ι] :
     apply Tendsto.congr h1 (h2.comp hu)
   norm_map' X := rfl
 
-instance [OrderTopology ι] : CompleteSpace (SquareIntegrable E P 𝓕) :=
+instance : CompleteSpace (SquareIntegrable E P 𝓕) :=
   haveI : Fact (⨆ t, 𝓕 t ≤ mΩ) := ⟨iSup_le 𝓕.le⟩
   SquareIntegrable.toL2Isom.toIsometryEquiv.completeSpace
 
@@ -954,7 +948,7 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_continuous
     exact ⟨⊥, by grind⟩
 
 lemma isStable_isSquareIntegrable
-    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] [DenselyOrdered ι] :
+    [PolishSpace ι] [CompleteSpace E] [SecondCountableTopology E] :
     IsStable 𝓕 fun X : ι → Ω → E ↦ IsSquareIntegrable X 𝓕 P := by
   borelize ι E
   have h_iff (X : ι → Ω → E) : IsSquareIntegrable X 𝓕 P ↔
