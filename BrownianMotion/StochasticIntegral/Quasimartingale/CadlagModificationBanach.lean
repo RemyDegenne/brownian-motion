@@ -17,9 +17,6 @@ in a Banach space `E`, which is not assumed to be separable.
 
 ## Main definitions
 
-* `vectorRegularitySet T X d`: an event on which the path of `X` along the set of times `T` has
-  left and right limits at all times before `d`. It is the analogue of `regularitySet` for a
-  process with values in a Banach space.
 * `rightContModif X`: the right-continuous modification of `X`. It is strongly adapted if
   the filtration is right-continuous.
 * `cadlagModif X`: the càdlàg modification of `X`. It is strongly adapted if the filtration
@@ -38,28 +35,6 @@ are proved in the file `CadlagModification`.
 * `Martingale.exists_isCadlag_modification`: a martingale with values in a Banach space, with
   respect to a right-continuous and complete filtration, has a modification which is a martingale
   with càdlàg paths.
-
-## Proof outline
-
-As in the real case, the modification at time `t` is the right limit of the path of `X` along a
-countable dense set of times `T`, on an event on which the paths along `T` have left and right
-limits. That event has to be measurable and almost sure. There is no upcrossing inequality in a
-Banach space, hence we reduce to the real case as follows.
-
-* For all `e : E`, the process `‖X t - e‖` is a real submartingale, hence a real quasimartingale:
-  almost surely, its paths along `T` have left and right limits.
-* Almost surely, the path of `X` along `T ∩ Iic d` is totally bounded (`ae_totallyBounded_image`).
-  Indeed, let `ξ` be a simple function close to `X d` in `L¹`. The martingale `μ[ξ | 𝓕 t]` takes
-  values in the convex hull of the range of `ξ`, which is compact. By the maximal inequality for
-  the real submartingale `‖μ[X d - ξ | 𝓕 t]‖`, with high probability the path of `X` before `d`
-  stays uniformly close to that compact set.
-* A function `x` with values in a compact set `K`, such that `‖x - e‖` converges for all `e` in a
-  set whose closure contains `K`, converges (`exists_tendsto_of_tendsto_norm_sub`): it has a
-  cluster point `y`, the limit of `‖x - e‖` is `‖y - e‖`, and this can be made arbitrarily small.
-
-The two conditions above involve countably many random variables `X t` for `t ∈ T` (we use points
-`e` in a countable set whose closure contains the values of the process, `denseValues T X`), hence
-they define a measurable event.
 
 -/
 
@@ -224,11 +199,11 @@ lemma ae_totallyBounded_image [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
 
 end TotallyBounded
 
-/-- The distance of a martingale to a fixed vector is a real quasimartingale. -/
-lemma _root_.MeasureTheory.Martingale.isRealQuasimartingale_norm_sub [NormedSpace ℝ E]
-    [CompleteSpace E] [OrderBot ι] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (e : E) :
-    IsRealQuasimartingale 𝓕 (fun t ω ↦ ‖X t ω - e‖) μ :=
-  (hX.sub (martingale_const 𝓕 μ e)).submartingale_norm.isRealQuasimartingale
+/-- The distance of a martingale to a fixed vector is a submartingale. -/
+lemma _root_.MeasureTheory.Martingale.submartingale_norm_sub [NormedSpace ℝ E]
+    [CompleteSpace E] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (e : E) :
+    Submartingale (fun t ω ↦ ‖X t ω - e‖) 𝓕 μ :=
+  (hX.sub (martingale_const 𝓕 μ e)).submartingale_norm
 
 section RegularitySet
 
@@ -318,7 +293,7 @@ lemma measurableSet_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X 
   rw [h_eq]
   refine (MeasurableSet.const _).inter (MeasurableSet.inter ?_ ?_)
   · exact MeasurableSet.biInter countable_denseValues fun e _ ↦
-      measurableSet_regularitySet (hX.isRealQuasimartingale_norm_sub e) hT d
+      measurableSet_regularitySet (hX.submartingale_norm_sub e).isRealQuasimartingale hT d
   · exact measurableSet_totallyBounded_image hX.stronglyAdapted hT d
 
 lemma ae_mem_all_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
@@ -327,7 +302,8 @@ lemma ae_mem_all_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X �
   have h1 : ∀ᵐ ω ∂μ, ∀ e ∈ denseValues T X, ∀ d ∈ T',
       ω ∈ regularitySet T (fun t ω ↦ ‖X t ω - e‖) d := by
     rw [ae_ball_iff countable_denseValues]
-    exact fun e _ ↦ ae_mem_all_regularitySet (hX.isRealQuasimartingale_norm_sub e) hT hT'
+    exact fun e _ ↦ ae_mem_all_regularitySet
+      (hX.submartingale_norm_sub e).isRealQuasimartingale hT hT'
   have h2 : ∀ᵐ ω ∂μ, ∀ d ∈ T', TotallyBounded ((X · ω) '' (T ∩ Set.Iic d)) := by
     rw [ae_ball_iff hT']
     exact fun d _ ↦ ae_totallyBounded_image hX hT d
@@ -401,14 +377,12 @@ section Modification
 
 variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
 
-/-- The right-continuous modification of a martingale with values in a Banach space, defined from
-the right limits along the countable dense set `regularityTimes ι`. -/
+/-- The right-continuous modification of a martingale with values in a Banach space. -/
 noncomputable
 def rightContModif (X : ι → Ω → E) : ι → Ω → E :=
   rightContModifOf (vectorRegularitySet (regularityTimes ι) X) X
 
-/-- The càdlàg modification of a martingale with values in a Banach space, defined from the right
-limits along the countable dense set `regularityTimes ι`. -/
+/-- The càdlàg modification of a martingale with values in a Banach space. -/
 noncomputable
 def cadlagModif (X : ι → Ω → E) : ι → Ω → E :=
   cadlagModifOf (vectorRegularitySet (regularityTimes ι) X) X
@@ -486,14 +460,6 @@ theorem _root_.MeasureTheory.Martingale.martingale_cadlagModif [𝓕.IsRightCont
     [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
     Martingale (cadlagModif X) 𝓕 μ :=
   hX.congr (stronglyAdapted_cadlagModif hX) fun t ↦ (hX.cadlagModif_ae_eq t).symm
-
-/-- A martingale with values in a Banach space, with respect to a right-continuous and complete
-filtration, has a modification which is a martingale with càdlàg paths. -/
-theorem _root_.MeasureTheory.Martingale.exists_isCadlag_modification [𝓕.IsRightContinuous]
-    [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
-    ∃ Y : ι → Ω → E, Martingale Y 𝓕 μ ∧ (∀ ω, IsCadlag (Y · ω)) ∧ ∀ t, Y t =ᵐ[μ] X t :=
-  ⟨cadlagModif X, hX.martingale_cadlagModif, isCadlag_cadlagModif,
-    hX.cadlagModif_ae_eq⟩
 
 end Modification
 
