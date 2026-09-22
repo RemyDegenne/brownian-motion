@@ -26,13 +26,9 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDim
 
 variable [BorelSpace E]
 
-set_option backward.isDefEq.respectTransparency false in
 lemma covMatrix_stdGaussian : covMatrix (stdGaussian E) = 1 := by
-  rw [covMatrix, covarianceBilin_stdGaussian] --  ContinuousBilinForm.inner_toMatrix_eq_one
-  ext i j
-  simp only [LinearMap.BilinForm.toMatrix_apply, OrthonormalBasis.coe_toBasis,
-    ContinuousLinearMap.toBilinForm_apply, one_apply]
-  rw [innerSL_apply_apply, (stdOrthonormalBasis ℝ E).inner_eq]
+  rw [covMatrix, covarianceBilin_stdGaussian]
+  exact ContinuousBilinForm.inner_toMatrix_eq_one (stdOrthonormalBasis ℝ E)
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
   {μ : EuclideanSpace ℝ ι} {S : Matrix ι ι ℝ} {hS : S.PosSemidef}

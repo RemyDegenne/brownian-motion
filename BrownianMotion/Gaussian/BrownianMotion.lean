@@ -141,7 +141,7 @@ lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R :
 
 /-- A stochastic process `X` with independent increments and such that `X t` is gaussian for
 all `t` is a Gaussian process. -/
-lemma HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
+theorem HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
     [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
     [SecondCountableTopology E] [CompleteSpace E]
     {X : T → Ω → E} (law : ∀ t, HasGaussianLaw (X t) P) (h_bot : ∀ᵐ ω ∂P, X ⊥ ω = 0)
@@ -346,7 +346,7 @@ lemma IsBrownianReal.aemeasurable (h : IsBrownianReal X P) :
   exact h.mk_ae_forall_eq.mono <| fun _ ↦ by aesop
 
 /-- If `X` is a Brownian motion then so is `fun t ω ↦ t * (B (1 / t) ω)`. -/
-lemma IsBrownianReal.inv (h : IsBrownianReal X P) :
+theorem IsBrownianReal.inv (h : IsBrownianReal X P) :
     IsBrownianReal (fun t ω ↦ t * (X (1 / t) ω)) P where
   toIsPreBrownianReal := h.toIsPreBrownianReal.inv
   cont := by
@@ -392,7 +392,7 @@ lemma IsBrownianReal.tendsto_div_id_atTop (h : IsBrownianReal X P) :
 
 /-- **Blumenthal's zero-one law**: Let `𝓕` be the canonical filtration associated to a Brownian
 motion. Then the `σ`-algebra `⨅ s > 0, 𝓕 s` is trivial. -/
-lemma IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable (X t))
+theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable (X t))
     (hX' : ∀ ω, Continuous (X · ω)) {A : Set Ω}
     (hA : MeasurableSet[⨅ s > 0, natural X (fun t ↦ (hX t).stronglyMeasurable) s] A) :
     P A = 0 ∨ P A = 1 := by
@@ -458,7 +458,7 @@ lemma IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurable
     · suffices m3 ≤ (.comap (fun ω (t : Set.Iic ε) ↦ X t ω) MeasurableSpace.pi) from this A hA
       apply iInf₂_le_of_le ε hε1
       rw [natural_eq_comap]
-    simp only [Set.setOf_subset_setOf, ← measurableSpace_le_iff]
+    simp only [Set.ofPred_subset_ofPred, ← measurableSpace_le_iff]
     apply comap_le_comap (fun x t ↦ x (t.1 - ε)) (by fun_prop)
     ext ω t
     simp only [Function.comp_apply, sub_left_inj]
@@ -577,7 +577,7 @@ lemma memHolder_brownian (ω : ℝ≥0 → ℝ) (t : ℝ≥0) (β : ℝ≥0) (h�
 lemma continuous_brownian (ω : ℝ≥0 → ℝ) : Continuous (brownian · ω) :=
   isPreBrownianReal_preBrownian.continuous_mk ω
 
-lemma isBrownianReal_brownian : IsBrownianReal brownian gaussianLimit :=
+theorem isBrownianReal_brownian : IsBrownianReal brownian gaussianLimit :=
   isPreBrownianReal_preBrownian.isBrownianReal_mk
 
 -- for blueprint
@@ -638,7 +638,7 @@ lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X
   exact h1.isClosed_biUnion h2
 
 open TopologicalSpace in
-lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
+theorem ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [SecondCountableTopology Y]
     [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
     borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
   -- https://math.stackexchange.com/questions/4789531/when-does-the-borel-sigma-algebra-of-compact-convergence-coincide-with-the-pr
@@ -720,7 +720,7 @@ lemma ContinuousMap.borel_eq_iSup_comap_eval [SecondCountableTopology X] [Second
   -- To show measurability it is therefore enough to show the measurability of each term.
   apply MeasurableSet.sUnion
   · let f : Set (Set Y) → Set C(X, Y) := fun I ↦ {f : C(X, Y) | Set.MapsTo (⇑f) K (⋃₀ I)}
-    refine ((Set.countable_setOf_finite_subset cW).image f).mono ?_
+    refine ((Set.countable_ofPred_finite_subset cW).image f).mono ?_
     rintro - ⟨I, hI1, hI2, rfl⟩
     exact ⟨I, ⟨hI1, hI2⟩, rfl⟩
   -- Consider now `I` a finite subset of `W`.

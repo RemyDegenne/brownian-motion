@@ -34,7 +34,7 @@ lemma TotallyBounded.coveringNumber_ne_top (hA : TotallyBounded A) {r : ℝ≥0}
   refine ne_top_of_le_ne_top (b := C.encard) ?_ (IsCover.coveringNumber_le_encard hC_subset hC_cov)
   simpa
 
-theorem coveringNumber_Icc_zero_one_le_one_div (hε : ε ≤ 1) :
+lemma coveringNumber_Icc_zero_one_le_one_div (hε : ε ≤ 1) :
     (coveringNumber ε (Set.Icc (0 : ℝ) 1) : ℝ≥0∞) ≤ 1 / ε := by
   obtain rfl | ε_pos := eq_zero_or_pos ε
   · simp

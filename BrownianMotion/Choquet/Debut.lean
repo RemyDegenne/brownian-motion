@@ -36,7 +36,7 @@ lemma nullMeasurable_generateFrom {α β : Type*} {_ : MeasurableSpace α} {μ :
   simp only [Set.preimage_iUnion]
   exact fun t _ hft ↦ NullMeasurableSet.iUnion hft
 
-theorem nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
+lemma nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
     [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
     {mδ : MeasurableSpace δ} {μ : Measure δ}
     {f : δ → α} (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) : NullMeasurable f μ := by
@@ -153,7 +153,7 @@ lemma hittingAfter_lt_iff' {Ω β ι : Type*} [ConditionallyCompleteLinearOrder 
     rotate_left
     · exact ⟨n, by simp [mem_lowerBounds]; grind⟩
     · exact h_top'
-    simp only [Set.mem_setOf_eq] at h'
+    simp only [Set.mem_ofPred_eq] at h'
     obtain ⟨j, hj₁, hj₂⟩ := h'
     refine ⟨j, ⟨hj₁.1, hj₂⟩, hj₁.2⟩
   · obtain ⟨j, hj₁, hj₂⟩ := h'
@@ -372,7 +372,7 @@ lemma nullMeasurable_debut {ι : Type}
     obtain ⟨v, hv⟩ := exists_seq_tendsto (atTop : Filter ι)
     have : debut s u ⁻¹' Set.Iio (⊤ : WithTop ι) = ⋃ (n : ℕ), {ω | debut s u ω < v n} := by
       ext ω
-      simp only [Set.mem_preimage, Set.mem_Iio, Set.mem_iUnion, Set.mem_setOf_eq]
+      simp only [Set.mem_preimage, Set.mem_Iio, Set.mem_iUnion, Set.mem_ofPred_eq]
       refine ⟨fun h_debut ↦ ?_, fun ⟨i, h_lt⟩ ↦ lt_top_of_lt h_lt⟩
       lift debut s u ω to ι using h_debut.ne with x
       norm_cast
@@ -435,13 +435,12 @@ lemma debut_eq_iff_of_nhdsGT_eq_bot
         · exact ⟨n, by simp [mem_lowerBounds]; grind⟩
         · exact h_exists
       · intro htj_eq
-        simp only [Set.mem_setOf_eq, ← htj_eq] at hj
+        simp only [Set.mem_ofPred_eq, ← htj_eq] at hj
         exact h_notMem hj.2
   · refine le_antisymm ?_ h_ge
     refine csInf_le ?_ ⟨hnt, h_mem⟩
     exact ⟨n, by simp [mem_lowerBounds]; grind⟩
 
-set_option backward.isDefEq.respectTransparency false in
 /-- **Debut Theorem**: The debut of a progressively measurable set `E` is a stopping time. -/
 theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
@@ -453,7 +452,7 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
   rcases lt_or_ge t n with htn | hnt
   · convert MeasurableSet.empty
     ext ω
-    simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_le]
+    simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_le]
     refine (mod_cast htn : (t : WithTop ι) < n).trans_le ?_
     exact le_debut ω
   -- case on whether `t` is isolated on the right or not
@@ -462,7 +461,7 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
   -- if it's isolated then `{debut ≤} = {debut <} ∪ {(t, ω) ∈ E}`
   · have h_eq : {ω | debut E n ω ≤ t} = {ω | debut E n ω < t} ∪ {ω | (t, ω) ∈ E} := by
       ext ω
-      simp only [Set.mem_setOf_eq, Set.mem_union]
+      simp only [Set.mem_ofPred_eq, Set.mem_union]
       rw [le_iff_lt_or_eq]
       rcases lt_or_ge (debut E n ω) t with h_lt | h_ge
       · simp [h_lt]
@@ -490,7 +489,7 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
   -- we write `{debut ≤ t}` as a countable intersection of `{debut < s n}`
   have h_eq_iInter : {ω | debut E n ω ≤ t} = ⋂ m, {ω | debut E n ω < s m} := by
     ext ω
-    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    simp only [Set.mem_ofPred_eq, Set.mem_iInter]
     refine ⟨fun h_le m ↦ h_le.trans_lt (mod_cast (hs_gt m)), fun h_lt ↦ ?_⟩
     refine le_of_forall_gt fun u hu ↦ ?_
     obtain ⟨i, hi⟩ : ∃ i, s i < u := h_exists_lt' u hu
@@ -511,13 +510,12 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
       obtain ⟨m, hm⟩ := h_exists_lt i hti
       exact (iInf_le _ m).trans (𝓕.mono hm.le)
   rw [h𝓕_eq_iInf]
-  simp only [MeasurableSpace.measurableSet_sInf, Set.mem_range, forall_exists_index,
-    forall_apply_eq_imp_iff]
+  simp only [MeasurableSpace.measurableSet_iInf]
   intro k
   have h_eq_k : ⋂ m, {ω | debut E n ω < s m} =
       ⋂ (m) (hm : s m ≤ s k), {ω | debut E n ω < s m} := by
     ext x
-    simp only [Set.mem_iInter, Set.mem_setOf_eq]
+    simp only [Set.mem_iInter, Set.mem_ofPred_eq]
     refine ⟨fun h m _ ↦ h m, fun h m ↦ ?_⟩
     rcases le_total (s m) (s k) with hmk | hkm
     · exact h m hmk

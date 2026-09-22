@@ -411,7 +411,7 @@ Let $M$ be a continuous local martingale with $M_0 = 0$. If $M$ is also a finite
 
 \section{Doob-Meyer class}
 
-\begin{definition}\label{def:HasIntegrableSup}
+\begin{definition}[Integrable supremum]\label{def:HasIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.HasIntegrableSup}
 We say that a stochastic process is integrable if the map $(t,\omega) \mapsto X_t(\omega)$ is strongly measurable and for all $t$, $X_t$ is integrable.
@@ -419,7 +419,7 @@ A process has an integrable supremum if $(\sup_{s \le t} \Vert X_s \Vert)_t$ is 
 \end{definition}
 
 
-\begin{definition}\label{def:locallyIntegrableSup}
+\begin{definition}[Locally integrable supremum]\label{def:locallyIntegrableSup}
   \uses{def:locally, def:HasIntegrableSup}
   \leanok
   \lean{ProbabilityTheory.HasLocallyIntegrableSup}

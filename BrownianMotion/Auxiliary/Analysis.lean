@@ -1,10 +1,12 @@
 module
 
-public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 public import Mathlib.Analysis.InnerProductSpace.Basic
-public import Mathlib.Analysis.Normed.Module.Convex
+public import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
 
 @[expose] public section
+
+open MeasureTheory
+open scoped ENNReal NNReal
 
 attribute [simp] convex_empty
 attribute [simp] convex_univ
@@ -38,3 +40,22 @@ lemma convexOn_rpow_norm {E : Type*} [SeminormedAddCommGroup E]
   · apply (Real.monotoneOn_rpow_Ici_of_exponent_nonneg (by linarith)).mono
     rintro - ⟨x, -, rfl⟩
     simp
+
+lemma lpNorm_congr {α ε : Type*} {m0 : MeasurableSpace α} {p : ℝ≥0∞} {μ : Measure α}
+    [NormedAddCommGroup ε] {f g : α → ε} (hfg : f =ᵐ[μ] g) :
+    lpNorm f p μ = lpNorm g p μ := by
+  rw [lpNorm]
+  split_ifs with h
+  · rw [eLpNorm_congr_ae hfg, lpNorm, if_pos (h.congr hfg)]
+  · rw [lpNorm, if_neg]
+    contrapose h
+    exact h.congr hfg.symm
+
+lemma lpNorm_rpow_nnreal_eq_integral {α ε : Type*} {m0 : MeasurableSpace α} {μ : Measure α}
+    [NormedAddCommGroup ε] {f : α → ε} {p : ℝ≥0} (hp : p ≠ 0)
+    (hf : AEStronglyMeasurable f μ) :
+    (lpNorm f p μ) ^ (p : ℝ) = ∫ a, ‖f a‖ ^ (p : ℝ) ∂μ := by
+  rw [lpNorm_eq_integral_norm_rpow_toReal (by simpa) (by simp) hf,
+    show (p : ℝ≥0∞).toReal = p from rfl, Real.rpow_inv_rpow]
+  · positivity
+  simpa

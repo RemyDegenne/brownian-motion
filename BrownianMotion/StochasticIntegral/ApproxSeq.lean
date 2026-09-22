@@ -46,7 +46,7 @@ instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) w
   coe_injective s t h := by cases s; cases t; congr
 
 -- Should replace `isStoppingTime_const`
-theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
+lemma isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
     IsStoppingTime f fun _ => i := fun j => by simp only [MeasurableSet.const]
 
 /-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
@@ -96,7 +96,7 @@ lemma nnrealApproxSeq_isStoppingTime (𝓕 : Filtration ℝ≥0 mΩ)
   suffices MeasurableSet[𝓕 t] {ω | τ ω ≤ s} by
     convert this using 1
     ext ω
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     exact nnrealApproxSeq_le_iff τ n ω t
   exact 𝓕.mono' (div_le_of_le_mul₀ h2.le (by positivity) (Nat.floor_le (by positivity))) _ (hτ s)
 
@@ -205,7 +205,7 @@ lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpac
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
         τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
       have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
-        simp only [ne_eq, mem_atTop_sets, Set.mem_setOf_eq]
+        simp only [ne_eq, mem_atTop_sets, Set.mem_ofPred_eq]
         by_contra!
         have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
           simp only [tendsto_atTop_nhds]
@@ -341,7 +341,7 @@ lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
     (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 hτ_le τn) hRC)
 
-theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+lemma stoppedValue_ae_eq_condExp_discreteApproxSequence_of
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) (m : ℕ) :
     stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m)
     =ᵐ[μ] μ[X i|((discreteApproxSequence_of 𝓕 hτ_le τn).isStoppingTime m).measurableSpace] :=

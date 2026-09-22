@@ -21,6 +21,10 @@ section
 variable {ι Ω E : Type*} [Preorder ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
   {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
+lemma Martingale.stronglyMeasurable' (hX : Martingale X 𝓕 P) {t : ι} :
+    StronglyMeasurable (X t) :=
+  hX.stronglyMeasurable t |>.mono (𝓕.le t)
+
 lemma Martingale.indicator [CompleteSpace E] [OrderBot ι] {s : Set Ω}
     (hX : Martingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
     Martingale (fun t ↦ s.indicator (X t)) 𝓕 P :=

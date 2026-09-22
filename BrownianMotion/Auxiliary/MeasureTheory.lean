@@ -7,6 +7,8 @@ public import Mathlib.Probability.Distributions.Gaussian.Real
 public import Mathlib.Probability.Independence.Integration
 public import Mathlib.Probability.Independence.ZeroOne
 
+import Mathlib.MeasureTheory.Function.Holder
+
 /-!
 # Measure theory lemmas to be upstreamed to Mathlib
 -/
@@ -15,12 +17,36 @@ public import Mathlib.Probability.Independence.ZeroOne
 
 open MeasureTheory WithLp
 
-open scoped ENNReal NNReal ProbabilityTheory
+open scoped ENNReal NNReal ProbabilityTheory RealInnerProductSpace
+
+section CondExp
+
+variable {Ω E : Type*} {m mΩ : MeasurableSpace Ω} {P : Measure Ω} {f g : Ω → E}
+  [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+lemma integrable_inner (hf : MemLp f 2 P) (hg : MemLp g 2 P) :
+    Integrable (fun ω ↦ ⟪f ω, g ω⟫) P := by
+  rw [← memLp_one_iff_integrable]
+  exact (innerSL ℝ).memLp_of_bilin 1 hf hg
+
+variable [CompleteSpace E]
+
+lemma condExp_inner_of_aestronglyMeasurable_left (hf : AEStronglyMeasurable[m] f P)
+    (hfg : Integrable (fun ω ↦ ⟪f ω, g ω⟫) P) (hg : Integrable g P) :
+    P[fun ω ↦ ⟪f ω, g ω⟫ | m] =ᵐ[P] (fun ω ↦ ⟪f ω, P[g | m] ω⟫) :=
+  condExp_bilin_of_aestronglyMeasurable_left (innerSL ℝ) hf hfg hg
+
+lemma condExp_inner_of_aestronglyMeasurable_right (hg : AEStronglyMeasurable[m] g P)
+    (hfg : Integrable (fun ω ↦ ⟪f ω, g ω⟫) P) (hf : Integrable f P) :
+    P[fun ω ↦ ⟪f ω, g ω⟫ | m] =ᵐ[P] (fun ω ↦ ⟪P[f | m] ω, g ω⟫) :=
+  condExp_bilin_of_aestronglyMeasurable_right (innerSL ℝ) hg hfg hf
+
+end CondExp
 
 attribute [fun_prop] aemeasurable_id'
 
 @[to_additive]
-theorem Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β} {l : Filter α}
+lemma Filter.EventuallyEq.div' {α β : Type*} [Div β] {f f' g g' : α → β} {l : Filter α}
     (h : f =ᶠ[l] g) (h' : f' =ᶠ[l] g') : f / f' =ᶠ[l] g / g' :=
   h.comp₂ (· / ·) h'
 

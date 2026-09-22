@@ -5,7 +5,11 @@ Authors: Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.Adapted
 public import BrownianMotion.Auxiliary.Jensen
+public import BrownianMotion.Auxiliary.StoppedProcess
+public import BrownianMotion.Auxiliary.StoppedValue
+public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.Probability.Martingale.OptionalSampling
 
 /-!
@@ -13,12 +17,14 @@ public import Mathlib.Probability.Martingale.OptionalSampling
 
 -/
 
-@[expose] public section
+public section
 
+open Filter MeasureTheory
 open scoped NNReal ENNReal Topology
-open Filter
 
 namespace MeasureTheory
+
+section UniformIntegrable
 
 variable {ι κ Ω E F : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 
@@ -106,7 +112,7 @@ lemma eLpNorm_indicator_tail_eq_setIntegral_of_nonneg {f : Ω → ℝ}
   _ = ∫ (ω : Ω) in {ω | c < f ω}, ‖f ω‖ ∂μ := by
     apply setIntegral_congr_set
     filter_upwards [hnonneg] with ω hω
-    simp [setOf, abs_of_nonneg hω]
+    simp [Set.ofPred, abs_of_nonneg hω]
   _ = _ := by
     refine setIntegral_congr_fun₀
       (aestronglyMeasurable_const.nullMeasurableSet_lt hf.aestronglyMeasurable) fun ω hω => ?_
@@ -228,13 +234,13 @@ lemma uniformIntegrable_of_dominated_enorm_singleton [NormedAddCommGroup E] {X :
   exact norm_le_toReal_of_enorm_le hfin.ne hbound
 
 lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ)
+    [CompleteSpace E] (hX : UniformIntegrable X 1 μ)
     {𝓕 : κ → MeasurableSpace Ω} (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun (p : ι × κ) ↦ μ[X p.1 | 𝓕 p.2]) 1 μ := by
   have hX' := hX
   obtain ⟨hX1, hX2, ⟨C, hC⟩⟩ := hX
   refine ⟨fun p ↦ (stronglyMeasurable_condExp.mono (h𝓕 p.2)).aestronglyMeasurable, ?_,
-    ⟨C, fun p ↦ (eLpNorm_condExp_le_eLpNorm le_rfl (X p.1)).trans (hC p.1)⟩⟩
+    ⟨C, fun p ↦ (eLpNorm_condExp_le_eLpNorm (X p.1) le_rfl).trans (hC p.1)⟩⟩
   refine unifIntegrable_of le_rfl (by simp)
     (fun p ↦ (stronglyMeasurable_condExp.mono (h𝓕 p.2)).aestronglyMeasurable) fun ε hε ↦ ?_
   obtain ⟨δ, δ_pos, hδ⟩ := hX2 hε
@@ -247,7 +253,7 @@ lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [N
   rotate_left
   · exact memLp_one_iff_integrable.1 (hX'.memLp p.1)
   · exact stronglyMeasurable_const.measurableSet_le stronglyMeasurable_condExp.nnnorm
-  grw [eLpNorm_condExp_le_eLpNorm le_rfl, hδ]
+  grw [eLpNorm_condExp_le_eLpNorm _ le_rfl, hδ]
   · exact stronglyMeasurable_const.measurableSet_le <|
       stronglyMeasurable_condExp.mono (h𝓕 p.2) |>.nnnorm
   calc
@@ -263,7 +269,7 @@ lemma UniformIntegrable.condExp' {X : ι → Ω → E} [NormedAddCommGroup E] [N
   _ = eLpNorm μ[X p.1 | 𝓕 p.2] 1 μ / (⨆ i, eLpNorm (X i) 1 μ) * δ := by
     rw [← ENNReal.div_mul _ (Or.inr <| ENNReal.coe_ne_zero.2 hδ') (by simp)]
   _ ≤ 1 * δ := by
-    grw [eLpNorm_condExp_le_eLpNorm le_rfl]
+    grw [eLpNorm_condExp_le_eLpNorm _ le_rfl]
     gcongr
     exact ENNReal.div_le_one_of_le <| le_iSup (α := ℝ≥0∞) _ p.1
   _ = _ := by simp
@@ -282,10 +288,68 @@ lemma UniformIntegrable.comp {κ : Type*} [NormedAddCommGroup E]
   exact ⟨fun _ ↦ hX1 _, hX2.comp f, ⟨C, fun i ↦ hC (f i)⟩⟩
 
 lemma UniformIntegrable.condExp {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    [CompleteSpace E] [IsFiniteMeasure μ] (hX : UniformIntegrable X 1 μ) {𝓕 : ι → MeasurableSpace Ω}
+    [CompleteSpace E] (hX : UniformIntegrable X 1 μ) {𝓕 : ι → MeasurableSpace Ω}
     (h𝓕 : ∀ i, 𝓕 i ≤ mΩ) :
     UniformIntegrable (fun i ↦ μ[X i | 𝓕 i]) 1 μ :=
   (hX.condExp' h𝓕).comp (fun i ↦ (i, i))
+
+/-- If a a family of random variables in bounded in `Lp` for `p > q ≥ 1`, then it is uniformly
+integrable in `Lq`. -/
+lemma uniformIntegrable_of_eLpNorm_le {X : ι → Ω → E} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [IsFiniteMeasure μ] (hX1 : ∀ i, AEStronglyMeasurable (X i) μ)
+    (p q : ℝ≥0∞) (hp : q < p) (hq : 1 ≤ q) (C : ℝ≥0∞) (hC : C ≠ ∞)
+    (hX2 : ∀ i, eLpNorm (X i) p μ ≤ C) :
+    UniformIntegrable X q μ := by
+  lift C to ℝ≥0 using hC
+  have hq' : q ≠ ∞ := by
+    contrapose hp
+    simp [hp]
+  refine ⟨hX1, fun ε hε ↦ ?_, ?_⟩
+  · have {s : Set Ω} (hs : MeasurableSet s) (t : ι) :
+        eLpNorm (s.indicator (X t)) q μ ≤
+          (eLpNorm (X t) p μ) * (μ s) ^ (q⁻¹ - p⁻¹).toReal := calc
+      eLpNorm (s.indicator (X t)) q μ
+        = eLpNorm ((s.indicator (fun _ ↦ 1 : Ω → ℝ)) • (X t)) q μ := by
+        congr with ω
+        simp [Set.indicator]
+      _ ≤ eLpNorm (s.indicator (fun _ ↦ 1 : Ω → ℝ)) (q⁻¹ - p⁻¹)⁻¹ μ *
+          eLpNorm (X t) p μ := by
+        have : (q⁻¹ - p⁻¹)⁻¹.HolderTriple p q := ⟨by
+          rw [inv_inv, tsub_add_cancel_of_le (by simp [hp.le])]⟩
+        grw [← eLpNorm_smul_le_mul_eLpNorm (r := q) (hX1 t)]
+        exact aestronglyMeasurable_const.indicator hs
+      _ = (eLpNorm (X t) p μ) * (μ s) ^ (q⁻¹ - p⁻¹).toReal := by
+        rw [eLpNorm_indicator_const hs, mul_comm]
+        · simp
+        · simp only [ne_eq, ENNReal.inv_eq_zero, ENNReal.sub_eq_top_iff, ENNReal.inv_eq_top,
+            not_and, Decidable.not_not]
+          intro
+          simp_all
+        · simpa [tsub_eq_zero_iff_le]
+    refine ⟨(ε / (C + 1)) ^ (q⁻¹ - p⁻¹)⁻¹.toReal, by positivity, fun t s hs hμs ↦ ?_⟩
+    grw [this hs t, hμs, hX2, le_self_add (a := (C : ℝ≥0∞)) (b := 1), ENNReal.ofReal_rpow_of_nonneg,
+      ENNReal.toReal_inv,
+      Real.rpow_inv_rpow, show (C + 1 : ℝ≥0∞) = .ofReal (C + 1: ℝ) by simp [ENNReal.ofReal_add],
+      ← ENNReal.ofReal_mul, mul_div_cancel₀]
+    any_goals positivity
+    refine ENNReal.toReal_ne_zero.2 ⟨LT.lt.ne' (by simpa), ?_⟩
+    simp only [ne_eq, ENNReal.sub_eq_top_iff, ENNReal.inv_eq_top, not_and, Decidable.not_not]
+    intro
+    simp_all
+  · let (eq := D_def) D : ℝ≥0∞ := μ Set.univ ^ (1 / q.toReal - 1 / p.toReal)
+    have hD : D ≠ ⊤ := by
+      refine ENNReal.rpow_ne_top_of_nonneg ?_ (by simp)
+      by_cases hp' : p = ∞
+      · simp [hp']
+      simp only [one_div, sub_nonneg]
+      rw [inv_le_inv₀, ENNReal.toReal_le_toReal hq' hp']
+      · exact hp.le
+      · exact ENNReal.toReal_pos (zero_le.trans_lt hp |>.ne') hp'
+      · exact ENNReal.toReal_pos (zero_lt_one.trans_le hq |>.ne') hq'
+    lift D to ℝ≥0 using hD with E
+    refine ⟨E * C, fun t ↦ ?_⟩
+    grw [eLpNorm_le_eLpNorm_mul_rpow_measure_univ hp.le (hX1 t), hX2]
+    simp [D_def, mul_comm]
 
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] [Countable ι] [TopologicalSpace ι]
   [OrderTopology ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -299,7 +363,7 @@ lemma Martingale.ae_eq_condExp_of_isStoppingTime {X : ι → Ω → E}
     (fun _ ↦ le_rfl)
 
 lemma Martingale.uniformIntegrable_stoppedValue {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
-    [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -320,7 +384,7 @@ omit [Countable ι]
 variable [FirstCountableTopology ι]
 
 lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : ℕ → Ω → WithTop ι) (hτ : ∀ i, IsStoppingTime 𝓕 (τ i))
     {n : ι} (hτ_le : ∀ i ω, τ i ω ≤ n) (hτ_countable : ∀ i, (Set.range <| τ i).Countable) :
     UniformIntegrable (fun i ↦ stoppedValue X (τ i)) 1 μ :=
@@ -331,7 +395,7 @@ lemma Martingale.uniformIntegrable_stoppedValue_of_countable_range
       (hτ_countable _)).symm).comp (fun i ↦ ((), i))
 
 lemma Martingale.integrable_stoppedValue_of_countable_range
-    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕] [IsFiniteMeasure μ]
+    {X : ι → Ω → E} {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration μ 𝓕]
     (hX : Martingale X 𝓕 μ) (τ : Ω → WithTop ι) (hτ : IsStoppingTime 𝓕 τ)
     {n : ι} (hτ_le : ∀ ω, τ ω ≤ n) (hτ_countable : (Set.range τ).Countable) :
     Integrable (stoppedValue X τ) μ := by
@@ -360,5 +424,89 @@ lemma tendstoInMeasure_bounded
     (hf : ∀ i, AEStronglyMeasurable (f i) μ) : eLpNorm g p μ ≤ C := by
   obtain ⟨l, hl⟩ := h_tendsto.exists_seq_tendsto_ae'
   exact seq_tendsto_ae_bounded p (fun n => bound (l n)) hl.2 (fun n => hf (l n))
+
+end UniformIntegrable
+
+section Martingale
+
+/-! ### Uniformly integrable martingales -/
+
+variable {ι Ω E : Type*} [LinearOrder ι] {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+  {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E} {τ : Ω → WithTop ι} [NormedAddCommGroup E]
+  [NormedSpace ℝ E] [TopologicalSpace ι]
+
+/-- A càdlàg uniformly integrable martingale converges. -/
+theorem Martingale.ae_tendsto_limitProcess
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) :
+    ∀ᵐ ω ∂P, Tendsto (X · ω) atTop (𝓝 (𝓕.limitProcess X P ω)) := by
+  sorry
+
+@[to_fun limitProcess_fun_add]
+lemma Martingale.limitProcess_add [Nonempty ι]
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω))
+    (hY1 : Martingale Y 𝓕 P) (hY2 : UniformIntegrable Y 1 P)
+    (hY3 : ∀ ω, IsRightContinuous (Y · ω)) :
+    𝓕.limitProcess (X + Y) P =ᵐ[P] 𝓕.limitProcess X P + 𝓕.limitProcess Y P := by
+  apply 𝓕.limitProcess_ae_eq
+    (𝓕.stronglyMeasurable_limitProcess.add 𝓕.stronglyMeasurable_limitProcess)
+  filter_upwards [hX1.ae_tendsto_limitProcess hX2 hX3,
+    hY1.ae_tendsto_limitProcess hY2 hY3] with ω h1 h2 using h1.add h2
+
+@[to_fun limitProcess_fun_sub]
+lemma Martingale.limitProcess_sub [Nonempty ι]
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω))
+    (hY1 : Martingale Y 𝓕 P) (hY2 : UniformIntegrable Y 1 P)
+    (hY3 : ∀ ω, IsRightContinuous (Y · ω)) :
+    𝓕.limitProcess (X - Y) P =ᵐ[P] 𝓕.limitProcess X P - 𝓕.limitProcess Y P := by
+  apply 𝓕.limitProcess_ae_eq
+    (𝓕.stronglyMeasurable_limitProcess.sub 𝓕.stronglyMeasurable_limitProcess)
+  filter_upwards [hX1.ae_tendsto_limitProcess hX2 hX3,
+    hY1.ae_tendsto_limitProcess hY2 hY3] with ω h1 h2 using h1.sub h2
+
+/-- For a càdlàg uniformly integrable martingale, `P[X ∞ | 𝓕 t] = X t`. -/
+theorem Martingale.condExp_limitProcess_ae_eq
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) (t : ι) :
+    P[𝓕.limitProcess X P | 𝓕 t] =ᵐ[P] X t := by
+  sorry
+
+/-- For a càdlàg uniformly integrable martingale and a stopping time `τ`, `P[X ∞ | 𝓕 τ] = X τ`. -/
+theorem Martingale.condExp_limitProcess_ae_eq'
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) :
+    P[𝓕.limitProcess X P | hτ.measurableSpace] =ᵐ[P] 𝓕.stoppedValue' X τ P := by
+  sorry
+
+/-- For a càdlàg uniformly integrable martingale, `⨆ t, ‖X t‖ₑ ≤ ‖X ∞‖ₑ`. -/
+lemma iSup_eLpNorm_le_eLpNorm_limitProcess [CompleteSpace E]
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P) (hX3 : ∀ ω, IsRightContinuous (X · ω))
+     {p : ℝ≥0∞} (hp : 1 ≤ p) :
+    ⨆ t, eLpNorm (X t) p P ≤ eLpNorm (𝓕.limitProcess X P) p P := by
+  refine iSup_le fun t ↦ ?_
+  rw [eLpNorm_congr_ae (hX1.condExp_limitProcess_ae_eq hX2 hX3 t).symm]
+  exact eLpNorm_condExp_le_eLpNorm _ hp
+
+lemma Filtration.limitProcess_stoppedProcess [OrderBot ι] [OrderTopology ι]
+    [SecondCountableTopology ι]
+    (hX1 : Martingale X 𝓕 P) (hX2 : UniformIntegrable X 1 P)
+    (hX3 : ∀ ω, _root_.IsRightContinuous (X · ω))
+    (hτ : IsStoppingTime 𝓕 τ) :
+    𝓕.limitProcess (stoppedProcess X τ) P =ᵐ[P] 𝓕.stoppedValue' X τ P := by
+  borelize ι E
+  apply 𝓕.limitProcess_ae_eq
+  · exact 𝓕.stronglyMeasurable_stoppedValue'
+      (hX1.stronglyAdapted.isStronglyProgressive_of_rightContinuous hX3) hX3 hτ |>.mono
+      hτ.measurableSpace_le'
+  filter_upwards [hX1.ae_tendsto_limitProcess hX2 hX3] with ω h
+  cases h1 : τ ω with
+  | top => simpa [h1]
+  | coe t =>
+    simp only [h1, WithTop.coe_inj, stoppedProcess_of_eq_coe, Filtration.stoppedValue'_of_eq_coe]
+    exact tendsto_const_nhds.congr' (eventually_atTop.2 ⟨t, fun s hs ↦ by simp [hs]⟩)
+
+end Martingale
 
 end MeasureTheory

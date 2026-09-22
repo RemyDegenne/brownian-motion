@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import BrownianMotion.Choquet.CountableClosed
+public import Mathlib.Order.CountableSupClosed
 public import Mathlib.Order.OmegaCompletePartialOrder
 public import Mathlib.Topology.Compactness.CompactSystem
 public import Mathlib.Topology.Metrizable.Uniformity
@@ -52,11 +52,30 @@ lemma mem_infClosure_set_iff (s : Set α) :
     rw [hL_eq, ← Finset.inf_id_set_eq_sInter, Finset.inf'_eq_inf]
 
 lemma mem_supClosure_set_iff' (s : Set α) :
-    s ∈ supClosure S ↔ ∃ (t : Finset ℕ) (ht : t.Nonempty) (A : ℕ → Set α),
+    s ∈ supClosure S ↔ ∃ (t : Finset ℕ) (_ : t.Nonempty) (A : ℕ → Set α),
       (∀ n ∈ t, A n ∈ S) ∧ s = ⋃ n ∈ t, A n := by
   rw [mem_supClosure_set_iff]
   refine ⟨fun ⟨L, hL_nonempty, hL_eq, hL_subset⟩ ↦ ?_, fun ⟨t, ht_nonempty, A, hA, h_eq⟩ ↦ ?_⟩
-  · sorry
+  · classical
+    have hcard : L.toList.length = L.card := Finset.length_toList L
+    refine ⟨Finset.range L.card,
+      Finset.nonempty_range_iff.mpr (Finset.card_ne_zero.mpr hL_nonempty),
+      fun n ↦ if h : n < L.toList.length then L.toList[n] else ∅, ?_, ?_⟩
+    · intro n hn
+      rw [Finset.mem_range, ← hcard] at hn
+      simp only [dif_pos hn]
+      exact hL_subset (Finset.mem_coe.mpr (Finset.mem_toList.mp (List.getElem_mem hn)))
+    · ext x
+      rw [hL_eq]
+      simp only [Set.mem_sUnion, Finset.mem_coe, Set.mem_iUnion, Finset.mem_range, exists_prop]
+      constructor
+      · rintro ⟨u, hu, hxu⟩
+        obtain ⟨n, hn, rfl⟩ := List.mem_iff_getElem.mp (Finset.mem_toList.mpr hu)
+        exact ⟨n, hcard ▸ hn, by simpa only [dif_pos hn]⟩
+      · rintro ⟨n, hn, hxn⟩
+        rw [← hcard] at hn
+        rw [dif_pos hn] at hxn
+        exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
 
 lemma mem_supClosure_insert_empty_iff (s : Set α) :
@@ -139,7 +158,7 @@ lemma IsCompactSystem.equiv (e : 𝓚 ≃ 𝓚') {S : Set (Set 𝓚)} (hS : IsCo
   rw [Set.dissipate, ← Set.preimage_iInter₂] at hN
   refine ⟨N, by rw [Set.dissipate, h, hN]⟩
 
-theorem iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
+lemma iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
     (f : β → (i : ι) → Set (𝓚 i)) :
      ⋂ b, (s b).sigma (f b) = ∅ ↔ ∀ i ∈ ⋂ b, s b, ⋂ b, f b i = ∅ := by
   simp only [Set.eq_empty_iff_forall_notMem, Set.mem_iInter, Set.mem_sigma_iff]
@@ -147,7 +166,7 @@ theorem iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β →
     fun h ⟨i, x⟩ hx => h i (fun b => (hx b).1) x (fun b => (hx b).2)⟩
 
 /-- Variant with an additional condition `p b` (e.g. `b ≤ n` for `dissipate`). -/
-theorem iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : β → Prop}
+lemma iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : β → Prop}
     (s : β → Set ι) (f : β → (i : ι) → Set (𝓚 i)) :
     ⋂ (b) (_ : p b), (s b).sigma (f b) = ∅ ↔
       ∀ i ∈ ⋂ (b) (_ : p b), s b, ⋂ (b) (_ : p b), f b i = ∅ := by
@@ -161,7 +180,7 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
       ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
   classical
   intro C hC hC_empty
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
     forall_const] at hC
   choose s f hf hCfs using hC
   simp_rw [Set.dissipate, ← hCfs]
@@ -236,12 +255,12 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
     (IsCompactSystem.sigma_ofFintype hQ)
   convert h_equiv using 1
   ext t
-  simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
   constructor
   · rintro ⟨hl, hr⟩
     exact ⟨fun | true => Sum.inr ⁻¹' t | false => Sum.inl ⁻¹' t,
       fun | true => hr | false => hl,
-      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]; rfl⟩
+      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]⟩
   · rintro ⟨f, hf, hfC⟩
     have slice : ∀ b x, x ∈ f b ↔ (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm ⟨b, x⟩ ∈ t :=
       fun b x => by simpa using Set.ext_iff.mp hfC ⟨b, x⟩
@@ -249,15 +268,13 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
     · specialize hf false
       simp only [cond_false] at hf
       convert hf using 1
-      · rfl
-      · ext x
-        exact (slice false x).symm
+      ext x
+      exact (slice false x).symm
     · specialize hf true
       simp only [cond_true] at hf
       convert hf using 1
-      · rfl
-      · ext x
-        exact (slice true x).symm
+      ext x
+      exact (slice true x).symm
 
 -- check if we need to insert univ or not
 -- PP: we don't need to insert univ in order for the lemma to be true. We proved that we can insert
@@ -308,7 +325,7 @@ lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
       ∃ (A : ℕ → ℕ → Set 𝓧) (_ : ∀ n m, A n m ∈ p) (K : ℕ → ℕ → Set 𝓚) (_ : ∀ n m, K n m ∈ q),
         s = ⋂ n, ⋃ m, A n m ×ˢ K n m := by
   unfold prodSigmaDelta
-  simp only [mem_countableInfClosure_iff, mem_countableSupClosure_iff, Set.mem_image2,
+  simp only [mem_countableInfClosure_iff_iInf, mem_countableSupClosure_iff_iSup, Set.mem_image2,
     Set.iSup_eq_iUnion, Set.iInf_eq_iInter, exists_prop]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
@@ -326,7 +343,7 @@ lemma mem_countableSupClosure_image2_prod_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ countableSupClosure (Set.image2 (· ×ˢ ·) p q) ↔
       ∃ (A : ℕ → Set 𝓧) (_ : ∀ n, A n ∈ p) (K : ℕ → Set 𝓚) (_ : ∀ n, K n ∈ q),
         s = ⋃ n, A n ×ˢ K n := by
-  simp only [mem_countableSupClosure_iff, Set.mem_image2]
+  simp only [mem_countableSupClosure_iff_iSup, Set.mem_image2]
   refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
   · choose A hA hs using h
     choose B hB C hC hA_eq using hA
@@ -353,6 +370,7 @@ lemma prodSigmaDelta.mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p �
 intersections of *antitone* sequences of sets. -/
 lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set 𝓧} :
     s ∈ countableInfClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Antitone A ∧ s = ⋂ n, A n := by
+  rw [mem_countableInfClosure_iff_iInf]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h
   refine ⟨Set.dissipate A, fun n ↦ ?_, Set.antitone_dissipate, ?_⟩
@@ -369,7 +387,7 @@ unions of *monotone* sequences of sets. -/
 protected
 lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
     s ∈ countableSupClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Monotone A ∧ s = ⋃ n, A n := by
-  rw [mem_countableSupClosure_iff]
+  rw [mem_countableSupClosure_iff_iSup]
   simp only [Set.iSup_eq_iUnion]
   refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
   choose A hA hs using h
@@ -488,7 +506,7 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (h
   -- todo: dissipate_of_antitone?
   convert hC''_nonempty n using 1
   refine le_antisymm (Set.dissipate_subset le_rfl) ?_
-  simp only [Set.dissipate, Set.le_eq_subset, Set.subset_iInter_iff]
+  simp only [Set.dissipate, Set.subset_iInter_iff]
   exact fun i hi ↦ h_anti hi
 
 end MeasureTheory
