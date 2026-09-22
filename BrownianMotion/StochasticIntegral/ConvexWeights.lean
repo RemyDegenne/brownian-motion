@@ -29,6 +29,20 @@ lemma iteratedComb_congr {cw1 cw2 : ℕ → ℕ → StdSimplex R ℕ} {k : ℕ}
   | zero => simp [iteratedComb, h]
   | succ k ih => simp [iteratedComb, h, ih (fun i hi => h i (Nat.le_succ_of_le hi))]
 
+/-- If each `cw k n` puts no weight on indices `m < n`, then neither does `iteratedComb cw k n`. -/
+lemma iteratedComb_weights_eq_zero {cw : ℕ → ℕ → StdSimplex R ℕ}
+    (hcw : ∀ k n, ∀ m < n, (cw k n).weights m = 0) (k : ℕ) :
+    ∀ n, ∀ m < n, (iteratedComb cw k n).weights m = 0 := by
+  induction k with
+  | zero => exact hcw 0
+  | succ k ih =>
+    intro n m hm
+    have key (j : ℕ) (hj : (cw (k + 1) n).weights j ≠ 0) : (iteratedComb cw k j).weights m = 0 :=
+      ih j m (hm.trans_le (not_lt.1 fun h ↦ hj (hcw _ n j h)))
+    simp only [iteratedComb, weights_iConvexComb, Finsupp.sum_apply, Finsupp.smul_apply]
+    rw [Finsupp.sum]
+    exact Finset.sum_eq_zero fun j hj ↦ by rw [key j (Finsupp.mem_support_iff.1 hj), smul_zero]
+
 lemma iConvexComb_sum_smul {E : Type*} (a : StdSimplex R M) (b : M → StdSimplex R N) (f : N → E)
     [AddCommGroup E] [Module R E] [IsDomain R] :
     (iConvexComb a b).weights.sum (fun m cwm ↦ cwm • f m) =

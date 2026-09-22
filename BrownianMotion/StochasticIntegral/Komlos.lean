@@ -154,12 +154,20 @@ every `y n` can be written as a convex combination of elements `x k` with `k ≥
 def convexTail (x : ℕ → E) : Set (ℕ → E) :=
   { y | ∀ n, y n ∈ convexHull ℝ (Set.range (fun m ↦ x (n + m))) }
 
-lemma convexTail_self (x : ℕ → E) : x ∈ convexTail x := by
-  simp only [convexTail, Set.mem_setOf_eq]
+lemma convexTail_self (x : ℕ → E) : x ∈ convexTail x :=
+  fun n ↦ subset_convexHull ℝ _ ⟨0, by simp⟩
+
+/-- `convexTail x` is stable under convex combinations whose weights at step `n` are supported on
+indices at least `n`. -/
+lemma weights_sum_mem_convexTail {x y : ℕ → E} (hy : y ∈ convexTail x) {w : ℕ → StdSimplex ℝ ℕ}
+    (hw : ∀ n, ∀ m < n, (w n).weights m = 0) :
+    (fun n ↦ (w n).weights.sum fun m r ↦ r • y m) ∈ convexTail x := by
   intro n
-  rw [mem_convexHull_iff_exists_fintype]
-  use (Fin 1), (by infer_instance), (fun _ ↦ (1 : ℝ)), (fun _ ↦ (x n))
-  simp [Exists.intro 0]
+  refine Convex.sum_mem (convex_convexHull ℝ _) (fun m _ ↦ (w n).nonneg m) (w n).total
+    fun m hm ↦ convexHull_mono ?_ (hy m)
+  have hnm : n ≤ m := not_lt.1 fun h ↦ Finsupp.mem_support_iff.1 hm (hw n m h)
+  rintro _ ⟨j, rfl⟩
+  exact ⟨m - n + j, congrArg x (by omega)⟩
 
 lemma exists_stdSimplex_of_mem_convexTail_reindexed {x g : ℕ → E} (hg : g ∈ convexTail x) (n : ℕ) :
   ∃ w : StdSimplex ℝ ℕ, g n = w.weights.sum (fun i wi ↦ wi • x i) ∧ ∀ m < n, w.weights m = 0 := by
@@ -209,16 +217,33 @@ lemma convex_combination_bounded {x : ℕ → E}
   exact le_trans (norm_nonneg (x 0)) (hx 0)
 
 /-- `komlosFormula x cw k n` is the convex combination of the stage-`k` vectors `x k m`,
-weighted by `iteratedBindSimplex cw k n`. It is the sequence whose convergence is
+weighted by `iteratedComb cw k n`. It is the sequence whose convergence is
 established at each stage of the Komlós construction. -/
 noncomputable def komlosFormula (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) : E :=
-  (StdSimplex.iteratedBind cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
+  (iteratedComb cw k n).weights.sum (fun m cwm ↦ cwm • x i m)
 
 lemma komlosFormula_congr (x : ℕ → ℕ → E) {cw1 : ℕ → ℕ → StdSimplex ℝ ℕ}
   {cw2 : ℕ → ℕ → StdSimplex ℝ ℕ} {k : ℕ} (h : ∀ k' ≤ k, cw1 k' = cw2 k') :
   komlosFormula x cw1 k = komlosFormula x cw2 k := by
-  unfold komlosFormula; rw [StdSimplex.iteratedBind_congr]
+  unfold komlosFormula; rw [iteratedComb_congr]
   exact h
+
+lemma komlosFormula_succ (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i n : ℕ) :
+    komlosFormula x cw (k + 1) i n =
+      (cw (k + 1) n).weights.sum fun j c ↦ c • komlosFormula x cw k i j := by
+  simp only [komlosFormula, iteratedComb]
+  exact iConvexComb_sum_smul _ _ _
+
+/-- For `i ≤ k`, the stage-`k` combination of the row `x i` lies in the convex tail of the
+stage-`i` combination of that row. -/
+lemma komlosFormula_mem_convexTail (x : ℕ → ℕ → E) {cw : ℕ → ℕ → StdSimplex ℝ ℕ}
+    (hcw : ∀ k n, ∀ m < n, (cw k n).weights m = 0) {i k : ℕ} (hik : i ≤ k) :
+    komlosFormula x cw k i ∈ convexTail (komlosFormula x cw i i) := by
+  induction k, hik using Nat.le_induction with
+  | base => exact convexTail_self _
+  | succ k _ ih =>
+    rw [show komlosFormula x cw (k + 1) i = _ from funext (komlosFormula_succ x cw k i)]
+    exact weights_sum_mem_convexTail ih (hcw (k + 1))
 
 variable [CompleteSpace E]
 
@@ -348,47 +373,11 @@ lemma TendstoUniformly_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atT
     simpa [dist_comm] using (convexHull_min htail (convex_ball xlim ε)) (y.2 n)
   simpa only [gt_iff_lt] using this
 
-lemma komlosFormula_convexTail_incr (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (i : ℕ) :
-    komlosFormula x cw (i + 1) i ∈ convexTail (komlosFormula x cw i i) := by
-  simp only [convexTail, Set.mem_setOf_eq, komlosFormula]
-  intro n
-  sorry
-
-lemma komlosFormula_convexTail (x : ℕ → ℕ → E) (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (k i : ℕ)
-  (hk : i ≤ k) :
-  komlosFormula x cw k i ∈ convexTail (komlosFormula x cw i i) := by
-  let n := k - i
-  rw [(show k = i + n by grind)]
-  induction n with
-  | zero => simp only [add_zero]; exact convexTail_self (komlosFormula x cw i i)
-  | succ m hm => sorry
-
 omit [CompleteSpace E] in
-lemma TendstoUniformly_convexTail' {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim))
-    {y : ℕ → ℕ → E} (hy : ∀ᶠ i in atTop, (fun n ↦ y n i) ∈ convexTail x) :
-    TendstoUniformly y (fun _ ↦ xlim) atTop := by
-  intro u hu
-  rcases Metric.mem_uniformity_dist.mp hu with ⟨ε, εpos, hεu⟩
-  have hxε : ∀ᶠ n in atTop, dist (x n) xlim < ε := by
-    simpa using hx (Metric.ball_mem_nhds _ εpos)
-  rcases Filter.eventually_atTop.mp hxε with ⟨N, hN⟩
-  rcases Filter.eventually_atTop.mp hy with ⟨M, hM⟩
-  refine Filter.eventually_atTop.mpr ⟨max N M, ?_⟩
-  intro n hNM i
-  have hn : n ≥ N := by grind
-  apply hεu
-  simp only
-  clear hεu hu u
-
-  have htail : Set.range (fun m ↦ x (n + m)) ⊆ Metric.ball xlim ε := by
-    rintro _ ⟨m, rfl⟩
-    simpa using hN (n + m) (le_trans hn (Nat.le_add_right n m))
-
-  have aux : y n i ∈ Metric.ball xlim ε := by
-    sorry
-
-  simp only [gt_iff_lt]
-  exact Metric.mem_ball'.mp aux
+lemma Tendsto_convexTail {x : ℕ → E} {xlim : E} (hx : Tendsto x atTop (𝓝 xlim)) :
+    ∀ y ∈ convexTail x, Tendsto y atTop (𝓝 xlim) := by
+  intro y hy
+  exact TendstoUniformly.tendsto_at (TendstoUniformly_convexTail hx) ⟨y, hy⟩
 
 omit [CompleteSpace E] in
 /-- Convex combinations of a convergent sequence, given at step `n` by weights supported on
@@ -396,88 +385,32 @@ indices at least `n`, converge to the same limit. -/
 lemma tendsto_weights_sum_of_forall_lt_eq_zero {x : ℕ → E} {xlim : E}
     (hx : Tendsto x atTop (𝓝 xlim)) {w : ℕ → StdSimplex ℝ ℕ}
     (hw : ∀ n, ∀ m < n, (w n).weights m = 0) :
-    Tendsto (fun n ↦ (w n).weights.sum fun m r ↦ r • x m) atTop (𝓝 xlim) := by
-  refine Tendsto_convexTail hx _ fun n ↦ ?_
-  refine Convex.sum_mem (convex_convexHull ℝ _) (fun m _ ↦ (w n).nonneg m) (w n).total
-    fun m hm ↦ subset_convexHull ℝ _ ⟨m - n, ?_⟩
-  simp [Nat.add_sub_cancel' (not_lt.1 fun h ↦ Finsupp.mem_support_iff.1 hm (hw n m h))]
+    Tendsto (fun n ↦ (w n).weights.sum fun m r ↦ r • x m) atTop (𝓝 xlim) :=
+  Tendsto_convexTail hx _ (weights_sum_mem_convexTail (convexTail_self x) hw)
 
-lemma komlos_uniform_convergence
-    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
-    (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
-    (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) :
-    ∀ i, TendstoUniformly (fun k ↦ komlosFormula x cw k i) (fun _ ↦ lim i) atTop
-     := by
-  intro i
-  apply TendstoUniformly_convexTail' (hcw i)
-  simp only [eventually_atTop]
-  use i -- check if this is right!
-  intro k hk
-  -- unfold komlosFormula
-  -- informal argument: to show convergence, it suffices to show convergence for k >= K with some
-  -- fix K. Let's consider K := i.
-  -- we want to rewrite `fun k ↦ komlosFormula x cw k i` in terms of convexTail
-  sorry
-
-lemma komlos_uniform_convergence_epsilon
-    {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M)
-    (cw : ℕ → ℕ → StdSimplex ℝ ℕ) (lim : ℕ → E)
-    (hcw: ∀ k : ℕ, Tendsto (komlosFormula x cw k k) atTop (𝓝 (lim k))) (i : ℕ) :
-    ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ k ≥ i, ‖komlosFormula x cw k i n - lim i‖ < ε
-     := by
+omit [CompleteSpace E] in
+/-- If the stage-`i` combinations `komlosFormula x cw i i` converge to `lim`, then for every
+`k ≥ i` the stage-`k` combinations of the row `x i` converge to `lim` as well, uniformly in `k`. -/
+lemma komlos_uniform_convergence (x : ℕ → ℕ → E) {cw : ℕ → ℕ → StdSimplex ℝ ℕ}
+    (hcw : ∀ k n, ∀ m < n, (cw k n).weights m = 0) {i : ℕ} {lim : E}
+    (hlim : Tendsto (komlosFormula x cw i i) atTop (𝓝 lim)) :
+    ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ k ≥ i, dist (komlosFormula x cw k i n) lim < ε := by
   intro ε hε
-  unfold komlosFormula
-  have (k : ℕ) (hk : i ≤ k) :
-    (komlosFormula x cw k i) ∈ convexTail (fun n ↦ komlosFormula x cw i i n)
-    := by -- WIP proof. Need the right lemmas on convexTail + komlosFormula
-    unfold komlosFormula
-    unfold convexTail
-    simp only [Set.mem_setOf_eq]
-    intro n
-    unfold convexHull
-    simp only [ClosureOperator.ofCompletePred_apply, Set.le_eq_subset, Set.iInf_eq_iInter,
-      Set.mem_iInter, Subtype.forall, and_imp]
-    intro s hsub hconv
-    sorry
-  sorry
-
--- statement needs work!
-lemma weights_zero {cw : ℕ → ℕ → StdSimplex ℝ ℕ}
-    (h : ∀ (k n m : ℕ), m < n → (cw k n).weights m = 0) (k n m : ℕ) (hm : m < k) (hn : n ≤ k) :
-    (iteratedComb cw k n).weights m = 0 := by -- 2nd k needs generalisation
-  induction k with
-  | zero => grind
-  | succ k hk =>
-    simp [iteratedComb]
-    -- need to adjust the statement!
-    sorry
+  obtain ⟨N, hN⟩ := eventually_atTop.1
+    (Metric.tendstoUniformly_iff.1 (TendstoUniformly_convexTail hlim) ε hε)
+  refine ⟨N, fun n hn k hk ↦ ?_⟩
+  rw [dist_comm]
+  exact hN n hn ⟨_, komlosFormula_mem_convexTail x hcw hk⟩
 
 lemma komlos_convex_weights_diagonal {x : ℕ → ℕ → E} (hx : ∀ i : ℕ, ∃ M : ℝ, ∀ n, ‖x i n‖ ≤ M) :
     ∃ (η : ℕ → StdSimplex ℝ ℕ), (∀ n, ∀ m < n, (η n).weights m = 0) ∧ ∀ i : ℕ,
     ∃ glim : E, Tendsto (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 glim) := by
-  let ⟨cw, cwlim, cwnonneg⟩ := komlos_convex_weights hx
-  let g (i : ℕ) := Classical.choose (cwlim i)
-  have glim (i : ℕ) := Classical.choose_spec (cwlim i)
-  let η (n : ℕ) : StdSimplex ℝ ℕ := iteratedComb cw n n
-  have lim (i : ℕ) : Tendsto
-    (fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) atTop (𝓝 (g i)) := by
-    apply Filter.tendsto_of_sub_tendsto_zero
-      (g := fun n ↦ (η n).weights.sum (fun m ηm ↦ ηm • x i m)) (f := fun n ↦ g i)
-    · simp
-    rw [NormedAddGroup.tendsto_nhds_zero]
-    intro ε hε
-    simp only [Pi.sub_apply, eventually_atTop]
-    have ⟨N, hN⟩ := komlos_uniform_convergence_epsilon hx cw g glim i ε hε
-    use max N i
-    intro k _
-    replace hN := hN k (by grind) k (by grind)
-    exact hN
-  use η
-  refine ⟨?_, ?_⟩
-  · intro n m hm
-    unfold η
-    sorry -- should be easy
-  · exact fun i ↦ Exists.intro (g i) (lim i)
+  obtain ⟨cw, hlim, hcw⟩ := komlos_convex_weights hx
+  refine ⟨fun n ↦ iteratedComb cw n n, fun n ↦ iteratedComb_weights_eq_zero hcw n n, fun i ↦ ?_⟩
+  obtain ⟨lim, hlim⟩ := hlim i
+  refine ⟨lim, Metric.tendsto_atTop.2 fun ε hε ↦ ?_⟩
+  obtain ⟨N, hN⟩ := komlos_uniform_convergence x hcw hlim ε hε
+  exact ⟨max N i, fun n hn ↦ hN n (le_of_max_le_left hn) n (le_of_max_le_right hn)⟩
 
 lemma komlos_convergence_L2
     (f : ℕ → Ω → E) {P : Measure Ω} :
