@@ -199,11 +199,11 @@ lemma ae_totallyBounded_image [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
 
 end TotallyBounded
 
-/-- The distance of a martingale to a fixed vector is a real quasimartingale. -/
-lemma _root_.MeasureTheory.Martingale.isRealQuasimartingale_norm_sub [NormedSpace ℝ E]
+/-- The distance of a martingale to a fixed vector is a submartingale. -/
+lemma _root_.MeasureTheory.Martingale.submartingale_norm_sub [NormedSpace ℝ E]
     [CompleteSpace E] [OrderBot ι] [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ) (e : E) :
-    IsRealQuasimartingale 𝓕 (fun t ω ↦ ‖X t ω - e‖) μ :=
-  (hX.sub (martingale_const 𝓕 μ e)).submartingale_norm.isRealQuasimartingale
+    Submartingale (fun t ω ↦ ‖X t ω - e‖) 𝓕 μ :=
+  (hX.sub (martingale_const 𝓕 μ e)).submartingale_norm
 
 section RegularitySet
 
@@ -293,7 +293,7 @@ lemma measurableSet_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X 
   rw [h_eq]
   refine (MeasurableSet.const _).inter (MeasurableSet.inter ?_ ?_)
   · exact MeasurableSet.biInter countable_denseValues fun e _ ↦
-      measurableSet_regularitySet (hX.isRealQuasimartingale_norm_sub e) hT d
+      measurableSet_regularitySet (hX.submartingale_norm_sub e).isRealQuasimartingale hT d
   · exact measurableSet_totallyBounded_image hX.stronglyAdapted hT d
 
 lemma ae_mem_all_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
@@ -302,7 +302,8 @@ lemma ae_mem_all_vectorRegularitySet [IsFiniteMeasure μ] (hX : Martingale X �
   have h1 : ∀ᵐ ω ∂μ, ∀ e ∈ denseValues T X, ∀ d ∈ T',
       ω ∈ regularitySet T (fun t ω ↦ ‖X t ω - e‖) d := by
     rw [ae_ball_iff countable_denseValues]
-    exact fun e _ ↦ ae_mem_all_regularitySet (hX.isRealQuasimartingale_norm_sub e) hT hT'
+    exact fun e _ ↦ ae_mem_all_regularitySet
+      (hX.submartingale_norm_sub e).isRealQuasimartingale hT hT'
   have h2 : ∀ᵐ ω ∂μ, ∀ d ∈ T', TotallyBounded ((X · ω) '' (T ∩ Set.Iic d)) := by
     rw [ae_ball_iff hT']
     exact fun d _ ↦ ae_totallyBounded_image hX hT d
@@ -376,14 +377,12 @@ section Modification
 
 variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι]
 
-/-- The right-continuous modification of a martingale with values in a Banach space, defined from
-the right limits along the countable dense set `regularityTimes ι`. -/
+/-- The right-continuous modification of a martingale with values in a Banach space. -/
 noncomputable
 def rightContModif (X : ι → Ω → E) : ι → Ω → E :=
   rightContModifOf (vectorRegularitySet (regularityTimes ι) X) X
 
-/-- The càdlàg modification of a martingale with values in a Banach space, defined from the right
-limits along the countable dense set `regularityTimes ι`. -/
+/-- The càdlàg modification of a martingale with values in a Banach space. -/
 noncomputable
 def cadlagModif (X : ι → Ω → E) : ι → Ω → E :=
   cadlagModifOf (vectorRegularitySet (regularityTimes ι) X) X
@@ -461,14 +460,6 @@ theorem _root_.MeasureTheory.Martingale.martingale_cadlagModif [𝓕.IsRightCont
     [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
     Martingale (cadlagModif X) 𝓕 μ :=
   hX.congr (stronglyAdapted_cadlagModif hX) fun t ↦ (hX.cadlagModif_ae_eq t).symm
-
-/-- A martingale with values in a Banach space, with respect to a right-continuous and complete
-filtration, has a modification which is a martingale with càdlàg paths. -/
-theorem _root_.MeasureTheory.Martingale.exists_isCadlag_modification [𝓕.IsRightContinuous]
-    [𝓕.IsComplete μ] (hX : Martingale X 𝓕 μ) :
-    ∃ Y : ι → Ω → E, Martingale Y 𝓕 μ ∧ (∀ ω, IsCadlag (Y · ω)) ∧ ∀ t, Y t =ᵐ[μ] X t :=
-  ⟨cadlagModif X, hX.martingale_cadlagModif, isCadlag_cadlagModif,
-    hX.cadlagModif_ae_eq⟩
 
 end Modification
 
