@@ -239,6 +239,8 @@ NNReal.approximable
 Nat.approximable
 MeasureTheory.Martingale.stoppedValue_min_ae_eq_condExp'
 MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp
+MeasureTheory.Submartingale.setIntegral_le_setIntegral_stoppedValue
+MeasureTheory.Submartingale.stoppedProcess_of_approximable
 MeasureTheory.Filtration.limitProcess
 MeasureTheory.Martingale.ae_tendsto_limitProcess
 MeasureTheory.Filtration.limitProcess_ae_eq

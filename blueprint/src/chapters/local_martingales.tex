@@ -389,12 +389,15 @@ The class of cadlag martingales is stable. That is, if $M$ is a cadlag martingal
   \uses{def:Submartingale, def:stable, def:IsCadlag}
   \leanok
   \lean{ProbabilityTheory.isStable_submartingale}
-The class of cadlag submartingales is stable. That is, if $M$ is a cadlag submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a cadlag submartingale.
+The class of real cadlag submartingales is stable. That is, if $M$ is a real cadlag submartingale and $\tau$ is a stopping time, then the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is also a cadlag submartingale.
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:optionalSamplingSubmartingale}
-
+  \uses{lem:Submartingale.stoppedProcess}
+  \leanok
+  Clearly, the stopped process $M^{\tau}\mathbb{I}_{\tau > 0}$ is cadlag and it remains to show that it is a submartingale.
+  Since $\{\tau > 0\} \in \mathcal{F}_0$, the process $M \mathbb{I}_{\tau > 0}$ is a right-continuous submartingale,
+  and $M^{\tau}\mathbb{I}_{\tau > 0}$ is that process stopped at $\tau$. It is a submartingale by Lemma~\ref{lem:Submartingale.stoppedProcess}.
 \end{proof}
 
 

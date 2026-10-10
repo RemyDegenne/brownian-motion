@@ -178,7 +178,7 @@ Hence for $n \ge \max(\bar{n}, i)$,
 \begin{lemma}\label{lem:komlos_convex_aux}
   \lean{komlos_convergence_L2}
   \leanok
-Let $E$ be a Hilbert space and let $(f_n)_{n \in \mathbb{N}}$ be a sequence in $\Omega \to E$.
+Let $E$ be a Hilbert space and let $(f_n)_{n \in \mathbb{N}}$ be a sequence of almost everywhere strongly measurable functions $\Omega \to E$, on a finite measure space.
 For $i \in \mathbb{N}$, set $f_n^{(i)} = f_n \mathbb{1}_{(\Vert f_n \Vert \le i)}$, such that $f_n^{(i)} \in L^2(E)$.
 Then there exists a sequence of convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions
 $\left(\lambda_n^{n} f_n^{(i)} + \ldots + \lambda_{N_n}^{n} f_{N_n}^{(i)} \right)_{n\in\mathbb{N}}$
@@ -186,6 +186,7 @@ converge in $L^2(E)$ for every $i \in \mathbb{N}$.
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:komlos_convex_weights_diagonal}
 Use Lemma~\ref{lem:komlos_convex_weights_diagonal} in the Hilbert space $L^2(E)$ with the sequence of sequences $(f_n^{(i)})$, which are bounded in $L^2(E)$ for each $i \in \mathbb{N}$.
 \end{proof}
@@ -199,6 +200,7 @@ Then there exist functions $g_n \in convex(f_n, f_{n+1}, \cdots)$ such that $(g_
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{lem:komlos_convex_aux}
   For $i,n\in\mathbb{N}$ set $f_{n}^{(i)}:=f_n \mathbb{1}_{(|f_n|\leq i)}$ such that $f_{n}^{(i)}\in L^2$.
   Using \ref{lem:komlos_convex_aux} there exist for every $n$ convex weights $\lambda_n^{n}, \ldots, \lambda_{N_n}^{n}$ such that the functions

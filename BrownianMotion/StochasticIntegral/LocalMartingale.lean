@@ -85,9 +85,20 @@ lemma isStable_martingale [CompleteSpace E] :
   fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
     isStable_isCadlag X hC τ hτ⟩
 
-/-- Càdlàg submartingales are a stable class. -/
-lemma isStable_submartingale [LE E] :
-    IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) := by
-  sorry
+lemma _root_.MeasureTheory.Submartingale.stoppedProcess_indicator {X : ι → Ω → ℝ}
+    (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsRightContinuous (X · ω))
+    {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
+    Submartingale (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ) 𝓕 P :=
+  (hX.indicator (hτ.measurableSet_gt _)).stoppedProcess_of_approximable
+    (fun ω ↦ rightContinuous_indicator hC _ ω) hτ
+
+/-- Càdlàg real submartingales are a stable class.
+
+This does not extend to submartingales with values in a general ordered Banach space: the stopped
+process may fail to be integrable. -/
+lemma isStable_submartingale :
+    IsStable 𝓕 (fun (X : ι → Ω → ℝ) ↦ Submartingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) :=
+  fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
+    isStable_isCadlag X hC τ hτ⟩
 
 end ProbabilityTheory

@@ -1134,6 +1134,58 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
+\begin{lemma}[Optional sampling for real submartingales]\label{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
+  \leanok
+  \lean{MeasureTheory.Submartingale.setIntegral_le_setIntegral_stoppedValue}
+  Let $X$ be a right-continuous real $\mathcal{F}$-submartingale on an approximable time index, for a finite measure $P$.
+  Let $\tau$ be a stopping time bounded by $t$, and let $C \in \mathcal{F}_s$ be such that $s \le \tau$ on $C$.
+  Then $P[X_s \mathbb{I}_C] \le P[X_\tau \mathbb{I}_C]$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{def:approxSeq, lem:tendsto_stoppedValue_discreteApproxSequence, lem:uniformIntegrable_stoppedValue_martingale_of_countable_range, lem:uniformIntegrableDominated, lem:vitali}
+  \emph{Finite range.} If $\tau$ takes values in a finite set, we prove the inequality by induction on the largest value $a$ of $\tau$.
+  If no other value of $\tau$ is at least $s$, then $\tau = a$ on $C$ and the inequality is the submartingale property.
+  Otherwise let $u \ge s$ be the second largest value. Then $\tau \wedge u$ takes fewer values, $P[X_s \mathbb{I}_C] \le P[X_{\tau \wedge u} \mathbb{I}_C]$ by induction, and
+  $P[X_{\tau \wedge u} \mathbb{I}_C] \le P[X_\tau \mathbb{I}_C]$ since the two integrands differ only on $C \cap \{\tau > u\} \in \mathcal{F}_u$, on which they are equal to $X_u$ and $X_a$.
+
+  \emph{Countable range.} If $\tau$ takes countably many values $(t_i)_{i \in \mathbb{N}}$, let $\rho_m$ be equal to $\tau$ if $\tau \in \{t_0, \ldots, t_{m-1}\}$ and to $t$ otherwise.
+  This is a stopping time with finitely many values, with $s \le \rho_m$ on $C$, and $X_{\rho_m}$ is eventually equal to $X_\tau$ and dominated by $\vert X_\tau \vert + \vert X_t \vert$, which is integrable.
+  We conclude by dominated convergence.
+
+  \emph{$X$ bounded from below.} Suppose that $X \ge c$ and let $(\tau_n)$ be a discrete approximation sequence of $\tau$, bounded by $t$.
+  By the previous case, $P[X_s \mathbb{I}_C] \le P[X_{\tau_n} \mathbb{I}_C]$ for all $n$, and $X_{\tau_n} \to X_\tau$ almost surely by right-continuity (Lemma~\ref{lem:tendsto_stoppedValue_discreteApproxSequence}).
+  For $i \le t$ we have $\vert X_i \vert \le N_i := P[\vert X_t \vert + \vert c \vert \mid \mathcal{F}_i]$, hence $\vert X_{\tau_n} \vert \le N_{\tau_n}$ almost surely.
+  Since $N$ is a martingale, $(N_{\tau_n})$ is uniformly integrable (Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale_of_countable_range}), hence so is $(X_{\tau_n})$ (Lemma~\ref{lem:uniformIntegrableDominated}).
+  By the Vitali convergence theorem (Lemma~\ref{lem:vitali}), $X_{\tau_n} \to X_\tau$ in $L^1$, which gives the inequality.
+
+  \emph{General case.} For $m \in \mathbb{N}$, the process $X \vee (-m)$ is a right-continuous submartingale bounded from below, hence
+  $P[(X_s \vee (-m)) \mathbb{I}_C] \le P[(X_\tau \vee (-m)) \mathbb{I}_C]$.
+  Since $\vert x \vee (-m) \vert \le \vert x \vert$ and $X_\tau$ is integrable, we can let $m \to \infty$ by dominated convergence.
+
+  The truncation avoids proving that $(X_{\tau_n})$ is uniformly integrable for a general submartingale, which would require a backward submartingale argument.
+\end{proof}
+
+\begin{lemma}[Optional stopping for real submartingales]\label{lem:Submartingale.stoppedProcess}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex, def:stoppedProcess}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedProcess_of_approximable}
+  Let $X$ be a right-continuous real $\mathcal{F}$-submartingale on an approximable time index, for a finite measure $P$, and let $\tau$ be a stopping time.
+  Then the stopped process $X^\tau$ is a submartingale.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}
+  The stopped process is adapted, and it is integrable since $X_{\tau \wedge t}$ is integrable for all $t$.
+  Let $s \le t$ and $B \in \mathcal{F}_s$. We have to prove that $P[X_{\tau \wedge s} \mathbb{I}_B] \le P[X_{\tau \wedge t} \mathbb{I}_B]$.
+  On $B \cap \{\tau \le s\}$, both integrands are equal to $X_\tau$.
+  The set $C = B \cap \{s < \tau\}$ belongs to $\mathcal{F}_s$, $X_{\tau \wedge s} = X_s$ on $C$, and $s \le \tau \wedge t$ on $C$,
+  hence $P[X_s \mathbb{I}_C] \le P[X_{\tau \wedge t} \mathbb{I}_C]$ by Lemma~\ref{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue} applied to the stopping time $\tau \wedge t$.
+\end{proof}
+
 \section{Martingale convergence}
 
 \begin{definition}\label{def:limitProcess}

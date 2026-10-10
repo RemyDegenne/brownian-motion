@@ -91,8 +91,9 @@ def HasStronglyMeasurableSupProcess [LinearOrder ι] [MeasurableSpace ι] (X : �
 
 lemma hasStronglyMeasurableSupProcess_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
     HasStronglyMeasurableSupProcess (fun _ _ ↦ c : ι → Ω → E) (mΩ := mΩ) := by
-  simp only [HasStronglyMeasurableSupProcess]
-  sorry
+  have h_sup (t : ι) : ⨆ s ≤ t, ‖c‖ₑ = ‖c‖ₑ := biSup_const (s := Set.Iic t) ⟨t, le_rfl⟩
+  simp only [HasStronglyMeasurableSupProcess, h_sup]
+  exact stronglyMeasurable_const
 
 /-- A stochastic process has integrable supremum if the function `(t, ω) ↦ sup_{s ≤ t} ‖X s ω‖`
 is strongly measurable and if for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖`
@@ -101,11 +102,13 @@ def HasIntegrableSup [LinearOrder ι] [MeasurableSpace ι] (X : ι → Ω → E)
     (P : Measure Ω := by volume_tac) : Prop :=
   HasStronglyMeasurableSupProcess (mΩ:= mΩ) X ∧ ∀ t, Integrable (fun ω ↦ ⨆ s ≤ t, ‖X s ω‖ₑ) P
 
-lemma hasIntegrableSup_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
+lemma hasIntegrableSup_const [LinearOrder ι] [MeasurableSpace ι] [IsFiniteMeasure P] (c : E) :
     HasIntegrableSup (fun _ _ ↦ c : ι → Ω → E) (mΩ := mΩ) (P := P) := by
   simp only [HasIntegrableSup, hasStronglyMeasurableSupProcess_const c, true_and]
   intro t
-  sorry
+  have h_sup : ⨆ s ≤ t, ‖c‖ₑ = ‖c‖ₑ := biSup_const (s := Set.Iic t) ⟨t, le_rfl⟩
+  simp only [h_sup]
+  exact (integrable_const c).enorm
 
 /-- A jointly measurable, nonnegative real process with monotone paths and integrable values has
 integrable supremum. -/
@@ -131,7 +134,7 @@ def HasLocallyIntegrableSup [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι]
   Locally (HasIntegrableSup · P) 𝓕 X P
 
 lemma hasLocallyIntegrableSup_const [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι]
-    [OrderTopology ι] [MeasurableSpace ι] (c : E) (𝓕 : Filtration ι mΩ) :
+    [OrderTopology ι] [MeasurableSpace ι] [IsFiniteMeasure P] (c : E) (𝓕 : Filtration ι mΩ) :
     HasLocallyIntegrableSup (fun _ _ ↦ c : ι → Ω → E) 𝓕 P :=
   Locally.of_prop (hasIntegrableSup_const c)
 
@@ -869,22 +872,20 @@ lemma _root_.MeasureTheory.Submartingale.locally_classD
 theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] [Lattice E]
     [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
     [MeasureSpace E] [BorelSpace E] [SecondCountableTopology E]
-    [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   refine isStable_classD.locally_induction' ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
     exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
-  · simp_rw [← and_assoc]
-    rw [isStable_submartingale.locally_and_iff]
-    · exact ⟨hX, .of_prop hX_nonneg⟩
-    · intro X hX τ hτ i ω
-      -- todo: stoppedProcess_nonneg
-      simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_ofPred_eq]
-      split_ifs with h
-      · exact hX _ _
-      · rfl
+  · -- the processes stopped along a localizing sequence of `X` are nonnegative, like `X`
+    obtain ⟨τ, hτ, hτX⟩ := hX
+    refine ⟨τ, hτ, fun n ↦ ⟨(hτX n).1, (hτX n).2, fun i ω ↦ ?_⟩⟩
+    -- todo: stoppedProcess_nonneg
+    simp only [stoppedProcess, Pi.zero_apply, Set.indicator_apply, Set.mem_ofPred_eq]
+    split_ifs with h
+    · exact hX_nonneg _ _
+    · rfl
 
 section Real
 

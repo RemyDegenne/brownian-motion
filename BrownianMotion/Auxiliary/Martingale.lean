@@ -31,6 +31,16 @@ lemma Martingale.indicator [CompleteSpace E] [OrderBot ι] {s : Set Ω}
   ⟨fun i ↦ (hX.stronglyAdapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦
     (condExp_indicator (hX.integrable _) (𝓕.mono bot_le _ hs)).trans (hX.2 i j hij).indicator⟩
 
+lemma Submartingale.indicator [CompleteSpace E] [OrderBot ι] [Preorder E] {s : Set Ω}
+    (hX : Submartingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
+    Submartingale (fun t ↦ s.indicator (X t)) 𝓕 P := by
+  refine ⟨fun i ↦ (hX.stronglyAdapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦ ?_,
+    fun i ↦ (hX.integrable i).indicator (𝓕.le ⊥ _ hs)⟩
+  filter_upwards [condExp_indicator (hX.integrable j) (𝓕.mono (bot_le : ⊥ ≤ i) _ hs),
+    hX.2.1 i j hij] with ω h1 h2
+  rw [h1]
+  by_cases hω : ω ∈ s <;> simp [hω, h2]
+
 lemma Martingale.indexComap {ι' : Type*} [Preorder ι'] (hX : Martingale X 𝓕 P) {f : ι' → ι}
     (hf : Monotone f) : Martingale (X ∘ f) (𝓕.indexComap hf) P :=
   ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
