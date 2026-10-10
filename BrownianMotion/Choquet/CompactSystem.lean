@@ -276,11 +276,8 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
       ext x
       exact (slice true x).symm
 
--- check if we need to insert univ or not
--- PP: we don't need to insert univ in order for the lemma to be true. We proved that we can insert
--- univ in any compact system, and it stays a compact system.
--- this is proved in xxx
--- proved in some mathlib PR
+-- proved in Mathlib PR #36160 (`IsCompactSystem.pi`, for any index type and without `insert univ`;
+-- this version follows from it and `IsCompactSystem.insert_univ`)
 lemma IsCompactSystem.pi {𝓚 : ℕ → Type*} {q : (n : ℕ) → Set (Set (𝓚 n))}
     (hq : ∀ n, IsCompactSystem (q n)) :
     IsCompactSystem (Set.univ.pi '' (Set.univ.pi (fun n ↦ insert Set.univ (q n)))) := by
@@ -399,12 +396,12 @@ lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set �
       exact hp hn (hA _)
   · rw [Set.iUnion_accumulate, ← hs]
 
--- proved in a Mathlib PR
+-- proved in Mathlib PR #36160 (`IsCompactSystem.prod`)
 lemma _root_.IsCompactSystem.image2_prod (hp : IsCompactSystem p) (hq : IsCompactSystem q) :
     IsCompactSystem (Set.image2 (· ×ˢ ·) p q) := by
   sorry
 
--- proved in a Mathlib PR
+-- proved in Mathlib PR #36225 (`IsCompactSystem.countableInfClosure`)
 protected lemma _root_.IsCompactSystem.countableInfClosure (hp : IsCompactSystem p) :
     IsCompactSystem (countableInfClosure p) := by
   sorry
@@ -415,7 +412,7 @@ protected lemma _root_.IsCompactSystem.infClosure (hp : IsCompactSystem p) :
   -- todo: extract lemma
   exact infClosure_min subset_countableInfClosure infClosed_countableInfClosure
 
--- proved in a Mathlib PR
+-- proved in Mathlib PR #36089 (`IsCompactSystem.supClosure`)
 protected lemma _root_.IsCompactSystem.supClosure (hp : IsCompactSystem p) :
     IsCompactSystem (supClosure p) := by
   sorry
