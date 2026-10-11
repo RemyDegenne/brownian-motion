@@ -76,6 +76,13 @@ lemma stoppedValue'_eq_stoppedValue [Nonempty ι] (hτ : τ ω ≠ ⊤) :
 
 end Def
 
+/-- If `τ ω ≤ t`, then `𝓕.stoppedValue' X τ P ω` is the value of `X` at the time `min (τ ω) t`. -/
+lemma stoppedValue'_eq_stoppedValue_min_const [TopologicalSpace E] [Zero E] [LinearOrder ι]
+    [Nonempty ι] {𝓕 : Filtration ι mΩ} (hτ : τ ω ≤ t) :
+    𝓕.stoppedValue' X τ P ω = stoppedValue X (fun ω ↦ min (τ ω) t) ω := by
+  rw [stoppedValue'_eq_stoppedValue (ne_top_of_le_ne_top WithTop.coe_ne_top hτ)]
+  simp [stoppedValue, min_eq_left hτ]
+
 @[gcongr]
 lemma stoppedValue'_congr [TopologicalSpace E] [Zero E] [T2Space E] [LinearOrder ι]
     {𝓕 : Filtration ι mΩ} (h : X ≡ᵐ[P] Y) :

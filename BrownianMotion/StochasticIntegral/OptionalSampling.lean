@@ -568,6 +568,21 @@ section StoppedProcess
 
 /-! ### Optional sampling and optional stopping for real right-continuous submartingales -/
 
+/-- The integrals over a set of the truncations from below `max f (-m)` of an integrable function
+`f` tend to the integral of `f`. -/
+private lemma tendsto_setIntegral_max_neg {f : Ω → ℝ} (hf : Integrable f P) (C : Set Ω) :
+    Tendsto (fun m : ℕ ↦ ∫ ω in C, max (f ω) (-m) ∂P) atTop (𝓝 (∫ ω in C, f ω ∂P)) := by
+  refine tendsto_integral_of_dominated_convergence (fun ω ↦ |f ω|)
+    (fun m ↦ (hf.1.sup aestronglyMeasurable_const).restrict) hf.abs.integrableOn
+    (fun m ↦ ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_)
+  · rw [Real.norm_eq_abs, abs_le]
+    exact ⟨le_max_of_le_left (neg_abs_le _),
+      max_le (le_abs_self _) ((neg_nonpos.2 (Nat.cast_nonneg m)).trans (abs_nonneg _))⟩
+  · obtain ⟨n, hn⟩ := exists_nat_ge (-f ω)
+    refine tendsto_nhds_of_eventually_eq (eventually_atTop.2 ⟨n, fun m hm ↦ max_eq_left ?_⟩)
+    have : (n : ℝ) ≤ m := Nat.cast_le.2 hm
+    linarith
+
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → ℝ}
   {τ : Ω → WithTop ι} {s t : ι} {C : Set Ω} [IsFiniteMeasure P]
 
@@ -679,6 +694,47 @@ lemma Submartingale.setIntegral_le_setIntegral_stoppedValue_of_countable_range
   · exact h ▸ hsτ ω hω
   · exact h ▸ (hsτ ω hω).trans (hτt ω)
 
+/-- For a real submartingale `X`, a stopping time `τ ≤ t` with countable range and a set `C`
+which is measurable with respect to the σ-algebra of `τ`, the integral of `X τ` over `C` is at
+most the integral of `X t` over `C`. -/
+lemma Submartingale.setIntegral_stoppedValue_le_setIntegral_of_countable_range
+    (hX : Submartingale X 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) (hτt : ∀ ω, τ ω ≤ t)
+    (hτ_count : (Set.range τ).Countable) (hC : MeasurableSet[hτ.measurableSpace] C) :
+    ∫ ω in C, stoppedValue X τ ω ∂P ≤ ∫ ω in C, X t ω ∂P := by
+  have : Countable (Set.range τ) := hτ_count.to_subtype
+  -- we split `C` according to the value of `τ`
+  let A : Set.range τ → Set Ω := fun j ↦ C ∩ {ω | τ ω = j}
+  have hCA : C = ⋃ j, A j := by
+    ext ω
+    simp only [A, Set.mem_iUnion, Set.mem_inter_iff, Set.mem_ofPred_eq]
+    exact ⟨fun hω ↦ ⟨⟨τ ω, ω, rfl⟩, hω, rfl⟩, fun ⟨_, hω, _⟩ ↦ hω⟩
+  have hA_disj : Pairwise (Disjoint on A) := fun j j' hjj' ↦
+    Set.disjoint_left.2 fun ω hω hω' ↦ hjj' (Subtype.ext (hω.2.symm.trans hω'.2))
+  -- on each piece, `X τ = X i` for a time `i ≤ t` at which the piece is measurable
+  have hA (j : Set.range τ) :
+      ∃ i : ι, i ≤ t ∧ (j : WithTop ι) = i ∧ MeasurableSet[𝓕 i] (A j) := by
+    obtain ⟨ω, hω⟩ := j.2
+    obtain ⟨i, hi⟩ := WithTop.ne_top_iff_exists.1 (ne_top_of_le_ne_top WithTop.coe_ne_top (hτt ω))
+    have hji : (j : WithTop ι) = i := hω.symm.trans hi.symm
+    refine ⟨i, WithTop.coe_le_coe.1 (hi.trans_le (hτt ω)), hji, ?_⟩
+    change MeasurableSet[𝓕 i] (C ∩ {ω | τ ω = (j : WithTop ι)})
+    rw [hji, ← hτ.measurableSet_inter_eq_iff]
+    exact hC.inter (hτ.measurableSet_eq_of_countable_range' hτ_count i)
+  have hA_meas (j : Set.range τ) : MeasurableSet (A j) := by
+    obtain ⟨i, -, -, hAi⟩ := hA j
+    exact 𝓕.le i _ hAi
+  have h_le (j : Set.range τ) : ∫ ω in A j, stoppedValue X τ ω ∂P ≤ ∫ ω in A j, X t ω ∂P := by
+    obtain ⟨i, hit, hji, hAi⟩ := hA j
+    calc ∫ ω in A j, stoppedValue X τ ω ∂P
+      _ = ∫ ω in A j, X i ω ∂P := setIntegral_congr_fun (𝓕.le i _ hAi) fun ω hω ↦ by
+        simp [stoppedValue, show τ ω = i from hω.2.trans hji]
+      _ ≤ ∫ ω in A j, X t ω ∂P := hX.setIntegral_le hit hAi
+  have h := hasSum_le h_le
+    (hasSum_integral_iUnion hA_meas hA_disj
+      (hX.integrable_stoppedValue_of_countable_range hτ hτt hτ_count).integrableOn)
+    (hasSum_integral_iUnion hA_meas hA_disj (hX.integrable t).integrableOn)
+  rwa [← hCA] at h
+
 variable [TopologicalSpace ι] [OrderTopology ι] [FirstCountableTopology ι]
 
 /-- The values of a real submartingale which is bounded from below, at stopping times with
@@ -720,6 +776,29 @@ lemma Submartingale.uniformIntegrable_stoppedValue_of_countable_range
 
 variable [Approximable 𝓕 P]
 
+/-- For a right-continuous real submartingale `X` which is bounded from below and a stopping time
+`τ ≤ t`, the integrals over a set of the values of `X` at the times of a discrete approximation
+sequence of `τ` tend to the integral of `X τ`: these values are uniformly integrable and tend to
+`X τ`, hence they converge in `L¹`. -/
+private lemma Submartingale.tendsto_setIntegral_stoppedValue_of_const_le
+    (hX : Submartingale X 𝓕 P) (hRC : ∀ ω, IsRightContinuous (X · ω)) {c : ℝ}
+    (hc : ∀ i ω, c ≤ X i ω) (hτ : IsStoppingTime 𝓕 τ) (hτt : ∀ ω, τ ω ≤ t) (C : Set Ω) :
+    Tendsto (fun n ↦ ∫ ω in C,
+        stoppedValue X (discreteApproxSequence_of 𝓕 hτt (hτ.discreteApproxSequence P) n) ω ∂P)
+      atTop (𝓝 (∫ ω in C, stoppedValue X τ ω ∂P)) := by
+  let τn := discreteApproxSequence_of 𝓕 hτt (hτ.discreteApproxSequence P)
+  have hτn_le (n : ℕ) (ω : Ω) : τn n ω ≤ t := discreteApproxSequence_of_le hτt _ n ω
+  have hτn_int (n : ℕ) : Integrable (stoppedValue X (τn n)) P :=
+    hX.integrable_stoppedValue_of_countable_range (τn.isStoppingTime n) (hτn_le n) (τn.countable n)
+  have hint : Integrable (stoppedValue X τ) P :=
+    hX.integrable_stoppedValue_of_approximable hRC hτ hτt
+  refine tendsto_setIntegral_of_L1' _ hint.aestronglyMeasurable (.of_forall hτn_int) ?_ C
+  exact tendsto_Lp_finite_of_tendsto_ae le_rfl ENNReal.one_ne_top (fun n ↦ (hτn_int n).1)
+    (memLp_one_iff_integrable.2 hint)
+    (hX.uniformIntegrable_stoppedValue_of_countable_range hc τn.isStoppingTime hτn_le
+      τn.countable).2.1
+    (tendsto_stoppedValue_discreteApproxSequence τn hRC)
+
 /-- Auxiliary lemma for `Submartingale.setIntegral_le_setIntegral_stoppedValue`: the case of a
 submartingale which is bounded from below. -/
 private lemma Submartingale.setIntegral_le_setIntegral_stoppedValue_of_const_le
@@ -727,25 +806,29 @@ private lemma Submartingale.setIntegral_le_setIntegral_stoppedValue_of_const_le
     (hc : ∀ i ω, c ≤ X i ω) (hτ : IsStoppingTime 𝓕 τ) (hτt : ∀ ω, τ ω ≤ t)
     (hC : MeasurableSet[𝓕 s] C) (hsτ : ∀ ω ∈ C, s ≤ τ ω) :
     ∫ ω in C, X s ω ∂P ≤ ∫ ω in C, stoppedValue X τ ω ∂P := by
-  -- we approximate `τ` from above by stopping times `τn n` with countable range: the values of
-  -- `X` at these times are uniformly integrable and tend to `X τ`, hence they converge in `L¹`
+  -- we approximate `τ` from above by stopping times `τn n` with countable range
   let τn := discreteApproxSequence_of 𝓕 hτt (hτ.discreteApproxSequence P)
-  have hτn_le (n : ℕ) (ω : Ω) : τn n ω ≤ t := discreteApproxSequence_of_le hτt _ n ω
-  have hτn_int (n : ℕ) : Integrable (stoppedValue X (τn n)) P :=
-    hX.integrable_stoppedValue_of_countable_range (τn.isStoppingTime n) (hτn_le n) (τn.countable n)
-  have hint : Integrable (stoppedValue X τ) P :=
-    hX.integrable_stoppedValue_of_approximable hRC hτ hτt
-  have h_tendsto : Tendsto (fun n ↦ ∫ ω in C, stoppedValue X (τn n) ω ∂P) atTop
-      (𝓝 (∫ ω in C, stoppedValue X τ ω ∂P)) := by
-    refine tendsto_setIntegral_of_L1' _ hint.aestronglyMeasurable (.of_forall hτn_int) ?_ C
-    exact tendsto_Lp_finite_of_tendsto_ae le_rfl ENNReal.one_ne_top (fun n ↦ (hτn_int n).1)
-      (memLp_one_iff_integrable.2 hint)
-      (hX.uniformIntegrable_stoppedValue_of_countable_range hc τn.isStoppingTime hτn_le
-        τn.countable).2.1
-      (tendsto_stoppedValue_discreteApproxSequence τn hRC)
-  refine ge_of_tendsto' h_tendsto fun n ↦ ?_
+  refine ge_of_tendsto' (hX.tendsto_setIntegral_stoppedValue_of_const_le hRC hc hτ hτt C)
+    fun n ↦ ?_
   exact hX.setIntegral_le_setIntegral_stoppedValue_of_countable_range (τn.isStoppingTime n)
-    (hτn_le n) (τn.countable n) hC fun ω hω ↦ (hsτ ω hω).trans (τn.le n ω)
+    (discreteApproxSequence_of_le hτt _ n) (τn.countable n) hC
+    fun ω hω ↦ (hsτ ω hω).trans (τn.le n ω)
+
+/-- Auxiliary lemma for `Submartingale.setIntegral_stoppedValue_le_setIntegral`: the case of a
+submartingale which is bounded from below. -/
+private lemma Submartingale.setIntegral_stoppedValue_le_setIntegral_of_const_le
+    (hX : Submartingale X 𝓕 P) (hRC : ∀ ω, IsRightContinuous (X · ω)) {c : ℝ}
+    (hc : ∀ i ω, c ≤ X i ω) (hτ : IsStoppingTime 𝓕 τ) (hτt : ∀ ω, τ ω ≤ t)
+    (hC : MeasurableSet[hτ.measurableSpace] C) :
+    ∫ ω in C, stoppedValue X τ ω ∂P ≤ ∫ ω in C, X t ω ∂P := by
+  -- we approximate `τ` from above by stopping times `τn n` with countable range: `C` is
+  -- measurable with respect to the σ-algebra of `τn n`
+  let τn := discreteApproxSequence_of 𝓕 hτt (hτ.discreteApproxSequence P)
+  refine le_of_tendsto' (hX.tendsto_setIntegral_stoppedValue_of_const_le hRC hc hτ hτt C)
+    fun n ↦ ?_
+  exact hX.setIntegral_stoppedValue_le_setIntegral_of_countable_range (τn.isStoppingTime n)
+    (discreteApproxSequence_of_le hτt _ n) (τn.countable n)
+    (hτ.measurableSpace_mono (τn.isStoppingTime n) (τn.le n) _ hC)
 
 /-- **Optional sampling** for a right-continuous real submartingale `X`, in terms of integrals:
 if `τ` is a stopping time bounded by `t` and `C` is a set which is measurable at time `s` and on
@@ -756,24 +839,30 @@ theorem Submartingale.setIntegral_le_setIntegral_stoppedValue
     (hC : MeasurableSet[𝓕 s] C) (hsτ : ∀ ω ∈ C, s ≤ τ ω) :
     ∫ ω in C, X s ω ∂P ≤ ∫ ω in C, stoppedValue X τ ω ∂P := by
   -- we truncate `X` from below by `-m`, then let `m` tend to infinity by dominated convergence
-  have h_lim {f : Ω → ℝ} (hf : Integrable f P) :
-      Tendsto (fun m : ℕ ↦ ∫ ω in C, max (f ω) (-m) ∂P) atTop (𝓝 (∫ ω in C, f ω ∂P)) := by
-    refine tendsto_integral_of_dominated_convergence (fun ω ↦ |f ω|)
-      (fun m ↦ (hf.1.sup aestronglyMeasurable_const).restrict) hf.abs.integrableOn
-      (fun m ↦ ae_of_all _ fun ω ↦ ?_) (ae_of_all _ fun ω ↦ ?_)
-    · rw [Real.norm_eq_abs, abs_le]
-      exact ⟨le_max_of_le_left (neg_abs_le _),
-        max_le (le_abs_self _) ((neg_nonpos.2 (Nat.cast_nonneg m)).trans (abs_nonneg _))⟩
-    · obtain ⟨n, hn⟩ := exists_nat_ge (-f ω)
-      refine tendsto_nhds_of_eventually_eq (eventually_atTop.2 ⟨n, fun m hm ↦ max_eq_left ?_⟩)
-      have : (n : ℝ) ≤ m := Nat.cast_le.2 hm
-      linarith
   have hY (m : ℕ) : Submartingale (fun i ω ↦ max (X i ω) (-m)) 𝓕 P :=
     hX.sup (martingale_const 𝓕 P (-(m : ℝ))).submartingale
-  refine le_of_tendsto_of_tendsto' (h_lim (hX.integrable s))
-    (h_lim (hX.integrable_stoppedValue_of_approximable hRC hτ hτt)) fun m ↦ ?_
+  refine le_of_tendsto_of_tendsto' (tendsto_setIntegral_max_neg (hX.integrable s) C)
+    (tendsto_setIntegral_max_neg (hX.integrable_stoppedValue_of_approximable hRC hτ hτt) C)
+    fun m ↦ ?_
   exact (hY m).setIntegral_le_setIntegral_stoppedValue_of_const_le
     (fun ω a ↦ (hRC ω a).max continuousWithinAt_const) (fun i ω ↦ le_max_right _ _) hτ hτt hC hsτ
+
+/-- **Optional sampling** for a right-continuous real submartingale `X`, in terms of integrals:
+if `τ` is a stopping time bounded by `t` and `C` is a set which is measurable with respect to the
+σ-algebra of `τ`, then the integral of `X τ` over `C` is at most the integral of `X t` over
+`C`. -/
+theorem Submartingale.setIntegral_stoppedValue_le_setIntegral
+    (hX : Submartingale X 𝓕 P) (hRC : ∀ ω, IsRightContinuous (X · ω))
+    (hτ : IsStoppingTime 𝓕 τ) (hτt : ∀ ω, τ ω ≤ t) (hC : MeasurableSet[hτ.measurableSpace] C) :
+    ∫ ω in C, stoppedValue X τ ω ∂P ≤ ∫ ω in C, X t ω ∂P := by
+  -- we truncate `X` from below by `-m`, then let `m` tend to infinity by dominated convergence
+  have hY (m : ℕ) : Submartingale (fun i ω ↦ max (X i ω) (-m)) 𝓕 P :=
+    hX.sup (martingale_const 𝓕 P (-(m : ℝ))).submartingale
+  refine le_of_tendsto_of_tendsto'
+    (tendsto_setIntegral_max_neg (hX.integrable_stoppedValue_of_approximable hRC hτ hτt) C)
+    (tendsto_setIntegral_max_neg (hX.integrable t) C) fun m ↦ ?_
+  exact (hY m).setIntegral_stoppedValue_le_setIntegral_of_const_le
+    (fun ω a ↦ (hRC ω a).max continuousWithinAt_const) (fun i ω ↦ le_max_right _ _) hτ hτt hC
 
 omit [FirstCountableTopology ι] in
 /-- **Optional stopping**: the stopped process of a right-continuous real submartingale is a
@@ -813,16 +902,216 @@ theorem Submartingale.stoppedProcess_of_approximable [SecondCountableTopology ι
 end StoppedProcess
 
 variable {ι : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
-  [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι] [MetrizableSpace ι]
-  {σ τ : Ω → WithTop ι} {X : ι → Ω → E} (𝓕 : Filtration ι mΩ)
+  [OrderBot ι] [MeasurableSpace ι] [SecondCountableTopology ι] [BorelSpace ι]
+  [PseudoMetrizableSpace ι] {σ τ : Ω → WithTop ι} {X : ι → Ω → E} (𝓕 : Filtration ι mΩ)
 
-theorem Submartingale.stoppedValue_min_ae_le_condExp [PartialOrder E] [OrderClosedTopology E]
-    [IsOrderedModule ℝ E] [IsOrderedAddMonoid E]
-    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) {k : ι}
+variable {𝓕} in
+omit [MeasurableSpace ι] [BorelSpace ι] in
+/-- **Optional sampling** for a right-continuous real submartingale `X`, in terms of integrals: if
+`τ` and `σ` are stopping times, `τ` is bounded and `A` is a set which is measurable with respect
+to the σ-algebra of `σ`, then the integral of `X (τ ⊓ σ)` over `A` is at most the integral of
+`X τ` over `A`. -/
+theorem Submartingale.setIntegral_stoppedValue_min_le [Approximable 𝓕 P] [IsFiniteMeasure P]
+    {X : ι → Ω → ℝ} (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) {k : ι}
+    (hτk : ∀ ω, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) {A : Set Ω}
+    (hA : MeasurableSet[hσ.measurableSpace] A) :
+    ∫ ω in A, stoppedValue X (τ ⊓ σ) ω ∂P ≤ ∫ ω in A, stoppedValue X τ ω ∂P := by
+  -- the stopped process `Y` is a right-continuous submartingale, and `X τ = Y k`,
+  -- `X (τ ⊓ σ) = Y ρ` for the stopping time `ρ = σ ⊓ k`
+  let Y := stoppedProcess X τ
+  have hY : Submartingale Y 𝓕 P := hX1.stoppedProcess_of_approximable hX2 hτ
+  have hY_RC (ω : Ω) : IsRightContinuous (Y · ω) := (hX2 ω).stoppedProcess τ
+  let ρ : Ω → WithTop ι := σ ⊓ fun _ ↦ k
+  have hρ : IsStoppingTime 𝓕 ρ := hσ.min (isStoppingTime_const 𝓕 k)
+  have hρk (ω : Ω) : ρ ω ≤ k := inf_le_right
+  have hYk : Y k = stoppedValue X τ := by
+    ext ω
+    simp [Y, stoppedProcess, stoppedValue, min_eq_right (hτk ω)]
+  have hYρ : stoppedValue Y ρ = stoppedValue X (τ ⊓ σ) := by
+    ext ω
+    obtain ⟨r, hr⟩ := WithTop.ne_top_iff_exists.1 (ne_top_of_le_ne_top WithTop.coe_ne_top (hρk ω))
+    have h_min : min (r : WithTop ι) (τ ω) = (τ ⊓ σ) ω := by
+      rw [hr, Pi.inf_apply, show ρ ω = min (σ ω) k from rfl, min_assoc, min_eq_right (hτk ω),
+        min_comm]
+    simp only [stoppedValue, Y, stoppedProcess, ← hr, WithTop.untopD_coe, h_min]
+  rw [← hYρ, ← hYk]
+  -- on `{σ ≤ k}` we use optional sampling for `Y` at time `ρ`, and on `{k < σ}` we have `ρ = k`
+  have hD : MeasurableSet {ω | σ ω ≤ k} := 𝓕.le k _ (hσ k)
+  rw [← integral_inter_add_sdiff (s := A) hD
+      (hY.integrable_stoppedValue_of_approximable hY_RC hρ hρk).integrableOn,
+    ← integral_inter_add_sdiff (s := A) hD (hY.integrable k).integrableOn]
+  refine add_le_add ?_ (le_of_eq ?_)
+  · exact hY.setIntegral_stoppedValue_le_setIntegral hY_RC hρ hρk
+      (hσ.measurableSet_inter_le (isStoppingTime_const 𝓕 k) A hA)
+  · refine setIntegral_congr_fun ((hσ.measurableSpace_le _ hA).diff hD) fun ω hω ↦ ?_
+    have hω' : (k : WithTop ι) ≤ σ ω := (not_le.1 hω.2).le
+    simp [stoppedValue, ρ, min_eq_right hω']
+
+/-- **Optional sampling theorem** for a right-continuous real submartingale `X`: if `τ` and `σ`
+are stopping times and `τ` is bounded, then `X (τ ⊓ σ) ≤ P[X τ | 𝓕 σ]` almost surely.
+
+See `Submartingale.stoppedValue_min_ae_le_condExp_of_nonneg` for nonnegative submartingales with
+values in a Banach lattice. -/
+theorem Submartingale.stoppedValue_min_ae_le_condExp [Approximable 𝓕 P] [IsFiniteMeasure P]
+    {X : ι → Ω → ℝ} (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) {k : ι}
     (hτk : ∀ᵐ ω ∂P, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
-    stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ|hσ.measurableSpace] := by
+    stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ | hσ.measurableSpace] := by
+  -- we can suppose that `τ ≤ k` everywhere
+  wlog hτk' : ∀ ω, τ ω ≤ k generalizing τ
+  · let τ' : Ω → WithTop ι := τ ⊓ fun _ ↦ k
+    have hτ'_eq : τ' =ᵐ[P] τ := by filter_upwards [hτk] with ω hω using inf_eq_left.2 hω
+    have h := this (τ := τ') (ae_of_all _ fun ω ↦ inf_le_right)
+      (hτ.min (isStoppingTime_const 𝓕 k)) fun ω ↦ inf_le_right
+    have h1 : stoppedValue X (τ' ⊓ σ) =ᵐ[P] stoppedValue X (τ ⊓ σ) := by
+      filter_upwards [hτ'_eq] with ω hω
+      simp [stoppedValue, hω]
+    have h2 : stoppedValue X τ' =ᵐ[P] stoppedValue X τ := by
+      filter_upwards [hτ'_eq] with ω hω
+      simp [stoppedValue, hω]
+    exact h1.symm.le.trans (h.trans (condExp_congr_ae h2).le)
+  have h_int_τ : Integrable (stoppedValue X τ) P :=
+    hX1.integrable_stoppedValue_of_approximable hX2 hτ hτk'
+  have h_int : Integrable (stoppedValue X (τ ⊓ σ)) P :=
+    hX1.integrable_stoppedValue_of_approximable hX2 (hτ.min hσ) fun ω ↦ inf_le_left.trans (hτk' ω)
+  have h_meas : StronglyMeasurable[hσ.measurableSpace] (stoppedValue X (τ ⊓ σ)) :=
+    (stronglyMeasurable_stoppedValue
+      (hX1.stronglyAdapted.isStronglyProgressive_of_rightContinuous hX2) hX2 (hτ.min hσ)).mono
+      ((hτ.min hσ).measurableSpace_mono hσ fun ω ↦ inf_le_right)
+  -- it suffices to compare the integrals over the sets which are measurable with respect to the
+  -- σ-algebra of `σ`
+  refine ae_le_of_ae_le_trim (hm := hσ.measurableSpace_le) ?_
+  refine ae_le_of_forall_setIntegral_le (h_int.trim hσ.measurableSpace_le h_meas)
+    (integrable_condExp.trim hσ.measurableSpace_le stronglyMeasurable_condExp) fun A hA _ ↦ ?_
+  rw [← setIntegral_trim hσ.measurableSpace_le h_meas hA,
+    ← setIntegral_trim hσ.measurableSpace_le stronglyMeasurable_condExp hA,
+    setIntegral_condExp hσ.measurableSpace_le h_int_τ hA]
+  exact hX1.setIntegral_stoppedValue_min_le hX2 hτk' hσ hτ hA
+
+/-- **Optional sampling theorem** for a nonnegative right-continuous submartingale `X` with values
+in a Banach lattice: if `τ` and `σ` are stopping times and `τ` is bounded, then
+`X (τ ⊓ σ) ≤ P[X τ | 𝓕 σ]` almost surely.
+
+The nonnegativity assumption cannot be removed: without it, `X τ` is not integrable in general,
+even for a stopping time `τ` with countable range and `E = ℓ²` with the coordinatewise order. -/
+theorem Submartingale.stoppedValue_min_ae_le_condExp_of_nonneg [Approximable 𝓕 P]
+    [IsFiniteMeasure P] [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) {k : ι}
+    (hτk : ∀ᵐ ω ∂P, τ ω ≤ k) (hσ : IsStoppingTime 𝓕 σ) (hτ : IsStoppingTime 𝓕 τ) :
+    stoppedValue X (τ ⊓ σ) ≤ᵐ[P] P[stoppedValue X τ | hσ.measurableSpace] := by
   sorry
 
 end subsupermartingale
+
+namespace Martingale
+
+/-! ### Optional sampling at infinity for uniformly integrable martingales -/
+
+variable {ι Ω E : Type*} [LinearOrder ι] [TopologicalSpace ι] [OrderTopology ι]
+  [OrderBot ι] [SecondCountableTopology ι]
+  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] [HasRadonNikodymProp E]
+  {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {μ : Measure Ω} [IsFiniteMeasure μ]
+  {X : ι → Ω → E} {τ : Ω → WithTop ι}
+
+/-- Auxiliary lemma for `Martingale.condExp_limitProcess_ae_eq'`: the case of a bounded stopping
+time. -/
+private lemma stoppedValue_ae_eq_condExp_limitProcess_of_le_const [Approximable 𝓕 μ]
+    (hX1 : Martingale X 𝓕 μ) (hX2 : UniformIntegrable X 1 μ)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) {t : ι}
+    (hτt : ∀ ω, τ ω ≤ t) :
+    stoppedValue X τ =ᵐ[μ] μ[𝓕.limitProcess X μ | hτ.measurableSpace] := by
+  borelize ι
+  refine (hX1.stoppedValue_ae_eq_condExp_of_le_const' hX3 hτ hτt).trans ?_
+  refine (condExp_congr_ae (hX1.condExp_limitProcess_ae_eq hX2 hX3 t).symm).trans ?_
+  exact condExp_condExp_of_le (hτ.measurableSpace_le_of_le_const hτt) (𝓕.le _)
+
+/-- The value at a stopping time `τ`, which can take the value `⊤`, of a right-continuous
+uniformly integrable martingale is integrable. -/
+lemma integrable_stoppedValue' [Approximable 𝓕 μ]
+    (hX1 : Martingale X 𝓕 μ) (hX2 : UniformIntegrable X 1 μ)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) :
+    Integrable (𝓕.stoppedValue' X τ μ) μ := by
+  -- `X τ` is the almost sure limit of the `X (τ ∧ t n) = μ[X ∞ | 𝓕 (τ ∧ t n)]`, which are bounded
+  -- in `L¹`
+  obtain ⟨t, -, ht⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  have hY (n : ℕ) := stoppedValue_ae_eq_condExp_limitProcess_of_le_const hX1 hX2 hX3
+    (hτ.min_const (t n)) fun ω ↦ min_le_right _ _
+  have h_tendsto : ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (fun ω ↦ min (τ ω) (t n)) ω) atTop
+      (𝓝 (𝓕.stoppedValue' X τ μ ω)) := by
+    filter_upwards [hX1.ae_tendsto_limitProcess hX2 hX3] with ω hω
+    cases h : τ ω with
+    | top =>
+      have h_eq (n : ℕ) : stoppedValue X (fun ω ↦ min (τ ω) (t n)) ω = X (t n) ω := by
+        simp [stoppedValue, h]
+      simp only [h_eq, Filtration.stoppedValue'_of_eq_top h]
+      exact hω.comp ht
+    | coe i =>
+      refine tendsto_nhds_of_eventually_eq ?_
+      filter_upwards [ht.eventually_ge_atTop i] with n hn
+      exact (Filtration.stoppedValue'_eq_stoppedValue_min_const
+        (by rw [h]; exact_mod_cast hn)).symm
+  refine (integrable_of_tendsto_ae_of_integral_norm_le (C := ∫ ω, ‖𝓕.limitProcess X μ ω‖ ∂μ)
+    (fun n ↦ integrable_condExp.congr (hY n).symm) (fun n ↦ ?_) h_tendsto).1
+  exact (integral_congr_ae ((hY n).mono fun ω hω ↦ congrArg norm hω)).trans_le
+    (integral_norm_condExp_le _)
+
+/-- **Optional sampling theorem** at infinity: for a right-continuous uniformly integrable
+martingale `X` and a stopping time `τ`, which can take the value `⊤`, `μ[X ∞ | 𝓕 τ] = X τ`. -/
+theorem condExp_limitProcess_ae_eq' [Approximable 𝓕 μ]
+    (hX1 : Martingale X 𝓕 μ) (hX2 : UniformIntegrable X 1 μ)
+    (hX3 : ∀ ω, IsRightContinuous (X · ω)) (hτ : IsStoppingTime 𝓕 τ) :
+    μ[𝓕.limitProcess X μ | hτ.measurableSpace] =ᵐ[μ] 𝓕.stoppedValue' X τ μ := by
+  borelize ι
+  have hL_int : Integrable (𝓕.limitProcess X μ) μ := hX1.integrable_limitProcess hX2 hX3
+  have hS_int : Integrable (𝓕.stoppedValue' X τ μ) μ := hX1.integrable_stoppedValue' hX2 hX3 hτ
+  have hS_sm : StronglyMeasurable[hτ.measurableSpace] (𝓕.stoppedValue' X τ μ) :=
+    𝓕.stronglyMeasurable_stoppedValue'
+      (hX1.stronglyAdapted.isStronglyProgressive_of_rightContinuous hX3) hX3 hτ
+  -- it suffices to compare the integrals over the sets of `𝓕 τ`
+  refine (ae_eq_condExp_of_forall_setIntegral_eq hτ.measurableSpace_le hL_int
+    (fun s _ _ ↦ hS_int.integrableOn) (fun s hs _ ↦ ?_) hS_sm.aestronglyMeasurable).symm
+  have hs' : MeasurableSet s := hτ.measurableSpace_le s hs
+  -- on `{τ = ⊤}`, both functions are equal
+  have hD : MeasurableSet {ω | τ ω = ⊤} := hτ.measurableSet_eq_top
+  rw [← integral_inter_add_sdiff hD hS_int.integrableOn,
+    ← integral_inter_add_sdiff hD hL_int.integrableOn]
+  congr 1
+  · exact setIntegral_congr_fun (hs'.inter hD) fun ω hω ↦ by
+      simp [Filtration.stoppedValue'_of_eq_top hω.2]
+  -- `{τ < ⊤}` is the union of the sets `{τ ≤ t n}` for a sequence `t` which tends to infinity, on
+  -- which we use optional sampling at the bounded stopping time `τ ∧ t n`
+  obtain ⟨t, ht_mono, ht⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  let B : ℕ → Set Ω := fun n ↦ s ∩ {ω | τ ω ≤ t n}
+  have hB_meas (n : ℕ) : MeasurableSet (B n) := hs'.inter (𝓕.le _ _ (hτ (t n)))
+  have hB_mono : Monotone B := fun n m h ω hω ↦
+    ⟨hω.1, hω.2.trans (WithTop.coe_le_coe.2 (ht_mono h))⟩
+  have hB_eq (n : ℕ) : ∫ ω in B n, 𝓕.stoppedValue' X τ μ ω ∂μ
+      = ∫ ω in B n, 𝓕.limitProcess X μ ω ∂μ := by
+    have hσ : IsStoppingTime 𝓕 (fun ω ↦ min (τ ω) (t n)) := hτ.min_const (t n)
+    have hBσ : MeasurableSet[hσ.measurableSpace] (B n) :=
+      (hτ.measurableSet_inter_le_const_iff s (t n)).1 (hs.inter (hτ.measurableSet_le' (t n)))
+    calc ∫ ω in B n, 𝓕.stoppedValue' X τ μ ω ∂μ
+      _ = ∫ ω in B n, stoppedValue X (fun ω ↦ min (τ ω) (t n)) ω ∂μ :=
+        setIntegral_congr_fun (hB_meas n) fun ω hω ↦
+          Filtration.stoppedValue'_eq_stoppedValue_min_const hω.2
+      _ = ∫ ω in B n, (μ[𝓕.limitProcess X μ | hσ.measurableSpace]) ω ∂μ :=
+        setIntegral_congr_ae (hB_meas n)
+          ((stoppedValue_ae_eq_condExp_limitProcess_of_le_const hX1 hX2 hX3 hσ
+            fun ω ↦ min_le_right _ _).mono fun ω hω _ ↦ hω)
+      _ = ∫ ω in B n, 𝓕.limitProcess X μ ω ∂μ :=
+        setIntegral_condExp hσ.measurableSpace_le hL_int hBσ
+  have h_union : s \ {ω | τ ω = ⊤} = ⋃ n, B n := by
+    ext ω
+    simp only [Set.mem_sdiff, Set.mem_ofPred_eq, Set.mem_iUnion, Set.mem_inter_iff, B]
+    refine ⟨fun ⟨hωs, h_top⟩ ↦ ?_,
+      fun ⟨n, hωs, hn⟩ ↦ ⟨hωs, ne_top_of_le_ne_top WithTop.coe_ne_top hn⟩⟩
+    obtain ⟨i, hi⟩ := WithTop.ne_top_iff_exists.1 h_top
+    obtain ⟨n, hn⟩ := (ht.eventually_ge_atTop i).exists
+    exact ⟨n, hωs, by rw [← hi]; exact_mod_cast hn⟩
+  rw [h_union]
+  exact tendsto_nhds_unique (tendsto_setIntegral_of_monotone hB_meas hB_mono hS_int.integrableOn)
+    ((tendsto_setIntegral_of_monotone hB_meas hB_mono hL_int.integrableOn).congr
+      fun n ↦ (hB_eq n).symm)
+
+end Martingale
 
 end MeasureTheory

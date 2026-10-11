@@ -264,8 +264,11 @@ For $M$ a square integrable martingale, we have $M_t \to M_\infty$ almost surely
 \end{lemma}
 
 \begin{proof}
-  \uses{thm:tendsto_limitProcess_of_cadlag}
-TODO: use a martingale convergence theorem. Check whether Theorem~\ref{thm:tendsto_limitProcess_of_cadlag} is what we need.
+  \leanok
+  \uses{thm:tendsto_limitProcess_of_cadlag, lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}
+A square integrable martingale is uniformly integrable, hence the almost sure convergence is Theorem~\ref{thm:tendsto_limitProcess_of_cadlag}.
+For the convergence in $L^2$, we have $\Vert M_t - M_\infty \Vert^2 \le (2 \sup_s \Vert M_s \Vert)^2$ almost surely, and the right hand side is integrable by Lemma~\ref{lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}.
+We conclude by dominated convergence.
 \end{proof}
 
 
@@ -377,7 +380,7 @@ The first equality follows from Lemma~\ref{lem:limitProcess_stoppedProcess}. The
   \uses{def:IsSquareIntegrable, def:limitProcess}
   \leanok
   \lean{ProbabilityTheory.IsSquareIntegrable.iSup_eLpNorm_eq_eLpNorm_limitProcess}
-For $M$ a square integrable martingale,
+For $M$ a square integrable martingale on a nonempty index set,
 \begin{align*}
   \sup_{t \in T} \Vert M_t \Vert_{L^2}
   &= \Vert M_\infty \Vert_{L^2}
@@ -386,23 +389,13 @@ For $M$ a square integrable martingale,
 \end{lemma}
 
 \begin{proof}
-  \uses{lem:IsSquareIntegrable.eLpNorm_two_mono, lem:IsSquareIntegrable.tendsto_limitProcess}
-
-\end{proof}
-
-\begin{lemma}\label{lem:tendsto_ae_condExp}
   \leanok
-  \lean{ProbabilityTheory.tendsto_ae_condExp'}
-  For $f : \Omega \to E$, we have almost surely that
-  \begin{equation*}
-    \lim_{t \to +\infty} P[f | \mathcal{F}_t] = P\left[f | \bigsqcup_t \mathcal{F}_t\right].
-  \end{equation*}
-\end{lemma}
-
-\begin{proof}
-
+  \uses{lem:iSup_eLpNorm_le_eLpNorm_limitProcess, thm:tendsto_limitProcess_of_cadlag}
+The inequality $\sup_t \Vert M_t \Vert_{L^2} \le \Vert M_\infty \Vert_{L^2}$ is Lemma~\ref{lem:iSup_eLpNorm_le_eLpNorm_limitProcess}.
+For the other inequality, let $(t_n)$ be a sequence of times which tends to infinity.
+Then $M_{t_n} \to M_\infty$ almost surely by Theorem~\ref{thm:tendsto_limitProcess_of_cadlag}, hence by Fatou's lemma
+$\Vert M_\infty \Vert_{L^2} \le \liminf_n \Vert M_{t_n} \Vert_{L^2} \le \sup_t \Vert M_t \Vert_{L^2}$.
 \end{proof}
-
 
 \begin{lemma}\label{lem:IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess}
   \uses{def:IsSquareIntegrable, def:limitProcess}
@@ -507,7 +500,8 @@ If $T$ is separable then the space $\mathcal{M}^2$ is a Hilbert space.
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:L2Martingales.module, lem:exists_cadlag_mod_of_local_mg}
+  \leanok
+  \uses{lem:L2Martingales.module, lem:exists_cadlag_mod_of_local_mg, thm:Martingale.ae_tendsto_of_ae_eq_condExp}
   We show that the map
   \begin{align*}
     \phi : \mathcal{M}^2 & \to \left\{f \in L^2(E, P) | f \text{ is } \left(\bigsqcup_t, \mathcal{F}_t\right)\text{-strongly measurable}\right\} \\
@@ -517,7 +511,7 @@ If $T$ is separable then the space $\mathcal{M}^2$ is a Hilbert space.
 
   Let $M$ be a square integrable martingale. Then for any $t$, $M_t$ is a.e. equal to $P[M_\infty | \mathcal{F}_t]$ by Lemma~\ref{lem:condExp_limitProcess}, thus $M$ is a càdlàg modification of $t \mapsto P[f | \mathcal{F}_t]$, thus it is indistinguishable from $\psi(M_\infty)$.
 
-  Let $f \in L^2(E, P)$ be a.e. strongly measurable with respect to $\bigsqcup_t \mathcal{F}_t$. Then by Lemma~\ref{lem:tendsto_ae_condExp} we know that almost surely $P[f | \mathcal{F}_t]$ converges to $f$. Because $T$ is separable we can consider $(t_n)$ a sequence of points that tends to infinity. Because $\psi(f)$ and $P[f | \mathcal{F}_t]$ are modifications of each other, we have that almost surely, for all $n \in \mathcal{N}$, $\psi(f)_{t_n} = P[f | \mathcal{F}_{t_n}]$. But we also know that $\psi(f)_{t_n}$ converges to $\psi(f)_\infty$ so we conclude that $\psi(f)_\infty$ is a.e. equal to f.
+  Let $f \in L^2(E, P)$ be a.e. strongly measurable with respect to $\bigsqcup_t \mathcal{F}_t$. Then $\psi(f)$ is a right-continuous martingale which is closed by $f$, hence it converges almost surely to $f$ by Theorem~\ref{thm:Martingale.ae_tendsto_of_ae_eq_condExp}. Since it also converges almost surely to $\psi(f)_\infty$, we get $\phi(\psi(f)) = f$.
 \end{proof}
 
 
@@ -608,7 +602,7 @@ Where the second inequality is Lemma~\ref{lem:IsSquareIntegrable.integral_iSup_n
 \begin{lemma}\label{lem:isClosed_continuousSquareIntegrable}
   \uses{def:continuousSquareIntegrable}
   \leanok
-  \lean{ProbabilityTheory.instIsClosedSquareIntegrableCoeSubmoduleRealContinuousSquareIntegrableOfIsCompleteOfOrderTopology}
+  \lean{ProbabilityTheory.instIsClosedSquareIntegrableCoeSubmoduleRealContinuousSquareIntegrableOfIsComplete}
 The submodule $\mathcal{M}^{2,c}$ is closed in the Hilbert space $\mathcal{M}^2$.
 \end{lemma}
 

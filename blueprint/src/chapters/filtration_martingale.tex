@@ -857,11 +857,13 @@ This is immediate from the definition.
   \uses{def:Submartingale, def:IsStoppingTime}
   \leanok
   \lean{MeasureTheory.Submartingale.uniformIntegrable_stoppedValue}
-Let $X$ be a submartingale on a discrete index set and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
+Let $X$ be a real submartingale indexed by $\mathbb{N}$ and let $(\tau_k)_{k \in \mathbb{N}}$ be a sequence of stopping times that are uniformly bounded by $p$.
 Then, the family of stopped values $\{X_{\tau_k}\}_{k \in \mathbb{N}}$ is uniformly integrable.
+(This does not extend to general countable index sets.)
 \end{lemma}
 
 \begin{proof}
+  \leanok
   \uses{def:martingalePart, lem:martingale_martingalePart, def:predictablePart, lem:predictable_predictablePart, lem:uniformIntegrable_stoppedValue_martingale, lem:uniformIntegrableAdd, lem:uniformIntegrableDominatedSingleton, lem:predictablePart_zero, lem:Submartingale.monotone_predictablePart, lem:centering_basic}
 Use Doob decomposition to write $X_n = M_n + A_n$, where $M$ (Definition~\ref{def:martingalePart}) is a martingale (Lemma~\ref{lem:martingale_martingalePart}) and $A$ (Definition~\ref{def:predictablePart}) is a predictable process (Lemma~\ref{lem:predictable_predictablePart}).
 We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_{\tau_k})_{k \in \mathbb{N}}$ is uniformly integrable. Combining Lemma~\ref{lem:uniformIntegrableAdd} and Lemma~\ref{lem:uniformIntegrableDominatedSingleton}, it suffices to show that $(A_{\tau_k})_{k \in \mathbb{N}}$ is dominated. It is dominated by $A_p$ thanks to Lemma~\ref{lem:predictablePart_zero} and Lemma~\ref{lem:Submartingale.monotone_predictablePart}.
@@ -1108,32 +1110,6 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
 \end{proof}
 
-\begin{lemma}\label{lem:optionalSamplingSubmartingale}
-  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
-  \leanok
-  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
-  Let $X$ be a right-continuous $\mathcal{F}$-submartingale on an approximable time index. Then, for
-  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
-  $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
-\end{lemma}
-
-\begin{proof}
-  \uses{lem:stoppingTime_approximation, lem:optionalSampling_discrete_submartingale, lem:StoppingTimeGenMono, lem:uniformIntegrable_stoppedValue_submartingale,
-    lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence}
-  Fixing $A \in \mathcal{F}_{\sigma}$, we need to show that $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$.
-
-  Let $(\tau_n), (\sigma_n)$ be discrete approximation sequences of $\tau$ and $\sigma$ respectively.
-  As $\tau_n, \sigma_n$ take values in a countable set,
-  we have by the discrete time optional sampling theorem (Lemma~\ref{lem:optionalSampling_discrete_submartingale}) that
-  $$X_{\sigma_n \wedge \tau_n} \le P[X_{\tau_n} \mid \mathcal{F}_{\sigma_n}]$$
-  and so, as \(\mathcal{F}_{\sigma} \subseteq \mathcal{F}_{\sigma_n}\) by Lemma~\ref{lem:StoppingTimeGenMono},
-  we have that $P[X_{\sigma_n \wedge \tau_n} \mathbb{I}_A] \le P[X_{\tau_n} \mathbb{I}_A]$.
-  On the other hand, by Lemma~\ref{lem:uniformIntegrable_stoppedValue_submartingale}, the families $\{X_{\tau_n}\}$ and $\{X_{\sigma_n \wedge \tau_n}\}$ are uniformly integrable.
-  Thus, as $X$ is right-continuous, $(X_{\sigma_n \wedge \tau_n}, X_{\tau_n}) \to (X_{\sigma \wedge \tau}, X_{\tau})$ a.s.
-  We have $P[X_{\tau} \mathbb{I}_A] \le P[X_{\sigma \wedge \tau} \mathbb{I}_A]$
-  by Lemma~\ref{lem:tendsto_eLpNorm_stoppedValue_discreteApproxSequence} as desired.
-\end{proof}
-
 \begin{lemma}[Optional sampling for real submartingales]\label{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}
   \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
   \leanok
@@ -1186,6 +1162,70 @@ We know that $-X$ is a submartingale, so from Lemma~\ref{lem:optionalSampling_di
   hence $P[X_s \mathbb{I}_C] \le P[X_{\tau \wedge t} \mathbb{I}_C]$ by Lemma~\ref{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue} applied to the stopping time $\tau \wedge t$.
 \end{proof}
 
+\begin{lemma}\label{lem:Submartingale.setIntegral_stoppedValue_le_setIntegral}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
+  \leanok
+  \lean{MeasureTheory.Submartingale.setIntegral_stoppedValue_le_setIntegral}
+  Let $X$ be a right-continuous real $\mathcal{F}$-submartingale on an approximable time index, for a finite measure $P$.
+  Let $\tau$ be a stopping time bounded by $t$ and let $C \in \mathcal{F}_\tau$.
+  Then $P[X_\tau \mathbb{I}_C] \le P[X_t \mathbb{I}_C]$.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{def:approxSeq, lem:StoppingTimeGenMono, lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}
+  \emph{Countable range.} If $\tau$ takes countably many values, then for each value $i$ the set $C \cap \{\tau = i\}$ belongs to $\mathcal{F}_i$, hence
+  $P[X_\tau \mathbb{I}_{C \cap \{\tau = i\}}] = P[X_i \mathbb{I}_{C \cap \{\tau = i\}}] \le P[X_t \mathbb{I}_{C \cap \{\tau = i\}}]$ by the submartingale property.
+  We sum over the values of $\tau$, which is possible since $X_\tau$ is integrable.
+
+  \emph{$X$ bounded from below.} Let $(\tau_n)$ be a discrete approximation sequence of $\tau$, bounded by $t$.
+  Since $\mathcal{F}_\tau \subseteq \mathcal{F}_{\tau_n}$ (Lemma~\ref{lem:StoppingTimeGenMono}), the previous case gives $P[X_{\tau_n} \mathbb{I}_C] \le P[X_t \mathbb{I}_C]$ for all $n$,
+  and $X_{\tau_n} \to X_\tau$ in $L^1$ as in the proof of Lemma~\ref{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}.
+
+  \emph{General case.} We apply the previous case to $X \vee (-m)$ and let $m \to \infty$ by dominated convergence, as in the proof of Lemma~\ref{lem:Submartingale.setIntegral_le_setIntegral_stoppedValue}.
+\end{proof}
+
+\begin{lemma}[Optional sampling theorem for real submartingales]\label{lem:optionalSamplingSubmartingale}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp}
+  Let $X$ be a right-continuous real $\mathcal{F}$-submartingale on an approximable time index, for a finite measure $P$. Then, for
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+  \uses{lem:Submartingale.stoppedProcess, lem:Submartingale.setIntegral_stoppedValue_le_setIntegral}
+  Let $k$ be a bound of $\tau$ and let $A \in \mathcal{F}_{\sigma}$: we need to show that $P[X_{\sigma \wedge \tau} \mathbb{I}_A] \le P[X_{\tau} \mathbb{I}_A]$.
+
+  The stopped process $Y = X^\tau$ is a right-continuous submartingale (Lemma~\ref{lem:Submartingale.stoppedProcess}), with $Y_k = X_\tau$ and $Y_{\sigma \wedge k} = X_{\sigma \wedge \tau}$.
+  On $A \cap \{\sigma > k\}$ we have $Y_{\sigma \wedge k} = Y_k$.
+  The set $A \cap \{\sigma \le k\}$ belongs to $\mathcal{F}_{\sigma \wedge k}$, hence
+  $P[Y_{\sigma \wedge k} \mathbb{I}_{A \cap \{\sigma \le k\}}] \le P[Y_k \mathbb{I}_{A \cap \{\sigma \le k\}}]$
+  by Lemma~\ref{lem:Submartingale.setIntegral_stoppedValue_le_setIntegral} applied to $Y$ and to the stopping time $\sigma \wedge k$.
+\end{proof}
+
+\begin{lemma}[Optional sampling theorem for nonnegative submartingales in a Banach lattice]\label{lem:optionalSamplingSubmartingale_of_nonneg}
+  \uses{def:Submartingale, def:IsStoppingTime, def:RightContinuous, def:approximableTimeIndex}
+  \leanok
+  \lean{MeasureTheory.Submartingale.stoppedValue_min_ae_le_condExp_of_nonneg}
+  Let $X$ be a nonnegative right-continuous $\mathcal{F}$-submartingale with values in a separable Banach lattice, on an approximable time index, for a finite measure $P$. Then, for
+  any stopping times $\sigma, \tau$ with $\tau$ bounded, we have that
+  $X_{\sigma \wedge \tau} \le P[X_{\tau} \mid \mathcal{F}_{\sigma}]$ almost surely.
+\end{lemma}
+
+\begin{proof}
+  \uses{lem:optionalSamplingSubmartingale}
+  For a positive continuous linear form $\varphi$, the process $\varphi \circ X$ is a nonnegative right-continuous real submartingale, to which we can apply Lemma~\ref{lem:optionalSamplingSubmartingale}.
+  Countably many positive continuous linear forms determine the order of a separable Banach lattice.
+
+  Let $k$ be a bound of $\tau$. Since $X_k$ is integrable, $\varphi(P[X_k \mid \mathcal{F}_\tau]) = P[\varphi(X_k) \mid \mathcal{F}_\tau] \ge \varphi(X_\tau)$ for all positive $\varphi$, hence $0 \le X_\tau \le P[X_k \mid \mathcal{F}_\tau]$ almost surely and $X_\tau$ is integrable.
+  Then $\varphi(P[X_\tau \mid \mathcal{F}_\sigma]) = P[\varphi(X_\tau) \mid \mathcal{F}_\sigma] \ge \varphi(X_{\sigma \wedge \tau})$ for all positive $\varphi$, which gives the result.
+
+  The nonnegativity assumption cannot be removed: without it, $X_\tau$ is not integrable in general, even for a stopping time with countable range and $E = \ell^2$ with the coordinatewise order.
+\end{proof}
+
 \section{Martingale convergence}
 
 \begin{definition}\label{def:limitProcess}
@@ -1201,14 +1241,120 @@ We denote it by $X_\infty$.
 In Mathlib, we have results about convergence of martingales to their limit in discrete time.
 
 
+For martingales with values in a Banach space $E$, the convergence of uniformly integrable martingales requires an assumption on $E$.
+
+\begin{definition}[Radon-Nikodym property]\label{def:HasRadonNikodymProp}
+  \leanok
+  \lean{HasRadonNikodymProp}
+A Banach space $E$ has the Radon-Nikodym property if for every finite measure $\mu$, every $E$-valued vector measure of bounded variation which is absolutely continuous with respect to $\mu$ has a Bochner integrable density with respect to $\mu$.
+\end{definition}
+
+\begin{lemma}\label{lem:HasRadonNikodymProp_stability}
+  \uses{def:HasRadonNikodymProp}
+  \leanok
+  \lean{HasRadonNikodymProp.completeSpace, HasRadonNikodymProp.of_antilipschitzWith, HasRadonNikodymProp.of_continuousLinearEquiv, HasRadonNikodymProp.submodule_of_isClosed, HasRadonNikodymProp.prod, HasRadonNikodymProp.pi, HasRadonNikodymProp.of_finiteDimensional}
+A normed space with the Radon-Nikodym property is complete.
+If $E$ has the Radon-Nikodym property, $F$ is a Banach space and $L : F \to E$ is a continuous linear map with $\Vert x \Vert \le c \Vert L x \Vert$ for all $x$, then $F$ has the Radon-Nikodym property.
+In particular the Radon-Nikodym property is invariant under linear isomorphisms and is inherited by closed subspaces.
+The space $\mathbb{R}$, finite products of spaces with the Radon-Nikodym property and finite-dimensional spaces have the Radon-Nikodym property.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+For the completeness, apply the property to the measure $x \delta$ on a one-point space: if $E$ was not complete, its density would have Bochner integral $0$, hence $x = 0$ for all $x \in E$.
+
+Let $\nu$ be an $F$-valued measure of bounded variation, absolutely continuous with respect to $\mu$.
+Then $L \circ \nu$ is an $E$-valued measure with the same properties: let $f$ be its density.
+The image of $f$ in the quotient of $E$ by the closed subspace $L(F)$ has integral zero on all measurable sets, hence $f \in L(F)$ almost everywhere.
+Since $L$ is an embedding, $g = L^{-1} \circ f$ is measurable, it is integrable since $\Vert g \Vert \le c \Vert f \Vert$, and it is a density of $\nu$ since $L$ is injective.
+
+The case of $\mathbb{R}$ is the Radon-Nikodym theorem for signed measures.
+For a product, the densities of the coordinates of $\nu$ are the coordinates of a density of $\nu$.
+A finite-dimensional space is isomorphic to a finite product of copies of $\mathbb{R}$.
+\end{proof}
+
+\begin{lemma}\label{lem:HasRadonNikodymProp_of_forall_isSeparable}
+  \uses{def:HasRadonNikodymProp}
+  \leanok
+  \lean{HasRadonNikodymProp.of_forall_isSeparable}
+The Radon-Nikodym property is separably determined: a normed space has the Radon-Nikodym property if all its closed separable subspaces have it.
+\end{lemma}
+
+\begin{proof}
+  \leanok
+The space $E$ is complete: a Cauchy sequence takes its values in a closed separable subspace, which has the Radon-Nikodym property and is thus complete.
+Let $\nu$ be an $E$-valued measure with $\Vert \nu(A) \Vert \le \mu(A)$ for all measurable sets $A$ (the general case reduces to this one by taking for $\mu$ the variation of $\nu$).
+On a countably generated sub-$\sigma$-algebra $m$, the range of $\nu$ is separable, hence contained in a closed separable subspace, and $\nu$ has a density $d_m$ on $m$, with norm at most $1$.
+By L\'evy's upward theorem in $L^1$, the net $(d_m)$ is Cauchy in $L^1$, hence it is eventually constant, and its eventual value is a density of $\nu$.
+\end{proof}
+
+\begin{theorem}\label{thm:HasRadonNikodymProp_of_reflexive}
+  \uses{def:HasRadonNikodymProp}
+  \leanok
+  \lean{HasRadonNikodymProp.of_surjective_inclusionInDoubleDual}
+Reflexive Banach spaces have the Radon-Nikodym property. In particular real and complex Hilbert spaces have the Radon-Nikodym property.
+\end{theorem}
+
+\begin{proof}
+  \leanok
+  \uses{lem:HasRadonNikodymProp_of_forall_isSeparable}
+A closed subspace of a reflexive space is reflexive, hence by Lemma~\ref{lem:HasRadonNikodymProp_of_forall_isSeparable} we can suppose that $E$ is separable.
+Let $\nu$ be an $E$-valued measure with $\Vert \nu(A) \Vert \le \mu(A)$ for all measurable sets $A$ and let $(\varphi_k)$ be a sequence of continuous linear forms which separates the points of $E$.
+Each real measure $\varphi_k \circ \nu$ has a density $g_k$ with respect to $\mu$.
+For almost every $\omega$, we have $\vert \sum_k c_k g_k(\omega) \vert \le \Vert \sum_k c_k \varphi_k \Vert$ for all finitely supported families of coefficients $c$ (it suffices to check this for rational coefficients).
+By the Hahn-Banach theorem the linear form $\sum_k c_k \varphi_k \mapsto \sum_k c_k g_k(\omega)$ extends to an element of the bidual of $E$ with norm at most $1$, hence by reflexivity it is the evaluation at a point $f(\omega)$ with $\Vert f(\omega) \Vert \le 1$.
+The function $f$ is measurable since the $\varphi_k$ separate the points of the Polish space $E$, and it is a density of $\nu$.
+\end{proof}
+
+\begin{theorem}\label{thm:Martingale.exists_ae_eq_condExp_of_uniformIntegrable}
+  \uses{def:Martingale, def:HasRadonNikodymProp}
+  \leanok
+  \lean{MeasureTheory.Martingale.exists_ae_eq_condExp_of_uniformIntegrable}
+Let $X$ be a uniformly integrable martingale with values in a space with the Radon-Nikodym property, for a finite measure $P$.
+Then $X$ is closed: there exists an integrable function $Z$, measurable with respect to $\mathcal{F}_\infty$, such that $X_t = P[Z \mid \mathcal{F}_t]$ almost surely for all $t$.
+\end{theorem}
+
+\begin{proof}
+  \leanok
+We can suppose that the $\sigma$-algebra is $\mathcal{F}_\infty$. The sets which are measurable at some time are then dense for the distance $P(A \triangle B)$, and for such a set $A \in \mathcal{F}_s$ the integral $P[X_t \mathbb{I}_A]$ does not depend on $t \ge s$.
+By uniform integrability, $P[X_t \mathbb{I}_A]$ converges for every measurable set $A$ as $t \to \infty$, to a limit $\nu(A)$.
+Again by uniform integrability, $\nu$ is a vector measure of bounded variation which is absolutely continuous with respect to $P$.
+Its density $Z$ satisfies $P[Z \mathbb{I}_A] = P[X_s \mathbb{I}_A]$ for $A \in \mathcal{F}_s$.
+\end{proof}
+
+\begin{theorem}\label{thm:Martingale.ae_tendsto_of_ae_eq_condExp}
+  \uses{def:Martingale, def:RightContinuous}
+  \leanok
+  \lean{MeasureTheory.Martingale.ae_tendsto_of_ae_eq_condExp}
+Let $X$ be a right-continuous martingale with values in a Banach space, such that $X_t = P[Z \mid \mathcal{F}_t]$ almost surely for all $t$, for an integrable function $Z$ which is almost everywhere strongly measurable with respect to $\mathcal{F}_\infty$.
+Then $X_t$ converges to $Z$ almost surely as $t$ goes to infinity.
+\end{theorem}
+
+\begin{proof}
+  \leanok
+  \uses{cor:doob_ineq_norm}
+Let $(t_n)$ be a nondecreasing sequence of times tending to infinity. By L\'evy's upward theorem in $L^1$, $X_{t_n}$ tends to $Z$ in $L^1$.
+For a time $s$, the process $(X_t - X_{t \wedge s})_t$ is a right-continuous martingale, and Doob's maximal inequality (Lemma~\ref{cor:doob_ineq_norm}) gives for $\varepsilon > 0$
+$$P\left(\sup_{t \ge s} \Vert X_t - X_s \Vert \ge \varepsilon\right) \le \frac{1}{\varepsilon} \sup_{t \ge s} P[\Vert X_t - X_s \Vert] \le \frac{1}{\varepsilon} P[\Vert Z - X_s \Vert] \: .$$
+We choose times $s_k$ in the sequence such that $P[\Vert Z - X_{s_k} \Vert] \le 4^{-k}$.
+Then the events $\{\sup_{t \ge s_k} \Vert X_t - X_{s_k} \Vert \ge 2^{-k}\}$ and $\{\Vert Z - X_{s_k} \Vert \ge 2^{-k}\}$ have probability at most $2^{-k}$.
+By the Borel-Cantelli lemma, almost surely $\Vert X_t - Z \Vert < 2 \cdot 2^{-k}$ for all $t \ge s_k$, for $k$ large enough.
+\end{proof}
+
 \begin{theorem}\label{thm:tendsto_limitProcess_of_cadlag}
-  \uses{def:Martingale, def:limitProcess, def:IsCadlag}
+  \uses{def:Martingale, def:limitProcess, def:IsCadlag, def:HasRadonNikodymProp}
   \leanok
   \lean{MeasureTheory.Martingale.ae_tendsto_limitProcess}
-Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$.
+Let $X$ be an uniformly integrable cadlag martingale with respect to the filtration $\mathcal{F}$, with values in a space with the Radon-Nikodym property, for a finite measure $P$.
 Then there exists a limit process $X_\infty$ measurable with respect to $\mathcal{F}_\infty$ such that $X_t$ converges to $X_\infty$ almost surely as $t$ goes to infinity.
 Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 \end{theorem}
+
+\begin{proof}
+  \leanok
+  \uses{thm:Martingale.exists_ae_eq_condExp_of_uniformIntegrable, thm:Martingale.ae_tendsto_of_ae_eq_condExp}
+By Theorem~\ref{thm:Martingale.exists_ae_eq_condExp_of_uniformIntegrable}, $X$ is closed by a function $Z$, and by Theorem~\ref{thm:Martingale.ae_tendsto_of_ae_eq_condExp} it converges almost surely to $Z$.
+\end{proof}
 
 \begin{lemma}\label{lem:limitProcess_ae_eq}
   \uses{def:limitProcess}
@@ -1276,21 +1422,36 @@ Let $X : T \to \Omega \to E$ be a process such that there exists $g : \Omega \to
   \uses{def:limitProcess, def:Martingale}
   \leanok
   \lean{MeasureTheory.Martingale.condExp_limitProcess_ae_eq}
-  If $X$ is a càdlàg and uniformly integrable martingale, then for any $t$, almost surely,
+  If $X$ is a càdlàg and uniformly integrable martingale with values in a space with the Radon-Nikodym property, then for any $t$, almost surely,
   $$P[X_\infty | \mathcal{F}_t] = X_t.$$
 \end{theorem}
+
+\begin{proof}
+  \leanok
+  \uses{thm:Martingale.exists_ae_eq_condExp_of_uniformIntegrable, thm:Martingale.ae_tendsto_of_ae_eq_condExp, lem:limitProcess_ae_eq}
+The martingale is closed by a function $Z$ (Theorem~\ref{thm:Martingale.exists_ae_eq_condExp_of_uniformIntegrable}) to which it converges almost surely (Theorem~\ref{thm:Martingale.ae_tendsto_of_ae_eq_condExp}), hence $X_\infty = Z$ almost surely by Lemma~\ref{lem:limitProcess_ae_eq}.
+\end{proof}
 
 
 \begin{theorem}\label{thm:condExp_limitProcess_stopped}
   \uses{def:limitProcess, def:Martingale}
   \leanok
   \lean{MeasureTheory.Martingale.condExp_limitProcess_ae_eq'}
-  If $X$ is a càdlàg and uniformly integrable martingale, then for any stopping time $\tau$, almost surely,
+  If $X$ is a càdlàg and uniformly integrable martingale with values in a space with the Radon-Nikodym property, on an approximable time index, then for any stopping time $\tau$, almost surely,
   $$P[X_\infty | \mathcal{F}_\tau] = X_\tau.$$
 \end{theorem}
 
 \begin{proof}
+  \leanok
+  \uses{thm:tendsto_limitProcess_of_cadlag, thm:condExp_limitProcess, lem:optionalSampling}
+Let $(t_n)$ be a nondecreasing sequence of times tending to infinity.
+By optional sampling for the bounded stopping time $\tau \wedge t_n$ (Lemma~\ref{lem:optionalSampling}) and Theorem~\ref{thm:condExp_limitProcess},
+$X_{\tau \wedge t_n} = P[X_{t_n} \mid \mathcal{F}_{\tau \wedge t_n}] = P[X_\infty \mid \mathcal{F}_{\tau \wedge t_n}]$.
+In particular $P[\Vert X_{\tau \wedge t_n} \Vert] \le P[\Vert X_\infty \Vert]$, and since $X_{\tau \wedge t_n}$ tends to $X_\tau$ almost surely (by Theorem~\ref{thm:tendsto_limitProcess_of_cadlag} on the event $\{\tau = \infty\}$), $X_\tau$ is integrable by Fatou's lemma.
 
+Let $A \in \mathcal{F}_\tau$. The set $A \cap \{\tau \le t_n\}$ belongs to $\mathcal{F}_{\tau \wedge t_n}$ and $X_{\tau \wedge t_n} = X_\tau$ on that set, hence
+$P[X_\tau \mathbb{I}_{A \cap \{\tau \le t_n\}}] = P[X_\infty \mathbb{I}_{A \cap \{\tau \le t_n\}}]$.
+Letting $n$ tend to infinity, we get $P[X_\tau \mathbb{I}_{A \cap \{\tau < \infty\}}] = P[X_\infty \mathbb{I}_{A \cap \{\tau < \infty\}}]$, and $X_\tau = X_\infty$ on $\{\tau = \infty\}$.
 \end{proof}
 
 
@@ -1459,8 +1620,43 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 \end{proof}
 
 
+\begin{lemma}\label{lem:lintegral_rpow_le_of_forall_mul_meas_le}
+  \leanok
+  \lean{MeasureTheory.lintegral_rpow_le_of_forall_mul_meas_le}
+  Let $\mu$ be a measure and let $f, g$ be measurable functions with values in $[0, \infty]$ such that for all $\lambda > 0$, $\mu(f \ge \lambda) < \infty$ and
+  $\lambda \mu(f \ge \lambda) \le \mu[g \mathbb{I}_{f \ge \lambda}]$.
+  Then for every $p > 1$,
+  \begin{align*}
+    \mu[f^p] \le \left(\frac{p}{p-1}\right)^p \mu[g^p]
+    \: .
+  \end{align*}
+\end{lemma}
+
+\begin{proof}
+  \leanok
+We first reduce to the case of a finite measure. For $\delta > 0$, the restriction $\mu_\delta$ of $\mu$ to $\{f \ge \delta\}$ is a finite measure, and it satisfies the same assumption: for $\lambda \ge \delta$ this is the assumption for $\mu$, and for $\lambda < \delta$ we have $\lambda \mu_\delta(f \ge \lambda) = \lambda \mu(f \ge \delta) \le \delta \mu(f \ge \delta) \le \mu[g \mathbb{I}_{f \ge \delta}] = \mu_\delta[g \mathbb{I}_{f \ge \lambda}]$.
+The inequality for $\mu_\delta$ gives $\mu[f^p \mathbb{I}_{f \ge \delta}] \le \left(\frac{p}{p-1}\right)^p \mu[g^p]$, and we let $\delta$ tend to $0$ by monotone convergence.
+
+Suppose now that $\mu$ is finite.
+By monotone convergence it suffices to prove the inequality for $f_n = f \wedge n$ in place of $f$. Note that $\{f_n \ge \lambda\}$ is $\{f \ge \lambda\}$ for $\lambda \le n$ and is empty otherwise.
+By the layer cake formula applied to $\mu$, then to the measure $g \cdot \mu$,
+\begin{align*}
+  \mu[f_n^p]
+  = p \int_0^\infty \mu(f_n \ge \lambda) \lambda^{p-1} d\lambda
+  \le p \int_0^\infty (g \cdot \mu)(f_n \ge \lambda) \lambda^{p-2} d\lambda
+  = \frac{p}{p - 1} \mu\left[g f_n^{p-1}\right]
+  \: .
+\end{align*}
+Then by H\"older's inequality,
+$\mu[f_n^p] \le \frac{p}{p - 1} \left(\mu[g^p]\right)^{1/p} \left(\mu[f_n^p]\right)^{(p-1)/p}$.
+Since $\mu[f_n^p]$ is finite, we can divide the two sides by $\left(\mu[f_n^p]\right)^{(p-1)/p}$ and raise to the power $p$ to conclude.
+\end{proof}
+
+
 \begin{theorem}[Doob's Lp inequality in $\mathbb{R}$]\label{thm:doob_lp}
   \uses{def:Submartingale, def:RightContinuous}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_iSup_le_ofReal_rpow_le}
   Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
   For every $T, \lambda>0$ and $p>1$ we have
   \begin{align*}
@@ -1475,13 +1671,30 @@ Then apply Lemma~\ref{lem:doob_countable} with $I = [0,T] \cap \mathbb{Q}$ and $
 \end{theorem}
 
 \begin{proof}
-  \uses{lem:doob_Lp_countable}
-Since $X$ is right-continuous and $[0,T]$ is a compact interval, we have that
-\begin{align*}
-  \sup_{t\in[0,T]}X_t = \sup_{t\in[0,T] \cap \mathbb{Q}}X_t
-  \: .
-\end{align*}
-Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ and $M = T$.
+  \leanok
+  \uses{thm:doob_ineq, lem:lintegral_rpow_le_of_forall_mul_meas_le}
+  By Theorem~\ref{thm:doob_ineq}, the functions $f = \sup_{t \in [0,T]} X_t$ and $g = X_T$ satisfy the assumption of Lemma~\ref{lem:lintegral_rpow_le_of_forall_mul_meas_le}.
+\end{proof}
+
+
+\begin{corollary}\label{cor:doob_lp_top}
+  \uses{def:Submartingale, def:RightContinuous}
+  \leanok
+  \lean{ProbabilityTheory.lintegral_iSup_ofReal_rpow_le}
+  Let $X:\mathbb{R} \rightarrow \Omega \rightarrow \mathbb{R}$ be a right-continuous non-negative sub-martingale.
+  For every $p>1$ we have
+  \begin{align*}
+    \mathbb{E}\left[ \sup_t X_t^p \right]
+    \leq \left(\frac{p}{p-1}\right)^p \sup_t \mathbb{E}[X_t^p]
+    \: .
+  \end{align*}
+\end{corollary}
+
+\begin{proof}
+  \leanok
+  \uses{thm:doob_lp}
+  Let $(t_n)$ be a nondecreasing sequence of times which tends to infinity. By Theorem~\ref{thm:doob_lp},
+  $\mathbb{E}\left[ \sup_{t \le t_n} X_t^p \right] \le \left(\frac{p}{p-1}\right)^p \sup_t \mathbb{E}[X_t^p]$ for all $n$, and we conclude by monotone convergence.
 \end{proof}
 
 
@@ -1499,9 +1712,9 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{corollary}
 
 \begin{proof}
+  \leanok
   \uses{cor:Martingale.submartingale_norm, thm:doob_lp}
-  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a sub-martingale.
-  Then apply Theorem~\ref{thm:doob_lp}.
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a right-continuous nonnegative sub-martingale, to which we apply Theorem~\ref{thm:doob_lp}.
 \end{proof}
 
 
@@ -1519,8 +1732,9 @@ Then apply Lemma~\ref{lem:doob_Lp_countable} with $I = [0,T] \cap \mathbb{Q}$ an
 \end{corollary}
 
 \begin{proof}
-  \uses{cor:doob_lp_norm}
-  Take limits on both sides in Corollary~\ref{cor:doob_lp_norm}.
+  \leanok
+  \uses{cor:Martingale.submartingale_norm, cor:doob_lp_top}
+  By Corollary~\ref{cor:Martingale.submartingale_norm}, $\lVert X \rVert$ is a right-continuous nonnegative sub-martingale, to which we apply Corollary~\ref{cor:doob_lp_top}.
 \end{proof}
 
 

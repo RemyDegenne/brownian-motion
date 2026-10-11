@@ -276,62 +276,56 @@ variable [NormedSpace ℝ E] [CompleteSpace E]
 section Order
 
 variable [PseudoMetrizableSpace ι] [BorelSpace ι] [Lattice E]
-  [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [IsFiniteMeasure P]
-  [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
+  [HasSolidNorm E] [IsOrderedAddMonoid E] [IsFiniteMeasure P] [Approximable 𝓕 P]
+
+/-- For a nonnegative right-continuous submartingale `X` with values in a Banach lattice and a
+stopping time `T` which is almost surely bounded by `t`, the norm of `X T` is at most the
+conditional expectation of the norm of `X t` with respect to the σ-algebra of `T`. This is the
+optional sampling theorem for the real submartingale `‖X‖`. -/
+lemma _root_.MeasureTheory.Submartingale.norm_stoppedValue_ae_le_condExp
+    (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X)
+    {T : Ω → WithTop ι} (hT : IsStoppingTime 𝓕 T) {t : ι} (hTt : ∀ᵐ ω ∂P, T ω ≤ t) :
+    (fun ω ↦ ‖stoppedValue X T ω‖) ≤ᵐ[P] P[fun ω ↦ ‖X t ω‖ | hT.measurableSpace] := by
+  have h := (hX1.norm_of_nonneg hX3).stoppedValue_min_ae_le_condExp 𝓕 (fun ω t ↦ (hX2 ω t).norm)
+    (ae_of_all _ fun _ ↦ le_rfl) hT (isStoppingTime_const 𝓕 t)
+  rw [stoppedValue_const] at h
+  refine EventuallyLE.trans (EventuallyEq.le ?_) h
+  filter_upwards [hTt] with ω hω
+  simp [stoppedValue, inf_eq_right.2 hω]
 
 /-- A nonnegative right-continuous submartingale is of class DL. -/
 lemma _root_.MeasureTheory.Submartingale.classDL
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω))
     (hX3 : 0 ≤ X) : ClassDL X 𝓕 P := by
   refine ⟨StronglyAdapted.isStronglyProgressive_of_rightContinuous hX1.1 hX2, fun t => ?_⟩
-  have := (hX1.2.2 t).uniformIntegrable_condExp' (fun T :
+  -- the values of `X` at the stopping times `T ≤ t` are dominated by `P[‖X t‖ | 𝓕 T]`
+  have := (hX1.2.2 t).norm.uniformIntegrable_condExp' (fun T :
     {T | IsStoppingTime 𝓕 T ∧ ∀ (ω : Ω), T ω ≤ t} => IsStoppingTime.measurableSpace_le T.2.1)
   refine uniformIntegrable_of_dominated this (fun T => ?_) (fun T => ⟨T, ?_⟩)
   · exact ((stronglyMeasurable_stoppedValue_of_le (hX1.1.isStronglyProgressive_of_rightContinuous
       hX2) T.2.1 T.2.2).mono (𝓕.le' t)).aestronglyMeasurable
-  · have : stoppedValue X T.1 ≤ᵐ[P] P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] := by
-      suffices lem : stoppedValue X ((fun ω => t) ⊓ T.1) ≤ᵐ[P]
-        P[stoppedValue X (fun ω => t)|T.2.1.measurableSpace] from by
-        have : T.1 ⊓ (fun ω => t) = T.1 := by simp only [inf_eq_left]; exact T.2.2
-        simpa [inf_comm, this] using lem
-      exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
-        (Eventually.of_forall (fun ω => le_rfl)) T.2.1 (isStoppingTime_const 𝓕 t)
-    simp only [stoppedValue_const] at this
-    filter_upwards [this] with ω hω
-    have p1 : 0 ≤ stoppedValue X T.1 ω := by simpa [stoppedValue] using (hX3 (T.1 ω).untopA ω)
-    have p2 := abs_of_nonneg (le_trans p1 hω)
-    rw [← abs_of_nonneg p1, ← p2] at hω
-    exact norm_le_norm_of_abs_le_abs hω
+  · filter_upwards [hX1.norm_stoppedValue_ae_le_condExp hX2 hX3 T.2.1 (ae_of_all _ T.2.2)]
+      with ω hω
+    exact hω.trans (Real.le_norm_self _)
 
-omit [IsFiniteMeasure P] in
+/-- The values at bounded stopping times of a nonnegative right-continuous submartingale which is
+uniformly integrable are uniformly integrable. -/
 lemma _root_.MeasureTheory.Submartingale.uniformIntegrable_bounded_stoppingTime
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X)
     (hX4 : UniformIntegrable X 1 P) :
     UniformIntegrable (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t}
       ↦ stoppedValue X T) 1 P := by
-  have hcond := hX4.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
+  -- the value of `X` at a stopping time `T ≤ t` is dominated by `P[‖X t‖ | 𝓕 T]`
+  have hcond := hX4.norm.condExp' (fun T : {T | IsStoppingTime 𝓕 T ∧ ∃ t : ι, ∀ ω, T ω ≤ t} =>
       IsStoppingTime.measurableSpace_le T.2.1)
   refine uniformIntegrable_of_dominated hcond (fun ⟨T, hT, ⟨t, ht⟩⟩ => ?_)
     (fun ⟨T, hT, ⟨t, ht⟩⟩ => ⟨⟨t, ⟨T, hT, ⟨t, ht⟩⟩⟩, ?_⟩)
   · exact ((stronglyMeasurable_stoppedValue_of_le
       (hX1.1.isStronglyProgressive_of_rightContinuous hX2) hT ht).mono
         (𝓕.le' t)).aestronglyMeasurable
-  · have : stoppedValue X T ≤ᵐ[P] P[stoppedValue X (fun ω => t)|hT.measurableSpace] := by
-      suffices lem : stoppedValue X ((fun ω => t) ⊓ T) ≤ᵐ[P]
-          P[stoppedValue X (fun ω => t)|hT.measurableSpace] by
-        have : T ⊓ (fun _ ↦ t) = T := by simp only [inf_eq_left]; exact ht
-        simpa [inf_comm, this] using lem
-      exact hX1.stoppedValue_min_ae_le_condExp 𝓕 hX2
-        (ae_of_all _ fun _ ↦ le_rfl) hT (isStoppingTime_const 𝓕 t)
-    simp only [stoppedValue_const] at this
-    filter_upwards [this] with ω hω
-    apply norm_le_norm_of_abs_le_abs
-    have p1 : 0 ≤ stoppedValue X T ω := by simpa [stoppedValue] using (hX3 (T ω).untopA ω)
-    have p2 : |P[X t|hT.measurableSpace] ω| = P[X t|hT.measurableSpace] ω :=
-      abs_of_nonneg (p1.trans hω)
-    rwa [← abs_of_nonneg p1, ← p2] at hω
+  · filter_upwards [hX1.norm_stoppedValue_ae_le_condExp hX2 hX3 hT (ae_of_all _ ht)] with ω hω
+    exact hω.trans (Real.le_norm_self _)
 
-omit [IsFiniteMeasure P] in
 /-- A nonnegative right-continuous submartingale is of class D iff it is uniformly integrable. -/
 lemma _root_.MeasureTheory.Submartingale.classD_iff_uniformIntegrable
     (hX1 : Submartingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) (hX3 : 0 ≤ X) :
@@ -345,7 +339,7 @@ end Order
 
 /-- A martingale with right-continuous paths is of class DL. -/
 lemma _root_.MeasureTheory.Martingale.classDL [PseudoMetrizableSpace ι] [BorelSpace ι]
-    [IsFiniteMeasure P]
+    [IsFiniteMeasure P] [Approximable 𝓕 P]
     (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) :
     ClassDL X 𝓕 P := by
   rw [classDL_iff_norm (hX1.stronglyAdapted.isStronglyProgressive_of_rightContinuous hX2)]
@@ -357,9 +351,10 @@ lemma _root_.MeasureTheory.Martingale.classDL [PseudoMetrizableSpace ι] [BorelS
   have hY_nonneg : 0 ≤ Y := fun t ω ↦ norm_nonneg _
   exact hY_sub.classDL hY_cont hY_nonneg
 
+/-- A martingale with right-continuous paths is of class D iff it is uniformly integrable. -/
 lemma _root_.MeasureTheory.Martingale.classD_iff_uniformIntegrable
-    [PseudoMetrizableSpace ι] [BorelSpace ι] [IsFiniteMeasure P] (hX1 : Martingale X 𝓕 P)
-    (hX2 : ∀ ω, IsRightContinuous (X · ω)) :
+    [PseudoMetrizableSpace ι] [BorelSpace ι] [IsFiniteMeasure P] [Approximable 𝓕 P]
+    (hX1 : Martingale X 𝓕 P) (hX2 : ∀ ω, IsRightContinuous (X · ω)) :
     ClassD X 𝓕 P ↔ UniformIntegrable X 1 P := by
   rw [classD_iff_norm, uniformIntegrable_iff_norm, Submartingale.classD_iff_uniformIntegrable]
   · exact hX1.submartingale_norm
@@ -861,8 +856,8 @@ lemma locally_classD_iff_hasLocallyIntegrableSup [𝓕.IsComplete P] [𝓕.IsRig
 /-- A right-continuous, nonnegative submartingale is locally of class D. -/
 lemma _root_.MeasureTheory.Submartingale.locally_classD
     [NormedSpace ℝ E] [CompleteSpace E] [Lattice E] [HasSolidNorm E]
-    [IsOrderedAddMonoid E] [IsOrderedModule ℝ E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] (h𝓕 : 𝓕.IsRightContinuous) (hX : Submartingale X 𝓕 P)
+    [IsOrderedAddMonoid E] [Approximable 𝓕 P] (h𝓕 : 𝓕.IsRightContinuous)
+    (hX : Submartingale X 𝓕 P)
     (hC : ∀ ω, IsRightContinuous (X · ω)) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   rw [locally_classD_iff_locally_classDL]
@@ -870,8 +865,7 @@ lemma _root_.MeasureTheory.Submartingale.locally_classD
 
 /-- A nonnegative local submartingale is locally of class D. -/
 theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E] [Lattice E]
-    [HasSolidNorm E] [IsOrderedAddMonoid E] [IsOrderedModule ℝ E]
-    [MeasureSpace E] [BorelSpace E] [SecondCountableTopology E]
+    [HasSolidNorm E] [IsOrderedAddMonoid E] [Approximable 𝓕 P]
     (h𝓕 : 𝓕.IsRightContinuous) (hX : IsLocalSubmartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
     Locally (ClassD · 𝓕 P) 𝓕 X P := by
   refine isStable_classD.locally_induction' ?_ ?_

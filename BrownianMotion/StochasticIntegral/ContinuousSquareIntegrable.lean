@@ -74,11 +74,12 @@ lemma IsAESquareIntegrable.isSquareIntegrable_toContinuous [h𝓕 : 𝓕.IsCompl
     · simp [s, hω, toContinuous]
   · filter_upwards [obv] with ω h
     simp [toContinuous, h]
-  · convert hX2.choose_spec.1.memLp_limitProcess.2
-    rw [← hX2.choose_spec.1.iSup_eLpNorm_eq_eLpNorm_limitProcess]
-    congr with i
-    rw [← eLpNorm_congr_ae ((hX2.indist_toContinuous hX1).ae_eq_eval i),
-      eLpNorm_congr_ae (hX2.choose_spec.2.ae_eq_eval i)]
+  · have h_eq : ⨆ i, eLpNorm (hX2.toContinuous X i) 2 P = ⨆ i, eLpNorm (hX2.choose i) 2 P := by
+      congr with i
+      rw [← eLpNorm_congr_ae ((hX2.indist_toContinuous hX1).ae_eq_eval i),
+        eLpNorm_congr_ae (hX2.choose_spec.2.ae_eq_eval i)]
+    rw [h_eq]
+    exact hX2.choose_spec.1.bounded
 
 /-- A square integrable martingale that is almost surely continuous is indistinguishable
 from a square integrable martingale that is continuous everywhere. -/
@@ -98,12 +99,13 @@ lemma IsAESquareIntegrable.mk_mem_continuousSquareIntegrable [𝓕.IsComplete P]
   filter_upwards [hX2, SquareIntegrable.mk_indist hX1] with ω h1 h2
   simpa [h2]
 
+variable [SecondCountableTopology ι] [OrderTopology ι] [HasRadonNikodymProp E]
+
 /-- If `M` is a sequence of square integrable martingales that converges to `N` in
 `SquareIntegrable E P 𝓕`, then there exists `φ : ℕ → ℕ` increasing such that almost surely,
 `M n` converges to `N` uniformly. This is needed to show that the space of continuous
 square integrable martingales is closed. -/
 lemma exists_subsequence_ae_tendsto_uniformly {M : ℕ → ι → Ω → E} {N : ι → Ω → E}
-    [OrderTopology ι] [SecondCountableTopology ι]
     (hM : ∀ n, IsAESquareIntegrable (M n) 𝓕 P) (hN : IsAESquareIntegrable N 𝓕 P)
     (h : Tendsto (fun n ↦ eLpNorm (𝓕.limitProcess (M n) P - 𝓕.limitProcess N P) 2 P) atTop (𝓝 0)) :
     ∃ φ : ℕ → ℕ, StrictMono φ ∧
@@ -171,7 +173,7 @@ lemma exists_subsequence_ae_tendsto_uniformly {M : ℕ → ι → Ω → E} {N :
 
 /-- The submodule of continuous square integrable martingales is closed in the Hilbert space
 of square integrable martingales. -/
-instance [𝓕.IsComplete P] [Nonempty ι] [OrderTopology ι] [SecondCountableTopology ι] :
+instance [𝓕.IsComplete P] [Nonempty ι] :
     IsClosed (continuousSquareIntegrable E P 𝓕 : Set (SquareIntegrable E P 𝓕)) := by
   refine IsSeqClosed.isClosed fun M N hM1 hM2 ↦ ?_
   have :
@@ -263,7 +265,7 @@ in the Hilbert space of square integrable martingales. -/
 noncomputable def discontinuousSquareIntegrable : Submodule ℝ (SquareIntegrable E P 𝓕) :=
   (continuousSquareIntegrable E P 𝓕).orthogonal
 
-omit [OrderTopology ι] [𝓕.IsRightContinuous] in
+omit [𝓕.IsRightContinuous] in
 /-- A purely discontinuous square integrable martingale is in the submodule of purely discontinuous
 square integrable martingales. This statements links the predicate `IsPurelyDiscontinuous`
 with the submodule `discontinuousSquareIntegrable`. -/
@@ -275,7 +277,7 @@ lemma mem_discontinuousSquareIntegrable {Y : SquareIntegrable E P 𝓕}
   · exact X.isAESquareIntegrable_coe
   · exact ae_of_all _ <| continuous_coe hX
 
-omit [OrderTopology ι] [𝓕.IsRightContinuous] in
+omit [𝓕.IsRightContinuous] in
 /-- A purely discontinuous square integrable martingale is in the submodule of purely discontinuous
 square integrable martingales. This statements links the predicate `IsPurelyDiscontinuous`
 with the submodule `discontinuousSquareIntegrable`. -/

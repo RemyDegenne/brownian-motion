@@ -526,7 +526,8 @@ Every nonnegative right-continuous submartingale is of class DL.
 \begin{proof}
   \leanok
   \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrableDominated, lem:condExpUI}
-Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} and nonnegativity we get that $0 \le X_\tau \le P[X_t \mid X_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{X_t\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
+The norm $\Vert X \Vert$ is a nonnegative right-continuous real submartingale: for $s \le t$, $0 \le X_s \le P[X_t \mid \mathcal{F}_s]$ gives $\Vert X_s \Vert \le \Vert P[X_t \mid \mathcal{F}_s] \Vert \le P[\Vert X_t \Vert \mid \mathcal{F}_s]$.
+Let $t \in T$ and $\tau \le t$ be a stopping time. By Lemma~\ref{lem:optionalSamplingSubmartingale} applied to $\Vert X \Vert$ we get that $\Vert X_\tau \Vert \le P[\Vert X_t \Vert \mid \mathcal{F}_\tau]$. As $X$ is a submartingale, $X_t$ is integrable, thus $\{\Vert X_t \Vert\}$ is uniformly integrable, and we can conclude from Lemma~\ref{lem:uniformIntegrableDominated} and Lemma~\ref{lem:condExpUI}.
 \end{proof}
 
 
@@ -540,7 +541,7 @@ A nonnegative right-continuous submartingale is of class D if and only if it is 
 \begin{proof}
   \leanok
   \uses{lem:optionalSamplingSubmartingale, lem:uniformIntegrable_of_tendsto_ae, lem:uniformIntegrableComp, lem:ClassD.uniformIntegrable}
-Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
+Assume that $X$ is uniformly integrable. Just like what we did in the proof of Lemma~\ref{lem:Submartingale.classDL}, we use Lemma~\ref{lem:optionalSamplingSubmartingale} for the real submartingale $\Vert X \Vert$ and Lemma~\ref{lem:condExpUI} to deduce that $\{X_\tau|\exists t\in T, \tau\le t\}$ is uniformly integrable. Moreover, for any finite stopping time $\tau$, We have that $X_\tau = \lim_{n \to +\infty} X_{\tau \land n}$. Thanks to Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}, we deduce that $X$ is of class D.
 
 Conversely, if $X$ is of class D, then it is uniformly integrable by Lemma~\ref{lem:ClassD.uniformIntegrable}.
 \end{proof}

@@ -6,6 +6,7 @@ Authors: Rémy Degenne, Thomas Zhu
 module
 
 public import BrownianMotion.Auxiliary.Martingale
+public import BrownianMotion.Auxiliary.MeanInequalities
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.Probability.Martingale.OptionalStopping
 
@@ -505,16 +506,102 @@ lemma maximal_ineq_norm (hmar : Martingale X 𝓕 P) (ε : ℝ) (n : ι)
   refine maximal_ineq hmar.submartingale_norm (fun _ _ ↦ norm_nonneg _) ε n fun ω => ?_
   exact (hX_cont ω).continuous_comp continuous_norm
 
+omit [IsFiniteMeasure P] in
+/-- The supremum up to time `T` of a right-continuous family of measurable functions is
+measurable. -/
+lemma measurable_biSup_Iic_of_rightContinuous {β : Type*} {f : ι → Ω → β}
+    [TopologicalSpace β] [MeasurableSpace β] [BorelSpace β] [CompleteLinearOrder β]
+    [OrderTopology β] [SecondCountableTopology β] (hf_cont : ∀ ω, IsRightContinuous (f · ω))
+    (hf : ∀ t, Measurable (f t)) (T : ι) :
+    Measurable fun ω ↦ ⨆ t ≤ T, f t ω := by
+  have h_eq : (fun ω ↦ ⨆ t ≤ T, f t ω) = ⨆ i : Set.Iic T, f i := by
+    ext ω
+    rw [iSup_apply, iSup_subtype']
+    rfl
+  rw [h_eq]
+  refine measurable_iSup_of_rightContinuous (fun ω a ↦ ?_) fun t ↦ hf t
+  exact (hf_cont ω a).comp continuous_subtype_val.continuousWithinAt fun x ↦ by simp
+
+/-- **Doob's `L^p` inequality** for a nonnegative right-continuous submartingale `Y`: the `L^p`
+norm of the supremum of `Y t` for `t ≤ T` is at most `p / (p - 1)` times the `L^p` norm of
+`Y T`. -/
+theorem lintegral_iSup_le_ofReal_rpow_le (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (T : ι)
+    (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) {p : ℝ} (hp : 1 < p) :
+    ∫⁻ ω, (⨆ t ≤ T, ENNReal.ofReal (Y t ω)) ^ p ∂P ≤
+      ENNReal.ofReal ((p / (p - 1)) ^ p) * ∫⁻ ω, ENNReal.ofReal (Y T ω) ^ p ∂P := by
+  have h_meas (t : ι) : Measurable fun ω ↦ ENNReal.ofReal (Y t ω) :=
+    ((hsub.stronglyAdapted t).mono (𝓕.le t)).measurable.ennreal_ofReal
+  -- it suffices to prove the maximal inequality for the supremum of `Y t`, with values in `ℝ≥0∞`
+  refine lintegral_rpow_le_of_forall_mul_meas_le
+    (measurable_biSup_Iic_of_rightContinuous
+      (fun ω ↦ (hY_cont ω).continuous_comp ENNReal.continuous_ofReal) h_meas T).aemeasurable
+    (h_meas T).aemeasurable (fun _ _ ↦ measure_ne_top _ _) (fun ε ↦ ?_) hp
+  have h := maximal_ineq_ennreal hsub hnonneg ε T hY_cont
+  have h_sup (ω : Ω) :
+      ⨆ i : Set.Iic T, ENNReal.ofReal (Y i ω) = ⨆ t ≤ T, ENNReal.ofReal (Y t ω) := by
+    rw [iSup_subtype']
+    rfl
+  simp_rw [h_sup] at h
+  have h' := ENNReal.ofReal_le_ofReal h
+  rwa [ENNReal.ofReal_mul ε.coe_nonneg, ENNReal.ofReal_coe_nnreal, ofReal_measureReal,
+    ofReal_integral_eq_lintegral_ofReal (hsub.integrable T).integrableOn
+      (ae_of_all _ fun ω ↦ hnonneg T ω)] at h'
+
+/-- **Doob's `L^p` inequality** for a nonnegative right-continuous submartingale `Y`: the `L^p`
+norm of the supremum of `Y t` over all times is at most `p / (p - 1)` times the supremum of the
+`L^p` norms of the `Y t`. -/
+theorem lintegral_iSup_ofReal_rpow_le (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y)
+    (hY_cont : ∀ ω, IsRightContinuous (Y · ω)) {p : ℝ} (hp : 1 < p) :
+    ∫⁻ ω, (⨆ t, ENNReal.ofReal (Y t ω)) ^ p ∂P ≤
+      ENNReal.ofReal ((p / (p - 1)) ^ p) * ⨆ t, ∫⁻ ω, ENNReal.ofReal (Y t ω) ^ p ∂P := by
+  have hp0 : 0 < p := zero_lt_one.trans hp
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · simp [hp0]
+  have h_meas (t : ι) : Measurable fun ω ↦ ENNReal.ofReal (Y t ω) :=
+    ((hsub.stronglyAdapted t).mono (𝓕.le t)).measurable.ennreal_ofReal
+  have h_cont (ω : Ω) : IsRightContinuous fun t ↦ ENNReal.ofReal (Y t ω) :=
+    (hY_cont ω).continuous_comp (g := ENNReal.ofReal) ENNReal.continuous_ofReal
+  -- the supremum over all times is the supremum over `n` of the supremum over the times before
+  -- `t n`, for a sequence `t` which tends to infinity
+  obtain ⟨t, ht_mono, ht⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
+  have h_sup (ω : Ω) : (⨆ s, ENNReal.ofReal (Y s ω)) ^ p
+      = ⨆ n, (⨆ s ≤ t n, ENNReal.ofReal (Y s ω)) ^ p := by
+    rw [← ENNReal.rpow_iSup _ hp0]
+    congr 1
+    refine le_antisymm (iSup_le fun s ↦ ?_)
+      (iSup_le fun n ↦ iSup₂_le fun s _ ↦ le_iSup (fun s ↦ ENNReal.ofReal (Y s ω)) s)
+    obtain ⟨n, hn⟩ := (ht.eventually_ge_atTop s).exists
+    exact le_iSup_of_le n (le_iSup₂ (f := fun s _ ↦ ENNReal.ofReal (Y s ω)) s hn)
+  simp_rw [h_sup]
+  -- we conclude by monotone convergence
+  rw [lintegral_iSup
+    (fun n ↦ (measurable_biSup_Iic_of_rightContinuous h_cont h_meas _).pow_const p)
+    fun n k hnk ω ↦ ENNReal.rpow_le_rpow (iSup₂_le fun s hs ↦
+      le_iSup₂ (f := fun s _ ↦ ENNReal.ofReal (Y s ω)) s (hs.trans (ht_mono hnk))) hp0.le]
+  refine iSup_le fun n ↦ (lintegral_iSup_le_ofReal_rpow_le hsub hnonneg (t n) hY_cont hp).trans ?_
+  gcongr
+  exact le_iSup (fun s ↦ ∫⁻ ω, ENNReal.ofReal (Y s ω) ^ p ∂P) (t n)
+
+/-- **Doob's `L^p` inequality** for a right-continuous martingale with values in a Banach space:
+the `L^p` norm of the supremum of `‖X t‖` for `t ≤ T` is at most `p / (p - 1)` times the `L^p`
+norm of `X T`. -/
 theorem integral_iSup_le_norm_rpow_le (hmar : Martingale X 𝓕 P) (T : ι)
     (hX_cont : ∀ ω, IsRightContinuous (X · ω)) {p : ℝ} (hp : 1 < p) :
     ∫⁻ ω, (⨆ t ≤ T, ‖X t ω‖ₑ) ^ p ∂P ≤
       (.ofReal ((p / (p - 1)) ^ p : ℝ)) * ∫⁻ ω, ‖X T ω‖ₑ ^ p ∂P := by
-  sorry
+  -- this is the inequality for the nonnegative submartingale `‖X‖`
+  simpa only [ofReal_norm] using lintegral_iSup_le_ofReal_rpow_le hmar.submartingale_norm
+    (fun _ _ ↦ norm_nonneg _) T (fun ω ↦ (hX_cont ω).continuous_comp continuous_norm) hp
 
+/-- **Doob's `L^p` inequality** for a right-continuous martingale with values in a Banach space:
+the `L^p` norm of the supremum of `‖X t‖` over all times is at most `p / (p - 1)` times the
+supremum of the `L^p` norms of the `X t`. -/
 theorem integral_iSup_norm_rpow_le (hmar : Martingale X 𝓕 P)
     (hX_cont : ∀ ω, IsRightContinuous (X · ω)) {p : ℝ} (hp : 1 < p) :
     ∫⁻ ω, (⨆ t, ‖X t ω‖ₑ) ^ p ∂P ≤
       (.ofReal ((p / (p - 1)) ^ p : ℝ)) * ⨆ t, ∫⁻ ω, ‖X t ω‖ₑ ^ p ∂P := by
-  sorry
+  -- this is the inequality for the nonnegative submartingale `‖X‖`
+  simpa only [ofReal_norm] using lintegral_iSup_ofReal_rpow_le hmar.submartingale_norm
+    (fun _ _ ↦ norm_nonneg _) (fun ω ↦ (hX_cont ω).continuous_comp continuous_norm) hp
 
 end ProbabilityTheory

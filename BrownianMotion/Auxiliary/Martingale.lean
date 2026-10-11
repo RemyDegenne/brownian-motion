@@ -94,4 +94,43 @@ lemma Submartingale.monotone_convex_comp [Preorder E] (hX : Submartingale X 𝓕
     _ ≤ᵐ[P] P[fun ω ↦ φ (X j ω) | 𝓕 i] :=
       hφ_cvx.map_condExp_le_univ (𝓕.le i) hφ_cont.lowerSemicontinuous (hX.integrable j) (hφ_int j)
 
+/-- The norm of a nonnegative submartingale with values in a Banach lattice is a real
+submartingale. -/
+lemma Submartingale.norm_of_nonneg [Lattice E] [HasSolidNorm E] [IsOrderedAddMonoid E]
+    (hX : Submartingale X 𝓕 P) (hX_nonneg : 0 ≤ X) :
+    Submartingale (fun t ω ↦ ‖X t ω‖) 𝓕 P := by
+  refine ⟨fun i ↦ (hX.stronglyAdapted i).norm, fun i j hij ↦ ?_, fun i ↦ (hX.integrable i).norm⟩
+  calc (fun ω ↦ ‖X i ω‖)
+    _ ≤ᵐ[P] fun ω ↦ ‖P[X j | 𝓕 i] ω‖ := (hX.ae_le_condExp hij).mono fun ω hω ↦ by
+      refine norm_le_norm_of_abs_le_abs ?_
+      rwa [abs_of_nonneg (hX_nonneg i ω), abs_of_nonneg ((hX_nonneg i ω).trans hω)]
+    _ ≤ᵐ[P] P[fun ω ↦ ‖X j ω‖ | 𝓕 i] :=
+      convexOn_univ_norm.map_condExp_le_univ (𝓕.le i) continuous_norm.lowerSemicontinuous
+        (hX.integrable j) (hX.integrable j).norm
+
+section LinearOrder
+
+variable {ι Ω E : Type*} [LinearOrder ι] [Nonempty ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
+  [CompleteSpace E] {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E}
+  {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
+
+/-- A martingale stopped at a constant time is a martingale. -/
+lemma Martingale.stoppedProcess_const (hX : Martingale X 𝓕 P) (s : ι) :
+    Martingale (stoppedProcess X fun _ ↦ (s : WithTop ι)) 𝓕 P := by
+  have h_eq (i : ι) : stoppedProcess X (fun _ ↦ (s : WithTop ι)) i = X (min i s) := by
+    ext ω
+    simp only [stoppedProcess, ← WithTop.coe_min, WithTop.untopA, WithTop.untopD_coe]
+  refine ⟨fun i ↦ h_eq i ▸ (hX.stronglyAdapted (min i s)).mono (𝓕.mono (min_le_left _ _)),
+    fun i j hij ↦ ?_⟩
+  rw [h_eq, h_eq]
+  rcases le_total j s with hjs | hsj
+  · simpa only [min_eq_left hjs, min_eq_left (hij.trans hjs)] using hX.2 i j hij
+  rcases le_total i s with his | hsi
+  · simpa only [min_eq_right hsj, min_eq_left his] using hX.2 i s his
+  · simp only [min_eq_right hsj, min_eq_right hsi]
+    exact (condExp_of_stronglyMeasurable (𝓕.le i) ((hX.stronglyAdapted s).mono (𝓕.mono hsi))
+      (hX.integrable s)).eventuallyEq
+
+end LinearOrder
+
 end MeasureTheory

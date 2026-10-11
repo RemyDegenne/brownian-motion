@@ -48,6 +48,15 @@ lemma limitProcess_congr {X Y : ι → Ω → E} (hXY : X ≡ᵐ[P] Y) :
   refine ⟨g, hg1, ?_⟩
   filter_upwards [hg2, hXY] with ω h1 h2 using h1.congr (fun t ↦ (h2 t).symm)
 
+omit [Nonempty ι] in
+/-- If there is no time, the limit process is a constant function. -/
+lemma exists_limitProcess_eq_const [IsEmpty ι] (X : ι → Ω → E) (𝓕 : Filtration ι mΩ)
+    (P : Measure Ω) :
+    ∃ c : E, 𝓕.limitProcess X P = fun _ ↦ c := by
+  have h := 𝓕.stronglyMeasurable_limitProcess (f := X) (μ := P)
+  rw [iSup_of_empty] at h
+  exact stronglyMeasurable_bot_iff.1 h
+
 lemma limitProcess_const (c : E) :
     𝓕.limitProcess (fun _ _ ↦ c) P =ᵐ[P] (fun _ ↦ c) := by
   apply limitProcess_ae_eq stronglyMeasurable_const (by simp)
