@@ -42,9 +42,7 @@ respect to `μ`.
   invariant under continuous linear equivalences.
 * `HasRadonNikodymProp.of_forall_isSeparable`: the Radon-Nikodym property is separably determined.
   A normed space has the property as soon as its closed separable subspaces have it.
-* `HasRadonNikodymProp.of_surjective_inclusionInDoubleDual`: a reflexive space has the
-  Radon-Nikodym property. Mathlib has no definition of reflexive spaces: the assumption is that
-  the canonical map from `E` to its double dual is surjective.
+* `HasRadonNikodymProp.of_isReflexive`: a reflexive space has the Radon-Nikodym property.
 * Instances: `ℝ`, real and complex Hilbert spaces, finite-dimensional spaces, finite products
   (`E × F`, `Π i, G i`, and their `L^p` versions `WithLp p (E × F)`, `PiLp p G`) and complete
   subspaces of spaces with the Radon-Nikodym property.
@@ -725,13 +723,15 @@ private lemma norm_linearCombination_le_of_forall_rat {ι : Type*} {φ : ι → 
 
 /-- **Radon-Nikodym theorem** for a vector measure with values in a separable reflexive space,
 dominated by a finite measure. -/
-private theorem exists_withDensityᵥ_eq_of_separableSpace [CompleteSpace E] [SeparableSpace E]
-    (hE : Surjective (inclusionInDoubleDual ℝ E)) (μ : Measure Ω) [IsFiniteMeasure μ]
+private theorem exists_withDensityᵥ_eq_of_separableSpace [SeparableSpace E]
+    [StrongDual.IsReflexive ℝ E] (μ : Measure Ω) [IsFiniteMeasure μ]
     (ν : VectorMeasure Ω E) (hν : ∀ s, MeasurableSet s → ‖ν s‖ₑ ≤ μ s) :
     ∃ f : Ω → E, StronglyMeasurable f ∧ (∀ ω, ‖f ω‖ ≤ 1) ∧ μ.withDensityᵥ f = ν := by
+  have := StrongDual.IsReflexive.completeSpace ℝ E
   -- `φ` is a sequence of continuous linear forms which separates the points of `E`, and `g k` is
   -- a density of the real measure `φ k ∘ ν` with respect to `μ`
-  obtain ⟨φ, hφ⟩ := exists_seq_strongDual_forall_apply_eq_zero_imp ℝ E
+  have hE_sep : TopologicalSpace.IsSeparable (Set.univ : Set E) := .of_separableSpace _
+  obtain ⟨φ, hφ⟩ := hE_sep.exists_seq_strongDual_eq_zero_of_forall_apply_eq_zero ℝ
   choose g hg_meas hg_int hg_eq using fun k ↦ exists_setIntegral_eq_strongDual_apply hν (φ k)
   -- almost everywhere, the linear combinations of the `g k` with rational coefficients are bounded
   -- by the norms of the same linear combinations of the `φ k`
@@ -757,7 +757,7 @@ private theorem exists_withDensityᵥ_eq_of_separableSpace [CompleteSpace E] [Se
   -- by Helly's theorem, there is a point `f ω` such that `φ k (f ω) = g k ω` for all `k`
   have h_exists (ω : Ω) : ∃ y : E, ‖y‖ ≤ 1 ∧ ∀ k, φ k y = G.indicator (g k) ω := by
     by_cases hω : ω ∈ G
-    · simpa only [Set.indicator_of_mem hω] using exists_norm_le_one_forall_apply_eq hE φ (g · ω)
+    · simpa only [Set.indicator_of_mem hω] using exists_norm_le_one_forall_apply_eq φ (g · ω)
         (norm_linearCombination_le_of_forall_rat hω)
     · exact ⟨0, by simp, fun k ↦ by simp [hω]⟩
   choose f hf_norm hf_φ using h_exists
@@ -765,7 +765,8 @@ private theorem exists_withDensityᵥ_eq_of_separableSpace [CompleteSpace E] [Se
   borelize E
   have hf_meas : Measurable f := by
     have hΦ : MeasurableEmbedding fun (y : E) (k : ℕ) ↦ φ k y := by
-      refine Continuous.measurableEmbedding (by fun_prop) fun y z hyz ↦ sub_eq_zero.1 (hφ _ ?_)
+      refine Continuous.measurableEmbedding (by fun_prop) fun y z hyz ↦
+        sub_eq_zero.1 (hφ _ (Set.mem_univ _) ?_)
       exact fun k ↦ by rw [map_sub, sub_eq_zero, congrFun hyz k]
     refine hΦ.measurable_comp_iff.1 (measurable_pi_iff.2 fun k ↦ ?_)
     simpa only [Function.comp_def, hf_φ] using (hg_meas k).indicator hG_meas
@@ -773,7 +774,7 @@ private theorem exists_withDensityᵥ_eq_of_separableSpace [CompleteSpace E] [Se
   refine ⟨f, hf_meas.stronglyMeasurable, hf_norm, ?_⟩
   ext s hs
   rw [withDensityᵥ_apply hf_int hs]
-  refine sub_eq_zero.1 (hφ _ fun k ↦ ?_)
+  refine sub_eq_zero.1 (hφ _ (Set.mem_univ _) fun k ↦ ?_)
   rw [map_sub, sub_eq_zero, ← (φ k).integral_comp_comm hf_int.integrableOn, ← hg_eq k s hs]
   refine setIntegral_congr_ae hs ?_
   filter_upwards [hG_ae] with ω hω _
@@ -786,30 +787,22 @@ namespace HasRadonNikodymProp
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-- A separable reflexive Banach space has the Radon-Nikodym property. -/
-private theorem of_separableSpace_of_surjective_inclusionInDoubleDual [CompleteSpace E]
-    [SeparableSpace E] (hE : Surjective (inclusionInDoubleDual ℝ E)) :
+private theorem of_separableSpace_of_isReflexive [SeparableSpace E] [StrongDual.IsReflexive ℝ E] :
     HasRadonNikodymProp E where
   exists_withDensityᵥ_eq' μ _ ν _ hν := by
     -- `ν` has a bounded density with respect to its variation, which has a density w.r.t. `μ`
-    obtain ⟨f, hf_sm, hf_norm, hf_eq⟩ := exists_withDensityᵥ_eq_of_separableSpace hE ν.variation ν
+    obtain ⟨f, hf_sm, hf_norm, hf_eq⟩ := exists_withDensityᵥ_eq_of_separableSpace ν.variation ν
       fun s _ ↦ ν.enorm_measure_le_variation s
     exact exists_integrable_withDensityᵥ_eq_of_variation hν hf_sm hf_norm hf_eq
 
-/-- A reflexive space has the Radon-Nikodym property. -/
-theorem of_surjective_inclusionInDoubleDual (hE : Surjective (inclusionInDoubleDual ℝ E)) :
-    HasRadonNikodymProp E := by
+/-- A reflexive space has the Radon-Nikodym property. In particular, a real Hilbert space has the
+Radon-Nikodym property, by `InnerProductSpace.isReflexive`. -/
+instance (priority := 100) of_isReflexive [StrongDual.IsReflexive ℝ E] : HasRadonNikodymProp E := by
   -- the closed separable subspaces of `E` are reflexive
   refine of_forall_isSeparable fun F hF hF_sep ↦ ?_
-  have := completeSpace_of_surjective_inclusionInDoubleDual hE
-  have := hF.completeSpace_coe
   have := hF_sep.separableSpace
-  exact of_separableSpace_of_surjective_inclusionInDoubleDual
-    (surjective_inclusionInDoubleDual_of_isClosed hE hF)
-
-/-- A real Hilbert space has the Radon-Nikodym property. -/
-instance of_innerProductSpace {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
-    [CompleteSpace H] : HasRadonNikodymProp H :=
-  of_surjective_inclusionInDoubleDual InnerProductSpace.surjective_inclusionInDoubleDual
+  have := StrongDual.IsReflexive.submodule_of_isClosed F hF
+  exact of_separableSpace_of_isReflexive
 
 /-- A complex Hilbert space has the Radon-Nikodym property. -/
 instance of_complexInnerProductSpace {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℂ H]
