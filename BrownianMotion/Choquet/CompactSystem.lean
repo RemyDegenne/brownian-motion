@@ -58,18 +58,6 @@ lemma Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι :
   simp only [Set.mem_prod, Set.mem_iInter]
   exact ⟨fun ⟨h1, h2⟩ i ↦ ⟨h1 i, h2⟩, fun h ↦ ⟨fun i ↦ (h i).1, (h hι.some).2⟩⟩
 
--- TODO: unused
-lemma Set.dissipate_congr {β : Type*} {s t : ℕ → Set β} {n : ℕ}
-    (h_eq : ∀ m ≤ n, s m = t m) :
-    Set.dissipate s n = Set.dissipate t n := by
-  simp only [Set.dissipate_def]
-  congr with m x
-  simp only [Set.mem_iInter]
-  refine ⟨fun h h_le ↦ ?_, fun h h_le ↦ ?_⟩
-    <;> specialize h h_le
-  · rwa [h_eq m h_le] at h
-  · rwa [h_eq m h_le]
-
 variable {α : Type*} {S : Set (Set α)}
 
 lemma mem_supClosure_set_iff (s : Set α) :
@@ -118,36 +106,6 @@ lemma mem_supClosure_set_iff' (s : Set α) :
         rw [dite_eq_left hn] at hxn
         exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
-
--- TODO: unused
-lemma mem_supClosure_insert_empty_iff (s : Set α) :
-    s ∈ supClosure (insert ∅ S) ↔ ∃ L : Finset (Set α), s = ⋃₀ L ∧ ↑L ⊆ insert ∅ S := by
-  rw [mem_supClosure_set_iff]
-  refine ⟨fun ⟨L, hL_nonempty, hL_eq, hL_subset⟩ ↦ ⟨L, hL_eq, hL_subset⟩,
-    fun ⟨L, hL_eq, hL_subset⟩ ↦ ?_⟩
-  classical
-  refine ⟨if L.Nonempty then L else {∅}, ?_, ?_, fun _ ↦ by simp; grind⟩
-  · split_ifs
-    · simpa
-    · simp
-  · rcases Finset.eq_empty_or_nonempty L with (rfl | hL_nonempty)
-    · simpa using hL_eq
-    · simpa [hL_nonempty]
-
--- TODO: unused
-lemma mem_infClosure_insert_univ_iff (s : Set α) :
-    s ∈ infClosure (insert Set.univ S) ↔
-      ∃ L : Finset (Set α), s = ⋂₀ L ∧ ↑L ⊆ insert Set.univ S := by
-  rw [mem_infClosure_set_iff]
-  refine ⟨fun ⟨L, hL_nonempty, hL_eq, hL_subset⟩ ↦ ⟨L, hL_eq, hL_subset⟩,
-    fun ⟨L, hL_eq, hL_subset⟩ ↦ ?_⟩
-  refine ⟨if L.Nonempty then L else {Set.univ}, ?_, ?_, fun _ ↦ by simp; grind⟩
-  · split_ifs
-    · simpa
-    · simp
-  · rcases Finset.eq_empty_or_nonempty L with rfl | hL_nonempty
-    · simpa using hL_eq
-    · simpa [hL_nonempty]
 
 end Aux
 
@@ -335,13 +293,6 @@ lemma biUnion_finset_mem_supClosure' {s : Finset ℕ} (hs_nonempty : s.Nonempty)
     (⋃ n ∈ s, A n) ∈ supClosure p := by
   rw [mem_supClosure_set_iff']
   exact ⟨s, hs_nonempty, A, hs, rfl⟩
-
--- TODO: unused
-lemma biUnion_finset_mem_supClosure {s : Finset ℕ} (hs_nonempty : s.Nonempty) {A : ℕ → Set 𝓧}
-    (hs : ∀ n ∈ s, A n ∈ supClosure p) :
-    (⋃ n ∈ s, A n) ∈ supClosure p := by
-  have := biUnion_finset_mem_supClosure' hs_nonempty hs
-  rwa [supClosure_idem] at this
 
 lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ prodSigmaDelta p q ↔

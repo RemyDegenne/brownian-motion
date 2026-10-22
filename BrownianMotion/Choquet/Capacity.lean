@@ -303,7 +303,6 @@ theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [Den
   refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
   rwa [isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
 
--- todo: swap could be any measurable embedding?
 lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
     {p : Set (Set (𝓧 × Ω))} (hs : IsPavingAnalytic p s) :
     IsPavingAnalytic ((fun s ↦ Prod.swap '' s) '' p) (Prod.swap '' s) := by

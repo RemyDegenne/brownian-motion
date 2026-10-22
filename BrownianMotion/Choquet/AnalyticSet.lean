@@ -83,17 +83,6 @@ lemma MeasurableSpace.prod_mono {Ω ι : Type*} {mι : MeasurableSpace ι} {mι'
   · rw [MeasurableSpace.comap_le_iff_le_map]
     exact h₂.trans MeasurableSpace.le_map_comap
 
--- TODO: unused
-lemma borel_eq_generateFrom_isCompact :
-    borel ℝ = MeasurableSpace.generateFrom {s : Set ℝ | IsCompact s} := by
-  refine le_antisymm ?_ ?_
-  · rw [borel_eq_generateFrom_Icc]
-    refine MeasurableSpace.generateFrom_mono fun s hs ↦ ?_
-    obtain ⟨a, b, hab, rfl⟩ := hs
-    exact isCompact_Icc
-  · rw [MeasurableSpace.generateFrom_le_iff]
-    exact fun _ hs ↦ hs.measurableSet
-
 lemma borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
     [LinearOrder α] [OrderTopology α] :
     borel α = .generateFrom { S : Set α | ∃ (l u : α), Set.Icc l u = S } := by
@@ -111,20 +100,6 @@ lemma borel_eq_generateFrom_insert_empty_Icc (α : Type*) [TopologicalSpace α]
     borel α = .generateFrom (insert ∅ { S : Set α | ∃ (l u : α), Set.Icc l u = S }) := by
   rw [MeasurableSpace.generateFrom_insert_empty]
   exact borel_eq_generateFrom_Icc' α
-
--- TODO: unused
-lemma isCountablySpanning_isCompact : IsCountablySpanning {s : Set ℝ | IsCompact s} := by
-  refine ⟨fun n : ℕ ↦ Set.Icc (-n : ℝ) n, fun _ ↦ isCompact_Icc, ?_⟩
-  ext x
-  simp only [Set.mem_iUnion, Set.mem_Icc, Set.mem_univ, iff_true, ← abs_le]
-  exact ⟨⌈|x|⌉₊, Nat.le_ceil _⟩
-
--- TODO: unused
-lemma isCountablySpanning_Icc : IsCountablySpanning {t | ∃ a b : ℝ, Set.Icc a b = t} := by
-  refine ⟨fun n : ℕ ↦ Set.Icc (-n : ℝ) n, fun n ↦ ⟨-n, n, rfl⟩, ?_⟩
-  ext x
-  simp only [Set.mem_iUnion, Set.mem_Icc, Set.mem_univ, iff_true, ← abs_le]
-  exact ⟨⌈|x|⌉₊, Nat.le_ceil _⟩
 
 namespace MeasureTheory
 
@@ -176,18 +151,6 @@ lemma MeasurableSet.of_mem_image2_prod {Ω 𝓧 : Type*}
     MeasurableSet s := by
   obtain ⟨A, hA, B, hB, rfl⟩ := hs
   exact MeasurableSet.prod (hp A hA) (hq B hB)
-
--- TODO: unused
-lemma MeasurableSet.of_mem_prodSigmaDelta {Ω 𝓧 : Type*}
-    {mΩ : MeasurableSpace Ω} {m𝓧 : MeasurableSpace 𝓧}
-    {s : Set (𝓧 × Ω)} {p : Set (Set 𝓧)} {q : Set (Set Ω)}
-    (hs : s ∈ MeasureTheory.prodSigmaDelta p q)
-    (hp : ∀ t ∈ p, MeasurableSet t) (hq : ∀ t ∈ q, MeasurableSet t) :
-    MeasurableSet s := by
-  unfold MeasureTheory.prodSigmaDelta at hs
-  refine .of_mem_countableInfClosure hs fun s hs ↦ ?_
-  refine .of_mem_countableSupClosure hs fun s hs ↦ ?_
-  exact .of_mem_image2_prod hs hp hq
 
 end Aux
 
@@ -252,7 +215,6 @@ lemma IsPavingAnalyticFor.empty (𝓚 : Type*) (hp : p.Nonempty) : IsPavingAnaly
 lemma IsPavingAnalytic.empty (hp : p.Nonempty) : IsPavingAnalytic p ∅ :=
   (IsPavingAnalyticFor.empty ℝ hp).isPavingAnalytic
 
--- TODO: unused
 @[simp]
 lemma isPavingAnalyticFor_iff_eq_empty (𝓚 : Type*) [IsEmpty 𝓚] (hp : p.Nonempty) (s : Set 𝓧) :
     IsPavingAnalyticFor p 𝓚 s ↔ s = ∅ := by
@@ -674,7 +636,6 @@ lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
   exact (IsPavingAnalyticFor.prod ht' hs').isPavingAnalytic
 
 -- He 1.29
--- TODO: unused
 lemma isPavingAnalyticFor_isPavingAnalyticFor
     (hs : IsPavingAnalyticFor {t | IsPavingAnalyticFor p 𝓚 t} 𝓚 s) :
     IsPavingAnalyticFor p (𝓚 × (ℕ → (_ : ℕ) × 𝓚)) s := by
@@ -700,7 +661,6 @@ lemma isPavingAnalytic_isPavingAnalytic_iff :
   ⟨isPavingAnalytic_isPavingAnalytic, fun hs ↦ isPavingAnalytic_of_mem hs⟩
 
 -- He 1.30
--- TODO: unused
 lemma IsPavingAnalyticFor.inter_set (hs : IsPavingAnalyticFor p 𝓚 s) (t : Set 𝓧) :
     IsPavingAnalyticFor {u | ∃ v, v ∈ p ∧ u = v ∩ t} 𝓚 (s ∩ t) := by
   obtain ⟨q, hq, A, hA, rfl⟩ := hs
@@ -716,7 +676,6 @@ lemma IsPavingAnalyticFor.inter_set (hs : IsPavingAnalyticFor p 𝓚 s) (t : Set
   grind
 
 -- He 1.30
--- TODO: unused
 lemma exists_isPavingAnalyticFor_of_inter_set (t : Set 𝓧)
     (hs : IsPavingAnalyticFor {u | ∃ v, v ∈ p ∧ u = v ∩ t} 𝓚 s) :
     ∃ s', IsPavingAnalyticFor p 𝓚 s' ∧ s = s' ∩ t := by
@@ -1083,7 +1042,6 @@ lemma isMeasurableAnalyticFor_of_snd {_ : MeasurableSpace 𝓚} [MeasurableSpace
 a measurable set of `𝓧 × ℝ`. -/
 def IsMeasurableAnalytic [MeasurableSpace 𝓧] (s : Set 𝓧) : Prop := IsMeasurableAnalyticFor ℝ s
 
--- TODO: unused
 lemma isMeasurableAnalytic_of_snd [MeasurableSpace 𝓧] {s : Set 𝓧} (t : Set (ℝ × 𝓧))
     (ht : MeasurableSet t) (hst : s = Prod.snd '' t) :
     IsMeasurableAnalytic s :=

@@ -177,15 +177,6 @@ lemma setOf_debut_ne_top_eq :
   simp [debut_ne_top_iff]
   grind
 
--- TODO: unused
-lemma measure_debut_ne_top_mono {A B : Set (ι × Ω)} (hAB : A ⊆ B) (u : ι) :
-    P {ω | debut A u ω ≠ ⊤} ≤ P {ω | debut B u ω ≠ ⊤} := by
-  refine measure_mono fun ω ↦ ?_
-  simp only [ne_eq, Set.mem_ofPred_eq]
-  refine fun hωA hωs ↦ hωA ?_
-  rw [eq_top_iff, ← hωs]
-  exact debut_anti _ hAB ω
-
 end Inequalities
 
 lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [ConditionallyCompleteLinearOrder ι]
