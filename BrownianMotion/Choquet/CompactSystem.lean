@@ -63,7 +63,7 @@ lemma mem_supClosure_set_iff' (s : Set α) :
       fun n ↦ if h : n < L.toList.length then L.toList[n] else ∅, ?_, ?_⟩
     · intro n hn
       rw [Finset.mem_range, ← hcard] at hn
-      simp only [dif_pos hn]
+      simp only [dite_eq_left hn]
       exact hL_subset (Finset.mem_coe.mpr (Finset.mem_toList.mp (List.getElem_mem hn)))
     · ext x
       rw [hL_eq]
@@ -71,10 +71,10 @@ lemma mem_supClosure_set_iff' (s : Set α) :
       constructor
       · rintro ⟨u, hu, hxu⟩
         obtain ⟨n, hn, rfl⟩ := List.mem_iff_getElem.mp (Finset.mem_toList.mpr hu)
-        exact ⟨n, hcard ▸ hn, by simpa only [dif_pos hn]⟩
+        exact ⟨n, hcard ▸ hn, by simpa only [dite_eq_left hn]⟩
       · rintro ⟨n, hn, hxn⟩
         rw [← hcard] at hn
-        rw [dif_pos hn] at hxn
+        rw [dite_eq_left hn] at hxn
         exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
 
@@ -266,25 +266,15 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
       fun b x => by simpa using Set.ext_iff.mp hfC ⟨b, x⟩
     constructor
     · specialize hf false
-      simp only [cond_false] at hf
+      simp only [Bool.cond_false] at hf
       convert hf using 1
       ext x
       exact (slice false x).symm
     · specialize hf true
-      simp only [cond_true] at hf
+      simp only [Bool.cond_true] at hf
       convert hf using 1
       ext x
       exact (slice true x).symm
-
--- check if we need to insert univ or not
--- PP: we don't need to insert univ in order for the lemma to be true. We proved that we can insert
--- univ in any compact system, and it stays a compact system.
--- this is proved in xxx
--- proved in some mathlib PR
-lemma IsCompactSystem.pi {𝓚 : ℕ → Type*} {q : (n : ℕ) → Set (Set (𝓚 n))}
-    (hq : ∀ n, IsCompactSystem (q n)) :
-    IsCompactSystem (Set.univ.pi '' (Set.univ.pi (fun n ↦ insert Set.univ (q n)))) := by
-  sorry
 
 namespace MeasureTheory
 
@@ -399,26 +389,11 @@ lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set �
       exact hp hn (hA _)
   · rw [Set.iUnion_accumulate, ← hs]
 
--- proved in a Mathlib PR
-lemma _root_.IsCompactSystem.image2_prod (hp : IsCompactSystem p) (hq : IsCompactSystem q) :
-    IsCompactSystem (Set.image2 (· ×ˢ ·) p q) := by
-  sorry
-
--- proved in a Mathlib PR
-protected lemma _root_.IsCompactSystem.countableInfClosure (hp : IsCompactSystem p) :
-    IsCompactSystem (countableInfClosure p) := by
-  sorry
-
 protected lemma _root_.IsCompactSystem.infClosure (hp : IsCompactSystem p) :
     IsCompactSystem (infClosure p) := by
   refine hp.countableInfClosure.mono ?_
   -- todo: extract lemma
   exact infClosure_min subset_countableInfClosure infClosed_countableInfClosure
-
--- proved in a Mathlib PR
-protected lemma _root_.IsCompactSystem.supClosure (hp : IsCompactSystem p) :
-    IsCompactSystem (supClosure p) := by
-  sorry
 
 -- He (35.1) in the proof of 1.35
 lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (hq : IsCompactSystem q)
@@ -432,17 +407,17 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (h
   choose D' hD' C' hC' hDC_eq' using hDC
   let D : ℕ → ℕ → Set 𝓧 := fun n m ↦ if hm : m ∈ S n then D' n m hm else ∅
   let C : ℕ → ℕ → Set 𝓚 := fun n m ↦ if hm : m ∈ S n then C' n m hm else ∅
-  have hD : ∀ n m, m ∈ S n → p (D n m) := by
+  have hD : ∀ n m, m ∈ S n → D n m ∈ p := by
     intro n m hm
-    simp only [D, dif_pos hm]
+    simp only [D, dite_eq_left hm]
     exact hD' n m hm
-  have hC : ∀ n m, m ∈ S n → q (C n m) := by
+  have hC : ∀ n m, m ∈ S n → C n m ∈ q := by
     intro n m hm
-    simp only [C, dif_pos hm]
+    simp only [C, dite_eq_left hm]
     exact hC' n m hm
   have hDC_eq : ∀ n m, m ∈ S n → DC n m = D n m ×ˢ C n m := by
     intro n m hm
-    simp only [D, C, dif_pos hm]
+    simp only [D, C, dite_eq_left hm]
     exact (hDC_eq' n m hm).symm
   have hB_eq n : B n = ⋃ m ∈ S n, D n m ×ˢ C n m := by
     rw [hB_eq']

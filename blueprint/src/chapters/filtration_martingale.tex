@@ -29,7 +29,7 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 \end{definition}
 
 \begin{definition}[Right continuous function]\label{def:RightContinuous}
-  \leanok
+  \mathlibok
   \lean{IsRightContinuous}
   Let $T$ be equipped with a partial order and $f : T \to E$ be a function. Then $f$ is right
   continuous if for all $t \in T$, $\lim_{s \downarrow t} f(s) = f(t)$.
@@ -37,7 +37,7 @@ A stochastic process $X$ is said to be progressively measurable with respect to 
 
 \begin{definition}[Cadlag function]\label{def:IsCadlag}
   \uses{def:RightContinuous}
-  \leanok
+  \mathlibok
   \lean{IsCadlag}
   A function $f : T \to E$ is cadlag if it is right continuous and the limit $\lim_{s \uparrow t} f(s)$ exists for all $t \in T$.
 \end{definition}
@@ -109,12 +109,12 @@ Let $X$ be a submartingale. Then for all bounded stopping times $\tau$, the stop
 
 \begin{lemma}\label{lem:Martingale.congr}
   \uses{def:Martingale, def:adapted}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Martingale.congr}
 If $X$ is a martingale and $Y$ is an adapted modification of $X$, then $Y$ is a martingale.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] = Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP = \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -130,12 +130,12 @@ Let then $A \in \mathcal{F}_i$.
 
 \begin{lemma}\label{lem:Submartingale.congr}
   \uses{def:Submartingale, def:adapted}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Submartingale.congr}
 If $X$ is a submartingale and $Y$ is an adapted modification of $X$, then $Y$ is a submartingale.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
 Let $i \le j$ in $T$. We want to show that $P[Y_j \mid \mathcal{F}_i] \ge Y_i$ almost surely.
 It suffices to show that $\int_A Y_j \: dP \ge \int_A Y_i \: dP$ for all $A \in \mathcal{F}_i$.
 Let then $A \in \mathcal{F}_i$.
@@ -166,8 +166,8 @@ Done in a Mathlib PR for finite measures: \href{https://github.com/leanprover-co
 
 
 \begin{corollary}\label{cor:norm_condExp_le}
-  \leanok
-  \lean{MeasureTheory.norm_condExp_le}
+  \mathlibok
+  \lean{norm_condExp_le}
 Let $X : \Omega \to E$ be an integrable random variable with values in a normed space $E$.
 Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 \begin{align*}
@@ -178,7 +178,7 @@ Then, for any sub-$\sigma$-algebra $\mathcal{G}$, we have
 
 \begin{proof}
   \uses{lem:conditional_jensen}
-  \leanok
+  \mathlibok
 
 \end{proof}
 
@@ -344,7 +344,7 @@ Note that $\bigsqcup$ denotes the supremum in the lattice of sigma-algebras on $
 
 \begin{definition}[Right continuation]\label{def:rightLimitFiltration}
   \uses{def:filtration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont}
 Assume that $T$ is a partial order. For $\mathcal{F}$ a filtration indexed by $T$ and $t \in T$, we define the \emph{right continuation} as
 $$\mathcal{F}_{t+} =
@@ -360,12 +360,12 @@ Note that $\bigsqcap$ denotes the infimum in the lattice of sigma-algebras on $\
 
 \begin{lemma}\label{lem:filtrationRightCont}
   \uses{def:filtration, def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont}
 The right continuation of $\mathcal{F}$ is a filtration.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
 We endow $T$ with the order topology. Let us first prove that the right continuation is nondecreasing. Let $s, t \in T$ such that $s \le t$.
 \begin{itemize}
   \item Suppose $s$ is isolated on the right. Then $\mathcal{F}_{s+} = \mathcal{F}_s$.
@@ -386,7 +386,7 @@ Turn now to the proof that for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathc
 
 \begin{lemma}\label{lem:rightContDef}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_def}
 Suppose $T$ is a topological space with the topology being the order topology. For $t \in T$, the right continuation of $\mathcal{F}$ at $t$ is given by
 $$\mathcal{F}_{t+} =
@@ -397,7 +397,7 @@ $$\mathcal{F}_{t+} =
 $$
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{def:rightLimitFiltration}
 This follows from Definition~\ref{def:rightLimitFiltration} because the topology on $T$ agrees with the one used to define the right continuation.
 \end{proof}
@@ -405,12 +405,12 @@ This follows from Definition~\ref{def:rightLimitFiltration} because the topology
 
 \begin{lemma}\label{lem:rightContIsolated}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_nhdsGT_eq_bot}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is isolated on the right, meaning that there exists a neighbourhood $\mathcal{V}$ of $t$ such that $\mathcal{V} \cap \{u \mid u > t\} = \emptyset$. Then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -418,12 +418,12 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 
 \begin{lemma}\label{lem:rightContSuccOrder}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_self}
 Assume that $T$ is a linear order with successor. This means that for any $t$, there is an element $succ(t) \ge t$ such that for any $u > t$, $u \ge succ(t)$, and if $succ(t) \le t$, then $t$ is maximal. Then the right continuation of $\mathcal{F}$ is equal to $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. In a linear order with successor equipped with the order topology, every point is isolated on the right, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -431,12 +431,12 @@ Endow $T$ with the order topology. In a linear order with successor equipped wit
 
 \begin{lemma}\label{lem:rightContIsMax}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_isMax}
 If $t \in T$ is maximal, $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the right for this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -444,12 +444,12 @@ Endow $T$ with the order topology. As $t$ is maximal, it is isolated on the righ
 
 \begin{lemma}\label{lem:rightContExistsGt}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_exists_gt}
 If $T$ is a linear order and there exists $u > t$ such that $(t, u) = \emptyset$, then $\mathcal{F}_{t+} = \mathcal{F}_t$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContIsolated}
 Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated on the right in this topology, so we can conclude by Lemma~\ref{lem:rightContIsolated}.
 \end{proof}
@@ -457,12 +457,12 @@ Endow $T$ with the order topology. The hypothesis implies that $t$ is isolated o
 
 \begin{lemma}\label{lem:rightContNeBot}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_neBot_nhdsGT}
 Suppose $T$ is a topological space with the topology being the order topology. Assume that $t \in T$ is not isolated on the right, meaning that for all neighbourhood $\mathcal{V}$ of $t$, $\mathcal{V} \cap \{u | u > t\} \ne \emptyset$. Then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContDef}
 This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 \end{proof}
@@ -470,12 +470,12 @@ This is a direct consequence of Lemma~\ref{lem:rightContDef}.
 
 \begin{lemma}\label{lem:rightContNotIsMax}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq_of_not_isMax}
 Assume that $T$ is a densely ordered linear order, meaning that for all $s < t$, there exists $u$ such that $s < u < t$. If $t$ is not maximal, then $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContNeBot}
 Endow $T$ with the order topology. In a densely ordered linear order, a point which is not maximal is not isolated on the right, so we can conclude by Lemma~\ref{lem:rightContNeBot}.
 \end{proof}
@@ -483,12 +483,12 @@ Endow $T$ with the order topology. In a densely ordered linear order, a point wh
 
 \begin{lemma}\label{lem:rightContEq}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_eq}
 If $T$ is a densely ordered linear order with no maximal element, then forall $t \in T$ we have $\mathcal{F}_{t+} = \bigsqcap_{u > t} \mathcal{F}_u$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContNotIsMax}
 For all $t$, $t$ is not maximal, so we can conclude by Lemma~\ref{lem:rightContNotIsMax}.
 \end{proof}
@@ -496,12 +496,12 @@ For all $t$, $t$ is not maximal, so we can conclude by Lemma~\ref{lem:rightContN
 
 \begin{lemma}\label{lem:leRightCont}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.le_rightCont}
 The filtration $\mathcal{F}$ is contained in its right continuation.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:rightContDef}
 Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:rightContDef}, we split into two cases. If $t$ is isolated on the right, then $\mathcal{F}_{t+} = \mathcal{F}_t \supseteq \mathcal{F}_t$ and we are done. Otherwise, for all $u > t$, $\mathcal{F}_t \subseteq \mathcal{F}_u$, therefore $\mathcal{F}_t \subseteq \bigsqcap_{u > t} \mathcal{F}_u$, and we are done.
 \end{proof}
@@ -509,12 +509,12 @@ Endow $T$ with the order topology, and consider $t \in T$. Using Lemma~\ref{lem:
 
 \begin{lemma}\label{lem:rightContSelf}
   \uses{def:rightLimitFiltration}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.rightCont_self}
 The right continuation of the right continuation of $\mathcal{F}$ is equal to the right continuation of $\mathcal{F}$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:leRightCont, lem:rightContDef}
 Let $t \in T$. From Lemma~\ref{lem:leRightCont}, we already now that $\mathcal{F}_{t+} \subseteq \mathcal{F}_{t++}$. Endow $T$ with the order topology and split according to Lemma~\ref{lem:rightContDef}. If $t$ is isolated on the right, then $\mathcal{F}_{t++} = \mathcal{F}_{t+}$ and we are done. Otherwise consider $u > t$. Then there exists $v \in T$ such that $t < v < u$. If $v$ is not isolated on the right then
 $$\mathcal{F}_{t++} = \bigsqcap_{s > t} \mathcal{F}_{s+} \subseteq \mathcal{F}_{v+} = \bigsqcap_{s > v} \mathcal{F}_s \subseteq \mathcal{F}_u,$$
@@ -571,12 +571,12 @@ This follows immediately from Lemma~\ref{lem:rightContSelf}.
 
 \begin{lemma}\label{lem:rightContinuousMeasurableSet}
   \uses{def:rightLimitFiltration, def:rightContinuous}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsRightContinuous.measurableSet}
 If $\mathcal{F}$ is right-continuous, then for all $t \in T$, any set $A \subseteq \Omega$ which is $\mathcal{F}_t$-measurable is also $\mathcal{F}_{t+}$-measurable.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{def:rightContinuous}
 This is a direct consequence of Definition~\ref{def:rightContinuous}.
 \end{proof}
@@ -868,14 +868,14 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:memLp_of_tendstoInMeasure}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.UniformIntegrable.memLp_of_tendstoInMeasure}
   Let $(X_n)_{n \in \mathbb{N}}$ be a sequence of $p$-uniformly integrable stochastic processes and suppose $X_n \to X$
   in probability as $n \to \infty$. Then, $X$ is $L^p$.
 \end{lemma}
 
 \begin{proof}
-  \leanok
+  \mathlibok
   Since $X_n \to X$ in probability, it has a subsequence $(X_{n_k}) \subseteq (X_n)$ which converges
   to $X$ almost surely. Thus, we have by Fatou's lemma that
   \[P[|X|^p] = P[\liminf_{k \to \infty} |X_{n_k}|^p] \le \liminf_{k \to \infty} P[|X_{n_k}|^p] < \infty\]
@@ -883,13 +883,13 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_of_tendsto_ae}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_ae_tendsto}
   Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in almost everywhere convergence of sequences of $X$ is $p$-uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \leanok
+  \mathlibok
   Let $\epsilon > 0$. There exists $\delta > 0$ such that for all $t\in T$ and all measurable set $S$ such that $P(S)<\delta$,
   \[P[\|X_t\|^p\mathbb{I}_S]^{1/p}\le \varepsilon.\]
   Let $(t_n)_{n \in \mathbb{N}}$ be a sequence in $T$ such that $X_{t_n}$ converges almost everywhere to $Y$. We have by Fatou's lemma that
@@ -898,13 +898,13 @@ We know from Lemma~\ref{lem:uniformIntegrable_stoppedValue_martingale} that $(M_
 \end{proof}
 
 \begin{lemma}\label{lem:uniformIntegrable_of_tendstoInMeasure}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.UniformIntegrable.uniformIntegrable_of_tendstoInMeasure}
   Let $(X_t)_{t \in T}$ be a family of $p$-uniformly integrable stochastic processes. Then the family of limits in probability of sequences of $X$ is $p$-uniformly integrable.
 \end{lemma}
 
 \begin{proof}
-  \leanok
+  \mathlibok
   A subfamily of a $p$-uniformly integrable family is $p$-uniformly integrable. As convergence in probability implies the existence of a subsequence that converges almost everywhere, the family of limits in probability is a subfamily of the family of limits in almost everywhere convergence, which is $p$-uniformly integrable by Lemma~\ref{lem:uniformIntegrable_of_tendsto_ae}.
 \end{proof}
 
@@ -1160,23 +1160,23 @@ Furthermore, $X_t = P[X_\infty \mid \mathcal{F}_t]$ almost surely.
 
 \begin{lemma}\label{lem:limitProcess_ae_eq}
   \uses{def:limitProcess}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.limitProcess_ae_eq}
 Let $X : T \to \Omega \to E$ be a process such that there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$. Then $X_\infty$ and $g$ are a.e. equal.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   Because there exist a function that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and towards which $X$ converges almost surely, $X_\infty$ is such a function by definition. Because $X$ converges almost surely towards $g$, $g$ and $X_\infty$ are equal on the set where $X$ converges to $X_\infty$ and $X$ converges to $g$ by uniqueness of the limit.
 \end{proof}
 
 \begin{lemma}\label{lem:limitProcess_congr}
   \uses{def:limitProcess}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.limitProcess_congr}
   Let $X$ and $Y$ be two indistinguishable processes. Then $X_\infty$ and $Y_\infty$ are a.e. equal.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   \uses{lem:limitProcess_ae_eq}
   If there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then it is enough to show that $Y$ converges almost surely to $g$ by Lemma~\ref{lem:limitProcess_ae_eq}. This follows from indistinguishability.
 
@@ -1185,36 +1185,36 @@ Let $X : T \to \Omega \to E$ be a process such that there exists $g : \Omega \to
 
 \begin{lemma}\label{lem:limitProcess_const}
   \uses{def:limitProcess}
-  \leanok
-  \lean{MeasureTheory.Filtration.limitProcess_congr}
+  \mathlibok
+  \lean{MeasureTheory.Filtration.limitProcess_const}
   Let $c \in E$ and $X$ be the constant process equal to $c$. Then $X_\infty$ is a.e. equal to $c$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   \uses{lem:limitProcess_ae_eq}
   This follows from Lemma~\ref{lem:limitProcess_ae_eq} as a constant function converges to a constant, and a constant function is a.e. strongly measurable with respect to any sigma-algebra.
 \end{proof}
 
 \begin{lemma}\label{lem:limitProcess_smul}
   \uses{def:limitProcess}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.limitProcess_smul}
   If $X$ is a stochastic process and $c \in \mathbb{R}$, then $(c \cdot X)_\infty$ is a.e. equal to $c \cdot X_\infty$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   \uses{lem:limitProcess_ae_eq, lem:limitProcess_const}
   If $c = 0$ we can conclude by Lemma~\ref{lem:limitProcess_const}. Otherwise, if there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then $c \cdot X$ converges almost surely to $c \cdot g$ and we can conclude by Lemma~\ref{lem:limitProcess_ae_eq}. Otherwise there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $c \cdot X$ converges almost surely to $g$, because if it did it would also be the case for $X$, so $X_\infty$ and $(c \cdot X)_\infty$ are both a.e. equal to $0$.
 \end{proof}
 
 \begin{lemma}\label{lem:limitProcess_neg}
   \uses{def:limitProcess}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.limitProcess_neg}
   If $X$ is a stochastic process, then $(-X)_\infty$ is a.e. equal to $-X_\infty$.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   \uses{lem:limitProcess_ae_eq, lem:limitProcess_const}
   If there exists $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $X$ converges almost surely to $g$, then $-X$ converges almost surely to $-g$ and we can conclude by Lemma~\ref{lem:limitProcess_ae_eq}. Otherwise there does not exist $g : \Omega \to E$ that is a.e. strongly measurable with respect to $\bigsqcup t, \mathcal{F}_t$ and such that $-X$ converges almost surely to $g$, because if it did it would also be the case for $X$, so $X_\infty$ and $(-X)_\infty$ are both a.e. equal to $0$.
 \end{proof}

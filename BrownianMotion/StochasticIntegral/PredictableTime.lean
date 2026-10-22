@@ -26,8 +26,7 @@ lemma isStoppingTime_piecewise_top [DecidablePred (· ∈ A)]
     IsStoppingTime 𝓕 (A.piecewise τ (fun _ ↦ ⊤)) := by
   intro t
   convert ((hτ.measurableSet A).1 hA).2 t
-  ext ω
-  simp only [Set.piecewise, Set.mem_ofPred_eq, Set.mem_inter_iff]
+  simp only [Set.piecewise, Set.mem_eq_mem, Set.mem_ofPred_eq, Set.mem_inter_iff]
   split_ifs <;> simp_all
 
 variable [OrderBot ι]

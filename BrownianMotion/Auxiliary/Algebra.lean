@@ -4,12 +4,6 @@ public import Mathlib.LinearAlgebra.Dimension.Finite
 
 @[expose] public section
 
--- TODO: remove if https://github.com/leanprover-community/mathlib4/pull/40909 has merged.
-lemma Set.indicator_apply_apply {ι Ω M : Type*} [Zero M] (s : Set ι) (f : ι → Ω → M) (i : ι)
-    (ω : Ω) :
-    s.indicator f i ω = s.indicator (fun j ↦ f j ω) i := by
-  by_cases h : i ∈ s <;> simp [h]
-
 /-- A finite sum of monotone functions is monotone. -/
 lemma Monotone.finset_sum {ι κ M : Type*} [Preorder ι] [AddCommMonoid M] [Preorder M]
     [AddLeftMono M] {s : Finset κ} {f : κ → ι → M} (hf : ∀ k ∈ s, Monotone (f k)) :

@@ -56,28 +56,6 @@ lemma eq_gaussianReal_integral_variance {μ : Measure ℝ} {m : ℝ} {v : ℝ≥
     (h : μ = gaussianReal m v) : μ = gaussianReal μ[id] Var[id; μ].toNNReal := by
   simp [h]
 
-section iIndepFun
-
-variable {ι : Type*} [Fintype ι] {Ω : ι → Type*} {mΩ : ∀ i, MeasurableSpace (Ω i)}
-  {μ : (i : ι) → Measure (Ω i)}
-
-variable [∀ i, IsProbabilityMeasure (μ i)]
-
-lemma variance_pi {X : Π i, Ω i → ℝ} (h : ∀ i, MemLp (X i) 2 (μ i)) :
-    Var[∑ i, fun ω ↦ X i (ω i); Measure.pi μ] = ∑ i, Var[X i; μ i] := by
-  rw [IndepFun.variance_sum]
-  · congr with i
-    change Var[(X i) ∘ (fun ω ↦ ω i); Measure.pi μ] = _
-    rw [← variance_map, (measurePreserving_eval _ i).map_eq]
-    · rw [(measurePreserving_eval _ i).map_eq]
-      exact (h i).aestronglyMeasurable.aemeasurable
-    · exact Measurable.aemeasurable (by fun_prop)
-  · exact fun i _ ↦ (h i).comp_measurePreserving (measurePreserving_eval _ i)
-  · exact fun i _ j _ hij ↦
-      (iIndepFun_pi fun i ↦ (h i).aestronglyMeasurable.aemeasurable).indepFun hij
-
-end iIndepFun
-
 section covariance
 
 lemma centralMoment_of_integral_id_eq_zero {Ω : Type*} {mΩ : MeasurableSpace Ω}

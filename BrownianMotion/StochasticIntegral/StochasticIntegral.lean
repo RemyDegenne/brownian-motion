@@ -8,7 +8,7 @@ module
 
 public import Mathlib.Probability.Process.Adapted
 public import Mathlib.Probability.Process.Filtration
-public import BrownianMotion.Auxiliary.Indistinguishable
+public import Mathlib.Probability.Process.Indistinguishable
 
 /-!
 # Characterization of the stochastic integral.

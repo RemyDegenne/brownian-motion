@@ -15,7 +15,8 @@ public import Mathlib.Probability.ConditionalExpectation
 public import Mathlib.Probability.Distributions.Gaussian.HasGaussianLaw.Independence
 public import Mathlib.Probability.Distributions.Gaussian.IsGaussianProcess.Basic
 public import Mathlib.Probability.Independence.BoundedContinuousFunction
-public import Mathlib.Probability.Independence.Process.HasIndepIncrements.Basic
+public import Mathlib.Probability.Independence.Process.HasIndepIncrements.IsGaussianProcess
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.ContinuousMap
 public import Mathlib.Topology.ContinuousMap.SecondCountableSpace
 public import Mathlib.Probability.BrownianMotion.Basic
 
@@ -31,144 +32,7 @@ open scoped ENNReal NNReal Topology BoundedContinuousFunction
 
 variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
-namespace Finset
-
-/-! ### Indexing the elements of a finset in order -/
-
-variable [LinearOrder T] (I : Finset T)
-
-/-- Given a finite set `I : Finset T` of cardinality `n`, `ofFin : Fin #I → T`
-is the map `(t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
-noncomputable def ofFin (i : Fin #I) : T := (I.sort (· ≤ ·)).get
-  (Fin.cast (I.length_sort (· ≤ ·)).symm i)
-
-lemma monotone_ofFin : Monotone I.ofFin :=
-  fun i j hij ↦ (I.pairwise_sort (· ≤ ·)).rel_get_of_le (by simpa)
-
-lemma ofFin_mem (i : Fin #I) : I.ofFin i ∈ I := I.mem_sort (· ≤ ·) |>.1 <| List.get_mem _ _
-
-/-- Given a finite set `I : Finset T`, and `t : I`,
-`I.toFin t` returns the position of `t` in `I`. -/
-noncomputable def toFin (i : I) : Fin #I :=
-  haveI : NeZero #I := ⟨Nonempty.card_ne_zero ⟨i.1, i.2⟩⟩
-  Fin.ofNat #I ((I.sort (· ≤ ·)).idxOf i.1)
-
-@[simp]
-lemma ofFin_toFin (i : I) : I.ofFin (I.toFin i) = i.1 := by
-  rw [toFin, ofFin]
-  nth_rw 2 [← (I.sort (· ≤ ·)).idxOf_get (a := i.1)]
-  · congr
-    ext
-    simp only [Fin.ofNat_eq_cast, Fin.val_cast, Fin.val_natCast]
-    rw [Nat.mod_eq_of_lt]
-    rw [← I.length_sort (· ≤ ·)]
-    exact List.idxOf_lt_length_of_mem <| I.mem_sort (· ≤ ·) |>.2 i.2
-  exact List.idxOf_lt_length_of_mem <| I.mem_sort (· ≤ ·) |>.2 i.2
-
-@[simp]
-lemma toFin_ofFin (i : Fin #I) : I.toFin ⟨I.ofFin i, ofFin_mem I i⟩ = i := by
-  simp_rw [toFin, ofFin]
-  rw [List.get_idxOf (sort_nodup ..)]
-  simp
-
-section Bot
-
-variable [Bot T]
-
-/-- Given a finite set `I : Finset T` of cardinality `n`, `ofFin' : Fin (#I + 1) → T`
-is the map `(⊥, t₁, ..., tₙ)`, where `t₁ < ... < tₙ` are the elements of `I`. -/
-noncomputable def ofFin' (i : Fin (#I + 1)) : T :=
-  if h : i = 0
-    then ⊥
-    else I.ofFin (i.pred h)
-
-@[simp]
-lemma ofFin'_zero : I.ofFin' 0 = ⊥ := rfl
-
-lemma ofFin'_of_ne_zero (i : Fin (#I + 1)) (hi : i ≠ 0) :
-    I.ofFin' i = I.ofFin (i.pred hi) := by rw [ofFin', dif_neg hi]
-
-@[simp]
-lemma ofFin'_succ (i : Fin #I) :
-    I.ofFin' i.succ = I.ofFin i := by
-  rw [ofFin'_of_ne_zero, Fin.pred_succ]
-  simp
-
-lemma ofFin'_mem (i : Fin (#I + 1)) (hi : i ≠ 0) : I.ofFin' i ∈ I := by
-  rw [ofFin'_of_ne_zero _ _ hi]
-  exact ofFin_mem I _
-
-end Bot
-
-lemma monotone_ofFin' [OrderBot T] : Monotone (I.ofFin') := by
-  intro i j hij
-  obtain rfl | hi := eq_or_ne i 0
-  · simp
-  rw [ofFin'_of_ne_zero I i hi, ofFin'_of_ne_zero I j (by aesop)]
-  apply monotone_ofFin
-  simpa
-
-end Finset
-
 namespace ProbabilityTheory
-
-section Increments
-
-/-! ### Independent increments -/
-
-/-- `incrementsToRestrict I` is a continuous linear map `f` such that
-`f (xₜ₁, xₜ₂ - xₜ₁, ..., xₜₙ - xₜₙ₋₁) = (xₜ₁, ..., xₜₙ)`. -/
-noncomputable def incrementsToRestrict [LinearOrder T] (R : Type*) [Semiring R] [AddCommMonoid E]
-    [Module R E] [TopologicalSpace E] [ContinuousAdd E] (I : Finset T) :
-    (Fin #I → E) →L[R] (I → E) :=
-  { toFun x i := ∑ j ≤ I.toFin i, x j
-    map_add' x y := by ext; simp [sum_add_distrib]
-    map_smul' m x := by ext; simp [smul_sum]
-    cont := by fun_prop }
-
-lemma incrementsToRestrict_increments_ofFin'_ae_eq_restrict [LinearOrder T] (R : Type*) [OrderBot T]
-    [Semiring R] [AddCommGroup E] [Module R E] [TopologicalSpace E] [ContinuousAdd E]
-    {X : T → Ω → E} (h : ∀ᵐ ω ∂P, X ⊥ ω = 0) (I : Finset T) :
-    (fun ω ↦ I.restrict (X · ω)) =ᵐ[P]
-      (incrementsToRestrict R I) ∘
-        (fun ω i ↦ X (I.ofFin' i.succ) ω - X (I.ofFin' i.castSucc) ω) := by
-  filter_upwards [h] with ω hω
-  ext t
-  simp only [restrict, incrementsToRestrict, ContinuousLinearMap.coe_mk', LinearMap.coe_mk,
-    AddHom.coe_mk, Function.comp_apply]
-  rw [Fin.sum_Iic_sub (I.toFin t) (fun j ↦ X (I.ofFin' j) ω)]
-  simp [hω]
-
-/-- A stochastic process `X` with independent increments and such that `X t` is gaussian for
-all `t` is a Gaussian process. -/
-theorem HasIndepIncrements.isGaussianProcess [LinearOrder T] [OrderBot T]
-    [NormedAddCommGroup E] [NormedSpace ℝ E] [MeasurableSpace E] [BorelSpace E]
-    [SecondCountableTopology E] [CompleteSpace E]
-    {X : T → Ω → E} (law : ∀ t, HasGaussianLaw (X t) P) (h_bot : ∀ᵐ ω ∂P, X ⊥ ω = 0)
-    (incr : HasIndepIncrements X P) :
-    IsGaussianProcess X P where
-  hasGaussianLaw I := by
-    have := (law ⊥).isProbabilityMeasure
-    obtain rfl | hI := I.eq_empty_or_nonempty
-    · constructor
-      have : P.map (fun ω ↦ Finset.restrict ∅ fun x ↦ X x ω) = .dirac Classical.ofNonempty := by
-        ext s -
-        apply Subsingleton.set_cases (p := fun s ↦ Measure.map _ _ s = _)
-        · simp
-        simp only [measure_univ]
-        exact @measure_univ _ _ _
-          (Measure.isProbabilityMeasure_map (aemeasurable_pi_lambda _ fun _ ↦ (law _).aemeasurable))
-      rw [this]
-      infer_instance
-    have := incrementsToRestrict_increments_ofFin'_ae_eq_restrict ℝ h_bot I
-    refine @HasGaussianLaw.congr _ _ _ _ _ _ _ _ _ _ ?_ this.symm
-    refine HasGaussianLaw.map ?_ _
-    exact (incr _ _ (monotone_ofFin' I)).hasGaussianLaw fun i ↦
-      incr.indepFun_eval_sub bot_le
-        (monotone_ofFin' I (Fin.castSucc_le_succ i)) h_bot
-          |>.hasGaussianLaw_sub_of_sub (law _) (law _)
-
-end Increments
 
 section IsPreBrownianReal
 
@@ -212,7 +76,7 @@ lemma IsPreBrownianReal.isAEKolmogorovProcess {n : ℕ} (hn : 0 < n) (h : IsPreB
     (by fun_prop)]
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
-  · simp_rw [pow_two_mul_abs]
+  · simp_rw [pow_abs_two_mul]
     rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (nndist _ _),
     centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
     norm_cast
@@ -406,7 +270,7 @@ theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurab
 -- We easily have that `m3 ≤ m1 ≤ mΩ`.
   have hm1 : m1 ≤ mΩ := by
     apply Measurable.comap_le
-    apply @measurable_pi_lambda _ _ _ mΩ
+    apply @Measurable.of_eval _ _ _ mΩ
     exact hX
   have hm3 : m3 ≤ m1 := by
     apply iInf₂_le_of_le 1 (by simp)
@@ -486,7 +350,7 @@ theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurab
   -- as `ε → 0⁺`, and we can conclude by uniqueness of the limit.
   refine tendsto_nhds_unique h1 ?_
   refine Tendsto.congr' (f₁ := fun ε ↦ P.real A * ∫ ω, f (fun t ↦ X t ω - X ε ω) ∂P) ?_ ?_
-  · apply eventually_nhdsGT (I.min' hI |>.2)
+  · apply eventually_nhdsGT (Set.mem_Ioi.mp (I.min' hI).2)
     rintro ε ⟨h1, h2⟩
     exact (key ε h1 h2).symm
   refine Filter.Tendsto.const_mul (b := P.real A) ?_
@@ -505,7 +369,7 @@ lemma measurable_preBrownian (t : ℝ≥0) : Measurable (preBrownian t) := by
   fun_prop
 
 lemma hasLaw_preBrownian : HasLaw (fun ω ↦ (preBrownian · ω)) gaussianLimit gaussianLimit where
-  aemeasurable := (measurable_pi_lambda _ measurable_preBrownian).aemeasurable
+  aemeasurable := (Measurable.of_eval measurable_preBrownian).aemeasurable
   map_eq := Measure.map_id
 
 lemma isPreBrownianReal_preBrownian : IsPreBrownianReal preBrownian gaussianLimit :=
@@ -546,7 +410,7 @@ lemma isKolmogorovProcess_preBrownian {n : ℕ} (hn : 0 < n) :
     (by fun_prop)]
   simp_rw [← fun x ↦ ENNReal.ofReal_pow (abs_nonneg x)]
   rw [← ofReal_integral_eq_lintegral_ofReal]
-  · simp_rw [pow_two_mul_abs]
+  · simp_rw [pow_abs_two_mul]
     rw [← centralMoment_of_integral_id_eq_zero _ (by simp), ← NNReal.sq_sqrt (nndist _ _),
     centralMoment_fun_two_mul_gaussianReal, ENNReal.ofReal_mul (by positivity), mul_comm]
     norm_cast
@@ -590,7 +454,7 @@ lemma hasLaw_restrict_brownian {I : Finset ℝ≥0} :
 
 lemma hasLaw_brownian : HasLaw (fun ω ↦ (brownian · ω)) gaussianLimit gaussianLimit :=
   isBrownianReal_brownian.hasLaw_gaussianLimit
-    (measurable_pi_lambda _ fun t ↦ measurable_brownian t).aemeasurable
+    (Measurable.of_eval fun t ↦ measurable_brownian t).aemeasurable
 
 lemma hasLaw_brownian_eval {t : ℝ≥0} :
     HasLaw (brownian t) (gaussianReal 0 t) gaussianLimit :=
@@ -624,185 +488,9 @@ noncomputable
 def wienerMeasureAux : Measure {f : ℝ≥0 → ℝ // Continuous f} :=
   gaussianLimit.map (fun ω ↦ (⟨fun t ↦ brownian t ω, continuous_brownian ω⟩))
 
-section ContinuousMap.MeasurableSpace
-
-variable {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
-
-instance : MeasurableSpace C(X, Y) := borel _
-instance : BorelSpace C(X, Y) where
-  measurable_eq := rfl
-
-lemma isClosed_sUnion_of_finite {X : Type*} [TopologicalSpace X] {s : Set (Set X)}
-    (h1 : s.Finite) (h2 : ∀ t ∈ s, IsClosed t) : IsClosed (⋃₀ s) := by
-  rw [Set.sUnion_eq_biUnion]
-  exact h1.isClosed_biUnion h2
-
-open TopologicalSpace in
-theorem ContinuousMap.borel_eq_iSup_comap_eval
-    [SecondCountableTopology X] [SecondCountableTopology Y]
-    [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
-    borel C(X, Y) = ⨆ a : X, (borel Y).comap fun b ↦ b a := by
-  -- https://math.stackexchange.com/questions/4789531/when-does-the-borel-sigma-algebra-of-compact-convergence-coincide-with-the-pr
-  apply le_antisymm
-  swap
-  · refine iSup_le fun x ↦ ?_
-    rw [← BorelSpace.measurable_eq]
-    simp_rw [← measurable_iff_comap_le]
-    exact Continuous.measurable (by fun_prop)
-  -- Denote by `M(K, U)` the set of functions `f` such that `Set.MapsTo f K U`. These form a
-  -- basis for the compact-open topology when `K` is compact and `U` is open.
-  -- Because `C(X, Y)` is second-countable, it suffices to prove that those sets are measurable.
-  -- Let therefore `K` be a compact set of `X` and `U` an open set of `Y`.
-  rw [borel_eq_generateFrom_of_subbasis ContinuousMap.compactOpen_eq]
-  refine generateFrom_le fun s hs ↦ ?_
-  obtain ⟨K, hK, U, hU, hs⟩ := hs
-  rw [← hs]
-  -- Consider `V` a countable basis of the topology on Y.
-  let V := countableBasis Y
-  have hV : IsTopologicalBasis V := isBasis_countableBasis Y
-  have cV : V.Countable := countable_countableBasis Y
-  let W₁ := {v | v ∈ V ∧ closure v ⊆ U}
-  -- Consider `W` the set of `closure v`, where `v ∈ V` and `closure v ⊆ U`.
-  let W := {v | ∃ u ∈ V, v ⊆ U ∧ v = closure u}
-  -- Because `V` is countable, so is `W`.
-  have cW : W.Countable := by
-    apply (cV.image closure ).mono
-    rintro - ⟨u, hu, -, rfl⟩
-    exact ⟨u, hu, rfl⟩
-  -- Because `Y` is regular, we can write that `U = ⋃_{v ∈ W} v`.
-  have U_eq_sUnion_W : U = ⋃₀ W := by
-    ext x
-    rw [Set.mem_sUnion]
-    constructor
-    · intro hx
-      obtain ⟨v, ⟨hv1, hv2⟩, hv3⟩ := hV.nhds_basis_closure x |>.mem_iff.1 <| hU.mem_nhds hx
-      exact ⟨closure v, ⟨v, hv2, hv3, rfl⟩, subset_closure hv1⟩
-    · rintro ⟨-, ⟨t, ht1, ht2, rfl⟩, hx⟩
-      exact ht2 hx
-  -- Similarly, we can write that `U = ⋃_{v ∈ V, closure v ⊆ U} v`.
-  have U_eq_sUnion_W₁ : U = ⋃₀ W₁ := by
-    ext x
-    rw [Set.mem_sUnion]
-    refine ⟨fun hx ↦ ?_, fun ⟨t, ⟨ht1, ht2⟩, hx⟩ ↦ ht2 <| subset_closure hx⟩
-    obtain ⟨v, ⟨hv1, hv2⟩, hv3⟩ := hV.nhds_basis_closure x |>.mem_iff.1 <| hU.mem_nhds hx
-    exact ⟨v, ⟨hv2, hv3⟩, hv1⟩
-  -- For any continuous `f` such that `f '' K ⊆ U`, because `K` is compact, `f '' K` is compact.
-  -- But we just proved that `U = ⋃_{v ∈ V, closure v ⊆ U} v`, and each `v ∈ V` is open,
-  -- so there exists `J` a finite set of `v ∈ V` such that `closure v ⊆ U` and
-  -- `f '' K ⊆ ⋃ v ∈ J, v`. We thus have `f '' K ⊆ ⋃ v ∈ J, closure v`. This is equivalent to
-  -- having `I` a finite subset of `W` such that `f '' K ⊆ ⋃ v ∈ I, v`.
-  have (f : C(X, Y)) (hf : K.MapsTo f U) : ∃ I, I.Finite ∧ I ⊆ W ∧ K.MapsTo f (⋃₀ I) := by
-    simp_rw [Set.mapsTo_iff_image_subset] at hf ⊢
-    rw [U_eq_sUnion_W₁, Set.sUnion_eq_biUnion] at hf
-    have : ∀ i ∈ {v | v ∈ V ∧ closure v ⊆ U}, IsOpen i :=
-      fun x ⟨hx, _⟩ ↦ hV.isOpen hx
-    obtain ⟨b, hb1, hb2, hb3⟩ := (hK.image f.continuous).elim_finite_subcover_image this hf
-    refine ⟨closure '' b, hb2.image _, ?_, ?_⟩
-    · rintro - ⟨v, hv, rfl⟩
-      exact ⟨v, (hb1 hv).1, (hb1 hv).2, rfl⟩
-    rw [← Set.sUnion_eq_biUnion] at hb3
-    exact hb3.trans <| Set.sUnion_mono_subsets fun _ ↦ subset_closure
-  -- Therefore, we obtain that
-  -- `M(K, U) = ⋃_{I ⊆ W, I finite}, M(K, ⋃ v ∈ I, v)`.
-  have : {f : C(X, Y) | K.MapsTo f U} =
-      ⋃₀ {v | ∃ I, I.Finite ∧ I ⊆ W ∧ v = {f : C(X, Y) | K.MapsTo f (⋃₀ I)}} := by
-    ext f
-    rw [Set.mem_sUnion]
-    refine ⟨fun h ↦ ?_, ?_⟩
-    · obtain ⟨I, hI1, hI2, hI3⟩ := this f h
-      exact ⟨{f : C(X, Y) | K.MapsTo f (⋃₀ I)}, ⟨I, hI1, hI2, rfl⟩, hI3⟩
-    · rintro ⟨-, ⟨I, hI1, hI2, rfl⟩, h⟩
-      simp only [Set.mapsTo_iff_image_subset] at h ⊢
-      rw [U_eq_sUnion_W]
-      exact h.trans <| Set.sUnion_subset_sUnion hI2
-  simp only
-  rw [this]
-  -- In particular, because `W` is countable, si this is a countable union.
-  -- To show measurability it is therefore enough to show the measurability of each term.
-  apply MeasurableSet.sUnion
-  · let f : Set (Set Y) → Set C(X, Y) := fun I ↦ {f : C(X, Y) | Set.MapsTo (⇑f) K (⋃₀ I)}
-    refine ((Set.countable_ofPred_finite_subset cW).image f).mono ?_
-    rintro - ⟨I, hI1, hI2, rfl⟩
-    exact ⟨I, ⟨hI1, hI2⟩, rfl⟩
-  -- Consider now `I` a finite subset of `W`.
-  rintro - ⟨I, hI1, hI2, rfl⟩
-  -- First, `⋃ v ∈ I, v` is closed as a finite union of closed sets.
-  have hI : IsClosed (⋃₀ I) := by
-    refine isClosed_sUnion_of_finite hI1 fun x hx ↦ ?_
-    obtain ⟨u, -, -, rfl⟩ := hI2 hx
-    exact isClosed_closure
-  -- Consider `Q` a countable dense subset of `K`, which exists by second-countability assumption.
-  obtain ⟨Q, cQ, dQ⟩ := TopologicalSpace.exists_countable_dense K
-  have Q_sub_K : Subtype.val '' Q ⊆ K := Subtype.coe_image_subset K Q
-  -- Because `f` is continuous and `⋃ v ∈ I, v` is closed and `Q` is dense in `K`, having
-  -- `f '' K ⊆ ⋃ v ∈ I, v` is the same as `f '' Q ⊆ ⋃ v ∈ I, v`.
-  have : {f : C(X, Y) | K.MapsTo f (⋃₀ I)} =
-      {f : C(X, Y) | (Subtype.val '' Q).MapsTo f (⋃₀ I)} := by
-    ext f
-    refine ⟨fun h x hx ↦ h (Q_sub_K hx), fun h x hx ↦ ?_⟩
-    obtain ⟨u, hu1, hu2⟩ := mem_closure_iff_seq_limit.1 <| Subtype.dense_iff.1 dQ hx
-    exact hI.mem_of_tendsto ((f.continuous.tendsto x).comp hu2)
-      (Filter.Eventually.of_forall fun n ↦ h (hu1 n))
-  -- We can write `M(Q, ⋃ v ∈ I, v) = ⋂ q ∈ Q, (fun f ↦ f q) ⁻¹' (⋃ v ∈ I, v)`.
-  have : {f : C(X, Y) | K.MapsTo f (⋃₀ I)} =
-      ⋂ q ∈ Subtype.val '' Q, (fun f ↦ f q) ⁻¹' (⋃₀ I) := by
-    rw [this]
-    ext f
-    rw [Set.mem_iInter₂]
-    exact ⟨fun h x hx ↦ h hx, fun h x hx ↦ h x hx⟩
-  rw [this]
-  -- This is a countable intersection, so it suffices to prove that each term is measurable.
-  -- Because `⋃ v ∈ I, v` is closed, it is measurable, so it suffices to prove that
-  -- for any `q ∈ Q`, `fun f ↦ f q` is measurable for the product σ-algebra.
-  -- The latter is the coarsest σ-algebra which makes the maps `fun f ↦ f x` measurable,
-  -- so we are done.
-  refine MeasurableSet.biInter (cQ.image _)
-    fun q hq ↦ MeasurableSet.preimage hI.measurableSet (Measurable.le (le_iSup _ q) ?_)
-  rw [BorelSpace.measurable_eq (α := Y)]
-  exact comap_measurable _
-
-lemma ContinuousMap.measurableSpace_eq_iSup_comap_eval
-    [SecondCountableTopology X] [SecondCountableTopology Y]
-    [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y] :
-    (inferInstance : MeasurableSpace C(X, Y))
-      = ⨆ a : X, (inferInstance : MeasurableSpace Y).comap fun b ↦ b a := by
-  simp_rw [BorelSpace.measurable_eq, borel_eq_iSup_comap_eval]
-
-lemma ContinuousMap.measurable_iff_eval {α : Type*} [MeasurableSpace α]
-    [SecondCountableTopology X] [SecondCountableTopology Y]
-    [LocallyCompactSpace X] [RegularSpace Y] [MeasurableSpace Y] [BorelSpace Y]
-    (g : α → C(X, Y)) :
-    Measurable g ↔ ∀ (x : X), Measurable fun (a : α) ↦ g a x := by
-  suffices Measurable[_, ⨆ a : X, (inferInstance : MeasurableSpace Y).comap fun b ↦ b a] g ↔
-      ∀ (x : X), Measurable fun (a : α) ↦ g a x by
-    convert this
-    exact ContinuousMap.measurableSpace_eq_iSup_comap_eval
-  simp_rw [measurable_iff_comap_le, MeasurableSpace.comap_iSup, iSup_le_iff,
-    MeasurableSpace.comap_comp, Function.comp_def]
-
-end ContinuousMap.MeasurableSpace
-
-def MeasurableEquiv.continuousMap : {f : ℝ≥0 → ℝ // Continuous f} ≃ᵐ C(ℝ≥0, ℝ) where
-  toFun := fun f ↦ ContinuousMap.mk f.1 f.2
-  invFun := fun f ↦ ⟨f, f.continuous⟩
-  left_inv f := rfl
-  right_inv f := rfl
-  measurable_toFun := by
-    simp only [Equiv.coe_fn_mk]
-    rw [ContinuousMap.measurable_iff_eval]
-    intro x
-    simp only [ContinuousMap.coe_mk]
-    revert x
-    rw [← measurable_pi_iff]
-    exact measurable_subtype_coe
-  measurable_invFun := by
-    simp only [Equiv.coe_fn_symm_mk]
-    refine Measurable.subtype_mk ?_
-    rw [measurable_pi_iff]
-    exact fun _ ↦ Continuous.measurable (by fun_prop)
-
 noncomputable
-def wienerMeasure : Measure C(ℝ≥0, ℝ) := wienerMeasureAux.map MeasurableEquiv.continuousMap
+def wienerMeasure : Measure C(ℝ≥0, ℝ) :=
+  wienerMeasureAux.map (MeasurableEquiv.continuousMapToFun ℝ≥0 ℝ).symm
 
 end Measure
 

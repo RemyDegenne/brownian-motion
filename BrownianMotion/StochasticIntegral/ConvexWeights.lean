@@ -63,13 +63,13 @@ open scoped ENNReal NNReal
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {Ω : Type*} [MeasurableSpace Ω]
 
 lemma eLpNorm_weights_sum_le {μ : Measure Ω} (w : StdSimplex ℝ ℕ)
-    {h : ℕ → Ω → E} (hmeas : ∀ m, AEStronglyMeasurable (h m) μ) {B : ℝ≥0∞}
+    {h : ℕ → Ω → E} {B : ℝ≥0∞}
     (hB : ∀ m, eLpNorm (h m) 1 μ ≤ B) :
     eLpNorm (w.weights.sum fun m c ↦ c • h m) 1 μ ≤ B := by
   rw [Finsupp.sum]
   calc eLpNorm (∑ m ∈ w.weights.support, w.weights m • h m) 1 μ
       ≤ ∑ m ∈ w.weights.support, eLpNorm (w.weights m • h m) 1 μ :=
-        eLpNorm_sum_le (fun m _ ↦ (hmeas m).const_smul _) le_rfl
+        eLpNorm_sum_le le_rfl
     _ ≤ ∑ m ∈ w.weights.support, ENNReal.ofReal (w.weights m) * B :=
         Finset.sum_le_sum fun m _ ↦ by
           rw [eLpNorm_const_smul, Real.enorm_eq_ofReal (w.nonneg m)]

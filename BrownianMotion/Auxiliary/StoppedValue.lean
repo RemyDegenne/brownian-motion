@@ -5,7 +5,7 @@ Authors: Etienne Marion
 -/
 module
 
-public import BrownianMotion.Auxiliary.LimitProcess
+public import Mathlib.Probability.Process.LimitProcess
 public import BrownianMotion.StochasticIntegral.Cadlag
 public import Mathlib.Probability.Process.Stopping
 
@@ -57,11 +57,11 @@ noncomputable def stoppedValue' (X : ι → Ω → E) (τ : Ω → WithTop ι)
 @[simp]
 lemma stoppedValue'_of_eq_top (hτ : τ ω = ⊤) :
     𝓕.stoppedValue' X τ P ω = 𝓕.limitProcess X P ω := by
-  rw [stoppedValue', dif_pos hτ]
+  rw [stoppedValue', dite_eq_left hτ]
 
 lemma stoppedValue'_of_ne_top (hτ : τ ω ≠ ⊤) :
     𝓕.stoppedValue' X τ P ω = X ((τ ω).untop hτ) ω := by
-  rw [stoppedValue', dif_neg hτ]
+  rw [stoppedValue', dite_eq_right hτ]
 
 @[simp]
 lemma stoppedValue'_of_eq_coe (hτ : τ ω = t) :

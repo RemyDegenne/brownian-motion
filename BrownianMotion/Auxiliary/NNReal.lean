@@ -1,6 +1,6 @@
 module
 
-public import Mathlib.Data.NNReal.Basic
+public import Mathlib.Basic.NNReal.Basic
 
 @[expose] public section
 

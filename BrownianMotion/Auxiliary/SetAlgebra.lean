@@ -202,8 +202,10 @@ lemma generateHas_inter (hs : IsSetAlgebra s) {t u : Set α}
     exact .iInter ih (fun n m hnm ↦ inter_subset_inter (h_anti hnm) le_rfl)
 
 /-- If `s` is an algebra of sets, then the monotone class it generates is an algebra of sets. -/
-lemma isSetAlgebra_generateHas (hs : IsSetAlgebra s) : IsSetAlgebra (generate s).Has := by
-  refine ⟨.basic _ hs.empty_mem, fun _ ↦ generateHas_compl hs, fun t₁ t₂ ht₁ ht₂ ↦ ?_⟩
+lemma isSetAlgebra_generateHas (hs : IsSetAlgebra s) :
+    IsSetAlgebra {t | (generate s).Has t} := by
+  refine ⟨GenerateHas.basic _ hs.empty_mem, fun _ ↦ generateHas_compl hs,
+    fun t₁ t₂ ht₁ ht₂ ↦ ?_⟩
   rw [union_eq_compl_compl_inter_compl t₁ t₂]
   exact generateHas_compl hs
     (generateHas_inter hs (generateHas_compl hs ht₁) (generateHas_compl hs ht₂))
@@ -225,7 +227,7 @@ instance : Inhabited (MonotoneClass α) := ⟨generate univ⟩
 
 /-- If a Monotone class is a set algebra, then it forms a `σ`-algebra. -/
 @[implicit_reducible]
-def toMeasurableSpace (C : MonotoneClass α) (h : IsSetAlgebra C.Has) :
+def toMeasurableSpace (C : MonotoneClass α) (h : IsSetAlgebra {t | C.Has t}) :
     MeasurableSpace α where
   MeasurableSet' := C.Has
   measurableSet_empty := h.empty_mem
@@ -241,7 +243,7 @@ def toMeasurableSpace (C : MonotoneClass α) (h : IsSetAlgebra C.Has) :
     · exact fun n m hnm ↦ iUnion_subset fun i ↦ iUnion_subset fun hi ↦ subset_iUnion_of_subset i
         (subset_iUnion_of_subset (hi.trans_le hnm) (Subset.refl _))
 
-lemma ofMeasurableSpace_toMeasurableSpace (h : IsSetAlgebra C.Has) :
+lemma ofMeasurableSpace_toMeasurableSpace (h : IsSetAlgebra {t | C.Has t}) :
     ofMeasurableSpace (C.toMeasurableSpace h) = C :=
   ext fun _ => Iff.rfl
 

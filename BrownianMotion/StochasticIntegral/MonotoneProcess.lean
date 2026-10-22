@@ -132,7 +132,7 @@ lemma StieltjesFunction.measure_restrict_eq_comap (f : StieltjesFunction ι) (a 
         (MeasurableEmbedding.subtype_coe measurableSet_Ioc).comap_apply]
     · have : (univ : Set (Ioc a b)) = ∅ := by grind
       simp [this, measure_empty]
-  · exact (Subtype.borelSpace (Ioc a b)).measurable_eq ▸ borel_eq_generateFrom_Ioc ↑(Ioc a b)
+  · exact (Subtype.borelSpace (· ∈ Ioc a b)).measurable_eq ▸ borel_eq_generateFrom_Ioc ↑(Ioc a b)
 
 theorem StieltjesFunction.measurable_measure' {f : Ω → StieltjesFunction ι}
     (hf : ∀ i, Measurable (f · i)) :
@@ -217,8 +217,8 @@ instance : MeasurableSpace (VectorMeasure ι E) :=
 lemma measurable_coe {s : Set ι} (hs : MeasurableSet s) :
     Measurable fun μ : VectorMeasure ι E => μ s := by
   borelize E
-  apply Measurable.of_comap_le <| _
-  apply le_biSup _ hs
+  exact Measurable.of_comap_le <| le_iSup₂ (f := fun (s : Set ι) (_ : MeasurableSet s) ↦
+    (borel E).comap fun μ : VectorMeasure ι E => μ s) s hs
 
 lemma measurable_of_measurable_coe {f : Ω → VectorMeasure ι E}
     (h : ∀ (s : Set ι), MeasurableSet s → Measurable fun ω => f ω s) :

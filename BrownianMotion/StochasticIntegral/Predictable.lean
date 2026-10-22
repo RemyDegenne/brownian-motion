@@ -157,7 +157,7 @@ variable {X : ι → Ω → β}
 private lemma StronglyAdapted.isStronglyPredictable_roundDown {times : Finset ι}
     (h_adap : StronglyAdapted 𝓕 X) :
     IsStronglyPredictable 𝓕 (fun i ω ↦ X (roundDown times i) ω) := by
-  letI : MeasurableSpace (ι × Ω) := 𝓕.predictable
+  let : MeasurableSpace (ι × Ω) := 𝓕.predictable
   -- `X_ap i` approximates X at times `i`
   let X_ap n i := (h_adap i).approx n
   -- For `Y` and `Y_ap`, we keep `s` as a variable for use in the induction step

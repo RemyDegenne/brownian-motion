@@ -17,7 +17,7 @@ open MeasureTheory Filter
 open scoped ENNReal NNReal Topology
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ] {ω : Ω}
-  {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic MeasurableSet s}
+  {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic {t | MeasurableSet t} s}
 
 namespace MeasureTheory
 
@@ -84,14 +84,14 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
     simp only [← hB_eq, Set.iInf_eq_iInter, Set.mem_iInter]
     suffices ∀ n, IsCompact {t | (ω, t) ∈ A n} by
       refine IsCompact.of_isClosed_subset (s := {t | (ω, t) ∈ A 0}) (this 0) ?_ fun x ↦ by grind
-      suffices IsClosed (⋂ n, {t | (ω, t) ∈ A n}) by convert this; ext; simp
+      suffices IsClosed (⋂ n, {t | (ω, t) ∈ A n}) by convert this; simp
       exact isClosed_iInter fun n ↦ (this n).isClosed
     intro n
     specialize hA n
     rw [mem_supClosure_set_iff'] at hA
     choose t _ C hC hA_eq using hA
     simp only [hA_eq, Set.mem_iUnion, exists_prop]
-    suffices IsCompact (⋃ i ∈ t, {u | (ω, u) ∈ C i}) by convert this; ext; simp
+    suffices IsCompact (⋃ i ∈ t, {u | (ω, u) ∈ C i}) by convert this; simp
     refine Finset.isCompact_biUnion _ fun i hi ↦ ?_
     obtain ⟨D, hD, E, hE, hC_eq⟩ := hC i hi
     simp only [← hC_eq, Set.mem_prod]
@@ -132,7 +132,8 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
     rw [Set.image_swap_eq_preimage_swap]
 
 -- same as the previous lemma but with a measurable section instead of a null-measurable one
-lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet s) (a : ℝ≥0∞)
+lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (a : ℝ≥0∞)
     (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
@@ -161,8 +162,8 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic MeasurableSet 
     calc μ {ω | τ ω ≠ ⊤}
     _ = μ {ω | ω ∉ N ∧ τ ω ≠ ⊤} := by
       symm
+      rw [Set.ofPred_and]
       refine Measure.measure_inter_eq_of_ae ?_
-      simp only [imp_false]
       change Nᶜ ∈ ae μ
       rwa [mem_ae_iff, compl_compl]
     _ = μ {ω | ω ∉ N ∧ τ' ω ≠ ⊤} := by
@@ -207,7 +208,8 @@ lemma measure_debut_ne_top_mono {ι : Type*} [ConditionallyCompleteLinearOrder �
 variable (μ) in
 /-- A step in the construction of a measurable section. -/
 private noncomputable
-def step (hs : IsPavingAnalytic MeasurableSet s) (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
+def step (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
     {τ : Ω → WithTop ℝ≥0 // Measurable τ} :=
   let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
   if h0 : μ {ω | debut A 0 ω ≠ ⊤} = 0 then ⟨fun _ ↦ ⊤, measurable_const⟩ else
@@ -232,16 +234,16 @@ private lemma step_mem {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {�
   have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
     by_contra! h0
     simp only [step, ne_eq, Set.mem_inter_iff, Set.mem_ofPred_eq] at hω
-    rw [dif_pos h0] at hω
+    rw [dite_eq_left h0] at hω
     simp at hω
   have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
     ENNReal.half_lt_self h_ne (by simp)
-  rw [step, dif_neg h_ne] at hω ⊢
+  rw [step, dite_eq_right h_ne] at hω ⊢
   exact Set.inter_subset_left
     ((exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
       (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.1 ω hω)
 
-private lemma measure_step_ne_top_ge {hs : IsPavingAnalytic MeasurableSet s}
+private lemma measure_step_ne_top_ge {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} :
     μ {ω | debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2 ≤ μ {ω | (step μ hs τn).1 ω ≠ ⊤} := by
   let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
@@ -249,11 +251,11 @@ private lemma measure_step_ne_top_ge {hs : IsPavingAnalytic MeasurableSet s}
   · simp [A, h0]
   have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
     ENNReal.half_lt_self h0 (by simp)
-  rw [step, dif_neg h0]
+  rw [step, dite_eq_right h0]
   exact (exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
     (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.2.1
 
-private lemma debut_le_step {hs : IsPavingAnalytic MeasurableSet s}
+private lemma debut_le_step {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} :
     debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≤ (step μ hs τn).1 ω := by
   by_cases hω : (step μ hs τn).1 ω = ⊤
@@ -262,15 +264,15 @@ private lemma debut_le_step {hs : IsPavingAnalytic MeasurableSet s}
   have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
     by_contra! h0
     simp only [step, ne_eq, Set.mem_inter_iff, Set.mem_ofPred_eq] at hω
-    rw [dif_pos h0] at hω
+    rw [dite_eq_left h0] at hω
     simp at hω
   have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
     ENNReal.half_lt_self h_ne (by simp)
-  rw [step, dif_neg h_ne]
+  rw [step, dite_eq_right h_ne]
   exact ((exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
     (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.2.2 ω)
 
-private lemma step_eq_top_of_ne_top {hs : IsPavingAnalytic MeasurableSet s}
+private lemma step_eq_top_of_ne_top {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} (hω : τn.1 ω ≠ ⊤) :
     (step μ hs τn).1 ω = ⊤ := by
   refine le_antisymm le_top ?_
@@ -282,17 +284,17 @@ private lemma step_eq_top_of_ne_top {hs : IsPavingAnalytic MeasurableSet s}
 variable (μ) in
 /-- A sequence of auxiliary measurable sections constructed iteratively. -/
 private noncomputable
-def sectionSeq (hs : IsPavingAnalytic MeasurableSet s) :
+def sectionSeq (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     ℕ → {τ : Ω → WithTop ℝ≥0 // Measurable τ}
 | 0 => ⟨fun _ ↦ ⊤, measurable_const⟩
 | n + 1 => ⟨(sectionSeq hs n).1 ⊓ (step μ hs (sectionSeq hs n)).1,
     (sectionSeq hs n).2.inf (step μ hs (sectionSeq hs n)).2⟩
 
-private lemma sectionSeq_add_one (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+private lemma sectionSeq_add_one (hs : IsPavingAnalytic {t | MeasurableSet t} s) (n : ℕ) :
     (sectionSeq μ hs (n + 1)).1 = (sectionSeq μ hs n).1 ⊓ (step μ hs (sectionSeq μ hs n)).1 := rfl
 
 @[fun_prop]
-private lemma measurable_sectionSeq (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+private lemma measurable_sectionSeq (hs : IsPavingAnalytic {t | MeasurableSet t} s) (n : ℕ) :
     Measurable (sectionSeq μ hs n).1 := by
   induction n with
   | zero => simp [sectionSeq]
@@ -300,26 +302,27 @@ private lemma measurable_sectionSeq (hs : IsPavingAnalytic MeasurableSet s) (n :
     simp only [sectionSeq_add_one]
     exact ih.inf (measurable_step (sectionSeq μ hs n))
 
-private lemma antitone_sectionSeq (hs : IsPavingAnalytic MeasurableSet s) :
+private lemma antitone_sectionSeq (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     Antitone (sectionSeq μ hs) := by
   refine antitone_nat_of_succ_le fun n ↦ ?_
   rw [← Subtype.coe_le_coe]
   exact inf_le_left
 
-private lemma sectionSeq_add_one_eq_of_ne_top (hs : IsPavingAnalytic MeasurableSet s)
+private lemma sectionSeq_add_one_eq_of_ne_top (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     {n : ℕ} {ω : Ω} (hω : (sectionSeq μ hs n).1 ω ≠ ⊤) :
     (sectionSeq μ hs (n + 1)).1 ω = (sectionSeq μ hs n).1 ω := by
   rw [sectionSeq_add_one]
   simp [step_eq_top_of_ne_top hω]
 
-private lemma sectionSeq_eq_of_ne_top_of_ge (hs : IsPavingAnalytic MeasurableSet s)
+private lemma sectionSeq_eq_of_ne_top_of_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     {n m : ℕ} {ω : Ω} (hω : (sectionSeq μ hs n).1 ω ≠ ⊤) (hm : n ≤ m) :
     (sectionSeq μ hs m).1 ω = (sectionSeq μ hs n).1 ω := by
   induction m, hm using Nat.le_induction with
   | base => rfl
   | succ m hmn h_eq => rw [sectionSeq_add_one_eq_of_ne_top, h_eq]; rwa [h_eq]
 
-private lemma measure_sectionSeq_add_one_ne_top (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+private lemma measure_sectionSeq_add_one_ne_top (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (n : ℕ) :
     μ {ω | (sectionSeq μ hs (n + 1)).1 ω ≠ ⊤} =
       μ {ω | (sectionSeq μ hs n).1 ω ≠ ⊤} + μ {ω | (step μ hs (sectionSeq μ hs n)).1 ω ≠ ⊤} := by
   rw [← measure_union]
@@ -335,17 +338,17 @@ private lemma measure_sectionSeq_add_one_ne_top (hs : IsPavingAnalytic Measurabl
     exact step_eq_top_of_ne_top
   · exact ((measurableSet_singleton _).preimage (by fun_prop)).compl
 
-private lemma measure_sectionSeq_add_one_ne_top_ge (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+private lemma measure_sectionSeq_add_one_ne_top_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (n : ℕ) :
     μ {ω | (sectionSeq μ hs n).1 ω ≠ ⊤} +
         μ {ω | debut s 0 ω ≠ ⊤ ∧ (sectionSeq μ hs n).1 ω = ⊤} / 2 ≤
       μ {ω | (sectionSeq μ hs (n + 1)).1 ω ≠ ⊤} := by
   rw [measure_sectionSeq_add_one_ne_top]
   gcongr
   convert measure_step_ne_top_ge with ω
-  · rfl
   simp [debut_ne_top_iff]
 
-private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
+private lemma measure_inter_eq_zero (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     μ {ω | debut s 0 ω ≠ ⊤ ∧ ⨅ n, (sectionSeq μ hs n).1 ω = ⊤} = 0 := by
   suffices μ {ω | ⨅ n, (sectionSeq μ hs n).1 ω ≠ ⊤} +
         μ {ω | debut s 0 ω ≠ ⊤ ∧ ⨅ n, (sectionSeq μ hs n).1 ω = ⊤} / 2 ≤
@@ -364,13 +367,11 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
   · refine Tendsto.add ?_ ?_
     · convert tendsto_measure_iUnion_atTop h_mono
       · rfl
-      ext
       simp
     · refine ENNReal.Tendsto.div_const ?_ (by simp)
       convert tendsto_measure_iInter_atTop ?_ ?_ ?_
       · rfl
-      · ext ω
-        simp only [ne_eq, iInf_eq_top, Set.mem_ofPred_eq, Set.mem_iInter]
+      · simp only [ne_eq, iInf_eq_top, Set.mem_eq_mem, Set.mem_ofPred_eq, Set.mem_iInter]
         exact ⟨fun ⟨hd, h_seq⟩ i ↦ ⟨hd, h_seq i⟩, fun h ↦ ⟨(h 0).1, fun i ↦ (h i).2⟩⟩
       · infer_instance
       · intro n
@@ -390,22 +391,23 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic MeasurableSet s) :
   · simp only [ne_eq, iInf_eq_top, not_forall]
     convert tendsto_measure_iUnion_atTop ?_
     · rfl
-    · ext ω
-      simp only [Set.mem_ofPred_eq, Set.mem_iUnion]
+    · rename_i ω
+      simp only [Set.mem_eq_mem, Set.mem_ofPred_eq, Set.mem_iUnion]
       refine ⟨fun ⟨n, hω⟩ ↦ ⟨n, ?_⟩, fun ⟨n, hω⟩ ↦ ⟨n + 1, hω⟩⟩
       refine ne_of_lt (lt_of_le_of_lt ?_ (Ne.lt_top hω))
       exact antitone_sectionSeq hs (by grind) ω
     · infer_instance
     · exact fun _ _ h ↦ h_mono (by grind)
 
-private lemma iInf_sectionSeq_ne_top_of_debut_ne_top_ae (hs : IsPavingAnalytic MeasurableSet s) :
+private lemma iInf_sectionSeq_ne_top_of_debut_ne_top_ae
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ → ⨅ n, (sectionSeq μ hs n).1 ω ≠ ⊤ := by
   rw [ae_iff]
   rw [← measure_inter_eq_zero hs (μ := μ)]
   congr with ω
   simp
 
-private lemma debut_le_sectionSeq (hs : IsPavingAnalytic MeasurableSet s) (n : ℕ) :
+private lemma debut_le_sectionSeq (hs : IsPavingAnalytic {t | MeasurableSet t} s) (n : ℕ) :
     debut s 0 ω ≤ (sectionSeq μ hs n).1 ω := by
   induction n with
   | zero => simp [sectionSeq]
@@ -415,19 +417,19 @@ private lemma debut_le_sectionSeq (hs : IsPavingAnalytic MeasurableSet s) (n : �
     refine le_trans ?_ debut_le_step
     exact debut_anti 0 Set.inter_subset_left ω
 
-private lemma debut_ne_top_of_iInf_sectionSeq_ne_top (hs : IsPavingAnalytic MeasurableSet s)
+private lemma debut_ne_top_of_iInf_sectionSeq_ne_top (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     (hω : ⨅ n, (sectionSeq μ hs n).1 ω ≠ ⊤) :
     debut s 0 ω ≠ ⊤ := by
   refine ne_of_lt (lt_of_le_of_lt ?_ hω.lt_top)
   simp only [le_iInf_iff]
   exact debut_le_sectionSeq hs
 
-private lemma debut_ne_top_iff_ae (hs : IsPavingAnalytic MeasurableSet s) :
+private lemma debut_ne_top_iff_ae (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ ⨅ n, (sectionSeq μ hs n).1 ω ≠ ⊤ := by
   filter_upwards [iInf_sectionSeq_ne_top_of_debut_ne_top_ae hs (μ := μ)] with ω hω using
     ⟨fun h_debut ↦ hω h_debut, fun h_iInf ↦ debut_ne_top_of_iInf_sectionSeq_ne_top hs h_iInf⟩
 
-private lemma sectionSeq_mem (hs : IsPavingAnalytic MeasurableSet s)
+private lemma sectionSeq_mem (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     {n : ℕ} (hω : (sectionSeq μ hs n).1 ω ≠ ⊤) :
     (((sectionSeq μ hs n).1 ω).untopA, ω) ∈ s := by
   induction n with
@@ -439,7 +441,8 @@ private lemma sectionSeq_mem (hs : IsPavingAnalytic MeasurableSet s)
     · rw [sectionSeq_add_one_eq_of_ne_top hs hωn]
       exact ih hωn
 
-lemma IsPavingAnalytic.exists_measurable_section_left_nnreal (hs : IsPavingAnalytic MeasurableSet s)
+lemma IsPavingAnalytic.exists_measurable_section_left_nnreal
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
@@ -461,7 +464,7 @@ lemma IsPavingAnalytic.exists_measurable_section_left_nnreal (hs : IsPavingAnaly
   · exact debut_ne_top_iff_ae hs
 
 lemma IsPavingAnalytic.exists_measurable_section_right_nnreal
-    {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic MeasurableSet s)
+    {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     (μ : Measure Ω) [IsFiniteMeasure μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by

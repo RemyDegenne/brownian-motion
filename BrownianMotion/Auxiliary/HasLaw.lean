@@ -14,10 +14,6 @@ section HasLaw
 
 variable {𝓧} {m𝓧 : MeasurableSpace 𝓧} {X : Ω → 𝓧} {μ : Measure 𝓧} {P : Measure Ω}
 
-lemma hasLaw_map (hX : AEMeasurable X P) : HasLaw X (P.map X) P where
-  aemeasurable := hX
-  map_eq := rfl
-
 section dirac
 
 -- don't upstream this: it's too specific. Delete it here eventually.

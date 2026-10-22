@@ -7,7 +7,8 @@ module
 
 public import BrownianMotion.Auxiliary.ENNReal
 public import BrownianMotion.Auxiliary.MeasureTheory
-public import BrownianMotion.Auxiliary.Nat
+public import Mathlib.Algebra.Order.Floor.Semiring
+public import Mathlib.Algebra.Order.Ring.Abs
 public import Mathlib.Algebra.Order.Floor.Extended
 public import Mathlib.Algebra.Order.Ring.Star
 public import Mathlib.Topology.MetricSpace.CoveringNumbers

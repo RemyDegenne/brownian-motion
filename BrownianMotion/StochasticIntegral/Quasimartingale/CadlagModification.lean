@@ -71,7 +71,7 @@ lemma MeasureTheory.UniformIntegrable.tendsto_setIntegral [IsFiniteMeasure μ]
     (hfg : ∀ᵐ ω ∂μ, Tendsto (fun n ↦ f n ω) atTop (𝓝 (g ω))) (A : Set Ω) :
     Tendsto (fun n ↦ ∫ ω in A, f n ω ∂μ) atTop (𝓝 (∫ ω in A, g ω ∂μ)) := by
   have hg : MemLp g 1 μ := hUI.memLp_of_ae_tendsto hfg
-  refine tendsto_setIntegral_of_L1' g hg.aestronglyMeasurable
+  refine tendsto_setIntegral_of_L1' g
     (.of_forall fun n ↦ memLp_one_iff_integrable.1 (hUI.memLp n)) ?_ A
   exact tendsto_Lp_finite_of_tendsto_ae le_rfl ENNReal.one_ne_top hUI.aestronglyMeasurable hg
     hUI.unifIntegrable hfg
@@ -198,11 +198,11 @@ lemma measurableSet_altSet (hX : IsRealQuasimartingale 𝓕 X μ)
       refine ⟨fun k ↦ if h : k < 2 * m then g ⟨k, h⟩ else ⊥, by grind, by grind, ?_, ?_⟩
       · intro i hi
         have h2i : 2 * i < 2 * m := by lia
-        simp only [dif_pos h2i]
+        simp only [dite_eq_left h2i]
         exact hg3 ⟨i, hi⟩
       · intro i hi
         have h2i : 2 * i + 1 < 2 * m := by lia
-        simp only [dif_pos h2i]
+        simp only [dite_eq_left h2i]
         exact hg4 ⟨i, hi⟩
   rw [hset]
   refine Finset.measurableSet_biUnion _ fun g hg ↦ ?_
@@ -799,10 +799,10 @@ lemma countable_not_rightLimWithin_ae_eq [SecondCountableTopology ι] [IsFiniteM
       rw [tendsto_nhdsWithin_iff]
       exact ⟨hutend, Filter.Eventually.of_forall fun k ↦ by grind⟩
     have hRu : Tendsto (fun k ↦ R T (u k) ω) atTop (𝓝 (R T' p ω)) :=
-      tendsto_rightLim_comp_of_gt hTd Set.subset_union_left
+      tendsto_rightLim_comp_of_gt (T' := T') hTd Set.subset_union_left
         (fun y ↦ hRspec T y ω (hω₀ y))
         (fun y hy ↦ rightLimWithin_eq_of_nhdsGT_eq_bot (X · ω) T hy) hup hutend
-        (fun k _ ↦ .inr (.inl ⟨k, rfl⟩)) hL'
+        (fun k _ ↦ Set.mem_union_right _ (Set.mem_union_left _ (Set.mem_range_self k))) hL'
     have hsub := hRu.sub hXu
     rw [sub_self] at hsub
     refine Tendsto.congr (fun k ↦ ?_) hsub
@@ -844,8 +844,8 @@ At a time `t` isolated on the right, the modification is `X t`: we need those ti
 to ensure that the paths of the process restricted to the set, which have one-sided limits almost
 surely, control these values. If `ι` is densely ordered without maximal element, this set is
 `denseCountable ι`. -/
-def regularityTimes (ι : Type*) [Preorder ι] [TopologicalSpace ι] [SecondCountableTopology ι] :
-    Set ι :=
+noncomputable def regularityTimes (ι : Type*) [Preorder ι] [TopologicalSpace ι]
+    [SecondCountableTopology ι] : Set ι :=
   denseCountable ι ∪ {t | 𝓝[>] t = ⊥}
 
 omit [OrderTopology ι] in
@@ -1007,7 +1007,7 @@ lemma continuousWithinAt_rightContModifOf (x : ι) (ω : Ω) :
     ContinuousWithinAt (rightContModifOf R X · ω) (Set.Ioi x) x := by
   by_cases hω : ω ∈ regularitySetRight (regularityTimes ι) R x
   · have hYx : rightContModifOf R X x ω = rightLimWithin (X · ω) (regularityTimes ι) x := by
-      simp only [rightContModifOf, if_pos hω]
+      simp only [rightContModifOf, ite_eq_left hω]
     rw [ContinuousWithinAt, hYx]
     exact tendsto_rightContModifOf_rightLimWithin hR hω
   · refine ContinuousWithinAt.congr_of_eventuallyEq ?_ (rightContModifOf_eq_zero hω) ?_
@@ -1057,7 +1057,7 @@ lemma rightContModifOf_ae_eq_of_rightLimWithin_ae_eq {t : ι}
     (ht : (fun ω ↦ rightLimWithin (X · ω) (regularityTimes ι) t) =ᵐ[μ] X t) :
     rightContModifOf R X t =ᵐ[μ] X t := by
   filter_upwards [hRae, ht] with ω hω hωR
-  simpa only [rightContModifOf, if_pos (hω _)]
+  simpa only [rightContModifOf, ite_eq_left (hω _)]
 
 /-- At a time `t` which is isolated on the right, `rightContModifOf R X t` is a.e. equal to
 `X t`. -/
@@ -1088,7 +1088,7 @@ lemma exists_seq_tendsto_rightContModifOf (hR : IsRegularityFamily (regularityTi
     hw.mono_right (nhdsWithin_mono _ Set.inter_subset_right), ?_⟩
   filter_upwards [hRae] with ω hω
   have hYω : rightContModifOf R X t ω = rightLimWithin (X · ω) T t := by
-    simp only [rightContModifOf, T, if_pos (hω t)]
+    simp only [rightContModifOf, T, ite_eq_left (hω t)]
   rw [hYω]
   exact (hR.tendsto_nhdsGT_rightLimWithin (hω t)).comp hw
 
@@ -1158,7 +1158,7 @@ lemma cadlagModifOf_ae_eq_rightContModifOf
     (hRae : ∀ᵐ ω ∂μ, ∀ t, ω ∈ regularitySetRight (regularityTimes ι) R t) :
     ∀ᵐ ω ∂μ, ∀ t, cadlagModifOf R X t ω = rightContModifOf R X t ω := by
   filter_upwards [hRae] with ω hω
-  simp [cadlagModifOf, if_pos hω]
+  simp [cadlagModifOf, ite_eq_left hω]
 
 omit [OrderTopology ι] in
 lemma cadlagModifOf_ae_eq_of_rightContModifOf_ae_eq
@@ -1395,8 +1395,8 @@ lemma cadlagModifReal_ae_eq_of_isMax (hX : IsRealQuasimartingale 𝓕 X μ) {t :
 a countable dense set `T` disagrees with `X` is countable. -/
 lemma countable_not_cadlagModifReal_ae_eq (hX : IsRealQuasimartingale 𝓕 X μ) :
     {t | ¬ cadlagModifReal X t =ᵐ[μ] X t}.Countable :=
-  (countable_not_rightContModifReal_ae_eq hX).mono fun _ ht hcon ↦
-    ht (cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX hcon)
+  (countable_not_rightContModifReal_ae_eq hX).mono (s₂ := {t | ¬ rightContModifReal X t =ᵐ[μ] X t})
+    fun _ ht hcon ↦ ht (cadlagModifReal_ae_eq_of_rightContModifReal_ae_eq hX hcon)
 
 lemma cadlagModifReal_ae_eq_of_tendstoInMeasure (hX : IsRealQuasimartingale 𝓕 X μ)
     (t : ι) (hXRC : TendstoInMeasure μ X (𝓝[>] t) (X t)) :
@@ -1472,13 +1472,13 @@ theorem _root_.MeasureTheory.Submartingale.rightContModifReal_ae_eq [𝓕.IsRigh
   set Y := rightContModifReal X t
   -- `Y` is integrable, by Fatou's lemma
   have hY_int : Integrable Y μ := by
-    refine memLp_one_iff_integrable.1
-      ⟨(measurable_rightContModifReal hXq t).aestronglyMeasurable, ?_⟩
+    refine memLp_one_iff_integrable.1 ?_
     refine (Lp.eLpNorm_lim_le_liminf_eLpNorm
-      (fun n ↦ (hX.integrable (w n)).aestronglyMeasurable) Y h_tendsto).trans_lt ?_
+      (fun n ↦ (hX.integrable (w n)).aestronglyMeasurable) Y
+      (measurable_rightContModifReal hXq t).aestronglyMeasurable h_tendsto).trans_lt ?_
     have h_le n : eLpNorm (X (w n)) 1 μ
         ≤ ENNReal.ofReal (2 * ∫ ω, X u ω ⊔ 0 ∂μ - ∫ ω, X t ω ∂μ) := by
-      rw [eLpNorm_one_eq_lintegral_enorm,
+      rw [eLpNorm_one_eq_lintegral_enorm (hX.integrable _).aestronglyMeasurable,
         ← ofReal_integral_norm_eq_lintegral_enorm (hX.integrable _)]
       exact ENNReal.ofReal_le_ofReal (hX.integral_abs_le (htw n).le (hwu n))
     refine (liminf_le_liminf (.of_forall h_le)).trans_lt ?_

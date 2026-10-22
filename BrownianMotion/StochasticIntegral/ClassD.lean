@@ -714,7 +714,7 @@ lemma hasLocallyIntegrableSup_of_integrable_stoppedValue {ι : Type*} [Nonempty 
   have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
   have hY2 : ∀ (ω : Ω), IsCadlag (Y · ω) := by
     refine fun ω ↦ ⟨?_, fun i ↦ ?_⟩
-    · exact IsRightContinuous.continuous_comp continuous_norm (hX1 ω).1
+    · exact (hX1 ω).1.continuous_comp continuous_norm
     · obtain ⟨l, hl⟩ := (hX1 ω).2 i
       exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
@@ -875,7 +875,7 @@ theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E
   refine isStable_classD.locally_induction' ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
-    exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
+    exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).isRightContinuous) hX_nonneg
   · simp_rw [← and_assoc]
     rw [isStable_submartingale.locally_and_iff]
     · exact ⟨hX, .of_prop hX_nonneg⟩

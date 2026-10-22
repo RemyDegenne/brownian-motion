@@ -34,7 +34,7 @@ def nearestPt [EDist E] (s : Finset E) (x : E) : E :=
   if hs : s.Nonempty then (Finset.exists_min_image s (fun y ↦ edist x y) hs).choose else x
 
 lemma nearestPt_mem [EDist E] {s : Finset E} (hs : s.Nonempty) : nearestPt s x ∈ s := by
-  rw [nearestPt, dif_pos hs]
+  rw [nearestPt, dite_eq_left hs]
   exact (Finset.exists_min_image s (fun y ↦ edist x y) hs).choose_spec.1
 
 variable [PseudoEMetricSpace E]
@@ -42,9 +42,9 @@ variable [PseudoEMetricSpace E]
 lemma edist_nearestPt_le {s : Finset E} (hy : y ∈ s) :
     edist x (nearestPt s x) ≤ edist x y := by
   by_cases hs : s.Nonempty
-  · rw [nearestPt, dif_pos hs]
+  · rw [nearestPt, dite_eq_left hs]
     exact (Finset.exists_min_image s (fun y' ↦ edist x y') hs).choose_spec.2 y hy
-  · simp [nearestPt, dif_neg hs]
+  · simp [nearestPt, dite_eq_right hs]
 
 lemma edist_nearestPt_of_isCover (hC : IsCover ε A C) (hxA : x ∈ A) :
     edist x (nearestPt C x) ≤ ε := by
@@ -124,8 +124,8 @@ lemma chainingSequence_of_eq : chainingSequence C x k k = x := by
 
 lemma chainingSequence_of_lt (hkn : n < k) :
     chainingSequence C x k n = nearestPt (C n) (chainingSequence C x k (n + 1)) := by
-  rw [chainingSequence, if_pos (by omega), chainingSequenceReverse_of_pos (by omega),
-    chainingSequence, if_pos (by omega)]
+  rw [chainingSequence, ite_eq_left (by omega), chainingSequenceReverse_of_pos (by omega),
+    chainingSequence, ite_eq_left (by omega)]
   congr 2
   omega
 
@@ -171,9 +171,7 @@ lemma edist_chainingSequence_le_sum_edist {T : Type*} [PseudoEMetricSpace T] (f 
         edist (f (chainingSequence C x k (m + i))) (f (chainingSequence C x k (m + i + 1))) := by
   simp only [Nat.add_assoc, edist_comm (f x)]
   convert edist_le_range_sum_edist (fun i => f (chainingSequence C x k (m + i))) (k - m)
-  · rfl
-  · simp
-  · simp [(show m + (k - m) = k by lia)]
+  simp [(show m + (k - m) = k by lia)]
 
 lemma edist_chainingSequence_le_sum_edist' {T : Type*} [PseudoEMetricSpace T] (f : E → T)
     {m : ℕ} (hm : m ≤ k) :
@@ -256,7 +254,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (m : ℕ) (X : E → F) (�
   · gcongr with s t
     exact le_trans (edist_triangle _ (X (c t)) _) (by gcongr; apply edist_triangle)
   · simp only [ENNReal.add_iSup, add_assoc]
-  · exact iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)
+  · exact iSup_le (fun s => by gcongr <;> exact le_iSup_of_le s le_rfl)
   · congr 1
     conv_lhs => congr; ext s; rw [iSup_subtype]
     rw [iSup_comm]
@@ -264,7 +262,7 @@ lemma scale_change {F : Type*} [PseudoEMetricSpace F] (m : ℕ) (X : E → F) (�
     conv_lhs => congr; ext s; rw [iSup_subtype']
   · simp only [ENNReal.iSup_add]
   · rw [add_assoc]
-    exact add_le_add_right (iSup_le (fun s => by gcongr <;> exact le_iSup (α := ENNReal) _ _)) _
+    exact add_le_add_right (iSup_le (fun s => by gcongr <;> exact le_iSup_of_le s le_rfl)) _
   · conv_lhs => right; congr; ext s; rw [edist_comm]
     conv_rhs => left; congr; ext s; congr; ext t; rw [edist_comm]
     ring

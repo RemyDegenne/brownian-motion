@@ -16,6 +16,7 @@ public import Mathlib.Data.Set.FiniteExhaustion
 @[expose] public section
 
 open MeasureTheory Filter
+open Metric (HasCoveringExponent)
 open scoped ENNReal NNReal Topology Asymptotics
 
 section aux
@@ -231,7 +232,7 @@ lemma constL_lt_top
   exact Tendsto.comp tendsto_norm_atTop_atTop (tendsto_natCast_atTop_iff.mpr tendsto_id)
 
 lemma finite_kolmogorov_chentsov
-    (hT : HasBoundedCoveringNumber U c d)
+    (hT : HasCoveringExponent U c d)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (T' : Set T) [hT' : Finite T'] (hT'U : T' ⊆ U) :
@@ -358,7 +359,7 @@ lemma finite_kolmogorov_chentsov
     gcongr
     rw [Real.logb_rpow (by simp) (by simp)]
 
-theorem countable_kolmogorov_chentsov (hT : HasBoundedCoveringNumber U c d)
+theorem countable_kolmogorov_chentsov (hT : HasCoveringExponent U c d)
     (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hβ_pos : 0 < β)
     (T' : Set T) [hT' : Countable T'] (hT'U : T' ⊆ U) :
@@ -381,7 +382,7 @@ theorem countable_kolmogorov_chentsov (hT : HasBoundedCoveringNumber U c d)
     exact iSup_le_iSup_of_subset (Set.prod_mono (K.mono h) (K.mono h))
 
 lemma IsKolmogorovProcess.ae_iSup_rpow_edist_div_lt_top
-    (hT : HasBoundedCoveringNumber U c d)
+    (hT : HasCoveringExponent U c d)
     (hX : IsKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hβ_pos : 0 < β) (hβ_lt : β < (q - d) / p)
