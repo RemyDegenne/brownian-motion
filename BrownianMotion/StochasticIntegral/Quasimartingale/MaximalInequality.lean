@@ -39,12 +39,13 @@ lemma finIdx_eq_of_card_le (h : #F ≤ k) : finIdx F t k = t := by grind
 lemma finIdx_le (hF : ∀ s ∈ F, s ≤ t) (k : ℕ) : finIdx F t k ≤ t := by grind
 
 lemma finIdx_lt_of_lt (hkl : k < l) (hl : l < #F) : finIdx F t k < finIdx F t l := by
-  rw [finIdx, finIdx, dif_pos (hkl.trans hl), dif_pos hl]
+  rw [finIdx, finIdx, dite_eq_left (hkl.trans hl), dite_eq_left hl]
   exact mod_cast (F.orderIsoOfFin rfl).strictMono (mod_cast hkl)
 
 lemma finIdx_lt_finIdx_iff (hk : k < #F) (hl : l < #F) :
     finIdx F t k < finIdx F t l ↔ k < l := by
-  rw [finIdx, finIdx, dif_pos hk, dif_pos hl, Subtype.coe_lt_coe, OrderIso.lt_iff_lt, Fin.mk_lt_mk]
+  rw [finIdx, finIdx, dite_eq_left hk, dite_eq_left hl, Subtype.coe_lt_coe, OrderIso.lt_iff_lt,
+    Fin.mk_lt_mk]
 
 @[gcongr]
 lemma finIdx_monotone (hF : ∀ s ∈ F, s ≤ t) : Monotone (finIdx F t) := by
@@ -57,7 +58,7 @@ lemma finIdx_monotone (hF : ∀ s ∈ F, s ≤ t) : Monotone (finIdx F t) := by
 
 lemma exists_finIdx_eq {s : ι} (hs : s ∈ F) : ∃ k, k < #F ∧ finIdx F t k = s := by
   obtain ⟨k, hk⟩ := (F.orderIsoOfFin rfl).surjective ⟨s, hs⟩
-  exact ⟨k, k.2, by rw [finIdx, dif_pos k.2, Fin.eta, hk]⟩
+  exact ⟨k, k.2, by rw [finIdx, dite_eq_left k.2, Fin.eta, hk]⟩
 
 lemma finIdx_zero_eq_bot [OrderBot ι] (hbot : ⊥ ∈ F) : finIdx F t 0 = ⊥ := by
   have hcard : 0 < #F := card_pos.2 ⟨⊥, hbot⟩
@@ -82,7 +83,7 @@ def elemPredSetOfSeq [OrderBot ι] {idx : ℕ → ι} (hidx : Monotone idx) {W :
     measurableSet_set p hp := by
       obtain ⟨k, hk, rfl⟩ := mem_image.1 hp
       have hex : ∃ k' ∈ K, (idx k', idx (k' + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
-      simp only [dif_pos hex]
+      simp only [dite_eq_left hex]
       obtain ⟨hcK, hceq⟩ := hex.choose_spec
       have h1 : idx hex.choose = idx k := (Prod.ext_iff.1 hceq).1
       have hKmem {k} (hk : k ∈ K) : k < n ∧ idx k < idx (k + 1) := by simpa [K] using hk
@@ -127,15 +128,13 @@ lemma integral_elemPredSetOfSeq [OrderBot ι] {t : ι} (n : ℕ) {idx : ℕ → 
   · -- per-term equality on K
     have h : ∃ k_1 ∈ {k ∈ range n | idx k < idx (k + 1)},
       (idx k_1, idx (k_1 + 1)) = (idx k, idx (k + 1)) := ⟨k, hk, rfl⟩
-    rw [dif_pos h]
+    rw [dite_eq_left h]
     suffices (W h.choose ⁻¹' {1}).indicator
         (fun ω ↦ stoppedProcess X (fun x ↦ ↑t) (idx (k + 1)) ω -
           stoppedProcess X (fun x ↦ ↑t) (idx k) ω) ω =
         W k ω * (X (idx (k + 1)) ω - X (idx k) ω) by
-      convert this
-      · rfl
-      · simp
-      · simp
+      convert this using 3
+      simp
     have hchoose : h.choose = k := hinj h.choose_spec.1 hk h.choose_spec.2
     have hst : ∀ j, stoppedProcess X (fun _ ↦ (t : WithTop ι)) (idx j) ω = X (idx j) ω :=
       fun j ↦ stoppedProcess_eq_of_le (mod_cast hidxt j)
@@ -351,11 +350,11 @@ lemma exists_finset_altSet_of_frequently_right (hxd : x < d)
       have hpick : ∃ s, s ∈ Set.Ioo x u ∩ T
           ∧ if Even k then b < X s ω else X s ω < a := by
         by_cases hk : Even k
-        · simp only [if_pos hk]
+        · simp only [ite_eq_left hk]
           obtain ⟨s, hs1, hs2⟩ := (hfb.and_eventually (Filter.eventually_of_mem hU
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
-        · simp only [if_neg hk]
+        · simp only [ite_eq_right hk]
           obtain ⟨s, hs1, hs2⟩ := (hfa.and_eventually (Filter.eventually_of_mem hU
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
@@ -399,11 +398,11 @@ lemma exists_finset_altSet_of_frequently_left
       have hpick : ∃ s, s ∈ (if 0 < k then Set.Ioo (c (k - 1)) x else Set.Iio x) ∩ T
           ∧ if Even k then X s ω < a else b < X s ω := by
         by_cases hk : Even k
-        · simp only [if_pos hk]
+        · simp only [ite_eq_left hk]
           obtain ⟨s, hs1, hs2⟩ := (hfa.and_eventually (Filter.eventually_of_mem hU
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
-        · simp only [if_neg hk]
+        · simp only [ite_eq_right hk]
           obtain ⟨s, hs1, hs2⟩ := (hfb.and_eventually (Filter.eventually_of_mem hU
             (fun s hs ↦ hs))).exists
           exact ⟨s, hs2, hs1⟩
@@ -457,7 +456,7 @@ lemma sum_indicator_mul_sub_eq_stopped'' (f : ℕ → Ω → ℝ) (s : Set ℝ) 
       · grind
       · simp only [Set.mem_ofPred_eq, not_forall, not_not]
         exact ⟨j, hj.2, hjs⟩
-    · rw [hittingBtwn, if_neg hhit]
+    · rw [hittingBtwn, ite_eq_right hhit]
       have h2 : hittingBtwn f s 0 (n + 1) ω = n + 1 := by
         refine le_antisymm (hittingBtwn_le ω) (not_lt.1 fun hlt ↦ ?_)
         obtain ⟨j, hj, hjs⟩ := (hittingBtwn_lt_iff (n + 1) le_rfl).1 hlt

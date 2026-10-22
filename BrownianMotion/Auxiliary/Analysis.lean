@@ -44,12 +44,7 @@ lemma convexOn_rpow_norm {E : Type*} [SeminormedAddCommGroup E]
 lemma lpNorm_congr {α ε : Type*} {m0 : MeasurableSpace α} {p : ℝ≥0∞} {μ : Measure α}
     [NormedAddCommGroup ε] {f g : α → ε} (hfg : f =ᵐ[μ] g) :
     lpNorm f p μ = lpNorm g p μ := by
-  rw [lpNorm]
-  split_ifs with h
-  · rw [eLpNorm_congr_ae hfg, lpNorm, if_pos (h.congr hfg)]
-  · rw [lpNorm, if_neg]
-    contrapose h
-    exact h.congr hfg.symm
+  rw [lpNorm, lpNorm, eLpNorm_congr_ae hfg]
 
 lemma lpNorm_rpow_nnreal_eq_integral {α ε : Type*} {m0 : MeasurableSpace α} {μ : Measure α}
     [NormedAddCommGroup ε] {f : α → ε} {p : ℝ≥0} (hp : p ≠ 0)

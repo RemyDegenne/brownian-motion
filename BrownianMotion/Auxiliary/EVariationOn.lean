@@ -52,7 +52,9 @@ lemma eVariationOn_eq_iSup_fin {s : Set ι} (X : ι → E) :
     let p : κ n := ⟨fun i : Fin (n + 1) ↦ u i, hu.comp Fin.val_strictMono.monotone, fun i ↦ hus i⟩
     have : ∑ i ∈ Finset.range n, edist (X (u (i + 1))) (X (u i)) =
       ∑ i : Fin n, edist (X (p.1 i.succ)) (X (p.1 i.castSucc)) := by simp [Finset.sum_range, p]
-    simpa [this] using le_iSup₂ (α := ℝ≥0∞) n p
+    rw [this]
+    exact le_iSup₂ (f := fun (n : ℕ) (p : κ n) ↦
+      ∑ i : Fin n, edist (X (p.1 i.succ)) (X (p.1 i.castSucc))) n p
   · let v : ℕ → ι := fun k ↦ p ⟨min k n, Nat.lt_succ_of_le (min_le_right k n)⟩
     have : ∑ i : Fin n, edist (X (p i.succ)) (X (p i.castSucc)) =
       ∑ i ∈ Finset.range n, edist (X (v (i + 1))) (X (v i)) := by

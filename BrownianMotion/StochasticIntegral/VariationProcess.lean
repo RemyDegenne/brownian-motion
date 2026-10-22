@@ -53,7 +53,8 @@ lemma measurable_eVariationOn_of_countable {s : Set ι}
   simp only [eVariationOn_eq_iSup_fin]
   refine Measurable.iSup fun n ↦ ?_
   have : Countable {u : Fin (n + 1) → ι // Monotone u ∧ ∀ i, u i ∈ s} :=
-    (countable_pi fun _ ↦ hs).mono fun _ hu ↦ hu.2
+    Set.Countable.to_subtype (s := {u | Monotone u ∧ ∀ i, u i ∈ s})
+      ((countable_pi fun _ ↦ hs).mono fun _ hu ↦ hu.2)
   refine Measurable.iSup fun p ↦ Finset.measurable_sum _ fun i _ ↦ ?_
   exact (continuous_edist.comp_stronglyMeasurable
     ((hX _ (p.2.2 i.succ)).prodMk (hX _ (p.2.2 i.castSucc)))).measurable

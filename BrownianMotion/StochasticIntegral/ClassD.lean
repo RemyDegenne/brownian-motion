@@ -712,7 +712,7 @@ lemma hasLocallyIntegrableSup_of_integrable_stoppedValue {ι : Type*} [Nonempty 
   have hY1 : StronglyAdapted 𝓕 Y := hX2.stronglyAdapted.norm
   have hY2 : ∀ (ω : Ω), IsCadlag (Y · ω) := by
     refine fun ω ↦ ⟨?_, fun i ↦ ?_⟩
-    · exact IsRightContinuous.continuous_comp continuous_norm (hX1 ω).1
+    · exact (hX1 ω).1.continuous_comp continuous_norm
     · obtain ⟨l, hl⟩ := (hX1 ω).2 i
       exact ⟨‖l‖, (continuous_norm.tendsto l).comp hl⟩
   let τ : ℕ → Ω → WithTop ι := (fun n ↦ hittingAfter Y (Set.Ici n) ⊥)
@@ -871,7 +871,7 @@ theorem IsLocalSubmartingale.locally_classD [NormedSpace ℝ E] [CompleteSpace E
   refine isStable_classD.locally_induction' ?_ ?_
     (p := fun X : ι → Ω → E ↦ Submartingale X 𝓕 P ∧ (∀ ω, IsCadlag (X · ω)) ∧ 0 ≤ X)
   · intro X ⟨hX, hXC, hX_nonneg⟩
-    exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).right_continuous) hX_nonneg
+    exact hX.locally_classD h𝓕 (fun ω ↦ (hXC ω).isRightContinuous) hX_nonneg
   · -- the processes stopped along a localizing sequence of `X` are nonnegative, like `X`
     obtain ⟨τ, hτ, hτX⟩ := hX
     refine ⟨τ, hτ, fun n ↦ ⟨(hτX n).1, (hτX n).2, fun i ω ↦ ?_⟩⟩
@@ -890,9 +890,9 @@ omit [NoMaxOrder ι] in
 lemma _root_.MeasureTheory.Submartingale.hasLocallyIntegrableSup
     (hX : Submartingale X 𝓕 P) (hC : ∀ ω, IsCadlag (X · ω)) : HasLocallyIntegrableSup X 𝓕 P :=
   hasLocallyIntegrableSup_of_integrable_stoppedValue hC
-    (hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous fun ω ↦ (hC ω).right_continuous)
+    (hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous fun ω ↦ (hC ω).isRightContinuous)
     fun _ _ hσ hσt ↦ hX.integrable_stoppedValue_of_approximable
-      (fun ω ↦ (hC ω).right_continuous) hσ hσt
+      (fun ω ↦ (hC ω).isRightContinuous) hσ hσt
 
 /-- A real local submartingale has locally integrable supremum. -/
 theorem IsLocalSubmartingale.hasLocallyIntegrableSup (hX : IsLocalSubmartingale X 𝓕 P) :

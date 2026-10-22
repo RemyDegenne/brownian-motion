@@ -9,28 +9,51 @@ public import BrownianMotion.Auxiliary.Filtration
 public import Mathlib.MeasureTheory.Function.ConditionalExpectation.CondJensen
 public import Mathlib.Probability.Martingale.Basic
 
-/-! # Properties of martingales and submartingales
+/-!
+# Properties of martingales and submartingales
+
+This file contains auxiliary results about martingales and submartingales that are not yet in
+Mathlib.
+
+## Main statements
+
+* `Martingale.indicator`, `Submartingale.indicator`: the product of a (sub)martingale with the
+  indicator of a set that is measurable with respect to the first σ-algebra of the filtration is a
+  (sub)martingale.
+* `Martingale.indexComap`, `Submartingale.indexComap`: reindexing a (sub)martingale along a monotone
+  map gives a (sub)martingale with respect to the filtration `Filtration.indexComap`.
+* `Martingale.submartingale_convex_comp`: the composition of a martingale with a continuous convex
+  function is a submartingale.
+* `Martingale.submartingale_norm`: the norm of a martingale is a submartingale.
+* `Submartingale.monotone_convex_comp`: the composition of a submartingale with a monotone
+  continuous convex function is a submartingale.
+* `Submartingale.norm_of_nonneg`: the norm of a nonnegative submartingale with values in a Banach
+  lattice is a real submartingale.
+* `Martingale.stoppedProcess_const`: a martingale stopped at a constant time is a martingale.
 -/
 
 @[expose] public section
 
 namespace MeasureTheory
 
-section
-
 variable {ι Ω E : Type*} [Preorder ι] [NormedAddCommGroup E] [NormedSpace ℝ E]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : ι → Ω → E} {𝓕 : Filtration ι mΩ}
+  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}
 
+section Basic
+
+/-- Each `X t` of a martingale `X` is strongly measurable with respect to the ambient σ-algebra. -/
 lemma Martingale.stronglyMeasurable' (hX : Martingale X 𝓕 P) {t : ι} :
     StronglyMeasurable (X t) :=
   hX.stronglyMeasurable t |>.mono (𝓕.le t)
 
+/-- The indicator of a `𝓕 ⊥`-measurable set times a martingale is a martingale. -/
 lemma Martingale.indicator [CompleteSpace E] [OrderBot ι] {s : Set Ω}
     (hX : Martingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
     Martingale (fun t ↦ s.indicator (X t)) 𝓕 P :=
   ⟨fun i ↦ (hX.stronglyAdapted i).indicator (𝓕.mono bot_le _ hs), fun i j hij ↦
     (condExp_indicator (hX.integrable _) (𝓕.mono bot_le _ hs)).trans (hX.2 i j hij).indicator⟩
 
+/-- The indicator of a `𝓕 ⊥`-measurable set times a submartingale is a submartingale. -/
 lemma Submartingale.indicator [CompleteSpace E] [OrderBot ι] [Preorder E] {s : Set Ω}
     (hX : Submartingale X 𝓕 P) (hs : MeasurableSet[𝓕 ⊥] s) :
     Submartingale (fun t ↦ s.indicator (X t)) 𝓕 P := by
@@ -40,15 +63,6 @@ lemma Submartingale.indicator [CompleteSpace E] [OrderBot ι] [Preorder E] {s : 
     hX.2.1 i j hij] with ω h1 h2
   rw [h1]
   by_cases hω : ω ∈ s <;> simp [hω, h2]
-
-lemma Martingale.indexComap {ι' : Type*} [Preorder ι'] (hX : Martingale X 𝓕 P) {f : ι' → ι}
-    (hf : Monotone f) : Martingale (X ∘ f) (𝓕.indexComap hf) P :=
-  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
-
-lemma Submartingale.indexComap {ι' : Type*} [Preorder ι'] [LE E] (hX : Submartingale X 𝓕 P)
-    {f : ι' → ι} (hf : Monotone f) : Submartingale (X ∘ f) (𝓕.indexComap hf) P :=
-  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij),
-    fun _ ↦ hX.integrable _⟩
 
 /-- If `A - B` is a martingale, the increments of `A` and `B` up to `⊤` have the same integral on
 every `𝓕 i`-measurable set. -/
@@ -64,13 +78,31 @@ lemma Martingale.setIntegral_sub_top_eq [OrderTop ι] [SigmaFiniteFiltration P �
     integral_sub (hB_int ⊤).integrableOn (hB_int i).integrableOn]
   linarith
 
-end
+end Basic
 
-variable {ι Ω E : Type*} [PartialOrder ι] [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {mΩ : MeasurableSpace Ω} {P : Measure Ω} {X Y : ι → Ω → E}
-  {𝓕 : Filtration ι mΩ} [SigmaFiniteFiltration P 𝓕]
+section IndexComap
 
-lemma Martingale.submartingale_convex_comp (hX : Martingale X 𝓕 P) {φ : E → ℝ}
+variable {ι' : Type*} [Preorder ι'] {f : ι' → ι}
+
+/-- A martingale reindexed by a monotone map is a martingale for the reindexed filtration. -/
+lemma Martingale.indexComap (hX : Martingale X 𝓕 P) (hf : Monotone f) :
+    Martingale (X ∘ f) (𝓕.indexComap hf) P :=
+  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.condExp_ae_eq (hf hij)⟩
+
+/-- A submartingale reindexed by a monotone map is a submartingale for the reindexed filtration. -/
+lemma Submartingale.indexComap [LE E] (hX : Submartingale X 𝓕 P) (hf : Monotone f) :
+    Submartingale (X ∘ f) (𝓕.indexComap hf) P :=
+  ⟨hX.stronglyAdapted.indexComap hf, fun _ _ hij ↦ hX.ae_le_condExp (hf hij),
+    fun _ ↦ hX.integrable _⟩
+
+end IndexComap
+
+section ConvexComp
+
+variable [CompleteSpace E] [SigmaFiniteFiltration P 𝓕] {φ : E → ℝ}
+
+/-- The composition of a martingale with a continuous convex function is a submartingale. -/
+lemma Martingale.submartingale_convex_comp (hX : Martingale X 𝓕 P)
     (hφ_cvx : ConvexOn ℝ Set.univ φ) (hφ_cont : Continuous φ)
     (hφ_int : ∀ t, Integrable (fun ω ↦ φ (X t ω)) P) :
     Submartingale (fun t ω ↦ φ (X t ω)) 𝓕 P := by
@@ -80,11 +112,14 @@ lemma Martingale.submartingale_convex_comp (hX : Martingale X 𝓕 P) {φ : E �
     _ ≤ᵐ[P] P[fun ω ↦ φ (X j ω) | 𝓕 i] :=
       hφ_cvx.map_condExp_le_univ (𝓕.le i) hφ_cont.lowerSemicontinuous (hX.integrable j) (hφ_int j)
 
+/-- The norm of a martingale is a submartingale. -/
 lemma Martingale.submartingale_norm (hX : Martingale X 𝓕 P) :
     Submartingale (fun t ω ↦ ‖X t ω‖) 𝓕 P :=
   hX.submartingale_convex_comp convexOn_univ_norm continuous_norm fun i ↦ (hX.integrable i).norm
 
-lemma Submartingale.monotone_convex_comp [Preorder E] (hX : Submartingale X 𝓕 P) {φ : E → ℝ}
+/-- The composition of a submartingale with a monotone continuous convex function is a
+submartingale. -/
+lemma Submartingale.monotone_convex_comp [Preorder E] (hX : Submartingale X 𝓕 P)
     (hφ_mono : Monotone φ) (hφ_cvx : ConvexOn ℝ Set.univ φ) (hφ_cont : Continuous φ)
     (hφ_int : ∀ t, Integrable (fun ω ↦ φ (X t ω)) P) :
     Submartingale (fun t ω ↦ φ (X t ω)) 𝓕 P := by
@@ -107,6 +142,8 @@ lemma Submartingale.norm_of_nonneg [Lattice E] [HasSolidNorm E] [IsOrderedAddMon
     _ ≤ᵐ[P] P[fun ω ↦ ‖X j ω‖ | 𝓕 i] :=
       convexOn_univ_norm.map_condExp_le_univ (𝓕.le i) continuous_norm.lowerSemicontinuous
         (hX.integrable j) (hX.integrable j).norm
+
+end ConvexComp
 
 section LinearOrder
 

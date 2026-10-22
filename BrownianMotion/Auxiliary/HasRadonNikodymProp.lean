@@ -291,8 +291,7 @@ private lemma exists_withDensityᵥ_eq_of_forall_exists_isDensityOn [CompleteSpa
   have h_triangle (m₁ m₂ m₃ : 𝒞) : eLpNorm (d m₁ - d m₂) 1 μ
       ≤ eLpNorm (d m₁ - d m₃) 1 μ + eLpNorm (d m₂ - d m₃) 1 μ := by
     rw [← sub_add_sub_cancel (d m₁) (d m₃) (d m₂), eLpNorm_sub_comm (d m₂) (d m₃)]
-    exact eLpNorm_add_le ((hd_int m₁).sub (hd_int m₃)).aestronglyMeasurable
-      ((hd_int m₃).sub (hd_int m₂)).aestronglyMeasurable le_rfl
+    exact eLpNorm_add_le le_rfl
   have h_sup (m : ℕ → 𝒞) : ∃ m' : 𝒞, m'.1 = ⨆ n, (m n).1 := by
     choose b hb_count hb_eq using fun n ↦ (m n).2.2.isCountablyGenerated
     refine ⟨⟨⨆ n, (m n).1, iSup_le fun n ↦ (m n).2.1, @MeasurableSpace.CountablyGenerated.mk Ω
@@ -342,8 +341,7 @@ private lemma exists_withDensityᵥ_eq_of_forall_exists_isDensityOn [CompleteSpa
       refine ge_of_tendsto' h_tendsto fun k ↦ ?_
       exact (h_triangle m'' m' (m k)).trans
         (add_le_add (hm k m'' ((h_le k).trans hm'')) (hm k m' (h_le k)))
-    have h_ae := (eLpNorm_eq_zero_iff ((hd_int m'').sub (hd_int m')).aestronglyMeasurable
-      one_ne_zero).1 h0
+    have h_ae := (eLpNorm_eq_zero_iff one_ne_zero).1 h0
     filter_upwards [h_ae] with ω hω using sub_eq_zero.1 hω
   -- the density on that σ-algebra is a density on the whole σ-algebra
   refine ⟨d m, (hd m).1.mono m.2.1, (hd m).2.1, ?_⟩
@@ -543,7 +541,7 @@ theorem of_continuousLinearEquiv [HasRadonNikodymProp E] (e : E ≃L[ℝ] F) :
     HasRadonNikodymProp F := by
   have := completeSpace E
   have : CompleteSpace F := (completeSpace_congr (e := e.toEquiv) e.isUniformEmbedding).1 ‹_›
-  exact of_antilipschitzWith (e.symm : F →L[ℝ] E) e.symm.antilipschitz
+  exact of_antilipschitzWith (e.symm : F →L[ℝ] E) e.symm.antilipschitzWith
 
 /-- A complete subspace of a space with the Radon-Nikodym property has the Radon-Nikodym
 property. -/

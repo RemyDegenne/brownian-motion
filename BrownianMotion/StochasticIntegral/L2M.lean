@@ -55,10 +55,9 @@ abbrev L2Predictable (E : Type*) [NormedAddCommGroup E] (𝓕 : Filtration ι m�
 with respect to the restriction of `ν` to the predictable σ-algebra. -/
 lemma _root_.MeasureTheory.IsStronglyPredictable.memLp_trim (hV : IsStronglyPredictable 𝓕 V)
     (hV_mem : MemLp (uncurry V) 2 ν) :
-    MemLp (uncurry V) 2 (ν.trim 𝓕.predictable_le_prod) :=
-  ⟨hV.aestronglyMeasurable, by
-    rw [eLpNorm_trim 𝓕.predictable_le_prod hV]
-    exact hV_mem.2⟩
+    MemLp (uncurry V) 2 (ν.trim 𝓕.predictable_le_prod) := by
+  rw [memLp_iff, eLpNorm_trim 𝓕.predictable_le_prod hV]
+  exact hV_mem
 
 /-- The element of `L2Predictable E 𝓕 ν` defined by a predictable process which is square
 integrable with respect to `ν`. -/
@@ -100,7 +99,7 @@ lemma adapted_predQuadVariation (X : ι → Ω → E) (P : Measure Ω) [IsFinite
 lemma isRightContinuous_predQuadVariation (X : ι → Ω → E) (P : Measure Ω) [IsFiniteMeasure P]
     (𝓕 : Filtration ι mΩ) [𝓕.IsRightContinuous] [𝓕.IsComplete P] [Approximable 𝓕 P] (ω : Ω) :
     IsRightContinuous (⟨X; P, 𝓕⟩ₘ · ω) :=
-  (isCadlag_predQuadVariation ω).right_continuous
+  (isCadlag_predQuadVariation ω).isRightContinuous
 
 /-- The kernel `ω ↦ d⟨X⟩(ω)`: it maps `ω` to the Stieltjes measure of the path `⟨X⟩ · ω` of the
 predictable quadratic variation of `X`. -/
@@ -169,6 +168,7 @@ lemma _root_.MeasureTheory.IsStronglyPredictable.eLpNorm_two_trim_pow_eq_lintegr
   rw [eLpNorm_trim 𝓕.predictable_le_prod hV]
   have h := eLpNorm_nnreal_pow_eq_lintegral (f := uncurry V)
     (μ := predQuadVariationMeasure X P 𝓕) (p := 2) (by simp)
+    (hV.mono 𝓕.predictable_le_prod).aestronglyMeasurable
   simp only [NNReal.coe_ofNat, ENNReal.coe_ofNat, ENNReal.rpow_ofNat] at h
   rw [h, lintegral_predQuadVariationMeasure (hV_meas.enorm.pow_const 2)]
   rfl

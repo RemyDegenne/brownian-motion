@@ -43,7 +43,7 @@ lemma PseudoEMetricSpace.boundedSpace_toPseudoMetricSpace {C : ℝ≥0}
     letI := PseudoEMetricSpace.toPseudoMetricSpace
       fun x y ↦ ne_top_of_le_ne_top ENNReal.coe_ne_top (hX x y)
     BoundedSpace X := by
-  letI := PseudoEMetricSpace.toPseudoMetricSpace
+  let := PseudoEMetricSpace.toPseudoMetricSpace
     fun x y ↦ ne_top_of_le_ne_top ENNReal.coe_ne_top (hX x y)
   rw [Metric.boundedSpace_iff]
   refine ⟨C, fun x y ↦ ?_⟩
@@ -71,7 +71,7 @@ lemma MemHolder.mono' {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetricSpace Y
     {f : X → Y} {r s : ℝ≥0} (hf : MemHolder r f) (hs : s ≤ r) {C' : ℝ≥0}
     (hX : ∀ x y : X, edist x y ≤ C') :
     MemHolder s f := by
-  letI := PseudoEMetricSpace.toPseudoMetricSpace
+  let := PseudoEMetricSpace.toPseudoMetricSpace
     fun x y ↦ ne_top_of_le_ne_top ENNReal.coe_ne_top (hX x y)
   have := PseudoEMetricSpace.boundedSpace_toPseudoMetricSpace hX
   exact hf.mono hs
@@ -88,7 +88,7 @@ lemma HolderOnWith.mono_right' {X Y : Type*} [PseudoEMetricSpace X] [PseudoEMetr
     {C' : ℝ≥0} (ht : ∀ ⦃x⦄, x ∈ t → ∀ ⦃y⦄, y ∈ t → edist x y ≤ C') :
     ∃ C', HolderOnWith C' s f t := by
   simp_rw [← HolderWith.restrict_iff] at *
-  letI := PseudoEMetricSpace.toPseudoMetricSpace
+  let := PseudoEMetricSpace.toPseudoMetricSpace
     fun x y : t ↦ ne_top_of_le_ne_top ENNReal.coe_ne_top (ht x.2 y.2)
   have : BoundedSpace t :=
     PseudoEMetricSpace.boundedSpace_toPseudoMetricSpace fun x y : t ↦ ht x.2 y.2

@@ -201,7 +201,7 @@ We specialize directly from Banach space to finite dimensional Hilbert space sin
 
 \begin{lemma}\label{lem:isGaussian_iff_charFun_eq}
   \uses{def:IsGaussian, def:charFunDual, def:charFun}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.isGaussian_iff_charFun_eq}
 A finite measure $\mu$ on a Hilbert space $E$ is Gaussian if and only if for every $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
@@ -209,7 +209,7 @@ A finite measure $\mu$ on a Hilbert space $E$ is Gaussian if and only if for eve
 \end{align*}
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{thm:isGaussian_iff_charFunDual_eq}
 By Theorem~\ref{thm:isGaussian_iff_charFunDual_eq}, $\mu$ is Gaussian iff for every continuous linear form $L \in E^*$, the characteristic function of $\mu$ at $L$ is
 \begin{align*}
@@ -225,7 +225,7 @@ Let $E$ be a separable Hilbert space. We denote by $\langle \cdot, \cdot \rangle
 
 \begin{lemma}\label{lem:IsGaussian.charFun_eq}
   \uses{def:IsGaussian, def:charFun, def:covInnerBilin}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.IsGaussian.charFun_eq}
 The characteristic function of a Gaussian measure $\mu$ on $E$ is given by
 \begin{align*}
@@ -233,7 +233,7 @@ The characteristic function of a Gaussian measure $\mu$ on $E$ is given by
 \end{align*}
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:isGaussian_iff_charFun_eq, lem:IsGaussian.memLp_id, lem:covarianceBilin_same_eq_variance}
 By Lemma~\ref{lem:isGaussian_iff_charFun_eq}, for every $t \in E$,
 \begin{align*}
@@ -244,7 +244,7 @@ By Lemma~\ref{lem:IsGaussian.memLp_id}, $\mu$ has finite first moment and $\mu[\
 
 \begin{lemma}\label{lem:isGaussian_iff_gaussian_charFun}
   \uses{def:IsGaussian, def:charFun, def:covMatrix}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.isGaussian_iff_gaussian_charFun, ProbabilityTheory.gaussian_charFun_congr}
 A finite measure $\mu$ on $E$ is Gaussian if and only if there exists $m \in E$ and $C$ positive semidefinite such that for all $t \in E$, the characteristic function of $\mu$ at $t$ is
 \begin{align*}
@@ -288,12 +288,12 @@ We deduce that $C = C'_\mu$.
 
 \begin{lemma}\label{lem:IsGaussian.ext_iff}
   \uses{def:IsGaussian, def:covInnerBilin}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.IsGaussian.ext, ProbabilityTheory.IsGaussian.ext_iff}
 Two Gaussian measures $\mu$ and $\nu$ on a separable Hilbert space are equal if and only if they have same mean and same covariance.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{thm:ext_of_charFun, lem:IsGaussian.charFun_eq}
 The forward direction is immediate.
 
@@ -303,7 +303,7 @@ For the converse direction, it is enough to show that $\mu$ and $\nu$ have the s
 
 \begin{definition}[Standard Gaussian measure]\label{def:stdGaussian}
   \uses{def:gaussianReal}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.stdGaussian}
 Let $(e_1, \ldots, e_d)$ be an orthonormal basis of $E$ and let $\mu$ be the standard Gaussian measure on $\mathbb{R}$.
 The standard Gaussian measure on $E$ is the pushforward measure of the product measure $\mu \times \ldots \times \mu$ by the map $x \mapsto \sum_{i=1}^d x_i \cdot e_i$.
@@ -332,12 +332,12 @@ because the $\mu_j$s are probability measures.
 
 \begin{lemma}\label{lem:isCentered_stdGaussian}
   \uses{def:stdGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.integral_strongDual_stdGaussian}
 The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $L \in E^*$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:integral_eval_pi}
 
 \end{proof}
@@ -345,19 +345,19 @@ The standard Gaussian measure on $E$ is centered, i.e., $\mu[L] = 0$ for every $
 
 \begin{lemma}\label{lem:isProbabilityMeasure_stdGaussian}
   \uses{def:stdGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.isProbabilityMeasure_stdGaussian}
 The standard Gaussian measure is a probability measure.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:charFun_stdGaussian}
   \uses{def:stdGaussian, def:charFun}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.charFun_stdGaussian}
 The characteristic function of the standard Gaussian measure on $E$ is given by
 \begin{align*}
@@ -365,7 +365,7 @@ The characteristic function of the standard Gaussian measure on $E$ is given by
 \end{align*}
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:charFun_gaussianReal}
 Denote by $\nu$ the standard Gaussian measure on $\mathbb{R}$. This is a straightforward computation:
 \begin{align*}
@@ -380,12 +380,12 @@ Denote by $\nu$ the standard Gaussian measure on $\mathbb{R}$. This is a straigh
 
 \begin{lemma}\label{lem:isGaussian_stdGaussian}
   \uses{def:stdGaussian, def:IsGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.isGaussian_stdGaussian}
 The standard Gaussian measure on $E$ is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:isGaussian_iff_gaussian_charFun, lem:charFun_stdGaussian, lem:isProbabilityMeasure_stdGaussian}
 Since the standard Gaussian is a probability measure (hence finite), we can apply Lemma~\ref{lem:isGaussian_iff_gaussian_charFun} that states that it suffices to show that the characteristic function has a particular form.
 That form is given by Lemma~\ref{lem:charFun_stdGaussian}, taking $m=0$ and $C = \langle\cdot, \cdot\rangle$.
@@ -394,12 +394,12 @@ That form is given by Lemma~\ref{lem:charFun_stdGaussian}, taking $m=0$ and $C =
 
 \begin{lemma}\label{lem:integral_id_stdGaussian}
   \uses{def:stdGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.integral_id_stdGaussian}
 The mean of the standard Gaussian measure is $0$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:integral_eval_pi}
 
 \end{proof}
@@ -422,7 +422,7 @@ As the identity is positive semidefinite, we deduce from Lemma~\ref{lem:isGaussi
 
 \begin{definition}[Multivariate Gaussian]\label{def:multivariateGaussian}
   \uses{def:stdGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.multivariateGaussian}
 The multivariate Gaussian measure on $\mathbb{R}^d$ with mean $m \in \mathbb{R}^d$ and covariance matrix $\Sigma \in \mathbb{R}^{d \times d}$, with $\Sigma$ positive semidefinite, is the pushforward measure of the standard Gaussian measure on $\mathbb{R}^d$ by the map $x \mapsto m + \Sigma^{1/2} x$.
 We denote this measure by $\mathcal{N}(m, \Sigma)$.
@@ -431,12 +431,12 @@ We denote this measure by $\mathcal{N}(m, \Sigma)$.
 
 \begin{lemma}\label{lem:integral_id_multivariateGaussian}
   \uses{def:multivariateGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.integral_id_multivariateGaussian}
 The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:integral_id_stdGaussian}
 
 \end{proof}
@@ -444,12 +444,12 @@ The mean of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $m$.
 
 \begin{lemma}\label{lem:covMatrix_multivariateGaussian}
   \uses{def:multivariateGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.covarianceBilin_multivariateGaussian}
 The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is $\Sigma$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:covMatrix_stdGaussian}
 
 \end{proof}
@@ -457,12 +457,12 @@ The covariance matrix of the multivariate Gaussian measure $\mathcal{N}(m, \Sigm
 
 \begin{lemma}\label{lem:isGaussian_multivariateGaussian}
   \uses{def:multivariateGaussian, def:IsGaussian}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.isGaussian_multivariateGaussian}
 A multivariate Gaussian measure is a Gaussian measure.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:isGaussian_stdGaussian, lem:isGaussian_add_const, lem:isGaussian_map}
 The multivariate Gaussian measure is the pushforward of the standard Gaussian measure by an affine map, and is thus Gaussian by Lemma~\ref{lem:isGaussian_add_const} and Lemma~\ref{lem:isGaussian_map}.
 \end{proof}
@@ -470,7 +470,7 @@ The multivariate Gaussian measure is the pushforward of the standard Gaussian me
 
 \begin{theorem}\label{thm:charFun_multivariateGaussian}
   \uses{def:multivariateGaussian, def:charFun}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.charFun_multivariateGaussian}
 The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \Sigma)$ is given by
 \begin{align*}
@@ -479,7 +479,7 @@ The characteristic function of a multivariate Gaussian measure $\mathcal{N}(m, \
 \end{align*}
 \end{theorem}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:isGaussian_multivariateGaussian, lem:IsGaussian.charFun_eq, lem:integral_id_multivariateGaussian, lem:covMatrix_multivariateGaussian}
 Since the multivariate Gaussian measure is a Gaussian measure, we can apply Lemma~\ref{lem:IsGaussian.charFun_eq} to it.
 It suffices then to show that the mean and the covariance matrix of the multivariate Gaussian measure are equal to $m$ and $\Sigma$, respectively.

@@ -1,8 +1,8 @@
 module
 
-public import BrownianMotion.Auxiliary.Indistinguishable
+public import Mathlib.Probability.Process.Indistinguishable
 public import Mathlib.Probability.Process.Adapted
-public import Mathlib.Data.Setoid.Partition
+public import Mathlib.MeasureTheory.Function.Piecewise
 public import BrownianMotion.StochasticIntegral.Cadlag
 
 @[expose] public section
@@ -12,48 +12,7 @@ open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-local infixr:25 " →ₛ " => SimpleFunc
-
-variable {ι Ω β : Type*} {s : ι → Set Ω} (hs : IndexedPartition s)
-
-lemma _root_.Set.indexedPartition_piecewise_preimage (f : ι → Ω → β) (t : Set β) :
-    (hs.piecewise f) ⁻¹' t = ⋃ i, s i ∩ ((f i)⁻¹' t) := by
-  refine ext fun x => ⟨fun hx => ?_, fun ⟨a, ⟨i, hi⟩, ha⟩ => ?_⟩
-  · rw [mem_preimage, IndexedPartition.piecewise_apply, ← mem_preimage] at hx
-    exact mem_iUnion_of_mem (s := fun i => s i ∩ ((f i)⁻¹' t)) (hs.index x)
-      (mem_inter (hs.mem_index x) hx)
-  · rw [← hi, ← (IndexedPartition.mem_iff_index_eq hs).mp ha.1] at ha
-    simp_all [IndexedPartition.piecewise_apply]
-
-lemma _root_.Set.range_indexedPartition_subset (f : ι → Ω → β) :
-    range (hs.piecewise f) ⊆ ⋃ i, range (f i) :=
-  fun x ⟨y, hy⟩ => by simpa [IndexedPartition.piecewise_apply] using ⟨hs.index y, y, hy⟩
-
-variable {mΩ : MeasurableSpace Ω} {mβ : MeasurableSpace β}
-
-lemma Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (s i))
-    {f : ι → Ω → β} (hmf : ∀ i, Measurable (f i)) : Measurable (hs.piecewise f) := by
-  refine fun t ht => ?_
-  rw [indexedPartition_piecewise_preimage]
-  exact MeasurableSet.iUnion (fun i => (hms i).inter (measurableSet_preimage (hmf i) ht))
-
-/-- This is the analogue of `SimpleFunc.piecewise` for `IndexedPartition`. -/
-def SimpleFunc.IndexedPartition [Finite ι] (hms : ∀ i, MeasurableSet (s i)) (f : ι → Ω →ₛ β) :
-    Ω →ₛ β :=
-  ⟨hs.piecewise (fun i => f i), fun _ =>
-    letI : MeasurableSpace β := ⊤
-    Measurable.IndexedPartition hs hms (fun i => (f i).measurable) trivial,
-    (Set.finite_iUnion (fun i => (f i).finite_range)).subset
-    (range_indexedPartition_subset hs (fun i => f i))⟩
-
-variable [TopologicalSpace β] {μ : Measure Ω}
-
-lemma StronglyMeasurable.IndexedPartition [Finite ι] (hm : ∀ i, MeasurableSet (s i))
-    {f : ι → Ω → β} (hf : ∀ i, StronglyMeasurable (f i)) :
-    StronglyMeasurable (hs.piecewise f) := by
-  refine ⟨fun n => SimpleFunc.IndexedPartition hs hm (fun i => (hf i).approx n), fun x => ?_⟩
-  simp [SimpleFunc.IndexedPartition, IndexedPartition.piecewise_apply,
-    StronglyMeasurable.tendsto_approx]
+variable {ι Ω β : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace β]
 
 variable [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [SecondCountableTopology ι]
   [MeasurableSpace ι] [OpensMeasurableSpace ι] [PseudoMetrizableSpace β] {X : ι → Ω → β}
@@ -103,8 +62,8 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
     by_cases hi0 : i = ⟨0, by simp [r]⟩
     · have hj0 : ⟨0, by simp [r]⟩ ≠ j := by simp [← hi0, hij.ne]
       simp [f, hi0, hj0.symm]
-    · have hj0 : 0 < j.val := by grind
-      have hj1 : ⟨0, by simp [r]⟩ ≠ j := by grind
+    · have hj0 : 0 < j.val := (Nat.zero_le _).trans_lt hij
+      have hj1 : ⟨0, by simp [r]⟩ ≠ j := Fin.ne_of_val_ne hj0.ne
       simp only [hi0, ↓reduceDIte, hj1.symm, Set.disjoint_prod, Ioc_disjoint_Ioc, le_sup_iff,
         inf_le_iff, OrderEmbedding.le_iff_le, disjoint_self, bot_eq_empty, univ_eq_empty_iff,
         not_isEmpty_of_nonempty, or_false, f]
@@ -147,7 +106,8 @@ lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtratio
   let U : ℕ → (Iic t) × Ω → β := fun n p => (P n).piecewise (fun m => fun q => X (v n m) q.2) p
   -- X is strongly measurable because it is the pointwise limit of strongly measurable functions
   refine stronglyMeasurable_of_tendsto (f := U) (u := atTop) (fun n => ?_) ?_
-  · refine StronglyMeasurable.IndexedPartition (P n) (fun m => ?_) (fun m => ?_)
+  · let : MeasurableSpace Ω := 𝓕 t
+    refine (P n).stronglyMeasurable_piecewise (fun m => ?_) (fun m => ?_)
     · by_cases h0 : m = ⟨0, by simp [r]⟩
       · simpa [f, h0] using MeasurableSet.prod measurableSet_Iic MeasurableSet.univ
       · simpa [f, h0] using MeasurableSet.prod measurableSet_Ioc MeasurableSet.univ

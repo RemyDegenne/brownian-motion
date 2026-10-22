@@ -88,10 +88,10 @@ lemma debut_prod [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) (A : Set Ω) :
   ext ω
   split_ifs with hI hω
   · simp only [debut_eq_ite, Set.mem_prod, hω, and_true]
-    exact if_pos (Set.nonempty_iff_ne_empty.mpr hI)
+    exact ite_eq_left (Set.nonempty_iff_ne_empty.mpr hI)
   · simp [debut_eq_ite, hω]
   · simp only [ne_eq, Decidable.not_not] at hI
-    refine if_neg ?_
+    refine ite_eq_right ?_
     simp only [Set.mem_prod, not_exists, not_and]
     exact fun i hni hiI _ ↦ Set.notMem_empty i (hI ▸ ⟨hni, hiI⟩)
 
@@ -147,7 +147,7 @@ lemma hittingAfter_lt_iff' {Ω β ι : Type*} [ConditionallyCompleteLinearOrder 
       push Not at h_top
       exact h_top
     have h_le := le_hittingAfter (u := u) (s := s) (n := n) ω
-    rw [hittingAfter, if_pos h_top'] at h'
+    rw [hittingAfter, ite_eq_left h_top'] at h'
     norm_cast at h'
     rw [csInf_lt_iff] at h'
     rotate_left
@@ -179,7 +179,7 @@ lemma debut_mem_of_isClosed {𝓧 ι : Type*} [TopologicalSpace ι] [Conditional
   obtain ⟨u, _, hu_tendso, hu_mem⟩ : ∃ u : ℕ → ι, Antitone u ∧
       Tendsto u atTop (𝓝 ((debut s n ω).untopA)) ∧ (∀ i, n ≤ u i ∧ (u i, ω) ∈ s) := by
     simp only [debut_eq_ite, ge_iff_le]
-    rw [if_pos (debut_ne_top_iff.mp hω)]
+    rw [ite_eq_left (debut_ne_top_iff.mp hω)]
     have : ((sInf {t : ι |  n ≤ t ∧ (t, ω) ∈ s} : ι) : WithTop ι).untopA =
         sInf {t | n ≤ t ∧ (t, ω) ∈ s} := by
       rw [WithTop.untopA_eq_untop WithTop.coe_ne_top, WithTop.untop_coe]
@@ -320,7 +320,7 @@ lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type}
     [ConditionallyCompleteLinearOrder ι] [DenselyOrdered ι]
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P] {E : Set (ι × Ω)}
-    (hE : IsPavingAnalytic MeasurableSet E) (n s : ι) :
+    (hE : IsPavingAnalytic {t | MeasurableSet t} E) (n s : ι) :
     NullMeasurableSet {ω | debut E n ω < s} P := by
   have h_eq_fst : {ω | debut E n ω < s} = Prod.snd '' (E ∩ (Set.Ico n s ×ˢ .univ)) := by
     simp_rw [debut_lt_iff]
@@ -362,7 +362,7 @@ lemma nullMeasurable_debut {ι : Type}
     [ConditionallyCompleteLinearOrder ι] [DenselyOrdered ι] [NoMaxOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
     {P : Measure Ω} [IsFiniteMeasure P] {s : Set (ι × Ω)}
-    (hs : IsPavingAnalytic MeasurableSet s) (u : ι) :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (u : ι) :
     NullMeasurable (debut s u) P := by
   have h_lt (r : ι) : NullMeasurableSet {ω | debut s u ω < r} P :=
     hs.nullMeasurableSet_debut_lt u r
@@ -451,8 +451,8 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
   intro t
   rcases lt_or_ge t n with htn | hnt
   · convert MeasurableSet.empty
-    ext ω
-    simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_le]
+    rename_i ω
+    simp only [Set.mem_eq_mem, Set.mem_empty_iff_false, iff_false, not_le]
     refine (mod_cast htn : (t : WithTop ι) < n).trans_le ?_
     exact le_debut ω
   -- case on whether `t` is isolated on the right or not

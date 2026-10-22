@@ -33,14 +33,14 @@ For a paving $S$, we denote by $S^{\cap f}$ the set of finite intersections of s
 
 
 \begin{definition}\label{def:countableSupClosure}
-  \leanok
+  \mathlibok
   \lean{countableSupClosure}
 We denote by $S_\sigma$ the set of countable unions of sets in $S$.
 \end{definition}
 
 
 \begin{definition}\label{def:countableInfClosure}
-  \leanok
+  \mathlibok
   \lean{countableInfClosure}
 We denote by $S_\delta$ the set of countable intersections of sets in $S$.
 \end{definition}
@@ -80,12 +80,12 @@ A set of sets $K$ is a compact system if for every countable family $(C_n)_{n \i
 
 \begin{lemma}\label{lem:isCompactSystem_isCompact_isClosed}
   \uses{def:IsCompactSystem}
-  \leanok
+  \mathlibok
   \lean{isCompactSystem_isCompact_isClosed}
 The family of compact closed sets of a topological space is a compact system.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{def:IsCompactSystem}
 
 \end{proof}
@@ -93,12 +93,12 @@ The family of compact closed sets of a topological space is a compact system.
 
 \begin{lemma}\label{lem:isCompactSystem_isCompact}
   \uses{def:IsCompactSystem}
-  \leanok
+  \mathlibok
   \lean{isCompactSystem_isCompact}
 The family of compact sets of a T2 topological space is a compact system.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{lem:isCompactSystem_isCompact_isClosed}
 The T2 assumption ensures that compact sets are closed, so the family of compact sets is the family of compact closed sets, which is a compact system by Lemma~\ref{lem:isCompactSystem_isCompact_isClosed}.
 \end{proof}
@@ -106,12 +106,12 @@ The T2 assumption ensures that compact sets are closed, so the family of compact
 
 \begin{lemma}\label{lem:IsCompactSystem.mono}
   \uses{def:IsCompactSystem}
-  \leanok
+  \mathlibok
   \lean{IsCompactSystem.mono}
 If $S \subseteq T$ and $T$ is a compact system, then $S$ is a compact system.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{def:IsCompactSystem}
 Any sequence of sets in $S$ is a sequence of sets in $T$, so if the intersection of the sequence is empty, then there is a finite subset of the sequence whose intersection is empty by the compact system property of $T$.
 \end{proof}
@@ -152,26 +152,26 @@ The sum of a countable family of compact systems is a compact system.
 \end{proof}
 
 
-\begin{lemma}\label{lem:IsCompactSystem.image2_prod}
+\begin{lemma}\label{lem:IsCompactSystem.prod}
   \uses{def:IsCompactSystem}
-  \leanok
-  \lean{IsCompactSystem.image2_prod}
+  \mathlibok
+  \lean{IsCompactSystem.prod}
 The product of two compact systems $S \times T$ is a compact system.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
 
 \end{proof}
 
 
 \begin{lemma}\label{lem:IsCompactSystem.supClosure}
   \uses{def:IsCompactSystem, def:supClosure}
-  \leanok
+  \mathlibok
   \lean{IsCompactSystem.supClosure}
 If $S$ is a compact system, then $S^{\cup f}$ is a compact system.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
 
 \end{proof}
 
@@ -306,7 +306,7 @@ If a set $s$ of $\mathcal{X} \times \mathcal{K}$ is $F \times K$-analytic, then 
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:IsCompactSystem.image2_prod}
+  \uses{lem:IsCompactSystem.prod}
 
 \end{proof}
 

@@ -29,7 +29,7 @@ lemma isLocalizingSequence_leastGE {ι : Type*} [ConditionallyCompleteLinearOrde
   isStoppingTime n := by
     borelize ι
     refine isStoppingTime_leastGE P ?_ _
-    · exact hX1.isStronglyProgressive_of_rightContinuous (fun ω ↦ (hX2 ω).right_continuous)
+    · exact hX1.isStronglyProgressive_of_rightContinuous (fun ω ↦ (hX2 ω).isRightContinuous)
   mono := by filter_upwards with ω n m hnm using
     hittingAfter_anti X ⊥ (Set.Ici_subset_Ici.2 (Nat.cast_le.2 hnm)) ω
   tendsto_top := by
@@ -84,7 +84,7 @@ lemma stoppedAtNorm_of_nonpos {ι : Type*} [ConditionallyCompleteLinearOrderBot 
   unfold leastGE hittingAfter
   simp only [bot_le, Set.mem_Ici, true_and]
   have h_le : r ≤ ‖X ⊥ ω‖ := by grw [hr]; positivity
-  rw [if_pos ⟨⊥, le_rfl, by simpa⟩]
+  rw [ite_eq_left ⟨⊥, le_rfl, by simpa⟩]
   simp only [WithTop.coe_eq_bot]
   refine le_antisymm ?_ bot_le
   rw [csInf_le_iff (by simp) ⟨⊥, by simpa⟩]
@@ -157,7 +157,7 @@ lemma stoppedAtNorm_le_add_jump
           simp [h_ne_bot, h_covBy, nhdsLT_eq_bot_iff]
         have : (𝓝[<] (τ n ω).untopA).NeBot := ⟨h_bot⟩
         refine le_of_tendsto (f := fun t ↦ ‖X t ω‖) (x := 𝓝[<] ((τ n ω).untopA)) ?_ ?_
-        · exact (tendsto_leftLim_of_tendsto ((h_cadlag ω).left_limit _)).norm
+        · exact (tendsto_leftLim_of_tendsto ((h_cadlag ω).tendsto_nhdsLT _)).norm
         · refine eventually_nhdsWithin_of_forall fun t ht ↦ ?_
           refine (hX_lt ?_).le
           simp only [Set.mem_Iio] at ht

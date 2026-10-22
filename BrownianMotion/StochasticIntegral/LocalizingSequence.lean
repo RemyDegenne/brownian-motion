@@ -43,7 +43,7 @@ lemma IsPreLocalizingSequence.isLocalizingSequence_biInf' [FirstCountableTopolog
     IsLocalizingSequence 𝓕 (fun i ω ↦ ⨅ j ≥ i, τ j ω) P where
   isStoppingTime n := IsStoppingTime.biInf' (Set.to_countable {j | j ≥ n})
     (fun j _ ↦ hτ.isStoppingTime j)
-  mono := ae_of_all _ <| fun ω n m hnm ↦ iInf_le_iInf_of_subset <| fun k hk ↦ hnm.trans hk
+  mono := ae_of_all _ <| fun ω n m hnm ↦ biInf_mono fun k hk ↦ hnm.trans hk
   tendsto_top := by
     filter_upwards [hτ.tendsto_top] with ω hω
     replace hω := hω.liminf_eq
@@ -85,7 +85,7 @@ lemma IsStable.exists_monotone_localSeq [Zero E] [FirstCountableTopology ι]
       ∀ n, p (stoppedProcess (fun i ↦ {ω | ⊥ < τ n ω}.indicator (X i)) (τ n)) := by
   obtain ⟨τ, hτ, hpτ⟩ := hX
   have hτ' := hτ.toIsPreLocalizingSequence.isLocalizingSequence_biInf'
-  refine ⟨_, hτ', fun ω n m hnm ↦ iInf_le_iInf_of_subset fun k hk ↦ hnm.trans hk, fun n ↦ ?_⟩
+  refine ⟨_, hτ', fun ω n m hnm ↦ biInf_mono fun k hk ↦ hnm.trans hk, fun n ↦ ?_⟩
   have h_le : (fun ω ↦ ⨅ j ≥ n, τ j ω) ≤ τ n := fun _ ↦ (iInf_le _ n).trans <| iInf_le _ le_rfl
   rw [← stoppedProcess_indicator_stoppedProcess_indicator_of_le h_le]
   exact hp _ (hpτ n) _ (hτ'.isStoppingTime n)
@@ -182,11 +182,11 @@ lemma isLocalizingSequence_localizingSequenceOfProp [IsComplete 𝓕 P] {p : (ι
   isStoppingTime n := by
     refine isStoppingTime_ae_const (P := P) _ ⊤ ?_
     filter_upwards [hpX] with ω hω
-    rw [LocalizingSequenceOfProp, Function.const_apply, Function.const_apply, if_pos hω]
+    rw [LocalizingSequenceOfProp, Function.const_apply, Function.const_apply, ite_eq_left hω]
   mono := ae_of_all _ <| fun ω i j hij ↦ by simp [LocalizingSequenceOfProp]
   tendsto_top := by
     filter_upwards [hpX] with ω hω
-    simp [LocalizingSequenceOfProp, if_pos hω]
+    simp [LocalizingSequenceOfProp, ite_eq_left hω]
 
 end LinearOrder
 

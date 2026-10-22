@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@96e06131c0e9943c780388fd166f55d1e2fa0433 # 2026-01-15
+        uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # 2026-01-15
         with:
           build: true
           lint: true
@@ -378,4 +378,4 @@ jobs:
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push'
         id: deployment
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

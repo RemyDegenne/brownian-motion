@@ -66,11 +66,7 @@ private lemma tendsto_eLpNorm_condExp_sub_of_tendsto {ι : Type*} {l : Filter ι
   calc eLpNorm (μ[g - a j | ℱ n] + (μ[a j | ℱ n] - a j) + (a j - g)) 1 μ
     _ ≤ eLpNorm (μ[g - a j | ℱ n]) 1 μ + eLpNorm (μ[a j | ℱ n] - a j) 1 μ
         + eLpNorm (a j - g) 1 μ :=
-      (eLpNorm_add_le
-        (integrable_condExp.add (integrable_condExp.sub (ha_int j))).aestronglyMeasurable
-        ((ha_int j).sub hg).aestronglyMeasurable le_rfl).trans
-        (add_le_add_left (eLpNorm_add_le integrable_condExp.aestronglyMeasurable
-          (integrable_condExp.sub (ha_int j)).aestronglyMeasurable le_rfl) _)
+      (eLpNorm_add_le le_rfl).trans (add_le_add_left (eLpNorm_add_le le_rfl) _)
     _ ≤ ε / 3 + ε / 3 + ε / 3 := by
       gcongr
       · exact (eLpNorm_condExp_le_eLpNorm _ le_rfl).trans ((eLpNorm_sub_comm ..).trans_le hj)
@@ -97,7 +93,8 @@ private lemma tendsto_eLpNorm_condExp_sub_indicator_const (c : E) {s : Set Ω}
   have h_bound (n : ℕ) :
       eLpNorm (μ[s.indicator (fun _ ↦ c) | ℱ n] - s.indicator (fun _ ↦ c)) 1 μ
         ≤ ‖c‖₊ * eLpNorm (μ[u | ℱ n] - u) 1 μ := by
-    refine eLpNorm_le_mul_eLpNorm_of_ae_le_mul' ?_ 1
+    refine eLpNorm_le_mul_eLpNorm_of_ae_le_mul'
+      (integrable_condExp.sub ((integrable_const c).indicator (hle s hs))).aestronglyMeasurable ?_ 1
     filter_upwards [T.comp_condExp_comm hu_int (m := ℱ n)] with ω hω
     rw [hT] at hω
     have h_eq : (μ[s.indicator (fun _ ↦ c) | ℱ n] - s.indicator fun _ ↦ c) ω
@@ -130,8 +127,7 @@ theorem Integrable.tendsto_eLpNorm_condExp' (hg : Integrable g μ)
       simp only [Pi.sub_apply, Pi.add_apply, hω]
       abel
     rw [eLpNorm_congr_ae h_eq]
-    exact eLpNorm_add_le (integrable_condExp.sub hf₁).aestronglyMeasurable
-      (integrable_condExp.sub hf₂).aestronglyMeasurable le_rfl
+    exact eLpNorm_add_le le_rfl
   · refine IsSeqClosed.isClosed fun a f ha h_lim ↦ ?_
     have h_lim' : Tendsto (fun j ↦ (a j : Lp E 1 μ)) atTop (𝓝 (f : Lp E 1 μ)) :=
       (continuous_subtype_val.tendsto f).comp h_lim

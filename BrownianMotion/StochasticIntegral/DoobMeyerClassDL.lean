@@ -37,24 +37,24 @@ section MinIcc
 variable {ι : Type*} [LinearOrder ι] [OrderBot ι] {b c : ι}
 
 /-- The map `t ↦ min t c` for `c ≤ b`, seen as a map to `Set.Icc ⊥ b`. -/
-def minIcc (hcb : c ≤ b) (t : ι) : Icc (⊥ : ι) b :=
+private def minIcc (hcb : c ≤ b) (t : ι) : Icc (⊥ : ι) b :=
   ⟨min t c, bot_le, (min_le_right t c).trans hcb⟩
 
 @[simp]
-lemma coe_minIcc (hcb : c ≤ b) (t : ι) : (minIcc hcb t : ι) = min t c := rfl
+private lemma coe_minIcc (hcb : c ≤ b) (t : ι) : (minIcc hcb t : ι) = min t c := rfl
 
-lemma monotone_minIcc (hcb : c ≤ b) : Monotone (minIcc hcb) :=
+private lemma monotone_minIcc (hcb : c ≤ b) : Monotone (minIcc hcb) :=
   fun _ _ hst ↦ Subtype.mk_le_mk.2 (min_le_min_right c hst)
 
-lemma continuous_minIcc [TopologicalSpace ι] [OrderTopology ι] (hcb : c ≤ b) :
+private lemma continuous_minIcc [TopologicalSpace ι] [OrderTopology ι] (hcb : c ≤ b) :
     Continuous (minIcc hcb) :=
   Continuous.subtype_mk (by fun_prop) _
 
-lemma minIcc_of_le (hcb : c ≤ b) {t : ι} (htc : t ≤ c) :
+private lemma minIcc_of_le (hcb : c ≤ b) {t : ι} (htc : t ≤ c) :
     minIcc hcb t = ⟨t, bot_le, htc.trans hcb⟩ :=
   Subtype.ext (min_eq_left htc)
 
-lemma minIcc_of_ge (hcb : c ≤ b) {t : ι} (hct : c ≤ t) :
+private lemma minIcc_of_ge (hcb : c ≤ b) {t : ι} (hct : c ≤ t) :
     minIcc hcb t = ⟨c, bot_le, hcb⟩ :=
   Subtype.ext (min_eq_right hct)
 
@@ -103,7 +103,7 @@ instance [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
 
 /-- If `M` is a martingale on `Set.Icc ⊥ b` with respect to the restricted filtration, then
 `t ↦ M (min t c)` is a martingale on `ι`. -/
-lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+private lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     [CompleteSpace E] [LinearOrder ι] [OrderBot ι] {𝓕 : Filtration ι mΩ}
     [SigmaFiniteFiltration P 𝓕] {b c : ι} {M : Icc (⊥ : ι) b → Ω → E}
     (hM : Martingale M (𝓕.restrictIcc b) P) (hcb : c ≤ b) :
@@ -121,13 +121,13 @@ lemma Martingale.comp_minIcc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
 
 /-- If `A` is a predictable process on `Set.Icc ⊥ b` with respect to the restricted filtration,
 then `t ↦ A (min t c)` is a predictable process on `ι`. -/
-lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
+private lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
     [ConditionallyCompleteLinearOrderBot ι] {𝓕 : Filtration ι mΩ} {b c : ι}
     {A : Icc (⊥ : ι) b → Ω → E}
     (hA : haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩; IsStronglyPredictable (𝓕.restrictIcc b) A)
     (hcb : c ≤ b) :
     IsStronglyPredictable 𝓕 (fun t ↦ A (minIcc hcb t)) := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_meas : @Measurable (ι × Ω) (Icc (⊥ : ι) b × Ω) 𝓕.predictable
       (𝓕.restrictIcc b).predictable (fun p ↦ (minIcc hcb p.1, p.2)) := by
     rw [measurable_iff_comap_le]
@@ -170,7 +170,7 @@ lemma IsStronglyPredictable.restrictIcc {E : Type*} [TopologicalSpace E]
     (hA : IsStronglyPredictable 𝓕 A) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
     IsStronglyPredictable (𝓕.restrictIcc b) (fun t : Icc (⊥ : ι) b ↦ A t) := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_meas : @Measurable (Icc (⊥ : ι) b × Ω) (ι × Ω) (𝓕.restrictIcc b).predictable
       𝓕.predictable (fun p ↦ ((p.1 : ι), p.2)) := by
     rw [measurable_iff_comap_le]
@@ -210,11 +210,11 @@ namespace ProbabilityTheory
 variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [NormedAddCommGroup E]
 
 /-- The restriction of a process of class DL to `Set.Icc ⊥ b` is of class D. -/
-lemma ClassDL.classD_restrictIcc [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι]
+private lemma ClassDL.classD_restrictIcc [LinearOrder ι] [OrderBot ι] [MeasurableSpace ι]
     {𝓕 : Filtration ι mΩ} {S : ι → Ω → E} (hd : ClassDL S 𝓕 P) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
     ClassD (fun t : Icc (⊥ : ι) b ↦ S t) (𝓕.restrictIcc b) P := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   refine ⟨fun t ↦ ?_, ?_⟩
   · have h_meas : @Measurable (Iic t × Ω) (Iic (t : ι) × Ω)
         (Subtype.instMeasurableSpace.prod (𝓕 t)) (Subtype.instMeasurableSpace.prod (𝓕 t))
@@ -254,7 +254,7 @@ lemma ClassDL.exists_doob_meyer_increment (hd : ClassDL S 𝓕 P) (hs : Submarti
     ∃ (N B : ι → Ω → ℝ), (∀ t, S (min t b) - S (min t a) = N t + B t) ∧ Martingale N 𝓕 P ∧
       (∀ ω, IsCadlag (N · ω)) ∧ IsStronglyPredictable 𝓕 B ∧ (∀ ω, IsCadlag (B · ω)) ∧
       (∀ ω, Monotone (B · ω)) ∧ ∀ t ≤ a, B t = 0 := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_mono : Monotone (Subtype.val : Icc (⊥ : ι) b → ι) := Subtype.mono_coe _
   obtain ⟨M', A', hSMA, hM', hM'c, hA', hA'c, hA'm, -⟩ :=
     ClassD.doob_meyer (hd.classD_restrictIcc b) (hs.indexComap h_mono)
@@ -316,7 +316,7 @@ theorem ClassDL.doob_meyer (hd : ClassDL S 𝓕 P) (hs : Submartingale S 𝓕 P)
     | succ k ih => exact hAsum_succ k ▸ ih.add (hB k)
   have hAsum_cadlag (k : ℕ) (ω : Ω) : IsCadlag (Asum k · ω) := by
     induction k with
-    | zero => exact isCadlag_const (0 : ℝ)
+    | zero => exact IsCadlag.const
     | succ k ih => exact hAsum_succ k ▸ ih.add (hBc k ω)
   have hAsum_mono (k : ℕ) (ω : Ω) : Monotone (Asum k · ω) := by
     induction k with
@@ -349,11 +349,11 @@ theorem ClassDL.doob_meyer (hd : ClassDL S 𝓕 P) (hs : Submartingale S 𝓕 P)
   have hA_cadlag (ω : Ω) : IsCadlag (A · ω) := by
     refine ⟨fun x ↦ ?_, fun x ↦ ?_⟩
     · obtain ⟨k, hk⟩ := hA_ev x
-      refine ((hAsum_cadlag k ω).right_continuous x).congr_of_eventuallyEq ?_
+      refine ((hAsum_cadlag k ω).isRightContinuous x).congr_of_eventuallyEq ?_
         (congrFun (hk.self_of_nhds) ω)
       filter_upwards [hk.filter_mono nhdsWithin_le_nhds] with t ht using congrFun ht ω
     · obtain ⟨k, hk⟩ := hA_ev x
-      obtain ⟨l, hl⟩ := (hAsum_cadlag k ω).left_limit x
+      obtain ⟨l, hl⟩ := (hAsum_cadlag k ω).tendsto_nhdsLT x
       refine ⟨l, hl.congr' ?_⟩
       filter_upwards [hk.filter_mono nhdsWithin_le_nhds] with t ht using (congrFun ht ω).symm
   have hA_mono (ω : Ω) : Monotone (A · ω) := by

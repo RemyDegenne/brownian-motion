@@ -3,8 +3,6 @@
  ["defsWithUnderscore", "MeasureTheory.discreteApproxSequence_of"],
  ["defsWithUnderscore",
   "ProbabilityTheory.instBoundedOrderOfOrderTopOfOrderBot_brownianMotion"],
- ["defsWithUnderscore",
-  "ProbabilityTheory.instMeasurableSpaceContinuousMap_brownianMotion"],
  ["defsWithUnderscore", "MeasureTheory.Capacity.comp_fst"],
  ["defsWithUnderscore",
   "MeasureTheory.VectorMeasure.instMeasurableSpace_brownianMotion"],
@@ -23,5 +21,4 @@
  ["docBlame", "ProbabilityTheory.gaussianProjectiveFamily"],
  ["docBlame", "ProbabilityTheory.preBrownian"],
  ["docBlame", "ProbabilityTheory.wienerMeasure"],
- ["docBlame", "ProbabilityTheory.wienerMeasureAux"],
- ["docBlame", "ProbabilityTheory.MeasurableEquiv.continuousMap"]]
+ ["docBlame", "ProbabilityTheory.wienerMeasureAux"]]

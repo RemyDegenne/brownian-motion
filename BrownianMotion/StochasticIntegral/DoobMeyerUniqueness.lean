@@ -639,10 +639,10 @@ noncomputable def limInt (f : ι → ℝ) (s : ι) : ℝ :=
   if s = ⊥ then 0 else φ (f.leftLim s) (f s)
 
 @[simp]
-lemma limInt_bot (f : ι → ℝ) : limInt f ⊥ = 0 := if_pos rfl
+lemma limInt_bot (f : ι → ℝ) : limInt f ⊥ = 0 := ite_eq_left rfl
 
 lemma limInt_of_ne_bot (f : ι → ℝ) (hs : s ≠ ⊥) : limInt f s = φ (f.leftLim s) (f s) :=
-  if_neg hs
+  ite_eq_right hs
 
 /-- The limit integrand `limInt f` is bounded by `1`, for any function `f`. -/
 lemma abs_limInt_le_one (f : ι → ℝ) (s : ι) : |limInt f s| ≤ 1 := by
@@ -694,7 +694,8 @@ lemma measurable_stepInt_path (n : ℕ) (hN : ∀ t, Measurable (N t)) :
     by_cases hp : p.1 ∈ meshPredIoc n u
     · rw [Set.indicator_of_mem hp, Set.indicator_of_mem
         (show p ∈ meshPredIoc n u ×ˢ Set.univ from ⟨hp, Set.mem_univ _⟩)]
-    · rw [Set.indicator_of_notMem hp, Set.indicator_of_notMem fun h ↦ hp h.1]
+    · rw [Set.indicator_of_notMem hp,
+        Set.indicator_of_notMem fun h : p ∈ meshPredIoc n u ×ˢ Set.univ ↦ hp h.1]
   rw [h_eq]
   exact (measurable_uncurry_φ.comp (((hN _).comp measurable_snd).prodMk
     ((hN _).comp measurable_snd))).indicator ((measurableSet_meshPredIoc n u).prod .univ)
@@ -717,7 +718,8 @@ lemma stronglyMeasurable_predictable_stepInt'_path (n : ℕ) (hN : IsStronglyPre
       rw [Set.indicator_of_mem hp, Set.indicator_of_mem
         (show p ∈ meshPredIoc n u ×ˢ Set.univ from ⟨hp, Set.mem_univ _⟩),
         Set.indicator_of_mem hp']
-    · rw [Set.indicator_of_notMem hp, Set.indicator_of_notMem fun h ↦ hp h.1]
+    · rw [Set.indicator_of_notMem hp,
+        Set.indicator_of_notMem fun h : p ∈ meshPredIoc n u ×ˢ Set.univ ↦ hp h.1]
   rw [h_eq]
   refine StronglyMeasurable.indicator ?_ (measurableSet_predictable_Ioc_prod _ _ .univ)
   exact continuous_uncurry_φ.comp_stronglyMeasurable
@@ -858,8 +860,8 @@ theorem indistinguishable_of_martingale_sub
   obtain ⟨T, -, hT⟩ := exists_seq_monotone_tendsto_atTop_atTop ι
   -- `A` and `B` are indistinguishable on `Set.Icc ⊥ (T n)`, which has a top element
   have h_Icc (n : ℕ) : ∀ᵐ ω ∂P, ∀ t ≤ T n, A t ω = B t ω := by
-    haveI : Fact ((⊥ : ι) ≤ T n) := ⟨bot_le⟩
-    haveI : PolishSpace (Set.Icc (⊥ : ι) (T n)) := isClosed_Icc.polishSpace
+    have : Fact ((⊥ : ι) ≤ T n) := ⟨bot_le⟩
+    have : PolishSpace (Set.Icc (⊥ : ι) (T n)) := isClosed_Icc.polishSpace
     have h_mono : Monotone (Subtype.val : Set.Icc (⊥ : ι) (T n) → ι) := Subtype.mono_coe _
     have h_bot' : A ((⊥ : Set.Icc (⊥ : ι) (T n)) : ι)
         =ᵐ[P] B ((⊥ : Set.Icc (⊥ : ι) (T n)) : ι) := by

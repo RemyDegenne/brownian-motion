@@ -76,9 +76,9 @@ theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsC
         stoppedProcess_indicator_stoppedProcess_indicator_of_le fun ω ↦ hτ_mono ω n.le_succ]
     refine (doob_meyer_unique_of_integrable (hτX n).1.1.integrable (hMA n) hS' (hM n)
       (isStable_martingale _ ⟨hM (n + 1), hMc (n + 1)⟩ (τ n) (hτ_st n)).1 (hA n)
-      (fun ω ↦ (hAc n ω).right_continuous) (hAm n)
+      (fun ω ↦ (hAc n ω).isRightContinuous) (hAm n)
       (isStable_isStronglyPredictable _ (hA (n + 1)) (τ n) (hτ_st n))
-      (fun ω ↦ (isStable_isCadlag _ (hAc (n + 1)) (τ n) (hτ_st n) ω).right_continuous)
+      (fun ω ↦ (isStable_isCadlag _ (hAc (n + 1)) (τ n) (hτ_st n) ω).isRightContinuous)
       (fun ω ↦ (hAm (n + 1) ω).stoppedProcess_indicator _ _) ?_).1
     refine ae_of_all _ fun ω ↦ ?_
     rw [stoppedProcess_eq_of_le (by simp)]
@@ -108,7 +108,7 @@ theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsC
   let A : ι → Ω → ℝ := fun t ω ↦ if h : ω ∈ G then A' (h_ex h t).choose t ω else 0
   have hA_eq {ω : Ω} (hω : ω ∈ G) {n : ℕ} {t : ι} (ht : (t : WithTop ι) ≤ τ n ω)
       (h_bot : ⊥ < τ n ω) : A t ω = A' n t ω := by
-    simp only [A, dif_pos hω]
+    simp only [A, dite_eq_left hω]
     have hm : (t : WithTop ι) < τ (h_ex hω t).choose ω := (h_ex hω t).choose_spec
     rcases le_total (h_ex hω t).choose n with hmn | hnm
     · exact h_le hω hmn hm.le (bot_le.trans_lt hm)
@@ -135,10 +135,10 @@ theorem doob_meyer (hX : IsLocalSubmartingale X 𝓕 P) (hX_cadlag : ∀ ω, IsC
         filter_upwards [h_open.mem_nhds hn] with t ht using hA_eq hω ht.le (bot_le.trans_lt ht)
       refine ⟨fun x ↦ ?_, fun x ↦ ?_⟩
       · obtain ⟨n, hn⟩ := h_ev x
-        exact ((hAc n ω).right_continuous x).congr_of_eventuallyEq
+        exact ((hAc n ω).isRightContinuous x).congr_of_eventuallyEq
           (hn.filter_mono nhdsWithin_le_nhds) hn.self_of_nhds
       · obtain ⟨n, hn⟩ := h_ev x
-        obtain ⟨l, hl⟩ := (hAc n ω).left_limit x
+        obtain ⟨l, hl⟩ := (hAc n ω).tendsto_nhdsLT x
         exact ⟨l, hl.congr' ((hn.filter_mono nhdsWithin_le_nhds).mono fun t ht ↦ ht.symm)⟩
     · have h_eq : (A · ω) = fun _ ↦ 0 := funext fun t ↦ hA_zero hω t
       rw [h_eq]

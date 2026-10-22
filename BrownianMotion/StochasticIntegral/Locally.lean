@@ -59,13 +59,13 @@ lemma locally_of_ae [𝓕.IsComplete P] {p : (ι → E) → Prop} (hpX : ∀ᵐ 
   by_cases hω : p (X · ω)
   · convert hω using 2
     rw [stoppedProcess_eq_of_le, Set.indicator_of_mem]
-    · simp [LocalizingSequenceOfProp, if_pos hω]
-    · simp [LocalizingSequenceOfProp, if_pos hω]
+    · simp [LocalizingSequenceOfProp, ite_eq_left hω]
+    · simp [LocalizingSequenceOfProp, ite_eq_left hω]
   · convert hp₀ using 2
     rw [stoppedProcess_eq_of_ge, Set.indicator_of_notMem]
     · rfl
-    · simp [LocalizingSequenceOfProp, if_neg hω]
-    · simp [LocalizingSequenceOfProp, if_neg hω]
+    · simp [LocalizingSequenceOfProp, ite_eq_right hω]
+    · simp [LocalizingSequenceOfProp, ite_eq_right hω]
 
 section TopologicalSpace
 
@@ -158,8 +158,8 @@ lemma Locally.left_limit
 lemma Locally.isCadlag
     (hX : Locally (fun X ↦ ∀ ω, IsCadlag (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, IsCadlag (X · ω) := by
-  filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).right_continuous).rightContinuous,
-    (hX.mono <| fun X h ω ↦ (h ω).left_limit).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
+  filter_upwards [(hX.mono <| fun X h ω ↦ (h ω).isRightContinuous).rightContinuous,
+    (hX.mono <| fun X h ω ↦ (h ω).tendsto_nhdsLT).left_limit] with _ hω₁ hω₂ using ⟨hω₁, hω₂⟩
 
 lemma Locally.continuous (hX : Locally (fun X ↦ ∀ ω, Continuous (X · ω)) 𝓕 X P) :
     ∀ᵐ ω ∂P, Continuous (X · ω) := by
@@ -232,8 +232,8 @@ lemma isStable_left_limit :
 lemma isStable_isCadlag :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, IsCadlag (X · ω)) :=
   fun X hX τ hτ ω ↦
-    ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').right_continuous) τ hτ ω,
-      isStable_left_limit X (fun ω' ↦ (hX ω').left_limit) τ hτ ω⟩
+    ⟨isStable_rightContinuous X (fun ω' ↦ (hX ω').isRightContinuous) τ hτ ω,
+      isStable_left_limit X (fun ω' ↦ (hX ω').tendsto_nhdsLT) τ hτ ω⟩
 
 lemma isStable_continuous :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ ∀ ω, Continuous (X · ω)) := by
@@ -322,7 +322,7 @@ lemma rightContinuous_indicator [TopologicalSpace ι]
     IsRightContinuous fun t ↦ s.indicator (X t) ω := by
   by_cases hω : ω ∈ s
   · simpa [Set.indicator_of_mem hω] using hC ω
-  · simp [Set.indicator_of_notMem hω, IsRightContinuous, isRightContinuous_const]
+  · simp [Set.indicator_of_notMem hω]
 
 lemma stronglyAdapted_indicator [OrderBot ι]
     (hX : StronglyAdapted 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
@@ -332,7 +332,7 @@ lemma stronglyAdapted_indicator [OrderBot ι]
 lemma isStronglyProgressive_indicator [OrderBot ι] [MeasurableSpace ι]
     (hX : IsStronglyProgressive 𝓕 X) {τ : Ω → WithTop ι} (hτ : IsStoppingTime 𝓕 τ) :
     IsStronglyProgressive 𝓕 fun i ↦ {ω | ⊥ < τ ω}.indicator (X i) := by
-  refine fun i ↦ StronglyMeasurable.indicator (hX i) ?_
+  refine fun i ↦ StronglyMeasurable.indicator (s := {p : Set.Iic i × Ω | ⊥ < τ p.2}) (hX i) ?_
   exact MeasurableSet.preimage (𝓕.mono bot_le _ <| hτ.measurableSet_gt _) measurable_snd
 
 variable [TopologicalSpace ι] [SecondCountableTopology ι] [TopologicalSpace.PseudoMetrizableSpace ι]

@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 module
 
-public import Mathlib.Topology.Order.LeftRight
+public import Mathlib.Topology.Order.LeftRightLim
 public import Mathlib.Topology.Order.Monotone
 public import Mathlib.Topology.Order.DenselyOrdered
 public import Mathlib.Topology.Separation.Regular
@@ -91,7 +91,7 @@ lemma leftLimWithin_eq_of_tendsto [hα : TopologicalSpace α] [h'α : OrderTopol
     leftLimWithin f s a = y := by
   have h'' : ∃ y, Tendsto f (𝓝[Iio a ∩ s] a) (𝓝 y) := ⟨y, h'⟩
   rw [h'α.topology_eq_generate_intervals] at h h' h''
-  simp only [leftLimWithin, neBot_iff.mp h, h'', not_true, or_self_iff, if_false]
+  simp only [leftLimWithin, neBot_iff.mp h, h'', not_true, or_self_iff, ite_false]
   exact lim_eq h'
 
 lemma rightLimWithin_eq_of_tendsto [TopologicalSpace α] [OrderTopology α] [T2Space β]
@@ -356,26 +356,6 @@ lemma rightLimWithin_leftLimWithin [TopologicalSpace α] [OrderTopology α] [T3S
   leftLimWithin_rightLimWithin (α := αᵒᵈ) (h' := h') h
 
 /-! ### Behaviour at infinity -/
-
-lemma tendsto_atTop_of_mapClusterPt
-    [TopologicalSpace α] [OrderTopology α] [T3Space β] [NoTopOrder α] {f g : α → β} {b : β}
-    (h : Tendsto f atTop (𝓝 b)) (h' : ∀ᶠ x in atTop, MapClusterPt (g x) (𝓝 x) f) :
-    Tendsto g atTop (𝓝 b) := by
-  rcases isEmpty_or_nonempty α with hα | hα
-  · simp [filter_eq_bot_of_isEmpty atTop]
-  apply (closed_nhds_basis b).tendsto_right_iff.2
-  rintro s ⟨s_mem, s_closed⟩
-  obtain ⟨u, hu⟩ : ∃ a, ∀ (b : α), a ≤ b → MapClusterPt (g b) (𝓝 b) f ∧ f b ∈ s := by
-    simpa [eventually_atTop] using h'.and (h s_mem)
-  filter_upwards [Ioi_mem_atTop u] with a (ha : u < a)
-  apply s_closed.mem_of_mapClusterPt (hu a ha.le).1
-  filter_upwards [Ici_mem_nhds ha] with y hy using (hu y hy).2
-
-lemma tendsto_atBot_of_mapClusterPt
-    [TopologicalSpace α] [OrderTopology α] [T3Space β] [NoBotOrder α] {f g : α → β} {b : β}
-    (h : Tendsto f atBot (𝓝 b)) (h' : ∀ᶠ x in atBot, MapClusterPt (g x) (𝓝 x) f) :
-    Tendsto g atBot (𝓝 b) :=
-  tendsto_atTop_of_mapClusterPt (α := αᵒᵈ) h h'
 
 lemma tendsto_leftLimWithin_atTop_of_tendsto
     [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] [NoMinOrder α] [NoTopOrder α]

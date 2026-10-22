@@ -133,8 +133,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
       (hσ.measurableSpace_mono (σn.isStoppingTime m) (σn.le m) _ hs)
   refine tendsto_nhds_unique (f := (fun m ↦ ∫ (ω : Ω) in s, stoppedValue X (τn' m) ω ∂μ))
     (l := atTop) ?_ (this ▸ ?_)
-  · refine tendsto_setIntegral_of_L1' _ (integrable_stoppedValue_of_discreteApproxSequence' h hRC
-        (fun _ ↦ min_le_of_left_le <| hτ_le _) τn').aestronglyMeasurable ?_
+  · refine tendsto_setIntegral_of_L1' _ ?_
       (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le h hRC τn'
         (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le)) _
     rw [eventually_atTop]
@@ -142,7 +141,7 @@ theorem stoppedValue_min_ae_eq_condExp_of_discreteApproxSequence
       (DiscreteApproxSequence.isStoppingTime _ _)
       (τn.discreteApproxSequence_of_le_inf_le_of_left σn hτ_le m)
       (DiscreteApproxSequence.countable _ m))⟩
-  · refine tendsto_setIntegral_of_L1' _ hintgbl.aestronglyMeasurable ?_
+  · refine tendsto_setIntegral_of_L1' _ ?_
       (tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn) _
     rw [eventually_atTop]
     exact ⟨0, fun m _ ↦ (h.integrable_stoppedValue_of_countable_range _
@@ -291,12 +290,13 @@ lemma integrable_of_tendsto_ae_of_integral_norm_le {F : Type*} [NormedAddCommGro
     aestronglyMeasurable_of_tendsto_ae _ (fun n ↦ (hf n).1) h
   have h_le : eLpNorm g 1 P ≤ ENNReal.ofReal C := by
     refine seq_tendsto_ae_bounded 1 (fun n ↦ ?_) h (fun n ↦ (hf n).1)
-    rw [eLpNorm_one_eq_lintegral_enorm, ← ofReal_integral_norm_eq_lintegral_enorm (hf n)]
+    rw [eLpNorm_one_eq_lintegral_enorm (hf n).aestronglyMeasurable,
+      ← ofReal_integral_norm_eq_lintegral_enorm (hf n)]
     exact ENNReal.ofReal_le_ofReal (hC n)
   have hg : Integrable g P :=
-    memLp_one_iff_integrable.1 ⟨hg_meas, h_le.trans_lt ENNReal.ofReal_lt_top⟩
+    memLp_one_iff_integrable.1 (h_le.trans_lt ENNReal.ofReal_lt_top)
   refine ⟨hg, ?_⟩
-  rw [eLpNorm_one_eq_lintegral_enorm, ← ofReal_integral_norm_eq_lintegral_enorm hg] at h_le
+  rw [eLpNorm_one_eq_lintegral_enorm hg_meas, ← ofReal_integral_norm_eq_lintegral_enorm hg] at h_le
   exact (ENNReal.ofReal_le_ofReal_iff hC0).1 h_le
 
 variable {ι : Type*} [LinearOrder ι] {𝓕 : Filtration ι mΩ} {X : ι → Ω → ℝ} {τ : Ω → WithTop ι}
@@ -311,8 +311,8 @@ lemma IsStoppingTime.piecewise_preimage_const_of_countable_range {A : Set (WithT
   intro i
   by_cases hki : k ≤ i
   · convert MeasurableSet.univ
-    ext ω
-    simp only [Set.mem_ofPred_eq, Set.mem_univ, iff_true]
+    rename_i ω
+    simp only [Set.mem_eq_mem, Set.mem_univ, iff_true]
     refine le_trans ?_ (WithTop.coe_le_coe.2 hki)
     by_cases hω : ω ∈ τ ⁻¹' A <;> simp [hω, hτk ω]
   · have h_eq : {ω | (τ ⁻¹' A).piecewise τ (fun _ ↦ (k : WithTop ι)) ω ≤ i}
@@ -792,11 +792,11 @@ private lemma Submartingale.tendsto_setIntegral_stoppedValue_of_const_le
     hX.integrable_stoppedValue_of_countable_range (τn.isStoppingTime n) (hτn_le n) (τn.countable n)
   have hint : Integrable (stoppedValue X τ) P :=
     hX.integrable_stoppedValue_of_approximable hRC hτ hτt
-  refine tendsto_setIntegral_of_L1' _ hint.aestronglyMeasurable (.of_forall hτn_int) ?_ C
+  refine tendsto_setIntegral_of_L1' _ (.of_forall hτn_int) ?_ C
   exact tendsto_Lp_finite_of_tendsto_ae le_rfl ENNReal.one_ne_top (fun n ↦ (hτn_int n).1)
     (memLp_one_iff_integrable.2 hint)
     (hX.uniformIntegrable_stoppedValue_of_countable_range hc τn.isStoppingTime hτn_le
-      τn.countable).2.1
+      τn.countable).1
     (tendsto_stoppedValue_discreteApproxSequence τn hRC)
 
 /-- Auxiliary lemma for `Submartingale.setIntegral_le_setIntegral_stoppedValue`: the case of a
