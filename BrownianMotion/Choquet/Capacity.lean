@@ -6,26 +6,44 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.Choquet.AnalyticSet
+public import Mathlib.MeasureTheory.Measure.WithDensityFinite
 
 /-!
-# Choquet capacity
+# Choquet capacities and the capacitability theorem
+
+A capacity for a paving `p` is a monotone set function `m : Set 𝓧 → ℝ≥0∞` that is continuous along
+increasing sequences of sets, and along decreasing sequences of sets of `p`. A set `s` is
+capacitable if `m s` is the supremum of `m t` over the sets `t ⊆ s` that are countable intersections
+of sets of `p`.
+
+## Main definitions
+
+* `MeasureTheory.Capacity p`: capacities for the paving `p`.
+* `MeasureTheory.Measure.capacity`: the capacity defined by a finite measure.
+* `MeasureTheory.Capacity.compFst`: the composition of a capacity with the projection `Prod.fst`.
+* `MeasureTheory.IsCapacitable m s`: the set `s` is capacitable for the capacity `m`.
+
+## Main statements
+
+* `MeasureTheory.IsPavingAnalytic.isCapacitable`: **Choquet's capacitability theorem**. If the
+  paving `p` contains `∅` and is closed under binary unions and intersections, then every analytic
+  set for `p` is capacitable for every capacity for `p`.
+* `MeasureTheory.IsPavingAnalytic.nullMeasurableSet`: a set that is analytic for the paving of
+  measurable sets is null-measurable for every s-finite measure.
+* `MeasurableSet.nullMeasurableSet_fst`: **measurable projection theorem**. The projection of a
+  measurable set of `𝓧 × 𝓨`, with `𝓨` a standard Borel space, is null-measurable for every
+  s-finite measure on `𝓧`.
+
+## References
+
+* [K. Bichteler, *Stochastic integration with jumps*][bichteler2002stochastic]
+* [S. He, J. Wang and J. Yan, *Semimartingale theory and stochastic calculus*][he2019semimartingale]
 -/
 
 @[expose] public section
 
 open Filter
 open scoped ENNReal NNReal Topology
-
-lemma Set.dissipate_congr {β : Type*} {s t : ℕ → Set β} {n : ℕ}
-    (h_eq : ∀ m ≤ n, s m = t m) :
-    Set.dissipate s n = Set.dissipate t n := by
-  simp only [Set.dissipate_def]
-  congr with m x
-  simp only [Set.mem_iInter]
-  refine ⟨fun h h_le ↦ ?_, fun h h_le ↦ ?_⟩
-    <;> specialize h h_le
-  · rwa [h_eq m h_le] at h
-  · rwa [h_eq m h_le]
 
 variable {𝓧 𝓚 : Type*} {x y : 𝓧} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)}
   {s t : Set 𝓧} {f : ℕ → Set 𝓧}
@@ -78,49 +96,25 @@ lemma Measure.capacity_apply {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) 
     (s : Set 𝓧) :
     μ.capacity s = μ s := rfl
 
--- Bichteler A.5.8 (ii); He 1.35
-/-- The capacity obtained by composition of a capacity with a projection. -/
-def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
-    (m : Capacity p) (hq_empty : ∅ ∈ q) (hq : IsCompactSystem q) :
+/-- The capacity obtained by composition of a capacity with the projection `Prod.fst`, for the
+paving of finite unions of products `A ×ˢ K` with `A ∈ p` and `K` in a compact system `q`.
+See Theorem A.5.8 (ii) of [bichteler2002stochastic] and Theorem 1.35 of [he2019semimartingale]. -/
+def Capacity.compFst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
+    (m : Capacity p) (hq : IsCompactSystem q) :
     Capacity (supClosure (Set.image2 (· ×ˢ ·) p q)) where
   capacityOf s := m (Prod.fst '' s)
   mono' s t hst := m.mono (Set.image_mono hst)
   capacityOf_iUnion f hf := by
     simp only [Set.image_iUnion]
-    refine capacity_iUnion ?_
-    exact fun i j hij ↦ Set.image_mono (hf hij)
+    exact capacity_iUnion fun i j hij ↦ Set.image_mono (hf hij)
   capacityOf_iInter f hf hp := by
-    let g n := Prod.fst '' f n
-    have hg : Antitone g := fun n m hnm ↦ Set.image_mono (hf hnm)
-    rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hf hp]
-    refine capacity_iInter hg fun n ↦ ?_
-    simp_rw [mem_supClosure_set_iff'] at hp
-    obtain ⟨S, _, u, hu_prod, hf_eq⟩ := hp n
-    simp_rw [hf_eq, Set.image_iUnion]
-    have hS : ∀ i ∈ S, Prod.fst '' u i ∈ p := by
-      intro i hi
-      obtain ⟨A, hA, B, hB, h_eq⟩ := hu_prod i hi
-      rcases Set.eq_empty_or_nonempty B with hB | hB
-      · simp only [hB, Set.prod_empty] at h_eq
-        simpa [← h_eq]
-      · rwa [← h_eq, Set.fst_image_prod _ hB]
-    clear hf_eq
-    induction S using Finset.induction with
-    | empty => simpa
-    | insert a s has h =>
-      rw [Finset.set_biUnion_insert]
-      refine hp_union ?_ ?_
-      · exact hS a (Finset.mem_insert_self a s)
-      · rcases Finset.eq_empty_or_nonempty s with rfl | hs
-        · simpa
-        refine h hs ?_ ?_
-        · exact fun i hi ↦ hu_prod i (Finset.mem_insert_of_mem hi)
-        · exact fun i hi ↦ hS i (Finset.mem_insert_of_mem hi)
+    rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq hf hp]
+    exact capacity_iInter (fun n m hnm ↦ Set.image_mono (hf hnm))
+      fun n ↦ fst_image_mem_of_mem_supClosure_image2_prod hp_empty hp_union (hp n)
 
-lemma Capacity.comp_fst_apply {hp_empty : ∅ ∈ p} {hp_union : SupClosed p}
-    (m : Capacity p) {hq_empty : ∅ ∈ q} {hq : IsCompactSystem q}
-    (s : Set (𝓧 × 𝓚)) :
-    m.comp_fst hp_empty hp_union hq_empty hq s = m (Prod.fst '' s) := rfl
+lemma Capacity.compFst_apply {hp_empty : ∅ ∈ p} {hp_union : SupClosed p}
+    (m : Capacity p) {hq : IsCompactSystem q} (s : Set (𝓧 × 𝓚)) :
+    m.compFst hp_empty hp_union hq s = m (Prod.fst '' s) := rfl
 
 /-- A set `s` is capacitable for a capacity `m` for a property `p` if `m s` can be approximated
 from above by countable intersections of sets `t n` such that `p (t n)` and `⋂ n, t n ⊆ s`. -/
@@ -130,144 +124,10 @@ def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=
 lemma isCapacitable_of_mem (hs : s ∈ p) : IsCapacitable m s :=
   fun a ha ↦ ⟨s, subset_countableInfClosure hs, by simp, ha.le⟩
 
-section Aux
-
-/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
-private noncomputable
-def qaux (m : Capacity p) (s : Set 𝓧) (A : ℕ → ℕ → Set 𝓧) (a : ℝ≥0∞) (k : ℕ → ℕ) (n : ℕ) : Prop :=
-  ∀ j ≤ n, a < m (s ∩ Set.dissipate (fun i ↦ A i (k i)) j)
-
-/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
-private noncomputable
-def nat0 {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
-    {n : ℕ | a < m (s ∩ A 0 n)} :=
-  have : m s = ⨆ n, m (s ∩ A 0 n) := by
-    rw [← capacity_iUnion]
-    · rw [← Set.inter_iUnion]
-      congr
-      refine subset_antisymm ?_ Set.inter_subset_left
-      rw [← hs_eq]
-      simp only [Set.subset_inter_iff, subset_refl, true_and]
-      exact Set.iInter_subset _ 0
-    · intro i j hij
-      simp only [Set.subset_inter_iff, Set.inter_subset_left, true_and]
-      refine Set.inter_subset_right.trans ?_
-      exact hA_mono 0 hij
-  have : ∃ n, a < m (s ∩ A 0 n) := by
-    rw [this] at ha
-    exact lt_iSup_iff.mp ha
-  ⟨this.choose, this.choose_spec⟩
-
-/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
-private noncomputable
-def succ {A : ℕ → ℕ → Set 𝓧} (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) {a : ℝ≥0∞} {n : ℕ}
-    (k : {seq : ℕ → ℕ | qaux m s A a seq n}) :
-    {j : ℕ → ℕ | qaux m s A a j (n + 1)} :=
-  have : m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n)
-      = ⨆ j, m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n ∩ A (n + 1) j) := by
-    rw [← capacity_iUnion]
-    · rw [← Set.inter_iUnion]
-      congr 1
-      refine subset_antisymm ?_ Set.inter_subset_left
-      rw [Set.inter_assoc, Set.inter_comm _ (⋃ i, _), ← Set.inter_assoc]
-      refine Set.inter_subset_inter_left _ ?_
-      rw [← hs_eq]
-      simp only [Set.subset_inter_iff, subset_refl, true_and]
-      exact Set.iInter_subset _ (n + 1)
-    · intro i j hij
-      simp only [Set.mem_ofPred_eq, Set.subset_inter_iff]
-      refine ⟨⟨?_, ?_⟩, ?_⟩
-      · exact Set.inter_subset_left.trans Set.inter_subset_left
-      · exact Set.inter_subset_left.trans Set.inter_subset_right
-      · refine Set.inter_subset_right.trans ?_
-        exact hA_mono (n + 1) hij
-  have : ∃ j, a < m (s ∩ Set.dissipate (fun i ↦ A i (k.1 i)) n ∩ A (n + 1) j) := by
-    have hk := k.2 n le_rfl
-    rw [this] at hk
-    exact lt_iSup_iff.mp hk
-  ⟨fun i ↦ if i ≤ n then k.1 i else this.choose, by
-    simp only [qaux, Set.mem_ofPred_eq]
-    intro j hj
-    rw [Nat.le_succ_iff] at hj
-    cases hj with
-    | inl h_le =>
-      convert k.2 j h_le using 3
-      exact Set.dissipate_congr fun i hi ↦ by simp [hi.trans h_le]
-    | inr h_eq =>
-      simp only [h_eq, Nat.succ_eq_add_one, Set.dissipate_succ, add_le_iff_nonpos_right,
-        nonpos_iff_eq_zero, one_ne_zero, ↓reduceIte]
-      convert this.choose_spec using 2
-      rw [Set.inter_assoc]
-      congr 2
-      exact Set.dissipate_congr fun i hi ↦ by simp [hi]⟩
-
-/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
-private noncomputable
-def seqAux (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) :
-    (n : ℕ) → {seq : ℕ → ℕ | qaux m s A a seq n}
-  | 0 => ⟨fun _ ↦ nat0 hA_mono hs_eq a ha, by
-    simp only [qaux, nonpos_iff_eq_zero, forall_eq, Set.dissipate_zero_nat, Set.mem_ofPred_eq]
-    exact (nat0 hA_mono hs_eq a ha).2⟩
-  | n + 1 => succ hA_mono hs_eq
-    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n)
-
-private lemma seqAux_add_one (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) :
-    seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1) =
-      succ hA_mono hs_eq
-        (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n) := rfl
-
-private lemma seqAux_add_one_apply_of_le (hp_empty : ∅ ∈ p)
+/-- If `p` is closed under binary unions and intersections, then every countable intersection of
+countable unions of sets of `p` is capacitable. This is Theorem 1.34 of [he2019semimartingale]. -/
+lemma isCapacitable_of_mem_countableInfClosure_countableSupClosure (m : Capacity p)
     (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) {n i : ℕ} (hin : i ≤ n) :
-    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (n + 1)).1 i =
-      (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 i := by
-  rw [seqAux_add_one]
-  simp only [Set.mem_ofPred_eq, succ, ite_eq_left_iff, not_le]
-  intro hni
-  grind
-
-private lemma seqAux_of_le (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) {i j : ℕ} (hij : i ≤ j) :
-    (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha i).1 i =
-      (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha j).1 i := by
-  induction j, hij using Nat.le_induction with
-  | base => rfl
-  | succ n hin ih => rw [ih, seqAux_add_one_apply_of_le]; exact hin
-
-/-- Auxiliary definition for `isCapacitable_mem_countableInfClosure_countableSupClosure`. -/
-private noncomputable
-def seq (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) : ℕ :=
-  (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).1 n
-
-private lemma seq_prop (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (A : ℕ → ℕ → Set 𝓧) (hpA : ∀ (n m : ℕ), A n m ∈ p) (hA_mono : ∀ (n : ℕ), Monotone (A n))
-    (hs_eq : ⋂ n, ⋃ m, A n m = s) (a : ℝ≥0∞) (ha : a < m s) (n : ℕ) :
-    qaux m s A a (seq hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha) n := by
-  simp only [qaux]
-  have h1 := (seqAux hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n).2
-  simp only [qaux] at h1
-  intro j hj
-  convert h1 j hj using 3
-  refine Set.dissipate_congr fun i hi ↦ ?_
-  congr
-  simp only [seq, Set.mem_ofPred_eq]
-  exact seqAux_of_le hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha (hi.trans hj)
-
-end Aux
-
--- He 1.34
-lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
-    (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
     (hs : s ∈ countableInfClosure (countableSupClosure p)) :
     IsCapacitable m s := by
   rw [mem_countableInfClosure_iff_iInf] at hs
@@ -275,86 +135,83 @@ lemma isCapacitable_mem_countableInfClosure_countableSupClosure (m : Capacity p)
   simp_rw [hp_union.mem_countableSupClosure_iff] at hA
   choose A hpA hA_mono h_eq using hA
   simp_rw [h_eq] at hs_eq
+  have hs_sub (n : ℕ) : s ⊆ ⋃ j, A n j := by
+    rw [← hs_eq]
+    exact iInf_le (fun n ↦ ⋃ j, A n j) n
   intro a ha
-  obtain ⟨k, hk⟩ : ∃ k : ℕ → ℕ, ∀ n, a < m (s ∩ Set.dissipate (fun i ↦ A i (k i)) n) := by
-    refine ⟨seq hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha, fun n ↦ ?_⟩
-    exact seq_prop hp_empty hp_inter hp_union A hpA hA_mono hs_eq a ha n n le_rfl
-  let B n := Set.dissipate (fun i ↦ A i (k i)) n
-  have hB_gt n : a < m (B n) := (hk n).trans_le (m.mono Set.inter_subset_right)
-  have hB_mem n : B n ∈ p := by
-    unfold B
+  -- if `t ⊆ s` and `a < m t`, then `a < m (t ∩ A n j)` for some `j`, by continuity from below
+  have step (n : ℕ) (t : Set 𝓧) (ht : t ⊆ s) (hat : a < m t) : ∃ j, a < m (t ∩ A n j) := by
+    rw [← Set.inter_eq_left.mpr (ht.trans (hs_sub n)), Set.inter_iUnion,
+      capacity_iUnion (f := fun j ↦ t ∩ A n j)
+        fun i j hij ↦ Set.inter_subset_inter_right _ (hA_mono n hij)] at hat
+    exact lt_iSup_iff.mp hat
+  choose! k hk using step
+  -- define recursively `D 0 = s` and `D (n + 1) = D n ∩ A n (k n (D n))`
+  let D : ℕ → Set 𝓧 := fun n ↦ Nat.rec s (fun n D ↦ D ∩ A n (k n D)) n
+  have hD_succ (n : ℕ) : D (n + 1) = D n ∩ A n (k n (D n)) := rfl
+  have hD (n : ℕ) : D n ⊆ s ∧ a < m (D n) := by
     induction n with
-    | zero => simp [hpA]
+    | zero => exact ⟨subset_rfl, ha⟩
+    | succ n ih => exact ⟨hD_succ n ▸ Set.inter_subset_left.trans ih.1, hk n (D n) ih.1 ih.2⟩
+  -- the set `⋂ n, B n` is in `countableInfClosure p`, is a subset of `s`, and `a ≤ m (⋂ n, B n)`
+  let B n := Set.dissipate (fun i ↦ A i (k i (D i))) n
+  have hDB (n : ℕ) : D (n + 1) ⊆ B n := by
+    induction n with
+    | zero =>
+      simp only [B, Set.dissipate_zero_nat, hD_succ]
+      exact Set.inter_subset_right
+    | succ n ih =>
+      simp only [B, Set.dissipate_succ, hD_succ (n + 1)]
+      exact Set.inter_subset_inter ih subset_rfl
+  have hB_mem n : B n ∈ p := by
+    induction n with
+    | zero => simp [B, hpA]
     | succ n hn =>
-      rw [Set.dissipate_succ]
+      simp only [B, Set.dissipate_succ]
       exact hp_inter hn (hpA _ _)
-  simp_rw [mem_countableInfClosure_iff_iInf]
-  refine ⟨⋂ n, B n, ⟨B, hB_mem, rfl⟩, ?_, ?_⟩
+  refine ⟨⋂ n, B n, ?_, ?_, ?_⟩
+  · rw [mem_countableInfClosure_iff_iInf]
+    exact ⟨B, hB_mem, rfl⟩
   · rw [← hs_eq, Set.iInf_eq_iInter]
     gcongr with n
-    calc B n
-    _ ⊆ A n (k n) := Set.dissipate_subset le_rfl
-    _ ⊆ ⋃ m, A n m := by intro x hx; simp only [Set.mem_iUnion]; exact ⟨k n, hx⟩
+    exact (Set.dissipate_subset le_rfl).trans (Set.subset_iUnion (A n) _)
   · rw [capacity_iInter Set.antitone_dissipate hB_mem]
-    simp only [le_iInf_iff]
-    exact fun n ↦ (hB_gt n).le
+    exact le_iInf fun n ↦ (hD (n + 1)).2.le.trans (m.mono (hDB n))
 
+/-- If `p` is closed under binary unions and intersections, and `q` under binary intersections, then
+the projection of a set of `countableInfClosure (supClosure (p × q))` is in
+`countableInfClosure p`. -/
 lemma mem_countableInfClosure_fst {s : Set (𝓧 × 𝓚)}
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (hq_empty : ∅ ∈ q) (hq_inter : InfClosed q) (hq : IsCompactSystem q)
+    (hq_inter : InfClosed q) (hq : IsCompactSystem q)
     (hs : s ∈ countableInfClosure (supClosure (Set.image2 (· ×ˢ ·) p q))) :
     (Prod.fst '' s) ∈ countableInfClosure p := by
-  rw [InfClosed.mem_countableInfClosure_iff (InfClosed.supClosure (hp_inter.image2_prod hq_inter))]
-    at hs
+  rw [(hp_inter.image2_prod hq_inter).supClosure.mem_countableInfClosure_iff] at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
-  rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq_empty hq hA_anti hA]
-  rw [mem_countableInfClosure_iff_iInf]
-  refine ⟨fun n ↦ Prod.fst '' A n, fun n ↦ ?_, rfl⟩
-  simp only
-  simp_rw [mem_supClosure_set_iff'] at hA
-  obtain ⟨S, _, B, hB, h_eq⟩ := hA n
-  rw [h_eq]
-  simp_rw [Set.image_iUnion]
-  clear h_eq
-  induction S using Finset.induction with
-  | empty => simpa
-  | insert a s has h =>
-    rw [Finset.set_biUnion_insert]
-    rcases Finset.eq_empty_or_nonempty s with rfl | hs
-    · simp only [Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty, Set.union_empty]
-      obtain ⟨u, hu, v, hv, h_eq⟩ := hB a (Finset.mem_insert_self a _)
-      simp only [← h_eq]
-      rcases Set.eq_empty_or_nonempty v with rfl | hv
-      · simpa
-      · rwa [Set.fst_image_prod _ hv]
-    refine hp_union ?_ (h hs ?_)
-    · obtain ⟨u, hu, v, hv, h_eq⟩ := hB a (Finset.mem_insert_self a s)
-      rcases Set.eq_empty_or_nonempty v with hv | hv
-      · simp only [hv, Set.prod_empty] at h_eq
-        simpa [← h_eq]
-      · simpa [← h_eq, Set.fst_image_prod _ hv]
-    · exact fun i hi ↦ hB i (Finset.mem_insert_of_mem hi)
+  rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq hA_anti hA,
+    mem_countableInfClosure_iff_iInf]
+  exact ⟨fun n ↦ Prod.fst '' A n,
+    fun n ↦ fst_image_mem_of_mem_supClosure_image2_prod hp_empty hp_union (hA n), rfl⟩
 
+/-- If a set `s` of `𝓧 × 𝓚` is capacitable for the capacity `m.compFst`, then its projection is
+capacitable for `m`. -/
 lemma IsCapacitable.fst (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
-    (m : Capacity p) (hq_empty : ∅ ∈ q) (hq_inter : InfClosed q) (hq : IsCompactSystem q)
-    {s : Set (𝓧 × 𝓚)} (hs : IsCapacitable (m.comp_fst hp_empty hp_union hq_empty hq) s) :
+    (m : Capacity p) (hq_inter : InfClosed q) (hq : IsCompactSystem q)
+    {s : Set (𝓧 × 𝓚)} (hs : IsCapacitable (m.compFst hp_empty hp_union hq) s) :
     IsCapacitable m (Prod.fst '' s) := by
   intro a ha
-  choose t ht_mono ht_subset ht_le using hs a ha
-  exact ⟨Prod.fst '' t,
-    mem_countableInfClosure_fst hp_empty hp_inter hp_union hq_empty hq_inter hq ht_mono,
+  obtain ⟨t, ht_mem, ht_subset, ht_le⟩ := hs a ha
+  exact ⟨Prod.fst '' t, mem_countableInfClosure_fst hp_empty hp_inter hp_union hq_inter hq ht_mem,
     Set.image_mono ht_subset, ht_le⟩
 
-/-- **Choquet's capacitability theorem**. -/
+/-- **Choquet's capacitability theorem**, for a set that is analytic with auxiliary space `𝓚`. -/
 lemma IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p)
     (hp_union : SupClosed p) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsCapacitable m s := by
-  obtain ⟨q, hq_empty, hq, A, hA, rfl⟩ := hs
-  have hq'_empty : ∅ ∈ infClosure q := subset_infClosure hq_empty
-  have hq' : IsCompactSystem (infClosure q) := hq.infClosure
-  refine IsCapacitable.fst hp_empty hp_inter hp_union m hq'_empty infClosed_infClosure hq' ?_
-  refine isCapacitable_mem_countableInfClosure_countableSupClosure _ ?_ ?_ ?_ ?_
-  · exact subset_supClosure ⟨∅, hp_empty, ∅, hq'_empty, by simp⟩
+  obtain ⟨q, hq, A, hA, rfl⟩ := hs
+  -- replace `q` by `infClosure q`, so that the paving `p × q` is closed under intersections
+  refine IsCapacitable.fst hp_empty hp_inter hp_union m infClosed_infClosure hq.infClosure ?_
+  refine isCapacitable_of_mem_countableInfClosure_countableSupClosure _ ?_ ?_ ?_
   · exact InfClosed.supClosure (hp_inter.image2_prod infClosed_infClosure)
   · exact fun s hs t ht ↦ supClosed_supClosure hs ht
   · unfold prodSigmaDelta at hA
@@ -369,12 +226,13 @@ lemma IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfCl
     obtain ⟨u, v, hu, hv, h_eq⟩ := hC m
     exact ⟨u, v, hu, subset_infClosure hv, h_eq⟩
 
-/-- **Choquet's capacitability theorem**. Every analytic set for a paving stable by intersection
-and union is capacitable. -/
+/-- **Choquet's capacitability theorem**. If the paving `p` contains `∅` and is closed under binary
+unions and intersections, then every analytic set for `p` is capacitable for every capacity
+for `p`. -/
 theorem IsPavingAnalytic.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p)
     (hp_union : SupClosed p) (hs : IsPavingAnalytic p s) :
     IsCapacitable m s := by
-  obtain ⟨𝓚, h𝓚, hs𝓚⟩ := hs
+  obtain ⟨𝓚, hs𝓚⟩ := hs
   exact hs𝓚.isCapacitable hp_empty hp_inter hp_union
 
 lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ]
@@ -391,7 +249,7 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       have (n : ℕ) := hs ((μ.capacity s) * (1 - (n + 1 : ℝ≥0∞)⁻¹)) (this n)
       choose f hf using this
       have hsub : ⋃ i, f i ⊆ s := Set.iUnion_subset fun i => (hf i).2.1
-      have hm := MeasurableSet.iUnion fun i ↦ .of_mem_countableInfClosure (hf i).1
+      have hm := MeasurableSet.iUnion fun i ↦ .of_mem_countableInfClosure (hf i).1 fun _ ↦ id
       refine ⟨⋃ i, f i, hm, ae_eq_set.2 ⟨?_, ?_⟩⟩
       · rw [measure_sdiff hsub hm.nullMeasurableSet (by finiteness)]
         suffices μ (⋃ i, f i) = μ s from by simp_all
@@ -416,28 +274,30 @@ lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure �
       exact ha.le
 
 /-- An analytic set is universally measurable: it is null-measurable with respect to any
-finite measure. -/
+s-finite measure. -/
 lemma IsPavingAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧}
-    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet s μ := by
-  rw [← isCapacitable_measure_iff μ]
-  refine IsPavingAnalytic.isCapacitable (p := {t : Set 𝓧 | MeasurableSet t}) MeasurableSet.empty
-    ?_ ?_ hs
-  · exact fun s hs t ht ↦ hs.inter ht
-  · exact fun s hs t ht ↦ hs.union ht
+  -- reduce to the finite measure `μ.toFinite`, which has the same null sets as `μ`
+  refine NullMeasurableSet.mono_ac ?_ (absolutelyContinuous_toFinite μ)
+  rw [← isCapacitable_measure_iff μ.toFinite]
+  exact IsPavingAnalytic.isCapacitable (p := {t : Set 𝓧 | MeasurableSet t}) MeasurableSet.empty
+    infClosed_measurableSet supClosed_measurableSet hs
 
 /-- An analytic set is universally measurable: it is null-measurable with respect to any
-finite measure. -/
+s-finite measure. -/
 lemma IsMeasurableAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧} (hs : IsMeasurableAnalytic s)
-    (μ : Measure 𝓧) [IsFiniteMeasure μ] :
-    NullMeasurableSet s μ := by
-  exact hs.isPavingAnalytic.nullMeasurableSet μ
+    (μ : Measure 𝓧) [SFinite μ] :
+    NullMeasurableSet s μ :=
+  hs.isPavingAnalytic.nullMeasurableSet μ
 
+/-- The projection of an analytic set of `𝓧 × ι` is null-measurable with respect to any s-finite
+measure. -/
 theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
-    [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
+    {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
-    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   refine IsPavingAnalytic.nullMeasurableSet ?_ μ
   refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
@@ -447,8 +307,8 @@ theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [Den
 lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
     {p : Set (Set (𝓧 × Ω))} (hs : IsPavingAnalytic p s) :
     IsPavingAnalytic ((fun s ↦ Prod.swap '' s) '' p) (Prod.swap '' s) := by
-  obtain ⟨𝓚, h𝓚, q, hq_empty, hq_compact, t, ht_mem, h_eq⟩ := hs
-  refine ⟨𝓚, h𝓚, q, hq_empty, hq_compact, Prod.map Prod.swap id '' t, ?_, ?_⟩
+  obtain ⟨𝓚, q, hq_compact, t, ht_mem, h_eq⟩ := hs
+  refine ⟨𝓚, q, hq_compact, Prod.map Prod.swap id '' t, ?_, ?_⟩
   · rw [mem_prodSigmaDelta_iff] at ht_mem ⊢
     obtain ⟨A, hA, K, hK, rfl⟩ := ht_mem
     refine ⟨fun n m ↦ Prod.swap '' (A n m), fun n m ↦ ?_, K, hK, ?_⟩
@@ -477,11 +337,13 @@ lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω
     refine MeasurableSet.preimage ?_ measurable_swap
     exact ht
 
+/-- The projection of an analytic set of `ι × 𝓧` is null-measurable with respect to any s-finite
+measure. -/
 lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
-    [Nonempty ι] {_ : MeasurableSpace ι} [BorelSpace ι]
+    {_ : MeasurableSpace ι} [BorelSpace ι]
     {_m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
-    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
   convert IsPavingAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧) ?_ μ
   · ext; simp
@@ -490,7 +352,7 @@ lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [Dense
 
 theorem IsMeasurableAnalytic.nullMeasurableSet_fst {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
-    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   have hs_for : IsMeasurableAnalyticFor (𝓨 × ℝ) (Prod.fst '' s) := by
     obtain ⟨t, ht, h_eq⟩ := hs
@@ -501,7 +363,7 @@ theorem IsMeasurableAnalytic.nullMeasurableSet_fst {𝓨 : Type*}
 
 theorem IsMeasurableAnalytic.nullMeasurableSet_snd {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
-    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
   convert IsMeasurableAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧)
     (_m𝓨 := _m𝓨) ?_ μ
@@ -511,17 +373,17 @@ theorem IsMeasurableAnalytic.nullMeasurableSet_snd {𝓨 : Type*}
     refine ⟨{u | ((u.1.2, u.1.1), u.2) ∈ t}, ?_, by ext; simp [Prod.swap]⟩
     exact ht.preimage (by fun_prop)
 
-/-- **Measurable projection** theorem: the projection of a measurable set is universally measurable
-(null-measurable for any finite measure). -/
+/-- **Measurable projection theorem**: the projection of a measurable set is universally
+measurable (null-measurable with respect to any s-finite measure). -/
 theorem _root_.MeasurableSet.nullMeasurableSet_fst {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
-    (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : MeasurableSet s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ :=
   hs.isMeasurableAnalytic.nullMeasurableSet_fst μ
 
 theorem _root_.MeasurableSet.nullMeasurableSet_snd {𝓨 : Type*}
     {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
-    (hs : MeasurableSet s) (μ : Measure 𝓧) [IsFiniteMeasure μ] :
+    (hs : MeasurableSet s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ :=
   hs.isMeasurableAnalytic.nullMeasurableSet_snd μ
 

@@ -12,22 +12,63 @@ public import Mathlib.Topology.Metrizable.Uniformity
 public import Mathlib.Topology.Order.Compact
 
 /-!
-# Analytic sets in the sense of a paved space
+# Pavings and compact systems
 
+A paving of a type `𝓧` is a set of sets of `𝓧`, `p : Set (Set 𝓧)`. This file gathers the facts
+about pavings and compact systems (`IsCompactSystem`, from Mathlib) that are needed to define
+analytic sets with respect to a paving and to prove Choquet's capacitability theorem.
 
-TODO: we use `IsCompactSystem`, which corresponds to semi-compact pavings for D-M. We use this and
-not compact pavings (which would be the same, but for arbitrary intersections instead of countable
-ones), because it's sufficient for our applications, and because it's easier to work with.
+## Main definitions
 
+* `MeasureTheory.prodSigmaDelta p q`: the countable intersections of countable unions of products
+  `A ×ˢ K` with `A ∈ p` and `K ∈ q`.
+
+## Main statements
+
+* `isCompactSystem_finite`: the finite sets form a compact system.
+* `IsCompactSystem.sigma`: compact systems on the fibers of a sigma type give a compact system on
+  the sigma type (for sets above finitely many indices).
+* `IsCompactSystem.sum`: compact systems on `𝓚` and `𝓚'` give a compact system on `𝓚 ⊕ 𝓚'`.
+* `MeasureTheory.fst_iInter_of_supClosure_image2_prod_of_antitone`: if `q` is a compact system,
+  the projection on the first coordinate commutes with the intersection of a decreasing sequence of
+  finite unions of products `A ×ˢ K` with `K ∈ q`.
+
+## Implementation notes
+
+We use `IsCompactSystem`, which corresponds to the semi-compact pavings of Dellacherie and Meyer,
+rather than compact pavings (the same notion with arbitrary intersections instead of countable
+ones): this is sufficient for our applications and easier to work with.
+
+## References
+
+* [S. He, J. Wang and J. Yan, *Semimartingale theory and stochastic calculus*][he2019semimartingale]
 -/
 
 @[expose] public section
 
-open scoped ENNReal NNReal
-
 variable {𝓧 𝓨 𝓚 𝓚' ι : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
+/-! ### Auxiliary lemmas about sets and pavings -/
+
 section Aux
+
+lemma Set.iInter_prod {α β ι : Type*} {s : Set α} {t : ι → Set β} [hι : Nonempty ι] :
+    (⋂ i, t i) ×ˢ s = ⋂ i, t i ×ˢ s := by
+  ext x
+  simp only [Set.mem_prod, Set.mem_iInter]
+  exact ⟨fun ⟨h1, h2⟩ i ↦ ⟨h1 i, h2⟩, fun h ↦ ⟨fun i ↦ (h i).1, (h hι.some).2⟩⟩
+
+-- TODO: unused
+lemma Set.dissipate_congr {β : Type*} {s t : ℕ → Set β} {n : ℕ}
+    (h_eq : ∀ m ≤ n, s m = t m) :
+    Set.dissipate s n = Set.dissipate t n := by
+  simp only [Set.dissipate_def]
+  congr with m x
+  simp only [Set.mem_iInter]
+  refine ⟨fun h h_le ↦ ?_, fun h h_le ↦ ?_⟩
+    <;> specialize h h_le
+  · rwa [h_eq m h_le] at h
+  · rwa [h_eq m h_le]
 
 variable {α : Type*} {S : Set (Set α)}
 
@@ -78,6 +119,7 @@ lemma mem_supClosure_set_iff' (s : Set α) :
         exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
 
+-- TODO: unused
 lemma mem_supClosure_insert_empty_iff (s : Set α) :
     s ∈ supClosure (insert ∅ S) ↔ ∃ L : Finset (Set α), s = ⋃₀ L ∧ ↑L ⊆ insert ∅ S := by
   rw [mem_supClosure_set_iff]
@@ -92,6 +134,7 @@ lemma mem_supClosure_insert_empty_iff (s : Set α) :
     · simpa using hL_eq
     · simpa [hL_nonempty]
 
+-- TODO: unused
 lemma mem_infClosure_insert_univ_iff (s : Set α) :
     s ∈ infClosure (insert Set.univ S) ↔
       ∃ L : Finset (Set α), s = ⋂₀ L ∧ ↑L ⊆ insert Set.univ S := by
@@ -124,41 +167,37 @@ lemma isCompactSystem_insert_empty_Icc (α : Type*) [TopologicalSpace α] [T2Spa
   | inl h => simp [h]
   | inr h => obtain ⟨_, _, heq⟩ := h; exact heq ▸ isCompact_Icc
 
-/-- The set of Finset coercions forms a compact system. -/
-lemma IsCompactSystem.finsetCoe :
-    IsCompactSystem {t : Set 𝓚 | ∃ s : Finset 𝓚, (s : Set 𝓚) = t} := by
-  let : TopologicalSpace 𝓚 := ⊥
-  have : DiscreteTopology 𝓚 := ⟨rfl⟩
-  apply of_nonempty_iInter
-  intro C hC hC_nonempty
-  choose s hs using hC
-  have hsub : ∀ n, Set.dissipate C n ⊆ (s 0 : Set 𝓚) :=
-    fun n => (Set.antitone_dissipate (Nat.zero_le n)).trans
-      (Set.dissipate_subset le_rfl |>.trans (by rw [← hs 0]))
-  have h_compact : IsCompact (Set.dissipate C 0) :=
-    (s 0).finite_toSet.subset (hsub 0) |>.isCompact
-  obtain ⟨x, hx⟩ := IsCompact.nonempty_iInter_of_sequence_nonempty_isCompact_isClosed
-    (Set.dissipate C ·)
-    (fun i => Set.antitone_dissipate (Nat.le_succ i))
-    hC_nonempty h_compact
-    (fun _ => isClosed_discrete _)
-  simp only [Set.iInter_dissipate, Set.mem_iInter] at hx
-  simp only [Set.nonempty_iInter]
-  use x
+lemma infClosed_insert_empty_Icc {ι : Type*} [LinearOrder ι] :
+    InfClosed (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
+  intro s hs t ht
+  cases hs with
+  | inl hs => simp [hs]
+  | inr hs =>
+    cases ht with
+    | inl ht => simp [ht]
+    | inr ht =>
+      obtain ⟨a₁, b₁, rfl⟩ := hs
+      obtain ⟨a₂, b₂, rfl⟩ := ht
+      refine Set.mem_insert_of_mem _ ?_
+      simp only [Set.inf_eq_inter, Set.mem_ofPred_eq]
+      exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
 
-/-- Transport a compact system along an equivalence of types. -/
-lemma IsCompactSystem.equiv (e : 𝓚 ≃ 𝓚') {S : Set (Set 𝓚)} (hS : IsCompactSystem S) :
-    IsCompactSystem {t : Set 𝓚' | e ⁻¹' t ∈ S} := by
+/-- The finite sets form a compact system. -/
+lemma isCompactSystem_finite (𝓚 : Type*) : IsCompactSystem {t : Set 𝓚 | t.Finite} :=
+  letI : TopologicalSpace 𝓚 := ⊥
+  haveI : DiscreteTopology 𝓚 := ⟨rfl⟩
+  (isCompactSystem_isCompact 𝓚).mono fun _ ht ↦ ht.isCompact
+
+/-- The preimage of a compact system by a surjective map is a compact system. -/
+lemma IsCompactSystem.preimage_of_surjective {f : 𝓚' → 𝓚} (hf : Function.Surjective f)
+    {S : Set (Set 𝓚')} (hS : IsCompactSystem S) :
+    IsCompactSystem {t : Set 𝓚 | f ⁻¹' t ∈ S} := by
   intro D hD hD_empty
-  have h (s : Set 𝓚') : s = ∅ ↔ e ⁻¹' s = ∅ := by
-    repeat rw [Set.eq_empty_iff_forall_notMem]
-    refine ⟨fun h x => h (e x), fun h x hx => h (e.invFun x) (by simp [hx])⟩
-  rw [h, Set.preimage_iInter] at hD_empty
-  obtain ⟨N, hN⟩ := hS (fun i => e ⁻¹' D i) hD hD_empty
-  rw [Set.dissipate, ← Set.preimage_iInter₂] at hN
-  refine ⟨N, by rw [Set.dissipate, h, hN]⟩
+  obtain ⟨N, hN⟩ := hS (fun i ↦ f ⁻¹' D i) hD (by rw [← Set.preimage_iInter, hD_empty]; rfl)
+  refine ⟨N, hf.preimage_injective.eq_iff.1 ?_⟩
+  simpa [Set.dissipate, Set.preimage_iInter] using hN
 
-lemma iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
+lemma Set.iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
     (f : β → (i : ι) → Set (𝓚 i)) :
      ⋂ b, (s b).sigma (f b) = ∅ ↔ ∀ i ∈ ⋂ b, s b, ⋂ b, f b i = ∅ := by
   simp only [Set.eq_empty_iff_forall_notMem, Set.mem_iInter, Set.mem_sigma_iff]
@@ -166,7 +205,7 @@ lemma iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → S
     fun h ⟨i, x⟩ hx => h i (fun b => (hx b).1) x (fun b => (hx b).2)⟩
 
 /-- Variant with an additional condition `p b` (e.g. `b ≤ n` for `dissipate`). -/
-lemma iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : β → Prop}
+lemma Set.iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : β → Prop}
     (s : β → Set ι) (f : β → (i : ι) → Set (𝓚 i)) :
     ⋂ (b) (_ : p b), (s b).sigma (f b) = ∅ ↔
       ∀ i ∈ ⋂ (b) (_ : p b), s b, ⋂ (b) (_ : p b), f b i = ∅ := by
@@ -184,13 +223,13 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
     forall_const] at hC
   choose s f hf hCfs using hC
   simp_rw [Set.dissipate, ← hCfs]
-  simp_rw [← hCfs, iInter_sigma_eq_empty_iff] at hC_empty
+  simp_rw [← hCfs, Set.iInter_sigma_eq_empty_iff] at hC_empty
   by_cases h : ⋂ b, (s b : Set ι) = ∅
-  · obtain ⟨n₀, hn₀⟩ := IsCompactSystem.finsetCoe (fun b => (s b : Set ι))
-      (fun b => ⟨s b, rfl⟩) h
+  · obtain ⟨n₀, hn₀⟩ := isCompactSystem_finite ι (fun b => (s b : Set ι))
+      (fun b => (s b).finite_toSet) h
     refine ⟨n₀, ?_⟩
     rw [Set.dissipate] at hn₀
-    simp_rw [iInter₂_sigma_eq_empty_iff, hn₀]
+    simp_rw [Set.iInter₂_sigma_eq_empty_iff, hn₀]
     simp
   · have hs : (s 0).Nonempty := by
       rw [← Finset.coe_nonempty, Set.nonempty_iff_ne_empty]
@@ -234,8 +273,8 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
     exact hN j hj0 x
       (Set.iInter₂_mono' (fun b' j' => ⟨b', j'.trans hle, Set.Subset.rfl⟩) hjx)
 
-/-- Sigma variant with fixed `s = Finset.univ`: subsystem of `IsCompactSystem.sigma`. -/
-lemma IsCompactSystem.sigma_ofFintype [Finite ι] {𝓚 : ι → Type*}
+/-- Variant of `IsCompactSystem.sigma` for a finite index type, with sets above all indices. -/
+lemma IsCompactSystem.univ_sigma [Finite ι] {𝓚 : ι → Type*}
     {q : (i : ι) → Set (Set (𝓚 i))} (hq : ∀ i, IsCompactSystem (q i)) :
     IsCompactSystem (Set.univ.sigma '' (Set.univ.pi q)) := by
   have : Fintype ι := Fintype.ofFinite ι
@@ -251,8 +290,8 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
   let Q : ∀ b : Bool, Set (Set (bif b then 𝓚' else 𝓚)) :=
     fun b => match b with | true => q' | false => q
   have hQ : ∀ b, IsCompactSystem (Q b) := fun b => by cases b <;> assumption
-  have h_equiv := IsCompactSystem.equiv (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm
-    (IsCompactSystem.sigma_ofFintype hQ)
+  have h_equiv := (IsCompactSystem.univ_sigma hQ).preimage_of_surjective
+    (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm.surjective
   convert h_equiv using 1
   ext t
   simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
@@ -278,13 +317,6 @@ lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : S
 
 namespace MeasureTheory
 
-lemma mem_image2_prod_mono {p' : Set (Set 𝓧)} (hp : p ⊆ p') {q' : Set (Set 𝓚)}
-    (hq : q ⊆ q') {s : Set (𝓧 × 𝓚)} (hs : s ∈ Set.image2 (· ×ˢ ·) p q) :
-    s ∈ Set.image2 (· ×ˢ ·) p' q' := by
-  simp only [Set.mem_image2] at hs
-  obtain ⟨A, hpA, B, hqB, rfl⟩ := hs
-  exact ⟨A, hp (hpA), B, hq (hqB), rfl⟩
-
 lemma _root_.InfClosed.image2_prod (hp_inter : InfClosed p) (hq_inter : InfClosed q) :
     InfClosed (Set.image2 (· ×ˢ ·) p q) := by
   intro A hA B hB
@@ -293,8 +325,8 @@ lemma _root_.InfClosed.image2_prod (hp_inter : InfClosed p) (hq_inter : InfClose
   simp only [← h_eq, ← h_eq']
   exact ⟨u ∩ s, hp_inter hu hs, v ∩ t, hq_inter hv ht, by simp; grind⟩
 
-/-- The set is a countable intersection of countable unions of sets that can be written as a
-product of two sets, each satisfying a property. -/
+/-- The paving of countable intersections of countable unions of products `A ×ˢ K` with `A ∈ p`
+and `K ∈ q`. See `mem_prodSigmaDelta_iff`. -/
 def prodSigmaDelta (p : Set (Set 𝓧)) (q : Set (Set 𝓚)) : Set (Set (𝓧 × 𝓚)) :=
   countableInfClosure (countableSupClosure (Set.image2 (· ×ˢ ·) p q))
 
@@ -304,6 +336,7 @@ lemma biUnion_finset_mem_supClosure' {s : Finset ℕ} (hs_nonempty : s.Nonempty)
   rw [mem_supClosure_set_iff']
   exact ⟨s, hs_nonempty, A, hs, rfl⟩
 
+-- TODO: unused
 lemma biUnion_finset_mem_supClosure {s : Finset ℕ} (hs_nonempty : s.Nonempty) {A : ℕ → Set 𝓧}
     (hs : ∀ n ∈ s, A n ∈ supClosure p) :
     (⋃ n ∈ s, A n) ∈ supClosure p := by
@@ -356,8 +389,9 @@ lemma prodSigmaDelta.mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p �
   obtain ⟨A, hA, K, hK, rfl⟩ := hs
   exact ⟨A, fun n m ↦ hp (hA n m), K, fun n m ↦ hq (hK n m), rfl⟩
 
-/-- If the set is inf-closed, elements of `countablInfClosure` can be written as countable
+/-- If the paving is inf-closed, elements of `countableInfClosure` can be written as countable
 intersections of *antitone* sequences of sets. -/
+protected
 lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set 𝓧} :
     s ∈ countableInfClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Antitone A ∧ s = ⋂ n, A n := by
   rw [mem_countableInfClosure_iff_iInf]
@@ -395,11 +429,30 @@ protected lemma _root_.IsCompactSystem.infClosure (hp : IsCompactSystem p) :
   -- todo: extract lemma
   exact infClosure_min subset_countableInfClosure infClosed_countableInfClosure
 
--- He (35.1) in the proof of 1.35
-lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq_empty : ∅ ∈ q) (hq : IsCompactSystem q)
+/-- If `p` is closed under binary unions and contains `∅`, then the projection on the first
+coordinate of a finite union of products `A ×ˢ K` with `A ∈ p` is in `p`. -/
+lemma fst_image_mem_of_mem_supClosure_image2_prod (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
+    {s : Set (𝓧 × 𝓚)} (hs : s ∈ supClosure (Set.image2 (· ×ˢ ·) p q)) :
+    Prod.fst '' s ∈ p := by
+  refine supClosure_min (t := {s | Prod.fst '' s ∈ p}) ?_ (fun s hs t ht ↦ ?_) hs
+  · rintro _ ⟨A, hA, K, -, rfl⟩
+    rcases K.eq_empty_or_nonempty with rfl | hK
+    · simpa
+    · simpa [Set.fst_image_prod _ hK]
+  · simpa [Set.image_union] using hp_union hs ht
+
+/-- If `q` is a compact system, the projection on the first coordinate commutes with the
+intersection of a decreasing sequence of finite unions of products `A ×ˢ K` with `K ∈ q`.
+
+This is equation (35.1) in the proof of Theorem 1.35 of [he2019semimartingale]. -/
+lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq : IsCompactSystem q)
     {B : ℕ → Set (𝓧 × 𝓚)} (hB_anti : Antitone B)
     (hB : ∀ n, B n ∈ supClosure (Set.image2 (· ×ˢ ·) p q)) :
     Prod.fst '' (⋂ n, B n) = ⋂ n, Prod.fst '' B n := by
+  -- we can assume that `∅ ∈ q`, by replacing `q` with `insert ∅ q`
+  wlog hq_empty : ∅ ∈ q generalizing q
+  · exact this hq.insert_empty
+      (fun n ↦ supClosure_mono (Set.image2_subset_left (Set.subset_insert _ _)) (hB n)) (by simp)
   refine le_antisymm (Set.image_iInter_subset _ _) ?_
   intro x hx
   simp_rw [mem_supClosure_set_iff'] at hB
