@@ -56,7 +56,7 @@ We also prove consequences of the Hahn-Banach theorem which are used in the proo
 * `TopologicalSpace.IsSeparable.exists_seq_strongDual_eq_zero_of_forall_apply_eq_zero`: for a
   separable set `t` in a normed space, there is a sequence of continuous linear forms whose only
   common zero in `t` is `0`.
-* `NormedSpace.exists_strongDual_forall_apply_eq_of_forall_norm_le`: a linear form which is
+* `exists_strongDual_forall_apply_eq_of_forall_norm_le`: a linear form which is
   dominated by the norm of a linear map `L` factors through `L`, by a continuous linear form of
   norm at most `1`.
 
@@ -127,7 +127,7 @@ theorem Submodule.exists_strongDual_forall_apply_eq_zero_of_notMem_topologicalCl
 /-- A linear form `A` which is dominated by the norm of a linear map `L` factors through `L`: there
 is a continuous linear form `Λ` of norm at most `1` such that `Λ (L c) = A c` for all `c`.
 This is a consequence of the Hahn-Banach theorem. -/
-theorem NormedSpace.exists_strongDual_forall_apply_eq_of_forall_norm_le {V X : Type*}
+theorem exists_strongDual_forall_apply_eq_of_forall_norm_le {V X : Type*}
     [AddCommGroup V] [Module 𝕜 V] [SeminormedAddCommGroup X] [NormedSpace 𝕜 X] (L : V →ₗ[𝕜] X)
     (A : V →ₗ[𝕜] 𝕜) (h : ∀ c, ‖A c‖ ≤ ‖L c‖) :
     ∃ Λ : StrongDual 𝕜 X, ‖Λ‖ ≤ 1 ∧ ∀ c, Λ (L c) = A c := by

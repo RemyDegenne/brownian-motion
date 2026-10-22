@@ -12,42 +12,31 @@ public import Mathlib.Probability.Process.Predictable
 public import Mathlib.Probability.Process.Stopping
 
 /-!
-# Progressively Measurable σ-algebra
+# Predictable processes
 
-This file defines the progressively measurable σ-algebra associated to a filtration, as well as the
-notion of predictable processes. We prove that predictable processes are progressively measurable
-and adapted. We also give an equivalent characterization of predictability for discrete processes.
+This file complements `Mathlib.Probability.Process.Predictable`, which defines the predictable
+σ-algebra `Filtration.predictable` of a filtration and predictable processes
+`IsStronglyPredictable`.
 
 ## Main definitions
 
-* `Filtration.rightCont`: The right continuation of a filtration.
-* `Filtration.Predictable`: The predictable σ-algebra associated to a filtration.
-* `Filtration.IsPredictable`: A process is predictable if it is measurable with respect to the
-  predictable σ-algebra.
+* `Filtration.IsComplete`: a filtration is complete with respect to a measure if all its σ-algebras
+  contain the null sets.
+* `Filtration.predictableRectangles`: the predictable rectangles `(i, j] ×ˢ A` with `A ∈ 𝓕 i`, and
+  `{⊥} ×ˢ A` with `A ∈ 𝓕 ⊥`.
 
-## Main results
+## Main statements
 
-* `Filtration.IsPredictable.progMeasurable`: A predictable process is progressively measurable.
-* `Filtration.IsPredictable.measurable_succ`: `u` is a discrete predictable process iff
-  `u (n + 1)` is `𝓕 n`-measurable and `u 0` is `𝓕 0`-measurable.
-* `MeasureTheory.StronglyAdapted.isPredictable_of_leftContinuous`: A left-continuous adapted
-  process is predictable if the index set is `DenselyOrdered`.
+* `StronglyAdapted.isStronglyPredictable_of_leftContinuous`: a left-continuous adapted process is
+  predictable, if the index set is a densely ordered separable linear order.
+* `IsStronglyPredictable.stoppedProcess`: a predictable process stopped at a stopping time is
+  predictable.
+* `Filtration.isSetSemiring_predictableRectangles`: the predictable rectangles form a semiring of
+  sets.
+* `Filtration.isPiSystem_predictable_generators`: the generators of the predictable σ-algebra form
+  a π-system.
 
-## Implementation note
-
-To avoid requiring a `TopologicalSpace` instance on `ι` in the definition of `rightCont`,
-we endow `ι` with the order topology `Preorder.topology` inside the definition.
-Say you write a statement about `𝓕₊` which does not require a `TopologicalSpace` structure on `ι`,
-but you wish to use a statement which requires a topology (such as `rightCont_def`).
-Then you can endow `ι` with the order topology by writing
-```lean
-  letI := Preorder.topology ι
-  haveI : OrderTopology ι := ⟨rfl⟩
-```
-
-## Notation
-
-* Given a filtration `𝓕`, its right continuation is denoted `𝓕₊` (type `₊` with `;_+`).
+We also prove that predictable processes are stable under the algebraic operations.
 -/
 
 @[expose] public section
@@ -60,41 +49,37 @@ namespace MeasureTheory
 
 section IsStronglyPredictable
 
-variable {ι Ω E : Type*} [Preorder ι] [OrderBot ι] [TopologicalSpace E]
+variable {ι Ω E : Type*} [Preorder ι] [OrderBot ι] [TopologicalSpace E] {mΩ : MeasurableSpace Ω}
+  {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
 
-lemma IsStronglyPredictable.const {ι E : Type*} [Preorder ι] [OrderBot ι]
-    [TopologicalSpace E] {c : E} {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} :
+variable (𝓕) in
+lemma isStronglyPredictable_const (c : E) :
     IsStronglyPredictable 𝓕 (fun _ _ ↦ c : ι → Ω → E) := by
   unfold IsStronglyPredictable
   fun_prop
 
 @[to_additive (attr := to_fun)]
-lemma IsStronglyPredictable.mul [Mul E] [ContinuousMul E]
-    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
-    (hX : IsStronglyPredictable 𝓕 X) (hY : IsStronglyPredictable 𝓕 Y) :
+lemma IsStronglyPredictable.mul [Mul E] [ContinuousMul E] (hX : IsStronglyPredictable 𝓕 X)
+    (hY : IsStronglyPredictable 𝓕 Y) :
     IsStronglyPredictable 𝓕 (X * Y) := by
   unfold IsStronglyPredictable at hX hY ⊢
   exact hX.mul hY
 
 @[to_additive (attr := to_fun)]
-lemma IsStronglyPredictable.inv [Inv E] [ContinuousInv E]
-    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X : ι → Ω → E}
-    (hX : IsStronglyPredictable 𝓕 X) :
+lemma IsStronglyPredictable.inv [Inv E] [ContinuousInv E] (hX : IsStronglyPredictable 𝓕 X) :
     IsStronglyPredictable 𝓕 X⁻¹ := by
   unfold IsStronglyPredictable at hX ⊢
   exact hX.inv
 
-@[to_fun]
-lemma IsStronglyPredictable.sub [Sub E] [ContinuousSub E]
-    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X Y : ι → Ω → E}
-    (hX : IsStronglyPredictable 𝓕 X) (hY : IsStronglyPredictable 𝓕 Y) :
-    IsStronglyPredictable 𝓕 (X - Y) := by
+@[to_additive (attr := to_fun) sub]
+lemma IsStronglyPredictable.div' [Div E] [ContinuousDiv E] (hX : IsStronglyPredictable 𝓕 X)
+    (hY : IsStronglyPredictable 𝓕 Y) :
+    IsStronglyPredictable 𝓕 (X / Y) := by
   unfold IsStronglyPredictable at hX hY ⊢
-  exact hX.sub hY
+  exact hX.div' hY
 
 @[to_fun]
-lemma IsStronglyPredictable.const_smul [SMul ℝ E] [ContinuousSMul ℝ E]
-    {mΩ : MeasurableSpace Ω} {𝓕 : Filtration ι mΩ} {X : ι → Ω → E} (c : ℝ)
+lemma IsStronglyPredictable.const_smul {𝕜 : Type*} [SMul 𝕜 E] [ContinuousConstSMul 𝕜 E] (c : 𝕜)
     (hX : IsStronglyPredictable 𝓕 X) :
     IsStronglyPredictable 𝓕 (c • X) := by
   unfold IsStronglyPredictable at hX ⊢
@@ -200,8 +185,10 @@ private lemma StronglyAdapted.isStronglyPredictable_roundDown {times : Finset ι
       apply Finset.max'_mem
   · simpa [Y_ap, tendsto_pi_nhds] using fun _ ↦ by apply StronglyMeasurable.tendsto_approx
 
-variable [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [DenselyOrdered ι]
+variable [TopologicalSpace ι] [OrderTopology ι] [SeparableSpace ι] [DenselyOrdered ι]
 
+/-- A left-continuous adapted process is predictable, if the index set is a densely ordered
+separable linear order with a bottom element. -/
 lemma StronglyAdapted.isStronglyPredictable_of_leftContinuous (h_adap : StronglyAdapted 𝓕 X)
     (h_cont : ∀ ω a, ContinuousWithinAt (X · ω) (Iio a) a) :
     IsStronglyPredictable 𝓕 X := by
@@ -237,9 +224,9 @@ lemma StronglyAdapted.isStronglyPredictable_of_leftContinuous (h_adap : Strongly
 
 section StoppedProcess
 
-omit [OrderBot ι] [SecondCountableTopology ι] [DenselyOrdered ι] in
+omit [OrderBot ι] [SeparableSpace ι] [DenselyOrdered ι] in
 /-- The indicator of `{t | t ≤ c}` is left-continuous. -/
-lemma continuousWithinAt_indicator_coe_le {E : Type*} [TopologicalSpace E] [Zero E]
+private lemma continuousWithinAt_indicator_coe_le {E : Type*} [TopologicalSpace E] [Zero E]
     (c : WithTop ι) (x : E) (a : ι) :
     ContinuousWithinAt ({t : ι | (t : WithTop ι) ≤ c}.indicator fun _ ↦ x) (Iio a) a := by
   by_cases ha : (a : WithTop ι) ≤ c
@@ -254,9 +241,9 @@ lemma continuousWithinAt_indicator_coe_le {E : Type*} [TopologicalSpace E] [Zero
     filter_upwards [h_open.mem_nhds (show c < (a : WithTop ι) from not_le.1 ha)] with t ht
     simp [not_le.2 ht]
 
-omit [OrderBot ι] [SecondCountableTopology ι] [DenselyOrdered ι] in
+omit [OrderBot ι] [SeparableSpace ι] [DenselyOrdered ι] in
 /-- The indicator of `{t | c < t}` is left-continuous. -/
-lemma continuousWithinAt_indicator_lt_coe {E : Type*} [TopologicalSpace E] [Zero E]
+private lemma continuousWithinAt_indicator_lt_coe {E : Type*} [TopologicalSpace E] [Zero E]
     (c : WithTop ι) (x : E) (a : ι) :
     ContinuousWithinAt ({t : ι | c < (t : WithTop ι)}.indicator fun _ ↦ x) (Iio a) a := by
   by_cases ha : c < (a : WithTop ι)
@@ -272,9 +259,10 @@ lemma continuousWithinAt_indicator_lt_coe {E : Type*} [TopologicalSpace E] [Zero
       simp [ht']
     · simp [ha]
 
-variable [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι] [AddMonoid β]
-  [ContinuousAdd β] {τ : Ω → WithTop ι}
+variable [MeasurableSpace ι] [BorelSpace ι] [PseudoMetrizableSpace ι] [SecondCountableTopology ι]
+  [AddMonoid β] [ContinuousAdd β] {τ : Ω → WithTop ι}
 
+omit [SeparableSpace ι] in
 /-- A strongly predictable process stopped at a stopping time is strongly predictable. -/
 lemma IsStronglyPredictable.stoppedProcess (hX : IsStronglyPredictable 𝓕 X)
     (hτ : IsStoppingTime 𝓕 τ) :

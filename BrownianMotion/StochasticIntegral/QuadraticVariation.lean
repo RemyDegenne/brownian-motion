@@ -57,11 +57,11 @@ lemma isStronglyPredictable_predQuadVariation : IsStronglyPredictable 𝓕 ⟨X;
   by_cases hX : IsLocallySquareIntegrable X 𝓕 P
   swap
   · rw [predQuadVariation_of_not_isLocallySquareIntegrable hX]
-    exact .const
+    exact isStronglyPredictable_const 𝓕 _
   by_cases hX_cadlag : ∀ ω, IsCadlag (X · ω)
   swap
   · rw [predQuadVariation_of_not_cadlag hX_cadlag]
-    exact .const
+    exact isStronglyPredictable_const 𝓕 _
   unfold predQuadVariation
   rw [dif_pos ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.isStronglyPredictable_predictablePart
@@ -113,7 +113,7 @@ scoped notation "⟨" X ", " Y "; " P ", " 𝓕 "⟩ₘ" => predQuadCovariation 
 lemma isStronglyPredictable_predQuadCovariation : IsStronglyPredictable 𝓕 ⟨X, Y; P, 𝓕⟩ₘ := by
   unfold predQuadCovariation
   simp_rw [div_eq_inv_mul]
-  refine IsStronglyPredictable.const_smul 2⁻¹ ?_
+  refine IsStronglyPredictable.const_smul (2⁻¹ : ℝ) ?_
   refine IsStronglyPredictable.sub ?_ isStronglyPredictable_predQuadVariation
   exact isStronglyPredictable_predQuadVariation.sub isStronglyPredictable_predQuadVariation
 

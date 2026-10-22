@@ -2340,7 +2340,7 @@ lemma isStronglyPredictable_predictableConvexStep {ι Ω : Type*} [TopologicalSp
     simp [predictableConvexStep, Finsupp.sum, Finset.sum_apply]
   rw [IsStronglyPredictable, h_eq]
   exact Finset.stronglyMeasurable_fun_sum _ fun m _ ↦
-    (isStronglyPredictable_predictableSeqStep P S 𝓕 m).const_smul _
+    (isStronglyPredictable_predictableSeqStep P S 𝓕 m).const_smul ((weight hd hs n).weights m)
 
 end PredictableConvexStepPredictable
 

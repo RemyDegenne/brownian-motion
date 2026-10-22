@@ -312,7 +312,7 @@ theorem ClassDL.doob_meyer (hd : ClassDL S 𝓕 P) (hs : Submartingale S 𝓕 P)
   have hAsum_succ (k : ℕ) : Asum (k + 1) = Asum k + B k := Finset.sum_range_succ _ _
   have hAsum_pred (k : ℕ) : IsStronglyPredictable 𝓕 (Asum k) := by
     induction k with
-    | zero => exact IsStronglyPredictable.const (c := (0 : ℝ))
+    | zero => exact isStronglyPredictable_const _ (0 : ℝ)
     | succ k ih => exact hAsum_succ k ▸ ih.add (hB k)
   have hAsum_cadlag (k : ℕ) (ω : Ω) : IsCadlag (Asum k · ω) := by
     induction k with
