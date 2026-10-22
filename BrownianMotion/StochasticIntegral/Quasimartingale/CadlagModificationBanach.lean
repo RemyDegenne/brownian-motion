@@ -175,7 +175,7 @@ lemma ae_totallyBounded_image [IsFiniteMeasure μ] (hX : Martingale X 𝓕 μ)
   have h_int : ∫ ω, ‖N d ω‖ ∂μ ≤ δ * ε / 8 := by
     refine (integral_norm_condExp_le _).trans ?_
     rw [integral_norm_eq_lintegral_enorm ((hX.integrable d).sub hξ_int).aestronglyMeasurable,
-      ← eLpNorm_one_eq_lintegral_enorm]
+      ← eLpNorm_one_eq_lintegral_enorm ((hX.integrable d).sub hξ_int).aestronglyMeasurable]
     exact ENNReal.toReal_le_of_le_ofReal (by positivity) hξ.le
   calc μ {ω | ¬ ∃ K : Set E, IsCompact K ∧ ∀ t ∈ T ∩ Set.Iic d, ∃ z ∈ K, ‖X t ω - z‖ ≤ ε}
   _ ≤ μ ({ω | ∃ s ∈ T ∩ Set.Iic d, ε < ‖N s ω‖} ∪ {ω | ¬ ∀ t ∈ T ∩ Set.Iic d,
@@ -228,7 +228,7 @@ lemma iUnion_range_subset_closure_denseValues (hT : T.Countable)
     have := hT.to_subtype
     rw [Set.biUnion_eq_iUnion]
     exact .iUnion fun t ↦ hX t t.2
-  simp only [denseValues, dif_pos h]
+  simp only [denseValues, dite_eq_left h]
   exact h.choose_spec.2
 
 /-- In this set, the path of the process along `T` before time `d` is totally bounded, and its

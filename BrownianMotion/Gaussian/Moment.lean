@@ -1,5 +1,6 @@
 module
 
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 public import Mathlib.Probability.Distributions.Gaussian.Real
 
 @[expose] public section

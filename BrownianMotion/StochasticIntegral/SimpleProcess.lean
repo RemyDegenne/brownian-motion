@@ -759,7 +759,7 @@ lemma integral_indicator_apply (S : ElementaryPredictableSet 𝓕)
   rw [SimpleProcess.integral, indicator, Finsupp.onFinset_sum]
   · apply Finset.sum_congr rfl
     intro p hp
-    rw [if_pos hp, Set.indicator, Set.indicator]
+    rw [ite_eq_left hp, Set.indicator, Set.indicator]
     split_ifs <;> simp
   simp
 
@@ -852,17 +852,17 @@ namespace SimpleProcess
 lemma isStronglyPredictable (V : SimpleProcess E 𝓕) : IsStronglyPredictable 𝓕 V := by
   apply Measurable.stronglyMeasurable
   apply Measurable.add
-  · apply Measurable.indicator
+  · change Measurable[𝓕.predictable] ({a : ι × Ω | a.1 = ⊥}.indicator fun a ↦ V.valueBot a.2)
+    apply Measurable.indicator
     · intro s hs
       suffices MeasurableSet[𝓕.predictable] (({⊥} ∪ Set.Ioi ⊥) ×ˢ (V.valueBot ⁻¹' s)) by
         convert this
         ext; simp
       rw [Set.union_prod]
       measurability
-    · change MeasurableSet[𝓕.predictable] {a | a.1 = ⊥}
-      suffices MeasurableSet[𝓕.predictable] ({⊥} ×ˢ Set.univ) by
+    · suffices MeasurableSet[𝓕.predictable] ({⊥} ×ˢ Set.univ) by
         convert this
-        ext; simp
+        simp
       measurability
   · apply measurable_sum
     intro p hp s hs

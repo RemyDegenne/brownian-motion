@@ -118,7 +118,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
         setIntegral_le_integral (hsub.integrable n) (.of_forall (hnonneg n))
     calc
       _ = ε' • P.real (⋃ i ≤ n, {ω | (ε' : ℝ) < Y i ω}) := by
-        congr!
+        congr 2
         ext ω
         simp_rw [supY, lt_iSup_iff]
         lift Y to ι → Ω → ℝ≥0 using hnonneg
@@ -181,7 +181,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
       have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
         rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
         change Tendsto (fun r : ℕ ↦ _) _ _
-        simp only [ne_eq, AddLeftCancelMonoid.add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
+        simp only [ne_eq, add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
           not_false_eq_true, ENNReal.coe_inv, ENNReal.coe_add, ENNReal.coe_natCast, ENNReal.coe_one,
           comp_apply, ENNReal.toNNReal_inv, ENNReal.toNNReal_zero]
         exact tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
@@ -199,7 +199,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
       have : Tendsto (fun r : ℕ ↦ (((r + 1)⁻¹ : ℝ≥0) : ℝ≥0∞)) atTop (𝓝 0) := by
         rw [← ENNReal.tendsto_toNNReal_iff (by finiteness) (by finiteness)]
         change Tendsto (fun r : ℕ ↦ _) _ _
-        simp only [ne_eq, AddLeftCancelMonoid.add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
+        simp only [ne_eq, add_eq_zero, Nat.cast_eq_zero, one_ne_zero, and_false,
           not_false_eq_true, ENNReal.coe_inv, ENNReal.coe_add, ENNReal.coe_natCast, ENNReal.coe_one,
           comp_apply, ENNReal.toNNReal_inv, ENNReal.toNNReal_zero]
         exact tendsto_inv_add_atTop_nhds_zero_nat (𝕜 := ℝ≥0)
@@ -216,7 +216,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
     erw [ENNReal.tendsto_toReal_iff (by finiteness) (by finiteness)]
     convert tendsto_measure_iInter_atTop ?_ ?_ ?_
     · rfl
-    · exact hinter_lt _
+    · exact Set.ext_iff.mp (hinter_lt supY) _
     · infer_instance
     · exact fun r ↦ (measurableSet_lt measurable_const (by fun_prop)).nullMeasurableSet
     · exact Set.monotone_preimage.comp_antitone hε'mono.Ioi
@@ -226,7 +226,7 @@ lemma maximal_ineq_countable_ennreal (hsub : Submartingale Y 𝓕 P) (hnonneg : 
       (fun r : ℕ ↦ ∫ ω in {ω | ε' r ≤ supY ω}, Y n ω ∂P)
       atTop (𝓝 <| ∫ ω in {ω | ε ≤ supY ω}, Y n ω ∂P) := by
     convert tendsto_setIntegral_of_antitone ?_ ?_ ?_
-    · exact hinter_le _
+    · exact Set.ext_iff.mp (hinter_le supY) _
     · infer_instance
     · exact fun r ↦ measurableSet_le measurable_const (by fun_prop)
     · exact Set.monotone_preimage.comp_antitone hε'mono.Ici
@@ -252,8 +252,7 @@ lemma _root_.MeasureTheory.Submartingale.iSup_ofReal_ne_top (hsub : Submartingal
   change P {ω | ¬supY ω ≠ ∞} = 0
   push Not
   convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
-  · ext ω
-    simp only [Set.mem_ofPred_eq, Set.mem_iInter]
+  · simp only [Set.mem_eq_mem, Set.mem_ofPred_eq, Set.mem_iInter]
     constructor
     · simp +contextual
     · apply ENNReal.eq_top_of_forall_nnreal_le
@@ -314,7 +313,6 @@ theorem maximal_ineq_countable (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ 
   have : {ω | ε ≤ ⨆ i : Set.Iic n, Y i ω} =ᵐ[P] {ω | ε ≤ ⨆ i ≤ n, ENNReal.ofReal (Y i ω)} := by
     filter_upwards [hsub.iSup_ofReal_ne_top hnonneg n] with ω htop
     ext
-    change _ ≤ _ ↔ _ ≤ _
     rw [← ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_le_iff_le_toReal htop, this]
   rw [measureReal_congr this, setIntegral_congr_set this]
   exact maximal_ineq_countable_ennreal hsub hnonneg ε n
@@ -433,8 +431,7 @@ lemma _root_.MeasureTheory.Submartingale.rightCont_iSup_ofReal_ne_top (hsub : Su
   change P {ω | ¬supY ω ≠ ∞} = 0
   push Not
   convert Antitone.measure_iInter (s := fun ε : ℝ≥0 ↦ {ω | (ε : ℝ≥0∞) ≤ supY ω}) ?_ ?_ ?_
-  · ext ω
-    simp only [Set.mem_ofPred_eq, Set.mem_iInter]
+  · simp only [Set.mem_eq_mem, Set.mem_ofPred_eq, Set.mem_iInter]
     constructor
     · simp +contextual
     · apply ENNReal.eq_top_of_forall_nnreal_le
@@ -483,7 +480,6 @@ lemma maximal_ineq_nonneg (hsub : Submartingale Y 𝓕 P) (hnonneg : 0 ≤ Y) (�
     {ω | ε ≤ ⨆ i : Set.Iic n, ENNReal.ofReal (Y i ω)} := by
     filter_upwards [hsub.rightCont_iSup_ofReal_ne_top hnonneg n hY_cont] with ω htop
     ext
-    change _ ≤ _ ↔ _ ≤ _
     rw [← ENNReal.ofReal_coe_nnreal, ENNReal.ofReal_le_iff_le_toReal htop, this]
   rw [measureReal_congr this, setIntegral_congr_set this]
   exact maximal_ineq_ennreal hsub hnonneg ε n hY_cont

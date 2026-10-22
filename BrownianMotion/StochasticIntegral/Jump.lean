@@ -35,7 +35,7 @@ open Function
 
 lemma jump_of_covBy [AddGroup E] [TopologicalSpace E] {s : T} (h : s ⋖ t) : Δ f t = f t - f s := by
   have h_exists : ∃ s, s ⋖ t := ⟨s, h⟩
-  rw [jump, dif_pos h_exists]
+  rw [jump, dite_eq_left h_exists]
   congr
   exact CovBy.unique_left h_exists.choose_spec h
 
@@ -49,7 +49,7 @@ lemma leftLim_bot {T E : Type*} [ConditionallyCompleteLinearOrderBot T] [Topolog
 
 lemma jump_of_not_covBy [AddGroup E] [TopologicalSpace E] (h : ∀ s, ¬ s ⋖ t) :
     Δ f t = f t - Function.leftLim f t := by
-  rw [jump, dif_neg (by simp [h])]
+  rw [jump, dite_eq_right (by simp [h])]
 
 lemma leftLim_add_jump_of_not_covBy {E : Type*} [AddCommGroup E] [TopologicalSpace E] {f : T → E}
     (h : ∀ s, ¬ s ⋖ t) :
@@ -117,7 +117,7 @@ lemma jump_of_isBot (h : IsBot t) :
     rintro ⟨s, hs1, hs2⟩
     specialize h s
     grind
-  rw [dif_neg this, leftLim_eq_of_eq_bot, sub_self]
+  rw [dite_eq_right this, leftLim_eq_of_eq_bot, sub_self]
   exact nhdsLT_eq_bot_iff.mpr (Or.inl h)
 
 lemma jump_bot {T : Type*} [ConditionallyCompleteLinearOrderBot T] [TopologicalSpace T]

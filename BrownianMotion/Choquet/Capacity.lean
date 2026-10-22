@@ -97,7 +97,7 @@ def Capacity.comp_fst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
     simp_rw [mem_supClosure_set_iff'] at hp
     obtain ⟨S, _, u, hu_prod, hf_eq⟩ := hp n
     simp_rw [hf_eq, Set.image_iUnion]
-    have hS : ∀ i ∈ S, p (Prod.fst '' u i) := by
+    have hS : ∀ i ∈ S, Prod.fst '' u i ∈ p := by
       intro i hi
       obtain ⟨A, hA, B, hB, h_eq⟩ := hu_prod i hi
       rcases Set.eq_empty_or_nonempty B with hB | hB
@@ -467,8 +467,8 @@ lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω
     (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := by
   convert isPavingAnalytic_swap hs
-  ext s
-  simp only [Set.mem_image]
+  rename_i s
+  simp only [Set.mem_eq_mem, Set.mem_image]
   refine ⟨fun hs ↦ ⟨Prod.swap ⁻¹' s, MeasurableSet.preimage ?_ measurable_swap, ?_⟩,
     fun ⟨t, ht, ht_eq⟩ ↦ ?_⟩
   · exact hs

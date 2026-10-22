@@ -312,7 +312,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover (hp : 1 ≤ p)
     (hε : ∀ n, ε n ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε n) J)
-    {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasBoundedCoveringNumber J c₁ d)
+    {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasCoveringExponent J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ M * c₁
@@ -347,7 +347,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two (hp : 1 ≤ p)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
-    (h_cov : HasBoundedCoveringNumber J c₁ d)
+    (h_cov : HasCoveringExponent J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * (ε₀ : ℝ≥0∞) * 2⁻¹ ^ m) ^ (q - d) / (2 ^ ((q - d) / p) - 1) ^ p := by
@@ -448,7 +448,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_of_le_one (hp : p ≤ 1)
     (hε : ∀ n, ε n ≤ Metric.ediam J)
     (hC : ∀ n, IsCover (ε n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε n) J)
-    {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasBoundedCoveringNumber J c₁ d)
+    {c₁ : ℝ≥0∞} {d : ℝ} (h_cov : HasCoveringExponent J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ M * c₁
@@ -468,7 +468,7 @@ lemma lintegral_sup_rpow_edist_le_of_minimal_cover_two_of_le_one (hp : p ≤ 1)
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
-    (h_cov : HasBoundedCoveringNumber J c₁ d)
+    (h_cov : HasCoveringExponent J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * (ε₀ : ℝ≥0∞) * 2⁻¹ ^ m) ^ (q - d) / (2 ^ (q - d) - 1) := by
@@ -539,7 +539,7 @@ lemma second_term_bound {C : ℕ → Finset T} {k m : ℕ}
     (hC : ∀ n, IsCover (ε₀ * 2⁻¹ ^ n) J (C n)) (hC_subset : ∀ n, (C n : Set T) ⊆ J)
     (hC_card : ∀ n, #(C n) = coveringNumber (ε₀ * 2⁻¹ ^ n) J)
     {c₁ : ℝ≥0∞} {d : ℝ} (hdq : d < q)
-    (h_cov : HasBoundedCoveringNumber J c₁ d)
+    (h_cov : HasCoveringExponent J c₁ d)
     (hm : m ≤ k) :
     ∫⁻ ω, ⨆ (t : C k), edist (X t ω) (X (chainingSequence C t k m) ω) ^ p ∂P
       ≤ 2 ^ d * M * c₁ * (2 * ε₀ * 2⁻¹ ^ m) ^ (q - d) * Cp d p q := by
@@ -667,7 +667,7 @@ lemma scale_change_lintegral_iSup
   gcongr with ω
   exact scale_change_rpow m (fun s ↦ X s ω) _ _ hX.p_pos.le
 
-lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasCoveringExponent J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hδ_le : Metric.ediam J ≤ δ / 4) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ}), edist (X s ω) (X t ω) ^ p ∂P
@@ -745,7 +745,6 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     norm_cast
   simp only [ε₀, ENNReal.coe_toNNReal hε'.ne]
   grw [hδ_le']
-  swap; · positivity
   refine le_of_eq ?_
   calc 2 ^ d * M * c * (2 * δ) ^ (q - d) * Cp d p q
   _ = 2 ^ d * 2 ^ (q - d) * M * c * δ ^ (q - d) * Cp d p q := by
@@ -755,7 +754,7 @@ lemma finite_set_bound_of_edist_le_of_diam_le (hJ : HasBoundedCoveringNumber J c
     rw [← ENNReal.rpow_add _ _ (by simp) (by simp)]
     ring_nf
 
-lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasCoveringExponent J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hd_pos : 0 < d) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ Metric.ediam J) :
@@ -918,7 +917,6 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
       have hmδ'' : ((ε₀ * 2⁻¹ ^ m : ℝ≥0) : ℝ≥0∞) ≤ δ := mod_cast hmδ
       simpa [ENNReal.inv_pow] using hmδ''
     grw [hmδ']
-    swap; · positivity
     gcongr ?_ * _
     rw [ENNReal.mul_rpow_of_nonneg _ _ (by bound)]
     calc 2 ^ d * M * c * (2 ^ (q - d) * δ ^ (q - d))
@@ -931,7 +929,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam (hJ : HasBoundedCoveringNumber J c
       · norm_cast
       linarith
 
-lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedCoveringNumber J c d)
+lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasCoveringExponent J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M)
     (hc : c ≠ ∞) (hd_pos : 0 < d) (hdq_lt : d < q)
     (hδ : δ ≠ 0) (hδ_le : δ / 4 ≤ Metric.ediam J) :
@@ -1005,7 +1003,7 @@ lemma finite_set_bound_of_edist_le_of_le_diam' (hJ : HasBoundedCoveringNumber J 
       · simp [hδ_ne_top, hδ]
   · exact le_of_eq (by ring)
 
-theorem finite_set_bound_of_edist_le (hJ : HasBoundedCoveringNumber J c d)
+theorem finite_set_bound_of_edist_le (hJ : HasCoveringExponent J c d)
     (hJ_finite : J.Finite) (hX : IsAEKolmogorovProcess X P p q M) (hc : c ≠ ∞)
     (hd_pos : 0 < d) (hdq_lt : d < q) (hδ : δ ≠ 0) :
     ∫⁻ ω, ⨆ (s : J) (t : { t : J // edist s t ≤ δ }), edist (X s ω) (X t ω) ^ p ∂P

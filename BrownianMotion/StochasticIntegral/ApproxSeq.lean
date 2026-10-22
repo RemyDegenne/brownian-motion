@@ -361,7 +361,7 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
     τn).memLp_of_tendstoInMeasure (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC))
-    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).2.1
+    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).1
     (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC)
@@ -374,9 +374,7 @@ lemma integrable_stoppedValue_of_discreteApproxSequence'
   UniformIntegrable.integrable_of_tendstoInMeasure
     (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
       (discreteApproxSequence_of_le hτ_le τn) τn'.countable)
-    (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
-      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
-      (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn') <|
+    (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero <|
       tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn)
 
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le
@@ -388,7 +386,7 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le
     (fun m ↦ (((uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
       h τn hτn_le).memLp m).integrable le_rfl).1) ?_
     (h.uniformIntegrable_stoppedValue_of_countable_range τn τn.isStoppingTime
-      hτn_le τn.countable).2.1
+      hτn_le τn.countable).1
     (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (((uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
       h τn hτn_le).memLp m).integrable le_rfl).1) <|

@@ -190,39 +190,39 @@ lemma exists_alternating_of_le_upcrossingsBefore (hab : a < b) {m : ℕ}
   have he : ∀ j, idx (2 * j) = lowerCrossingTime a b f N j ω := by
     intro j
     simp only [hidx]
-    rw [if_pos (even_two.mul_right j), show 2 * j / 2 = j from by omega]
+    rw [ite_eq_left (even_two.mul_right j), show 2 * j / 2 = j from by omega]
   have ho : ∀ j, idx (2 * j + 1) = upperCrossingTime a b f N (j + 1) ω := by
     intro j
     simp only [hidx]
-    rw [if_neg (Nat.not_even_iff_odd.mpr ⟨j, rfl⟩ : ¬ Even (2 * j + 1)),
+    rw [ite_eq_right (Nat.not_even_iff_odd.mpr ⟨j, rfl⟩ : ¬ Even (2 * j + 1)),
       show (2 * j + 1) / 2 = j from by omega]
   refine ⟨idx, ?_, ?_, ?_, ?_⟩
   · intro i hi
     rcases Nat.even_or_odd i with hev | hodd
     · have hev2 : i % 2 = 0 := Nat.even_iff.mp hev
       have e1 : idx i = lowerCrossingTime a b f N (i / 2) ω := by
-        simp only [hidx]; rw [if_pos hev]
+        simp only [hidx]; rw [ite_eq_left hev]
       have e2 : idx (i + 1) = upperCrossingTime a b f N (i / 2 + 1) ω := by
         simp only [hidx]
-        rw [if_neg (Nat.not_even_iff_odd.mpr hev.add_one : ¬ Even (i + 1)),
+        rw [ite_eq_right (Nat.not_even_iff_odd.mpr hev.add_one : ¬ Even (i + 1)),
           show (i + 1) / 2 = i / 2 from by omega]
       rw [e1, e2]
       exact lowerCrossingTime_lt_upperCrossingTime hab (ne_of_lt (hUlt _ (by omega)))
     · have hodd2 : i % 2 = 1 := Nat.odd_iff.mp hodd
       have e1 : idx i = upperCrossingTime a b f N (i / 2 + 1) ω := by
-        simp only [hidx]; rw [if_neg (Nat.not_even_iff_odd.mpr hodd)]
+        simp only [hidx]; rw [ite_eq_right (Nat.not_even_iff_odd.mpr hodd)]
       have e2 : idx (i + 1) = lowerCrossingTime a b f N (i / 2 + 1) ω := by
         simp only [hidx]
-        rw [if_pos (hodd.add_one : Even (i + 1)), show (i + 1) / 2 = i / 2 + 1 from by omega]
+        rw [ite_eq_left (hodd.add_one : Even (i + 1)), show (i + 1) / 2 = i / 2 + 1 from by omega]
       rw [e1, e2]
       exact upperCrossingTime_lt_lowerCrossingTime hab (ne_of_lt (hLlt _ (by omega)))
   · intro i hi
     rcases Nat.even_or_odd i with hev | hodd
     · have e1 : idx i = lowerCrossingTime a b f N (i / 2) ω := by
-        simp only [hidx]; rw [if_pos hev]
+        simp only [hidx]; rw [ite_eq_left hev]
       rw [e1]; exact hLlt _ (by omega)
     · have e1 : idx i = upperCrossingTime a b f N (i / 2 + 1) ω := by
-        simp only [hidx]; rw [if_neg (Nat.not_even_iff_odd.mpr hodd)]
+        simp only [hidx]; rw [ite_eq_right (Nat.not_even_iff_odd.mpr hodd)]
       rw [e1]; exact hUlt _ (by omega)
   · intro i hi
     rw [he i]

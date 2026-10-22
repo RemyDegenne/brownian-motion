@@ -103,11 +103,9 @@ lemma IndepFun.hasLaw_gaussianReal_of_add
 
 lemma IndepFun.hasGaussianLaw_of_add_real
     (hX : HasGaussianLaw X P) (hY : HasGaussianLaw (X + Y) P) (h : IndepFun X Y P) :
-    HasGaussianLaw Y P where
-  isGaussian_map := by
-    have h1 : HasLaw X (gaussianReal _ _) P := ⟨hX.aemeasurable, hX.map_eq_gaussianReal⟩
-    have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
-    have := h.hasLaw_gaussianReal_of_add h1 h2
-    exact this.hasGaussianLaw.isGaussian_map
+    HasGaussianLaw Y P := by
+  have h1 : HasLaw X (gaussianReal _ _) P := ⟨hX.aemeasurable, hX.map_eq_gaussianReal⟩
+  have h2 : HasLaw (X + Y) (gaussianReal _ _) P := ⟨hY.aemeasurable, hY.map_eq_gaussianReal⟩
+  exact (h.hasLaw_gaussianReal_of_add h1 h2).hasGaussianLaw
 
 end ProbabilityTheory

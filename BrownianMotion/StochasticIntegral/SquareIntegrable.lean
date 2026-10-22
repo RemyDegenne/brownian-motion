@@ -45,12 +45,12 @@ structure IsSquareIntegrable (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P
   bounded : ⨆ i, eLpNorm (X i) 2 P < ∞
 
 lemma IsSquareIntegrable.isRightContinuous (hX : IsSquareIntegrable X 𝓕 P) (ω : Ω) :
-    IsRightContinuous (X · ω) := (hX.cadlag ω).right_continuous
+    IsRightContinuous (X · ω) := (hX.cadlag ω).isRightContinuous
 
 lemma IsSquareIntegrable.const [IsFiniteMeasure P] {c : E} :
     IsSquareIntegrable (fun _ _ ↦ c) 𝓕 P where
   martingale := martingale_const 𝓕 P c
-  cadlag ω := isCadlag_const c
+  cadlag ω := IsCadlag.const
   bounded := by
     obtain _ | _ := isEmpty_or_nonempty ι
     · simp
@@ -61,8 +61,8 @@ lemma IsSquareIntegrable.const [IsFiniteMeasure P] {c : E} :
 
 lemma IsSquareIntegrable.uniformIntegrable [IsFiniteMeasure P] (hX : IsSquareIntegrable X 𝓕 P) :
     UniformIntegrable X 1 P :=
-  uniformIntegrable_of_eLpNorm_le (fun t ↦ hX.martingale.stronglyMeasurable'.aestronglyMeasurable)
-    2 1 (by simp) le_rfl (⨆ t, eLpNorm (X t) 2 P) hX.bounded.ne (le_iSup _)
+  uniformIntegrable_of_eLpNorm_le 2 1 (by simp) le_rfl (⨆ t, eLpNorm (X t) 2 P) hX.bounded.ne
+    (le_iSup _)
 
 /-- An a.e.-square integrable martingale is a process that is indistinguishable from a
 square integrable martingale, see `IsSquareIntegrable`. -/
@@ -76,7 +76,7 @@ lemma IsSquareIntegrable.stronglyMeasurable_stoppedValue'
   borelize ι
   exact 𝓕.stronglyMeasurable_stoppedValue'
     (hX.martingale.stronglyAdapted.isStronglyProgressive_of_rightContinuous
-      (fun ω ↦ (hX.cadlag ω).right_continuous)) (fun ω ↦ (hX.cadlag ω).right_continuous) hτ
+      (fun ω ↦ (hX.cadlag ω).isRightContinuous)) (fun ω ↦ (hX.cadlag ω).isRightContinuous) hτ
 
 lemma IsAESquareIntegrable.aestronglyMeasurable_stoppedValue'
     [OrderTopology ι] [OrderBot ι] [SecondCountableTopology ι]
@@ -112,7 +112,7 @@ lemma isAESquareIntegrable_congr {X Y : ι → Ω → E} (hXY : X ≡ᵐ[P] Y) :
 
 lemma IsSquareIntegrable.memLp_two (hX : IsSquareIntegrable X 𝓕 P) (i : ι) :
     MemLp (X i) 2 P := by
-  refine ⟨(hX.martingale.stronglyMeasurable i).aestronglyMeasurable.mono (𝓕.le i), ?_⟩
+  rw [memLp_iff]
   grw [le_iSup (fun t ↦ eLpNorm (X t) 2 P)]
   exact hX.bounded
 
@@ -167,7 +167,10 @@ lemma IsSquareIntegrable.integrable_sq (hX : IsSquareIntegrable X 𝓕 P) (i : �
       calc eLpNorm (X i) 2 P
       _ ≤ ⨆ j, eLpNorm (X j) 2 P := le_iSup (fun j ↦ eLpNorm (X j) 2 P) i
       _ < ∞ := hX.bounded
-    simpa [HasFiniteIntegral, eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top] using hX_bound
+    have hX_meas : AEStronglyMeasurable (X i) P :=
+      ((hX.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable
+    simpa [HasFiniteIntegral, eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top two_ne_zero
+      ENNReal.ofNat_ne_top hX_meas] using hX_bound
 
 @[to_fun]
 lemma IsSquareIntegrable.add [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P)
@@ -179,9 +182,7 @@ lemma IsSquareIntegrable.add [CompleteSpace E] (hX : IsSquareIntegrable X 𝓕 P
   calc ⨆ i, eLpNorm (fun ω ↦ X i ω + Y i ω) 2 P
       ≤ ⨆ i, (eLpNorm (X i) 2 P + eLpNorm (Y i) 2 P) := by
         refine iSup_mono fun i ↦ ?_
-        exact eLpNorm_add_le
-          ((hX.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable
-          ((hY.martingale.stronglyAdapted i).mono (𝓕.le i)).aestronglyMeasurable (by simp)
+        exact eLpNorm_add_le (by simp)
     _ ≤ (⨆ i, eLpNorm (X i) 2 P) + ⨆ i, eLpNorm (Y i) 2 P := by
         refine iSup_le fun i => ?_
         gcongr
@@ -262,9 +263,8 @@ lemma IsSquareIntegrable.submartingale_sq_norm [SigmaFiniteFiltration P 𝓕] [C
     Submartingale (fun i ω ↦ ‖X i ω‖ ^ 2) 𝓕 P := by
   refine hX.1.submartingale_convex_comp (φ := fun x ↦ ‖x‖ ^ 2) ?_ (by fun_prop) fun i ↦ ?_
   · exact ConvexOn.pow convexOn_univ_norm (fun _ _ ↦ by positivity) 2
-  · refine MemLp.integrable_norm_pow ⟨?_, ?_⟩ (by linarith)
-    · exact hX.1.1.stronglyMeasurable.aestronglyMeasurable
-    · exact lt_of_le_of_lt (le_iSup (fun i ↦ eLpNorm (X i) 2 P) i) hX.3
+  · exact MemLp.integrable_norm_pow
+      (lt_of_le_of_lt (le_iSup (fun i ↦ eLpNorm (X i) 2 P) i) hX.3) (by linarith)
 
 lemma IsSquareIntegrable.eLpNorm_mono [SigmaFiniteFiltration P 𝓕] [CompleteSpace E]
     (hX : IsSquareIntegrable X 𝓕 P) {i j : ι} (hij : i ≤ j) :
@@ -272,8 +272,9 @@ lemma IsSquareIntegrable.eLpNorm_mono [SigmaFiniteFiltration P 𝓕] [CompleteSp
   have : ∫ ω, ‖X i ω‖ ^ 2 ∂P ≤ ∫ ω, ‖X j ω‖ ^ 2 ∂P := by
     simpa using hX.submartingale_sq_norm.setIntegral_le hij MeasurableSet.univ
   calc
-  _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
+  _ = (∫⁻ ω, ‖X i ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) :=
+    eLpNorm_eq_lintegral_rpow_enorm_toReal (by simp) (by simp)
+      (hX.memLp_two i).aestronglyMeasurable
   _ = (ENNReal.ofReal (∫ ω, ‖X i ω‖ ^ 2 ∂P)) ^ (1 / (2 : ℝ≥0∞).toReal) := by
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq i)).symm
@@ -281,8 +282,9 @@ lemma IsSquareIntegrable.eLpNorm_mono [SigmaFiniteFiltration P 𝓕] [CompleteSp
   _ = (∫⁻ ω, ‖X j ω‖ₑ ^ ((2 : ℝ≥0∞).toReal) ∂P) ^ (1 / (2 : ℝ≥0∞).toReal) := by
     congr
     simpa using (ofReal_integral_norm_eq_lintegral_enorm (hX.integrable_sq j))
-  _ = eLpNorm (X j) 2 P := by
-    simp [eLpNorm_eq_lintegral_rpow_enorm_toReal]
+  _ = eLpNorm (X j) 2 P :=
+    (eLpNorm_eq_lintegral_rpow_enorm_toReal (by simp) (by simp)
+      (hX.memLp_two j).aestronglyMeasurable).symm
 
 lemma IsSquareIntegrable.ae_tendsto_limitProcess [IsFiniteMeasure P]
     (hX : IsSquareIntegrable X 𝓕 P) :
@@ -363,8 +365,8 @@ lemma isSquareIntegrable_of_limitProcess [CompleteSpace E]
   martingale := hX1
   cadlag := hX3
   bounded := by
-    grw [iSup_eLpNorm_le_eLpNorm_limitProcess hX1 hX2 (fun ω ↦ (hX3 ω).right_continuous) (by simp)]
-    exact hX4.2
+    grw [iSup_eLpNorm_le_eLpNorm_limitProcess hX1 hX2 (fun ω ↦ (hX3 ω).isRightContinuous) (by simp)]
+    exact hX4
 
 lemma IsSquareIntegrable.iSup_eLpNorm_eq_eLpNorm_limitProcess (hX : IsSquareIntegrable X 𝓕 P) :
     ⨆ i, eLpNorm (X i) 2 P = eLpNorm (𝓕.limitProcess X P) 2 P := by
@@ -375,12 +377,12 @@ lemma IsSquareIntegrable.iSup_lintegral_pow_two_eq (hX : IsSquareIntegrable X �
   apply ENNReal.rpow_left_injective (x := 1 / 2) (by simp)
   simp only
   rw [ENNReal.rpow_iSup _ (by simp)]
-  convert hX.iSup_eLpNorm_eq_eLpNorm_limitProcess
-  · rfl
-  · rw [eLpNorm_eq_eLpNorm', eLpNorm']
-    all_goals simp
-  · rw [eLpNorm_eq_eLpNorm', eLpNorm']
-    all_goals simp
+  convert hX.iSup_eLpNorm_eq_eLpNorm_limitProcess with t
+  · rw [eLpNorm_eq_eLpNorm' (by simp) (by simp) (hX.memLp_two t).aestronglyMeasurable, eLpNorm']
+    simp
+  · rw [eLpNorm_eq_eLpNorm' (by simp) (by simp)
+      𝓕.stronglyMeasurable_limit_process'.aestronglyMeasurable, eLpNorm']
+    simp
 
 lemma IsAESquareIntegrable.iSup_eLpNorm_eq_eLpNorm_limitProcess (hX : IsAESquareIntegrable X 𝓕 P) :
     ⨆ i, eLpNorm (X i) 2 P = eLpNorm (𝓕.limitProcess X P) 2 P := by
@@ -391,9 +393,7 @@ lemma IsAESquareIntegrable.iSup_eLpNorm_eq_eLpNorm_limitProcess (hX : IsAESquare
 
 lemma IsSquareIntegrable.memLp_limitProcess (hX : IsSquareIntegrable X 𝓕 P) :
     MemLp (𝓕.limitProcess X P) 2 P := by
-  constructor
-  · exact Filtration.stronglyMeasurable_limit_process'.aestronglyMeasurable
-  rw [← hX.iSup_eLpNorm_eq_eLpNorm_limitProcess]
+  rw [memLp_iff, ← hX.iSup_eLpNorm_eq_eLpNorm_limitProcess]
   exact hX.bounded
 
 lemma IsAESquareIntegrable.memLp_limitProcess (hX : IsAESquareIntegrable X 𝓕 P) :
@@ -412,7 +412,7 @@ lemma IsSquareIntegrable.integral_iSup_norm_rpow_rpow_inv_le_limitProcess
   · gcongr
     · rw [one_div, ENNReal.rpow_inv_le_iff (by simp)]
       norm_num
-    · rw [eLpNorm_eq_eLpNorm' (by simp) (by simp), eLpNorm']
+    · rw [eLpNorm_eq_eLpNorm' (by simp) (by simp) (hX.memLp_two _).aestronglyMeasurable, eLpNorm']
       rfl
   all_goals simp
 
@@ -448,15 +448,15 @@ protected lemma IsSquareIntegrable.stoppedProcess
     IsSquareIntegrable (stoppedProcess X τ) 𝓕 P := by
   borelize ι E
   apply isSquareIntegrable_of_limitProcess
-  · exact hX.martingale.stoppedProcess (fun _ ↦ (hX.cadlag _).right_continuous) hτ
+  · exact hX.martingale.stoppedProcess (fun _ ↦ (hX.cadlag _).isRightContinuous) hτ
   · have : ClassD X 𝓕 P := hX.martingale.classD_iff_uniformIntegrable hX.isRightContinuous |>.2
         hX.uniformIntegrable
     simp_rw [stoppedProcess_eq_stoppedValue]
     exact this.uniformIntegrable.comp (fun t : ι ↦ ⟨fun ω ↦ min t (τ ω),
       (isStoppingTime_const 𝓕 t).min hτ, by simp⟩)
   · exact fun ω ↦ (hX.cadlag ω).stoppedProcess τ
-  · refine ⟨𝓕.stronglyMeasurable_limit_process'.aestronglyMeasurable, ?_⟩
-    rw [eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top (by simp) (by simp)]
+  · rw [memLp_iff, eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top (by simp) (by simp)
+      𝓕.stronglyMeasurable_limit_process'.aestronglyMeasurable]
     calc
     ∫⁻ ω, ‖𝓕.limitProcess (MeasureTheory.stoppedProcess X τ) P ω‖ₑ ^ (ENNReal.toReal 2) ∂P
       = ∫⁻ ω, ‖𝓕.stoppedValue' X τ P ω‖ₑ ^ (ENNReal.toReal 2) ∂P := by
@@ -481,8 +481,9 @@ protected lemma IsSquareIntegrable.stoppedProcess
       norm_num
     _ < ∞ := by
       apply ENNReal.mul_lt_top (by simp)
-      rw [← eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top (by simp) (by simp)]
-      exact hX.memLp_limitProcess.2
+      rw [← eLpNorm_lt_top_iff_lintegral_rpow_enorm_lt_top (by simp) (by simp)
+        𝓕.stronglyMeasurable_limit_process'.aestronglyMeasurable]
+      exact hX.memLp_limitProcess
 
 protected lemma IsAESquareIntegrable.stoppedProcess
     [Approximable 𝓕 P] (hX : IsAESquareIntegrable X 𝓕 P) (hτ : IsStoppingTime 𝓕 τ) :
@@ -721,8 +722,8 @@ lemma SquareIntegrable.injective_toL2 : Injective (toL2 E P 𝓕) := by
   refine .trans ?_ (coe_zero _ _ _).symm
   refine indistinguishable_of_modification' ?_ ?_ fun t ↦ ?_
   · exact ae_of_all _ fun _ ↦ (isSquareIntegrable_coe _).cadlag _
-      |>.right_continuous
-  · exact ae_of_all _ fun _ ↦ isRightContinuous_const 0
+      |>.isRightContinuous
+  · exact ae_of_all _ fun _ ↦ IsRightContinuous.const
   grw [show (0 : ι → Ω → E) t = 0 from rfl, ← lpNorm_eq_zero _ two_ne_zero, ← toReal_eLpNorm,
     ENNReal.toReal_eq_zero_iff]
   · left
@@ -731,8 +732,6 @@ lemma SquareIntegrable.injective_toL2 : Injective (toL2 E P 𝓕) := by
       (isSquareIntegrable_coe _).iSup_eLpNorm_eq_eLpNorm_limitProcess, nonpos_iff_eq_zero,
       ← ofReal_lpNorm, ENNReal.ofReal_eq_zero, lpNorm_congr hX, lpNorm_zero]
     exact (isSquareIntegrable_coe _).memLp_limitProcess
-  · exact ((isSquareIntegrable_coe X).martingale.stronglyMeasurable
-      t).aestronglyMeasurable.mono (𝓕.le t)
   · exact (isSquareIntegrable_coe X).memLp_two t
 
 noncomputable instance :
@@ -742,8 +741,7 @@ noncomputable instance :
 lemma SquareIntegrable.norm_def {X : SquareIntegrable E P 𝓕} :
     ‖X‖ = lpNorm (𝓕.limitProcess X P) 2 P := by
   change ‖toL2 E P 𝓕 X‖ = _
-  rw [toL2_def, Lp.norm_toLp, lpNorm, if_pos]
-  exact 𝓕.stronglyMeasurable_limit_process'.aestronglyMeasurable
+  rw [toL2_def, Lp.norm_toLp, lpNorm]
 
 lemma SquareIntegrable.enorm_def {X : SquareIntegrable E P 𝓕} :
     ‖X‖ₑ = eLpNorm (𝓕.limitProcess X P) 2 P := by
@@ -788,7 +786,7 @@ lemma isSquareIntegrable_cadlagModif_condExp {X : Ω → E} (hX : MemLp X 2 P) :
   martingale := (martingale_condExp X 𝓕 P).martingale_cadlagModif
   cadlag := isCadlag_cadlagModif
   bounded := by
-    refine (iSup_le fun i ↦ ?_).trans_lt hX.2
+    refine (iSup_le fun i ↦ ?_).trans_lt hX
     grw [eLpNorm_congr_ae ((martingale_condExp X 𝓕 P).cadlagModif_ae_eq i),
       eLpNorm_condExp_le_eLpNorm _ (by simp)]
 
@@ -916,10 +914,11 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
   have h_stop : IsStoppingTime 𝓕 (τ n) := by
     refine isStoppingTime_leastGE P (IsStronglyProgressive.norm ?_) (n : ℝ) (𝓕 := 𝓕)
     exact StronglyAdapted.isStronglyProgressive_of_rightContinuous hX.stronglyAdapted
-      fun ω ↦ (h_cadlag ω).right_continuous
+      fun ω ↦ (h_cadlag ω).isRightContinuous
+  have hY : Martingale Y 𝓕 P :=
+    hX.stoppedProcess_indicator (fun ω ↦ (h_cadlag ω).isRightContinuous) h_stop
   refine isSquareIntegrable_of_le_const (C := NNReal.mk (P.real .univ ^ (2 : ℝ)⁻¹ * (n +  C)) ?_)
-    ?_ ?_ fun i ↦ ?_
-  · exact hX.stoppedProcess_indicator (fun ω ↦ (h_cadlag ω).right_continuous) h_stop
+    hY ?_ fun i ↦ ?_
   · exact isStable_isCadlag (𝓕 := 𝓕) X h_cadlag (τ n) h_stop
   · suffices 0 ≤ C by positivity
     let ω₀ := hΩ.some
@@ -928,7 +927,8 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
   · rw [ENNReal.coe_nnreal_eq, NNReal.coe_mk, ENNReal.ofReal_mul (by positivity),
       ← ENNReal.ofReal_rpow_of_nonneg (by positivity) (by positivity),
       Measure.real_def, ENNReal.ofReal_toReal (by simp)]
-    refine eLpNorm_le_of_ae_bound (ae_of_all _ fun ω ↦ ?_)
+    refine eLpNorm_le_of_ae_bound ((hY.stronglyMeasurable i).mono (𝓕.le i)).aestronglyMeasurable
+      (ae_of_all _ fun ω ↦ ?_)
     grw [hY_le _ ω]
     gcongr
     exact h_jump _ _

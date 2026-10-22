@@ -52,7 +52,7 @@ lemma continuous_coe {X : SquareIntegrable E P 𝓕} (hX : X ∈ continuousSquar
       (∀ ω, Continuous (Y · ω)) ∧ IsSquareIntegrable Y 𝓕 P ∧ X.1 ≡ᵐ[P] Y := by
     obtain ⟨Y, hY1, hY2, hY3⟩ := hX
     exact ⟨Y, hY1, hY2, by grw [X.val_indist_coe, hY3]⟩
-  rw [SquareIntegrable.out, dif_pos this]
+  rw [SquareIntegrable.out, dite_eq_left this]
   exact this.choose_spec.1 ω
 
 omit [IsFiniteMeasure P] in
@@ -74,7 +74,7 @@ lemma IsAESquareIntegrable.isSquareIntegrable_toContinuous [h𝓕 : 𝓕.IsCompl
     · simp [s, hω, toContinuous]
   · filter_upwards [obv] with ω h
     simp [toContinuous, h]
-  · convert hX2.choose_spec.1.memLp_limitProcess.2
+  · refine (le_of_eq ?_).trans_lt hX2.choose_spec.1.memLp_limitProcess
     rw [← hX2.choose_spec.1.iSup_eLpNorm_eq_eLpNorm_limitProcess]
     congr with i
     rw [← eLpNorm_congr_ae ((hX2.indist_toContinuous hX1).ae_eq_eval i),
@@ -234,7 +234,7 @@ lemma IsAESquareIntegrable.mk_continuousPart (hX : IsAESquareIntegrable X 𝓕 P
     .mk (continuousPart X 𝓕 P) isSquareIntegrable_continuousPart.isAESquareIntegrable =
       (continuousSquareIntegrable E P 𝓕).starProjection (.mk X hX) := by
   ext
-  grw [SquareIntegrable.mk_indist, continuousPart, dif_pos hX]
+  grw [SquareIntegrable.mk_indist, continuousPart, dite_eq_left hX]
 
 /-- The purely discontinuous martingale part of a square integrable martingale. Purely discontinuous
 martingales are the orthogonal submodule of continuous square integrable martingales
@@ -313,7 +313,7 @@ lemma indist_continuousPart (hX1 : IsAESquareIntegrable X 𝓕 P)
     SquareIntegrable.mk_add (hX := hX1) (hY := hY.1)] at hZ2
   have := Submodule.eq_starProjection_of_mem_orthogonal' (hX1.mk_mem_continuousSquareIntegrable hX2)
     hY.mk_mem_discontinuousSquareIntegrable hZ2
-  rw [continuousPart, dif_pos hZ1, this]
+  rw [continuousPart, dite_eq_left hZ1, this]
   exact SquareIntegrable.mk_indist hX1 |>.symm
 
 /-- Uniqueness of the decomposition of a square integrable martingale into a continuous part and

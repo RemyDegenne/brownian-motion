@@ -127,7 +127,7 @@ private lemma IsStronglyPredictable.comp_minIcc {E : Type*} [TopologicalSpace E]
     (hA : haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩; IsStronglyPredictable (𝓕.restrictIcc b) A)
     (hcb : c ≤ b) :
     IsStronglyPredictable 𝓕 (fun t ↦ A (minIcc hcb t)) := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_meas : @Measurable (ι × Ω) (Icc (⊥ : ι) b × Ω) 𝓕.predictable
       (𝓕.restrictIcc b).predictable (fun p ↦ (minIcc hcb p.1, p.2)) := by
     rw [measurable_iff_comap_le]
@@ -170,7 +170,7 @@ private lemma IsStronglyPredictable.restrictIcc {E : Type*} [TopologicalSpace E]
     (hA : IsStronglyPredictable 𝓕 A) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
     IsStronglyPredictable (𝓕.restrictIcc b) (fun t : Icc (⊥ : ι) b ↦ A t) := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_meas : @Measurable (Icc (⊥ : ι) b × Ω) (ι × Ω) (𝓕.restrictIcc b).predictable
       𝓕.predictable (fun p ↦ ((p.1 : ι), p.2)) := by
     rw [measurable_iff_comap_le]
@@ -214,7 +214,7 @@ private lemma ClassDL.classD_restrictIcc [LinearOrder ι] [OrderBot ι] [Measura
     {𝓕 : Filtration ι mΩ} {S : ι → Ω → E} (hd : ClassDL S 𝓕 P) (b : ι) :
     haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
     ClassD (fun t : Icc (⊥ : ι) b ↦ S t) (𝓕.restrictIcc b) P := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   refine ⟨fun t ↦ ?_, ?_⟩
   · have h_meas : @Measurable (Iic t × Ω) (Iic (t : ι) × Ω)
         (Subtype.instMeasurableSpace.prod (𝓕 t)) (Subtype.instMeasurableSpace.prod (𝓕 t))
@@ -254,7 +254,7 @@ lemma ClassDL.exists_doob_meyer_increment (hd : ClassDL S 𝓕 P) (hs : Submarti
     ∃ (N B : ι → Ω → ℝ), (∀ t, S (min t b) - S (min t a) = N t + B t) ∧ Martingale N 𝓕 P ∧
       (∀ ω, IsCadlag (N · ω)) ∧ IsStronglyPredictable 𝓕 B ∧ (∀ ω, IsCadlag (B · ω)) ∧
       (∀ ω, Monotone (B · ω)) ∧ ∀ t ≤ a, B t = 0 := by
-  haveI : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
+  have : Fact ((⊥ : ι) ≤ b) := ⟨bot_le⟩
   have h_mono : Monotone (Subtype.val : Icc (⊥ : ι) b → ι) := Subtype.mono_coe _
   obtain ⟨M', A', hSMA, hM', hM'c, hA', hA'c, hA'm, -⟩ :=
     ClassD.doob_meyer (hd.classD_restrictIcc b) (hs.indexComap h_mono)
@@ -316,7 +316,7 @@ theorem ClassDL.doob_meyer (hd : ClassDL S 𝓕 P) (hs : Submartingale S 𝓕 P)
     | succ k ih => exact hAsum_succ k ▸ ih.add (hB k)
   have hAsum_cadlag (k : ℕ) (ω : Ω) : IsCadlag (Asum k · ω) := by
     induction k with
-    | zero => exact isCadlag_const (0 : ℝ)
+    | zero => exact IsCadlag.const
     | succ k ih => exact hAsum_succ k ▸ ih.add (hBc k ω)
   have hAsum_mono (k : ℕ) (ω : Ω) : Monotone (Asum k · ω) := by
     induction k with
@@ -349,11 +349,11 @@ theorem ClassDL.doob_meyer (hd : ClassDL S 𝓕 P) (hs : Submartingale S 𝓕 P)
   have hA_cadlag (ω : Ω) : IsCadlag (A · ω) := by
     refine ⟨fun x ↦ ?_, fun x ↦ ?_⟩
     · obtain ⟨k, hk⟩ := hA_ev x
-      refine ((hAsum_cadlag k ω).right_continuous x).congr_of_eventuallyEq ?_
+      refine ((hAsum_cadlag k ω).isRightContinuous x).congr_of_eventuallyEq ?_
         (congrFun (hk.self_of_nhds) ω)
       filter_upwards [hk.filter_mono nhdsWithin_le_nhds] with t ht using congrFun ht ω
     · obtain ⟨k, hk⟩ := hA_ev x
-      obtain ⟨l, hl⟩ := (hAsum_cadlag k ω).left_limit x
+      obtain ⟨l, hl⟩ := (hAsum_cadlag k ω).tendsto_nhdsLT x
       refine ⟨l, hl.congr' ?_⟩
       filter_upwards [hk.filter_mono nhdsWithin_le_nhds] with t ht using (congrFun ht ω).symm
   have hA_mono (ω : Ω) : Monotone (A · ω) := by

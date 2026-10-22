@@ -62,7 +62,7 @@ lemma isStronglyPredictable_predQuadVariation : IsStronglyPredictable 𝓕 ⟨X;
   · rw [predQuadVariation_of_not_cadlag hX_cadlag]
     exact .const
   unfold predQuadVariation
-  rw [dif_pos ⟨hX, hX_cadlag⟩]
+  rw [dite_eq_left ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.isStronglyPredictable_predictablePart
     (fun ω ↦ (hX_cadlag ω).norm_sq)
 
@@ -72,7 +72,7 @@ lemma isCadlag_predQuadVariation (ω : Ω) : IsCadlag (⟨X; P, 𝓕⟩ₘ · ω
   by_cases hX_cadlag : ∀ ω, IsCadlag (X · ω)
   swap; · simp [hX_cadlag]
   unfold predQuadVariation
-  rw [dif_pos ⟨hX, hX_cadlag⟩]
+  rw [dite_eq_left ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.cadlag_predictablePart (fun ω ↦ (hX_cadlag ω).norm_sq) ω
 
 lemma hasLocallyIntegrableSup_predQuadVariation :
@@ -86,7 +86,7 @@ lemma hasLocallyIntegrableSup_predQuadVariation :
   · rw [predQuadVariation_of_not_cadlag hX_cadlag]
     exact hasLocallyIntegrableSup_const 0 𝓕
   unfold predQuadVariation
-  rw [dif_pos ⟨hX, hX_cadlag⟩]
+  rw [dite_eq_left ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.hasLocallyIntegrableSup_predictablePart
     (fun ω ↦ (hX_cadlag ω).norm_sq)
 
@@ -96,7 +96,7 @@ lemma monotone_predQuadVariation (ω : Ω) : Monotone (⟨X; P, 𝓕⟩ₘ · ω
   by_cases hX_cadlag : ∀ ω, IsCadlag (X · ω)
   swap; · rw [predQuadVariation_of_not_cadlag hX_cadlag]; exact monotone_const
   unfold predQuadVariation
-  rw [dif_pos ⟨hX, hX_cadlag⟩]
+  rw [dite_eq_left ⟨hX, hX_cadlag⟩]
   exact hX.isLocalSubmartingale_sq_norm.monotone_predictablePart (fun ω ↦ (hX_cadlag ω).norm_sq) ω
 
 /-- Predictable quadratic covariation of two processes. -/
@@ -120,7 +120,7 @@ lemma isCadlag_predQuadCovariation (ω : Ω) : IsCadlag (⟨X, Y; P, 𝓕⟩ₘ 
   unfold predQuadCovariation
   simp_rw [div_eq_inv_mul]
   simp only [Pi.mul_apply, Pi.inv_apply, Pi.ofNat_apply, Pi.sub_apply]
-  refine IsCadlag.const_smul ?_ _
+  refine IsCadlag.fun_mul IsCadlag.const ?_
   refine IsCadlag.sub ?_ (isCadlag_predQuadVariation ω)
   exact (isCadlag_predQuadVariation ω).sub (isCadlag_predQuadVariation ω)
 

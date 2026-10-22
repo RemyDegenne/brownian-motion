@@ -122,7 +122,6 @@ private lemma IsBrownianReal.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownianR
       · aesop
     convert h.measure_mem_eq (s := {x | c * f (c ^ n) ≤ (x : ℝ)}) _
     · simp_rw [Set.preimage_ofPred_eq]
-      congr! 2
       rw [← mul_le_mul_iff_of_pos_left (by positivity : 0 < √(c ^ (n + 1)))]
       congr! 1
       rw [← sqrt_sq (by positivity : 0 ≤ (c : ℝ))]
@@ -152,9 +151,9 @@ private lemma IsBrownianReal.ae_limsup_div_sqrt_log_log_le_one (hX : IsBrownianR
     conv in exp _ => rw [mul_comm]
     rw [exp_neg, exp_mul, exp_log, log_pow]; swap
     · rw [log_pow]
-      positivity [log_pos hc]
+      exact mul_pos (by exact_mod_cast hn) (log_pos (by exact_mod_cast hc))
     rw [mul_rpow (by positivity) _]; swap
-    · positivity [log_pos hc]
+    · exact (log_pos (by exact_mod_cast hc)).le
     field_simp
     rfl
 
@@ -276,7 +275,6 @@ private lemma IsBrownianReal.ae_one_le_limsup_div_sqrt_log_log (hX : IsBrownianR
       (s := {x | sqrt (c ^ (n + 1) - c ^ n) * g (n + 1) ≤ (x : ℝ)}) _
     · rfl
     · simp_rw [Set.preimage_ofPred_eq]
-      congr! 2
       rw [← mul_le_mul_iff_of_pos_left _]
       rw [sqrt_pos, sub_pos, pow_add]
       apply lt_mul_of_one_lt_right (by positivity) (by bound)

@@ -5,12 +5,10 @@ Authors: Rémy Degenne
 -/
 module
 
-public import Mathlib.Analysis.Normed.Group.Continuity
 public import Mathlib.Topology.Algebra.MulAction
 public import Mathlib.Topology.Instances.ENNReal.Lemmas
-public import Mathlib.Topology.MetricSpace.Bounded
+public import Mathlib.Topology.Order.Cadlag
 public import Mathlib.Topology.Order.Compact
-public import Mathlib.Topology.Order.LeftRightLim
 
 /-! # cadlag functions
 
@@ -23,20 +21,6 @@ open scoped Topology ENNReal
 
 variable {ι E : Type*} [TopologicalSpace ι]
 
-/-- The predicate that a function is right continuous. -/
-abbrev IsRightContinuous [TopologicalSpace E] [Preorder ι] (f : ι → E) :=
-  ∀ a, ContinuousWithinAt f (Set.Ioi a) a
-
-lemma Continuous.isRightContinuous [TopologicalSpace E] [Preorder ι]
-    {f : ι → E} (hf : Continuous f) :
-    IsRightContinuous f :=
-  fun _ ↦ hf.continuousWithinAt
-
-lemma IsRightContinuous.continuous_comp {F : Type*} [TopologicalSpace E]
-    [TopologicalSpace F] [Preorder ι] {g : E → F}
-    {f : ι → E} (hg : Continuous g) (hf : IsRightContinuous f) : IsRightContinuous (g ∘ f) :=
-  fun x ↦ (hg.tendsto (f x)).comp (hf x)
-
 /-- The composition of a right-continuous function with a monotone continuous function is
 right-continuous. -/
 lemma IsRightContinuous.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder ι]
@@ -47,44 +31,6 @@ lemma IsRightContinuous.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder
   rw [continuousWithinAt_Ioi_iff_Ici]
   refine ContinuousWithinAt.comp (t := Set.Ici (ψ x)) ?_ hψc.continuousWithinAt fun y hy ↦ hψ hy
   exact continuousWithinAt_Ioi_iff_Ici.1 (hf (ψ x))
-
-@[simp]
-lemma isRightContinuous_const [TopologicalSpace E] [Preorder ι] (c : E) :
-    IsRightContinuous (fun _ ↦ c : ι → E) :=
-  continuous_const.isRightContinuous
-
-@[to_additive (attr := to_fun)]
-lemma IsRightContinuous.mul [TopologicalSpace E] [Preorder ι] [Mul E] [ContinuousMul E]
-    {f g : ι → E} (hf : IsRightContinuous f) (hg : IsRightContinuous g) :
-    IsRightContinuous (f * g) :=
-  fun x ↦ (hf x).mul (hg x)
-
-@[to_additive (attr := to_fun) sub]
-lemma IsRightContinuous.div' [TopologicalSpace E] [Preorder ι] [Div E] [ContinuousDiv E]
-    {f g : ι → E} (hf : IsRightContinuous f) (hg : IsRightContinuous g) :
-    IsRightContinuous (f / g) :=
-  fun x ↦ (hf x).div' (hg x)
-
-@[to_fun]
-lemma IsRightContinuous.div [Preorder ι] [GroupWithZero E] [TopologicalSpace E]
-    [ContinuousInv₀ E] [ContinuousMul E] {f g : ι → E}
-    (hf : IsRightContinuous f) (hg : IsRightContinuous g) (h : ∀ x, g x ≠ 0) :
-    IsRightContinuous (f / g) :=
-  fun x ↦ (hf x).div (hg x) (h x)
-
-/-- A function is cadlag if it is right-continuous and has left limits. -/
-structure IsCadlag [TopologicalSpace E] [Preorder ι] (f : ι → E) : Prop where
-  right_continuous : IsRightContinuous f
-  left_limit : ∀ x, ∃ l, Tendsto f (𝓝[<] x) (𝓝 l)
-
-lemma Continuous.isCadlag [TopologicalSpace E] [Preorder ι] {f : ι → E} (hf : Continuous f) :
-    IsCadlag f where
-  right_continuous := hf.isRightContinuous
-  left_limit x := ⟨f x, hf.continuousAt.continuousWithinAt⟩
-
-@[simp]
-lemma isCadlag_const [TopologicalSpace E] [Preorder ι] (c : E) : IsCadlag (fun _ ↦ c : ι → E) :=
-  continuous_const.isCadlag
 
 section Jump
 
@@ -98,8 +44,8 @@ lemma IsCadlag.leftJumpSet_eq_discontinuitySet [LinearOrder ι] [OrderTopology �
     leftJumpSet f = {t | ¬ ContinuousAt f t} := by
   ext t
   refine ⟨fun h hc => h (hc.continuousWithinAt.leftLim_eq), fun hc h => hc ?_⟩
-  refine continuousAt_iff_continuous_left'_right'.2 ⟨?_, hf.right_continuous t⟩
-  simpa [ContinuousWithinAt, h] using tendsto_leftLim_of_tendsto (hf.left_limit t)
+  refine continuousAt_iff_continuous_left'_right'.2 ⟨?_, hf.isRightContinuous t⟩
+  simpa [ContinuousWithinAt, h] using tendsto_leftLim_of_tendsto (hf.tendsto_nhdsLT t)
 
 /-- The set of large left jump times. -/
 def largeLeftJumpSet [TopologicalSpace E] [LinearOrder ι] (f : ι → E)
@@ -127,13 +73,13 @@ lemma IsCadlag.not_accPt_largeLeftJumpSet [LinearOrder ι] [OrderTopology ι] [U
     obtain ⟨a, ha⟩ : ∃ a, a < t := by simpa [IsBot] using htt
     -- There exists `b < t` such that for any `x ∈ Ioo b t`, `f x` is close to `f.leftLim t`.
     obtain ⟨b, hb⟩ := (mem_nhdsLT_iff_exists_Ioo_subset' ha).1 <| (Uniform.tendsto_nhds_left.1
-      <| (tendsto_leftLim_of_tendsto (hf.left_limit t))).eventually_mem hu
+      <| (tendsto_leftLim_of_tendsto (hf.tendsto_nhdsLT t))).eventually_mem hu
     -- For any `x ∈ Ioo b t`, there exists `s ∈ Ioc b x` such that `f s` is closed `f.leftLim x`.
     have h2 (x) (hx : x ∈ Set.Ioo b t) : ∃ s, s ∈ Set.Ioc b x ∧ (f s, f.leftLim x) ∈ u := by
       by_cases! hn : (𝓝[<] x).NeBot
       · exact ((eventually_mem_set.2 (Ioc_mem_nhdsLT hx.1)).and <|
           (Uniform.tendsto_nhds_left.1 (tendsto_leftLim_of_tendsto
-          (hf.left_limit x))).eventually_mem hu).exists
+          (hf.tendsto_nhdsLT x))).eventually_mem hu).exists
       · rw [leftLim_eq_of_eq_bot f hn]
         exact ⟨x, ⟨hx.1, refl x⟩, refl_mem_uniformity hu⟩
     refine eventually_of_mem (Ioo_mem_nhdsLT hb.1) fun x hx => ?_
@@ -153,11 +99,11 @@ lemma IsCadlag.not_accPt_largeLeftJumpSet [LinearOrder ι] [OrderTopology ι] [U
     -- Here one can also use the existence of a right limit instead of right continuity, so this
     -- theorem should also be true for functions with both left and right limits at each point.
     obtain ⟨b, hb⟩ := (mem_nhdsGT_iff_exists_Ioo_subset' ha).1 <|
-      (Uniform.continuousWithinAt_iff'_left.1 <| hf.right_continuous t).eventually_mem hu
+      (Uniform.continuousWithinAt_iff'_left.1 <| hf.isRightContinuous t).eventually_mem hu
     have h2 (x) (hx : x ∈ Set.Ioo t b) : ∃ s, s ∈ Set.Ioc t x ∧ (f s, f.leftLim x) ∈ u := by
       by_cases! hn : (𝓝[<] x).NeBot
       · exact ((eventually_mem_set.2 (Ioc_mem_nhdsLT hx.1)).and <| (Uniform.tendsto_nhds_left.1
-          (tendsto_leftLim_of_tendsto (hf.left_limit x))).eventually_mem hu).exists
+          (tendsto_leftLim_of_tendsto (hf.tendsto_nhdsLT x))).eventually_mem hu).exists
       · rw [leftLim_eq_of_eq_bot f hn]
         exact ⟨x, ⟨hx.1, refl x⟩, refl_mem_uniformity hu⟩
     refine eventually_of_mem (Ioo_mem_nhdsGT hb.1) fun x hx => ?_
@@ -175,46 +121,10 @@ lemma IsCadlag.finite_largeLeftJumpSet [LinearOrder ι] [OrderTopology ι] [Comp
 end Jump
 
 @[to_additive (attr := to_fun)]
-lemma IsCadlag.mul {E : Type*} [Mul E] [TopologicalSpace E] [ContinuousMul E] [Preorder ι]
-    {f g : ι → E} (hf : IsCadlag f) (hg : IsCadlag g) :
-    IsCadlag (f * g) := by
-  refine ⟨fun i ↦ ContinuousWithinAt.mul (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
-  obtain ⟨l, hl⟩ := hf.2 i
-  obtain ⟨m, hm⟩ := hg.2 i
-  exact ⟨l * m, hl.mul hm⟩
-
-@[to_fun]
-lemma IsCadlag.const_smul {E : Type*} [SMul ℝ E] [TopologicalSpace E] [ContinuousSMul ℝ E]
-    [Preorder ι] {f : ι → E} (hf : IsCadlag f) (r : ℝ) :
-    IsCadlag (r • f) := by
-  refine ⟨fun i ↦ ContinuousWithinAt.const_smul (hf.1 i) r, fun i ↦ ?_⟩
-  obtain ⟨l, hl⟩ := hf.2 i
-  exact ⟨r • l, hl.const_smul r⟩
-
-@[to_additive (attr := to_fun)]
-lemma IsCadlag.inv {E : Type*} [Group E] [TopologicalSpace E] [ContinuousInv E] [Preorder ι]
+lemma IsCadlag.inv {E : Type*} [Inv E] [TopologicalSpace E] [ContinuousInv E] [Preorder ι]
     {f : ι → E} (hf : IsCadlag f) :
-    IsCadlag (f⁻¹) := by
-  refine ⟨fun i ↦ ContinuousWithinAt.inv (hf.1 i), fun i ↦ ?_⟩
-  obtain ⟨l, hl⟩ := hf.2 i
-  exact ⟨l⁻¹, hl.inv⟩
-
-@[to_fun]
-lemma IsCadlag.sub {E : Type*} [Sub E] [TopologicalSpace E] [ContinuousSub E]
-    [Preorder ι] {f g : ι → E} (hf : IsCadlag f) (hg : IsCadlag g) :
-    IsCadlag (f - g) := by
-  refine ⟨fun i ↦ ContinuousWithinAt.sub (hf.1 i) (hg.1 i), fun i ↦ ?_⟩
-  obtain ⟨l, hl⟩ := hf.2 i
-  obtain ⟨m, hm⟩ := hg.2 i
-  exact ⟨l - m, hl.sub hm⟩
-
-lemma IsCadlag.continuous_comp {κ E F : Type*} [TopologicalSpace κ] [TopologicalSpace E]
-    [TopologicalSpace F] [Preorder κ] {g : E → F} {f : κ → E}
-    (hg : Continuous g) (hf : IsCadlag f) : IsCadlag (g ∘ f) where
-  right_continuous := IsRightContinuous.continuous_comp hg hf.right_continuous
-  left_limit i := by
-    obtain ⟨l, hl⟩ := hf.left_limit i
-    exact ⟨g l, (hg.tendsto l).comp hl⟩
+    IsCadlag (f⁻¹) :=
+  hf.continuous_comp continuous_inv
 
 lemma IsCadlag.norm {κ F : Type*} [TopologicalSpace κ] [NormedAddCommGroup F] [Preorder κ]
     {f : κ → F} (hf : IsCadlag f) : IsCadlag (fun i ↦ ‖f i‖) :=
@@ -229,8 +139,8 @@ lemma IsCadlag.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder ι] [Ord
     [PartialOrder κ] [TopologicalSpace κ] [TopologicalSpace E]
     {f : κ → E} (hf : IsCadlag f) {ψ : ι → κ} (hψ : Monotone ψ) (hψc : Continuous ψ) :
     IsCadlag (f ∘ ψ) where
-  right_continuous := hf.right_continuous.comp_of_monotone_of_continuous hψ hψc
-  left_limit x := by
+  isRightContinuous := hf.isRightContinuous.comp_of_monotone_of_continuous hψ hψc
+  tendsto_nhdsLT x := by
     by_cases h : ∃ y < x, ψ y = ψ x
     · obtain ⟨y, hyx, hy⟩ := h
       refine ⟨f (ψ x), ?_⟩
@@ -240,31 +150,9 @@ lemma IsCadlag.comp_of_monotone_of_continuous {κ : Type*} [LinearOrder ι] [Ord
         rw [le_antisymm (hψ hz.2.le) (hy ▸ hψ hz.1)]
       exact tendsto_const_nhds.congr' h_eq
     · push Not at h
-      obtain ⟨l, hl⟩ := hf.left_limit (ψ x)
+      obtain ⟨l, hl⟩ := hf.tendsto_nhdsLT (ψ x)
       refine ⟨l, hl.comp ?_⟩
       refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within _
         (hψc.continuousAt.mono_left nhdsWithin_le_nhds) ?_
       filter_upwards [self_mem_nhdsWithin] with y hy
       exact lt_of_le_of_ne (hψ hy.le) (h y hy)
-
-/-- A càdlàg function is locally bounded. -/
-lemma isLocallyBounded_of_isCadlag {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
-    {f : ι → E} (hf : IsCadlag f) (x : ι) : ∃ t ∈ 𝓝 x, IsBounded (f '' t) := by
-  obtain ⟨l, hl⟩ := hf.2 x
-  obtain ⟨U, ⟨⟨A, ⟨hp, ⟨W, hW⟩⟩⟩, hU⟩⟩ := Metric.exists_isBounded_image_of_tendsto hl
-  obtain ⟨V, ⟨⟨B, ⟨hq, ⟨R, hR⟩⟩⟩, hV⟩⟩ := Metric.exists_isBounded_image_of_tendsto (hf.1 x).tendsto
-  refine ⟨A ∩ B, inter_mem hp hq, ?_⟩
-  apply IsBounded.subset ((hU.union hV).union (isBounded_singleton : Bornology.IsBounded ({f x})))
-  rintro _ ⟨y, ⟨hyL, hyR⟩ , rfl⟩
-  rcases lt_trichotomy y x with (hlt | heq | hgt)
-  · have : y ∈ U := hW.2 ▸ ⟨hyL, hW.1 hlt⟩
-    grind
-  · grind
-  · have : y ∈ V := hR.2 ▸ ⟨hyR, hR.1 hgt⟩
-    grind
-
-/-- A càdlàg function maps compact sets to bounded sets. -/
-lemma isBounded_image_of_isCadlag_of_isCompact {E : Type*} [LinearOrder ι] [PseudoMetricSpace E]
-    {f : ι → E} (hf : IsCadlag f) {s : Set ι} (hs : IsCompact s) :
-    IsBounded (f '' s) :=
-  isBounded_image_of_isLocallyBounded_of_isCompact hs (isLocallyBounded_of_isCadlag hf)

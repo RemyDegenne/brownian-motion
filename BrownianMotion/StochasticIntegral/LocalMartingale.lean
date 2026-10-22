@@ -51,13 +51,13 @@ lemma IsLocalMartingale.locally_isStronglyProgressive [MeasurableSpace ι] [Bore
     (hX : IsLocalMartingale X 𝓕 P) :
     Locally (IsStronglyProgressive 𝓕) 𝓕 X P :=
   Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous
-    (fun ω ↦ (hC ω).right_continuous)) hX
+    (fun ω ↦ (hC ω).isRightContinuous)) hX
 
 lemma IsLocalSubmartingale.locally_isStronglyProgressive [MeasurableSpace ι] [BorelSpace ι] [LE E]
     (hX : IsLocalSubmartingale X 𝓕 P) :
     Locally (IsStronglyProgressive 𝓕) 𝓕 X P :=
   Locally.mono (fun _ ⟨hX, hC⟩ ↦ hX.stronglyAdapted.isStronglyProgressive_of_rightContinuous
-    (fun ω ↦ (hC ω).right_continuous)) hX
+    (fun ω ↦ (hC ω).isRightContinuous)) hX
 
 variable [PseudoMetrizableSpace ι]
 
@@ -82,7 +82,7 @@ lemma _root_.MeasureTheory.Martingale.stoppedProcess_indicator [CompleteSpace E]
 /-- Càdlàg martingales are a stable class. -/
 lemma isStable_martingale [CompleteSpace E] :
     IsStable 𝓕 (fun (X : ι → Ω → E) ↦ Martingale X 𝓕 P ∧ ∀ ω, IsCadlag (X · ω)) :=
-  fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).right_continuous) hτ,
+  fun X ⟨hX, hC⟩ τ hτ ↦ ⟨hX.stoppedProcess_indicator (fun ω ↦ (hC ω).isRightContinuous) hτ,
     isStable_isCadlag X hC τ hτ⟩
 
 /-- Càdlàg submartingales are a stable class. -/
