@@ -9,6 +9,31 @@ public import BrownianMotion.Choquet.Debut
 
 /-!
 # Measurable section theorems
+
+Let `s` be a subset of `ℝ≥0 × Ω` that is analytic for the paving of measurable sets (for example a
+measurable set) and let `μ` be an s-finite measure on `Ω`. We prove that there is a measurable
+`τ : Ω → WithTop ℝ≥0` whose graph is contained in `s` where `τ ≠ ⊤`, and such that `τ ω ≠ ⊤` for
+`μ`-almost every `ω` in the projection of `s` on `Ω`.
+
+## Main statements
+
+* `MeasureTheory.IsPavingAnalytic.exists_measurable_section_left_nnreal`: measurable section
+  theorem for an analytic subset of `ℝ≥0 × Ω`.
+* `MeasureTheory.IsPavingAnalytic.exists_measurable_section_right_nnreal`: the same for an analytic
+  subset of `Ω × ℝ≥0`.
+* `MeasurableSet.exists_measurable_section_left_nnreal`,
+  `MeasurableSet.exists_measurable_section_right_nnreal`: the same for measurable sets.
+
+## Implementation notes
+
+The section is obtained as the infimum of a sequence of measurable sections: at each step, we use
+Choquet's capacitability theorem to get a measurable section of the part of `s` above the set where
+the previous sections are `⊤`, defined on a set of at least half the measure of the projection of
+that part.
+
+## References
+
+* [S. He, J. Wang and J. Yan, *Semimartingale theory and stochastic calculus*][he2019semimartingale]
 -/
 
 @[expose] public section
@@ -17,59 +42,38 @@ open MeasureTheory Filter
 open scoped ENNReal NNReal Topology
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeasure μ] {ω : Ω}
-  {s : Set (ℝ≥0 × Ω)} {hs : IsPavingAnalytic {t | MeasurableSet t} s}
+  {s : Set (ℝ≥0 × Ω)}
 
 namespace MeasureTheory
 
-instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
+lemma setOf_debut_zero_ne_top_eq (s : Set (ℝ≥0 × Ω)) :
+    {ω | debut s 0 ω ≠ ⊤} = Prod.snd '' s :=
+  setOf_debut_ne_top_eq_of_isBot fun _ ↦ zero_le
 
-lemma supClosed_measurableSet {α : Type*} [MeasurableSpace α] :
-    SupClosed {t : Set α | MeasurableSet t} := fun _ hs _ ht ↦ hs.union ht
-
-lemma infClosed_insert_empty_Icc {ι : Type} [LinearOrder ι] :
-    InfClosed (insert ∅ {t | ∃ a b : ι, Set.Icc a b = t}) := by
-  intro s hs t ht
-  cases hs with
-  | inl hs => simp [hs]
-  | inr hs =>
-    cases ht with
-    | inl ht => simp [ht]
-    | inr ht =>
-      obtain ⟨a₁, b₁, rfl⟩ := hs
-      obtain ⟨a₂, b₂, rfl⟩ := ht
-      refine Set.mem_insert_of_mem _ ?_
-      simp only [Set.inf_eq_inter, Set.mem_ofPred_eq]
-      exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
-
+/-- Let `s` be an analytic subset of `ℝ≥0 × Ω` and `μ` a finite measure. For every `a` smaller than
+the measure of the projection of `s`, there is a null-measurable `τ : Ω → WithTop ℝ≥0` with graph
+contained in `s` (where `τ ≠ ⊤`), such that `a ≤ μ {ω | τ ω ≠ ⊤}` and `debut s 0 ≤ τ`. -/
 lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
-    (a : ℝ≥0∞) (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
+    (a : ℝ≥0∞) (ha : a < μ (Prod.snd '' s)) :
     ∃ τ : Ω → WithTop ℝ≥0, NullMeasurable τ μ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   let I : Capacity (supClosure
       (Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t}))) :=
-    μ.capacity.comp_fst MeasurableSet.empty supClosed_measurableSet (by simp)
+    μ.capacity.compFst MeasurableSet.empty supClosed_measurableSet
       (isCompactSystem_insert_empty_Icc ℝ≥0)
-  have I_apply (t : Set (Ω × ℝ≥0)) : I t = μ {ω | ∃ u, (ω, u) ∈ t} := by
-    unfold I
-    rw [μ.capacity.comp_fst_apply, μ.capacity_apply]; congr; ext; simp
+  have I_apply (t : Set (Ω × ℝ≥0)) : I t = μ (Prod.fst '' t) := rfl
   have I_apply_eq_debut (t : Set (Ω × ℝ≥0)) : I t = μ {ω | debut (Prod.swap '' t) 0 ω ≠ ⊤} := by
-    rw [I_apply]
-    congr with ω
-    contrapose!
-    have h_eq_iff := debut_eq_top_iff (E := Prod.swap '' t) (n := 0) (ω := ω)
-    simp only [ge_iff_le, Set.mem_image, Prod.exists, Prod.swap_prod_mk, Prod.mk.injEq,
-      ↓existsAndEq, true_and, exists_eq_right] at h_eq_iff
-    symm
-    convert h_eq_iff using 2 with u
-    exact ⟨fun hu _ ↦ hu, fun hu ↦ hu zero_le⟩
-  have I_apply_swap (t : Set (ℝ≥0 × Ω)) : I (Prod.swap '' t) = μ {ω | debut t 0 ω ≠ ⊤} := by
-    rw [I_apply_eq_debut]; congr! with ω; ext; simp; grind
+    rw [I_apply, setOf_debut_zero_ne_top_eq, Set.image_image]
+    rfl
+  have I_apply_swap (t : Set (ℝ≥0 × Ω)) : I (Prod.swap '' t) = μ (Prod.snd '' t) := by
+    rw [I_apply, Set.image_image]
+    rfl
   have hs_capa : IsCapacitable I (Prod.swap '' s) := by
     apply IsPavingAnalytic.isCapacitable
     · refine subset_supClosure ?_
       exact ⟨∅, MeasurableSet.empty, ∅, by simp, by simp⟩
     · refine InfClosed.supClosure (InfClosed.image2_prod ?_ ?_)
-      · exact fun _ hs _ ht ↦ MeasurableSet.inter hs ht
+      · exact infClosed_measurableSet
       · exact infClosed_insert_empty_Icc
     · exact supClosed_supClosure
     have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
@@ -105,13 +109,13 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
     · simp [hωD]
   rw [← I_apply_swap] at ha
   refine ⟨debut (Prod.swap '' B a ha) 0, ?_, ?_, ?_, ?_⟩
-  · refine nullMeasurable_debut ?_ _
+  · refine IsPavingAnalytic.nullMeasurable_debut ?_ _
     rw [Set.image_swap_eq_preimage_swap]
     refine isPavingAnalytic_of_mem ?_
-    change MeasurableSet (Prod.swap ⁻¹' B a ha)
+    simp only [Set.mem_ofPred_eq]
     refine MeasurableSet.preimage ?_ (by fun_prop)
     specialize hB_mem a ha
-    refine MeasurableSet.of_mem_countableInfClosure' hB_mem fun s hs ↦ ?_
+    refine MeasurableSet.of_mem_countableInfClosure hB_mem fun s hs ↦ ?_
     refine MeasurableSet.of_mem_supClosure hs fun s hs ↦ ?_
     refine MeasurableSet.of_mem_image2_prod hs (fun _ ht ↦ ht) (fun t ht ↦ ?_)
     cases ht with
@@ -131,10 +135,11 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
     convert hB_subset _ _
     rw [Set.image_swap_eq_preimage_swap]
 
--- same as the previous lemma but with a measurable section instead of a null-measurable one
+/-- Let `s` be an analytic subset of `ℝ≥0 × Ω` and `μ` a finite measure. For every `a` smaller than
+the measure of the projection of `s`, there is a measurable `τ : Ω → WithTop ℝ≥0` with graph
+contained in `s` (where `τ ≠ ⊤`), such that `a ≤ μ {ω | τ ω ≠ ⊤}` and `debut s 0 ≤ τ`. -/
 lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic {t | MeasurableSet t} s)
-    (a : ℝ≥0∞)
-    (ha : a < μ {ω | debut s 0 ω ≠ ⊤}) :
+    (a : ℝ≥0∞) (ha : a < μ (Prod.snd '' s)) :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       a ≤ μ {ω | τ ω ≠ ⊤} ∧ debut s 0 ≤ τ := by
   obtain ⟨τ, hτ_null, hτ_mem, hτ_le, hτ_ge⟩ := exists_nullMeasurable_section_measure_ge hs a ha
@@ -163,9 +168,7 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic {t | Measurabl
     _ = μ {ω | ω ∉ N ∧ τ ω ≠ ⊤} := by
       symm
       rw [Set.ofPred_and]
-      refine Measure.measure_inter_eq_of_ae ?_
-      change Nᶜ ∈ ae μ
-      rwa [mem_ae_iff, compl_compl]
+      exact Measure.measure_inter_eq_of_ae (measure_eq_zero_iff_ae_notMem.mp hμN)
     _ = μ {ω | ω ∉ N ∧ τ' ω ≠ ⊤} := by
       congr with ω
       simp only [ne_eq, and_congr_right_iff]
@@ -195,15 +198,20 @@ lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : 
   · exact (measurableSet_singleton _).preimage hτ_meas
   · exact Set.mem_insert_of_mem _ (hB n)
 
-omit [IsFiniteMeasure μ] in
-lemma measure_debut_ne_top_mono {ι : Type*} [ConditionallyCompleteLinearOrder ι]
-    {A B : Set (ι × Ω)} (hAB : A ⊆ B) (u : ι) :
-    μ {ω | debut A u ω ≠ ⊤} ≤ μ {ω | debut B u ω ≠ ⊤} := by
-  refine measure_mono fun ω ↦ ?_
-  simp only [ne_eq, Set.mem_ofPred_eq]
-  refine fun hωA hωs ↦ hωA ?_
-  rw [eq_top_iff, ← hωs]
-  exact debut_anti _ hAB ω
+/-- A step in the construction of a measurable section: a measurable section of the part of `s`
+above `{τn = ⊤}`, defined on a set of at least half the measure of the projection of that part. -/
+private lemma exists_step (hs : IsPavingAnalytic {t | MeasurableSet t} s)
+    (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
+    ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
+      μ {ω | debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2 ≤ μ {ω | τ ω ≠ ⊤} ∧
+      debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ≤ τ := by
+  set A := s ∩ {(_, ω) | τn.1 ω = ⊤}
+  by_cases h0 : μ {ω | debut A 0 ω ≠ ⊤} = 0
+  · exact ⟨fun _ ↦ ⊤, measurable_const, by simp, by simp [h0], fun _ ↦ le_top⟩
+  obtain ⟨τ, hτ, hτ_mem, hτ_le, hτ_ge⟩ := exists_measurable_section_measure_ge
+    (hs.inter (isPavingAnalytic_section_eq_top τn.2)) (μ {ω | debut A 0 ω ≠ ⊤} / 2)
+    (by rw [← setOf_debut_zero_ne_top_eq]; exact ENNReal.half_lt_self h0 (by simp))
+  exact ⟨τ, hτ, fun ω hω ↦ (hτ_mem ω hω).1, hτ_le, hτ_ge⟩
 
 variable (μ) in
 /-- A step in the construction of a measurable section. -/
@@ -211,66 +219,28 @@ private noncomputable
 def step (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
     {τ : Ω → WithTop ℝ≥0 // Measurable τ} :=
-  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
-  if h0 : μ {ω | debut A 0 ω ≠ ⊤} = 0 then ⟨fun _ ↦ ⊤, measurable_const⟩ else
-    let h := exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
-      (μ {ω | debut A 0 ω ≠ ⊤} / 2) (ENNReal.half_lt_self h0 (by simp))
-    ⟨h.choose, h.choose_spec.1⟩
+  ⟨(exists_step (μ := μ) hs τn).choose, (exists_step (μ := μ) hs τn).choose_spec.1⟩
 
 @[fun_prop]
-private lemma measurable_step (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
-    Measurable (step μ hs τn).1 := by
-  by_cases h0 : μ {ω | debut (s ∩ {(t, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} = 0
-  · simp [h0, step]
-  · simp only [step, ne_eq, h0, ↓reduceDIte, Set.mem_inter_iff, Set.mem_ofPred_eq]
-    exact (exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
-      (μ {ω | debut (s ∩ {(t, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2)
-      (ENNReal.half_lt_self h0 (by simp))).choose_spec.1
+private lemma measurable_step {hs : IsPavingAnalytic {t | MeasurableSet t} s}
+    (τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}) :
+    Measurable (step μ hs τn).1 :=
+  (step μ hs τn).2
 
-private lemma step_mem {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω}
-    (hω : (step μ hs τn).1 ω ≠ ⊤) :
-    (((step μ hs τn).1 ω).untopA, ω) ∈ s := by
-  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
-  have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
-    by_contra! h0
-    simp only [step, ne_eq, Set.mem_inter_iff, Set.mem_ofPred_eq] at hω
-    rw [dite_eq_left h0] at hω
-    simp at hω
-  have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
-    ENNReal.half_lt_self h_ne (by simp)
-  rw [step, dite_eq_right h_ne] at hω ⊢
-  exact Set.inter_subset_left
-    ((exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
-      (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.1 ω hω)
+private lemma step_mem {hs : IsPavingAnalytic {t | MeasurableSet t} s}
+    {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} (hω : (step μ hs τn).1 ω ≠ ⊤) :
+    (((step μ hs τn).1 ω).untopA, ω) ∈ s :=
+  (exists_step (μ := μ) hs τn).choose_spec.2.1 ω hω
 
 private lemma measure_step_ne_top_ge {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} :
-    μ {ω | debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2 ≤ μ {ω | (step μ hs τn).1 ω ≠ ⊤} := by
-  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
-  by_cases h0 : μ {ω | debut A 0 ω ≠ ⊤} = 0
-  · simp [A, h0]
-  have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
-    ENNReal.half_lt_self h0 (by simp)
-  rw [step, dite_eq_right h0]
-  exact (exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
-    (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.2.1
+    μ {ω | debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≠ ⊤} / 2 ≤ μ {ω | (step μ hs τn).1 ω ≠ ⊤} :=
+  (exists_step (μ := μ) hs τn).choose_spec.2.2.1
 
 private lemma debut_le_step {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} :
-    debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≤ (step μ hs τn).1 ω := by
-  by_cases hω : (step μ hs τn).1 ω = ⊤
-  · simp [hω]
-  let A := s ∩ {(t, ω) | τn.1 ω = ⊤}
-  have h_ne : μ {ω | debut A 0 ω ≠ ⊤} ≠ 0 := by
-    by_contra! h0
-    simp only [step, ne_eq, Set.mem_inter_iff, Set.mem_ofPred_eq] at hω
-    rw [dite_eq_left h0] at hω
-    simp at hω
-  have h_lt : μ {ω | debut A 0 ω ≠ ⊤} / 2 < μ {ω | debut A 0 ω ≠ ⊤} :=
-    ENNReal.half_lt_self h_ne (by simp)
-  rw [step, dite_eq_right h_ne]
-  exact ((exists_measurable_section_measure_ge (hs.inter (isPavingAnalytic_section_eq_top τn.2))
-    (μ {ω | debut A 0 ω ≠ ⊤} / 2) h_lt).choose_spec.2.2.2 ω)
+    debut (s ∩ {(_, ω) | τn.1 ω = ⊤}) 0 ω ≤ (step μ hs τn).1 ω :=
+  (exists_step (μ := μ) hs τn).choose_spec.2.2.2 ω
 
 private lemma step_eq_top_of_ne_top {hs : IsPavingAnalytic {t | MeasurableSet t} s}
     {τn : {τ : Ω → WithTop ℝ≥0 // Measurable τ}} {ω : Ω} (hω : τn.1 ω ≠ ⊤) :
@@ -375,9 +345,9 @@ private lemma measure_inter_eq_zero (hs : IsPavingAnalytic {t | MeasurableSet t}
         exact ⟨fun ⟨hd, h_seq⟩ i ↦ ⟨hd, h_seq i⟩, fun h ↦ ⟨(h 0).1, fun i ↦ (h i).2⟩⟩
       · infer_instance
       · intro n
-        change NullMeasurableSet ({ω | debut s 0 ω ≠ ⊤} ∩ {ω | (sectionSeq μ hs n).1 ω = ⊤}) μ
+        simp only [Set.ofPred_and]
         refine NullMeasurableSet.inter ?_ ?_
-        · exact (nullMeasurable_debut (P := μ) hs 0 (measurableSet_singleton _)).compl
+        · exact (hs.nullMeasurable_debut (P := μ) 0 (measurableSet_singleton _)).compl
         · refine MeasurableSet.nullMeasurableSet ?_
           exact (measurableSet_singleton _).preimage (by fun_prop)
       · intro n m hnm
@@ -441,59 +411,70 @@ private lemma sectionSeq_mem (hs : IsPavingAnalytic {t | MeasurableSet t} s)
     · rw [sectionSeq_add_one_eq_of_ne_top hs hωn]
       exact ih hωn
 
+/-- **Measurable section theorem**: let `s` be an analytic subset of `ℝ≥0 × Ω` and `μ` an s-finite
+measure. There is a measurable `τ : Ω → WithTop ℝ≥0` with graph contained in `s` where `τ ≠ ⊤`,
+and such that `τ ω ≠ ⊤` for `μ`-almost every `ω` in the projection of `s`. -/
 lemma IsPavingAnalytic.exists_measurable_section_left_nnreal
     (hs : IsPavingAnalytic {t | MeasurableSet t} s)
-    (μ : Measure Ω) [IsFiniteMeasure μ] :
+    (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
-  refine ⟨fun ω ↦ ⨅ n, (sectionSeq μ hs n).1 ω, ?_, ?_, ?_⟩
-  · exact Measurable.iInf fun n ↦ (sectionSeq μ hs n).2
+      ∀ᵐ ω ∂μ, ω ∈ Prod.snd '' s ↔ τ ω ≠ ⊤ := by
+  -- reduce to the finite measure `μ.toFinite`, which has the same null sets as `μ`
+  rw [← ae_toFinite]
+  refine ⟨fun ω ↦ ⨅ n, (sectionSeq μ.toFinite hs n).1 ω, ?_, ?_, ?_⟩
+  · exact Measurable.iInf fun n ↦ (sectionSeq μ.toFinite hs n).2
   · intro ω hω
     rw [← lt_top_iff_ne_top] at hω
     simp only [iInf_lt_top] at hω ⊢
     obtain ⟨n, hn⟩ := hω
-    have : ⨅ n, (sectionSeq μ hs n).1 ω = (sectionSeq μ hs n).1 ω := by
+    have : ⨅ n, (sectionSeq μ.toFinite hs n).1 ω = (sectionSeq μ.toFinite hs n).1 ω := by
       have h_eq m (hm : n ≤ m) := sectionSeq_eq_of_ne_top_of_ge hs hn.ne hm
-      refine tendsto_nhds_unique (f := fun n ↦ (sectionSeq μ hs n).1 ω) (l := atTop) ?_ ?_
+      refine tendsto_nhds_unique (f := fun n ↦ (sectionSeq μ.toFinite hs n).1 ω) (l := atTop) ?_ ?_
       · exact tendsto_atTop_iInf fun n m hnm ↦ antitone_sectionSeq hs hnm ω
       · refine tendsto_nhds_of_eventually_eq ?_
         simp only [eventually_atTop]
         exact ⟨n, h_eq⟩
     rw [this]
     exact sectionSeq_mem hs hn.ne
-  · exact debut_ne_top_iff_ae hs
+  · simpa only [← setOf_debut_zero_ne_top_eq, Set.mem_ofPred_eq] using debut_ne_top_iff_ae hs
 
+/-- **Measurable section theorem**: let `s` be an analytic subset of `Ω × ℝ≥0` and `μ` an s-finite
+measure. There is a measurable `τ : Ω → WithTop ℝ≥0` with graph contained in `s` where `τ ≠ ⊤`,
+and such that `τ ω ≠ ⊤` for `μ`-almost every `ω` in the projection of `s`. -/
 lemma IsPavingAnalytic.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : IsPavingAnalytic {t | MeasurableSet t} s)
-    (μ : Measure Ω) [IsFiniteMeasure μ] :
+    (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ := by
+      ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ := by
   obtain ⟨τ, hτ_meas, hτ_mem, hτ_eq⟩ :=
-    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section_left_nnreal (μ := μ)
-  exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, by grind⟩
+    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section_left_nnreal μ
+  rw [Set.image_image] at hτ_eq
+  exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, hτ_eq⟩
 
 lemma IsMeasurableAnalytic.exists_measurable_section_left_nnreal (hs : IsMeasurableAnalytic s)
-    (μ : Measure Ω) [IsFiniteMeasure μ] :
+    (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
+      ∀ᵐ ω ∂μ, ω ∈ Prod.snd '' s ↔ τ ω ≠ ⊤ :=
   hs.isPavingAnalytic.exists_measurable_section_left_nnreal μ
 
 lemma IsMeasurableAnalytic.exists_measurable_section_right_nnreal
-    {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [IsFiniteMeasure μ] :
+    {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
+      ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ :=
   hs.isPavingAnalytic.exists_measurable_section_right_nnreal μ
 
+/-- **Measurable section theorem** for a measurable subset of `ℝ≥0 × Ω`. -/
 lemma _root_.MeasurableSet.exists_measurable_section_left_nnreal (hs : MeasurableSet s)
-    (μ : Measure Ω) [IsFiniteMeasure μ] :
+    (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut s 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
+      ∀ᵐ ω ∂μ, ω ∈ Prod.snd '' s ↔ τ ω ≠ ⊤ :=
   hs.isMeasurableAnalytic.exists_measurable_section_left_nnreal μ
 
+/-- **Measurable section theorem** for a measurable subset of `Ω × ℝ≥0`. -/
 lemma _root_.MeasurableSet.exists_measurable_section_right_nnreal
-    {s : Set (Ω × ℝ≥0)} (hs : MeasurableSet s) (μ : Measure Ω) [IsFiniteMeasure μ] :
+    {s : Set (Ω × ℝ≥0)} (hs : MeasurableSet s) (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
-      ∀ᵐ ω ∂μ, debut (Prod.swap '' s) 0 ω ≠ ⊤ ↔ τ ω ≠ ⊤ :=
+      ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ :=
   hs.isMeasurableAnalytic.exists_measurable_section_right_nnreal μ
 
 -- TODO: extend to standard Borel spaces. Need an Option type with measurable space.
