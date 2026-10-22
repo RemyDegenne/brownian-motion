@@ -439,7 +439,7 @@ lemma _root_.MeasureTheory.IsStronglyProgressive.hasStronglyMeasurableSupProcess
   by_cases ha_top : a = ⊤
   · simp [ha_top]
   let τ a := leastGT (fun t ω ↦ ‖X t ω‖) a
-  have hτ a : IsStoppingTime 𝓕 (τ a) := isStoppingTime_leastGT P hX_prog.norm _
+  have hτ a : IsStoppingTime 𝓕 (τ a) := hX_prog.norm.isStoppingTime_leastGT P _
   have : ((fun tω : ι × Ω ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ) ⁻¹' Set.Ioi a)
       = {tω | τ a.toReal tω.2 < tω.1} ∪ {tω | a < ‖X tω.1 tω.2‖ₑ} := by
     calc ((fun tω : ι × Ω ↦ ⨆ s ≤ tω.1, ‖X s tω.2‖ₑ) ⁻¹' Set.Ioi a)

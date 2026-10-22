@@ -45,7 +45,7 @@ of sets of `p`.
 open Filter
 open scoped ENNReal NNReal Topology
 
-variable {𝓧 𝓚 : Type*} {x y : 𝓧} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)}
+variable {𝓧 𝓚 : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)}
   {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
 namespace MeasureTheory
@@ -116,8 +116,9 @@ lemma Capacity.compFst_apply {hp_empty : ∅ ∈ p} {hp_union : SupClosed p}
     (m : Capacity p) {hq : IsCompactSystem q} (s : Set (𝓧 × 𝓚)) :
     m.compFst hp_empty hp_union hq s = m (Prod.fst '' s) := rfl
 
-/-- A set `s` is capacitable for a capacity `m` for a property `p` if `m s` can be approximated
-from above by countable intersections of sets `t n` such that `p (t n)` and `⋂ n, t n ⊆ s`. -/
+/-- A set `s` is capacitable for a capacity `m` for the paving `p` if `m s` can be approximated
+from below by the capacity of subsets of `s` that are countable intersections of sets of `p`:
+`m s` is the supremum of `m t` over the sets `t ⊆ s` in `countableInfClosure p`. -/
 def IsCapacitable (m : Capacity p) (s : Set 𝓧) : Prop :=
   ∀ a, a < m s → ∃ t, t ∈ countableInfClosure p ∧ t ⊆ s ∧ a ≤ m t
 
@@ -181,11 +182,11 @@ lemma isCapacitable_of_mem_countableInfClosure_countableSupClosure (m : Capacity
 /-- If `p` is closed under binary unions and intersections, and `q` under binary intersections, then
 the projection of a set of `countableInfClosure (supClosure (p × q))` is in
 `countableInfClosure p`. -/
-lemma mem_countableInfClosure_fst {s : Set (𝓧 × 𝓚)}
+lemma fst_image_mem_countableInfClosure {s : Set (𝓧 × 𝓚)}
     (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_union : SupClosed p)
     (hq_inter : InfClosed q) (hq : IsCompactSystem q)
     (hs : s ∈ countableInfClosure (supClosure (Set.image2 (· ×ˢ ·) p q))) :
-    (Prod.fst '' s) ∈ countableInfClosure p := by
+    Prod.fst '' s ∈ countableInfClosure p := by
   rw [(hp_inter.image2_prod hq_inter).supClosure.mem_countableInfClosure_iff] at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
   rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq hA_anti hA,
@@ -201,7 +202,8 @@ lemma IsCapacitable.fst (hp_empty : ∅ ∈ p) (hp_inter : InfClosed p) (hp_unio
     IsCapacitable m (Prod.fst '' s) := by
   intro a ha
   obtain ⟨t, ht_mem, ht_subset, ht_le⟩ := hs a ha
-  exact ⟨Prod.fst '' t, mem_countableInfClosure_fst hp_empty hp_inter hp_union hq_inter hq ht_mem,
+  exact ⟨Prod.fst '' t,
+    fst_image_mem_countableInfClosure hp_empty hp_inter hp_union hq_inter hq ht_mem,
     Set.image_mono ht_subset, ht_le⟩
 
 /-- **Choquet's capacitability theorem**, for a set that is analytic with auxiliary space `𝓚`. -/
@@ -214,17 +216,8 @@ lemma IsPavingAnalyticFor.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfCl
   refine isCapacitable_of_mem_countableInfClosure_countableSupClosure _ ?_ ?_ ?_
   · exact InfClosed.supClosure (hp_inter.image2_prod infClosed_infClosure)
   · exact fun s hs t ht ↦ supClosed_supClosure hs ht
-  · unfold prodSigmaDelta at hA
-    rw [mem_countableInfClosure_iff_iInf] at hA ⊢
-    obtain ⟨B, hB, rfl⟩ := hA
-    refine ⟨B, fun n ↦ ?_, rfl⟩
-    simp_rw [mem_countableSupClosure_iff_iSup] at hB ⊢
-    obtain ⟨C, hC, hB_eq⟩ := hB n
-    simp_rw [← hB_eq]
-    refine ⟨C, fun m ↦ ?_, rfl⟩
-    refine subset_supClosure ?_
-    obtain ⟨u, v, hu, hv, h_eq⟩ := hC m
-    exact ⟨u, v, hu, subset_infClosure hv, h_eq⟩
+  · exact countableInfClosure_mono (countableSupClosure_mono
+      ((Set.image2_subset_left subset_infClosure).trans subset_supClosure)) hA
 
 /-- **Choquet's capacitability theorem**. If the paving `p` contains `∅` and is closed under binary
 unions and intersections, then every analytic set for `p` is capacitable for every capacity
@@ -235,8 +228,10 @@ theorem IsPavingAnalytic.isCapacitable (hp_empty : ∅ ∈ p) (hp_inter : InfClo
   obtain ⟨𝓚, hs𝓚⟩ := hs
   exact hs𝓚.isCapacitable hp_empty hp_inter hp_union
 
-lemma isCapacitable_measure_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧) [IsFiniteMeasure μ]
-    (s : Set 𝓧) :
+/-- For the capacity defined by a finite measure, the capacitable sets are the null-measurable
+sets. -/
+lemma Measure.isCapacitable_capacity_iff {m𝓧 : MeasurableSpace 𝓧} (μ : Measure 𝓧)
+    [IsFiniteMeasure μ] (s : Set 𝓧) :
     IsCapacitable μ.capacity s ↔ NullMeasurableSet s μ := by
   refine ⟨fun hs ↦ ?_, fun hs ↦ ?_⟩
   · by_cases! hcs : μ.capacity s = 0
@@ -280,7 +275,7 @@ lemma IsPavingAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧}
     NullMeasurableSet s μ := by
   -- reduce to the finite measure `μ.toFinite`, which has the same null sets as `μ`
   refine NullMeasurableSet.mono_ac ?_ (absolutelyContinuous_toFinite μ)
-  rw [← isCapacitable_measure_iff μ.toFinite]
+  rw [← μ.toFinite.isCapacitable_capacity_iff]
   exact IsPavingAnalytic.isCapacitable (p := {t : Set 𝓧 | MeasurableSet t}) MeasurableSet.empty
     infClosed_measurableSet supClosed_measurableSet hs
 
@@ -293,64 +288,32 @@ lemma IsMeasurableAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧} (hs 
 
 /-- The projection of an analytic set of `𝓧 × ι` is null-measurable with respect to any s-finite
 measure. -/
-theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
+theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
-    {_ : MeasurableSpace ι} [BorelSpace ι]
-    {_m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
+    {mι : MeasurableSpace ι} [BorelSpace ι]
+    {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
     (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   refine IsPavingAnalytic.nullMeasurableSet ?_ μ
   refine isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc (s := s) ?_
   rwa [isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
 
-lemma isPavingAnalytic_swap {Ω 𝓧 : Type*} {s : Set (𝓧 × Ω)}
-    {p : Set (Set (𝓧 × Ω))} (hs : IsPavingAnalytic p s) :
-    IsPavingAnalytic ((fun s ↦ Prod.swap '' s) '' p) (Prod.swap '' s) := by
-  obtain ⟨𝓚, q, hq_compact, t, ht_mem, h_eq⟩ := hs
-  refine ⟨𝓚, q, hq_compact, Prod.map Prod.swap id '' t, ?_, ?_⟩
-  · rw [mem_prodSigmaDelta_iff] at ht_mem ⊢
-    obtain ⟨A, hA, K, hK, rfl⟩ := ht_mem
-    refine ⟨fun n m ↦ Prod.swap '' (A n m), fun n m ↦ ?_, K, hK, ?_⟩
-    · simp only [Set.mem_image]
-      exact ⟨A n m, hA n m, rfl⟩
-    · rw [Set.image_iInter]
-      swap; · exact Prod.swap_bijective.prodMap Function.bijective_id
-      simp_rw [Set.image_iUnion]
-      congr with n x
-      simp
-      grind
-  · ext; simp; grind
-
-lemma isPavingAnalytic_measurableSet_swap {Ω : Type*} {mΩ : MeasurableSpace Ω}
-    {𝓧 : Type*} {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × Ω)}
-    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
-    IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := by
-  convert isPavingAnalytic_swap hs
-  rename_i s
-  simp only [Set.mem_eq_mem, Set.mem_image]
-  refine ⟨fun hs ↦ ⟨Prod.swap ⁻¹' s, MeasurableSet.preimage ?_ measurable_swap, ?_⟩,
-    fun ⟨t, ht, ht_eq⟩ ↦ ?_⟩
-  · exact hs
-  · ext; simp; grind
-  · rw [← ht_eq, Set.image_swap_eq_preimage_swap]
-    refine MeasurableSet.preimage ?_ measurable_swap
-    exact ht
-
 /-- The projection of an analytic set of `ι × 𝓧` is null-measurable with respect to any s-finite
 measure. -/
-lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι] [DenselyOrdered ι]
+lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
-    {_ : MeasurableSpace ι} [BorelSpace ι]
-    {_m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
+    {mι : MeasurableSpace ι} [BorelSpace ι]
+    {m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
     (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
-  convert IsPavingAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧) ?_ μ
-  · ext; simp
-  · convert isPavingAnalytic_measurableSet_swap hs
-    ext; simp; grind
+  have h_eq : Prod.snd '' s = Prod.fst '' (Prod.swap '' s) := by rw [Set.image_image]; rfl
+  rw [h_eq]
+  exact hs.image_swap.nullMeasurableSet_fst μ
 
+/-- The projection of a measurably analytic set of `𝓧 × 𝓨`, with `𝓨` a standard Borel space, is
+null-measurable with respect to any s-finite measure. -/
 theorem IsMeasurableAnalytic.nullMeasurableSet_fst {𝓨 : Type*}
-    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
+    {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
     (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ := by
   have hs_for : IsMeasurableAnalyticFor (𝓨 × ℝ) (Prod.fst '' s) := by
@@ -360,12 +323,13 @@ theorem IsMeasurableAnalytic.nullMeasurableSet_fst {𝓨 : Type*}
     exact MeasurableEquiv.prodAssoc.measurableSet_image.mpr ht
   exact hs_for.isMeasurableAnalytic.nullMeasurableSet μ
 
+/-- The projection of a measurably analytic set of `𝓨 × 𝓧`, with `𝓨` a standard Borel space, is
+null-measurable with respect to any s-finite measure. -/
 theorem IsMeasurableAnalytic.nullMeasurableSet_snd {𝓨 : Type*}
-    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
+    {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
     (hs : IsMeasurableAnalytic s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ := by
-  convert IsMeasurableAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (_m𝓧 := _m𝓧)
-    (_m𝓨 := _m𝓨) ?_ μ
+  convert IsMeasurableAnalytic.nullMeasurableSet_fst (s := Prod.swap ⁻¹' s) (m𝓨 := m𝓨) ?_ μ
   · ext; simp
   · obtain ⟨t, ht, h_eq⟩ := hs
     rw [h_eq]
@@ -375,13 +339,15 @@ theorem IsMeasurableAnalytic.nullMeasurableSet_snd {𝓨 : Type*}
 /-- **Measurable projection theorem**: the projection of a measurable set is universally
 measurable (null-measurable with respect to any s-finite measure). -/
 theorem _root_.MeasurableSet.nullMeasurableSet_fst {𝓨 : Type*}
-    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
+    {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓧 × 𝓨)}
     (hs : MeasurableSet s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.fst '' s) μ :=
   hs.isMeasurableAnalytic.nullMeasurableSet_fst μ
 
+/-- **Measurable projection theorem**: the projection of a measurable set is universally
+measurable (null-measurable with respect to any s-finite measure). -/
 theorem _root_.MeasurableSet.nullMeasurableSet_snd {𝓨 : Type*}
-    {_m𝓧 : MeasurableSpace 𝓧} {_m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
+    {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] {s : Set (𝓨 × 𝓧)}
     (hs : MeasurableSet s) (μ : Measure 𝓧) [SFinite μ] :
     NullMeasurableSet (Prod.snd '' s) μ :=
   hs.isMeasurableAnalytic.nullMeasurableSet_snd μ

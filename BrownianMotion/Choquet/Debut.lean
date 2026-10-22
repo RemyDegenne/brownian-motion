@@ -5,6 +5,7 @@ Authors: Lorenzo Luccioli, Rémy Degenne
 -/
 module
 
+public import BrownianMotion.Auxiliary.HittingTime
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Order.CompletePartialOrder
@@ -20,7 +21,6 @@ The debut after `n` of a set `E ⊆ ι × Ω` is the random time `ω ↦ inf {t 
 * `MeasureTheory.debut E n`: the debut of `E` after `n`.
 * `MeasureTheory.ProgMeasurableSet E 𝓕`: the set `E` is progressively measurable for the
   filtration `𝓕`.
-* `MeasureTheory.leastGT f r`: the first time that the process `f` is greater than `r`.
 
 ## Main statements
 
@@ -53,13 +53,6 @@ namespace MeasureTheory
 instance : MeasurableInf₂ (WithTop ℝ≥0) := inferInstanceAs (MeasurableInf₂ ℝ≥0∞)
 
 variable {Ω ι : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
-
-/-- Completeness of a filtration only depends on the null sets of the measure, and `P.toFinite` has
-the same null sets as `P`. -/
-instance Filtration.IsComplete.toFinite [PartialOrder ι] {𝓕 : Filtration ι mΩ} [SFinite P]
-    [𝓕.IsComplete P] :
-    𝓕.IsComplete P.toFinite :=
-  ⟨fun _ hs t ↦ Filtration.IsComplete.measurableSet_of_null (absolutelyContinuous_toFinite P hs) t⟩
 
 /-- The debut of a set `E ⊆ ι × Ω` after `n` is the random variable that gives the smallest
 `t ≥ n` such that `(t, ω) ∈ E` for a given `ω`, or `⊤` if there is no such `t`. -/
@@ -96,21 +89,21 @@ lemma debut_univ [ConditionallyCompleteLattice ι] (n : ι) :
 open scoped Classical in
 @[simp]
 lemma debut_prod [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) (A : Set Ω) :
-    debut (I ×ˢ A) n = fun ω ↦ if .Ici n ∩ I ≠ ∅ then
+    debut (I ×ˢ A) n = fun ω ↦ if (Set.Ici n ∩ I).Nonempty then
         if ω ∈ A then ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤
       else ⊤ := by
   ext ω
   split_ifs with hI hω
   · simp only [debut_eq_ite, Set.mem_prod, hω, and_true]
-    exact ite_eq_left (Set.nonempty_iff_ne_empty.mpr hI)
+    exact ite_eq_left hI
   · simp [debut_eq_ite, hω]
-  · simp only [ne_eq, Decidable.not_not] at hI
-    refine ite_eq_right ?_
+  · refine ite_eq_right ?_
     simp only [Set.mem_prod, not_exists, not_and]
-    exact fun i hni hiI _ ↦ Set.notMem_empty i (hI ▸ ⟨hni, hiI⟩)
+    exact fun i hni hiI _ ↦ hI ⟨i, hni, hiI⟩
 
-lemma debut_prod_univ [Preorder ι] [InfSet ι] (n : ι) (I : Set ι) [Decidable (Set.Ici n ∩ I ≠ ∅)] :
-    debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if .Ici n ∩ I ≠ ∅ then
+lemma debut_prod_univ [Preorder ι] [InfSet ι] (n : ι) (I : Set ι)
+    [Decidable (Set.Ici n ∩ I).Nonempty] :
+    debut (I ×ˢ (.univ : Set Ω)) n = fun _ ↦ if (Set.Ici n ∩ I).Nonempty then
       ((sInf (.Ici n ∩ I) : ι) : WithTop ι) else ⊤ := by simp
 
 lemma debut_univ_prod [ConditionallyCompleteLattice ι] (n : ι) (A : Set Ω) [DecidablePred (· ∈ A)] :
@@ -247,15 +240,9 @@ lemma ProgMeasurableSet.measurableSet_inter_Iio [ConditionallyCompleteLinearOrde
       have hs := hE.measurableSet_inter_Iic s
       have h_le : mι.prod (𝓕 s) ≤ mι.prod (𝓕 t) := MeasurableSpace.prod_mono le_rfl (𝓕.mono hst.le)
       exact h_le _ hs
-  have : (𝓝[<] t).NeBot := ⟨ht⟩
   -- write Iio as a countable union of Iic and use the previous lemma
-  obtain ⟨s, hs_gt, hs_tendsto⟩ : ∃ s : ℕ → ι, (∀ n, s n < t) ∧ Tendsto s atTop (𝓝 t) := by
-    have h_freq : ∃ᶠ x in 𝓝[<] t, x < t :=
-      Eventually.frequently <| eventually_nhdsWithin_of_forall fun _ hx ↦ hx
-    have := exists_seq_forall_of_frequently h_freq
-    simp_rw [tendsto_nhdsWithin_iff] at this
-    obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
-    exact ⟨s, hs_gt, hs_tendsto⟩
+  obtain ⟨s, hs_gt, hs_tendsto⟩ :=
+    mem_closure_iff_seq_limit.mp (mem_closure_iff_nhdsWithin_neBot.mpr ⟨ht⟩)
   have h_iUnion : ⋃ i, Set.Iic (s i) = Set.Iio t :=
     iUnion_Iic_eq_Iio_of_lt_of_tendsto hs_gt hs_tendsto
   rw [← h_iUnion, Set.iUnion_prod_const, Set.inter_iUnion]
@@ -306,9 +293,11 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [Preorder ι] [MeasurableS
   (hE.measurableSet_prod t).preimage
     (@measurable_prodMk_left _ _ _ (𝓕 t) (⟨t, le_rfl⟩ : Set.Iic t))
 
-lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type}
-    [ConditionallyCompleteLinearOrder ι] [DenselyOrdered ι]
-    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
+/-- For an analytic set `E`, the set `{ω | debut E n ω < s}` is null-measurable with respect to any
+s-finite measure. -/
+lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type} [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [BorelSpace ι]
     {P : Measure Ω} [SFinite P] {E : Set (ι × Ω)}
     (hE : IsPavingAnalytic {t | MeasurableSet t} E) (n s : ι) :
     NullMeasurableSet {ω | debut E n ω < s} P := by
@@ -336,9 +325,9 @@ lemma _root_.MeasurableSet.measurableSet_debut_lt
 
 /-- The debut of an analytic set is universally measurable: it is null-measurable
 with respect to any s-finite measure. -/
-lemma IsPavingAnalytic.nullMeasurable_debut {ι : Type}
-    [ConditionallyCompleteLinearOrder ι] [DenselyOrdered ι]
-    [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [PolishSpace ι] [BorelSpace ι]
+lemma IsPavingAnalytic.nullMeasurable_debut {ι : Type} [ConditionallyCompleteLinearOrder ι]
+    [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
+    [BorelSpace ι]
     {P : Measure Ω} [SFinite P] {s : Set (ι × Ω)}
     (hs : IsPavingAnalytic {t | MeasurableSet t} s) (u : ι) :
     NullMeasurable (debut s u) P := by
@@ -439,14 +428,9 @@ theorem isStoppingTime_debut [MeasurableSpace ι] [ConditionallyCompleteLinearOr
       simpa using ht_gt
     rw [h_eq]
     exact (hE.measurableSet_debut_lt P n t).union (hE.measurableSet_preimage_prodMk t)
-  -- now `t` is a limit point on the right
-  obtain ⟨s, hs_gt, hs_tendsto⟩ : ∃ s : ℕ → ι, (∀ n, t < s n) ∧ Tendsto s atTop (𝓝 t) := by
-    have h_freq : ∃ᶠ x in 𝓝[>] t, t < x :=
-      Eventually.frequently <| eventually_nhdsWithin_of_forall fun _ hx ↦ hx
-    have := exists_seq_forall_of_frequently h_freq
-    simp_rw [tendsto_nhdsWithin_iff] at this
-    obtain ⟨s, ⟨hs_tendsto, _⟩, hs_gt⟩ := this
-    exact ⟨s, hs_gt, hs_tendsto⟩
+  -- now `t` is a limit point on the right: take a sequence `s n > t` tending to `t`
+  obtain ⟨s, hs_gt, hs_tendsto⟩ :=
+    mem_closure_iff_seq_limit.mp (mem_closure_iff_nhdsWithin_neBot.mpr ht_gt)
   have h_exists_lt (u : ι) (hu : t < u) : ∃ i, s i < u :=
     Eventually.exists (f := atTop) (hs_tendsto.eventually_lt_const hu)
   have h_exists_lt' (u : WithTop ι) (hu : t < u) : ∃ i, s i < u := by
@@ -518,8 +502,11 @@ theorem IsStronglyProgressive.isStoppingTime_hittingAfter [MeasurableSpace ι]
   refine isStoppingTime_debut P ?_ n
   exact hs.progMeasurableSet_preimage hX
 
-lemma isStoppingTime_leastGE [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+/-- The first time that a progressively measurable process is greater than or equal to `r` is a
+stopping time, for a filtration satisfying the usual conditions. -/
+lemma IsStronglyProgressive.isStoppingTime_leastGE [MeasurableSpace ι]
+    [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [BorelSpace ι]
     {β : Type*} [Preorder β] [TopologicalSpace β] [ClosedIciTopology β]
     [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
     (P : Measure Ω) [SFinite P] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]
@@ -527,17 +514,11 @@ lemma isStoppingTime_leastGE [MeasurableSpace ι] [ConditionallyCompleteLinearOr
     IsStoppingTime 𝓕 (leastGE X r) :=
   hX.isStoppingTime_hittingAfter P measurableSet_Ici _
 
-/-- `leastGT f r` is the stopping time corresponding to the first time `f > r`. -/
-noncomputable def leastGT {ι Ω β : Type*} [Preorder ι] [OrderBot ι] [InfSet ι] [Preorder β]
-    (f : ι → Ω → β) (r : β) : Ω → WithTop ι :=
-  hittingAfter f (Set.Ioi r) ⊥
-
-lemma leastGT_lt_iff {ι β : Type*} [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [Preorder β]
-    (X : ι → Ω → β) (a : β) (t : ι) (ω : Ω) :
-    leastGT X a ω < t ↔ ∃ s < t, a < X s ω := by simp [leastGT, hittingAfter_lt_iff]
-
-lemma isStoppingTime_leastGT [MeasurableSpace ι] [ConditionallyCompleteLinearOrder ι]
-    [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι] [PolishSpace ι] [BorelSpace ι]
+/-- The first time that a progressively measurable process is greater than `r` is a stopping time,
+for a filtration satisfying the usual conditions. -/
+lemma IsStronglyProgressive.isStoppingTime_leastGT [MeasurableSpace ι]
+    [ConditionallyCompleteLinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]
+    [PolishSpace ι] [BorelSpace ι]
     {β : Type*} [LinearOrder β] [TopologicalSpace β] [ClosedIicTopology β]
     [MeasurableSpace β] [TopologicalSpace.PseudoMetrizableSpace β] [BorelSpace β]
     (P : Measure Ω) [SFinite P] {𝓕 : Filtration ι mΩ} [𝓕.IsComplete P] [𝓕.IsRightContinuous]

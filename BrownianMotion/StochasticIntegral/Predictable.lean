@@ -5,6 +5,7 @@ Authors: Kexing Ying, Greg Neustroev, Shehzad Hathi
 -/
 module
 
+public import Mathlib.MeasureTheory.Measure.WithDensityFinite
 public import Mathlib.MeasureTheory.SetSemiring
 public import Mathlib.Probability.Process.Adapted
 public import Mathlib.Probability.Process.Filtration
@@ -332,6 +333,12 @@ class IsComplete (𝓕 : Filtration ι m) (μ : Measure Ω := by volume_tac) whe
 instance {𝓕 : Filtration ι m} {μ : Measure Ω} [u : IsComplete 𝓕 μ] {i : ι} :
     (μ.trim <| 𝓕.le i).IsComplete :=
   ⟨fun _ hs ↦ IsComplete.measurableSet_of_null (measure_eq_zero_of_trim_eq_zero (𝓕.le i) hs) i⟩
+
+/-- Completeness of a filtration only depends on the null sets of the measure, and `μ.toFinite` has
+the same null sets as `μ`. -/
+instance IsComplete.toFinite {𝓕 : Filtration ι m} {μ : Measure Ω} [SFinite μ] [IsComplete 𝓕 μ] :
+    IsComplete 𝓕 μ.toFinite :=
+  ⟨fun _ hs t ↦ IsComplete.measurableSet_of_null (absolutelyContinuous_toFinite μ hs) t⟩
 
 /-- The class of **predictable rectangles** associated to a filtration `𝓕` is the family of sets
 `(i, j] ×ˢ A` for `i < j` in `ι` and `A ∈ 𝓕 i`, together with `{⊥} ×ˢ A` for `A ∈ 𝓕 ⊥`. -/

@@ -46,7 +46,7 @@ variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeas
 
 namespace MeasureTheory
 
-lemma setOf_debut_zero_ne_top_eq (s : Set (ℝ≥0 × Ω)) :
+private lemma setOf_debut_zero_ne_top_eq (s : Set (ℝ≥0 × Ω)) :
     {ω | debut s 0 ω ≠ ⊤} = Prod.snd '' s :=
   setOf_debut_ne_top_eq_of_isBot fun _ ↦ zero_le
 
@@ -76,12 +76,11 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
       · exact infClosed_measurableSet
       · exact infClosed_insert_empty_Icc
     · exact supClosed_supClosure
-    have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
-      isPavingAnalytic_measurableSet_swap hs
+    have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := hs.image_swap
     rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff] at hs'
     exact IsPavingAnalytic.mono subset_supClosure hs'
   choose B hB_mem hB_subset hB_le using hs_capa
-  have hB_compact a ha ω : IsCompact {t | (ω , t) ∈ B a ha} := by
+  have hB_compact a ha ω : IsCompact {t | (ω, t) ∈ B a ha} := by
     specialize hB_mem a ha
     rw [mem_countableInfClosure_iff_iInf] at hB_mem
     obtain ⟨A, hA, hB_eq⟩ := hB_mem
@@ -181,22 +180,8 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic {t | Measurabl
       exact hτ_ge ω
 
 lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : Measurable τ) :
-    IsPavingAnalytic {t | MeasurableSet t} {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} := by
-  have : {(t, ω) | τ ω = ⊤} = Prod.swap '' {ω | τ ω = ⊤} ×ˢ (Set.univ : Set ℝ≥0) := by ext; simp
-  rw [this]
-  refine isPavingAnalytic_measurableSet_swap ?_
-  rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
-  refine isPavingAnalytic_of_mem_countableSupClosure_of_imp
-    (p' := Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
-    fun _ ↦ isPavingAnalytic_of_mem
-  have h := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
-  rw [mem_countableSupClosure_iff_iSup] at h ⊢
-  obtain ⟨B, hB, h_eq⟩ := h
-  rw [← h_eq, Set.iSup_eq_iUnion, Set.prod_iUnion]
-  refine ⟨fun n ↦ {ω | τ ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
-  refine ⟨{ω | τ ω = ⊤}, ?_, B n, ?_, rfl⟩
-  · exact (measurableSet_singleton _).preimage hτ_meas
-  · exact Set.mem_insert_of_mem _ (hB n)
+    IsPavingAnalytic {t | MeasurableSet t} {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} :=
+  isPavingAnalytic_of_mem ((measurableSet_singleton ⊤).preimage (hτ_meas.comp measurable_snd))
 
 /-- A step in the construction of a measurable section: a measurable section of the part of `s`
 above `{τn = ⊤}`, defined on a set of at least half the measure of the projection of that part. -/
@@ -447,16 +432,18 @@ lemma IsPavingAnalytic.exists_measurable_section_right_nnreal
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ := by
   obtain ⟨τ, hτ_meas, hτ_mem, hτ_eq⟩ :=
-    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section_left_nnreal μ
+    hs.image_swap.exists_measurable_section_left_nnreal μ
   rw [Set.image_image] at hτ_eq
   exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, hτ_eq⟩
 
+/-- **Measurable section theorem** for a measurably analytic subset of `ℝ≥0 × Ω`. -/
 lemma IsMeasurableAnalytic.exists_measurable_section_left_nnreal (hs : IsMeasurableAnalytic s)
     (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, ω ∈ Prod.snd '' s ↔ τ ω ≠ ⊤ :=
   hs.isPavingAnalytic.exists_measurable_section_left_nnreal μ
 
+/-- **Measurable section theorem** for a measurably analytic subset of `Ω × ℝ≥0`. -/
 lemma IsMeasurableAnalytic.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧

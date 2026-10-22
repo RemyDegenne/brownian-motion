@@ -107,6 +107,12 @@ lemma mem_supClosure_set_iff' (s : Set α) :
         exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
 
+lemma biUnion_finset_mem_supClosure {s : Finset ι} (hs_nonempty : s.Nonempty) {A : ι → Set α}
+    (hs : ∀ i ∈ s, A i ∈ S) :
+    (⋃ i ∈ s, A i) ∈ supClosure S := by
+  rw [← Finset.sup_set_eq_biUnion, ← Finset.sup'_eq_sup hs_nonempty]
+  exact supClosed_supClosure.finsetSup'_mem hs_nonempty fun i hi ↦ subset_supClosure (hs i hi)
+
 end Aux
 
 lemma isCompactSystem_singleton_empty {α : Type*} : IsCompactSystem {(∅ : Set α)} :=
@@ -193,7 +199,6 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
       rw [← Finset.coe_nonempty, Set.nonempty_iff_ne_empty]
       exact fun h0 => h <| Set.subset_eq_empty (Set.iInter_subset _ 0) h0
     obtain ⟨j₀, hj₀⟩ := hs
-    classical
     have key₀ : ∀ j ∈ ⋂ b, s b, ∃ N,
         ⋂ (b ≤ N), f b j = ∅ := by
       intro j hj
@@ -288,12 +293,6 @@ and `K ∈ q`. See `mem_prodSigmaDelta_iff`. -/
 def prodSigmaDelta (p : Set (Set 𝓧)) (q : Set (Set 𝓚)) : Set (Set (𝓧 × 𝓚)) :=
   countableInfClosure (countableSupClosure (Set.image2 (· ×ˢ ·) p q))
 
-lemma biUnion_finset_mem_supClosure' {s : Finset ℕ} (hs_nonempty : s.Nonempty)
-    {A : ℕ → Set 𝓧} (hs : ∀ n ∈ s, A n ∈ p) :
-    (⋃ n ∈ s, A n) ∈ supClosure p := by
-  rw [mem_supClosure_set_iff']
-  exact ⟨s, hs_nonempty, A, hs, rfl⟩
-
 lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ prodSigmaDelta p q ↔
       ∃ (A : ℕ → ℕ → Set 𝓧) (_ : ∀ n m, A n m ∈ p) (K : ℕ → ℕ → Set 𝓚) (_ : ∀ n m, K n m ∈ q),
@@ -357,7 +356,7 @@ lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set �
   · rw [Set.iInter_dissipate, ← hs]
     rfl
 
-/-- If the set is sup-closed, elements of `countableSupClosure` can be written as countable
+/-- If the paving is sup-closed, elements of `countableSupClosure` can be written as countable
 unions of *monotone* sequences of sets. -/
 protected
 lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
@@ -460,7 +459,7 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq : IsCompactSystem q)
     rcases Finset.eq_empty_or_nonempty (S n) with hS_empty | hS_nonempty
     · simp only [hS_empty, Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty]
       exact subset_supClosure hq_empty
-    refine biUnion_finset_mem_supClosure' hS_nonempty fun m hm ↦ ?_
+    refine biUnion_finset_mem_supClosure hS_nonempty fun m hm ↦ ?_
     by_cases hx : x ∈ D n m
     · simp only [hx, Set.iUnion_true]
       exact hC n m hm

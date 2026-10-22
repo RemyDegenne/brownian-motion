@@ -912,7 +912,8 @@ lemma _root_.MeasureTheory.Martingale.isLocallySquareIntegrable_of_jump_le
     stoppedAtNorm_le_add_jump h_cadlag t ω (by simp)
   borelize ι E
   have h_stop : IsStoppingTime 𝓕 (τ n) := by
-    refine isStoppingTime_leastGE P (IsStronglyProgressive.norm ?_) (n : ℝ) (𝓕 := 𝓕)
+    refine IsStronglyProgressive.isStoppingTime_leastGE P (IsStronglyProgressive.norm ?_) (n : ℝ)
+      (𝓕 := 𝓕)
     exact StronglyAdapted.isStronglyProgressive_of_rightContinuous hX.stronglyAdapted
       fun ω ↦ (h_cadlag ω).isRightContinuous
   have hY : Martingale Y 𝓕 P :=

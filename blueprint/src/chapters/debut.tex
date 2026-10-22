@@ -556,10 +556,10 @@ Then every set of $F_{\sigma \delta}$ is $I$-capacitable.
 \end{proof}
 
 
-\begin{lemma}\label{lem:mem_countableInfClosure_fst}
+\begin{lemma}\label{lem:fst_image_mem_countableInfClosure}
   \uses{def:countableInfClosure, def:image2_prod, def:IsCompactSystem}
   \leanok
-  \lean{MeasureTheory.mem_countableInfClosure_fst}
+  \lean{MeasureTheory.fst_image_mem_countableInfClosure}
 Suppose that $F$ contains the empty set and is closed under pairwise intersections and unions, and let $I$ be an $F$-capacity.
 Let $K$ be a compact system which is also closed under pairwise intersections.
 Let $s \in ((F \times K)^{\cup f})_\delta$.
@@ -583,7 +583,7 @@ If a set $s$ of $\mathcal{X} \times \mathcal{K}$ is capacitable with respect to 
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{lem:mem_countableInfClosure_fst}
+  \uses{lem:fst_image_mem_countableInfClosure}
 
 \end{proof}
 
@@ -615,10 +615,10 @@ Every finite measure defines a capacity by $I(s) = \mu(s)$ (where $\mu(s)$ is th
 \end{definition}
 
 
-\begin{lemma}\label{lem:isCapacitable_measure_iff}
+\begin{lemma}\label{lem:Measure.isCapacitable_capacity_iff}
   \uses{def:IsCapacitable, def:Measure.capacity}
   \leanok
-  \lean{MeasureTheory.isCapacitable_measure_iff}
+  \lean{MeasureTheory.Measure.isCapacitable_capacity_iff}
 A set is capacitable with respect to the capacity defined by a finite measure if and only if it is null-measurable for this measure.
 \end{lemma}
 
@@ -635,7 +635,7 @@ An $M_{\mathcal{X}}$-analytic set of a measurable space $\mathcal{X}$ is univers
 \end{lemma}
 
 \begin{proof}\leanok
-  \uses{thm:IsPavingAnalytic.isCapacitable, def:Measure.capacity, lem:isCapacitable_measure_iff}
+  \uses{thm:IsPavingAnalytic.isCapacitable, def:Measure.capacity, lem:Measure.isCapacitable_capacity_iff}
 
 \end{proof}
 
@@ -764,7 +764,7 @@ in which the infimum is infinite if the set is empty.
 \begin{lemma}\label{lem:isStoppingTime_leastGE}
   \uses{def:IsStoppingTime, def:leastGE}
   \leanok
-  \lean{MeasureTheory.isStoppingTime_leastGE}
+  \lean{MeasureTheory.IsStronglyProgressive.isStoppingTime_leastGE}
 Let $T$ be a conditionally complete linear order with a bottom element, which is a Polish space for its order topology, on which we put the Borel $\sigma$-algebra.
 Let $R$ be a preorder with a metrizable topology for which sets of the form $\{x \in R \mid x \ge a\}$ are closed, with its Borel $\sigma$-algebra.
 If $X : T \to Ω \to R$ is a progressively measurable process with respect to a filtration satisfying the usual conditions, then for any $a \in R$, the random time $\tau_{X \ge a}$ is a stopping time.
@@ -802,7 +802,7 @@ in which the infimum is infinite if the set is empty.
 \begin{lemma}\label{lem:isStoppingTime_leastGT}
   \uses{def:IsStoppingTime, def:leastGT}
   \leanok
-  \lean{MeasureTheory.isStoppingTime_leastGT}
+  \lean{MeasureTheory.IsStronglyProgressive.isStoppingTime_leastGT}
 Let $T$ be a conditionally complete linear order with a bottom element, which is a Polish space for its order topology, on which we put the Borel $\sigma$-algebra.
 Let $R$ be a preorder with a metrizable topology for which sets of the form $\{x \in R \mid x \ge a\}$ are closed, with its Borel $\sigma$-algebra.
 If $X : T \to Ω \to R$ is a progressively measurable process with respect to a filtration satisfying the usual conditions, then for any $a \in R$, the random time $\tau_{X > a}$ is a stopping time.

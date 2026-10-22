@@ -28,7 +28,7 @@ lemma isLocalizingSequence_leastGE {ι : Type*} [ConditionallyCompleteLinearOrde
     IsLocalizingSequence 𝓕 (fun n => leastGE X n) P where
   isStoppingTime n := by
     borelize ι
-    refine isStoppingTime_leastGE P ?_ _
+    refine IsStronglyProgressive.isStoppingTime_leastGE P ?_ _
     · exact hX1.isStronglyProgressive_of_rightContinuous (fun ω ↦ (hX2 ω).isRightContinuous)
   mono := by filter_upwards with ω n m hnm using
     hittingAfter_anti X ⊥ (Set.Ici_subset_Ici.2 (Nat.cast_le.2 hnm)) ω
