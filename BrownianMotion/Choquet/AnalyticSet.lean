@@ -375,7 +375,7 @@ lemma IsPavingAnalytic.inter {t : Set 𝓧}
   exact (IsPavingAnalyticFor.inter hs𝓚 ht𝓚').isPavingAnalytic
 
 /-- The union of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
-lemma IsPavingAnalyticFor.union.{u} {𝓚 𝓚' : Type u} {t : Set 𝓧}
+lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
     IsPavingAnalyticFor p (𝓚 ⊕ 𝓚') (s ∪ t) := by
   choose q hq_compact B hB_prod hB_eq using hs
@@ -646,39 +646,39 @@ lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
   obtain ⟨𝓚, hs'⟩ := hs
   exact (IsPavingAnalyticFor.prod ht' hs').isPavingAnalytic
 
-/-- The image of an analytic set by an equivalence is analytic for the image paving. -/
-lemma IsPavingAnalyticFor.image_equiv (e : 𝓧 ≃ 𝓨) (hs : IsPavingAnalyticFor p 𝓚 s) :
-    IsPavingAnalyticFor ((e '' ·) '' p) 𝓚 (e '' s) := by
+/-- The image of an analytic set by an injective map is analytic for the image paving. -/
+lemma IsPavingAnalyticFor.image_of_injective {f : 𝓧 → 𝓨} (hf : Function.Injective f)
+    (hs : IsPavingAnalyticFor p 𝓚 s) :
+    IsPavingAnalyticFor ((f '' ·) '' p) 𝓚 (f '' s) := by
   obtain ⟨q, hq, t, ht, rfl⟩ := hs
-  refine ⟨q, hq, Prod.map e id '' t, ?_, by rw [Set.image_image, Set.image_image]; rfl⟩
+  refine ⟨q, hq, Prod.map f id '' t, ?_, by rw [Set.image_image, Set.image_image]; rfl⟩
   rw [mem_prodSigmaDelta_iff] at ht ⊢
   obtain ⟨A, hA, K, hK, rfl⟩ := ht
-  refine ⟨fun n m ↦ e '' A n m, fun n m ↦ ⟨A n m, hA n m, rfl⟩, K, hK, ?_⟩
-  rw [Set.image_iInter (e.bijective.prodMap Function.bijective_id)]
+  refine ⟨fun n m ↦ f '' A n m, fun n m ↦ ⟨A n m, hA n m, rfl⟩, K, hK, ?_⟩
+  rw [(hf.prodMap Function.injective_id).injOn.image_iInter_eq]
   simp_rw [Set.image_iUnion, Set.prodMap_image_prod, Set.image_id]
 
-/-- The image of an analytic set by an equivalence is analytic for the image paving. -/
-lemma IsPavingAnalytic.image_equiv (e : 𝓧 ≃ 𝓨) (hs : IsPavingAnalytic p s) :
-    IsPavingAnalytic ((e '' ·) '' p) (e '' s) := by
+/-- The image of an analytic set by an injective map is analytic for the image paving. -/
+lemma IsPavingAnalytic.image_of_injective {f : 𝓧 → 𝓨} (hf : Function.Injective f)
+    (hs : IsPavingAnalytic p s) :
+    IsPavingAnalytic ((f '' ·) '' p) (f '' s) := by
   obtain ⟨𝓚, hs⟩ := hs
-  exact (hs.image_equiv e).isPavingAnalytic
+  exact (hs.image_of_injective hf).isPavingAnalytic
 
 /-- The image of a set that is analytic for the paving of measurable sets by a measurable
-equivalence is analytic for the paving of measurable sets. -/
-lemma IsPavingAnalytic.image_measurableEquiv {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
-    (e : 𝓧 ≃ᵐ 𝓨) (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
-    IsPavingAnalytic {t | MeasurableSet t} (e '' s) := by
-  convert hs.image_equiv e.toEquiv using 1
-  ext t
-  simp only [Set.mem_ofPred_eq, Set.mem_image, MeasurableEquiv.coe_toEquiv]
-  refine ⟨fun ht ↦ ⟨e ⁻¹' t, ht.preimage e.measurable, e.image_preimage t⟩, ?_⟩
-  rintro ⟨u, hu, rfl⟩
-  exact e.measurableSet_image.mpr hu
+embedding is analytic for the paving of measurable sets. -/
+lemma IsPavingAnalytic.image_measurableEmbedding {m𝓧 : MeasurableSpace 𝓧}
+    {m𝓨 : MeasurableSpace 𝓨} {f : 𝓧 → 𝓨} (hf : MeasurableEmbedding f)
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
+    IsPavingAnalytic {t | MeasurableSet t} (f '' s) := by
+  refine (hs.image_of_injective hf.injective).mono ?_
+  rintro _ ⟨u, hu, rfl⟩
+  exact hf.measurableSet_image' hu
 
 lemma IsPavingAnalytic.image_swap {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
     {s : Set (𝓧 × 𝓨)} (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
     IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
-  hs.image_measurableEquiv MeasurableEquiv.prodComm
+  hs.image_measurableEmbedding MeasurableEquiv.prodComm.measurableEmbedding
 
 /-- A set that is analytic for the paving of analytic sets is analytic. Theorem 1.29 of
 [he2019semimartingale]. -/
