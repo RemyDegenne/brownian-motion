@@ -107,6 +107,12 @@ lemma mem_supClosure_set_iff' (s : Set α) :
         exact ⟨_, Finset.mem_toList.mp (List.getElem_mem hn), hxn⟩
   · exact ⟨t.image A, by simpa, by simpa, by simpa⟩
 
+lemma biUnion_finset_mem_supClosure {s : Finset ι} (hs_nonempty : s.Nonempty) {A : ι → Set α}
+    (hs : ∀ i ∈ s, A i ∈ S) :
+    (⋃ i ∈ s, A i) ∈ supClosure S := by
+  rw [← Finset.sup_set_eq_biUnion, ← Finset.sup'_eq_sup hs_nonempty]
+  exact supClosed_supClosure.finsetSup'_mem hs_nonempty fun i hi ↦ subset_supClosure (hs i hi)
+
 end Aux
 
 lemma isCompactSystem_singleton_empty {α : Type*} : IsCompactSystem {(∅ : Set α)} :=
@@ -193,7 +199,6 @@ lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (�
       rw [← Finset.coe_nonempty, Set.nonempty_iff_ne_empty]
       exact fun h0 => h <| Set.subset_eq_empty (Set.iInter_subset _ 0) h0
     obtain ⟨j₀, hj₀⟩ := hs
-    classical
     have key₀ : ∀ j ∈ ⋂ b, s b, ∃ N,
         ⋂ (b ≤ N), f b j = ∅ := by
       intro j hj
@@ -242,36 +247,25 @@ lemma IsCompactSystem.univ_sigma [Finite ι] {𝓚 : ι → Type*}
   refine ⟨(Finset.univ : Finset ι), f, fun j _ => hf j (Set.mem_univ _), ?_⟩
   rw [Finset.coe_univ]; exact hfC
 
-lemma IsCompactSystem.sum.{u} {𝓚 𝓚' : Type u} {q : Set (Set 𝓚)} {q' : Set (Set 𝓚')}
+/-- If `q` and `q'` are compact systems on `𝓚` and `𝓚'`, then the sets of `𝓚 ⊕ 𝓚'` whose parts
+in `𝓚` and `𝓚'` are in `q` and `q'` form a compact system. -/
+lemma IsCompactSystem.sum {𝓚 𝓚' : Type*} {q : Set (Set 𝓚)} {q' : Set (Set 𝓚')}
     (hq : IsCompactSystem q) (hq' : IsCompactSystem q') :
     IsCompactSystem {t | Sum.inl ⁻¹' t ∈ q ∧ Sum.inr ⁻¹' t ∈ q'} := by
-  let Q : ∀ b : Bool, Set (Set (bif b then 𝓚' else 𝓚)) :=
-    fun b => match b with | true => q' | false => q
-  have hQ : ∀ b, IsCompactSystem (Q b) := fun b => by cases b <;> assumption
-  have h_equiv := (IsCompactSystem.univ_sigma hQ).preimage_of_surjective
-    (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm.surjective
-  convert h_equiv using 1
-  ext t
-  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const]
-  constructor
-  · rintro ⟨hl, hr⟩
-    exact ⟨fun | true => Sum.inr ⁻¹' t | false => Sum.inl ⁻¹' t,
-      fun | true => hr | false => hl,
-      by ext ⟨b, x⟩; cases b <;> · simp [Equiv.sumEquivSigmaBool]⟩
-  · rintro ⟨f, hf, hfC⟩
-    have slice : ∀ b x, x ∈ f b ↔ (Equiv.sumEquivSigmaBool 𝓚 𝓚').symm ⟨b, x⟩ ∈ t :=
-      fun b x => by simpa using Set.ext_iff.mp hfC ⟨b, x⟩
-    constructor
-    · specialize hf false
-      simp only [Bool.cond_false] at hf
-      convert hf using 1
-      ext x
-      exact (slice false x).symm
-    · specialize hf true
-      simp only [Bool.cond_true] at hf
-      convert hf using 1
-      ext x
-      exact (slice true x).symm
+  intro C hC hC_empty
+  -- the parts of `C n` in `𝓚` and in `𝓚'` have finite subintersections that are empty
+  obtain ⟨N, hN⟩ := hq (fun n ↦ Sum.inl ⁻¹' C n) (fun n ↦ (hC n).1)
+    (by rw [← Set.preimage_iInter, hC_empty, Set.preimage_empty])
+  obtain ⟨N', hN'⟩ := hq' (fun n ↦ Sum.inr ⁻¹' C n) (fun n ↦ (hC n).2)
+    (by rw [← Set.preimage_iInter, hC_empty, Set.preimage_empty])
+  refine ⟨max N N', Set.eq_empty_iff_forall_notMem.mpr ?_⟩
+  rintro (x | x) hx <;> simp only [Set.mem_dissipate] at hx
+  · refine Set.eq_empty_iff_forall_notMem.mp hN x ?_
+    simp only [Set.mem_dissipate, Set.mem_preimage]
+    exact fun i hi ↦ hx i (hi.trans (le_max_left _ _))
+  · refine Set.eq_empty_iff_forall_notMem.mp hN' x ?_
+    simp only [Set.mem_dissipate, Set.mem_preimage]
+    exact fun i hi ↦ hx i (hi.trans (le_max_right _ _))
 
 namespace MeasureTheory
 
@@ -287,12 +281,6 @@ lemma _root_.InfClosed.image2_prod (hp_inter : InfClosed p) (hq_inter : InfClose
 and `K ∈ q`. See `mem_prodSigmaDelta_iff`. -/
 def prodSigmaDelta (p : Set (Set 𝓧)) (q : Set (Set 𝓚)) : Set (Set (𝓧 × 𝓚)) :=
   countableInfClosure (countableSupClosure (Set.image2 (· ×ˢ ·) p q))
-
-lemma biUnion_finset_mem_supClosure' {s : Finset ℕ} (hs_nonempty : s.Nonempty)
-    {A : ℕ → Set 𝓧} (hs : ∀ n ∈ s, A n ∈ p) :
-    (⋃ n ∈ s, A n) ∈ supClosure p := by
-  rw [mem_supClosure_set_iff']
-  exact ⟨s, hs_nonempty, A, hs, rfl⟩
 
 lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ prodSigmaDelta p q ↔
@@ -357,7 +345,7 @@ lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set �
   · rw [Set.iInter_dissipate, ← hs]
     rfl
 
-/-- If the set is sup-closed, elements of `countableSupClosure` can be written as countable
+/-- If the paving is sup-closed, elements of `countableSupClosure` can be written as countable
 unions of *monotone* sequences of sets. -/
 protected
 lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
@@ -460,7 +448,7 @@ lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq : IsCompactSystem q)
     rcases Finset.eq_empty_or_nonempty (S n) with hS_empty | hS_nonempty
     · simp only [hS_empty, Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty]
       exact subset_supClosure hq_empty
-    refine biUnion_finset_mem_supClosure' hS_nonempty fun m hm ↦ ?_
+    refine biUnion_finset_mem_supClosure hS_nonempty fun m hm ↦ ?_
     by_cases hx : x ∈ D n m
     · simp only [hx, Set.iUnion_true]
       exact hC n m hm

@@ -13,6 +13,7 @@ public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.Auxiliary.FiniteInf
 public import BrownianMotion.Auxiliary.HasGaussianLaw
 public import BrownianMotion.Auxiliary.HasLaw
+public import BrownianMotion.Auxiliary.HittingTime
 public import BrownianMotion.Auxiliary.IsStoppingTime
 public import BrownianMotion.Auxiliary.Jensen
 public import BrownianMotion.Auxiliary.LeftLimWithin

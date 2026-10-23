@@ -57,7 +57,8 @@ ones): this is sufficient for our applications and easier to work with.
 
 @[expose] public section
 
-open scoped ENNReal NNReal
+open Filter
+open scoped ENNReal NNReal Topology
 
 variable {𝓧 𝓨 𝓚 𝓚' ι : Type*} {p : Set (Set 𝓧)} {q : Set (Set 𝓚)} {s t : Set 𝓧} {f : ℕ → Set 𝓧}
 
@@ -190,7 +191,8 @@ lemma IsPavingAnalytic.mono {p' : Set (Set 𝓧)} (hp : p ⊆ p') (hs : IsPaving
   choose 𝓚 hs𝓚 using hs
   exact (IsPavingAnalyticFor.mono hp hs𝓚).isPavingAnalytic
 
--- He paragraph after 1.25
+/-- An analytic set for `p` is contained in a countable union of sets of `p`. See the paragraph
+after Definition 1.25 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.exists_mem_countableSupClosure_superset (hs : IsPavingAnalyticFor p 𝓚 s) :
     ∃ t, t ∈ countableSupClosure p ∧ s ⊆ t := by
   obtain ⟨q, hq_compact, B, hB_prod, rfl⟩ := hs
@@ -226,7 +228,8 @@ lemma isPavingAnalyticFor_iff_eq_empty (𝓚 : Type*) [IsEmpty 𝓚] (hp : p.Non
   · rw [hs_empty]
     exact IsPavingAnalyticFor.empty 𝓚 hp
 
--- He 1.26
+/-- A countable intersection of analytic sets is analytic. Theorem 1.26 of
+[he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.iInter {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
     (hs : ∀ n, IsPavingAnalyticFor p (𝓚 n) (s n)) :
     IsPavingAnalyticFor p (Π n, 𝓚 n) (⋂ n, s n) := by
@@ -260,12 +263,14 @@ lemma IsPavingAnalyticFor.iInter {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
     choose y hy using h
     exact ⟨y, hy⟩
 
+/-- A countable intersection of analytic sets is analytic. Theorem 1.26 of
+[he2019semimartingale]. -/
 lemma IsPavingAnalytic.iInter {s : ℕ → Set 𝓧} (hs : ∀ n, IsPavingAnalytic p (s n)) :
     IsPavingAnalytic p (⋂ n, s n) := by
   choose 𝓚 hs𝓚 using hs
   exact (IsPavingAnalyticFor.iInter hs𝓚).isPavingAnalytic
 
--- He 1.26
+/-- A countable union of analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.iUnion {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
     (hs : ∀ n, IsPavingAnalyticFor p (𝓚 n) (s n)) :
     IsPavingAnalyticFor p (Σ n, 𝓚 n) (⋃ n, s n) := by
@@ -314,12 +319,13 @@ lemma IsPavingAnalyticFor.iUnion {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
       ↓existsAndEq, exists_eq_right_right, Sigma.mk.injEq, and_true]
     grind
 
+/-- A countable union of analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalytic.iUnion {s : ℕ → Set 𝓧} (hs : ∀ n, IsPavingAnalytic p (s n)) :
     IsPavingAnalytic p (⋃ n, s n) := by
   choose 𝓚 hs𝓚 using hs
   exact (IsPavingAnalyticFor.iUnion hs𝓚).isPavingAnalytic
 
--- He 1.26
+/-- The intersection of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.inter {𝓚' : Type*} {t : Set 𝓧}
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
     IsPavingAnalyticFor p (𝓚 × 𝓚') (s ∩ t) := by
@@ -360,6 +366,7 @@ lemma IsPavingAnalyticFor.inter {𝓚' : Type*} {t : Set 𝓧}
   · ext
     simp [hB_eq, hB'_eq, C, C']
 
+/-- The intersection of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalytic.inter {t : Set 𝓧}
     (hs : IsPavingAnalytic p s) (ht : IsPavingAnalytic p t) :
     IsPavingAnalytic p (s ∩ t) := by
@@ -367,8 +374,8 @@ lemma IsPavingAnalytic.inter {t : Set 𝓧}
   choose 𝓚' ht𝓚' using ht
   exact (IsPavingAnalyticFor.inter hs𝓚 ht𝓚').isPavingAnalytic
 
--- He 1.26
-lemma IsPavingAnalyticFor.union.{u} {𝓚 𝓚' : Type u} {t : Set 𝓧}
+/-- The union of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
+lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
     IsPavingAnalyticFor p (𝓚 ⊕ 𝓚') (s ∪ t) := by
   choose q hq_compact B hB_prod hB_eq using hs
@@ -443,6 +450,7 @@ lemma IsPavingAnalyticFor.union.{u} {𝓚 𝓚' : Type u} {t : Set 𝓧}
     ext
     simp [Equiv.prodSumDistrib, Equiv.sumProdDistrib, Set.sumEquiv]
 
+/-- The union of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalytic.union {t : Set 𝓧}
     (hs : IsPavingAnalytic p s) (ht : IsPavingAnalytic p t) :
     IsPavingAnalytic p (s ∪ t) := by
@@ -616,7 +624,8 @@ lemma IsPavingAnalyticFor.prod_mem_countableSupClosure_right {𝓨 : Type*} {r :
   simp only [Set.iSup_eq_iUnion]
   rw [Set.prod_iUnion]
 
--- He 1.27
+/-- The product of two analytic sets is analytic for the product paving. Theorem 1.27 of
+[he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
     (ht : IsPavingAnalyticFor r 𝓚' t) (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) r p) ((Σ _ : ℕ, 𝓚') × (Σ _ : ℕ, 𝓚)) (t ×ˢ s) := by
@@ -628,6 +637,8 @@ lemma IsPavingAnalyticFor.prod {𝓨 𝓚' : Type*} {r : Set (Set 𝓨)} {t : Se
   · exact ht.prod_mem_countableSupClosure_right hs₁
   · exact hs.prod_mem_countableSupClosure_left ht₁
 
+/-- The product of two analytic sets is analytic for the product paving. Theorem 1.27 of
+[he2019semimartingale]. -/
 lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
     (ht : IsPavingAnalytic r t) (hs : IsPavingAnalytic p s) :
     IsPavingAnalytic (Set.image2 (· ×ˢ ·) r p) (t ×ˢ s) := by
@@ -635,7 +646,42 @@ lemma IsPavingAnalytic.prod {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
   obtain ⟨𝓚, hs'⟩ := hs
   exact (IsPavingAnalyticFor.prod ht' hs').isPavingAnalytic
 
--- He 1.29
+/-- The image of an analytic set by an injective map is analytic for the image paving. -/
+lemma IsPavingAnalyticFor.image_of_injective {f : 𝓧 → 𝓨} (hf : Function.Injective f)
+    (hs : IsPavingAnalyticFor p 𝓚 s) :
+    IsPavingAnalyticFor ((f '' ·) '' p) 𝓚 (f '' s) := by
+  obtain ⟨q, hq, t, ht, rfl⟩ := hs
+  refine ⟨q, hq, Prod.map f id '' t, ?_, by rw [Set.image_image, Set.image_image]; rfl⟩
+  rw [mem_prodSigmaDelta_iff] at ht ⊢
+  obtain ⟨A, hA, K, hK, rfl⟩ := ht
+  refine ⟨fun n m ↦ f '' A n m, fun n m ↦ ⟨A n m, hA n m, rfl⟩, K, hK, ?_⟩
+  rw [(hf.prodMap Function.injective_id).injOn.image_iInter_eq]
+  simp_rw [Set.image_iUnion, Set.prodMap_image_prod, Set.image_id]
+
+/-- The image of an analytic set by an injective map is analytic for the image paving. -/
+lemma IsPavingAnalytic.image_of_injective {f : 𝓧 → 𝓨} (hf : Function.Injective f)
+    (hs : IsPavingAnalytic p s) :
+    IsPavingAnalytic ((f '' ·) '' p) (f '' s) := by
+  obtain ⟨𝓚, hs⟩ := hs
+  exact (hs.image_of_injective hf).isPavingAnalytic
+
+/-- The image of a set that is analytic for the paving of measurable sets by a measurable
+embedding is analytic for the paving of measurable sets. -/
+lemma IsPavingAnalytic.image_measurableEmbedding {m𝓧 : MeasurableSpace 𝓧}
+    {m𝓨 : MeasurableSpace 𝓨} {f : 𝓧 → 𝓨} (hf : MeasurableEmbedding f)
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
+    IsPavingAnalytic {t | MeasurableSet t} (f '' s) := by
+  refine (hs.image_of_injective hf.injective).mono ?_
+  rintro _ ⟨u, hu, rfl⟩
+  exact hf.measurableSet_image' hu
+
+lemma IsPavingAnalytic.image_swap {m𝓧 : MeasurableSpace 𝓧} {m𝓨 : MeasurableSpace 𝓨}
+    {s : Set (𝓧 × 𝓨)} (hs : IsPavingAnalytic {t | MeasurableSet t} s) :
+    IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
+  hs.image_measurableEmbedding MeasurableEquiv.prodComm.measurableEmbedding
+
+/-- A set that is analytic for the paving of analytic sets is analytic. Theorem 1.29 of
+[he2019semimartingale]. -/
 lemma isPavingAnalyticFor_isPavingAnalyticFor
     (hs : IsPavingAnalyticFor {t | IsPavingAnalyticFor p 𝓚 t} 𝓚 s) :
     IsPavingAnalyticFor p (𝓚 × (ℕ → (_ : ℕ) × 𝓚)) s := by
@@ -646,6 +692,8 @@ lemma isPavingAnalyticFor_isPavingAnalyticFor
   refine isPavingAnalyticFor_of_mem_countableSupClosure_of_imp ht fun t ht ↦ ?_
   exact isPavingAnalyticFor_of_image2_prod_isPavingAnalyticFor_right ht
 
+/-- A set that is analytic for the paving of analytic sets is analytic. Theorem 1.29 of
+[he2019semimartingale]. -/
 lemma isPavingAnalytic_isPavingAnalytic (hs : IsPavingAnalytic {t | IsPavingAnalytic p t} s) :
     IsPavingAnalytic p s := by
   obtain ⟨𝓚, hs'⟩ := hs
@@ -655,12 +703,14 @@ lemma isPavingAnalytic_isPavingAnalytic (hs : IsPavingAnalytic {t | IsPavingAnal
   refine isPavingAnalytic_of_mem_countableSupClosure_of_imp ht fun t ht ↦ ?_
   exact isPavingAnalytic_of_image2_prod_isPavingAnalytic_right ht
 
+/-- A set is analytic for the paving of analytic sets if and only if it is analytic. -/
 @[simp]
 lemma isPavingAnalytic_isPavingAnalytic_iff :
     IsPavingAnalytic {t | IsPavingAnalytic p t} s ↔ IsPavingAnalytic p s :=
   ⟨isPavingAnalytic_isPavingAnalytic, fun hs ↦ isPavingAnalytic_of_mem hs⟩
 
--- He 1.30
+/-- If `s` is analytic for `p`, then `s ∩ t` is analytic for the trace of `p` on `t`. Theorem 1.30
+of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.inter_set (hs : IsPavingAnalyticFor p 𝓚 s) (t : Set 𝓧) :
     IsPavingAnalyticFor {u | ∃ v, v ∈ p ∧ u = v ∩ t} 𝓚 (s ∩ t) := by
   obtain ⟨q, hq, A, hA, rfl⟩ := hs
@@ -675,7 +725,8 @@ lemma IsPavingAnalyticFor.inter_set (hs : IsPavingAnalyticFor p 𝓚 s) (t : Set
   simp
   grind
 
--- He 1.30
+/-- A set that is analytic for the trace of `p` on `t` is the intersection with `t` of a set that is
+analytic for `p`. Theorem 1.30 of [he2019semimartingale]. -/
 lemma exists_isPavingAnalyticFor_of_inter_set (t : Set 𝓧)
     (hs : IsPavingAnalyticFor {u | ∃ v, v ∈ p ∧ u = v ∩ t} 𝓚 s) :
     ∃ s', IsPavingAnalyticFor p 𝓚 s' ∧ s = s' ∩ t := by
@@ -777,51 +828,51 @@ lemma Ici_mem_countableSupClosure_Icc {ι : Type*}
 
 lemma Iio_mem_countableSupClosure_Icc {ι : Type*}
     [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
-    [DenselyOrdered ι]
     (u : ι) :
     Set.Iio u ∈ countableSupClosure (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
-  by_cases h_bot : IsBot u
-  · have : Set.Iio u = ∅ := by
-      ext x
-      simp only [Set.mem_Iio, Set.mem_empty_iff_false, iff_false, not_lt]
-      exact h_bot x
-    rw [this]
-    refine subset_countableSupClosure (Or.inl rfl)
-  obtain ⟨v, hvu⟩ : ∃ v, v < u := by simpa [IsBot] using h_bot
-  obtain ⟨s, hs_mono, hs_lt, hs_tendsto⟩ := exists_seq_strictMono_tendsto' hvu
+  have h_mono := countableSupClosure_mono (Set.subset_insert ∅ {t | ∃ a b : ι, Set.Icc a b = t})
+  by_cases hu : 𝓝[<] u = ⊥
+  · -- `u` is the bottom element, or has a predecessor `v` and `Iio u = Iic v`
+    rcases nhdsLT_eq_bot_iff.mp hu with hu | ⟨v, hvu⟩
+    · rw [Set.Iio_eq_empty_iff.mpr hu.isMin]
+      exact subset_countableSupClosure (Set.mem_insert _ _)
+    · rw [hvu.Iio_eq]
+      exact h_mono (Iic_mem_countableSupClosure_Icc v)
+  -- `u` is a limit from the left: `Iio u` is the union of `Iic (s n)` for `s n < u` tending to `u`
+  obtain ⟨s, hs_lt, hs_tendsto⟩ :=
+    mem_closure_iff_seq_limit.mp (mem_closure_iff_nhdsWithin_neBot.mpr ⟨hu⟩)
   have : Set.Iio u = ⋃ n, Set.Iic (s n) := by
     ext x
     simp only [Set.mem_Iio, Set.mem_iUnion, Set.mem_Iic]
-    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ hi.trans_lt (hs_lt i).2⟩
-    exact (hs_tendsto.eventually_const_le hxu).exists
+    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ hi.trans_lt (hs_lt i)⟩
+    exact ((hs_tendsto.eventually_const_lt hxu).mono fun _ h ↦ h.le).exists
   rw [this]
-  have h_mem := countableSupClosed_countableSupClosure.iSup_mem
-    fun n ↦ Iic_mem_countableSupClosure_Icc (s n)
-  exact (countableSupClosure_mono fun s hs ↦ Set.mem_insert_of_mem _ hs) h_mem
+  exact h_mono (countableSupClosed_countableSupClosure.iSup_mem
+    fun n ↦ Iic_mem_countableSupClosure_Icc (s n))
 
 lemma Ioi_mem_countableSupClosure_Icc {ι : Type*}
     [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι]
-    [DenselyOrdered ι]
     (u : ι) :
     Set.Ioi u ∈ countableSupClosure (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
-  by_cases h_top : IsTop u
-  · have : Set.Ioi u = ∅ := by
-      ext x
-      simp only [Set.mem_Ioi, Set.mem_empty_iff_false, iff_false, not_lt]
-      exact h_top x
-    rw [this]
-    refine subset_countableSupClosure (Or.inl rfl)
-  obtain ⟨v, huv⟩ : ∃ v, u < v := by simpa [IsTop] using h_top
-  obtain ⟨s, hs_mono, hs_gt, hs_tendsto⟩ := exists_seq_strictAnti_tendsto' huv
+  have h_mono := countableSupClosure_mono (Set.subset_insert ∅ {t | ∃ a b : ι, Set.Icc a b = t})
+  by_cases hu : 𝓝[>] u = ⊥
+  · -- `u` is the top element, or has a successor `v` and `Ioi u = Ici v`
+    rcases nhdsGT_eq_bot_iff.mp hu with hu | ⟨v, huv⟩
+    · rw [Set.Ioi_eq_empty_iff.mpr hu.isMax]
+      exact subset_countableSupClosure (Set.mem_insert _ _)
+    · rw [huv.Ioi_eq]
+      exact h_mono (Ici_mem_countableSupClosure_Icc v)
+  -- `u` is a limit from the right: `Ioi u` is the union of `Ici (s n)` for `u < s n` tending to `u`
+  obtain ⟨s, hs_gt, hs_tendsto⟩ :=
+    mem_closure_iff_seq_limit.mp (mem_closure_iff_nhdsWithin_neBot.mpr ⟨hu⟩)
   have : Set.Ioi u = ⋃ n, Set.Ici (s n) := by
     ext x
     simp only [Set.mem_Ioi, Set.mem_iUnion, Set.mem_Ici]
-    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ (hs_gt i).1.trans_le hi⟩
-    exact (hs_tendsto.eventually_le_const hxu).exists
+    refine ⟨fun hxu ↦ ?_, fun ⟨i, hi⟩ ↦ (hs_gt i).trans_le hi⟩
+    exact ((hs_tendsto.eventually_lt_const hxu).mono fun _ h ↦ h.le).exists
   rw [this]
-  have h_mem := countableSupClosed_countableSupClosure.iSup_mem
-    fun n ↦ Ici_mem_countableSupClosure_Icc (s n)
-  exact (countableSupClosure_mono fun s hs ↦ Set.mem_insert_of_mem _ hs) h_mem
+  exact h_mono (countableSupClosed_countableSupClosure.iSup_mem
+    fun n ↦ Ici_mem_countableSupClosure_Icc (s n))
 
 lemma univ_mem_countableSupClosure_Icc {ι : Type*} [hι : Nonempty ι]
     [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] :
@@ -833,7 +884,7 @@ lemma univ_mem_countableSupClosure_Icc {ι : Type*} [hι : Nonempty ι]
     (Ici_mem_countableSupClosure_Icc x)
 
 lemma compl_Icc_mem_countableSupClosure_Icc {ι : Type*}
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] (l u : ι) :
     (Set.Icc l u)ᶜ ∈ countableSupClosure (insert ∅ {t | ∃ a b, Set.Icc a b = t}) := by
   have : Nonempty ι := ⟨l⟩
@@ -847,7 +898,7 @@ lemma compl_Icc_mem_countableSupClosure_Icc {ι : Type*}
       (Ioi_mem_countableSupClosure_Icc u)
 
 lemma compl_mem_countableSupClosure_image2_prod_Icc {ι : Type*} [Nonempty ι]
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [MeasurableSpace 𝓧] (s : Set (𝓧 × ι))
     (hs : s ∈ Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t})) :
      sᶜ ∈ countableSupClosure
@@ -884,10 +935,10 @@ lemma compl_mem_countableSupClosure_image2_prod_Icc {ι : Type*} [Nonempty ι]
       refine ⟨fun i ↦ Set.univ ×ˢ B i, fun n ↦ ?_, rfl⟩
       exact ⟨Set.univ, MeasurableSet.univ, B n, hB n, rfl⟩
 
-/-- A measurable set of a densely ordered second countable space is analytic for the paving of
-closed intervals. Variant of Theorem 1.32 (1) of [he2019semimartingale]. -/
+/-- A measurable set of a second countable linear order is analytic for the paving of closed
+intervals. Variant of Theorem 1.32 (1) of [he2019semimartingale]. -/
 lemma _root_.MeasurableSet.isPavingAnalytic_Icc {ι : Type*} {mι : MeasurableSpace ι}
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [BorelSpace ι]
     {s : Set ι} (hs : MeasurableSet s) :
     IsPavingAnalytic (insert ∅ {t | ∃ a b, Set.Icc a b = t}) s := by
@@ -933,8 +984,10 @@ lemma _root_.MeasurableSet.isPavingAnalytic_Icc {ι : Type*} {mι : MeasurableSp
       obtain ⟨l, u, rfl⟩ := h
       exact compl_Icc_mem_countableSupClosure_Icc l u
 
+/-- In a second countable linear order, a set is analytic for the paving of measurable sets if and
+only if it is analytic for the paving of closed intervals. -/
 lemma isPavingAnalytic_measurableSet_iff_isPavingAnalytic_Icc {ι : Type*} {mι : MeasurableSpace ι}
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [BorelSpace ι]
     (s : Set ι) :
     IsPavingAnalytic {t | MeasurableSet t} s ↔
@@ -961,7 +1014,7 @@ lemma isCountablySpanning_insert_empty_Icc {ι : Type*} [Nonempty ι]
 /-- A measurable set of `𝓧 × ι` is analytic for the product of the paving of measurable sets and
 the paving of closed intervals. Variant of Theorem 1.32 (2) of [he2019semimartingale]. -/
 lemma _root_.MeasurableSet.isPavingAnalytic_image2_prod {ι : Type*} {mι : MeasurableSpace ι}
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [BorelSpace ι]
     {s : Set (𝓧 × ι)} {m𝓧 : MeasurableSpace 𝓧}
     (hs : MeasurableSet s) :
@@ -992,9 +1045,11 @@ lemma _root_.MeasurableSet.isPavingAnalytic_image2_prod {ι : Type*} {mι : Meas
       rw [this, borel_eq_generateFrom_insert_empty_Icc]
     rw [← h_prod_eq]
 
--- Icc version of He 1.32 (2)
+/-- A set of `𝓧 × ι` is analytic for the paving of measurable sets if and only if it is analytic
+for the product of the paving of measurable sets and the paving of closed intervals. Variant of
+Theorem 1.32 (2) of [he2019semimartingale]. -/
 lemma isPavingAnalytic_image2_prod_measurableSet_Icc_iff {ι : Type*} {mι : MeasurableSpace ι}
-    [LinearOrder ι] [DenselyOrdered ι] [TopologicalSpace ι] [SecondCountableTopology ι]
+    [LinearOrder ι] [TopologicalSpace ι] [SecondCountableTopology ι]
     [OrderTopology ι] [BorelSpace ι]
     {s : Set (𝓧 × ι)} [MeasurableSpace 𝓧] :
     IsPavingAnalytic (Set.image2 (· ×ˢ ·) {t | MeasurableSet t}
@@ -1012,8 +1067,11 @@ lemma isPavingAnalytic_image2_prod_measurableSet_Icc_iff {ι : Type*} {mι : Mea
   · exact isPavingAnalytic_isPavingAnalytic
       (hs.mono fun _ ↦ MeasurableSet.isPavingAnalytic_image2_prod)
 
--- Icc version of He 1.32 (3)
--- note that here `ι` is in `Type`, not `Type*`
+/-- The projection of an analytic set for the product of the paving of measurable sets and the
+paving of closed intervals is analytic for the paving of measurable sets. Variant of
+Theorem 1.32 (3) of [he2019semimartingale].
+
+The type `ι` is in `Type` since it is the auxiliary space of an analytic set. -/
 lemma isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc {ι : Type} [LinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι] [MeasurableSpace 𝓧]
     {s : Set (𝓧 × ι)}
@@ -1022,6 +1080,8 @@ lemma isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc {ι : Type} [LinearO
     IsPavingAnalytic {t | MeasurableSet t} (Prod.fst '' s) :=
   hs.fst (isCompactSystem_insert_empty_Icc ι)
 
+/-- The projection of a measurable set of `𝓧 × ℝ` is analytic for the paving of measurable
+sets. -/
 lemma _root_.MeasurableSet.isPavingAnalytic_fst {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ℝ)}
     (hs : MeasurableSet s) :
     IsPavingAnalytic {t | MeasurableSet t} (Prod.fst '' s) :=

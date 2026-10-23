@@ -15,6 +15,10 @@ measurable set) and let `μ` be an s-finite measure on `Ω`. We prove that there
 `τ : Ω → WithTop ℝ≥0` whose graph is contained in `s` where `τ ≠ ⊤`, and such that `τ ω ≠ ⊤` for
 `μ`-almost every `ω` in the projection of `s` on `Ω`.
 
+For a subset `s` of `𝓨 × Ω` with `𝓨` a nonempty standard Borel space, we obtain a measurable
+`τ : Ω → 𝓨` and a measurable set `A`, almost everywhere equal to the projection of `s`, such that
+`(τ ω, ω) ∈ s` for `ω ∈ A`.
+
 ## Main statements
 
 * `MeasureTheory.IsPavingAnalytic.exists_measurable_section_left_nnreal`: measurable section
@@ -23,6 +27,11 @@ measurable set) and let `μ` be an s-finite measure on `Ω`. We prove that there
   subset of `Ω × ℝ≥0`.
 * `MeasurableSet.exists_measurable_section_left_nnreal`,
   `MeasurableSet.exists_measurable_section_right_nnreal`: the same for measurable sets.
+* `MeasureTheory.IsPavingAnalytic.exists_measurable_section_left`,
+  `MeasureTheory.IsPavingAnalytic.exists_measurable_section_right`,
+  `MeasurableSet.exists_measurable_section_left`, `MeasurableSet.exists_measurable_section_right`:
+  measurable section theorems for subsets of `𝓨 × Ω` and `Ω × 𝓨`, with `𝓨` a nonempty standard
+  Borel space.
 
 ## Implementation notes
 
@@ -30,6 +39,10 @@ The section is obtained as the infimum of a sequence of measurable sections: at 
 Choquet's capacitability theorem to get a measurable section of the part of `s` above the set where
 the previous sections are `⊤`, defined on a set of at least half the measure of the projection of
 that part.
+
+For a standard Borel space `𝓨`, we embed `𝓨` in `ℝ≥0` and use the result for `ℝ≥0`. The section
+is a function `Ω → 𝓨` together with the measurable set on which it is a section, rather than a
+function `Ω → Option 𝓨`, since `Option 𝓨` has no measurable space structure in Mathlib.
 
 ## References
 
@@ -46,7 +59,7 @@ variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ : Measure Ω} [IsFiniteMeas
 
 namespace MeasureTheory
 
-lemma setOf_debut_zero_ne_top_eq (s : Set (ℝ≥0 × Ω)) :
+private lemma setOf_debut_zero_ne_top_eq (s : Set (ℝ≥0 × Ω)) :
     {ω | debut s 0 ω ≠ ⊤} = Prod.snd '' s :=
   setOf_debut_ne_top_eq_of_isBot fun _ ↦ zero_le
 
@@ -76,12 +89,11 @@ lemma exists_nullMeasurable_section_measure_ge (hs : IsPavingAnalytic {t | Measu
       · exact infClosed_measurableSet
       · exact infClosed_insert_empty_Icc
     · exact supClosed_supClosure
-    have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) :=
-      isPavingAnalytic_measurableSet_swap hs
+    have hs' : IsPavingAnalytic {t | MeasurableSet t} (Prod.swap '' s) := hs.image_swap
     rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff] at hs'
     exact IsPavingAnalytic.mono subset_supClosure hs'
   choose B hB_mem hB_subset hB_le using hs_capa
-  have hB_compact a ha ω : IsCompact {t | (ω , t) ∈ B a ha} := by
+  have hB_compact a ha ω : IsCompact {t | (ω, t) ∈ B a ha} := by
     specialize hB_mem a ha
     rw [mem_countableInfClosure_iff_iInf] at hB_mem
     obtain ⟨A, hA, hB_eq⟩ := hB_mem
@@ -181,22 +193,8 @@ lemma exists_measurable_section_measure_ge (hs : IsPavingAnalytic {t | Measurabl
       exact hτ_ge ω
 
 lemma isPavingAnalytic_section_eq_top {τ : Ω → WithTop ℝ≥0} (hτ_meas : Measurable τ) :
-    IsPavingAnalytic {t | MeasurableSet t} {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} := by
-  have : {(t, ω) | τ ω = ⊤} = Prod.swap '' {ω | τ ω = ⊤} ×ˢ (Set.univ : Set ℝ≥0) := by ext; simp
-  rw [this]
-  refine isPavingAnalytic_measurableSet_swap ?_
-  rw [← isPavingAnalytic_image2_prod_measurableSet_Icc_iff]
-  refine isPavingAnalytic_of_mem_countableSupClosure_of_imp
-    (p' := Set.image2 (· ×ˢ ·) {t | MeasurableSet t} (insert ∅ {t | ∃ a b, Set.Icc a b = t})) ?_
-    fun _ ↦ isPavingAnalytic_of_mem
-  have h := univ_mem_countableSupClosure_Icc (ι := ℝ≥0)
-  rw [mem_countableSupClosure_iff_iSup] at h ⊢
-  obtain ⟨B, hB, h_eq⟩ := h
-  rw [← h_eq, Set.iSup_eq_iUnion, Set.prod_iUnion]
-  refine ⟨fun n ↦ {ω | τ ω = ⊤} ×ˢ B n, fun n ↦ ?_, rfl⟩
-  refine ⟨{ω | τ ω = ⊤}, ?_, B n, ?_, rfl⟩
-  · exact (measurableSet_singleton _).preimage hτ_meas
-  · exact Set.mem_insert_of_mem _ (hB n)
+    IsPavingAnalytic {t | MeasurableSet t} {((_, ω) : ℝ≥0 × Ω) | τ ω = ⊤} :=
+  isPavingAnalytic_of_mem ((measurableSet_singleton ⊤).preimage (hτ_meas.comp measurable_snd))
 
 /-- A step in the construction of a measurable section: a measurable section of the part of `s`
 above `{τn = ⊤}`, defined on a set of at least half the measure of the projection of that part. -/
@@ -447,16 +445,18 @@ lemma IsPavingAnalytic.exists_measurable_section_right_nnreal
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
       ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ := by
   obtain ⟨τ, hτ_meas, hτ_mem, hτ_eq⟩ :=
-    (isPavingAnalytic_measurableSet_swap hs).exists_measurable_section_left_nnreal μ
+    hs.image_swap.exists_measurable_section_left_nnreal μ
   rw [Set.image_image] at hτ_eq
   exact ⟨τ, hτ_meas, fun ω hω ↦ by grind, hτ_eq⟩
 
+/-- **Measurable section theorem** for a measurably analytic subset of `ℝ≥0 × Ω`. -/
 lemma IsMeasurableAnalytic.exists_measurable_section_left_nnreal (hs : IsMeasurableAnalytic s)
     (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → ((τ ω).untopA, ω) ∈ s) ∧
       ∀ᵐ ω ∂μ, ω ∈ Prod.snd '' s ↔ τ ω ≠ ⊤ :=
   hs.isPavingAnalytic.exists_measurable_section_left_nnreal μ
 
+/-- **Measurable section theorem** for a measurably analytic subset of `Ω × ℝ≥0`. -/
 lemma IsMeasurableAnalytic.exists_measurable_section_right_nnreal
     {s : Set (Ω × ℝ≥0)} (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [SFinite μ] :
     ∃ τ : Ω → WithTop ℝ≥0, Measurable τ ∧ (∀ ω, τ ω ≠ ⊤ → (ω, (τ ω).untopA) ∈ s) ∧
@@ -477,6 +477,89 @@ lemma _root_.MeasurableSet.exists_measurable_section_right_nnreal
       ∀ᵐ ω ∂μ, ω ∈ Prod.fst '' s ↔ τ ω ≠ ⊤ :=
   hs.isMeasurableAnalytic.exists_measurable_section_right_nnreal μ
 
--- TODO: extend to standard Borel spaces. Need an Option type with measurable space.
+/-! ### Measurable section theorem for a standard Borel space -/
+
+/-- A standard Borel space admits a measurable embedding into `ℝ≥0`. -/
+lemma exists_measurableEmbedding_nnreal (𝓨 : Type*) [MeasurableSpace 𝓨] [StandardBorelSpace 𝓨] :
+    ∃ e : 𝓨 → ℝ≥0, MeasurableEmbedding e := by
+  let g : ℝ → ℝ≥0 := fun x ↦ ⟨Real.exp x, (Real.exp_pos x).le⟩
+  have hg : MeasurableEmbedding g := (Real.continuous_exp.subtype_mk _).measurableEmbedding
+    fun x y h ↦ Real.exp_injective (congrArg Subtype.val h)
+  exact ⟨g ∘ embeddingReal 𝓨, hg.comp (measurableEmbedding_embeddingReal 𝓨)⟩
+
+/-- **Measurable section theorem**: let `s` be an analytic subset of `𝓨 × Ω`, with `𝓨` a nonempty
+standard Borel space, and let `μ` be an s-finite measure. There is a measurable `τ : Ω → 𝓨` and a
+measurable set `A` such that `(τ ω, ω) ∈ s` for `ω ∈ A`, and `A` is `μ`-almost everywhere equal to
+the projection of `s`. -/
+theorem IsPavingAnalytic.exists_measurable_section_left {𝓨 : Type*} {m𝓨 : MeasurableSpace 𝓨}
+    [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (𝓨 × Ω)}
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (τ ω, ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.snd '' s := by
+  -- embed `𝓨` in `ℝ≥0`, use the measurable section theorem for `ℝ≥0` and come back to `𝓨` with
+  -- a measurable left inverse `g` of the embedding
+  obtain ⟨e, he⟩ := exists_measurableEmbedding_nnreal 𝓨
+  obtain ⟨g, hg, hge⟩ := he.exists_measurable_extend measurable_id fun _ ↦ inferInstance
+  obtain ⟨τ, hτ, hτ_mem, hτ_ae⟩ :=
+    (hs.image_measurableEmbedding (he.prodMap .id)).exists_measurable_section_left_nnreal μ
+  refine ⟨fun ω ↦ g (τ ω).untopA, {ω | τ ω ≠ ⊤}, hg.comp hτ.untopA,
+    ((measurableSet_singleton ⊤).preimage hτ).compl, fun ω hω ↦ ?_, ?_⟩
+  · obtain ⟨⟨y, ω'⟩, hy, h_eq⟩ := hτ_mem ω hω
+    simp only [Prod.map_apply, id_eq, Prod.mk.injEq] at h_eq
+    obtain ⟨h_eq, rfl⟩ := h_eq
+    beta_reduce
+    rwa [← h_eq, show g (e y) = y from congrFun hge y]
+  · have h_snd : Prod.snd '' (Prod.map e id '' s) = Prod.snd '' s := by rw [Set.image_image]; rfl
+    rw [h_snd] at hτ_ae
+    filter_upwards [hτ_ae] with ω hω using propext hω.symm
+
+/-- **Measurable section theorem**: let `s` be an analytic subset of `Ω × 𝓨`, with `𝓨` a nonempty
+standard Borel space, and let `μ` be an s-finite measure. There is a measurable `τ : Ω → 𝓨` and a
+measurable set `A` such that `(ω, τ ω) ∈ s` for `ω ∈ A`, and `A` is `μ`-almost everywhere equal to
+the projection of `s`. -/
+theorem IsPavingAnalytic.exists_measurable_section_right {𝓨 : Type*} {m𝓨 : MeasurableSpace 𝓨}
+    [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (Ω × 𝓨)}
+    (hs : IsPavingAnalytic {t | MeasurableSet t} s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (ω, τ ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.fst '' s := by
+  obtain ⟨τ, A, hτ, hA, hτ_mem, hA_eq⟩ := hs.image_swap.exists_measurable_section_left μ
+  rw [Set.image_image] at hA_eq
+  exact ⟨τ, A, hτ, hA, fun ω hω ↦ by simpa using hτ_mem ω hω, hA_eq⟩
+
+/-- **Measurable section theorem** for a measurably analytic subset of `𝓨 × Ω`, with `𝓨` a nonempty
+standard Borel space. -/
+theorem IsMeasurableAnalytic.exists_measurable_section_left {𝓨 : Type*}
+    {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (𝓨 × Ω)}
+    (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (τ ω, ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.snd '' s :=
+  hs.isPavingAnalytic.exists_measurable_section_left μ
+
+/-- **Measurable section theorem** for a measurably analytic subset of `Ω × 𝓨`, with `𝓨` a nonempty
+standard Borel space. -/
+theorem IsMeasurableAnalytic.exists_measurable_section_right {𝓨 : Type*}
+    {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (Ω × 𝓨)}
+    (hs : IsMeasurableAnalytic s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (ω, τ ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.fst '' s :=
+  hs.isPavingAnalytic.exists_measurable_section_right μ
+
+/-- **Measurable section theorem** for a measurable subset of `𝓨 × Ω`, with `𝓨` a nonempty standard
+Borel space. -/
+theorem _root_.MeasurableSet.exists_measurable_section_left {𝓨 : Type*}
+    {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (𝓨 × Ω)}
+    (hs : MeasurableSet s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (τ ω, ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.snd '' s :=
+  hs.isMeasurableAnalytic.exists_measurable_section_left μ
+
+/-- **Measurable section theorem** for a measurable subset of `Ω × 𝓨`, with `𝓨` a nonempty standard
+Borel space. -/
+theorem _root_.MeasurableSet.exists_measurable_section_right {𝓨 : Type*}
+    {m𝓨 : MeasurableSpace 𝓨} [StandardBorelSpace 𝓨] [Nonempty 𝓨] {s : Set (Ω × 𝓨)}
+    (hs : MeasurableSet s) (μ : Measure Ω) [SFinite μ] :
+    ∃ (τ : Ω → 𝓨) (A : Set Ω), Measurable τ ∧ MeasurableSet A ∧ (∀ ω ∈ A, (ω, τ ω) ∈ s) ∧
+      A =ᵐ[μ] Prod.fst '' s :=
+  hs.isMeasurableAnalytic.exists_measurable_section_right μ
 
 end MeasureTheory
