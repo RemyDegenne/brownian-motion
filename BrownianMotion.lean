@@ -40,6 +40,7 @@ public import BrownianMotion.Choquet.Debut
 public import BrownianMotion.Choquet.MeasurableSection
 public import BrownianMotion.Continuity.Chaining
 public import BrownianMotion.Continuity.CoveringNumber
+public import BrownianMotion.Continuity.FiniteVariationProcess
 public import BrownianMotion.Continuity.HasBoundedInternalCoveringNumber
 public import BrownianMotion.Continuity.IsKolmogorovProcess
 public import BrownianMotion.Continuity.KolmogorovChentsov
