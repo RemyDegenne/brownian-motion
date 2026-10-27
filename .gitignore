@@ -18,8 +18,6 @@ Manuscript/_minted/*
 /verso/.lake/
 /verso/html/
 /home_page/verso/
-## Referee
-/referee-site/
 ## TeX
 *.aux
 *.lof
