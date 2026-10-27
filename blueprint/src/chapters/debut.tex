@@ -49,7 +49,7 @@ We denote by $S_\delta$ the set of countable intersections of sets in $S$.
 \begin{lemma}\label{lem:InfClosed.mem_countableInfClosure_iff}
   \uses{def:countableInfClosure}
   \leanok
-  \lean{InfClosed.mem_countableInfClosure_iff}
+  \lean{InfClosed.mem_countableInfClosure_iff_antitone}
 If a paving $S$ is closed under pairwise intersection, then a set $s$ is in $S_\delta$ if and only if there exists a monotone decreasing family of sets $(A_n)_{n\in\mathbb{N}}$ in $S$ such that $s = \bigcap_{n\in\mathbb{N}} A_n$.
 \end{lemma}
 
@@ -62,7 +62,7 @@ If $s \in S_\delta$ there exists a family $(B_n)$ that satisfies the condition b
 \begin{lemma}\label{lem:SupClosed.mem_countableSupClosure_iff}
   \uses{def:countableSupClosure}
   \leanok
-  \lean{SupClosed.mem_countableSupClosure_iff}
+  \lean{SupClosed.mem_countableSupClosure_iff_monotone}
 If a paving $S$ is closed under pairwise union, then a set $s$ is in $S_\sigma$ if and only if there exists a monotone increasing family of sets $(A_n)_{n\in\mathbb{N}}$ in $S$ such that $s = \bigcup_{n\in\mathbb{N}} A_n$.
 \end{lemma}
 
@@ -202,7 +202,7 @@ $S_\delta$ is a compact system by Lemma~\ref{lem:IsCompactSystem.countableInfClo
 \begin{theorem}\label{thm:fst_iInter_of_supClosure_image2_prod_of_antitone}
   \uses{def:IsCompactSystem, def:supClosure, def:image2_prod}
   \leanok
-  \lean{MeasureTheory.fst_iInter_of_supClosure_image2_prod_of_antitone}
+  \lean{IsCompactSystem.fst_image_iInter}
 Let $S$ be a paving of $\mathcal{X}$ and $T$ be a compact system of $\mathcal{K}$.
 Let $(B_n)_{n \in \mathbb{N}}$ be a monotone decreasing sequence of sets in $(S \times T)^{\cup f}$.
 Let $\pi_{\mathcal{X}} : \mathcal{X} \times \mathcal{K} \to \mathcal{X}$ be the projection on $\mathcal{X}$.

@@ -1,6 +1,7 @@
 module
 
 public import BrownianMotion.Auxiliary.Algebra
+public import BrownianMotion.Auxiliary.ENNReal
 public import BrownianMotion.Auxiliary.Metric
 public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 public import Mathlib.Probability.Distributions.Gaussian.Real
@@ -213,6 +214,43 @@ lemma InnerProductSpace.volume_closedBall_div' {E : Type*} [NormedAddCommGroup E
     rw [volume_closedBall_div, ENNReal.ofReal_div_of_pos]
     · simp
     all_goals simp_all
+
+/-- The measure of a closed ball for a left-invariant measure does not depend on its center. -/
+lemma MeasureTheory.Measure.addHaar_closedEBall_center {E : Type*} [SeminormedAddCommGroup E]
+    [MeasurableSpace E] [BorelSpace E] (μ : Measure E) [μ.IsAddLeftInvariant] (x : E)
+    (r : ℝ≥0∞) :
+    μ (closedEBall x r) = μ (closedEBall (0 : E) r) := by
+  have : closedEBall (0 : E) r = (x + ·) ⁻¹' closedEBall x r := by
+    ext y
+    simp [edist_eq_enorm_sub]
+  rw [this, measure_preimage_add]
+
+/-- The measure of a closed ball of radius `r` for an additive Haar measure in dimension `d` is
+`r ^ d` times the measure of the unit ball. -/
+lemma MeasureTheory.Measure.addHaar_closedEBall {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] (x : E) (r : ℝ≥0∞) :
+    μ (closedEBall x r) = r ^ Module.finrank ℝ E * μ (ball (0 : E) 1) := by
+  rcases subsingleton_or_nontrivial E with hE | hE
+  · rw [Module.finrank_zero_of_subsingleton, pow_zero, one_mul,
+      Subsingleton.eq_univ_of_nonempty ⟨x, mem_closedEBall_self⟩,
+      Subsingleton.eq_univ_of_nonempty (nonempty_ball.2 one_pos)]
+  rcases eq_top_or_lt_top r with rfl | hr
+  · rw [closedEBall_top, MeasureTheory.measure_univ_of_isAddLeftInvariant,
+      ENNReal.top_pow Module.finrank_pos.ne', ENNReal.top_mul (measure_ball_pos μ _ one_pos).ne']
+  lift r to ℝ≥0 using hr.ne
+  rw [closedEBall_coe, MeasureTheory.Measure.addHaar_closedBall μ x r.coe_nonneg,
+    ENNReal.ofReal_pow r.coe_nonneg, ENNReal.ofReal_coe_nnreal]
+
+/-- For an additive Haar measure in dimension `d`, the ratio of the measures of two closed balls of
+radii `r` and `s` is `(r / s) ^ d`. -/
+lemma MeasureTheory.Measure.addHaar_closedEBall_div {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+    (μ : Measure E) [μ.IsAddHaarMeasure] (x y : E) (r s : ℝ≥0∞) :
+    μ (closedEBall x r) / μ (closedEBall y s) = (r / s) ^ Module.finrank ℝ E := by
+  rw [addHaar_closedEBall, addHaar_closedEBall,
+    ENNReal.mul_div_mul_right _ _ (measure_ball_pos μ _ one_pos).ne' measure_ball_lt_top.ne,
+    ENNReal.div_pow]
 
 section covariance
 

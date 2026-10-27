@@ -8,9 +8,8 @@ open ENNReal
 
 namespace ENNReal
 
-lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, ((1 : ENNReal) / 2) ^ i ≤ 2 := by
-  rw [← ENNReal.toReal_le_toReal (by simp) (by simp), toReal_ofNat, toReal_sum (by simp)]
-  simpa [-one_div] using _root_.sum_geometric_two_le _
+protected lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, (2⁻¹ : ℝ≥0∞) ^ i ≤ 2 :=
+  (ENNReal.sum_le_tsum _).trans_eq ENNReal.tsum_geometric_two
 
 lemma ofReal_one_div {x : ℝ} (hx : 0 < x) :
     ENNReal.ofReal (1 / x) = 1 / (ENNReal.ofReal x) := by
@@ -46,6 +45,9 @@ lemma rpow_iSup {ι : Type*} (f : ι → ℝ≥0∞) {x : ℝ} (hx : 0 < x) :
       right_inv a := by simpa using Or.inl hx.ne'
     }
   g.map_iSup _
+
+protected lemma div_pow (a b : ℝ≥0∞) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n := by
+  rw [div_eq_mul_inv, div_eq_mul_inv, mul_pow, ENNReal.inv_pow]
 
 end ENNReal
 

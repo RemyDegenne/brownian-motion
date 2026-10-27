@@ -146,13 +146,13 @@ For $B \subseteq A$, $N^{int}_\varepsilon(B) \le N^{int}_{\varepsilon/2}(A)$.
 
 \subsection{Covering number and volume}
 
-In this section $E$ is a finite dimensional inner product space, with dimension $d$.
+In this section $E$ is a normed additive group with an additive Haar measure $V$. For the bounds on the covering numbers of balls, $E$ is a finite dimensional real normed space, with dimension $d$.
 
 \begin{lemma}\label{lem:volume_le_of_isCover}
   \uses{def:IsCover}
   \leanok
-  \lean{volume_le_of_isCover}
-Let $A \subseteq E$ and $C \subseteq E$ be a finite $\varepsilon$-cover of $A$. Denote by $V(A)$ the volume of $A$.
+  \lean{Metric.measure_le_of_isCover}
+Let $A \subseteq E$ and $C \subseteq E$ be a finite $\varepsilon$-cover of $A$.
 Then $V(A) \le \vert C \vert V(B_\varepsilon)$, in which $B_\varepsilon$ is the closed ball of radius $\varepsilon$ in $E$.
 \end{lemma}
 
@@ -166,17 +166,13 @@ Since $C$ is a cover of $A$, $A$ is a subset of the union of the closed balls $B
 \end{align*}
 \end{proof}
 
-The volume of $B_\varepsilon$ is given by the following formula (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/VolumeOfBalls.html#InnerProductSpace.volume_closedBall}{InnerProductSpace.volume\_closedBall}).
-\begin{align*}
-  V(B_\varepsilon) = \frac{\pi^{d/2}}{\Gamma(d/2 + 1)} \varepsilon^d
-  \: .
-\end{align*}
+In a finite dimensional real normed space of dimension $d$, the measure of a ball scales as $V(B_r(x)) = r^d V(B_1)$ (see \href{https://leanprover-community.github.io/mathlib4_docs/Mathlib/MeasureTheory/Measure/Lebesgue/EqHaar.html#MeasureTheory.Measure.addHaar_closedBall}{MeasureTheory.Measure.addHaar\_closedBall}).
 
 
 \begin{lemma}\label{lem:volume_le_externalCoveringNumber_mul}
   \uses{def:externalCoveringNumber}
   \leanok
-  \lean{volume_le_externalCoveringNumber_mul}
+  \lean{Metric.measure_le_externalCoveringNumber_mul}
 If $0 < \varepsilon$ then $V(A) \le N^{ext}_\varepsilon(A) V(B_\varepsilon)$.
 \end{lemma}
 
@@ -191,7 +187,7 @@ Otherwise there exists an $\varepsilon$-cover which realizes $N^{ext}_\varepsilo
 \begin{lemma}\label{lem:le_volume_of_isSeparated}
   \uses{def:IsSeparated}
   \leanok
-  \lean{le_volume_of_isSeparated}
+  \lean{Metric.le_measure_of_isSeparated}
 Let $A \subseteq E$ and let $S \subseteq A$ be an $\varepsilon$-separated set.
 Then $\vert S \vert V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
 \end{lemma}
@@ -213,20 +209,20 @@ Thus, we have
 \begin{lemma}\label{lem:packingNumber_mul_le_volume}
   \uses{def:packingNumber}
   \leanok
-  \lean{packingNumber_mul_le_volume}
+  \lean{Metric.packingNumber_mul_le_measure}
 $P_\varepsilon(A) V(B_{\varepsilon/2}) \le V(A + B_{\varepsilon/2})$.
 \end{lemma}
 
 \begin{proof}\leanok
   \uses{lem:le_volume_of_isSeparated}
-Use Lemma~\ref{lem:le_volume_of_isSeparated} with $S$ an $\varepsilon$-separated set of maximal cardinality.
+$P_\varepsilon(A)$ is the supremum of $\vert S \vert$ over the $\varepsilon$-separated sets $S \subseteq A$. Apply Lemma~\ref{lem:le_volume_of_isSeparated} to each of them.
 \end{proof}
 
 
 \begin{lemma}\label{lem:volume_div_le_internalCoveringNumber}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{volume_div_le_coveringNumber}
+  \lean{Metric.measure_div_le_coveringNumber}
 If $0 < \varepsilon$ then $\frac{V(A)}{V(B_\varepsilon)} \le N^{int}_\varepsilon(A)$.
 \end{lemma}
 
@@ -239,7 +235,7 @@ We have $\frac{V(A)}{V(B_\varepsilon)} \le N^{ext}_\varepsilon(A)$ by Lemma~\ref
 \begin{lemma}\label{lem:internalCoveringNumber_le_volume_div}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{coveringNumber_le_volume_div}
+  \lean{Metric.coveringNumber_le_measure_div}
 If $0 < \varepsilon < \infty$ then $N^{int}_\varepsilon(A) \le \frac{V(A + B_{\varepsilon/2})}{V(B_{\varepsilon/2})}$.
 \end{lemma}
 
@@ -252,7 +248,7 @@ We have $N^{int}_\varepsilon(A) \le P_\varepsilon(A)$ by Lemma~\ref{lem:internal
 \begin{lemma}\label{lem:internalCoveringNumber_closedBall_ge}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{coveringNumber_closedBall_ge}
+  \lean{Metric.coveringNumber_closedEBall_ge}
 $N_\varepsilon^{int}(B_1) \ge \frac{1}{\varepsilon^d}$.
 \end{lemma}
 
@@ -272,7 +268,7 @@ By Lemma~\ref{lem:volume_div_le_internalCoveringNumber},
 \begin{lemma}\label{lem:internalCoveringNumber_closedBall_le}
   \uses{def:internalCoveringNumber}
   \leanok
-  \lean{coveringNumber_closedBall_le}
+  \lean{Metric.coveringNumber_closedEBall_le}
 $N_\varepsilon^{int}(B_1) \le \left(\frac{2}{\varepsilon} + 1\right)^d$.
 \end{lemma}
 
@@ -352,7 +348,7 @@ $1 \le N^{int}_{\mathrm{diam}(A)}(A) \le c \, \mathrm{diam}(A)^{-d}$, hence $\ma
 
 \begin{definition}\label{def:nearestPt}
   \leanok
-  \lean{nearestPt}
+  \lean{Finset.nearestPt}
 Let $S$ be a finite set of $E$ and $x \in E$.
 We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point such that $d_E(x, S) = \min_{y \in S} d_E(x, y)$ (chosen arbitrarily among the minima if there are several).
 \end{definition}
@@ -361,7 +357,7 @@ We denote by $\pi(x, S)$ the point in $S$ which is closest to $x$, i.e. a point 
 \begin{lemma}\label{lem:dist_nearestPt_le}
   \uses{def:nearestPt}
   \leanok
-  \lean{edist_nearestPt_le}
+  \lean{Finset.edist_nearestPt_le}
 Let $S$ be a finite set of $E$ and $x \in E$.
 Then for all $y \in S$, $d_E(x, \pi(x, S)) \le d_E(x, y)$.
 \end{lemma}
@@ -374,7 +370,7 @@ By definition.
 \begin{lemma}\label{lem:dist_nearestPt_of_isCover}
   \uses{def:nearestPt, def:IsCover}
   \leanok
-  \lean{edist_nearestPt_of_isCover}
+  \lean{Metric.IsCover.edist_nearestPt_le}
 Let $C_\varepsilon$ be a finite $\varepsilon$-cover of $A \subseteq E$ (assuming such a finite cover exists).
 Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
 \end{lemma}
@@ -387,7 +383,7 @@ Then for all $x \in A$, $d_E(x, \pi(x, C_\varepsilon)) \le \varepsilon$.
 \begin{definition}[Chaining sequence]\label{def:chainingSequence}
   \uses{def:nearestPt, def:IsCover}
   \leanok
-  \lean{chainingSequence}
+  \lean{chainingSeq}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursively as follows: $\bar{x}_k = x$ and for $i < k$, $\bar{x}_i = \pi(\bar{x}_{i+1}, C_i)$.
 \end{definition}
@@ -396,8 +392,8 @@ We define the chaining sequence of $x$, denoted $(\bar{x}_i)_{i \le k}$, recursi
 \begin{lemma}\label{lem:chainingSequence_mem}
   \uses{def:chainingSequence}
   \leanok
-  \lean{chainingSequence_mem}
-Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
+  \lean{chainingSeq_mem}
+Let $(C_n)_{n \in \mathbb{N}}$ be nonempty finite sets of $E$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for all $i \le k$, $\bar{x}_i\in C_i$.
 \end{lemma}
 
@@ -409,7 +405,7 @@ By definition.
 \begin{lemma}\label{lem:dist_chainingSequence_add_one}
   \uses{def:chainingSequence}
   \leanok
-  \lean{edist_chainingSequence_add_one}
+  \lean{edist_chainingSeq_add_one}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for all $i < k$, $d_E(\bar{x}_i, \bar{x}_{i+1}) \le \varepsilon_i$.
 \end{lemma}
@@ -423,7 +419,7 @@ Apply Lemma~\ref{lem:dist_nearestPt_of_isCover} with $S = C_i$ and $x = \bar{x}_
 \begin{lemma}\label{lem:dist_chainingSequence_le_sum}
   \uses{def:chainingSequence}
   \leanok
-  \lean{edist_chainingSequence_le_sum}
+  \lean{edist_chainingSeq_le_sum}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$ and $x \in C_k$ for some $k \in \mathbb{N}$.
 Then for $m \le k$, $d_E(\bar{x}_m, x) \le \sum_{i=m}^{k-1} \varepsilon_i$.
 \end{lemma}
@@ -443,7 +439,7 @@ By the triangle inequality and Lemma~\ref{lem:dist_chainingSequence_add_one},
 \begin{lemma}\label{lem:dist_chainingSequence_le}
   \uses{def:chainingSequence}
   \leanok
-  \lean{edist_chainingSequence_le}
+  \lean{edist_chainingSeq_le}
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $A \subseteq E$ with $C_n \subseteq A$.
 Let $m, k, \ell \in \mathbb{N}$ with $m \le k$ and $m \le \ell$ and let $x \in C_k$ and $y \in C_\ell$.
 Then
@@ -462,7 +458,7 @@ Triangle inequality and Lemma~\ref{lem:dist_chainingSequence_le_sum}.
 \begin{corollary}\label{cor:dist_chainingSequence_pow_two_le}
   \uses{def:chainingSequence}
   \leanok
-  \lean{edist_chainingSequence_pow_two_le}
+  \lean{edist_chainingSeq_pow_two_le}
 For $\varepsilon_n = \varepsilon_0 2^{-n}$, with the hypothesis of Lemma~\ref{lem:dist_chainingSequence_le}, we have
 \begin{align*}
   d_E(\bar{x}_m, \bar{y}_m)
@@ -901,7 +897,7 @@ Then for the supremum over a set in $C_m$, we use the reduction in the number of
 \begin{lemma}\label{lem:scale_change}
   \uses{def:chainingSequence}
   \leanok
-  \lean{scale_change}
+  \lean{iSup_edist_le_iSup_edist_chainingSeq}
 Let $X : T \to E$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
 For $m \le k$,
@@ -926,7 +922,7 @@ By the triangle inequality,
 \begin{corollary}\label{cor:scale_change_rpow}
   \uses{def:chainingSequence}
   \leanok
-  \lean{scale_change_rpow}
+  \lean{iSup_edist_rpow_le_iSup_edist_chainingSeq}
 Let $X : T \to E$.
 Let $(\varepsilon_n)_{n \in \mathbb{N}}$ be a sequence of positive numbers, $C_n$ a finite $\varepsilon_n$-cover of $J \subseteq T$ with $C_n \subseteq J$.
 For $m \le k$,
