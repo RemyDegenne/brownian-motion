@@ -327,18 +327,42 @@ variable {Ω ι : Type*} {m : MeasurableSpace Ω} {E : Type*} [TopologicalSpace 
 /-- A filtration `𝓕` is complete with respect to a measure `μ` if for all `i`, `𝓕 i` contains all
 the `μ`-null sets. -/
 class IsComplete (𝓕 : Filtration ι m) (μ : Measure Ω := by volume_tac) where
-    /-- `𝓕 ⊥` contains all the null sets. -/
-    measurableSet_of_null ⦃s : Set Ω⦄ (hs : μ s = 0) (t : ι) : MeasurableSet[𝓕 t] s
+  /-- For all `t`, `𝓕 t` contains all the null sets. -/
+  measurableSet_of_null ⦃s : Set Ω⦄ (hs : μ s = 0) (t : ι) : MeasurableSet[𝓕 t] s
 
-instance {𝓕 : Filtration ι m} {μ : Measure Ω} [u : IsComplete 𝓕 μ] {i : ι} :
+/-- If a filtration `𝓕` is complete with respect to `μ`, then the measure `μ` restricted to the
+σ-algebra `𝓕 i` is complete. -/
+instance {𝓕 : Filtration ι m} {μ : Measure Ω} [IsComplete 𝓕 μ] {i : ι} :
     (μ.trim <| 𝓕.le i).IsComplete :=
   ⟨fun _ hs ↦ IsComplete.measurableSet_of_null (measure_eq_zero_of_trim_eq_zero (𝓕.le i) hs) i⟩
+
+/-- A filtration that is complete with respect to `μ` is complete with respect to any measure `ν`
+such that `μ ≪ ν`. -/
+lemma IsComplete.of_absolutelyContinuous {𝓕 : Filtration ι m} {μ ν : Measure Ω} [IsComplete 𝓕 μ]
+    (hμν : μ ≪ ν) :
+    IsComplete 𝓕 ν :=
+  ⟨fun _ hs t ↦ IsComplete.measurableSet_of_null (hμν hs) t⟩
 
 /-- Completeness of a filtration only depends on the null sets of the measure, and `μ.toFinite` has
 the same null sets as `μ`. -/
 instance IsComplete.toFinite {𝓕 : Filtration ι m} {μ : Measure Ω} [SFinite μ] [IsComplete 𝓕 μ] :
     IsComplete 𝓕 μ.toFinite :=
-  ⟨fun _ hs t ↦ IsComplete.measurableSet_of_null (absolutelyContinuous_toFinite μ hs) t⟩
+  .of_absolutelyContinuous (μ := μ) (absolutelyContinuous_toFinite μ)
+
+/-- If a filtration `𝓕` is complete with respect to `μ`, then a set that is `μ`-almost everywhere
+equal to a set of `𝓕 i` belongs to `𝓕 i`. -/
+lemma IsComplete.measurableSet_of_ae_eq {𝓕 : Filtration ι m} {μ : Measure Ω} [IsComplete 𝓕 μ]
+    {s t : Set Ω} {i : ι} (ht : MeasurableSet[𝓕 i] t) (hst : s =ᵐ[μ] t) :
+    MeasurableSet[𝓕 i] s := by
+  rw [← symmDiff_symmDiff_cancel_left t s]
+  exact ht.symmDiff (IsComplete.measurableSet_of_null (measure_symmDiff_eq_zero_iff.mpr hst.symm) i)
+
+/-- If a filtration `𝓕` is complete with respect to `μ`, then a random time that is `μ`-almost
+everywhere equal to a stopping time is a stopping time. -/
+lemma _root_.MeasureTheory.IsStoppingTime.congr_ae {𝓕 : Filtration ι m} {μ : Measure Ω}
+    [IsComplete 𝓕 μ] {τ σ : Ω → WithTop ι} (hσ : IsStoppingTime 𝓕 σ) (h : τ =ᵐ[μ] σ) :
+    IsStoppingTime 𝓕 τ :=
+  fun i ↦ IsComplete.measurableSet_of_ae_eq (hσ i) (h.fun_comp (· ≤ (i : WithTop ι)))
 
 /-- The class of **predictable rectangles** associated to a filtration `𝓕` is the family of sets
 `(i, j] ×ˢ A` for `i < j` in `ι` and `A ∈ 𝓕 i`, together with `{⊥} ×ˢ A` for `A ∈ 𝓕 ⊥`. -/

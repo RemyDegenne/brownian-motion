@@ -160,19 +160,10 @@ omit [OrderBot ι] in
 lemma isStoppingTime_ae_const [IsComplete 𝓕 P] (τ : Ω → WithTop ι) (c : WithTop ι)
     (hτ : τ =ᵐ[P] Function.const _ c) :
     IsStoppingTime 𝓕 τ := by
-  intros i
-  suffices P {ω | τ ω ≤ i} = 0 ∨ P {ω | τ ω ≤ ↑i}ᶜ = 0 by
-    obtain h | h := this
-    · exact IsComplete.measurableSet_of_null h i
-    · exact (IsComplete.measurableSet_of_null h i).of_compl
-  obtain hle | hgt := le_or_gt c i
-  · refine Or.inr <| ae_iff.1 ?_
-    filter_upwards [hτ] with ω rfl using hle
-  · refine Or.inl ?_
-    rw [← compl_compl {ω | τ ω ≤ i}]
-    refine ae_iff.1 ?_
-    filter_upwards [hτ] with ω hω
-    simp [hω, hgt]
+  refine IsStoppingTime.congr_ae (μ := P) ?_ hτ
+  cases c with
+  | top => exact fun i ↦ by simp
+  | coe c => exact isStoppingTime_const 𝓕 c
 
 variable [TopologicalSpace ι] [OrderTopology ι]
 

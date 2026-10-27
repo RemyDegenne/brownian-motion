@@ -25,6 +25,8 @@ products `A ×ˢ K` with `A ∈ p` and `K` in a compact system of `𝓚`.
 
 ## Main statements
 
+* `MeasureTheory.IsPavingAnalyticFor.isPavingAnalyticFor_nat_nat`: the auxiliary space in the
+  definition of analytic sets can always be taken to be `ℕ → ℕ`.
 * `MeasureTheory.IsPavingAnalytic.iUnion`, `MeasureTheory.IsPavingAnalytic.iInter`: analytic sets
   are stable by countable unions and intersections.
 * `MeasureTheory.IsPavingAnalytic.fst`: the projection of an analytic set for a product paving
@@ -39,11 +41,13 @@ products `A ×ˢ K` with `A ∈ p` and `K` in a compact system of `𝓚`.
 ## Implementation notes
 
 In the definition of `IsPavingAnalytic`, the auxiliary space `𝓚` lives in `Type`, since we cannot
-quantify over universes.
+quantify over universes. This is not a restriction: by
+`IsPavingAnalyticFor.isPavingAnalyticFor_nat_nat`, a set that is analytic with an auxiliary space in
+any universe is analytic with auxiliary space `ℕ → ℕ`.
 
 Some references require the compact system `q` to contain `∅` and the auxiliary space `𝓚` to be
 nonempty. This gives the same notion: `insert ∅ q` is a compact system if `q` is one, and a set
-that is analytic with an empty auxiliary space is empty, hence analytic with auxiliary space `ℝ`.
+that is analytic with an empty auxiliary space is empty, hence analytic with any auxiliary space.
 
 We use `IsCompactSystem`, which corresponds to the semi-compact pavings of Dellacherie and Meyer,
 rather than compact pavings (the same notion with arbitrary intersections instead of countable
@@ -72,17 +76,13 @@ lemma supClosed_measurableSet {α : Type*} [MeasurableSpace α] :
 lemma infClosed_measurableSet {α : Type*} [MeasurableSpace α] :
     InfClosed {t : Set α | MeasurableSet t} := fun _ hs _ ht ↦ hs.inter ht
 
+/-- The product σ-algebra is monotone in both factors. -/
 @[gcongr]
 lemma MeasurableSpace.prod_mono {Ω ι : Type*} {mι : MeasurableSpace ι} {mι' : MeasurableSpace ι}
     {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω}
     (h₁ : mι ≤ mι') (h₂ : mΩ ≤ mΩ') :
-    mι.prod mΩ ≤ mι'.prod mΩ' := by
-  simp only [MeasurableSpace.prod, sup_le_iff]
-  refine ⟨le_sup_of_le_left ?_, le_sup_of_le_right ?_⟩
-  · rw [MeasurableSpace.comap_le_iff_le_map]
-    exact h₁.trans MeasurableSpace.le_map_comap
-  · rw [MeasurableSpace.comap_le_iff_le_map]
-    exact h₂.trans MeasurableSpace.le_map_comap
+    mι.prod mΩ ≤ mι'.prod mΩ' :=
+  sup_le_sup (MeasurableSpace.comap_mono h₁) (MeasurableSpace.comap_mono h₂)
 
 lemma borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
     [LinearOrder α] [OrderTopology α] :
@@ -104,22 +104,40 @@ lemma borel_eq_generateFrom_insert_empty_Icc (α : Type*) [TopologicalSpace α]
 
 namespace MeasureTheory
 
+/-- `NullMeasurable` version of `measurable_generateFrom`. -/
 lemma nullMeasurable_generateFrom {α β : Type*} {_ : MeasurableSpace α} {μ : Measure α}
     {s : Set (Set β)} {f : α → β}
     (h : ∀ t ∈ s, NullMeasurableSet (f ⁻¹' t) μ) :
-    @NullMeasurable _ _ _ (MeasurableSpace.generateFrom s) f μ := by
-  refine fun t ht ↦ MeasurableSpace.generateFrom_induction (C := s)
-    (fun s _ ↦ NullMeasurableSet (f ⁻¹' s) μ) (fun t hts _ ↦ h t hts) (by simp) (by simp) ?_ _ ht
-  simp only [Set.preimage_iUnion]
-  exact fun t _ hft ↦ NullMeasurableSet.iUnion hft
+    @NullMeasurable _ _ _ (MeasurableSpace.generateFrom s) f μ :=
+  measurable_generateFrom h
 
-lemma nullMeasurable_of_Iio {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
-    [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
-    {mδ : MeasurableSpace δ} {μ : Measure δ}
-    {f : δ → α} (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) : NullMeasurable f μ := by
-  convert nullMeasurable_generateFrom (α := δ) _
-  · exact BorelSpace.measurable_eq.trans (borel_eq_generateFrom_Iio _)
-  · rintro _ ⟨x, rfl⟩; exact hf x
+section OrderTopology
+
+variable {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
+  [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
+  {mδ : MeasurableSpace δ} {μ : Measure δ} {f : δ → α}
+
+/-- `NullMeasurable` version of `measurable_of_Iio`. -/
+lemma nullMeasurable_of_Iio (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) :
+    NullMeasurable f μ :=
+  measurable_of_Iio hf
+
+/-- `NullMeasurable` version of `measurable_of_Ioi`. -/
+lemma nullMeasurable_of_Ioi (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Ioi x) μ) :
+    NullMeasurable f μ :=
+  measurable_of_Ioi hf
+
+/-- `NullMeasurable` version of `measurable_of_Iic`. -/
+lemma nullMeasurable_of_Iic (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iic x) μ) :
+    NullMeasurable f μ :=
+  measurable_of_Iic hf
+
+/-- `NullMeasurable` version of `measurable_of_Ici`. -/
+lemma nullMeasurable_of_Ici (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Ici x) μ) :
+    NullMeasurable f μ :=
+  measurable_of_Ici hf
+
+end OrderTopology
 
 end MeasureTheory
 
@@ -168,107 +186,124 @@ def IsPavingAnalyticFor (p : Set (Set 𝓧)) (𝓚 : Type*) (s : Set 𝓧) : Pro
 def IsPavingAnalytic (p : Set (Set 𝓧)) (s : Set 𝓧) : Prop :=
   ∃ 𝓚 : Type, IsPavingAnalyticFor p 𝓚 s
 
-lemma IsPavingAnalyticFor.isPavingAnalytic {𝓚 : Type} (hs : IsPavingAnalyticFor p 𝓚 s) :
-    IsPavingAnalytic p s := ⟨𝓚, hs⟩
+/-- The auxiliary space in the definition of analytic sets can always be taken to be `ℕ → ℕ`. -/
+lemma IsPavingAnalyticFor.isPavingAnalyticFor_nat_nat (hs : IsPavingAnalyticFor p 𝓚 s) :
+    IsPavingAnalyticFor p (ℕ → ℕ) s := by
+  classical
+  obtain ⟨q, hq, t, ht, rfl⟩ := hs
+  obtain ⟨A, hA, K, hK, rfl⟩ := mem_prodSigmaDelta_iff.mp ht
+  -- encode a point `k` by the set of indices `(n, m)` such that `k ∈ K n m`
+  let φ : 𝓚 → ℕ → ℕ := fun k j ↦ if k ∈ K j.unpair.1 j.unpair.2 then 1 else 0
+  have hφ n m : φ ⁻¹' (φ '' K n m) = K n m := by
+    refine subset_antisymm ?_ (Set.subset_preimage_image _ _)
+    rintro k' ⟨k, hk, h⟩
+    have h_nm := congrFun h (Nat.pair n m)
+    simp only [φ, Nat.unpair_pair, hk, ↓reduceIte] at h_nm
+    by_contra hk'
+    simp [hk'] at h_nm
+  refine ⟨(φ '' ·) '' {t | ∃ n m, K n m = t}, ?_, ⋂ n, ⋃ m, A n m ×ˢ (φ '' K n m),
+    mem_prodSigmaDelta_iff.mpr ⟨A, hA, _, fun n m ↦ ⟨K n m, ⟨n, m, rfl⟩, rfl⟩, rfl⟩, ?_⟩
+  · refine (hq.mono ?_).image ?_
+    · rintro _ ⟨n, m, rfl⟩
+      exact hK n m
+    · rintro _ ⟨n, m, rfl⟩
+      exact hφ n m
+  -- the points of `𝓚` with the same image by `φ` belong to the same sets `K n m`
+  ext x
+  simp only [Set.mem_image, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Prod.exists,
+    exists_and_right, exists_eq_right]
+  constructor
+  · rintro ⟨k, hk⟩
+    exact ⟨φ k, fun n ↦ (hk n).imp fun m h ↦ ⟨h.1, k, h.2, rfl⟩⟩
+  · rintro ⟨τ, hτ⟩
+    obtain ⟨-, -, k, -, rfl⟩ := hτ 0
+    refine ⟨k, fun n ↦ (hτ n).imp fun m ⟨hxA, hk⟩ ↦ ⟨hxA, ?_⟩⟩
+    rw [← hφ n m]
+    exact hk
+
+lemma IsPavingAnalyticFor.isPavingAnalytic (hs : IsPavingAnalyticFor p 𝓚 s) :
+    IsPavingAnalytic p s :=
+  ⟨ℕ → ℕ, hs.isPavingAnalyticFor_nat_nat⟩
 
 lemma isPavingAnalyticFor_of_mem (𝓚 : Type*) [Nonempty 𝓚] (hs : s ∈ p) :
-    IsPavingAnalyticFor p 𝓚 s := by
-  refine ⟨{Set.univ, ∅}, ?_, ⟨s ×ˢ .univ, ?_, by ext; simp⟩⟩
-  · exact IsCompactSystem.insert_univ isCompactSystem_singleton_empty
-  · exact mem_prodSigmaDelta_of_mem hs (by simp)
+    IsPavingAnalyticFor p 𝓚 s :=
+  ⟨{Set.univ, ∅}, isCompactSystem_singleton_empty.insert_univ, s ×ˢ .univ,
+    prod_mem_prodSigmaDelta hs (by simp), (Set.fst_image_prod s Set.univ_nonempty).symm⟩
 
 lemma isPavingAnalytic_of_mem (hs : s ∈ p) : IsPavingAnalytic p s :=
-  (isPavingAnalyticFor_of_mem ℝ hs).isPavingAnalytic
+  (isPavingAnalyticFor_of_mem Unit hs).isPavingAnalytic
 
 lemma IsPavingAnalyticFor.mono {p' : Set (Set 𝓧)} (hp : p ⊆ p') (hs : IsPavingAnalyticFor p 𝓚 s) :
-    IsPavingAnalyticFor p' 𝓚 s := by
-  obtain ⟨q, hq_compact, t, ht_prod, rfl⟩ := hs
-  refine ⟨q, hq_compact, ⟨t, ?_, rfl⟩⟩
-  exact prodSigmaDelta.mono hp (fun _ ↦ id) ht_prod
+    IsPavingAnalyticFor p' 𝓚 s :=
+  let ⟨q, hq, t, ht, hs⟩ := hs
+  ⟨q, hq, t, prodSigmaDelta_mono hp subset_rfl ht, hs⟩
 
 lemma IsPavingAnalytic.mono {p' : Set (Set 𝓧)} (hp : p ⊆ p') (hs : IsPavingAnalytic p s) :
-    IsPavingAnalytic p' s := by
-  choose 𝓚 hs𝓚 using hs
-  exact (IsPavingAnalyticFor.mono hp hs𝓚).isPavingAnalytic
+    IsPavingAnalytic p' s :=
+  let ⟨_, hs⟩ := hs
+  (hs.mono hp).isPavingAnalytic
 
 /-- An analytic set for `p` is contained in a countable union of sets of `p`. See the paragraph
 after Definition 1.25 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.exists_mem_countableSupClosure_superset (hs : IsPavingAnalyticFor p 𝓚 s) :
-    ∃ t, t ∈ countableSupClosure p ∧ s ⊆ t := by
-  obtain ⟨q, hq_compact, B, hB_prod, rfl⟩ := hs
-  rw [mem_prodSigmaDelta_iff] at hB_prod
-  obtain ⟨A, hA, K, hK, rfl⟩ := hB_prod
-  simp_rw [mem_countableSupClosure_iff_iSup]
-  refine ⟨⋃ m, A 0 m, ?_, ?_⟩
-  · exact ⟨fun m ↦ A 0 m, hA 0, rfl⟩
-  · intro x hx
-    simp only [Set.mem_image, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Prod.exists,
-      exists_and_right, exists_eq_right] at hx ⊢
-    obtain ⟨_, h⟩ := hx
-    choose n hn _ using h
-    exact ⟨n 0, hn 0⟩
+    ∃ t ∈ countableSupClosure p, s ⊆ t := by
+  obtain ⟨q, -, B, hB, rfl⟩ := hs
+  obtain ⟨A, hA, K, -, rfl⟩ := mem_prodSigmaDelta_iff.mp hB
+  refine ⟨⋃ m, A 0 m, iSup_mem_countableSupClosure (hA 0), ?_⟩
+  rintro _ ⟨y, hy, rfl⟩
+  obtain ⟨m, hm, -⟩ := Set.mem_iUnion.mp (Set.mem_iInter.mp hy 0)
+  exact Set.mem_iUnion.mpr ⟨m, hm⟩
 
-lemma IsPavingAnalyticFor.empty (𝓚 : Type*) (hp : p.Nonempty) : IsPavingAnalyticFor p 𝓚 ∅ := by
-  obtain ⟨A, hA⟩ := hp
-  exact ⟨{Set.univ, ∅}, IsCompactSystem.insert_univ isCompactSystem_singleton_empty,
-    A ×ˢ ∅, mem_prodSigmaDelta_of_mem hA (by simp), by simp⟩
+lemma isPavingAnalyticFor_empty (𝓚 : Type*) (hp : p.Nonempty) : IsPavingAnalyticFor p 𝓚 ∅ :=
+  let ⟨A, hA⟩ := hp
+  ⟨{Set.univ, ∅}, isCompactSystem_singleton_empty.insert_univ, A ×ˢ ∅,
+    prod_mem_prodSigmaDelta hA (by simp), by simp⟩
 
 @[simp]
-lemma IsPavingAnalytic.empty (hp : p.Nonempty) : IsPavingAnalytic p ∅ :=
-  (IsPavingAnalyticFor.empty ℝ hp).isPavingAnalytic
+lemma isPavingAnalytic_empty (hp : p.Nonempty) : IsPavingAnalytic p ∅ :=
+  (isPavingAnalyticFor_empty Unit hp).isPavingAnalytic
 
 @[simp]
-lemma isPavingAnalyticFor_iff_eq_empty (𝓚 : Type*) [IsEmpty 𝓚] (hp : p.Nonempty) (s : Set 𝓧) :
-    IsPavingAnalyticFor p 𝓚 s ↔ s = ∅ := by
-  refine ⟨fun hs ↦ ?_, fun hs_empty ↦ ?_⟩
-  · obtain ⟨q, hq_compact, t, h_prod, h_eq⟩ := hs
-    rw [h_eq]
-    simp only [Set.image_eq_empty]
-    exact Set.eq_empty_of_isEmpty t
-  · rw [hs_empty]
-    exact IsPavingAnalyticFor.empty 𝓚 hp
+lemma isPavingAnalyticFor_iff_eq_empty [IsEmpty 𝓚] (hp : p.Nonempty) :
+    IsPavingAnalyticFor p 𝓚 s ↔ s = ∅ :=
+  ⟨fun ⟨_, _, t, _, hs⟩ ↦ by simp [hs, Set.eq_empty_of_isEmpty t],
+    fun hs ↦ hs ▸ isPavingAnalyticFor_empty 𝓚 hp⟩
 
 /-- A countable intersection of analytic sets is analytic. Theorem 1.26 of
 [he2019semimartingale]. -/
-lemma IsPavingAnalyticFor.iInter {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
-    (hs : ∀ n, IsPavingAnalyticFor p (𝓚 n) (s n)) :
-    IsPavingAnalyticFor p (Π n, 𝓚 n) (⋂ n, s n) := by
-  choose q hq_compact B hB_prod hB_eq using hs
-  let C n : Set (𝓧 × ((i : ℕ) → 𝓚 i)) := {p | (p.1, p.2 n) ∈ B n}
-  let q' : Set (Set (Π n, 𝓚 n)) :=
-    -- modeled on squareCylinders, but with univ instead of a finset
-    Set.univ.pi '' (Set.univ.pi (fun n ↦ insert Set.univ (q n)))
-  refine ⟨q', ?_, ⋂ n, C n, ?_, ?_⟩
-  · exact IsCompactSystem.pi fun n ↦ (hq_compact n).insert_univ
-  · refine countableInfClosed_countableInfClosure.iInf_mem fun n ↦ ?_
-    rw [← prodSigmaDelta]
-    simp_rw [mem_prodSigmaDelta_iff] at hB_prod ⊢
-    choose A hA K hK hB_eq using hB_prod
-    refine ⟨A n, hA n, fun i j ↦ {y | y n ∈ K n i j}, fun i j ↦ ?_, ?_⟩
-    · simp only [Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const, q']
-      refine ⟨fun k ↦ if k = n then K k i j else Set.univ, fun k ↦ ?_, ?_⟩
-      · simp only
-        split_ifs with hk
-        · subst hk
-          exact .inr (hK k i j)
-        · simp
-      · ext; simp
-    ext
-    simp [hB_eq, C]
-  · simp_rw [hB_eq]
-    ext x
-    simp only [Set.mem_iInter, Set.mem_image, Prod.exists, exists_and_right, exists_eq_right,
-      Set.mem_ofPred_eq, C]
-    refine ⟨fun h ↦ ?_, fun ⟨y, hy⟩ n ↦ ⟨y n, hy n⟩⟩
+lemma IsPavingAnalyticFor.iInter [Countable ι] [Nonempty ι] {𝓚 : ι → Type*} {s : ι → Set 𝓧}
+    (hs : ∀ i, IsPavingAnalyticFor p (𝓚 i) (s i)) :
+    IsPavingAnalyticFor p (Π i, 𝓚 i) (⋂ i, s i) := by
+  classical
+  choose q hq B hB hs_eq using hs
+  -- the set `⋂ i, s i` is the projection of the set of `(x, y)` with `(x, y i) ∈ B i` for all `i`
+  refine ⟨Set.univ.pi '' Set.univ.pi (fun i ↦ insert Set.univ (q i)),
+    IsCompactSystem.pi fun i ↦ (hq i).insert_univ, ⋂ i, Prod.map id (Function.eval i) ⁻¹' B i,
+    countableInfClosed_prodSigmaDelta.iInf_mem fun i ↦
+      prodSigmaDelta_mono ?_ ?_ (preimage_prodMap_mem_prodSigmaDelta (hB i)), ?_⟩
+  · rintro _ ⟨A, hA, rfl⟩
+    exact hA
+  · rintro _ ⟨K, hK, rfl⟩
+    refine ⟨Function.update (fun _ ↦ Set.univ) i K, fun j _ ↦ ?_, Set.eval_preimage.symm⟩
+    rcases eq_or_ne j i with rfl | hj
+    · simpa using .inr hK
+    · simp [hj]
+  · ext x
+    simp only [hs_eq, Set.mem_iInter, Set.mem_image, Set.mem_preimage, Prod.map_apply, id_eq,
+      Function.eval, Prod.exists, exists_and_right, exists_eq_right]
+    refine ⟨fun h ↦ ?_, fun ⟨y, hy⟩ i ↦ ⟨y i, hy i⟩⟩
     choose y hy using h
     exact ⟨y, hy⟩
 
 /-- A countable intersection of analytic sets is analytic. Theorem 1.26 of
 [he2019semimartingale]. -/
-lemma IsPavingAnalytic.iInter {s : ℕ → Set 𝓧} (hs : ∀ n, IsPavingAnalytic p (s n)) :
-    IsPavingAnalytic p (⋂ n, s n) := by
+lemma IsPavingAnalytic.iInter [Countable ι] [Nonempty ι] {s : ι → Set 𝓧}
+    (hs : ∀ i, IsPavingAnalytic p (s i)) :
+    IsPavingAnalytic p (⋂ i, s i) := by
+  obtain ⟨f, hf⟩ := exists_surjective_nat ι
+  rw [← hf.iInter_comp]
   choose 𝓚 hs𝓚 using hs
-  exact (IsPavingAnalyticFor.iInter hs𝓚).isPavingAnalytic
+  exact (IsPavingAnalyticFor.iInter fun n ↦ hs𝓚 (f n)).isPavingAnalytic
 
 /-- A countable union of analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.iUnion {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
@@ -297,7 +332,7 @@ lemma IsPavingAnalyticFor.iUnion {𝓚 : ℕ → Type*} {s : ℕ → Set 𝓧}
     refine countableInfClosed_countableInfClosure.iInf_mem fun k ↦ subset_countableInfClosure ?_
     simp_rw [mem_countableSupClosure_image2_prod_iff] at hA
     choose B hB K hK hA_eq using hA
-    simp_rw [hA_eq]
+    simp_rw [← hA_eq]
     have h_eq : Prod.swap '' ((Equiv.sigmaProdDistrib 𝓚 𝓧).symm '' Set.univ.sigma
         fun n ↦ Prod.swap '' ⋃ n_1, B n k n_1 ×ˢ K n k n_1)
       = ⋃ n_1, Prod.swap '' ((Equiv.sigmaProdDistrib 𝓚 𝓧).symm '' Set.univ.sigma
@@ -326,53 +361,35 @@ lemma IsPavingAnalytic.iUnion {s : ℕ → Set 𝓧} (hs : ∀ n, IsPavingAnalyt
   exact (IsPavingAnalyticFor.iUnion hs𝓚).isPavingAnalytic
 
 /-- The intersection of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
-lemma IsPavingAnalyticFor.inter {𝓚' : Type*} {t : Set 𝓧}
-    (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
+lemma IsPavingAnalyticFor.inter (hs : IsPavingAnalyticFor p 𝓚 s) (ht : IsPavingAnalyticFor p 𝓚' t) :
     IsPavingAnalyticFor p (𝓚 × 𝓚') (s ∩ t) := by
-  obtain ⟨q, hq_compact, B, hB_prod, hB_eq⟩ := hs
-  obtain ⟨q', hq'_compact, B', hB'_prod, hB'_eq⟩ := ht
-  let C : Set (𝓧 × (𝓚 × 𝓚')) := {p | (p.1, p.2.1) ∈ B}
-  let C' : Set (𝓧 × (𝓚 × 𝓚')) := {p | (p.1, p.2.2) ∈ B'}
-  let q'' : Set (Set (𝓚 × 𝓚')) := Set.image2 (· ×ˢ ·) (insert Set.univ q) (insert Set.univ q')
-  refine ⟨q'', ?_, C ∩ C', ?_, ?_⟩
-  · exact IsCompactSystem.prod hq_compact.insert_univ hq'_compact.insert_univ
-  · refine infClosed_countableInfClosure ?_ ?_
-    · rw [← prodSigmaDelta]
-      simp_rw [mem_prodSigmaDelta_iff] at hB_prod ⊢
-      choose A hA K hK hB_eq using hB_prod
-      refine ⟨A, hA, fun i j ↦ {y | y.1 ∈ K i j}, fun i j ↦ ?_, ?_⟩
-      · simp only [q'']
-        refine ⟨K i j, ?_⟩
-        simp only [Set.mem_insert_iff, hK, or_true, exists_eq_or_imp, true_and]
-        left
-        ext
-        simp
-      · ext y
-        simp only [hB_eq, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Set.mem_ofPred_eq, C]
-    · rw [← prodSigmaDelta]
-      simp_rw [mem_prodSigmaDelta_iff] at hB'_prod ⊢
-      choose A hA K hK hB_eq using hB'_prod
-      refine ⟨A, hA, fun i j ↦ {y | y.2 ∈ K i j}, fun i j ↦ ?_, ?_⟩
-      · simp only [q'']
-        simp only [Set.mem_image2, Set.mem_insert_iff, exists_eq_or_imp, Set.univ_prod_univ]
-        left
-        right
-        refine ⟨K i j, ?_⟩
-        simp only [hK, true_and]
-        ext
-        simp
-      · ext y
-        simp only [hB_eq, Set.mem_iInter, Set.mem_iUnion, Set.mem_prod, Set.mem_ofPred_eq, C']
+  obtain ⟨q, hq, B, hB, rfl⟩ := hs
+  obtain ⟨q', hq', B', hB', rfl⟩ := ht
+  -- the set `s ∩ t` is the projection of the set of `(x, y, y')` with `(x, y) ∈ B` and
+  -- `(x, y') ∈ B'`
+  refine ⟨Set.image2 (· ×ˢ ·) (insert Set.univ q) (insert Set.univ q'),
+    hq.insert_univ.prod hq'.insert_univ,
+    Prod.map id Prod.fst ⁻¹' B ∩ Prod.map id Prod.snd ⁻¹' B',
+    countableInfClosed_prodSigmaDelta.infClosed
+      (prodSigmaDelta_mono ?_ ?_ (preimage_prodMap_mem_prodSigmaDelta hB))
+      (prodSigmaDelta_mono ?_ ?_ (preimage_prodMap_mem_prodSigmaDelta hB')), ?_⟩
+  · rintro _ ⟨A, hA, rfl⟩
+    exact hA
+  · rintro _ ⟨K, hK, rfl⟩
+    exact ⟨K, .inr hK, Set.univ, .inl rfl, Set.prod_univ⟩
+  · rintro _ ⟨A, hA, rfl⟩
+    exact hA
+  · rintro _ ⟨K, hK, rfl⟩
+    exact ⟨Set.univ, .inl rfl, K, .inr hK, Set.univ_prod⟩
   · ext
-    simp [hB_eq, hB'_eq, C, C']
+    simp
 
 /-- The intersection of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
-lemma IsPavingAnalytic.inter {t : Set 𝓧}
-    (hs : IsPavingAnalytic p s) (ht : IsPavingAnalytic p t) :
-    IsPavingAnalytic p (s ∩ t) := by
-  choose 𝓚 hs𝓚 using hs
-  choose 𝓚' ht𝓚' using ht
-  exact (IsPavingAnalyticFor.inter hs𝓚 ht𝓚').isPavingAnalytic
+lemma IsPavingAnalytic.inter (hs : IsPavingAnalytic p s) (ht : IsPavingAnalytic p t) :
+    IsPavingAnalytic p (s ∩ t) :=
+  let ⟨_, hs⟩ := hs
+  let ⟨_, ht⟩ := ht
+  (hs.inter ht).isPavingAnalytic
 
 /-- The union of two analytic sets is analytic. Theorem 1.26 of [he2019semimartingale]. -/
 lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
@@ -413,7 +430,7 @@ lemma IsPavingAnalyticFor.union {𝓚' : Type*} {t : Set 𝓧}
     simp_rw [mem_countableSupClosure_image2_prod_iff] at hA hA'
     choose B hB K hK hA_eq using hA
     choose B' hB' K' hK' hA'_eq using hA'
-    simp_rw [hA_eq, hA'_eq]
+    simp_rw [← hA_eq, ← hA'_eq]
     have h_eq : (Equiv.prodSumDistrib 𝓧 𝓚 𝓚').symm '' Set.sumEquiv.symm
           (⋃ n, B k n ×ˢ K k n, ⋃ n, B' k n ×ˢ K' k n)
         = ⋃ n, (Equiv.prodSumDistrib 𝓧 𝓚 𝓚').symm '' Set.sumEquiv.symm
@@ -488,81 +505,71 @@ lemma isPavingAnalytic_of_mem_countableSupClosure_of_imp {p' : Set (Set 𝓧)}
 
 /-- The projection of an analytic set for the paving `p × q`, with `q` a compact system, is
 analytic for `p`. This is Theorem 1.28 of [he2019semimartingale]. -/
-lemma IsPavingAnalyticFor.fst {𝓚' : Type*} (hq : IsCompactSystem q)
-    {s : Set (𝓧 × 𝓚)} (hs : IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) p q) 𝓚' s) :
+lemma IsPavingAnalyticFor.fst (hq : IsCompactSystem q) {s : Set (𝓧 × 𝓚)}
+    (hs : IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) p q) 𝓚' s) :
     IsPavingAnalyticFor p (𝓚 × 𝓚') (Prod.fst '' s) := by
-  obtain ⟨q', hq', K, hK, rfl⟩ := hs
-  refine ⟨Set.image2 (· ×ˢ ·) q q', hq.prod hq', Equiv.prodAssoc 𝓧 𝓚 𝓚' '' K, ?_,
-    by ext; simp⟩
-  simp_rw [mem_prodSigmaDelta_iff] at hK ⊢
-  obtain ⟨B, hB, K', hK', rfl⟩ := hK
-  choose A hA K hK h_eq using hB
-  refine ⟨A, hA, fun n m ↦ K n m ×ˢ K' n m, fun n m ↦ ?_, ?_⟩
-  · exact ⟨K n m, hK n m, K' n m, hK' n m, rfl⟩
-  · rw [Set.image_iInter (Equiv.prodAssoc 𝓧 𝓚 𝓚').bijective]
-    simp_rw [Set.image_iUnion]
-    congr
-    ext
-    simp
-    grind
+  obtain ⟨q', hq', B, hB, rfl⟩ := hs
+  obtain ⟨C, hC, K', hK', rfl⟩ := mem_prodSigmaDelta_iff.mp hB
+  choose A hA K hK hC_eq using hC
+  refine ⟨Set.image2 (· ×ˢ ·) q q', hq.prod hq', ⋂ n, ⋃ m, A n m ×ˢ (K n m ×ˢ K' n m),
+    mem_prodSigmaDelta_iff.mpr ⟨A, hA, _, fun n m ↦ Set.mem_image2_of_mem (hK n m) (hK' n m), rfl⟩,
+    ?_⟩
+  ext
+  simp [← hC_eq, and_assoc]
 
 /-- The projection of an analytic set for the paving `p × q`, with `q` a compact system, is
 analytic for `p`. This is Theorem 1.28 of [he2019semimartingale]. -/
-lemma IsPavingAnalytic.fst {𝓚 : Type} {q : Set (Set 𝓚)} (hq : IsCompactSystem q)
+lemma IsPavingAnalytic.fst (hq : IsCompactSystem q)
     {s : Set (𝓧 × 𝓚)} (hs : IsPavingAnalytic (Set.image2 (· ×ˢ ·) p q) s) :
     IsPavingAnalytic p (Prod.fst '' s) := by
   obtain ⟨𝓚', hs𝓚'⟩ := hs
   exact (hs𝓚'.fst hq).isPavingAnalytic
 
-lemma IsPavingAnalyticFor.prod_left {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
-    (ht : t ∈ r) (hs : IsPavingAnalyticFor p 𝓚 s) :
+/-- The product of an analytic set for `p` with a set of `r` is analytic for the product paving
+`r × p`. -/
+lemma IsPavingAnalyticFor.prod_left {r : Set (Set 𝓨)} {t : Set 𝓨} (ht : t ∈ r)
+    (hs : IsPavingAnalyticFor p 𝓚 s) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) r p) 𝓚 (t ×ˢ s) := by
-  obtain ⟨q, hq_compact, s', hs_prod, hs_eq⟩ := hs
-  have h_eq' : t ×ˢ s = Prod.fst '' ((Equiv.prodAssoc _ _ _).symm '' (t ×ˢ s')) := by
-    ext; simp; grind
-  refine ⟨q, hq_compact, (Equiv.prodAssoc _ _ _).symm '' (t ×ˢ s'), ?_, h_eq'⟩
-  simp_rw [mem_prodSigmaDelta_iff] at hs_prod ⊢
-  obtain ⟨A, hA, K, hK, rfl⟩ := hs_prod
-  refine ⟨fun n m ↦ t ×ˢ A n m, fun n m ↦ ?_, K, hK, ?_⟩
-  · exact ⟨t, ht, A n m, hA n m, rfl⟩
-  · rw [Set.prod_iInter, Set.image_iInter (Equiv.prodAssoc _ _ _).symm.bijective]
-    congr with
-    simp
-    grind
+  obtain ⟨q, hq, B, hB, rfl⟩ := hs
+  obtain ⟨A, hA, K, hK, rfl⟩ := mem_prodSigmaDelta_iff.mp hB
+  refine ⟨q, hq, ⋂ n, ⋃ m, (t ×ˢ A n m) ×ˢ K n m,
+    mem_prodSigmaDelta_iff.mpr ⟨_, fun n m ↦ Set.mem_image2_of_mem ht (hA n m), K, hK, rfl⟩, ?_⟩
+  ext ⟨y, x⟩
+  simp only [Set.mem_prod, Set.mem_image, Set.mem_iInter, Set.mem_iUnion, Prod.exists,
+    exists_and_right, exists_eq_right]
+  exact ⟨fun ⟨hy, k, hk⟩ ↦ ⟨k, fun n ↦ (hk n).imp fun _ h ↦ ⟨⟨hy, h.1⟩, h.2⟩⟩,
+    fun ⟨k, hk⟩ ↦ ⟨(hk 0).choose_spec.1.1, k, fun n ↦ (hk n).imp fun _ h ↦ ⟨h.1.2, h.2⟩⟩⟩
 
-lemma IsPavingAnalytic.prod_left {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
-    (ht : t ∈ r) (hs : IsPavingAnalytic p s) :
-    IsPavingAnalytic (Set.image2 (· ×ˢ ·) r p) (t ×ˢ s) := by
-  obtain ⟨𝓚, hs𝓚⟩ := hs
-  exact (hs𝓚.prod_left ht).isPavingAnalytic
+/-- The product of an analytic set for `p` with a set of `r` is analytic for the product paving
+`r × p`. -/
+lemma IsPavingAnalytic.prod_left {r : Set (Set 𝓨)} {t : Set 𝓨} (ht : t ∈ r)
+    (hs : IsPavingAnalytic p s) :
+    IsPavingAnalytic (Set.image2 (· ×ˢ ·) r p) (t ×ˢ s) :=
+  let ⟨_, hs⟩ := hs
+  (hs.prod_left ht).isPavingAnalytic
 
-lemma IsPavingAnalyticFor.prod_right {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
+/-- The product of an analytic set for `p` with a set of `r` is analytic for the product paving
+`p × r`. -/
+lemma IsPavingAnalyticFor.prod_right {r : Set (Set 𝓨)} {t : Set 𝓨}
     (hs : IsPavingAnalyticFor p 𝓚 s) (ht : t ∈ r) :
     IsPavingAnalyticFor (Set.image2 (· ×ˢ ·) p r) 𝓚 (s ×ˢ t) := by
-  obtain ⟨q, hq_compact, s', hs_prod, hs_eq⟩ := hs
-  have h_eq' : s ×ˢ t = Prod.fst '' ((Equiv.prodAssoc _ _ _).symm ''
-      (Prod.map id Prod.swap '' ((Equiv.prodAssoc _ _ _) '' (s' ×ˢ t)))) := by
-    congr with
-    simp
-    grind
-  refine ⟨q, hq_compact, (Equiv.prodAssoc _ _ _).symm ''
-      (Prod.map id Prod.swap '' ((Equiv.prodAssoc _ _ _) '' (s' ×ˢ t))), ?_, h_eq'⟩
-  simp_rw [mem_prodSigmaDelta_iff] at hs_prod ⊢
-  obtain ⟨A, hA, K, hK, rfl⟩ := hs_prod
-  refine ⟨fun n m ↦ A n m ×ˢ t, fun n m ↦ ?_, K, hK, ?_⟩
-  · exact ⟨A n m, hA n m, t, ht, rfl⟩
-  · rw [Set.iInter_prod, Set.image_iInter (Equiv.prodAssoc _ _ _).bijective,
-      Set.image_iInter, Set.image_iInter (Equiv.prodAssoc _ _ _).symm.bijective]
-    swap; · exact Function.bijective_id.prodMap Prod.swap_bijective
-    congr with n x
-    simp
-    grind
+  obtain ⟨q, hq, B, hB, rfl⟩ := hs
+  obtain ⟨A, hA, K, hK, rfl⟩ := mem_prodSigmaDelta_iff.mp hB
+  refine ⟨q, hq, ⋂ n, ⋃ m, (A n m ×ˢ t) ×ˢ K n m,
+    mem_prodSigmaDelta_iff.mpr ⟨_, fun n m ↦ Set.mem_image2_of_mem (hA n m) ht, K, hK, rfl⟩, ?_⟩
+  ext ⟨x, y⟩
+  simp only [Set.mem_prod, Set.mem_image, Set.mem_iInter, Set.mem_iUnion, Prod.exists,
+    exists_and_right, exists_eq_right]
+  exact ⟨fun ⟨⟨k, hk⟩, hy⟩ ↦ ⟨k, fun n ↦ (hk n).imp fun _ h ↦ ⟨⟨h.1, hy⟩, h.2⟩⟩,
+    fun ⟨k, hk⟩ ↦ ⟨⟨k, fun n ↦ (hk n).imp fun _ h ↦ ⟨h.1.1, h.2⟩⟩, (hk 0).choose_spec.1.2⟩⟩
 
-lemma IsPavingAnalytic.prod_right {𝓨 : Type*} {r : Set (Set 𝓨)} {t : Set 𝓨}
+/-- The product of an analytic set for `p` with a set of `r` is analytic for the product paving
+`p × r`. -/
+lemma IsPavingAnalytic.prod_right {r : Set (Set 𝓨)} {t : Set 𝓨}
     (hs : IsPavingAnalytic p s) (ht : t ∈ r) :
-    IsPavingAnalytic (Set.image2 (· ×ˢ ·) p r) (s ×ˢ t) := by
-  obtain ⟨𝓚, hs𝓚⟩ := hs
-  exact (hs𝓚.prod_right ht).isPavingAnalytic
+    IsPavingAnalytic (Set.image2 (· ×ˢ ·) p r) (s ×ˢ t) :=
+  let ⟨_, hs⟩ := hs
+  (hs.prod_right ht).isPavingAnalytic
 
 lemma isPavingAnalyticFor_of_image2_prod_isPavingAnalyticFor_left {𝓨 : Type*} {r : Set (Set 𝓨)}
     {t : Set (𝓨 × 𝓧)} (ht : t ∈ Set.image2 (· ×ˢ ·) r {s | IsPavingAnalyticFor p 𝓚 s}) :
@@ -774,7 +781,7 @@ lemma isPavingAnalytic_of_measurableSet_generateFrom (hp_nonempty : p.Nonempty)
     exact ⟨hs.1.inter ht.1, hs.2.union ht.2⟩
   · simp only [Set.mem_ofPred_eq, Set.compl_empty, G]
     obtain ⟨u, hu⟩ := hp_nonempty
-    refine ⟨IsPavingAnalytic.empty ⟨u, hu⟩, ?_⟩
+    refine ⟨isPavingAnalytic_empty ⟨u, hu⟩, ?_⟩
     rw [← Set.union_compl_self u]
     exact (isPavingAnalytic_of_mem hu).union (hp u hu)
   · exact fun _ ↦ id
@@ -1025,7 +1032,7 @@ lemma _root_.MeasurableSet.isPavingAnalytic_image2_prod {ι : Type*} {mι : Meas
     ⟨∅, ∅, MeasurableSet.empty, ∅, by simp, by simp⟩
   rcases isEmpty_or_nonempty ι with hι | hι
   · rw [Set.eq_empty_of_isEmpty s]
-    exact IsPavingAnalytic.empty h_nonempty
+    exact isPavingAnalytic_empty h_nonempty
   have h_compl (t : Set (𝓧 × ι))
         (ht : t ∈ Set.image2 (· ×ˢ ·) {t | MeasurableSet t}
           (insert ∅ {t | ∃ a b, Set.Icc a b = t})) :
@@ -1069,10 +1076,8 @@ lemma isPavingAnalytic_image2_prod_measurableSet_Icc_iff {ι : Type*} {mι : Mea
 
 /-- The projection of an analytic set for the product of the paving of measurable sets and the
 paving of closed intervals is analytic for the paving of measurable sets. Variant of
-Theorem 1.32 (3) of [he2019semimartingale].
-
-The type `ι` is in `Type` since it is the auxiliary space of an analytic set. -/
-lemma isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc {ι : Type} [LinearOrder ι]
+Theorem 1.32 (3) of [he2019semimartingale]. -/
+lemma isPavingAnalytic_fst_of_image2_prod_measurableSet_Icc {ι : Type*} [LinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [CompactIccSpace ι] [MeasurableSpace 𝓧]
     {s : Set (𝓧 × ι)}
     (hs : IsPavingAnalytic (Set.image2 (· ×ˢ ·) {t | MeasurableSet t}

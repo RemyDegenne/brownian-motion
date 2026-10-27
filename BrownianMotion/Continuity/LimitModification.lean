@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 module
 
 public import BrownianMotion.Auxiliary.DenseCountable
-public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import Mathlib.MeasureTheory.Constructions.Polish.StronglyMeasurable
 public import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 
 /-!
@@ -35,19 +35,8 @@ lemma measurable_limUnder_of_exists_tendsto {ι X E : Type*}
 lemma measurable_limUnder {ι X E : Type*} [MeasurableSpace X] [TopologicalSpace E] [PolishSpace E]
     [MeasurableSpace E] [BorelSpace E] [Countable ι] {l : Filter ι}
     [l.IsCountablyGenerated] {f : ι → X → E} [hE : Nonempty E] (hf : ∀ i, Measurable (f i)) :
-    Measurable (fun x ↦ limUnder l (f · x)) := by
-  let conv := {x | ∃ c, Tendsto (f · x) l (𝓝 c)}
-  have mconv : MeasurableSet conv := measurableSet_exists_tendsto hf
-  have : (fun x ↦ Filter.limUnder l (f · x)) = ((↑) : conv → X).extend
-      (fun x ↦ Filter.limUnder l (f · x)) (fun _ ↦ hE.some) := by
-    ext x
-    by_cases hx : x ∈ conv
-    · rw [Function.extend_val_apply hx]
-    · rw [Function.extend_val_apply' hx, limUnder_of_not_tendsto hx]
-  rw [this]
-  refine (MeasurableEmbedding.subtype_coe mconv).measurable_extend ?_ measurable_const
-  exact measurable_limUnder_of_exists_tendsto (fun x ↦ x.2)
-    (fun i ↦ (hf i).comp measurable_subtype_coe)
+    Measurable (fun x ↦ limUnder l (f · x)) :=
+  (StronglyMeasurable.limUnder fun i ↦ (hf i).stronglyMeasurable).measurable
 
 lemma limUnder_prod {α β X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
     [Nonempty X] [Nonempty Y] [T2Space X] [T2Space Y] {f : Filter α} {f' : Filter β}
@@ -64,16 +53,9 @@ lemma _root_.Measurable.of_edist_eq_zero {Ω E : Type*} {mΩ : MeasurableSpace �
     [PseudoEMetricSpace E] [MeasurableSpace E] [BorelSpace E]
     {X Y : Ω → E} (hX : Measurable X)
     (h_eq_zero : ∀ ω, edist (Y ω) (X ω) = 0) :
-    Measurable Y := by
-  refine measurable_of_isOpen fun U hU ↦ ?_
-  suffices Y ⁻¹' U = X ⁻¹' U by rw [this]; exact hX hU.measurableSet
-  ext ω
-  simp only [Set.mem_preimage, ← hU.mem_nhds_iff]
-  suffices 𝓝 (X ω) = 𝓝 (Y ω) by rw [this]
-  symm
-  refine Inseparable.nhds_eq ?_
-  rw [EMetric.inseparable_iff]
-  exact h_eq_zero ω
+    Measurable Y :=
+  fun _ hs ↦ (hX hs).congr <| Set.ext fun ω ↦
+    ((EMetric.inseparable_iff.mpr (h_eq_zero ω)).mem_measurableSet_iff hs).symm
 
 lemma edist_limUnder_const {T E : Type*} [PseudoEMetricSpace E] [Nonempty E]
     {c : E} {l : Filter T} [l.NeBot] :

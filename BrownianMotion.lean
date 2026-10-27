@@ -34,6 +34,7 @@ public import BrownianMotion.Auxiliary.Topology
 public import BrownianMotion.Auxiliary.Upcrossing
 public import BrownianMotion.Auxiliary.WithLp
 public import BrownianMotion.Choquet.AnalyticSet
+public import BrownianMotion.Choquet.AnalyticSetPolish
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.Choquet.CompactSystem
 public import BrownianMotion.Choquet.Debut

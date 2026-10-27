@@ -95,7 +95,7 @@ lemma isCoverWithBoundedCoveringNumber_Ico_nnreal :
       gcongr
       exact coveringNumber_subset_le this
     _ ≤ 3 * ((n + 1) / 2 : ℝ≥0) / (ε / 2 : ℝ≥0) := by
-      have h := coveringNumber_closedBall_le_three_mul (r := (n + 1) / 2) (ε := ε / 2)
+      have h := coveringNumber_closedEBall_le_three_mul (r := (n + 1) / 2) (ε := ε / 2)
         (x := ((n : ℝ) + 1) / 2) ?_ ?_
       · simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ENNReal.coe_div, ENNReal.coe_add,
           ENNReal.coe_natCast, ENNReal.coe_one, ENNReal.coe_ofNat, Module.finrank_self, pow_one]

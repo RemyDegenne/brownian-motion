@@ -295,7 +295,7 @@ lemma ProgMeasurableSet.measurableSet_preimage_prodMk [Preorder ι] [MeasurableS
 
 /-- For an analytic set `E`, the set `{ω | debut E n ω < s}` is null-measurable with respect to any
 s-finite measure. -/
-lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type} [ConditionallyCompleteLinearOrder ι]
+lemma IsPavingAnalytic.nullMeasurableSet_debut_lt {ι : Type*} [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
     [BorelSpace ι]
     {P : Measure Ω} [SFinite P] {E : Set (ι × Ω)}
@@ -325,7 +325,7 @@ lemma _root_.MeasurableSet.measurableSet_debut_lt
 
 /-- The debut of an analytic set is universally measurable: it is null-measurable
 with respect to any s-finite measure. -/
-lemma IsPavingAnalytic.nullMeasurable_debut {ι : Type} [ConditionallyCompleteLinearOrder ι]
+lemma IsPavingAnalytic.nullMeasurable_debut {ι : Type*} [ConditionallyCompleteLinearOrder ι]
     [TopologicalSpace ι] [OrderTopology ι] [SecondCountableTopology ι] [MeasurableSpace ι]
     [BorelSpace ι]
     {P : Measure Ω} [SFinite P] {s : Set (ι × Ω)}

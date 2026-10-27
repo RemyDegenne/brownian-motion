@@ -29,9 +29,11 @@ analytic sets with respect to a paving and to prove Choquet's capacitability the
 * `IsCompactSystem.sigma`: compact systems on the fibers of a sigma type give a compact system on
   the sigma type (for sets above finitely many indices).
 * `IsCompactSystem.sum`: compact systems on `𝓚` and `𝓚'` give a compact system on `𝓚 ⊕ 𝓚'`.
-* `MeasureTheory.fst_iInter_of_supClosure_image2_prod_of_antitone`: if `q` is a compact system,
-  the projection on the first coordinate commutes with the intersection of a decreasing sequence of
-  finite unions of products `A ×ˢ K` with `K ∈ q`.
+* `IsCompactSystem.image`: the image of a compact system by a map `f` is a compact system if its
+  sets are saturated for `f`.
+* `IsCompactSystem.fst_image_iInter`: if `q` is a compact system, the projection on the first
+  coordinate commutes with the intersection of a decreasing sequence of finite unions of products
+  `A ×ˢ K` with `K ∈ q`.
 
 ## Implementation notes
 
@@ -113,6 +115,11 @@ lemma biUnion_finset_mem_supClosure {s : Finset ι} (hs_nonempty : s.Nonempty) {
   rw [← Finset.sup_set_eq_biUnion, ← Finset.sup'_eq_sup hs_nonempty]
   exact supClosed_supClosure.finsetSup'_mem hs_nonempty fun i hi ↦ subset_supClosure (hs i hi)
 
+@[to_dual]
+lemma supClosure_subset_countableSupClosure {β : Type*} [SemilatticeSup β] {s : Set β} :
+    supClosure s ⊆ countableSupClosure s :=
+  supClosure_min subset_countableSupClosure countableSupClosed_countableSupClosure.supClosed
+
 end Aux
 
 lemma isCompactSystem_singleton_empty {α : Type*} : IsCompactSystem {(∅ : Set α)} :=
@@ -161,6 +168,25 @@ lemma IsCompactSystem.preimage_of_surjective {f : 𝓚' → 𝓚} (hf : Function
   refine ⟨N, hf.preimage_injective.eq_iff.1 ?_⟩
   simpa [Set.dissipate, Set.preimage_iInter] using hN
 
+/-- The image of a compact system by a map `f` is a compact system if each of its sets is the
+preimage by `f` of its image. -/
+lemma IsCompactSystem.image {α β : Type*} {f : α → β} {S : Set (Set α)} (hS : IsCompactSystem S)
+    (hf : ∀ K ∈ S, f ⁻¹' (f '' K) = K) :
+    IsCompactSystem ((f '' ·) '' S) := by
+  intro C hC h_empty
+  choose K hK hKC using hC
+  obtain rfl : C = fun i ↦ f '' K i := funext fun i ↦ (hKC i).symm
+  have h_eq : ⋂ i, K i = f ⁻¹' ⋂ i, f '' K i := by
+    rw [Set.preimage_iInter]
+    exact Set.iInter_congr fun i ↦ (hf _ (hK i)).symm
+  obtain ⟨n, hn⟩ := hS K hK (by rw [h_eq, h_empty, Set.preimage_empty])
+  refine ⟨n, Set.eq_empty_of_forall_notMem fun y hy ↦ ?_⟩
+  obtain ⟨k, -, rfl⟩ := Set.mem_dissipate.mp hy 0 (Nat.zero_le n)
+  have hk : k ∈ Set.dissipate K n := Set.mem_dissipate.mpr fun i hi ↦ by
+    rw [← hf _ (hK i)]
+    exact Set.mem_dissipate.mp hy i hi
+  simp [hn] at hk
+
 lemma Set.iInter_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} (s : β → Set ι)
     (f : β → (i : ι) → Set (𝓚 i)) :
      ⋂ b, (s b).sigma (f b) = ∅ ↔ ∀ i ∈ ⋂ b, s b, ⋂ b, f b i = ∅ := by
@@ -177,64 +203,44 @@ lemma Set.iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : �
   exact ⟨fun h i hi x hx => h ⟨i, x⟩ fun b hb => ⟨hi b hb, hx b hb⟩,
     fun h ⟨i, x⟩ hx => h i (fun b hb => (hx b hb).1) x (fun b hb => (hx b hb).2)⟩
 
+/-- If `q i` is a compact system on `𝓚 i` for all `i`, then the sets of `Σ i, 𝓚 i` of the form
+`(s : Set ι).sigma f` with `s` finite and `f i ∈ q i` for all `i` form a compact system. -/
 lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (𝓚 i))}
     (hq : ∀ i, IsCompactSystem (q i)) :
     IsCompactSystem {t : Set (Σ i, 𝓚 i) |
       ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
   classical
   intro C hC hC_empty
-  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ,
-    forall_const] at hC
+  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const] at hC
   choose s f hf hCfs using hC
-  simp_rw [Set.dissipate, ← hCfs]
-  simp_rw [← hCfs, Set.iInter_sigma_eq_empty_iff] at hC_empty
-  by_cases h : ⋂ b, (s b : Set ι) = ∅
-  · obtain ⟨n₀, hn₀⟩ := isCompactSystem_finite ι (fun b => (s b : Set ι))
-      (fun b => (s b).finite_toSet) h
-    refine ⟨n₀, ?_⟩
-    rw [Set.dissipate] at hn₀
-    simp_rw [Set.iInter₂_sigma_eq_empty_iff, hn₀]
-    simp
-  · have hs : (s 0).Nonempty := by
-      rw [← Finset.coe_nonempty, Set.nonempty_iff_ne_empty]
-      exact fun h0 => h <| Set.subset_eq_empty (Set.iInter_subset _ 0) h0
-    obtain ⟨j₀, hj₀⟩ := hs
-    have key₀ : ∀ j ∈ ⋂ b, s b, ∃ N,
-        ⋂ (b ≤ N), f b j = ∅ := by
-      intro j hj
-      exact hq j (f · j) (fun i ↦ hf i j) (hC_empty j hj)
-    have key₁ : ∀ j ∉ ⋂ b, s b, ∃ N, j ∉ s N := by
-      intro j hj
-      simpa [Set.mem_iInter, not_forall] using hj
-    -- For each j ∈ s 0, find N(j) such that the fibre over j in the bounded sigma is empty.
-    have key : ∀ j ∈ s 0, ∃ N,
-        ∀ x, (⟨j, x⟩ : Σ k, 𝓚 k) ∉ ⋂ y, ⋂ (_ : y ≤ N), (s y : Set ι).sigma (f y) := by
-      intro j _
-      by_cases hjs : j ∈ ⋂ b, s b
-      · obtain ⟨N, hN⟩ := key₀ j hjs
-        refine ⟨N, fun x hx => ?_⟩
-        have hxslice : x ∈ ⋂ b, ⋂ _ : b ≤ N, f b j := by
-          simp only [Set.mem_iInter, Set.mem_sigma_iff] at hx ⊢
-          exact fun b hb => (hx b hb).2
-        rw [hN] at hxslice; exact hxslice
-      · obtain ⟨b, hb⟩ := key₁ j hjs
-        refine ⟨b, fun x hx => ?_⟩
-        have : (⟨j, x⟩ : Σ k, 𝓚 k) ∈ (s b : Set ι).sigma (f b) :=
-          (Set.mem_iInter.mp (Set.mem_iInter.mp hx b) le_rfl)
-        exact hb (Finset.mem_coe.mp (Set.mem_sigma_iff.mp this).1)
-    choose N hN using key
-    use (s 0).attach.sup fun jh => N jh.val jh.prop
-    rw [Set.eq_empty_iff_forall_notMem]
-    rintro ⟨j, x⟩ hjx
-    have hj0 : j ∈ s 0 := by
-      have : (⟨j, x⟩ : Σ k, 𝓚 k) ∈ (s 0 : Set ι).sigma (f 0) :=
-        Set.mem_iInter.mp (Set.mem_iInter.mp hjx 0) (Nat.zero_le _)
-      exact Finset.mem_coe.mp (Set.mem_sigma_iff.mp this).1
-    have hle : N j hj0 ≤ ((s 0).attach.sup fun jh => N jh.val jh.prop) :=
-      Finset.le_sup (f := fun jh : { x // x ∈ s 0 } => N jh.val jh.prop)
-        (Finset.mem_attach _ ⟨j, hj0⟩)
-    exact hN j hj0 x
-      (Set.iInter₂_mono' (fun b' j' => ⟨b', j'.trans hle, Set.Subset.rfl⟩) hjx)
+  obtain rfl : C = fun b ↦ (s b : Set ι).sigma (f b) := funext fun b ↦ (hCfs b).symm
+  -- for each `j`, the fibers over `j` of the first sets have empty intersection
+  have key (j : ι) :
+      ∃ N, ∀ x, ⟨j, x⟩ ∉ Set.dissipate (fun b ↦ (s b : Set ι).sigma (f b)) N := by
+    by_cases hj : ∀ b, j ∈ s b
+    · -- `q j` is a compact system and the intersection of the fibers over `j` is empty
+      obtain ⟨N, hN⟩ := hq j (fun b ↦ f b j) (fun b ↦ hf b j) <| by
+        refine Set.eq_empty_iff_forall_notMem.mpr fun x hx ↦ ?_
+        refine Set.eq_empty_iff_forall_notMem.mp hC_empty ⟨j, x⟩ ?_
+        simp only [Set.mem_iInter, Set.mem_sigma_iff] at hx ⊢
+        exact fun b ↦ ⟨hj b, hx b⟩
+      refine ⟨N, fun x hx ↦ Set.eq_empty_iff_forall_notMem.mp hN x ?_⟩
+      simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hx ⊢
+      exact fun b hb ↦ (hx b hb).2
+    · -- `j ∉ s b` for some `b`
+      push Not at hj
+      obtain ⟨b, hb⟩ := hj
+      refine ⟨b, fun x hx ↦ hb ?_⟩
+      simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hx
+      exact (hx b le_rfl).1
+  -- only the finitely many `j ∈ s 0` matter
+  choose N hN using key
+  refine ⟨(s 0).sup N, Set.eq_empty_iff_forall_notMem.mpr ?_⟩
+  rintro ⟨j, x⟩ hjx
+  have hj0 : j ∈ s 0 := by
+    simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hjx
+    exact (hjx 0 (Nat.zero_le _)).1
+  exact hN j x (Set.antitone_dissipate (Finset.le_sup hj0) hjx)
 
 /-- Variant of `IsCompactSystem.sigma` for a finite index type, with sets above all indices. -/
 lemma IsCompactSystem.univ_sigma [Finite ι] {𝓚 : ι → Type*}
@@ -269,104 +275,96 @@ lemma IsCompactSystem.sum {𝓚 𝓚' : Type*} {q : Set (Set 𝓚)} {q' : Set (S
 
 namespace MeasureTheory
 
+/-- The products `A ×ˢ K` with `A ∈ p` and `K ∈ q` form an inf-closed paving if `p` and `q` are
+inf-closed. -/
 lemma _root_.InfClosed.image2_prod (hp_inter : InfClosed p) (hq_inter : InfClosed q) :
     InfClosed (Set.image2 (· ×ˢ ·) p q) := by
-  intro A hA B hB
-  obtain ⟨u, hu, v, hv, h_eq⟩ := hA
-  obtain ⟨s, hs, t, ht, h_eq'⟩ := hB
-  simp only [← h_eq, ← h_eq']
-  exact ⟨u ∩ s, hp_inter hu hs, v ∩ t, hq_inter hv ht, by simp; grind⟩
+  rintro _ ⟨u, hu, v, hv, rfl⟩ _ ⟨u', hu', v', hv', rfl⟩
+  exact ⟨u ∩ u', hp_inter hu hu', v ∩ v', hq_inter hv hv', Set.prod_inter_prod.symm⟩
 
 /-- The paving of countable intersections of countable unions of products `A ×ˢ K` with `A ∈ p`
 and `K ∈ q`. See `mem_prodSigmaDelta_iff`. -/
 def prodSigmaDelta (p : Set (Set 𝓧)) (q : Set (Set 𝓚)) : Set (Set (𝓧 × 𝓚)) :=
   countableInfClosure (countableSupClosure (Set.image2 (· ×ˢ ·) p q))
 
-lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
-    s ∈ prodSigmaDelta p q ↔
-      ∃ (A : ℕ → ℕ → Set 𝓧) (_ : ∀ n m, A n m ∈ p) (K : ℕ → ℕ → Set 𝓚) (_ : ∀ n m, K n m ∈ q),
-        s = ⋂ n, ⋃ m, A n m ×ˢ K n m := by
-  unfold prodSigmaDelta
-  simp only [mem_countableInfClosure_iff_iInf, mem_countableSupClosure_iff_iSup, Set.mem_image2,
-    Set.iSup_eq_iUnion, Set.iInf_eq_iInter, exists_prop]
-  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · choose A hA hs using h
-    choose B hB hB' using hA
-    choose C hC hC' using hB
-    choose D hD hD' using hC'
-    refine ⟨C, hC, D, hD, ?_⟩
-    rw [← hs]
-    simp_rw [hD', ← hB']
-  · obtain ⟨A, hA, K, hK, rfl⟩ := h
-    refine ⟨fun n ↦ ⋃ m, A n m ×ˢ K n m, fun n ↦ ⟨fun m ↦ A n m ×ˢ K n m, fun m ↦ ?_, rfl⟩, rfl⟩
-    exact ⟨A n m, hA n m, ⟨K n m, hK n m, rfl⟩⟩
-
 lemma mem_countableSupClosure_image2_prod_iff {s : Set (𝓧 × 𝓚)} :
     s ∈ countableSupClosure (Set.image2 (· ×ˢ ·) p q) ↔
-      ∃ (A : ℕ → Set 𝓧) (_ : ∀ n, A n ∈ p) (K : ℕ → Set 𝓚) (_ : ∀ n, K n ∈ q),
-        s = ⋃ n, A n ×ˢ K n := by
-  simp only [mem_countableSupClosure_iff_iSup, Set.mem_image2]
-  refine ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · choose A hA hs using h
-    choose B hB C hC hA_eq using hA
-    refine ⟨B, hB, C, hC, ?_⟩
-    simp_rw [← hs, hA_eq]
-    rfl
-  · obtain ⟨A, hA, K, hK, rfl⟩ := h
-    exact ⟨fun n ↦ A n ×ˢ K n, fun n ↦ ⟨A n, hA n, K n, hK n, rfl⟩, rfl⟩
+      ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ ∃ K : ℕ → Set 𝓚, (∀ n, K n ∈ q) ∧
+        ⋃ n, A n ×ˢ K n = s := by
+  simp only [mem_countableSupClosure_iff_iSup, Set.mem_image2, Set.iSup_eq_iUnion]
+  refine ⟨fun ⟨B, hB, hs⟩ ↦ ?_, fun ⟨A, hA, K, hK, hs⟩ ↦
+    ⟨fun n ↦ A n ×ˢ K n, fun n ↦ ⟨A n, hA n, K n, hK n, rfl⟩, hs⟩⟩
+  choose A hA K hK hB_eq using hB
+  exact ⟨A, hA, K, hK, by simp_rw [hB_eq]; exact hs⟩
 
-lemma mem_prodSigmaDelta_of_mem {s : Set 𝓧} {t : Set 𝓚} (hs : s ∈ p) (hq : t ∈ q) :
-    s ×ˢ t ∈ prodSigmaDelta p q := by
-  rw [mem_prodSigmaDelta_iff]
-  exact ⟨fun n m ↦ s, fun _ _ ↦ hs, fun n m ↦ t, fun _ _ ↦ hq, by
-    simp [Set.iInter_const, Set.iUnion_const]⟩
+lemma mem_prodSigmaDelta_iff {s : Set (𝓧 × 𝓚)} :
+    s ∈ prodSigmaDelta p q ↔
+      ∃ A : ℕ → ℕ → Set 𝓧, (∀ n m, A n m ∈ p) ∧ ∃ K : ℕ → ℕ → Set 𝓚, (∀ n m, K n m ∈ q) ∧
+        ⋂ n, ⋃ m, A n m ×ˢ K n m = s := by
+  simp only [prodSigmaDelta, mem_countableInfClosure_iff_iInf,
+    mem_countableSupClosure_image2_prod_iff, Set.iInf_eq_iInter]
+  refine ⟨fun ⟨B, hB, hs⟩ ↦ ?_, fun ⟨A, hA, K, hK, hs⟩ ↦
+    ⟨fun n ↦ ⋃ m, A n m ×ˢ K n m, fun n ↦ ⟨A n, hA n, K n, hK n, rfl⟩, hs⟩⟩
+  choose A hA K hK hB_eq using hB
+  exact ⟨A, hA, K, hK, by simp_rw [hB_eq]; exact hs⟩
 
-lemma prodSigmaDelta.mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p ⊆ p') (hq : q ⊆ q')
-    {s : Set (𝓧 × 𝓚)} (hs : s ∈ prodSigmaDelta p q) :
-    s ∈ prodSigmaDelta p' q' := by
-  simp_rw [mem_prodSigmaDelta_iff] at hs ⊢
-  obtain ⟨A, hA, K, hK, rfl⟩ := hs
-  exact ⟨A, fun n m ↦ hp (hA n m), K, fun n m ↦ hq (hK n m), rfl⟩
+lemma prod_mem_prodSigmaDelta {s : Set 𝓧} {t : Set 𝓚} (hs : s ∈ p) (ht : t ∈ q) :
+    s ×ˢ t ∈ prodSigmaDelta p q :=
+  subset_countableInfClosure (subset_countableSupClosure (Set.mem_image2_of_mem hs ht))
 
-/-- If the paving is inf-closed, elements of `countableInfClosure` can be written as countable
-intersections of *antitone* sequences of sets. -/
-protected
-lemma _root_.InfClosed.mem_countableInfClosure_iff (hp : InfClosed p) {s : Set 𝓧} :
-    s ∈ countableInfClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Antitone A ∧ s = ⋂ n, A n := by
-  rw [mem_countableInfClosure_iff_iInf]
-  refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
-  choose A hA hs using h
-  refine ⟨Set.dissipate A, fun n ↦ ?_, Set.antitone_dissipate, ?_⟩
-  · induction n with
-    | zero => simp [hA]
-    | succ n hn =>
-      rw [Set.dissipate_succ]
-      exact hp hn (hA _)
-  · rw [Set.iInter_dissipate, ← hs]
-    rfl
+@[gcongr]
+lemma prodSigmaDelta_mono {p' : Set (Set 𝓧)} {q' : Set (Set 𝓚)} (hp : p ⊆ p') (hq : q ⊆ q') :
+    prodSigmaDelta p q ⊆ prodSigmaDelta p' q' :=
+  countableInfClosure_mono (countableSupClosure_mono (Set.image2_subset hp hq))
 
-/-- If the paving is sup-closed, elements of `countableSupClosure` can be written as countable
-unions of *monotone* sequences of sets. -/
-protected
-lemma _root_.SupClosed.mem_countableSupClosure_iff (hp : SupClosed p) {s : Set 𝓧} :
-    s ∈ countableSupClosure p ↔ ∃ A : ℕ → Set 𝓧, (∀ n, A n ∈ p) ∧ Monotone A ∧ s = ⋃ n, A n := by
+lemma countableInfClosed_prodSigmaDelta : CountableInfClosed (prodSigmaDelta p q) :=
+  countableInfClosed_countableInfClosure
+
+/-- The preimage of a set of `prodSigmaDelta p q` by `Prod.map g f` belongs to the
+`prodSigmaDelta` of the preimage pavings. -/
+lemma preimage_prodMap_mem_prodSigmaDelta {g : 𝓨 → 𝓧} {f : 𝓚' → 𝓚} {t : Set (𝓧 × 𝓚)}
+    (ht : t ∈ prodSigmaDelta p q) :
+    Prod.map g f ⁻¹' t ∈ prodSigmaDelta ((g ⁻¹' ·) '' p) ((f ⁻¹' ·) '' q) := by
+  obtain ⟨A, hA, K, hK, rfl⟩ := mem_prodSigmaDelta_iff.mp ht
+  refine mem_prodSigmaDelta_iff.mpr ⟨fun n m ↦ g ⁻¹' A n m, fun n m ↦ ⟨A n m, hA n m, rfl⟩,
+    fun n m ↦ f ⁻¹' K n m, fun n m ↦ ⟨K n m, hK n m, rfl⟩, ?_⟩
+  simp [Set.preimage_iInter, Set.preimage_iUnion, Set.preimage_prod_map_prod]
+
+/-- If `S` is closed under binary suprema, the elements of its countable supremum closure are the
+suprema of monotone sequences of elements of `S`. -/
+lemma _root_.SupClosed.mem_countableSupClosure_iff_monotone {α : Type*} [CompleteLattice α]
+    {S : Set α} {a : α} (hS : SupClosed S) :
+    a ∈ countableSupClosure S ↔ ∃ t : ℕ → α, (∀ n, t n ∈ S) ∧ Monotone t ∧ ⨆ n, t n = a := by
   rw [mem_countableSupClosure_iff_iSup]
-  simp only [Set.iSup_eq_iUnion]
-  refine ⟨fun h ↦ ?_, fun ⟨A, hA, _, h_eq⟩ ↦ ⟨A, hA, h_eq.symm⟩⟩
-  choose A hA hs using h
-  refine ⟨Set.accumulate A, fun n ↦ ?_, Set.monotone_accumulate, ?_⟩
-  · induction n with
-    | zero => simp [hA]
-    | succ n hn =>
-      rw [Set.accumulate_succ]
-      exact hp hn (hA _)
-  · rw [Set.iUnion_accumulate, ← hs]
+  refine ⟨fun ⟨t, ht, h⟩ ↦ ?_, fun ⟨t, ht, _, h⟩ ↦ ⟨t, ht, h⟩⟩
+  -- replace `t n` by the supremum of the `t i` for `i ≤ n`
+  refine ⟨fun n ↦ (Finset.Iic n).sup' Finset.nonempty_Iic t,
+    fun n ↦ hS.finsetSup'_mem _ fun i _ ↦ ht i,
+    fun m n hmn ↦ Finset.sup'_mono _ (Finset.Iic_subset_Iic.mpr hmn) _, ?_⟩
+  rw [← h]
+  exact le_antisymm (iSup_le fun n ↦ Finset.sup'_le _ _ fun i _ ↦ le_iSup _ i)
+    (iSup_le fun n ↦ le_iSup_of_le n (Finset.le_sup' t (Finset.mem_Iic.mpr le_rfl)))
 
+/-- If `S` is closed under binary infima, the elements of its countable infimum closure are the
+infima of antitone sequences of elements of `S`. -/
+lemma _root_.InfClosed.mem_countableInfClosure_iff_antitone {α : Type*} [CompleteLattice α]
+    {S : Set α} {a : α} (hS : InfClosed S) :
+    a ∈ countableInfClosure S ↔ ∃ t : ℕ → α, (∀ n, t n ∈ S) ∧ Antitone t ∧ ⨅ n, t n = a := by
+  rw [mem_countableInfClosure_iff_iInf]
+  refine ⟨fun ⟨t, ht, h⟩ ↦ ?_, fun ⟨t, ht, _, h⟩ ↦ ⟨t, ht, h⟩⟩
+  -- replace `t n` by the infimum of the `t i` for `i ≤ n`
+  refine ⟨fun n ↦ (Finset.Iic n).inf' Finset.nonempty_Iic t,
+    fun n ↦ hS.finsetInf'_mem _ fun i _ ↦ ht i,
+    fun m n hmn ↦ Finset.inf'_mono _ (Finset.Iic_subset_Iic.mpr hmn) _, ?_⟩
+  rw [← h]
+  exact le_antisymm
+    (le_iInf fun n ↦ iInf_le_of_le n (Finset.inf'_le t (Finset.mem_Iic.mpr le_rfl)))
+    (le_iInf fun n ↦ Finset.le_inf' _ _ fun i _ ↦ iInf_le _ i)
+
+/-- If `p` is a compact system, then so is the set of finite intersections of sets in `p`. -/
 protected lemma _root_.IsCompactSystem.infClosure (hp : IsCompactSystem p) :
-    IsCompactSystem (infClosure p) := by
-  refine hp.countableInfClosure.mono ?_
-  -- todo: extract lemma
-  exact infClosure_min subset_countableInfClosure infClosed_countableInfClosure
+    IsCompactSystem (infClosure p) :=
+  hp.countableInfClosure.mono infClosure_subset_countableInfClosure
 
 /-- If `p` is closed under binary unions and contains `∅`, then the projection on the first
 coordinate of a finite union of products `A ×ˢ K` with `A ∈ p` is in `p`. -/
@@ -384,96 +382,25 @@ lemma fst_image_mem_of_mem_supClosure_image2_prod (hp_empty : ∅ ∈ p) (hp_uni
 intersection of a decreasing sequence of finite unions of products `A ×ˢ K` with `K ∈ q`.
 
 This is equation (35.1) in the proof of Theorem 1.35 of [he2019semimartingale]. -/
-lemma fst_iInter_of_supClosure_image2_prod_of_antitone (hq : IsCompactSystem q)
+lemma _root_.IsCompactSystem.fst_image_iInter (hq : IsCompactSystem q)
     {B : ℕ → Set (𝓧 × 𝓚)} (hB_anti : Antitone B)
     (hB : ∀ n, B n ∈ supClosure (Set.image2 (· ×ˢ ·) p q)) :
     Prod.fst '' (⋂ n, B n) = ⋂ n, Prod.fst '' B n := by
-  -- we can assume that `∅ ∈ q`, by replacing `q` with `insert ∅ q`
-  wlog hq_empty : ∅ ∈ q generalizing q
-  · exact this hq.insert_empty
-      (fun n ↦ supClosure_mono (Set.image2_subset_left (Set.subset_insert _ _)) (hB n)) (by simp)
-  refine le_antisymm (Set.image_iInter_subset _ _) ?_
-  intro x hx
-  simp_rw [mem_supClosure_set_iff'] at hB
-  choose S _ DC hDC hB_eq' using hB
-  choose D' hD' C' hC' hDC_eq' using hDC
-  let D : ℕ → ℕ → Set 𝓧 := fun n m ↦ if hm : m ∈ S n then D' n m hm else ∅
-  let C : ℕ → ℕ → Set 𝓚 := fun n m ↦ if hm : m ∈ S n then C' n m hm else ∅
-  have hD : ∀ n m, m ∈ S n → D n m ∈ p := by
-    intro n m hm
-    simp only [D, dite_eq_left hm]
-    exact hD' n m hm
-  have hC : ∀ n m, m ∈ S n → C n m ∈ q := by
-    intro n m hm
-    simp only [C, dite_eq_left hm]
-    exact hC' n m hm
-  have hDC_eq : ∀ n m, m ∈ S n → DC n m = D n m ×ˢ C n m := by
-    intro n m hm
-    simp only [D, C, dite_eq_left hm]
-    exact (hDC_eq' n m hm).symm
-  have hB_eq n : B n = ⋃ m ∈ S n, D n m ×ˢ C n m := by
-    rw [hB_eq']
-    congr with m
-    by_cases hm : m ∈ S n
-    · simp [hDC_eq n m hm]
-    · simp [hm]
-  suffices (({x} ×ˢ .univ) ∩ ⋂ n, B n).Nonempty by
-    obtain ⟨u, ⟨hu_left, hu_right⟩⟩ := this
-    simp only [Set.mem_prod, Set.mem_singleton_iff, Set.mem_univ, and_true] at hu_left
-    rw [← hu_left, Set.mem_image]
-    exact ⟨u, hu_right, rfl⟩
-  let C'' n := ⋃ (m) (hm : m ∈ S n) (hx : x ∈ D n m), C n m -- `C'' n` is `C_n` in the book
-  have h_inter n : ({x} ×ˢ .univ) ∩ B n = {x} ×ˢ C'' n := by
-    simp_rw [C'', hB_eq n, Set.inter_iUnion, Set.prod_iUnion]
-    congr with m
-    by_cases hm : m ∈ S n
-    · by_cases hx : x ∈ D n m <;> simp <;> grind
-    · simp [hm]
-  have h_eq_C'' : {x} ×ˢ Set.univ ∩ ⋂ n, B n = {x} ×ˢ ⋂ n, C'' n := by
-    simp_rw [Set.inter_iInter, h_inter, Set.prod_iInter]
-  rw [h_eq_C'']
-  suffices (⋂ n, C'' n).Nonempty by
-    simpa only [Set.prod_nonempty_iff, Set.singleton_nonempty, true_and]
-  have h_anti : Antitone C'' := by
-    have h_eq : C'' = fun n ↦ Prod.snd '' ({x} ×ˢ .univ ∩ B n) := by
-      ext n
-      simp [h_inter n]
-    rw [h_eq]
-    intro n m hnm
-    refine Set.image_mono ?_
-    simp only [Set.subset_inter_iff, Set.inter_subset_left, true_and]
-    exact Set.inter_subset_right.trans (hB_anti hnm)
-  have hC''q n : C'' n ∈ supClosure q := by
-    simp only [C'']
-    rcases Finset.eq_empty_or_nonempty (S n) with hS_empty | hS_nonempty
-    · simp only [hS_empty, Finset.notMem_empty, Set.iUnion_of_empty, Set.iUnion_empty]
-      exact subset_supClosure hq_empty
-    refine biUnion_finset_mem_supClosure hS_nonempty fun m hm ↦ ?_
-    by_cases hx : x ∈ D n m
-    · simp only [hx, Set.iUnion_true]
-      exact hC n m hm
-    · simpa [hx, Set.iUnion_of_empty]
-  -- `C'' n` is nonempty for all `n` since `x` is in the intersection of the `B n`,
-  -- and if it were empty, then the intersection would be empty, contradiction
-  have hC''_nonempty n : (C'' n).Nonempty := by
-    specialize h_inter n
-    by_contra! hC_empty
-    simp only [hC_empty, Set.prod_empty] at h_inter
-    suffices x ∈ Prod.fst '' ({x} ×ˢ Set.univ ∩ B n) by simp [h_inter] at this
-    simp only [Set.mem_image, Set.mem_inter_iff, Set.mem_prod, Set.mem_singleton_iff, Set.mem_univ,
-      and_true, Prod.exists, exists_and_right, exists_and_left, exists_eq_right, true_and]
-    simp only [Set.mem_iInter, Set.mem_image, Prod.exists, exists_and_right, exists_eq_right] at hx
-    exact hx n
-  -- use that `supClosure q` is a compact system
-  -- if the intersection is empty, there is a finite subintersection that is empty
-  -- that subintersection is just `C'' n` for some `n` since `C''` is antitone,
-  -- so `C'' n` is empty, contradiction
-  have hq_compact' := hq.supClosure
-  refine hq_compact'.nonempty_iInter hC''q fun n ↦ ?_
-  -- todo: dissipate_of_antitone?
-  convert hC''_nonempty n using 1
-  refine le_antisymm (Set.dissipate_subset le_rfl) ?_
-  simp only [Set.dissipate, Set.subset_iInter_iff]
-  exact fun i hi ↦ h_anti hi
+  refine subset_antisymm (Set.image_iInter_subset _ _) fun x hx ↦ ?_
+  -- the fibers of the sets `B n` over `x` are finite unions of sets of `insert ∅ q`
+  have h_fiber n : {k | (x, k) ∈ B n} ∈ supClosure (insert ∅ q) := by
+    refine supClosure_min (t := {t | {k | (x, k) ∈ t} ∈ supClosure (insert ∅ q)}) ?_
+      (fun t ht t' ht' ↦ supClosed_supClosure ht ht') (hB n)
+    rintro _ ⟨A, -, K, hK, rfl⟩
+    refine subset_supClosure ?_
+    by_cases hxA : x ∈ A
+    · exact Set.mem_insert_of_mem _ (by simpa [hxA] using hK)
+    · exact Or.inl (by simp [hxA])
+  -- the fibers are nonempty and decreasing, and `supClosure (insert ∅ q)` is a compact system
+  have h_nonempty n : (Set.dissipate (fun n ↦ {k | (x, k) ∈ B n}) n).Nonempty := by
+    obtain ⟨⟨x', k⟩, hk, rfl⟩ := Set.mem_iInter.mp hx n
+    exact ⟨k, Set.mem_dissipate.mpr fun i hi ↦ hB_anti hi hk⟩
+  obtain ⟨k, hk⟩ := hq.insert_empty.supClosure.nonempty_iInter h_fiber h_nonempty
+  exact ⟨(x, k), Set.mem_iInter.mpr fun n ↦ Set.mem_iInter.mp hk n, rfl⟩
 
 end MeasureTheory

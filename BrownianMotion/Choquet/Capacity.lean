@@ -108,7 +108,7 @@ def Capacity.compFst (hp_empty : ∅ ∈ p) (hp_union : SupClosed p)
     simp only [Set.image_iUnion]
     exact capacity_iUnion fun i j hij ↦ Set.image_mono (hf hij)
   capacityOf_iInter f hf hp := by
-    rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq hf hp]
+    rw [hq.fst_image_iInter hf hp]
     exact capacity_iInter (fun n m hnm ↦ Set.image_mono (hf hnm))
       fun n ↦ fst_image_mem_of_mem_supClosure_image2_prod hp_empty hp_union (hp n)
 
@@ -133,9 +133,9 @@ lemma isCapacitable_of_mem_countableInfClosure_countableSupClosure (m : Capacity
     IsCapacitable m s := by
   rw [mem_countableInfClosure_iff_iInf] at hs
   obtain ⟨A, hA, hs_eq⟩ := hs
-  simp_rw [hp_union.mem_countableSupClosure_iff] at hA
+  simp_rw [hp_union.mem_countableSupClosure_iff_monotone] at hA
   choose A hpA hA_mono h_eq using hA
-  simp_rw [h_eq] at hs_eq
+  simp_rw [← h_eq, Set.iSup_eq_iUnion] at hs_eq
   have hs_sub (n : ℕ) : s ⊆ ⋃ j, A n j := by
     rw [← hs_eq]
     exact iInf_le (fun n ↦ ⋃ j, A n j) n
@@ -187,9 +187,9 @@ lemma fst_image_mem_countableInfClosure {s : Set (𝓧 × 𝓚)}
     (hq_inter : InfClosed q) (hq : IsCompactSystem q)
     (hs : s ∈ countableInfClosure (supClosure (Set.image2 (· ×ˢ ·) p q))) :
     Prod.fst '' s ∈ countableInfClosure p := by
-  rw [(hp_inter.image2_prod hq_inter).supClosure.mem_countableInfClosure_iff] at hs
+  rw [(hp_inter.image2_prod hq_inter).supClosure.mem_countableInfClosure_iff_antitone] at hs
   obtain ⟨A, hA, hA_anti, rfl⟩ := hs
-  rw [fst_iInter_of_supClosure_image2_prod_of_antitone hq hA_anti hA,
+  rw [Set.iInf_eq_iInter, hq.fst_image_iInter hA_anti hA,
     mem_countableInfClosure_iff_iInf]
   exact ⟨fun n ↦ Prod.fst '' A n,
     fun n ↦ fst_image_mem_of_mem_supClosure_image2_prod hp_empty hp_union (hA n), rfl⟩
@@ -288,7 +288,7 @@ lemma IsMeasurableAnalytic.nullMeasurableSet {m𝓧 : MeasurableSpace 𝓧} (hs 
 
 /-- The projection of an analytic set of `𝓧 × ι` is null-measurable with respect to any s-finite
 measure. -/
-theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι]
+theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type*} [LinearOrder ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     {mι : MeasurableSpace ι} [BorelSpace ι]
     {m𝓧 : MeasurableSpace 𝓧} {s : Set (𝓧 × ι)}
@@ -300,7 +300,7 @@ theorem IsPavingAnalytic.nullMeasurableSet_fst {ι : Type} [LinearOrder ι]
 
 /-- The projection of an analytic set of `ι × 𝓧` is null-measurable with respect to any s-finite
 measure. -/
-lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type} [LinearOrder ι]
+lemma IsPavingAnalytic.nullMeasurableSet_snd {ι : Type*} [LinearOrder ι]
     [TopologicalSpace ι] [SecondCountableTopology ι] [OrderTopology ι] [CompactIccSpace ι]
     {mι : MeasurableSpace ι} [BorelSpace ι]
     {m𝓧 : MeasurableSpace 𝓧} {s : Set (ι × 𝓧)}
