@@ -76,14 +76,6 @@ lemma supClosed_measurableSet {α : Type*} [MeasurableSpace α] :
 lemma infClosed_measurableSet {α : Type*} [MeasurableSpace α] :
     InfClosed {t : Set α | MeasurableSet t} := fun _ hs _ ht ↦ hs.inter ht
 
-/-- The product σ-algebra is monotone in both factors. -/
-@[gcongr]
-lemma MeasurableSpace.prod_mono {Ω ι : Type*} {mι : MeasurableSpace ι} {mι' : MeasurableSpace ι}
-    {mΩ : MeasurableSpace Ω} {mΩ' : MeasurableSpace Ω}
-    (h₁ : mι ≤ mι') (h₂ : mΩ ≤ mΩ') :
-    mι.prod mΩ ≤ mι'.prod mΩ' :=
-  sup_le_sup (MeasurableSpace.comap_mono h₁) (MeasurableSpace.comap_mono h₂)
-
 lemma borel_eq_generateFrom_Icc' (α : Type*) [TopologicalSpace α] [SecondCountableTopology α]
     [LinearOrder α] [OrderTopology α] :
     borel α = .generateFrom { S : Set α | ∃ (l u : α), Set.Icc l u = S } := by
@@ -101,45 +93,6 @@ lemma borel_eq_generateFrom_insert_empty_Icc (α : Type*) [TopologicalSpace α]
     borel α = .generateFrom (insert ∅ { S : Set α | ∃ (l u : α), Set.Icc l u = S }) := by
   rw [MeasurableSpace.generateFrom_insert_empty]
   exact borel_eq_generateFrom_Icc' α
-
-namespace MeasureTheory
-
-/-- `NullMeasurable` version of `measurable_generateFrom`. -/
-lemma nullMeasurable_generateFrom {α β : Type*} {_ : MeasurableSpace α} {μ : Measure α}
-    {s : Set (Set β)} {f : α → β}
-    (h : ∀ t ∈ s, NullMeasurableSet (f ⁻¹' t) μ) :
-    @NullMeasurable _ _ _ (MeasurableSpace.generateFrom s) f μ :=
-  measurable_generateFrom h
-
-section OrderTopology
-
-variable {α δ : Type*} [TopologicalSpace α] [MeasurableSpace α] [BorelSpace α]
-  [LinearOrder α] [OrderTopology α] [SecondCountableTopology α]
-  {mδ : MeasurableSpace δ} {μ : Measure δ} {f : δ → α}
-
-/-- `NullMeasurable` version of `measurable_of_Iio`. -/
-lemma nullMeasurable_of_Iio (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iio x) μ) :
-    NullMeasurable f μ :=
-  measurable_of_Iio hf
-
-/-- `NullMeasurable` version of `measurable_of_Ioi`. -/
-lemma nullMeasurable_of_Ioi (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Ioi x) μ) :
-    NullMeasurable f μ :=
-  measurable_of_Ioi hf
-
-/-- `NullMeasurable` version of `measurable_of_Iic`. -/
-lemma nullMeasurable_of_Iic (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Iic x) μ) :
-    NullMeasurable f μ :=
-  measurable_of_Iic hf
-
-/-- `NullMeasurable` version of `measurable_of_Ici`. -/
-lemma nullMeasurable_of_Ici (hf : ∀ x, NullMeasurableSet (f ⁻¹' Set.Ici x) μ) :
-    NullMeasurable f μ :=
-  measurable_of_Ici hf
-
-end OrderTopology
-
-end MeasureTheory
 
 lemma MeasurableSet.of_mem_countableInfClosure {m𝓧 : MeasurableSpace 𝓧}
     {s : Set 𝓧} {p : Set (Set 𝓧)} (hs : s ∈ countableInfClosure p) (hp : ∀ t ∈ p, MeasurableSet t) :

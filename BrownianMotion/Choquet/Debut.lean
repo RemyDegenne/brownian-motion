@@ -5,7 +5,6 @@ Authors: Lorenzo Luccioli, Rémy Degenne
 -/
 module
 
-public import BrownianMotion.Auxiliary.HittingTime
 public import BrownianMotion.Choquet.Capacity
 public import BrownianMotion.StochasticIntegral.Predictable
 public import Mathlib.Order.CompletePartialOrder
@@ -380,7 +379,7 @@ lemma debut_eq_iff_of_nhdsGT_eq_bot
     | inr ht =>
       obtain ⟨u, htu, hu⟩ := ht
       simp only [not_lt] at hu
-      by_contra! h_notMem
+      by_contra h_notMem
       suffices u ≤ sInf {j | n ≤ j ∧ (j, ω) ∈ E} by
         refine not_le.mpr htu ?_
         rwa [h_eq] at this

@@ -387,7 +387,7 @@ Turn now to the proof that for all $t \in T$, $\mathcal{F}_{t+} \subseteq \mathc
 \begin{lemma}\label{lem:rightContDef}
   \uses{def:rightLimitFiltration}
   \mathlibok
-  \lean{MeasureTheory.Filtration.rightCont_def}
+  \lean{MeasureTheory.Filtration.rightCont_apply}
 Suppose $T$ is a topological space with the topology being the order topology. For $t \in T$, the right continuation of $\mathcal{F}$ at $t$ is given by
 $$\mathcal{F}_{t+} =
   \begin{cases}
@@ -594,7 +594,7 @@ Fake lemma for the dependency graph. Import this to depend on Definition~\ref{de
 
 \begin{definition}[Usual conditions]\label{def:hasUsualConditions}
   \uses{def:rightContinuous, lem:rightContinuous_basic}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.Filtration.IsComplete}
 We say that a filtered probability space $(\Omega, \mathcal{F}, P)$ satisfies the usual conditions if the filtration is right-continuous and if $\mathcal{F}_t$ contains all the $P$-null sets for all $t \in T$.
 \end{definition}

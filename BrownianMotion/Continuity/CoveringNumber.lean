@@ -122,15 +122,6 @@ section Volume
 
 open MeasureTheory Measure
 
-section PseudoEMetricSpace
-variable {X : Type*} [PseudoEMetricSpace X] {ε : ℝ≥0} {s N : Set X}
-
-lemma EMetric.isCover_iff_subset_iUnion_closedBall :
-    IsCover ε s N ↔ s ⊆ ⋃ y ∈ N, Metric.closedEBall y ε := by
-  simp [IsCover, SetRel.IsCover, subset_def]
-
-end PseudoEMetricSpace
-
 namespace Metric
 
 section Measure

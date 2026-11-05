@@ -26,9 +26,8 @@ analytic sets with respect to a paving and to prove Choquet's capacitability the
 ## Main statements
 
 * `isCompactSystem_finite`: the finite sets form a compact system.
-* `IsCompactSystem.sigma`: compact systems on the fibers of a sigma type give a compact system on
-  the sigma type (for sets above finitely many indices).
-* `IsCompactSystem.sum`: compact systems on `𝓚` and `𝓚'` give a compact system on `𝓚 ⊕ 𝓚'`.
+* `IsCompactSystem.univ_sigma`: compact systems on the fibers of a sigma type over a finite index
+  type give a compact system on the sigma type.
 * `IsCompactSystem.image`: the image of a compact system by a map `f` is a compact system if its
   sets are saturated for `f`.
 * `IsCompactSystem.fst_image_iInter`: if `q` is a compact system, the projection on the first
@@ -115,11 +114,6 @@ lemma biUnion_finset_mem_supClosure {s : Finset ι} (hs_nonempty : s.Nonempty) {
   rw [← Finset.sup_set_eq_biUnion, ← Finset.sup'_eq_sup hs_nonempty]
   exact supClosed_supClosure.finsetSup'_mem hs_nonempty fun i hi ↦ subset_supClosure (hs i hi)
 
-@[to_dual]
-lemma supClosure_subset_countableSupClosure {β : Type*} [SemilatticeSup β] {s : Set β} :
-    supClosure s ⊆ countableSupClosure s :=
-  supClosure_min subset_countableSupClosure countableSupClosed_countableSupClosure.supClosed
-
 end Aux
 
 lemma isCompactSystem_singleton_empty {α : Type*} : IsCompactSystem {(∅ : Set α)} :=
@@ -150,7 +144,7 @@ lemma infClosed_insert_empty_Icc {ι : Type*} [LinearOrder ι] :
       obtain ⟨a₁, b₁, rfl⟩ := hs
       obtain ⟨a₂, b₂, rfl⟩ := ht
       refine Set.mem_insert_of_mem _ ?_
-      simp only [Set.inf_eq_inter, Set.mem_ofPred_eq]
+      simp only [Set.mem_ofPred_eq]
       exact ⟨a₁ ⊔ a₂, b₁ ⊓ b₂, Set.Icc_inter_Icc.symm⟩
 
 /-- The finite sets form a compact system. -/
@@ -203,45 +197,6 @@ lemma Set.iInter₂_sigma_eq_empty_iff {𝓚 : ι → Type*} {β : Type*} {p : �
   exact ⟨fun h i hi x hx => h ⟨i, x⟩ fun b hb => ⟨hi b hb, hx b hb⟩,
     fun h ⟨i, x⟩ hx => h i (fun b hb => (hx b hb).1) x (fun b hb => (hx b hb).2)⟩
 
-/-- If `q i` is a compact system on `𝓚 i` for all `i`, then the sets of `Σ i, 𝓚 i` of the form
-`(s : Set ι).sigma f` with `s` finite and `f i ∈ q i` for all `i` form a compact system. -/
-lemma IsCompactSystem.sigma {𝓚 : ι → Type*} {q : (i : ι) → Set (Set (𝓚 i))}
-    (hq : ∀ i, IsCompactSystem (q i)) :
-    IsCompactSystem {t : Set (Σ i, 𝓚 i) |
-      ∃ s : Finset ι, t ∈ (s : Set ι).sigma '' (Set.univ.pi q)} := by
-  classical
-  intro C hC hC_empty
-  simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_pi, Set.mem_univ, forall_const] at hC
-  choose s f hf hCfs using hC
-  obtain rfl : C = fun b ↦ (s b : Set ι).sigma (f b) := funext fun b ↦ (hCfs b).symm
-  -- for each `j`, the fibers over `j` of the first sets have empty intersection
-  have key (j : ι) :
-      ∃ N, ∀ x, ⟨j, x⟩ ∉ Set.dissipate (fun b ↦ (s b : Set ι).sigma (f b)) N := by
-    by_cases hj : ∀ b, j ∈ s b
-    · -- `q j` is a compact system and the intersection of the fibers over `j` is empty
-      obtain ⟨N, hN⟩ := hq j (fun b ↦ f b j) (fun b ↦ hf b j) <| by
-        refine Set.eq_empty_iff_forall_notMem.mpr fun x hx ↦ ?_
-        refine Set.eq_empty_iff_forall_notMem.mp hC_empty ⟨j, x⟩ ?_
-        simp only [Set.mem_iInter, Set.mem_sigma_iff] at hx ⊢
-        exact fun b ↦ ⟨hj b, hx b⟩
-      refine ⟨N, fun x hx ↦ Set.eq_empty_iff_forall_notMem.mp hN x ?_⟩
-      simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hx ⊢
-      exact fun b hb ↦ (hx b hb).2
-    · -- `j ∉ s b` for some `b`
-      push Not at hj
-      obtain ⟨b, hb⟩ := hj
-      refine ⟨b, fun x hx ↦ hb ?_⟩
-      simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hx
-      exact (hx b le_rfl).1
-  -- only the finitely many `j ∈ s 0` matter
-  choose N hN using key
-  refine ⟨(s 0).sup N, Set.eq_empty_iff_forall_notMem.mpr ?_⟩
-  rintro ⟨j, x⟩ hjx
-  have hj0 : j ∈ s 0 := by
-    simp only [Set.mem_dissipate, Set.mem_sigma_iff] at hjx
-    exact (hjx 0 (Nat.zero_le _)).1
-  exact hN j x (Set.antitone_dissipate (Finset.le_sup hj0) hjx)
-
 /-- Variant of `IsCompactSystem.sigma` for a finite index type, with sets above all indices. -/
 lemma IsCompactSystem.univ_sigma [Finite ι] {𝓚 : ι → Type*}
     {q : (i : ι) → Set (Set (𝓚 i))} (hq : ∀ i, IsCompactSystem (q i)) :
@@ -252,26 +207,6 @@ lemma IsCompactSystem.univ_sigma [Finite ι] {𝓚 : ι → Type*}
   obtain ⟨f, hf, hfC⟩ := hC i
   refine ⟨(Finset.univ : Finset ι), f, fun j _ => hf j (Set.mem_univ _), ?_⟩
   rw [Finset.coe_univ]; exact hfC
-
-/-- If `q` and `q'` are compact systems on `𝓚` and `𝓚'`, then the sets of `𝓚 ⊕ 𝓚'` whose parts
-in `𝓚` and `𝓚'` are in `q` and `q'` form a compact system. -/
-lemma IsCompactSystem.sum {𝓚 𝓚' : Type*} {q : Set (Set 𝓚)} {q' : Set (Set 𝓚')}
-    (hq : IsCompactSystem q) (hq' : IsCompactSystem q') :
-    IsCompactSystem {t | Sum.inl ⁻¹' t ∈ q ∧ Sum.inr ⁻¹' t ∈ q'} := by
-  intro C hC hC_empty
-  -- the parts of `C n` in `𝓚` and in `𝓚'` have finite subintersections that are empty
-  obtain ⟨N, hN⟩ := hq (fun n ↦ Sum.inl ⁻¹' C n) (fun n ↦ (hC n).1)
-    (by rw [← Set.preimage_iInter, hC_empty, Set.preimage_empty])
-  obtain ⟨N', hN'⟩ := hq' (fun n ↦ Sum.inr ⁻¹' C n) (fun n ↦ (hC n).2)
-    (by rw [← Set.preimage_iInter, hC_empty, Set.preimage_empty])
-  refine ⟨max N N', Set.eq_empty_iff_forall_notMem.mpr ?_⟩
-  rintro (x | x) hx <;> simp only [Set.mem_dissipate] at hx
-  · refine Set.eq_empty_iff_forall_notMem.mp hN x ?_
-    simp only [Set.mem_dissipate, Set.mem_preimage]
-    exact fun i hi ↦ hx i (hi.trans (le_max_left _ _))
-  · refine Set.eq_empty_iff_forall_notMem.mp hN' x ?_
-    simp only [Set.mem_dissipate, Set.mem_preimage]
-    exact fun i hi ↦ hx i (hi.trans (le_max_right _ _))
 
 namespace MeasureTheory
 
@@ -360,11 +295,6 @@ lemma _root_.InfClosed.mem_countableInfClosure_iff_antitone {α : Type*} [Comple
   exact le_antisymm
     (le_iInf fun n ↦ iInf_le_of_le n (Finset.inf'_le t (Finset.mem_Iic.mpr le_rfl)))
     (le_iInf fun n ↦ Finset.le_inf' _ _ fun i _ ↦ iInf_le _ i)
-
-/-- If `p` is a compact system, then so is the set of finite intersections of sets in `p`. -/
-protected lemma _root_.IsCompactSystem.infClosure (hp : IsCompactSystem p) :
-    IsCompactSystem (infClosure p) :=
-  hp.countableInfClosure.mono infClosure_subset_countableInfClosure
 
 /-- If `p` is closed under binary unions and contains `∅`, then the projection on the first
 coordinate of a finite union of products `A ×ˢ K` with `A ∈ p` is in `p`. -/

@@ -285,13 +285,6 @@ lemma MeasurableSpace.comap_process {Ω T : Type*} {𝓧 : T → Type*} [∀ t, 
   simp_rw [MeasurableSpace.pi, MeasurableSpace.comap_iSup, MeasurableSpace.comap_comp]
   rfl
 
-lemma MeasurableSpace.comap_le_comap
-    {Ω 𝓧 𝓨 : Type*} [m𝓧 : MeasurableSpace 𝓧] [m𝓨 : MeasurableSpace 𝓨]
-    {X : Ω → 𝓧} {Y : Ω → 𝓨} (f : 𝓧 → 𝓨) (hf : Measurable f) (h : Y = f ∘ X) :
-    m𝓨.comap Y ≤ m𝓧.comap X := by
-  rw [h, ← MeasurableSpace.comap_comp]
-  exact MeasurableSpace.comap_mono hf.comap_le
-
 lemma MeasurableSpace.generateFrom_singleton_eq_comap_indicator_one {Ω : Type*} {A : Set Ω} :
     MeasurableSpace.generateFrom {A} =
       MeasurableSpace.comap (A.indicator (1 : Ω → ℝ)) inferInstance := by

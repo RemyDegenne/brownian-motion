@@ -13,7 +13,6 @@ public import BrownianMotion.Auxiliary.Filtration
 public import BrownianMotion.Auxiliary.FiniteInf
 public import BrownianMotion.Auxiliary.HasGaussianLaw
 public import BrownianMotion.Auxiliary.HasLaw
-public import BrownianMotion.Auxiliary.HittingTime
 public import BrownianMotion.Auxiliary.IsStoppingTime
 public import BrownianMotion.Auxiliary.Jensen
 public import BrownianMotion.Auxiliary.LeftLimWithin
@@ -24,7 +23,6 @@ public import BrownianMotion.Auxiliary.MeasureTheory
 public import BrownianMotion.Auxiliary.Metric
 public import BrownianMotion.Auxiliary.NNReal
 public import BrownianMotion.Auxiliary.Real
-public import BrownianMotion.Auxiliary.SeparableSpace
 public import BrownianMotion.Auxiliary.SetAlgebra
 public import BrownianMotion.Auxiliary.StandardBorel
 public import BrownianMotion.Auxiliary.StoppedProcess

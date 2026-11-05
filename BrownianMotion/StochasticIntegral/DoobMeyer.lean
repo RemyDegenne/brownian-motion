@@ -343,7 +343,7 @@ lemma predictablePart_succ_of_not_isMax {ι Ω E : Type*} [LinearOrder ι]
     (hj : ¬ IsMax j) :
     predictablePart S 𝓕 P (succ j) = predictablePart S 𝓕 P j + P[S (succ j) - S j | 𝓕 j] := by
   simp only [_root_.predictablePart]
-  rw [Finset.Iio_succ_eq_Iic_of_not_isMax hj, ← Finset.Iio_insert,
+  rw [Finset.Iio_succ_eq_Iic_of_not_isMax hj, ← Finset.insert_Iio,
     Finset.sum_insert Finset.notMem_Iio_self, add_comm]
 
 /-- The martingale part of an adapted integrable process is a martingale. -/
@@ -1298,7 +1298,7 @@ lemma exists_strictMono_forall_ae_tendsto_of_tendstoInMeasure {κ Ω E : Type*} 
     rw [pow_add]
     exact mul_le_of_le_one_right zero_le (pow_le_one₀ zero_le (by simp))
   have h_sum : ∑' n, μ (s (n + j)) ≠ ∞ := by
-    refine ne_top_of_le_ne_top ?_ (ENNReal.tsum_le_tsum hs_le)
+    refine ne_top_of_le_ne_top ?_ (tsum_le_tsum hs_le)
     simpa only [ENNReal.tsum_geometric, ENNReal.one_sub_inv_two, inv_inv] using ENNReal.ofNat_ne_top
   filter_upwards [ae_eventually_notMem h_sum] with ω hω
   rw [tendsto_iff_edist_tendsto_0]

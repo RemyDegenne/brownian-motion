@@ -142,12 +142,12 @@ The product of a countable family of compact systems is a compact system.
 
 \begin{lemma}\label{lem:IsCompactSystem.sigma}
   \uses{def:IsCompactSystem}
-  \leanok
+  \mathlibok
   \lean{IsCompactSystem.sigma}
 The sum of a countable family of compact systems is a compact system.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
 
 \end{proof}
 
@@ -188,12 +188,12 @@ If $S$ is a compact system, then $S_\delta$ is a compact system.
 
 \begin{lemma}\label{lem:IsCompactSystem.infClosure}
   \uses{def:IsCompactSystem, def:infClosure}
-  \leanok
+  \mathlibok
   \lean{IsCompactSystem.infClosure}
 If $S$ is a compact system, then $S^{\cap f}$ is a compact system.
 \end{lemma}
 
-\begin{proof}
+\begin{proof}\mathlibok
   \uses{lem:IsCompactSystem.mono, lem:IsCompactSystem.countableInfClosure}
 $S_\delta$ is a compact system by Lemma~\ref{lem:IsCompactSystem.countableInfClosure}, and $S^{\cap f} \subseteq S_\delta$, so we can apply Lemma~\ref{lem:IsCompactSystem.mono}.
 \end{proof}
@@ -788,7 +788,7 @@ This follows from Lemma~\ref{lem:isStoppingTime_leastGE} since $X$ is progressiv
 
 
 \begin{definition}\label{def:leastGT}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.leastGT}
 Let $T$ be a conditionally complete linear order with a bottom element and let $R$ be a preorder.
 For a process $X : T \to Ω \to R$ and $a \in R$, define the random time
@@ -816,12 +816,12 @@ This is a direct application of Theorem~\ref{thm:hitting_is_stopping_time} with 
 
 \begin{lemma}\label{lem:leastGT_lt_iff}
   \uses{def:leastGT}
-  \leanok
+  \mathlibok
   \lean{MeasureTheory.leastGT_lt_iff}
 For $t \in T$, $\tau_{X > a} < t$ if and only if there exists $s < t$ such that $X_s > a$.
 \end{lemma}
 
-\begin{proof}\leanok
+\begin{proof}\mathlibok
   \uses{def:leastGT}
 
 \end{proof}

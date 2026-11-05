@@ -36,7 +36,7 @@ lemma SimpleFunc.coe_finset_sum {α β γ : Type*} {_ : MeasurableSpace α} [Add
   classical
   induction s using Finset.induction with
   | empty => simp
-  | insert a s ha ih => rw [Finset.sum_insert ha, Finset.sum_insert ha, SimpleFunc.coe_add, ih]
+  | insert a s ha ih => rw [Finset.sum_insert ha, Finset.sum_insert ha, FunLike.coe_add, ih]
 
 section PathApprox
 
@@ -56,7 +56,7 @@ private noncomputable def pathApprox (X : ι → Ω → E) (hX : ∀ t, Measurab
 private lemma pathApprox_apply (hX : ∀ t, Measurable (X t)) (ω : Ω) (i : ι) :
     pathApprox X hX e s n ω i =
       ∑ t ∈ s, if i ≤ t ∧ ∀ u ∈ s, i ≤ u → t ≤ u then SimpleFunc.nearestPt e n (X t ω) else 0 := by
-  simp [pathApprox, SimpleFunc.coe_finset_sum]
+  simp [pathApprox]
 
 /-- Evaluation of `pathApprox` at a time `i` for which `t₀` is the smallest element of `s`
 that is `≥ i`. -/
