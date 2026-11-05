@@ -78,15 +78,15 @@ private lemma StieltjesFunction.measurable_measure_of_isFiniteMeasure {f : Ω �
       fun_prop
     · have hbot (ω : Ω) : Tendsto (f ω) atBot (𝓝 (⨅ i, (f ω) i)) := by
         apply tendsto_atBot_ciInf (f ω).mono
-        by_contra!
+        by_contra h
         have := measure_univ_of_tendsto_atBot_atBot (f ω) <|
-          tendsto_atBot_atBot_of_monotone' (f ω).mono this
+          tendsto_atBot_atBot_of_monotone' (f ω).mono h
         aesop
       have htop (ω : Ω) : Tendsto (f ω) atTop (𝓝 (⨆ i, (f ω) i)) := by
         apply tendsto_atTop_ciSup (f ω).mono
-        by_contra!
+        by_contra h
         have := measure_univ_of_tendsto_atTop_atTop (f ω) <|
-          tendsto_atTop_atTop_of_monotone' (f ω).mono this
+          tendsto_atTop_atTop_of_monotone' (f ω).mono h
         aesop
       simp_all [fun ω => measure_univ (f ω) (hbot ω) (htop ω)]
       measurability

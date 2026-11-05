@@ -75,9 +75,9 @@ jobs:
         with:
           root: BrownianMotion
           # An editorial claim, not a derived fact: it says whoever publishes this site vouches for
-          # Mathlib and everything under it, which leaves the intermediate packages
-          # (kolmogorov_extension4) as the ones the trust page reports as unaudited. Drop it and
-          # every upstream package counts as unaudited.
+          # Mathlib and everything under it, which leaves the packages between this project and
+          # Mathlib (none at the moment) as the ones the trust page reports as unaudited. Drop it
+          # and every upstream package counts as unaudited.
           trust: mathlib
           # The dataset follows dependencies into Mathlib and Lean core, so that the site shows
           # what the library rests on there.

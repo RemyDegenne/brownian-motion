@@ -8,7 +8,7 @@ module
 public import BrownianMotion.Auxiliary.MeasureTheory
 public import BrownianMotion.Auxiliary.NNReal
 public import BrownianMotion.Gaussian.Gaussian
-public import KolmogorovExtension4.KolmogorovExtension
+public import Mathlib.MeasureTheory.Constructions.KolmogorovExtension
 public import Mathlib.Analysis.InnerProductSpace.GramMatrix
 public import Mathlib.Probability.Distributions.Gaussian.Fernique
 public import Mathlib.Probability.Distributions.Gaussian.Multivariate

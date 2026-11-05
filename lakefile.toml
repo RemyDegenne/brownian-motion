@@ -12,8 +12,8 @@ weak.linter.mathlibStandardSet = true
 linter.style.header = false
 
 [[require]]
-name = "kolmogorov_extension4"
-git = "https://github.com/RemyDegenne/kolmogorov_extension4"
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
 
 [[require]]
 name = "checkdecls"

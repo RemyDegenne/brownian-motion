@@ -92,16 +92,7 @@ lemma IsStable.exists_monotone_localSeq [Zero E] [FirstCountableTopology ι]
 
 section
 
-variable [SecondCountableTopology ι] [IsFiniteMeasure P]
-
-lemma isPreLocalizingSequence_of_isLocalizingSequence
-    [NoMaxOrder ι] {τ : ℕ → Ω → WithTop ι} {σ : ℕ → ℕ → Ω → WithTop ι}
-    (hτ : IsLocalizingSequence 𝓕 τ P) (hσ : ∀ n, IsLocalizingSequence 𝓕 (σ n) P) :
-    ∃ nk : ℕ → ℕ, StrictMono nk
-      ∧ IsPreLocalizingSequence 𝓕 (fun i ω ↦ (τ i ω) ⊓ (σ i (nk i) ω)) P := by
-  exact IsLocalizingSequence.isPrelocalizingSequence_inf_extraction hτ hσ
-
-variable [NoMaxOrder ι] [Zero E]
+variable [SecondCountableTopology ι] [IsFiniteMeasure P] [NoMaxOrder ι] [Zero E]
 
 /-- A stable property holding locally is idempotent. -/
 lemma IsStable.locally_locally_iff' [IsRightContinuous 𝓕] (hp : IsStable 𝓕 p) :
@@ -157,7 +148,7 @@ def LocalizingSequenceOfProp (X : ι → Ω → E) (p : (ι → E) → Prop) : �
   Function.const _ <| fun ω ↦ if p (X · ω) then ⊤ else ⊥
 
 omit [OrderBot ι] in
-lemma isStoppingTime_ae_const [IsComplete 𝓕 P] (τ : Ω → WithTop ι) (c : WithTop ι)
+lemma isStoppingTime_ae_const [𝓕.IsComplete P] (τ : Ω → WithTop ι) (c : WithTop ι)
     (hτ : τ =ᵐ[P] Function.const _ c) :
     IsStoppingTime 𝓕 τ := by
   refine IsStoppingTime.congr_ae (μ := P) ?_ hτ
@@ -167,7 +158,7 @@ lemma isStoppingTime_ae_const [IsComplete 𝓕 P] (τ : Ω → WithTop ι) (c : 
 
 variable [TopologicalSpace ι] [OrderTopology ι]
 
-lemma isLocalizingSequence_localizingSequenceOfProp [IsComplete 𝓕 P] {p : (ι → E) → Prop}
+lemma isLocalizingSequence_localizingSequenceOfProp [𝓕.IsComplete P] {p : (ι → E) → Prop}
     (hpX : ∀ᵐ ω ∂P, p (X · ω)) :
     IsLocalizingSequence 𝓕 (LocalizingSequenceOfProp X p) P where
   isStoppingTime n := by

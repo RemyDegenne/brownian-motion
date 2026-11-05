@@ -192,10 +192,22 @@ end CompactSystem
 
 variable {X : Type*} [TopologicalSpace X] {p : Set (Set X)} {s : Set X}
 
+/-- A set is analytic if and only if it is empty or the continuous image of `ℕ → ℕ`. This is the
+definition of `AnalyticSet`, which is not exposed by Mathlib. -/
+lemma analyticSet_iff : AnalyticSet s ↔ s = ∅ ∨ ∃ f : (ℕ → ℕ) → X, Continuous f ∧ range f = s := by
+  refine ⟨fun hs ↦ ?_, ?_⟩
+  · obtain ⟨β, _, _, f, hf, rfl⟩ := analyticSet_iff_exists_polishSpace_range.mp hs
+    cases isEmpty_or_nonempty β
+    · exact .inl (range_eq_empty f)
+    obtain ⟨g, hg, hg_surj⟩ := PolishSpace.exists_nat_nat_continuous_surjective β
+    exact .inr ⟨f ∘ g, hf.comp hg, hg_surj.range_comp f⟩
+  · rintro (rfl | ⟨f, hf, rfl⟩)
+    exacts [analyticSet_empty, analyticSet_range_of_polishSpace hf]
+
 /-- In a Hausdorff space, an analytic set is analytic for the paving of closed sets. -/
 theorem AnalyticSet.isPavingAnalytic_isClosed [T2Space X] (hs : AnalyticSet s) :
     IsPavingAnalytic {t | IsClosed t} s := by
-  rw [AnalyticSet] at hs
+  rw [analyticSet_iff] at hs
   rcases hs with rfl | ⟨f, hf, rfl⟩
   · exact isPavingAnalytic_empty ⟨∅, isClosed_empty⟩
   -- the graph of `f` is the intersection over `n` of the unions of the products
@@ -229,7 +241,7 @@ theorem AnalyticSet.isPavingAnalytic_isClosed [T2Space X] (hs : AnalyticSet s) :
 theorem AnalyticSet.prod {Y : Type*} [TopologicalSpace Y] {t : Set Y} (hs : AnalyticSet s)
     (ht : AnalyticSet t) :
     AnalyticSet (s ×ˢ t) := by
-  rw [AnalyticSet] at hs ht
+  rw [analyticSet_iff] at hs ht
   rcases hs with rfl | ⟨f, hf, rfl⟩
   · simpa using analyticSet_empty
   rcases ht with rfl | ⟨g, hg, rfl⟩

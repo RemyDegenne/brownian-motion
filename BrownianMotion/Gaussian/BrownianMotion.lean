@@ -275,7 +275,7 @@ theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurab
   have hm3 : m3 ≤ m1 := by
     apply iInf₂_le_of_le 1 (by simp)
     rw [natural_eq_comap]
-    exact comap_le_comap (fun x t ↦ x t.1) (by fun_prop) (by ext; simp)
+    exact comap_le_comap_of_eq_comp (fun x t ↦ x t.1) (by fun_prop) (by ext; simp)
   have hm3' := hm3.trans hm1
   -- Because `X` is continuous, `X t ⟶ X 0` as `t → 0⁺`, thus
   -- the random variable `X 0` is actually measurable with respect to `m2`, so `m1 ≤ m2`.
@@ -323,7 +323,7 @@ theorem IsBrownianReal.indep_zero (h : IsBrownianReal X P) (hX : ∀ t, Measurab
       apply iInf₂_le_of_le ε hε1
       rw [natural_eq_comap]
     simp only [Set.ofPred_subset_ofPred, ← measurableSpace_le_iff]
-    apply comap_le_comap (fun x t ↦ x (t.1 - ε)) (by fun_prop)
+    apply comap_le_comap_of_eq_comp (fun x t ↦ x (t.1 - ε)) (by fun_prop)
     ext ω t
     simp only [Function.comp_apply, sub_left_inj]
     rw [add_tsub_cancel_of_le]

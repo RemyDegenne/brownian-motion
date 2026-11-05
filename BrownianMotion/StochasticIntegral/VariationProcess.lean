@@ -6,9 +6,9 @@ Authors: Yongxi Lin
 module
 
 public import BrownianMotion.Auxiliary.EVariationOn
-public import BrownianMotion.Auxiliary.SeparableSpace
 public import Mathlib.Probability.Process.Adapted
 public import Mathlib.Topology.EMetricSpace.VariationOnFromTo
+public import Mathlib.Topology.Order.Separable
 
 /-!
 # The variation process
