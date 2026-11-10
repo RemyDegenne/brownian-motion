@@ -235,7 +235,7 @@ Using \eqref{eq:cs}, we see that $X_{t_n} \xrightarrow{n\to\infty} X_t$ in proba
 Therefore, $X_t = Y_t$ almost surely.
 
 We will use a more general version of this statement, replacing $T = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $T$. The version we formalize is based on
-the recent work of~\cite{kratschmer2023kolmogorov}. (Note the similar approach taken by \cite[Chapter~11]{ledoux1991probability}, which is based on real-valued processes, and which gives less concrete bounds, especially for Hölder continuity.)
+the recent work of~\cite{kratschmer2023kolmogorov}. (Note the similar approach taken by \cite[Chapter~11]{ledoux1991probability}, which is based on real-valued processes, and which gives less concrete bounds, especially for Hölder continuity. TODO CHANGE THAT)
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 
@@ -295,7 +295,7 @@ We end this section by presenting our formalization of Gaussian processes. These
 This can be stated in a very straightforward way thanks to the \lean{HasGaussianLaw} predicate, and is bundled into the predicate \lean{IsGaussianProcess X P}. Once again this illustrates our goal of relying on statements about random variables. Gaussian processes enjoy just as nice properties as Gaussian random variables, in particular with respect to independence. We have for example the following lemma.
 
 \begin{lemma}[\bmlink{Gaussian/GaussianProcess}{L28-L31}{IsGaussianProcess.indepFun''}]\label{lem:indepGaussProc}
-  Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $E$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
+  Let $(X_s)_{s \in S}$ and $(Y_t)_{t \in T}$ be two stochastic processes taking values in $\mathbb{R}$. Assume that the joint process $((X_s)_{s \in S}, (Y_t)_{t \in T})$ is Gaussian. Then to show that $X$ and $Y$ are independent, it is enough to prove that for any $s \in S$ and $t \in T$, $\mathbf{cov}(X_s, Y_t) = 0$.
 \end{lemma}
 
 This lemma reduces the independence of stochastic processes to a very simple computation, and will prove to be a blessing to show that a Brownian motion enjoys the weak Markov property. It is the result of a combination of Lemma~\ref{lem:gauss-indep} and of some results about independence of processes which were added to \mathlib for this purpose (notably \mllink{Probability/Independence/Process/Basic}{L383-L391}{ProbabilityTheory.IndepFun.process_indepFun_process}).
@@ -334,7 +334,7 @@ The paths of the process are the maps $(t : T) \to E_t$ defined by $t \mapsto X_
 A process $Y$ is said to be a modification of $X$ if for all $t \in T$, $X_t = Y_t$ almost surely.
 $X$ and $Y$ are said to be indistinguishable if almost surely, $X_t = Y_t$ for all $t \in T$ simultaneously.
 Being indistinguishable implies being a modification, which in turn implies equality of laws (that last part is proved through finite dimensional distributions, see below).
-We will use repeatedly that if $T$ is a second-countable topological space, $E$ is Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\bmlink{Gaussian/StochasticProcesses}{L18-L22}{indistinguishable_of_modification}).
+We will use repeatedly that if $T$ is a separable topological space, $E$ is Hausdorff and the paths of $X$ and $Y$ are continuous almost surely, then being a modification implies being indistinguishable (\bmlink{Gaussian/StochasticProcesses}{L18-L22}{indistinguishable_of_modification}).
 
 
 \paragraph{Measurability}
@@ -697,7 +697,7 @@ Therefore, we introduce a definition \lstinline|IsAEKolmogorovProcess| for the p
 \subsubsection{The main theorem}
 
 We formalize a recent and general version of the Kolmogorov-Chentsov theorem \cite[Theorem 1]{kratschmer2023kolmogorov}, which applies to extended pseudo-metric spaces under a covering assumption on the index set $T$.
-We say that $T$ has covering exponent $d \ge 0$ with constant $c > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below). Note that such a space is totally bounded with finite diameter by construction.
+We say that $T$ has covering exponent $d \ge 0$ with constant $c > 0$ if it has finite diameter and for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $T$ can be covered by at most $c \varepsilon^{-d}$ balls of radius $\varepsilon$ (see Definition~\ref{def:bounded_covering_number} below).
 
 \begin{theorem}[Kolmogorov-Chentsov]\label{thm:kolmogorov_chentsov}
 Suppose that the index set $T$ has covering exponent $d > 0$ with constant $c>0$.
@@ -779,7 +779,7 @@ Our formalization also includes definitions of external covers and covering numb
 The main hypothesis of the Kolmogorov-Chentsov theorem on the index set is that $T$ has a covering exponent, defined as follows.
 
 \begin{definition}[\mllink{Topology/MetricSpace/CoveringExponent}{L41-L46}{Metric.HasCoveringExponent}]\label{def:bounded_covering_number}
-A set $T$ has covering exponent $d \ge 0$ with constant $c > 0$ if for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
+A set $T$ has covering exponent $d \ge 0$ with constant $c > 0$ if it has finite diameter and for all $\varepsilon \in (0, \mathrm{diam}(T)]$, $N_\varepsilon(T) \le c \varepsilon^{-d}$.
 \end{definition}
 
 The exponent is a measure of dimensionality of the space $T$.
