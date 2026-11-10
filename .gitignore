@@ -5,6 +5,11 @@ BM_paper/main.pdf
 
 ## macOS
 .DS_Store
+## Referee reports and answers (not for the public repo)
+Report_*.pdf
+BM_paper/Answers_Report_69.pdf
+## Claude Code
+.claude/
 ## Lake
 .lake/*
 .cache/*
