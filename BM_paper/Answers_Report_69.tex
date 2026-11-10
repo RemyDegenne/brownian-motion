@@ -34,7 +34,7 @@ The typos and small changes you suggested were carried out without further menti
   \item The authors should mention the book by Revuz and Yor which is the most definitive reference on the Brownian motion.
   \\{\color{blue} We have added this book right at the beginning of the text.}
   \item The definition of a stochastic process should appear clearly as a definition (and maybe indicate which Lean predicate it refers to as for other definitions?).
-  \\{\color{blue} There is no definition of a stochastic process in Mathlib, as there is no definition of a random variable either. There is, however, the notion of an (ae) measurable function, which leads to a random variable, as well as a stochastic process. We follow the route of Mathlib here, do not define {\tt def stochasticProcess} or the like, but state measurability assumptions as needed. }
+  \\{\color{blue} There is no definition of a stochastic process in Mathlib, as there is no definition of a random variable either. There is, however, the notion of an (ae) measurable function, which leads to a random variable, as well as a stochastic process. We give a formal definition of a stochastic process and add a small comment about how this is dealt with in Mathlib.}
   \item The Kolmogorov continuity theorem for processes indexed by an abstract spaces is classical and largely predates the work Kr\"atschmer and Urusov [KU23] quoted in the paper (see for instance chapters 11 and 12 in the book Ledoux and Talagrand, or Theorems 1.4.2 and 2.15.3 in the second edition of Talagrand's book \emph{Upper and Lower Bounds for Stochastic Processes}). In particular, when $(X_t)_{t \in T}$ is Gaussian, one can always equip $T$ with the
   ``canonical'' pseudo-distance
   \[
