@@ -99,6 +99,12 @@ Brownian motion is a building block in modern probability theory. In this paper,
 
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
 
+\begin{definition}[Stochastic process]
+  Let $(\Omega, P)$ be a probability space, $T$ an index set and $E$ be a measurable space. A \emph{stochastic process} on $T$ with values in $E$ is a collection of $E$-valued random variables indexed by $T$, i.e. a family $(X_t)_{t \in T}$ with each $X_t : \Omega \to E$ being measurable.
+
+  There is no analogous definition in \mathlib, when needed we simply add a measurability hypothesis in the statement.
+\end{definition}
+
 \begin{definition}[\bmlink{Gaussian/BrownianMotion}{L490-L493}{ProbabilityTheory.IsBrownian}]\label{def:IsBrownian_preview}
 A stochastic process $X$ on $\mathbb{R}_+$ with values in $\mathbb{R}$ is said to be a \emph{Brownian motion} if $X$ has continuous paths almost surely and for all $n \in \mathbb{N}$ and $t_1, \ldots, t_n \in \mathbb{R}_+$, the vector $(X_{t_1}, \ldots, X_{t_n})$ has a multivariate normal distribution with mean $0$ and covariance matrix given by $\mathbf{cov}(X_{t_i}, X_{t_j}) = t_i \wedge t_j$ (the minimum of $t_i$ and $t_j$).
 \end{definition}
