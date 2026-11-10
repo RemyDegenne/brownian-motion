@@ -153,7 +153,7 @@ The Brownian motion $B$ is a modification of the pre-Brownian process, and there
 
 
 \begin{definition}\label{def:HasIndepIncrements}
-  \leanok
+  \mathlibok
   \lean{ProbabilityTheory.HasIndepIncrements}
 We say that a stochastic process $X : T \to \Omega \to E$ has independent increments if for all $t_1, \ldots, t_n \in T$ with $t_1 \le t_2 \le \cdots \le t_n$, the random variables $X_{t_2} - X_{t_1}, X_{t_3} - X_{t_2}, \ldots, X_{t_n} - X_{t_{n-1}}$ are independent.
 \end{definition}
@@ -191,8 +191,8 @@ The pushforward of the measure $P_B$ of Definition~\ref{def:gaussianLimit} by th
 
 
 \begin{theorem}\label{thm:ContinuousMap.borel_eq_iSup_comap_eval}
-  \leanok
-  \lean{ProbabilityTheory.ContinuousMap.borel_eq_iSup_comap_eval}
+  \mathlibok
+  \lean{ContinuousMap.borel_eq_iSup_comap_eval}
 The Borel sigma-algebra on $C(\mathbb{R}_+, \mathbb{R})$ coming from the compact-open topology is equal to the smallest sigma-algebra for which the evaluation maps $f \mapsto f(t)$ are measurable for every $t \in \mathbb{R}_+$.
 \end{theorem}
 
@@ -231,8 +231,8 @@ and it is enough to show that each term in the intersection is measurable. Becau
 
 \begin{definition}\label{def:MeasurableEquiv.continuousMap}
   \uses{thm:ContinuousMap.borel_eq_iSup_comap_eval}
-  \leanok
-  \lean{ProbabilityTheory.MeasurableEquiv.continuousMap}
+  \mathlibok
+  \lean{MeasurableEquiv.continuousMapToFun}
 The identity is a measurable equivalence between the continuous functions of $\mathbb{R}^{\mathbb{R}_+}$ with the subset sigma-algebra obtained from the product sigma-algebra, and $C(\mathbb{R}_+, \mathbb{R})$ with the Borel sigma-algebra coming from the compact-open topology.
 
 Mathematically this says nothing more than the equality of sigma-algebras of Theorem~\ref{thm:ContinuousMap.borel_eq_iSup_comap_eval} but in Lean we have two different types so we need an equivalence.

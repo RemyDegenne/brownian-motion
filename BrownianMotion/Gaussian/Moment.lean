@@ -1,5 +1,9 @@
-import Mathlib.Probability.Distributions.Gaussian.Basic
-import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+public import Mathlib.Probability.Distributions.Gaussian.Real
+
+@[expose] public section
 
 open MeasureTheory
 open scoped NNReal

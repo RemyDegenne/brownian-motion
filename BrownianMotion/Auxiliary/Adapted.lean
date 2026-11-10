@@ -1,73 +1,39 @@
-import Mathlib.Probability.Process.Adapted
-import Mathlib.Data.Setoid.Partition
-import BrownianMotion.StochasticIntegral.Cadlag
+module
+
+public import Mathlib.Probability.Process.Indistinguishable
+public import Mathlib.Probability.Process.Adapted
+public import Mathlib.MeasureTheory.Function.Piecewise
+public import BrownianMotion.StochasticIntegral.Cadlag
+
+@[expose] public section
 
 open Filter Set TopologicalSpace Function MeasureTheory
 open scoped NNReal ENNReal Topology
 
 namespace MeasureTheory
 
-local infixr:25 " →ₛ " => SimpleFunc
-
-variable {ι Ω β : Type*} {s : ι → Set Ω} (hs : IndexedPartition s)
-
-theorem _root_.Set.indexedPartition_piecewise_preimage (f : ι → Ω → β) (t : Set β) :
-    (hs.piecewise f) ⁻¹' t = ⋃ i, s i ∩ ((f i)⁻¹' t) := by
-  refine ext fun x => ⟨fun hx => ?_, fun ⟨a, ⟨i, hi⟩, ha⟩ => ?_⟩
-  · rw [mem_preimage, IndexedPartition.piecewise_apply, ← mem_preimage] at hx
-    exact mem_iUnion_of_mem (s := fun i => s i ∩ ((f i)⁻¹' t)) (hs.index x)
-      (mem_inter (hs.mem_index x) hx)
-  · rw [← hi, ← (IndexedPartition.mem_iff_index_eq hs).mp ha.1] at ha
-    simp_all [IndexedPartition.piecewise_apply]
-
-theorem _root_.Set.range_indexedPartition_subset (f : ι → Ω → β) :
-    range (hs.piecewise f) ⊆ ⋃ i, range (f i) :=
-  fun x ⟨y, hy⟩ => by simpa [IndexedPartition.piecewise_apply] using ⟨hs.index y, y, hy⟩
-
-variable {mΩ : MeasurableSpace Ω} {mβ : MeasurableSpace β}
-
-theorem Measurable.IndexedPartition [Countable ι] (hms : ∀ i, MeasurableSet (s i))
-    {f : ι → Ω → β} (hmf : ∀ i, Measurable (f i)) : Measurable (hs.piecewise f) := by
-  refine fun t ht => ?_
-  rw [indexedPartition_piecewise_preimage]
-  exact MeasurableSet.iUnion (fun i => (hms i).inter (measurableSet_preimage (hmf i) ht))
-
-/-- This is the analogue of `SimpleFunc.piecewise` for `IndexedPartition`. -/
-def SimpleFunc.IndexedPartition [Finite ι] (hms : ∀ i, MeasurableSet (s i)) (f : ι → Ω →ₛ β) :
-    Ω →ₛ β :=
-  ⟨hs.piecewise (fun i => f i), fun _ =>
-    letI : MeasurableSpace β := ⊤
-    Measurable.IndexedPartition hs hms (fun i => (f i).measurable) trivial,
-    (Set.finite_iUnion (fun i => (f i).finite_range)).subset
-    (range_indexedPartition_subset hs (fun i => f i))⟩
-
-variable [TopologicalSpace β] {μ : Measure Ω}
-
-lemma StronglyMeasurable.IndexedPartition [Finite ι] (hm : ∀ i, MeasurableSet (s i))
-    {f : ι → Ω → β} (hf : ∀ i, StronglyMeasurable (f i)) :
-    StronglyMeasurable (hs.piecewise f) := by
-  refine ⟨fun n => SimpleFunc.IndexedPartition hs hm (fun i => (hf i).approx n), fun x => ?_⟩
-  simp [SimpleFunc.IndexedPartition, IndexedPartition.piecewise_apply,
-    StronglyMeasurable.tendsto_approx]
+variable {ι Ω β : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace β]
 
 variable [TopologicalSpace ι] [LinearOrder ι] [OrderTopology ι] [SecondCountableTopology ι]
   [MeasurableSpace ι] [OpensMeasurableSpace ι] [PseudoMetrizableSpace β] {X : ι → Ω → β}
   {τ : Ω → WithTop ι} {n : ι}
 
-lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
-    (h : Adapted 𝓕 X) (hu_cont : ∀ ω, RightContinuous (X · ω)) :
-    ProgMeasurable 𝓕 X := by
+lemma StronglyAdapted.isStronglyProgressive_of_rightContinuous {𝓕 : Filtration ι mΩ}
+    (h : StronglyAdapted 𝓕 X) (hu_cont : ∀ ω, IsRightContinuous (X · ω)) :
+    IsStronglyProgressive 𝓕 X := by
   intro t
   -- separate into two cases because the partition we defined below cannot contain empty sets
-  by_cases hΩ : Nonempty Ω
-  swap; · simp_all [stronglyMeasurable_const']
+  rcases isEmpty_or_nonempty Ω with hΩ | hΩ
+  · fun_prop
   -- ip is the set of points in (-∞,t] that are isolated on the right
   let ip := {x : Iic t | 𝓝[>] x = ⊥}
   have tmemip : ⟨t, le_rfl⟩ ∈ ip := by
     simp only [← not_neBot, nhdsWithin_neBot, not_forall,
-      not_nonempty_iff_eq_empty, mem_setOf_eq, ip]
-    use univ; simp; rfl
-  have ipc : ip.Countable := countable_setOf_isolated_right (α := Iic t)
+      not_nonempty_iff_eq_empty, mem_ofPred_eq, ip]
+    use univ
+    simp
+    rfl
+  have ipc : ip.Countable := countable_setOfPred_isolated_right (α := Iic t)
   -- d is the set of points dense in (-∞,t]
   obtain ⟨d, dc, dd⟩ := TopologicalSpace.exists_countable_dense (Iic t)
   let s := ip ∪ d
@@ -85,26 +51,34 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
   have hav (a : Iic t × Ω) (n : ℕ) : a.1 ≤ v n ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩ := by
     have l : v n ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩ = ⟨t, le_rfl⟩ := by
       simp only [Finset.orderEmbOfFin_last (rfl : (r n).card = (r n).card) (by simp [r]),
-        Finset.max'_eq_iff, Subtype.forall, mem_Iic, Subtype.mk_le_mk, v, r,
+        Finset.max'_eq_iff, Subtype.forall, mem_Iic, v, r,
         Finset.mem_image, Finset.mem_range, comp_apply]
       exact ⟨⟨k, by linarith, by simp [hk]⟩, fun a ha _ => ha⟩
-    simpa [l] using mem_Iic.mp a.1.2
-  have LEM (a : Iic t × Ω) (n : ℕ) := (Option.isSome_iff_exists.mp (Fin.isSome_find_iff.mpr
-    (Exists.intro (p := fun i ↦ a.1 ≤ v n i) ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩
-    (hav a n))))
+    simp only [l, ge_iff_le]
+    exact mem_Iic.mp a.1.2
   have disj (n : ℕ) : Pairwise (Disjoint on (f n)) := by
     simp only [pairwise_disjoint_on]
     intro i j hij
     by_cases hi0 : i = ⟨0, by simp [r]⟩
     · have hj0 : ⟨0, by simp [r]⟩ ≠ j := by simp [← hi0, hij.ne]
       simp [f, hi0, hj0.symm]
-    · have hj0 : 0 < j.val := by grind
-      have hj1 : ⟨0, by simp [r]⟩ ≠ j := by grind
+    · have hj0 : 0 < j.val := (Nat.zero_le _).trans_lt hij
+      have hj1 : ⟨0, by simp [r]⟩ ≠ j := Fin.ne_of_val_ne hj0.ne
       simp only [hi0, ↓reduceDIte, hj1.symm, Set.disjoint_prod, Ioc_disjoint_Ioc, le_sup_iff,
         inf_le_iff, OrderEmbedding.le_iff_le, disjoint_self, bot_eq_empty, univ_eq_empty_iff,
         not_isEmpty_of_nonempty, or_false, f]
       simp only [Fin.lt_def, ← Nat.le_sub_one_iff_lt hj0] at hij
       exact Or.inr (Or.inl hij)
+  have h_exists (a : Iic t × Ω) (n : ℕ) : ∃ i, a.1 ≤ v n i := by
+    use ⟨(r n).card - 1, Nat.sub_one_lt (by simp [r])⟩
+    exact hav a n
+  let LEM (a : Iic t × Ω) (n : ℕ) := Fin.find (fun i ↦ a.1 ≤ v n i) (h_exists a n)
+  have h_LEM (a : Iic t × Ω) (n : ℕ) : a.1 ≤ v n (LEM a n) := Fin.find_spec (h_exists a n)
+  have h_LEM_min (a : Iic t × Ω) (n : ℕ) (i : Fin (r n).card) (hi : i < LEM a n) : v n i < a.1 := by
+    rw [← not_le]
+    exact Fin.find_min (h_exists a n) hi
+  have h_LEM_le (a : Iic t × Ω) (n : ℕ) (i : Fin (r n).card) (ha : a.1 ≤ v n i) : LEM a n ≤ i :=
+    Fin.find_le_of_pos (h_exists a n) ha
   -- create a partition of (Iic t) × Ω
   let P (n : ℕ) : IndexedPartition (f n) :=
     { eq_of_mem {a i j} hai haj := by_contradiction fun h => (disj n h).le_bot ⟨hai, haj⟩
@@ -113,22 +87,27 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
         by_cases h0 : i = ⟨0, by simp [r]⟩
         · simp [f, h0]
         · simp [f, h0, Fin.lt_def, Nat.sub_one_lt (fun j => h0 (Fin.eq_of_val_eq j))]
-      index a := (LEM a n).choose -- choose the smallest i such that a.1 ≤ v n i
+      index a := LEM a n -- choose the smallest i such that a.1 ≤ v n i
       mem_index a := by
-        have hi := (LEM a n).choose_spec
-        by_cases h0 : (LEM a n).choose = ⟨0, by simp [r]⟩
+        have hi := h_LEM a n
+        by_cases h0 : LEM a n = ⟨0, by simp [r]⟩
         · simp_all only [nonempty_subtype, Subtype.exists, mem_Iic, ↓reduceDIte, mem_prod, mem_univ,
             and_true, f]
-          exact Fin.find_spec (fun i ↦ a.1 ≤ (v n) i) hi
         · simp only [h0, ↓reduceDIte, mem_prod, mem_Ioc, mem_univ, and_true, f]
+          rw [← not_lt] at hi
           constructor
-          · exact lt_of_not_ge (Fin.find_min hi (Nat.sub_one_lt (fun j => h0 (Fin.eq_of_val_eq j))))
-          · exact Fin.find_spec (fun i ↦ a.1 ≤ (v n) i) hi }
+          · refine lt_of_not_ge ?_
+            rw [not_le]
+            refine h_LEM_min a n _ ?_
+            simp [Fin.ext_iff, Fin.lt_def] at h0 ⊢
+            grind
+          · exact h_LEM a n }
   -- discrete approximation of X
   let U : ℕ → (Iic t) × Ω → β := fun n p => (P n).piecewise (fun m => fun q => X (v n m) q.2) p
   -- X is strongly measurable because it is the pointwise limit of strongly measurable functions
   refine stronglyMeasurable_of_tendsto (f := U) (u := atTop) (fun n => ?_) ?_
-  · refine StronglyMeasurable.IndexedPartition (P n) (fun m => ?_) (fun m => ?_)
+  · let : MeasurableSpace Ω := 𝓕 t
+    refine (P n).stronglyMeasurable_piecewise (fun m => ?_) (fun m => ?_)
     · by_cases h0 : m = ⟨0, by simp [r]⟩
       · simpa [f, h0] using MeasurableSet.prod measurableSet_Iic MeasurableSet.univ
       · simpa [f, h0] using MeasurableSet.prod measurableSet_Ioc MeasurableSet.univ
@@ -183,12 +162,11 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
             by_contra!
             have : a.1 ∈ ip := by
               have inter : Ioo a.1 ep = Ioi a.1 ∩ Iio ep := by grind
-              simp only [← empty_mem_iff_bot, ← this, mem_setOf_eq, ip, inter]
+              simp only [← empty_mem_iff_bot, ← this, mem_ofPred_eq, ip, inter]
               apply inter_mem_nhdsWithin (Ioi a.1) (IsOpen.mem_nhds isOpen_Iio (by simp [hep.1]))
             exact has (Or.inl this)
-          have : ((Ioo a.1 ep) ∩ d).Nonempty := Dense.inter_open_nonempty dd (Ioo a.1 ep)
+          obtain ⟨e, he⟩ : ((Ioo a.1 ep) ∩ d).Nonempty := Dense.inter_open_nonempty dd (Ioo a.1 ep)
             isOpen_Ioo this
-          obtain ⟨e, he⟩ := this
           obtain ⟨N, hN⟩ := hu ⟨_, Or.inr he.2⟩
           refine ⟨N, fun n hn => ?_⟩
           suffices w n ∈ Subtype.val '' Ico a.1 ep from by
@@ -200,7 +178,10 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
           have hev : e ∈ univ.image (v n) := by simpa [v, r] using ⟨N, by linarith, by simp [hN]⟩
           obtain ⟨M, hM⟩ := hev
           simp only [← hM.2, Subtype.coe_le_coe, OrderEmbedding.le_iff_le, ge_iff_le, w]
-          exact (Fin.find_eq_some_iff.mp (LEM a n).choose_spec).2 M (by simp [hM.2, he.1.1.le])
+          -- `change LEM a n ≤ M`
+          refine h_LEM_le a n M ?_
+          rw [hM.2]
+          exact he.1.1.le
         · simp only [mem_Ioi, Subtype.coe_lt_coe, w]
           have lem2 : v n ((P n).index a) ≠ a.1 := by
             intro hva
@@ -213,5 +194,92 @@ lemma Adapted.progMeasurable_of_rightContinuous {𝓕 : Filtration ι mΩ}
       have : (fun x => U x a) = (X · a.2) ∘ w := by
         ext; simp [U, w, IndexedPartition.piecewise_apply]
       simpa [this] using tends2.comp tends1
+
+section AEStronglyAdapted
+
+variable {Ω ι E : Type*} {mΩ : MeasurableSpace Ω} [Preorder ι] {𝓕 : Filtration ι mΩ}
+  {X Y : ι → Ω → E} {P : Measure Ω} [TopologicalSpace E]
+
+/-- A stochastic process is a.e. strongly adapted if it is undistinguishable from a
+strongly adapted process. -/
+def AEStronglyAdapted (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop :=
+  ∃ Y, StronglyAdapted 𝓕 Y ∧ X ≡ᵐ[P] Y
+
+lemma AEStronglyAdapted.congr (hX : AEStronglyAdapted X 𝓕 P) (h : X ≡ᵐ[P] Y) :
+    AEStronglyAdapted Y 𝓕 P :=
+  ⟨hX.choose, hX.choose_spec.1, h.symm.trans hX.choose_spec.2⟩
+
+lemma StronglyAdapted.aestronglyAdapted (hX : StronglyAdapted 𝓕 X) :
+    AEStronglyAdapted X 𝓕 P :=
+  ⟨X, hX, .rfl⟩
+
+lemma AEStronglyAdapted.const {c : E} : AEStronglyAdapted (fun _ _ ↦ c) 𝓕 P :=
+  (stronglyAdapted_const 𝓕 c).aestronglyAdapted
+
+/-- Given a `hX : AEStronglyAdapted` process `X`, `hX.mk X` is a strongly adapted process
+that is indistinguishable from `X`. -/
+noncomputable def AEStronglyAdapted.mk (X : ι → Ω → E) (hX : AEStronglyAdapted X 𝓕 P) :
+    ι → Ω → E := hX.choose
+
+lemma AEStronglyAdapted.stronglyAdapted_mk (hX : AEStronglyAdapted X 𝓕 P) :
+    StronglyAdapted 𝓕 (hX.mk X) := hX.choose_spec.1
+
+lemma AEStronglyAdapted.indist_mk (hX : AEStronglyAdapted X 𝓕 P) :
+    X ≡ᵐ[P] hX.mk X := hX.choose_spec.2
+
+lemma Continuous.comp_stronglyAdapted {F : Type*} [TopologicalSpace F] {g : E → F}
+    (hg : Continuous g) (hX : StronglyAdapted 𝓕 X) :
+    StronglyAdapted 𝓕 (fun t ↦ g ∘ (X t)) :=
+  fun t ↦ hg.comp_stronglyMeasurable (hX t)
+
+lemma Continuous.comp_aestronglyAdapted {F : Type*} [TopologicalSpace F] {g : E → F}
+    (hg : Continuous g) (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted (fun t ↦ g ∘ (X t)) 𝓕 P :=
+  ⟨fun t ↦ g ∘ (hX.mk X t), hg.comp_stronglyAdapted hX.stronglyAdapted_mk,
+    hX.indist_mk.fun_comp g⟩
+
+lemma StronglyAdapted.prodMk {F : Type*} [TopologicalSpace F] {Y : ι → Ω → F}
+    (hX : StronglyAdapted 𝓕 X) (hY : StronglyAdapted 𝓕 Y) :
+    StronglyAdapted 𝓕 (fun t ω ↦ (X t ω, Y t ω)) :=
+  fun t ↦ (hX t).prodMk (hY t)
+
+lemma AEStronglyAdapted.prodMk {F : Type*} [TopologicalSpace F] {Y : ι → Ω → F}
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (fun t ω ↦ (X t ω, Y t ω)) 𝓕 P :=
+  ⟨fun t ω ↦ (hX.mk X t ω, hY.mk Y t ω), hX.stronglyAdapted_mk.prodMk hY.stronglyAdapted_mk,
+    hX.indist_mk.prodMk hY.indist_mk⟩
+
+@[to_additive]
+lemma StronglyAdapted.const_smul {R : Type*} [SMul R E] [ContinuousConstSMul R E] {c : R}
+    (hX : StronglyAdapted 𝓕 X) :
+    StronglyAdapted 𝓕 (c • X) :=
+  fun t ↦ (hX t).const_smul c
+
+@[to_additive]
+lemma AEStronglyAdapted.const_smul {R : Type*} [SMul R E] [ContinuousConstSMul R E] {c : R}
+    (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted (c • X) 𝓕 P :=
+  ⟨c • hX.mk X, hX.stronglyAdapted_mk.const_smul, hX.indist_mk.const_smul⟩
+
+@[to_additive]
+lemma AEStronglyAdapted.mul [Mul E] [ContinuousMul E]
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (X * Y) 𝓕 P :=
+  ⟨(hX.mk X) * (hY.mk Y), hX.stronglyAdapted_mk.mul hY.stronglyAdapted_mk,
+    hX.indist_mk.mul hY.indist_mk⟩
+
+@[to_additive]
+lemma AEStronglyAdapted.inv [Group E] [ContinuousInv E] (hX : AEStronglyAdapted X 𝓕 P) :
+    AEStronglyAdapted X⁻¹ 𝓕 P :=
+  ⟨(hX.mk X)⁻¹, hX.stronglyAdapted_mk.inv, hX.indist_mk.inv⟩
+
+@[to_additive sub]
+lemma AEStronglyAdapted.div' [Div E] [ContinuousDiv E]
+    (hX : AEStronglyAdapted X 𝓕 P) (hY : AEStronglyAdapted Y 𝓕 P) :
+    AEStronglyAdapted (X / Y) 𝓕 P :=
+  ⟨(hX.mk X) / (hY.mk Y), hX.stronglyAdapted_mk.div' hY.stronglyAdapted_mk,
+    hX.indist_mk.div hY.indist_mk⟩
+
+end AEStronglyAdapted
 
 end MeasureTheory
