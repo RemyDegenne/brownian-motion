@@ -99,8 +99,8 @@ Brownian motion is a building block in modern probability theory. In this paper,
 
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
 
-\begin{definition}[Stochastic process]
-  Let $(\Omega, P)$ be a probability space, $T$ an index set and $E$ be a measurable space. A \emph{stochastic process} on $T$ with values in $E$ is a collection of $E$-valued random variables indexed by $T$, i.e. a family $(X_t)_{t \in T}$ with each $X_t : \Omega \to E$ being everywhere equal to a measurable function.
+\begin{definition}[Stochastic process]\label{def:stochastic_process}
+  Let $(\Omega, P)$ be a probability space, $T$ an index set and $E$ be a measurable space. A \emph{stochastic process} on $T$ with values in $E$ is a collection of $E$-valued random variables indexed by $T$, i.e. a family $(X_t)_{t \in T}$ with each $X_t : \Omega \to E$ being measurable.
 
   There is no analogous definition in \mathlib, when needed we simply add a measurability hypothesis in the statement.
 \end{definition}
@@ -239,7 +239,7 @@ Using \eqref{eq:cs}, we see that $X_{t_n} \xrightarrow{n\to\infty} X_t$ in proba
 Therefore, $X_t = Y_t$ almost surely.
 
 We will use a more general version of this statement, replacing $T = [0,1]$ by a metric space with a property restricting the number of balls needed to cover $T$. The version we formalize is based on
-the recent work of~\cite{kratschmer2023kolmogorov}. (Note the similar approach taken by \cite[Chapter~11]{ledoux1991probability}, which is based on real-valued processes, and which gives less concrete bounds, especially for Holder continuity.)
+the recent work of~\cite{kratschmer2023kolmogorov}. (Note the similar approach taken by \cite[Chapter~11]{ledoux1991probability}, which is based on real-valued processes, and which gives less concrete bounds, especially for Hölder continuity.)
 
 \subsection{Construction of Brownian motion and Wiener measure on $\R_+$}
 
@@ -350,7 +350,7 @@ This is equivalent to requiring that the map $\Omega \to \prod_{t \in T} E_t$ de
 We say that $X$ is almost everywhere measurable if there exists a measurable process $Y$ such that almost surely, $X_t = Y_t$ for all $t \in T$.
 That is, there exists a measurable process $Y$ which is indistinguishable from $X$.
 Contrary to the case of measurability, this is strictly stronger than requiring that for all $t \in T$, $X_t$ is almost everywhere equal to a measurable function (unless for example $T$ is countable or $X$ has continuous paths, in which case the two notions coincide).
-In the following, a \emph{stochastic process} will always mean an almost everywhere measurable collection $(X_t)_{t \in T}$.
+In the following, we relax Definition~\ref{def:stochastic_process} and a \emph{stochastic process} will always mean an almost everywhere measurable collection $(X_t)_{t \in T}$~.
 
 \mathlib uses extensively almost everywhere measurable random variables, more so than measurable ones, because almost everywhere measurability is a much more flexible notion, which does not depend on the behavior of the function on sets to which the measure gives zero mass.
 \cite{gouezel2022formalization} contains a detailed discussion of the advantages of almost everywhere measurability when it comes to defining integrals in the context of calculus.
@@ -604,7 +604,7 @@ As our work primarily focuses on the case where $E$ is a Euclidean space, in wha
 
 The properties of the covariance allow to easily deduce that $C_\mu$ is actually a continuous and positive semidefinite bilinear form. We have the following characterization of Gaussian measures.
 
-\begin{theorem}[\bmlink{Gaussian/Gaussian}{L207-L109}{ProbabilityTheory.isGaussian_iff_charFun_eq}]\label{thm:gaussian_charFun}
+\begin{theorem}[\bmlink{Gaussian/Gaussian}{L207-L209}{ProbabilityTheory.isGaussian_iff_charFun_eq}]\label{thm:gaussian_charFun}
   The measure $\mu$ is Gaussian if and only if its characteristic function is given by
   $$\psi_\mu(t) = \exp(i \langle t, \mathbf E_\mu[\mathrm{id}] \rangle - C_\mu(t, t) / 2).$$
 \end{theorem}
