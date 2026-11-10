@@ -1,91 +1,137 @@
-import Mathlib.Probability.Process.Stopping
+module
+
+public import Mathlib.Probability.Process.Indistinguishable
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import Mathlib.Probability.Process.Stopping
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped ENNReal Topology
 
 namespace MeasureTheory
 
-variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+variable {ι Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [Nonempty ι]
+  {τ : Ω → WithTop ι} {ω : Ω} {t : ι} {X Y : ι → Ω → E}
 
-variable [Nonempty ι] [LinearOrder ι]
+section stoppedProcess
 
-@[simp] lemma stoppedProcess_const {β : Type*} {u₀ : Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (fun _ ↦ u₀) τ = fun _ ↦ u₀ := rfl
-
-@[simp] lemma stoppedProcess_neg {β : Type*} [Neg β] {u : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (-u) τ = -stoppedProcess u τ := rfl
-
-@[simp] lemma stoppedProcess_add {β : Type*} [Add β] {u v : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (u + v) τ = stoppedProcess u τ + stoppedProcess v τ := rfl
-
-@[simp] lemma stoppedProcess_sub {β : Type*} [Sub β] {u v : ι → Ω → β} {τ : Ω → WithTop ι} :
-    stoppedProcess (u - v) τ = stoppedProcess u τ - stoppedProcess v τ := rfl
-
-@[simp] lemma stoppedProcess_const_smul {β : Type*} [SMul ℝ β] (c : ℝ) {u : ι → Ω → β}
-    {τ : Ω → WithTop ι} : stoppedProcess (c • u) τ = c • stoppedProcess u τ := rfl
-
-lemma stoppedProcess_indicator_comm {β : Type*} [Zero β] {u : ι → Ω → β}
-    {τ : Ω → WithTop ι} {s : Set Ω} (i : ι) :
-    stoppedProcess (fun i ↦ s.indicator (u i)) τ i
-      = s.indicator (stoppedProcess u τ i) := by
-  ext ω
-  rw [Set.indicator]
-  split_ifs with hω
-  · rw [stoppedProcess, Set.indicator_of_mem hω, stoppedProcess]
-  · rw [stoppedProcess, Set.indicator_of_notMem hω]
-
-lemma stoppedProcess_indicator_comm' {β : Type*} [Zero β] {u : ι → Ω → β}
-    {τ : Ω → WithTop ι} {s : Set Ω} :
-    stoppedProcess (fun i ↦ s.indicator (u i)) τ
-      = fun i ↦ s.indicator (stoppedProcess u τ i) := by
-  ext i ω
-  rw [stoppedProcess_indicator_comm]
-
-theorem _root_.MeasureTheory.stoppedValue_stoppedProcess_apply
-    {β : Type*} {ω : Ω} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (hω : σ ω ≠ ⊤) :
-    stoppedValue (stoppedProcess u τ) σ ω = stoppedValue u (fun ω ↦ min (σ ω) (τ ω)) ω := by
-  simp only [stoppedValue_stoppedProcess, ne_eq, hω, not_false_eq_true, reduceIte]
+variable [LinearOrder ι]
 
 @[simp]
-theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess
-    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} :
-    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (σ ⊓ τ) := by
-  ext i ω
-  rw [stoppedProcess, stoppedProcess, stoppedProcess]
-  by_cases hτ : τ ω = ⊤
-  · simp only [hτ, le_top, inf_of_le_left, WithTop.untopD_coe, Pi.inf_apply]
-  by_cases hσ : σ ω = ⊤
-  · simp only [hσ, le_top, inf_of_le_left, WithTop.untopD_coe, Pi.inf_apply, inf_of_le_right]
-  by_cases hστ : σ ω ≤ τ ω
-  · rw [min_eq_left, WithTop.untopA_eq_untop (lt_of_le_of_lt ((min_le_right _ _).trans hστ) <|
-        WithTop.lt_top_iff_ne_top.2 hτ).ne, WithTop.coe_untop]
-    · simp only [Pi.inf_apply, hστ, inf_of_le_left]
-    · refine le_trans ?_ hστ
-      rw [WithTop.untopA_eq_untop (lt_of_le_of_lt ((min_le_right _ _).trans hστ) <|
-        WithTop.lt_top_iff_ne_top.2 hτ).ne, WithTop.coe_untop]
-      exact min_le_right _ _
-  · nth_rewrite 2 [WithTop.untopA_eq_untop ]
-    · rw [WithTop.coe_untop, min_assoc]
-      rfl
-    · exact (lt_of_le_of_lt (min_le_right _ _) <| WithTop.lt_top_iff_ne_top.2 hσ).ne
+lemma stoppedProcess_of_eq_top (s : ι) (hτ : τ ω = ⊤) :
+    stoppedProcess X τ s ω = X s ω := by
+  simp [stoppedProcess, hτ]
 
-theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess'
-    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} :
-    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u (fun ω ↦ min (σ ω) (τ ω)) := by
-  simp; rfl
+@[simp]
+lemma stoppedProcess_of_eq_coe (s : ι) (hτ : τ ω = t) :
+    stoppedProcess X τ s ω = X (min s t) ω := by
+  obtain h | h := le_total s t <;> simp [stoppedProcess, hτ, h]
 
-theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_right
-    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : σ ≤ τ) :
-    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u σ := by
-  rw [stoppedProcess_stoppedProcess, inf_of_le_left h]
+lemma stoppedProcess_congr (h : X ≡ᵐ[P] Y) :
+    stoppedProcess X τ ≡ᵐ[P] stoppedProcess Y τ := by
+  filter_upwards [h] with ω h t
+  simp [stoppedProcess, h]
 
-theorem _root_.MeasureTheory.stoppedProcess_stoppedProcess_of_le_left
-    {β : Type*} {u : ι → Ω → β} {τ σ : Ω → WithTop ι} (h : τ ≤ σ) :
-    stoppedProcess (stoppedProcess u τ) σ = stoppedProcess u τ := by
-  rw [stoppedProcess_stoppedProcess, inf_of_le_right h]
+lemma stoppedProcess_indicator_add [AddZeroClass E] {s : Set Ω} :
+    stoppedProcess (fun i ↦ s.indicator ((X + Y) i)) τ
+      = stoppedProcess (fun i ↦ s.indicator (X i)) τ
+        + stoppedProcess (fun i ↦ s.indicator (Y i)) τ := by
+  ext t ω
+  by_cases hω : ω ∈ s <;> simp [stoppedProcess, hω]
 
-theorem _root_.MeasureTheory.stoppedProcess_eq_stoppedValue_apply
-    {β : Type*} {u : ι → Ω → β} {τ : Ω → WithTop ι} (i : ι) (ω : Ω) :
-    stoppedProcess u τ i ω = stoppedValue u (fun ω ↦ min i (τ ω)) ω := rfl
+lemma stoppedProcess_indicator_sub [AddGroup E] {s : Set Ω} :
+    stoppedProcess (fun i ↦ s.indicator ((X - Y) i)) τ
+      = stoppedProcess (fun i ↦ s.indicator (X i)) τ
+        - stoppedProcess (fun i ↦ s.indicator (Y i)) τ := by
+  ext t ω
+  by_cases hω : ω ∈ s <;> simp [stoppedProcess, hω]
+
+/-- Stopping at `τ` and then at a smaller time `σ` is the same as stopping at `σ`, for the
+stopped processes used in the definition of local properties. -/
+lemma stoppedProcess_indicator_stoppedProcess_indicator_of_le [OrderBot ι] [Zero E]
+    {σ : Ω → WithTop ι} (h : σ ≤ τ) :
+    stoppedProcess (fun i ↦ {ω | ⊥ < σ ω}.indicator
+        (stoppedProcess (fun i ↦ {ω | ⊥ < τ ω}.indicator (X i)) τ i)) σ
+      = stoppedProcess (fun i ↦ {ω | ⊥ < σ ω}.indicator (X i)) σ := by
+  simp_rw [stoppedProcess_indicator_comm', stoppedProcess_stoppedProcess_of_le_right h]
+  ext t ω
+  by_cases hω : ⊥ < σ ω
+  · have hω' : ⊥ < τ ω := hω.trans_le (h ω)
+    simp [hω, hω']
+  · simp [hω]
+
+/-- If a trajectory of a process is monotone, then the corresponding trajectory of the stopped
+process is also monotone. -/
+lemma _root_.Monotone.stoppedProcess_indicator [Preorder E] [Zero E] (hX : Monotone (X · ω))
+    (s : Set Ω) (τ : Ω → WithTop ι) :
+    Monotone (stoppedProcess (fun i ↦ s.indicator (X i)) τ · ω) := by
+  intro a b hab
+  simp only [stoppedProcess_indicator_comm]
+  by_cases hω : ω ∈ s
+  · simp only [Set.indicator_of_mem hω, stoppedProcess]
+    refine hX (WithTop.untopA_mono ?_ (min_le_min_right _ (WithTop.coe_le_coe.2 hab)))
+    exact ne_top_of_le_ne_top WithTop.coe_ne_top (min_le_left _ _)
+  · simp [hω]
+
+section Topology
+
+variable [TopologicalSpace ι] [OrderTopology ι] [TopologicalSpace E]
+
+/-- If a trajectory of a process is continuous, then the corresponding trajectory of the stopped
+process is also continuous. -/
+lemma _root_.Continuous.stoppedProcess {ω : Ω} (hX : Continuous (X · ω)) (τ : Ω → WithTop ι) :
+    Continuous (stoppedProcess X τ · ω) := by
+  cases h : τ ω with
+  | top => simpa [h]
+  | coe t =>
+    simp only [h, WithTop.coe_inj, stoppedProcess_of_eq_coe]
+    fun_prop
+
+/-- If a trajectory of a process is right-continuous,
+then the corresponding trajectory of the stopped process is also right-continuous. -/
+lemma _root_.IsRightContinuous.stoppedProcess (hX : IsRightContinuous (X · ω)) (τ : Ω → WithTop ι) :
+    IsRightContinuous (stoppedProcess X τ · ω) := by
+  cases h : τ ω with
+  | top => simpa [h]
+  | coe t =>
+    simp only [h, WithTop.coe_inj, stoppedProcess_of_eq_coe]
+    intro s
+    obtain hst | hts := lt_or_ge s t
+    · exact hX (min s t) |>.comp (f := (min · t)) (by fun_prop) (by grind [Set.MapsTo])
+    · exact (continuous_const (y := X t ω)).continuousWithinAt.congr (by grind) (by grind)
+
+/-- If a trajectory of a process is càdlàg, then the corresponding trajectory of the stopped
+process is also càdlàg. -/
+lemma _root_.IsCadlag.stoppedProcess (hX : IsCadlag (X · ω)) (τ : Ω → WithTop ι) :
+    IsCadlag (stoppedProcess X τ · ω) := by
+  cases h : τ ω with
+  | top => simpa [h]
+  | coe t =>
+    refine ⟨hX.isRightContinuous.stoppedProcess τ, fun s ↦ ?_⟩
+    simp only [h, WithTop.coe_inj, stoppedProcess_of_eq_coe]
+    obtain hst | hts := le_or_gt s t
+    · obtain ⟨l, hl⟩ := hX.tendsto_nhdsLT s
+      exact ⟨l, hl.congr' (Set.EqOn.eventuallyEq_nhdsWithin fun s hs ↦ by grind)⟩
+    · refine ⟨X t ω, tendsto_const_nhds.congr' ?_⟩
+      rw [eventuallyEq_nhdsWithin_iff, eventually_nhds_iff]
+      exact ⟨Set.Ioi t, by grind, isOpen_Ioi, by grind⟩
+
+end Topology
+
+end stoppedProcess
+
+namespace stoppedValue
+
+@[simp] lemma add [Add E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u + v) τ = stoppedValue u τ + stoppedValue v τ := rfl
+
+@[simp] lemma neg [Neg E] {u : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (-u) τ = -stoppedValue u τ := rfl
+
+@[simp] lemma sub [Sub E] {u v : ι → Ω → E} {τ : Ω → WithTop ι} :
+    stoppedValue (u - v) τ = stoppedValue u τ - stoppedValue v τ := rfl
+
+end stoppedValue
 
 end MeasureTheory

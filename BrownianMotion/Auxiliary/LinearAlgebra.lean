@@ -1,21 +1,15 @@
-import Mathlib.Analysis.InnerProductSpace.Dual
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.PosDef
+module
 
-lemma sum_single_apply {ι : Type*} (φ : ι → Type*) [∀ i, AddCommMonoid (φ i)] [Fintype ι]
-    [DecidableEq ι] (v : (i : ι) → φ i) :
-    ∑ i, Pi.single i (v i) = v := by
-  ext i
-  simp
+public import Mathlib.Analysis.InnerProductSpace.Dual
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
-lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [Fintype n] [CommRing R] [PartialOrder R]
+@[expose] public section
+
+lemma Matrix.PosSemidef.nonneg_apply_self {n R : Type*} [CommRing R] [PartialOrder R]
     [StarRing R] {M : Matrix n n R} (hM : M.PosSemidef) (i : n) : 0 ≤ M i i := by
   classical
-  convert hM.2 (Pi.single i 1)
-  have : star (Pi.single (M := fun _ ↦ R) i 1) = Pi.single i 1 := by
-    ext j
-    simp [Pi.single_apply, apply_ite star]
-  simp [this]
+  convert hM.2 (Finsupp.single i 1)
+  simp
 
 section mkContinuous₂
 
@@ -58,21 +52,16 @@ lemma OrthonormalBasis.inner_eq {𝕜 E ι : Type*} [NormedAddCommGroup E] [RCLi
     · simp
   · simp [h]
 
-theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
+lemma OrthonormalBasis.norm_sq_eq_sum_sq_inner_right {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
     ‖x‖ ^ 2 = ∑ i, ⟪b i, x⟫_ℝ ^ 2 := by
   rw [← b.sum_sq_norm_inner_right]
   simp
 
-theorem OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
+lemma OrthonormalBasis.norm_sq_eq_sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
     ‖x‖ ^ 2 = ∑ i, ⟪x, b i⟫_ℝ ^ 2 := by
   simp_rw [b.norm_sq_eq_sum_sq_inner_right, real_inner_comm]
-
-theorem EuclideanSpace.real_norm_sq_eq {n : Type*} [Fintype n] (x : EuclideanSpace ℝ n) :
-    ‖x‖ ^ 2 = ∑ i, (x i) ^ 2 := by
-  rw [PiLp.norm_sq_eq_of_L2]
-  congr with i; simp
 
 lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpace ℝ ι) :
     ⟪x, y⟫_ℝ = ∑ i, x i * y i := by
@@ -83,17 +72,6 @@ lemma EuclideanSpace.real_inner_eq {ι : Type*} [Fintype ι] (x y : EuclideanSpa
 lemma inner_toDual_symm_eq_self {𝕜 E : Type*} [RCLike 𝕜] [NormedAddCommGroup E]
     [InnerProductSpace 𝕜 E] [CompleteSpace E] (L : StrongDual 𝕜 E) :
   inner 𝕜 ((InnerProductSpace.toDual 𝕜 E).symm L) = L := by ext; simp
-
-lemma InnerProductSpace.toDual_apply_eq_toDualMap_apply {𝕜 E : Type*} [RCLike 𝕜]
-    [NormedAddCommGroup E] [InnerProductSpace 𝕜 E] [CompleteSpace E] (x : E) :
-  InnerProductSpace.toDual 𝕜 E x = InnerProductSpace.toDualMap 𝕜 E x := rfl
-
-theorem OrthonormalBasis.norm_dual {ι E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [Fintype ι] (b : OrthonormalBasis ι ℝ E) (L : StrongDual ℝ E) :
-    ‖L‖ ^ 2 = ∑ i, L (b i) ^ 2 := by
-  have := Module.Basis.finiteDimensional_of_finite b.toBasis
-  simp_rw [← (InnerProductSpace.toDual ℝ E).symm.norm_map, b.norm_sq_eq_sum_sq_inner_left,
-    InnerProductSpace.toDual_symm_apply]
 
 @[simp]
 lemma LinearIsometryEquiv.coe_coe_eq_coe {𝕜 E F : Type*} [RCLike 𝕜] [NormedAddCommGroup E]

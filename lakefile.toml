@@ -9,14 +9,11 @@ relaxedAutoImplicit = false
 weak.linter.flexible = true # no rigid tactic (e.g. `exact`) after a flexible tactic (e.g. `simp`)
 # Enable all mathlib linters: automatically matches what mathlib uses.
 weak.linter.mathlibStandardSet = true
+linter.style.header = false
 
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
-
-[[require]]
-name = "kolmogorov_extension4"
-git = "https://github.com/RemyDegenne/kolmogorov_extension4"
 
 [[require]]
 name = "checkdecls"

@@ -7,17 +7,17 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:        # Allow manual triggering of the workflow from the GitHub Actions interface
+  workflow_dispatch: # Allow manual triggering of the workflow from the GitHub Actions interface
 
 # Cancel previous runs if a new commit is pushed to the same PR or branch
 concurrency:
-  group: ${{ github.ref }}  # Group runs by the ref (branch or PR)
-  cancel-in-progress: true  # Cancel any ongoing runs in the same group
+  group: ${{ github.ref }} # Group runs by the ref (branch or PR)
+  cancel-in-progress: true # Cancel any ongoing runs in the same group
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read  # Read access to repository contents
-  pages: write    # Write access to GitHub Pages
+  contents: write # The dataset's release, and the provenance ledger's branch (the referee site step)
+  pages: write # Write access to GitHub Pages
   id-token: write # Write access to ID tokens
 
 jobs:
@@ -41,24 +41,90 @@ jobs:
           swap-storage: false
 
       - name: Checkout project
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          # Load-bearing for provenance, not just a convenience: the provenance ledger dates what
+          # changed with git, and at the default `fetch-depth: 1` the whole library would date from
+          # the single fetched commit.
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build and lint project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # 2025-07-02
+        uses: leanprover/lean-action@fe408643ea7367d8c0404a8be3975bb145f5fb64 # 2026-01-15
         with:
           build: true
           lint: true
-          mk_all-check: true
+          mk_all-check: false
+
+      # The referee site, by referee-site (LeanTrustBuilders). The action extracts the dataset with
+      # the newest trust-extract release for this project's lean-toolchain (there is one for each
+      # toolchain Mathlib moves to) and publishes it as the release `dataset-<commit12>`; records
+      # the build in the provenance ledger, on the branch `trust-ledger`; and builds the site
+      # against the previous build.
+      #
+      # Guarded on `push`, so that pull requests still build and lint the project without paying for
+      # a site nobody will read, and without recording in the ledger a revision that may never be
+      # merged. Placed before the steps that write into the tree (Verso, the dashboard, docgen), so
+      # that the dataset records the tree as clean.
+      #
+      # Pinned to a tag: referee-site's releases pin the evidence-core and evidence-store releases
+      # they were tested with, so this build changes only when the tag here does.
+      - name: Build the referee site
+        id: referee
+        if: github.event_name == 'push'
+        uses: LeanTrustBuilders/referee-site@v0.12.0
+        with:
+          root: BrownianMotion
+          # An editorial claim, not a derived fact: it says whoever publishes this site vouches for
+          # Mathlib and everything under it, which leaves the packages between this project and
+          # Mathlib (none at the moment) as the ones the trust page reports as unaudited. Drop it
+          # and every upstream package counts as unaudited.
+          trust: mathlib
+          # The dataset follows dependencies into Mathlib and Lean core, so that the site shows
+          # what the library rests on there.
+          extract-args: --upstream-closure term
+          # Lean's kernel checks that each declaration's dependency closure is all it needs. Not
+          # `meaning term`, which checks every proof again and is meant for small libraries.
+          check: meaning
 
       - name: Build Verso Documentation
         run: |
           cd verso
           ./build_manual.sh
 
+      - name: Generate upstreaming dashboard
+        uses: leanprover-community/upstreaming-dashboard-action@main
+        with:
+          website-directory: ./home_page
+          project-name: BrownianMotion
+          branch-name: master
+          search-root: BrownianMotion.Auxiliary
+          include-drafts: true
+
+      # `deploy: false` because the referee site has to be added to the built home page first; the
+      # upload and deployment that this action would have done are the last two steps of this job.
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
+        uses: leanprover-community/docgen-action@7b5b9a1822650bd45aaeb4182d94bceba2030f89 # 2026-04-14
         with:
           blueprint: true
           homepage: home_page
+          deploy: false
+
+      # Into Jekyll's output rather than its input, so that thousands of generated HTML files are
+      # not walked by a site build that would only copy them verbatim anyway.
+      - name: Add the referee site to the home page
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          mkdir -p home_page/_site/referee
+          cp -r "${{ steps.referee.outputs.site }}/." home_page/_site/referee/
+
+      - name: "Upload website (API documentation, blueprint and any home page)"
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: home_page/_site
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

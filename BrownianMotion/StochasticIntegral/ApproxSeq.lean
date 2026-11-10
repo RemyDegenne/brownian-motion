@@ -3,12 +3,16 @@ Copyright (c) 2025 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import BrownianMotion.StochasticIntegral.Cadlag
-import BrownianMotion.StochasticIntegral.UniformIntegrable
+module
+
+public import BrownianMotion.StochasticIntegral.Cadlag
+public import BrownianMotion.StochasticIntegral.UniformIntegrable
 
 /-! # Discrete approximation of a stopping time
 
 -/
+
+@[expose] public section
 
 open Filter TopologicalSpace Function Bornology
 open scoped NNReal ENNReal Topology
@@ -39,11 +43,10 @@ structure DiscreteApproxSequence (𝓕 : Filtration ι mΩ) (τ : Ω → WithTop
 
 instance : FunLike (DiscreteApproxSequence 𝓕 τ μ) ℕ (Ω → WithTop ι) where
   coe s := s.seq
-  coe_injective' s t h := by
-    cases s; cases t; congr
+  coe_injective s t h := by cases s; cases t; congr
 
 -- Should replace `isStoppingTime_const`
-theorem isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
+lemma isStoppingTime_const' {ι : Type*} [Preorder ι] (f : Filtration ι mΩ) (i : WithTop ι) :
     IsStoppingTime f fun _ => i := fun j => by simp only [MeasurableSet.const]
 
 /-- A time index `ι` is said to be approximable if for any stopping time `τ` on `ι`, there exists
@@ -51,8 +54,7 @@ a discrete approximation sequence of `τ`. -/
 class Approximable {ι Ω : Type*} {mΩ : MeasurableSpace Ω} [TopologicalSpace ι] [LinearOrder ι]
     [OrderTopology ι] (𝓕 : Filtration ι mΩ) (μ : Measure Ω := by volume_tac) where
   /-- For any stopping time `τ`, there exists a discrete approximation sequence of `τ`. -/
-  approxSeq :
-    ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
+  approxSeq : ∀ τ : Ω → WithTop ι, IsStoppingTime 𝓕 τ → DiscreteApproxSequence 𝓕 τ μ
 
 /-- Given a stopping time `τ` on an approximable time index, we obtain an associated discrete
 approximation sequence. -/
@@ -60,9 +62,121 @@ def IsStoppingTime.discreteApproxSequence
     (h : IsStoppingTime 𝓕 τ) (μ : Measure Ω) [Approximable 𝓕 μ] :
     DiscreteApproxSequence 𝓕 τ μ := Approximable.approxSeq τ h
 
-instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := sorry
+instance _root_.Nat.approximable {𝓕 : Filtration ℕ mΩ} : Approximable 𝓕 μ := by
+  refine ⟨fun τ hτ ↦ ?_⟩
+  refine ⟨fun _ ↦ τ, fun _ ↦ hτ, ?_, antitone_const, fun _ ↦ le_rfl, ae_of_all _ fun _ ↦ by simp⟩
+  simp only [forall_const]
+  exact (Set.range τ).to_countable
 
-instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable 𝓕 μ := sorry
+section NNRealApprox
+
+/-- The approximation sequence for a stopping time `τ` taking values in `ℝ≥0` defined by
+`nnrealApproxSeq τ n ω = ⌈(τ ω) * 2^n⌉ / 2^n`. -/
+noncomputable def nnrealApproxSeq (τ : Ω → WithTop ℝ≥0) (n : ℕ) (ω : Ω) :
+    WithTop ℝ≥0 :=
+  WithTop.map (fun x : ℝ≥0 ↦ ⌈x * (2 : ℝ≥0) ^ n⌉₊ / (2 : ℝ≥0) ^ n) (τ ω)
+
+lemma nnrealApproxSeq_le_iff (τ : Ω → WithTop ℝ≥0) (n : ℕ) (ω : Ω) (t : ℝ≥0) :
+    nnrealApproxSeq τ n ω ≤ t ↔ τ ω ≤ (⌊t * (2 : ℝ≥0) ^ n⌋₊ / (2 : ℝ≥0) ^ n : ℝ≥0) := by
+  unfold nnrealApproxSeq
+  cases hτ : τ ω with
+  | top => simp only [WithTop.map_top, top_le_iff, WithTop.coe_ne_top]
+  | coe x =>
+    simp only [WithTop.map_coe, WithTop.coe_le_coe]
+    rw [div_le_iff₀ (by positivity), le_div_iff₀ (by positivity)]
+    exact ⟨fun h ↦ le_trans (Nat.le_ceil _) (Nat.cast_le.mpr (Nat.le_floor h)),
+           fun h ↦ le_trans (Nat.cast_le.mpr (Nat.ceil_le.mpr h)) (Nat.floor_le (by positivity))⟩
+
+lemma nnrealApproxSeq_isStoppingTime (𝓕 : Filtration ℝ≥0 mΩ)
+    {τ : Ω → WithTop ℝ≥0} (hτ : IsStoppingTime 𝓕 τ) (n : ℕ) :
+    IsStoppingTime 𝓕 (nnrealApproxSeq τ n) := by
+  intro t
+  have h2 : (0 : ℝ≥0) < (2 : ℝ≥0) ^ n := pow_pos (by norm_num) n
+  set s := ((⌊t * (2 : ℝ≥0) ^ n⌋₊ : ℕ) : ℝ≥0) / (2 : ℝ≥0) ^ n
+  suffices MeasurableSet[𝓕 t] {ω | τ ω ≤ s} by
+    convert this using 1
+    ext ω
+    simp only [Set.mem_ofPred_eq]
+    exact nnrealApproxSeq_le_iff τ n ω t
+  exact 𝓕.mono' (div_le_of_le_mul₀ h2.le (by positivity) (Nat.floor_le (by positivity))) _ (hτ s)
+
+lemma nnrealApproxSeq_countable (τ : Ω → WithTop ℝ≥0) (n : ℕ) :
+    (Set.range (nnrealApproxSeq τ n)).Countable := by
+  apply (Set.countable_range
+    (fun k : ℕ ↦ ((k : ℝ≥0) / (2 : ℝ≥0) ^ n : WithTop ℝ≥0)) |>.insert ⊤).mono
+  rintro _ ⟨ω, rfl⟩
+  simp only [nnrealApproxSeq]
+  cases hτ : τ ω with
+  | top => simp [Set.mem_insert_iff]
+  | coe x =>
+    simp only [WithTop.map_coe, Set.mem_insert_iff, WithTop.coe_ne_top, false_or]
+    exact ⟨⌈x * 2 ^ n⌉₊, rfl⟩
+
+lemma nnrealApproxSeq_antitone (τ : Ω → WithTop ℝ≥0) :
+    Antitone (nnrealApproxSeq τ) := by
+  intro m n hmn ω
+  simp only [nnrealApproxSeq]
+  cases hτ : τ ω with
+  | top => simp
+  | coe x =>
+    simp only [WithTop.map_coe, WithTop.coe_le_coe]
+    erw [div_le_div_iff₀ (by positivity) (by positivity)]
+    have key : (⌈x * 2 ^ n⌉₊ : ℕ) ≤ ⌈x * 2 ^ m⌉₊ * 2 ^ (n - m) := by
+      rw [Nat.ceil_le]
+      calc x * (2 : ℝ≥0) ^ n = x * (2 : ℝ≥0) ^ m * (2 : ℝ≥0) ^ (n - m) := by
+            rw [mul_assoc, ← pow_add, Nat.add_sub_cancel' hmn]
+        _ ≤ (⌈x * 2 ^ m⌉₊ : ℝ≥0) * (2 : ℝ≥0) ^ (n - m) :=
+            mul_le_mul_of_nonneg_right (Nat.le_ceil _) (by positivity)
+        _ = ((⌈x * 2 ^ m⌉₊ * 2 ^ (n - m) : ℕ) : ℝ≥0) := by push_cast; ring
+    calc (⌈x * 2 ^ n⌉₊ : ℝ≥0) * 2 ^ m
+        ≤ ((⌈x * 2 ^ m⌉₊ * 2 ^ (n - m) : ℕ) : ℝ≥0) * 2 ^ m :=
+          mul_le_mul_of_nonneg_right (Nat.cast_le.mpr key) (by positivity)
+      _ = (⌈x * 2 ^ m⌉₊ : ℝ≥0) * ((2 : ℝ≥0) ^ (n - m) * 2 ^ m) := by
+          push_cast; ring
+      _ = (⌈x * 2 ^ m⌉₊ : ℝ≥0) * 2 ^ n := by
+          rw [← pow_add, Nat.sub_add_cancel hmn]
+
+lemma nnrealApproxSeq_le (τ : Ω → WithTop ℝ≥0) (n : ℕ) :
+    τ ≤ nnrealApproxSeq τ n := by
+  intro ω
+  simp only [nnrealApproxSeq]
+  cases hτ : τ ω with
+  | top => simp
+  | coe x =>
+    simp only [WithTop.map_coe, WithTop.coe_le_coe]
+    rw [le_div_iff₀ (pow_pos (by norm_num : (0 : ℝ≥0) < 2) n)]
+    exact Nat.le_ceil _
+
+lemma nnrealApproxSeq_tendsto (τ : Ω → WithTop ℝ≥0) (ω : Ω) :
+    Tendsto (nnrealApproxSeq τ · ω) atTop (𝓝 (τ ω)) := by
+  simp only [nnrealApproxSeq]
+  cases hτ : τ ω with
+  | top => simp
+  | coe x =>
+    simp only [WithTop.map_coe]
+    apply (WithTop.continuous_coe.tendsto x).comp
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
+    · conv_rhs => rw [← add_zero x]
+      exact tendsto_const_nhds.add
+        ((tendsto_inv_atTop_zero.comp (tendsto_pow_atTop_atTop_of_one_lt
+          (by norm_num : (1 : ℝ≥0) < 2))).congr (fun n => (one_mul _).symm))
+    · intro n
+      rw [le_div_iff₀ (pow_pos (by norm_num : (0 : ℝ≥0) < 2) n)]
+      exact Nat.le_ceil _
+    · intro n
+      calc (⌈x * 2 ^ n⌉₊ : ℝ≥0) / 2 ^ n
+          ≤ (x * 2 ^ n + 1) / 2 ^ n :=
+            div_le_div_of_nonneg_right (Nat.ceil_lt_add_one <| by positivity).le (by positivity)
+        _ = x + 1 / 2 ^ n := by
+            rw [add_div, mul_div_cancel_of_imp]
+            exact fun h ↦ absurd h (by positivity)
+
+noncomputable instance _root_.NNReal.approximable {𝓕 : Filtration ℝ≥0 mΩ} : Approximable 𝓕 μ :=
+  ⟨fun τ hτ ↦ ⟨nnrealApproxSeq τ, nnrealApproxSeq_isStoppingTime 𝓕 hτ,
+    nnrealApproxSeq_countable τ, nnrealApproxSeq_antitone τ,
+    nnrealApproxSeq_le τ, ae_of_all _ <| nnrealApproxSeq_tendsto τ⟩⟩
+
+end NNRealApprox
 
 /-- The constant discrete approximation sequence. -/
 def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
@@ -80,9 +194,31 @@ def discreteApproxSequence_const (𝓕 : Filtration ι mΩ) (i : WithTop ι) :
   tendsto := by simp
 
 lemma tendsto_stoppedValue_discreteApproxSequence [Nonempty ι] [TopologicalSpace E]
-    (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, RightContinuous (X · ω)) :
+    (τn : DiscreteApproxSequence 𝓕 τ μ) (hX : ∀ ω, IsRightContinuous (X · ω)) :
     ∀ᵐ ω ∂μ, Tendsto (fun n ↦ stoppedValue X (τn.seq n) ω) atTop (𝓝 (stoppedValue X τ ω)) := by
-  sorry
+  filter_upwards [τn.tendsto] with ω hω
+  simp only [stoppedValue]
+  by_cases hτ : τ ω = ⊤
+  · have (n : ℕ) : τn.seq n ω = ⊤ := by simpa [hτ] using τn.le n ω
+    simp [hτ, this, tendsto_const_nhds]
+  · have : Tendsto (WithTop.untopA ∘ fun x ↦ τn.seq x ω) atTop (𝓝[≥] (τ ω).untopA) := by
+      refine tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within ((WithTop.untopA ∘ fun x ↦
+        τn.seq x ω)) ((WithTop.tendsto_untopA hτ).comp hω) ?_
+      have : {n : ℕ | τn.seq n ω ≠ ⊤} ∈ atTop := by
+        simp only [ne_eq, mem_atTop_sets, Set.mem_ofPred_eq]
+        by_contra!
+        have : Tendsto (fun x ↦ τn.seq x ω) atTop (𝓝 ⊤) := by
+          simp only [tendsto_atTop_nhds]
+          intro _ _ _
+          obtain ⟨N, hN⟩ := this 0
+          refine ⟨N, fun n hn => ?_⟩
+          obtain ⟨M, hM⟩ := this n
+          have : τn.seq n ω = ⊤ := by simpa [hM.2] using (τn.antitone hM.1 ω)
+          grind
+        exact hτ (tendsto_nhds_unique hω this)
+      filter_upwards [this] with n hn
+      simpa using WithTop.untopA_mono hn (τn.le n ω)
+    exact (continuousWithinAt_Ioi_iff_Ici.mp (hX ω (τ ω).untopA)).tendsto.comp this
 
 /-- For `τ` a time bounded by `i` and `τn` a discrete approximation sequence of `τ`,
 `discreteApproxSequence_of` is the discrete approximation sequence of `τ` defined by `τn ∧ i`. -/
@@ -102,6 +238,7 @@ def discreteApproxSequence_of {i : ι}
   tendsto := by
     filter_upwards [τn.tendsto] with ω hω
     convert hω.min (tendsto_const_nhds (x := (i : WithTop ι)))
+    · rfl
     exact (min_eq_left (hτ ω)).symm
 
 lemma discreteApproxSequence_of_le {i : ι}
@@ -197,14 +334,14 @@ lemma integrable_stoppedValue_of_discreteApproxSequence
     le_rfl
 
 lemma aestronglyMeasurable_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     AEStronglyMeasurable (stoppedValue X τ) μ :=
   aestronglyMeasurable_of_tendsto_ae _
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
     (tendsto_stoppedValue_discreteApproxSequence (discreteApproxSequence_of 𝓕 hτ_le τn) hRC)
 
-theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
+lemma stoppedValue_ae_eq_condExp_discreteApproxSequence_of
     (h : Martingale X 𝓕 μ) (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) (m : ℕ) :
     stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn m)
     =ᵐ[μ] μ[X i|((discreteApproxSequence_of 𝓕 hτ_le τn).isStoppingTime m).measurableSpace] :=
@@ -213,7 +350,7 @@ theorem stoppedValue_ae_eq_condExp_discreteApproxSequence_of
       (fun ω ↦ discreteApproxSequence_of_le hτ_le τn m ω) (DiscreteApproxSequence.countable _ m)
 
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     Tendsto (fun i ↦
       eLpNorm (stoppedValue X (discreteApproxSequence_of 𝓕 hτ_le τn i) - stoppedValue X τ) 1 μ)
@@ -221,29 +358,27 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence
   tendsto_Lp_finite_of_tendstoInMeasure le_rfl ENNReal.one_ne_top
     (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
     ((uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le
-    τn).memLp_of_tendstoInMeasure 1 (tendstoInMeasure_of_tendsto_ae
+    τn).memLp_of_tendstoInMeasure (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC))
-    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).2.1
+    (uniformIntegrable_stoppedValue_discreteApproxSequence h hτ_le τn).1
     (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1) <|
       tendsto_stoppedValue_discreteApproxSequence _ hRC)
 
 lemma integrable_stoppedValue_of_discreteApproxSequence'
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (hτ_le : ∀ ω, τ ω ≤ i) (τn : DiscreteApproxSequence 𝓕 τ μ) :
     Integrable (stoppedValue X τ) μ :=
   let τn' := discreteApproxSequence_of 𝓕 hτ_le τn
   UniformIntegrable.integrable_of_tendstoInMeasure
     (h.uniformIntegrable_stoppedValue_of_countable_range τn' τn'.isStoppingTime
       (discreteApproxSequence_of_le hτ_le τn) τn'.countable)
-    (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero
-      (fun m ↦ (integrable_stoppedValue_of_discreteApproxSequence h hτ_le τn m).1)
-      (aestronglyMeasurable_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn') <|
+    (tendstoInMeasure_of_tendsto_eLpNorm one_ne_zero <|
       tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence h hRC hτ_le τn)
 
 lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le
-    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, RightContinuous (X · ω))
+    (h : Martingale X 𝓕 μ) (hRC : ∀ ω, IsRightContinuous (X · ω))
     (τn : DiscreteApproxSequence 𝓕 τ μ) (hτn_le : ∀ n ω, τn n ω ≤ i) :
     Tendsto (fun i ↦ eLpNorm (stoppedValue X (τn i) - stoppedValue X τ) 1 μ) atTop (𝓝 0) := by
   have hτ_le : ∀ ω, τ ω ≤ i := fun ω ↦ (τn.le 0 ω).trans (hτn_le 0 ω)
@@ -251,7 +386,7 @@ lemma tendsto_eLpNorm_stoppedValue_of_discreteApproxSequence_of_le
     (fun m ↦ (((uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
       h τn hτn_le).memLp m).integrable le_rfl).1) ?_
     (h.uniformIntegrable_stoppedValue_of_countable_range τn τn.isStoppingTime
-      hτn_le τn.countable).2.1
+      hτn_le τn.countable).1
     (tendstoInMeasure_of_tendsto_ae
       (fun m ↦ (((uniformIntegrable_stoppedValue_discreteApproxSequence_of_le
       h τn hτn_le).memLp m).integrable le_rfl).1) <|

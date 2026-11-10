@@ -1,4 +1,8 @@
-import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+module
+
+public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+
+@[expose] public section
 
 open MeasureTheory
 

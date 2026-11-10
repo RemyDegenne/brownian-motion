@@ -1,10 +1,14 @@
-import BrownianMotion.Auxiliary.LinearAlgebra
-import Mathlib.LinearAlgebra.Matrix.BilinearForm
-import Mathlib.LinearAlgebra.Matrix.SchurComplement
+module
+
+public import BrownianMotion.Auxiliary.LinearAlgebra
+public import Mathlib.LinearAlgebra.Matrix.BilinearForm
+public import Mathlib.LinearAlgebra.SesquilinearForm.Star
 
 /-!
 # Continuous bilinear forms
 -/
+
+@[expose] public section
 
 open Module
 open scoped Matrix
@@ -28,6 +32,8 @@ def toBilinForm : LinearMap.BilinForm 𝕜 E where
   toFun x := f x
   map_add' x y := by simp
   map_smul' m x := by simp
+
+lemma toBilinForm_eq : f.toBilinForm = ContinuousLinearMap.toBilinForm f := rfl
 
 @[simp]
 lemma toBilinForm_apply (x y : E) : f.toBilinForm x y = f x y := rfl
@@ -57,7 +63,7 @@ variable {f}
 it takes on the diagonal. -/
 lemma IsSymm.polarization (x y : E) (hf : f.IsSymm) :
     f x y = (f (x + y) (x + y) - f x x - f y y) / 2 := by
-  simp only [map_add, ContinuousLinearMap.add_apply]
+  simp only [map_add, add_apply]
   rw [hf.map_symm y x]
   ring
 
@@ -85,7 +91,7 @@ lemma isSymm_iff_basis : f.IsSymm ↔ ∀ i j, f (b i) (b j) = f (b j) (b i) whe
     obtain ⟨fy, ty, iy, -, hy⟩ := Submodule.mem_span_iff_exists_finset_subset.1
       (by simp : y ∈ Submodule.span 𝕜 (Set.range b))
     rw [← hx, ← hy]
-    simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+    simp only [map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul,
       Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum]
     rw [Finset.sum_comm]
     refine Finset.sum_congr rfl (fun b₁ h₁ ↦ Finset.sum_congr rfl fun b₂ h₂ ↦ ?_)
@@ -104,7 +110,7 @@ section toMatrix
 
 /-- A continuous bilinear map on a finite dimensional space can be represented by a matrix. -/
 noncomputable def toMatrix : Matrix n n 𝕜 :=
-  BilinForm.toMatrix b f.toBilinForm
+  LinearMap.BilinForm.toMatrix b f.toBilinForm
 
 @[simp]
 lemma toMatrix_apply (i j : n) : f.toMatrix b i j = f (b i) (b j) := by
@@ -114,7 +120,7 @@ lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
     x ⬝ᵥ (f.toMatrix b) *ᵥ y = f (b.equivFun.symm x) (b.equivFun.symm y) := by
   simp only [dotProduct, Matrix.mulVec_eq_sum, op_smul_eq_smul, Finset.sum_apply, Pi.smul_apply,
     Matrix.transpose_apply, toMatrix_apply, smul_eq_mul, Finset.mul_sum, Basis.equivFun_symm_apply,
-    map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul']
+    map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul]
   rw [Finset.sum_comm]
   refine Finset.sum_congr rfl (fun i _ ↦ Finset.sum_congr rfl fun j _ ↦ ?_)
   ring
@@ -122,7 +128,7 @@ lemma dotProduct_toMatrix_mulVec (x y : n → 𝕜) :
 lemma apply_eq_dotProduct_toMatrix_mulVec (x y : E) :
     f x y = (b.repr x) ⬝ᵥ (f.toMatrix b) *ᵥ (b.repr y) := by
   nth_rw 1 [← b.sum_repr x, ← b.sum_repr y]
-  simp only [map_sum, map_smul, ContinuousLinearMap.coe_sum', ContinuousLinearMap.coe_smul',
+  simp only [map_sum, map_smul, FunLike.coe_sum, FunLike.coe_smul,
     Finset.sum_apply, Pi.smul_apply, smul_eq_mul, Finset.mul_sum, dotProduct, Matrix.mulVec_eq_sum,
     op_smul_eq_smul, Matrix.transpose_apply, toMatrix_apply]
   rw [Finset.sum_comm]
@@ -224,10 +230,22 @@ lemma isPosSemidef_iff : f.IsPosSemidef ↔ f.IsSymm ∧ f.IsPos where
   mp h := ⟨h.isSymm, h.isPos⟩
   mpr := fun ⟨h₁, h₂⟩ ↦ ⟨h₁, h₂⟩
 
+lemma isPosSemidef_iff_bilinForm :
+    f.IsPosSemidef ↔ (f.toBilinForm).IsPosSemidef := by
+  rw [isPosSemidef_iff, LinearMap.BilinForm.isPosSemidef_def]
+  simp [ContinuousBilinForm.isSymm_def, LinearMap.BilinForm.isSymm_def,
+    ContinuousBilinForm.isPos_def, LinearMap.BilinForm.isNonneg_def]
+
 variable {f} [Fintype n] [DecidableEq n]
 
+lemma _root_.LinearMap.BilinForm.isPosSemidef_iff_posSemidef_toMatrix (f : LinearMap.BilinForm ℝ E)
+    (b : Basis n ℝ E) :
+    f.IsPosSemidef ↔ (LinearMap.BilinForm.toMatrix b f).PosSemidef := by
+  rw [LinearMap.BilinForm.isPosSemidef_iff, LinearMap.BilinForm.toMatrix,
+    LinearMap.isPosSemidef_iff_posSemidef_toMatrix b]
+
 lemma isPosSemidef_iff_posSemidef_toMatrix : f.IsPosSemidef ↔ (f.toMatrix b).PosSemidef := by
-  rw [isPosSemidef_iff, Matrix.PosSemidef]
+  rw [isPosSemidef_iff, Matrix.posSemidef_iff_dotProduct_mulVec]
   apply and_congr (f.isSymm_iff_isHermitian_toMatrix b)
   rw [isPos_def]
   refine ⟨fun h x ↦ ?_, fun h x ↦ ?_⟩
@@ -308,7 +326,7 @@ def diagonalStrongDual : ContinuousBilinForm 𝕜 (StrongDual 𝕜 (Π i, E i)) 
     simp only [LinearMap.mk₂_apply, g]
     grw [norm_sum_le, Finset.sum_mul, Finset.sum_mul]
     gcongr with i _
-    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one]
+    grw [le_opNorm₂, opNorm_comp_le, opNorm_comp_le, norm_single_le_one, norm_single_le_one]
     simp
 
 lemma diagonalStrongDual_apply (x y : StrongDual 𝕜 (Π i, E i)) :

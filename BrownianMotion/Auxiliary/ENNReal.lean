@@ -1,15 +1,15 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-import Mathlib.Data.ENat.Lattice
-import Mathlib.Data.Real.ENatENNReal
-import Mathlib.Order.CompletePartialOrder
+module
 
-open ENNReal NNReal
+public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+
+public section
+
+open ENNReal
 
 namespace ENNReal
 
-lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, ((1 : ENNReal) / 2) ^ i ≤ 2 := by
-  rw [← ENNReal.toReal_le_toReal (by simp) (by simp), toReal_ofNat, toReal_sum (by simp)]
-  simpa [-one_div] using _root_.sum_geometric_two_le _
+protected lemma sum_geometric_two_le (n : ℕ) : ∑ i ∈ Finset.range n, (2⁻¹ : ℝ≥0∞) ^ i ≤ 2 :=
+  (_root_.sum_le_tsum _).trans_eq ENNReal.tsum_geometric_two
 
 lemma ofReal_one_div {x : ℝ} (hx : 0 < x) :
     ENNReal.ofReal (1 / x) = 1 / (ENNReal.ofReal x) := by
@@ -34,29 +34,22 @@ lemma one_le_toReal {p : ℝ≥0∞} (hp1 : 1 ≤ p) (hp2 : p ≠ ⊤) : 1 ≤ p
 lemma toReal_pos_of_one_le {p : ℝ≥0∞} (hp1 : 1 ≤ p) (hp2 : p ≠ ⊤) : 0 < p.toReal :=
     LT.lt.trans_le (by simp) (one_le_toReal hp1 hp2)
 
-end ENNReal
+lemma rpow_iSup {ι : Type*} (f : ι → ℝ≥0∞) {x : ℝ} (hx : 0 < x) :
+    (⨆ i, f i) ^ x = ⨆ i, (f i) ^ x :=
+  letI g : ℝ≥0∞ ≃o ℝ≥0∞ :=
+    {
+      toFun a := a ^ x
+      invFun a := a ^ (1 / x)
+      map_rel_iff' {a b} := by simpa using ENNReal.rpow_le_rpow_iff hx
+      left_inv a := by simpa using Or.inl hx.ne'
+      right_inv a := by simpa using Or.inl hx.ne'
+    }
+  g.map_iSup _
 
-@[norm_cast]
-lemma ENat.toENNReal_iSup {ι : Sort*} (f : ι → ℕ∞) : ⨆ i, f i = ⨆ i, (f i : ℝ≥0∞) := by
-  refine eq_of_forall_ge_iff fun c ↦ ⟨fun h ↦ ?_, fun h ↦ ?_⟩
-  · exact iSup_le fun i ↦ le_trans (ENat.toENNReal_le.2 (le_iSup f i)) h
-  · obtain rfl | hc := eq_or_ne c ⊤
-    · exact le_top
-    lift c to ℝ≥0 using hc
-    have (i : ι) : f i ≤ Nat.floor c := by
-      have := (le_iSup _ i).trans h
-      have h' : f i ≠ ⊤ := by
-        rw [← ENat.toENNReal_ne_top]
-        exact this.trans_lt ENNReal.coe_lt_top |>.ne
-      lift f i to ℕ using h' with k
-      norm_cast
-      change ((k : ℝ≥0) : ℝ≥0∞) ≤ c at this
-      exact Nat.le_floor_iff (zero_le _) |>.2 <| ENNReal.coe_le_coe.1 this
-    calc
-    (↑(⨆ i, f i) : ℝ≥0∞) ≤ Nat.floor c := by
-      change (↑(⨆ i, f i) : ℝ≥0∞) ≤ ((Nat.floor c : ENat) : ℝ≥0∞)
-      exact ENat.toENNReal_le.2 (iSup_le this)
-    _ ≤ c := by norm_cast; exact Nat.floor_le (zero_le _)
+protected lemma div_pow (a b : ℝ≥0∞) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n := by
+  rw [div_eq_mul_inv, div_eq_mul_inv, mul_pow, ENNReal.inv_pow]
+
+end ENNReal
 
 @[gcongr]
 alias ⟨_, ENat.toENNReal_le'⟩ := ENat.toENNReal_le
