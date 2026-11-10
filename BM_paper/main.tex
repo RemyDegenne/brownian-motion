@@ -100,7 +100,7 @@ Brownian motion is a building block in modern probability theory. In this paper,
 The goal of the present paper is to describe a formalization of Brownian motion using \Lean \cite{lean, moura2021lean}, building on its mathematical library \mathlib \cite{mathlib}. For this paper we use the following definition of Brownian motion (there are many equivalent characterizations, e.g.\ Definition 2.12 with Proposition 2.3 of~\cite{LeGall2016}).
 
 \begin{definition}[Stochastic process]
-  Let $(\Omega, P)$ be a probability space, $T$ an index set and $E$ be a measurable space. A \emph{stochastic process} on $T$ with values in $E$ is a collection of $E$-valued random variables indexed by $T$, i.e. a family $(X_t)_{t \in T}$ with each $X_t : \Omega \to E$ being measurable.
+  Let $(\Omega, P)$ be a probability space, $T$ an index set and $E$ be a measurable space. A \emph{stochastic process} on $T$ with values in $E$ is a collection of $E$-valued random variables indexed by $T$, i.e. a family $(X_t)_{t \in T}$ with each $X_t : \Omega \to E$ being everywhere equal to a measurable function.
 
   There is no analogous definition in \mathlib, when needed we simply add a measurability hypothesis in the statement.
 \end{definition}
@@ -163,7 +163,7 @@ Before making the project public, we thus spent time detailing every step of the
 We started by implementing in \Lean several key definitions and statements (without proofs): there are always several ways to turn a mathematical concept into a \Lean definition, and in order to collaborate on a project it is important to decide early on a unique way to talk about any concept to ensure compatibility of the code produced, even if the definition chosen can then be refined.
 Different parts of the blueprint had different levels of details: we wrote a precise description of the technical Kolmogorov-Chentsov proof, but omitted many proofs for more standard results on Gaussian distributions.
 
-The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L. and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress. (The full list of contributors is in the acknowledgements.)
+The project was announced on the \href{https://leanprover.zulipchat.com/}{Lean Zulip website}, and anyone interested was invited to contribute. D.L. and E.M. joined the project at that time and then contributed significantly to the formalization. The coordination of the project was done through discussions in a Zulip channel: lists of tasks and progress updates were regularly posted, and volunteers could claim the tasks and report on their progress. (The full list of contributors to the parts of the project described here is in the acknowledgements.)
 The correctness of the code was ensured by continuous integration scripts on github, which automatically check that the code compiles without errors, and by manual review of the proposed additions.
 The blueprint continued to evolve during the formalization, as new lemmas were added (once because a small gap was identified in the blueprint proof), definitions were changed to better fit the needs of writing in \Lean, and small mistakes were corrected (particularly in the exact value of constants used in the Kolmogorov-Chentsov proof).
 
@@ -845,10 +845,10 @@ Then there exists a set $K \subseteq J^2$ such that for any pseudo-metric space 
 Under the assumptions of Theorem~\ref{thm:kolmogorov_chentsov}, we prove that for any countable subset $T' \subseteq T$,
 \begin{align*}
   \mathbf{E}\left[ \sup_{s, t \in T'} \frac{d_E(X_s, X_t)^p}{d_T(s, t)^{\beta p}} \right]
-  \le M L(T, c, d, p, q, \beta)
+  \le M L(c, d, p, q, \beta)
   \: ,
 \end{align*}
-for a finite constant $L(T, c, d, p, q, \beta)$ to be determined.
+for a finite constant $L(c, d, p, q, \beta)$ to be determined.
 This section does not cover all details of the proof, for which we refer to \cite{kratschmer2023kolmogorov} and to our blueprint. We only highlight the main steps, key arguments, and places that are relevant to the formalization specifically.
 In particular, we explain why the pair reduction Lemma~\ref{lem:pair_reduction} is needed in the proof.
 
@@ -869,7 +869,7 @@ $
   \mathbf{E}\left[ \sup_{s, t \in J,\: d_T(s, t) \le \delta} d_E(X_s, X_t)^p \right]
   \: .
 $
-We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(T, c, d, p, q, \beta)$.
+We will then check that the series we obtain when summing over $k$ converges when $\beta < (q - d)/p$, and its value will be the constant $L(c, d, p, q, \beta)$.
 
 \begin{lemma}[\bmlink{Continuity/IsKolmogorovProcess}{L994-L1000}{ProbabilityTheory.finite_set_bound_of_edist_le}]\label{lem:finite_set_bound_of_dist_le}
 For $J$ a finite set with bounded covering number with constant $c > 0$ and exponent $d > 0$, for $X$ a stochastic process that satisfies the Kolmogorov condition for exponents $(p, q)$ with constant $M$, with $q > d$ and $p > 0$, and for $\delta > 0$, we have
