@@ -91,8 +91,11 @@ def HasStronglyMeasurableSupProcess [LinearOrder ι] [MeasurableSpace ι] (X : �
 
 lemma hasStronglyMeasurableSupProcess_const [LinearOrder ι] [MeasurableSpace ι] (c : E) :
     HasStronglyMeasurableSupProcess (fun _ _ ↦ c : ι → Ω → E) (mΩ := mΩ) := by
-  simp only [HasStronglyMeasurableSupProcess]
-  sorry
+  have hsup (t : ι) : (⨆ s ≤ t, ‖c‖ₑ) = ‖c‖ₑ :=
+    le_antisymm (iSup₂_le fun _ _ ↦ le_rfl)
+      (le_iSup₂ (f := fun s (_ : s ≤ t) ↦ ‖c‖ₑ) t le_rfl)
+  simpa only [HasStronglyMeasurableSupProcess, hsup] using
+    (stronglyMeasurable_const : StronglyMeasurable (fun _ : ι × Ω ↦ ‖c‖ₑ))
 
 /-- A stochastic process has integrable supremum if the function `(t, ω) ↦ sup_{s ≤ t} ‖X s ω‖`
 is strongly measurable and if for all `t`, the random variable `ω ↦ sup_{s ≤ t} ‖X s ω‖`
